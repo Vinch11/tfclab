@@ -46,9 +46,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2520,
+            "min": 2010,
             "base": 2520,
-            "max": 2520
+            "max": 3030
           },
           "domain": "moderate_lt1",
           "label": "Première moitié stable",
@@ -68,9 +68,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2520,
+            "min": 2010,
             "base": 2520,
-            "max": 2520
+            "max": 3030
           },
           "domain": "moderate_lt1",
           "label": "Deuxième moitié, même puissance",
@@ -89,7 +89,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_042",
@@ -135,9 +136,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 4680,
+            "min": 3750,
             "base": 4680,
-            "max": 4680
+            "max": 5610
           },
           "domain": "moderate_lt1",
           "label": "Cadence libre sous LT1",
@@ -156,7 +157,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_043",
@@ -235,7 +237,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_044",
@@ -281,9 +284,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2880,
+            "min": 2310,
             "base": 2880,
-            "max": 2880
+            "max": 3450
           },
           "domain": "moderate_lt1",
           "label": "Ravitaillement individualisé 1",
@@ -303,9 +306,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2880,
+            "min": 2310,
             "base": 2880,
-            "max": 2880
+            "max": 3450
           },
           "domain": "moderate_lt1",
           "label": "Ravitaillement individualisé 2",
@@ -324,7 +327,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_045",
@@ -393,9 +397,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 3300,
+            "min": 2640,
             "base": 3300,
-            "max": 3300
+            "max": 3960
           },
           "domain": "moderate_lt1",
           "label": "Endurance régulière",
@@ -414,7 +418,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_046",
@@ -460,9 +465,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 9000,
+            "min": 7200,
             "base": 9000,
-            "max": 9000
+            "max": 10800
           },
           "domain": "moderate_lt1",
           "label": "Contrôle dérive et alimentation",
@@ -481,7 +486,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_047",
@@ -537,9 +543,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 1680,
+                "min": 1350,
                 "base": 1680,
-                "max": 1680
+                "max": 2010
               },
               "domain": "moderate_lt1",
               "label": "Bloc LT1 en environnement ventilé",
@@ -560,7 +566,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_048",
@@ -653,7 +660,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_049",
@@ -702,9 +710,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1800,
+            "min": 1440,
             "base": 1800,
-            "max": 1800
+            "max": 2160
           },
           "domain": "moderate_lt1",
           "label": "Posture naturelle",
@@ -724,9 +732,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1920,
+            "min": 1530,
             "base": 1920,
-            "max": 1920
+            "max": 2310
           },
           "domain": "moderate_lt1",
           "label": "Posture contrôlée",
@@ -745,7 +753,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_050",
@@ -791,9 +800,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2100,
+            "min": 1680,
             "base": 2100,
-            "max": 2100
+            "max": 2520
           },
           "domain": "moderate_lt1",
           "label": "Plat régulier",
@@ -813,9 +822,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1620,
+            "min": 1290,
             "base": 1620,
-            "max": 1620
+            "max": 1950
           },
           "domain": "moderate_lt1",
           "label": "Montée à puissance plafonnée",
@@ -834,7 +843,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_051",
@@ -992,7 +1002,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_052",
@@ -1085,7 +1096,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_053",
@@ -1134,9 +1146,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2100,
+            "min": 1680,
             "base": 2100,
-            "max": 2100
+            "max": 2520
           },
           "domain": "moderate_lt1",
           "label": "Endurance",
@@ -1178,7 +1190,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_054",
@@ -1237,9 +1250,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 1440,
+                "min": 1290,
                 "base": 1440,
-                "max": 1440
+                "max": 1590
               },
               "domain": "tempo",
               "label": "Ascension contrôlée",
@@ -1260,7 +1273,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_055",
@@ -1331,9 +1345,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1080,
+            "min": 960,
             "base": 1080,
-            "max": 1080
+            "max": 1200
           },
           "domain": "tempo",
           "label": "Tempo haut sans franchir MLSS",
@@ -1352,7 +1366,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_056",
@@ -1401,9 +1416,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1200,
             "base": 1500,
-            "max": 1500
+            "max": 1800
           },
           "domain": "moderate_lt1",
           "label": "Effort à intensité contrôlée",
@@ -1412,9 +1427,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1560,
+            "min": 1410,
             "base": 1560,
-            "max": 1560
+            "max": 1710
           },
           "domain": "tempo",
           "label": "Tempo stable",
@@ -1423,9 +1438,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1200,
             "base": 1500,
-            "max": 1500
+            "max": 1800
           },
           "domain": "moderate_lt1",
           "label": "Effort à intensité contrôlée",
@@ -1444,7 +1459,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_057",
@@ -1537,7 +1553,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_058",
@@ -1609,9 +1626,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1320,
+            "min": 1200,
             "base": 1320,
-            "max": 1320
+            "max": 1440
           },
           "domain": "tempo",
           "label": "Tempo spontané",
@@ -1630,7 +1647,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_059",
@@ -1700,9 +1718,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 900,
+                "min": 810,
                 "base": 900,
-                "max": 900
+                "max": 990
               },
               "domain": "tempo",
               "label": "Face au vent, rester stable",
@@ -1723,7 +1741,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_060",
@@ -1772,9 +1791,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 4320,
+            "min": 3450,
             "base": 4320,
-            "max": 4320
+            "max": 5190
           },
           "domain": "moderate_lt1",
           "label": "Pré-fatigue",
@@ -1783,9 +1802,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1380,
+            "min": 1230,
             "base": 1380,
-            "max": 1380
+            "max": 1530
           },
           "domain": "tempo",
           "label": "Bloc tempo final",
@@ -1804,7 +1823,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_061",
@@ -1885,7 +1905,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_062",
@@ -2042,7 +2063,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_063",
@@ -2134,7 +2156,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_064",
@@ -2215,7 +2238,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_065",
@@ -2296,7 +2320,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_066",
@@ -2377,7 +2402,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_067",
@@ -2458,7 +2484,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_068",
@@ -2539,7 +2566,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_069",
@@ -2674,7 +2702,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_070",
@@ -2778,7 +2807,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_071",
@@ -2857,7 +2887,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_072",
@@ -2936,7 +2967,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_073",
@@ -3015,7 +3047,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_074",
@@ -3117,7 +3150,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_075",
@@ -3219,7 +3253,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_076",
@@ -3374,7 +3409,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_077",
@@ -3497,7 +3533,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_078",
@@ -3576,7 +3613,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_079",
@@ -3655,7 +3693,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_080",
@@ -3734,7 +3773,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_081",
@@ -3783,9 +3823,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2100,
+            "min": 1680,
             "base": 2100,
-            "max": 2100
+            "max": 2520
           },
           "domain": "moderate_lt1",
           "label": "Départ modéré",
@@ -3794,9 +3834,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 5400,
+            "min": 4860,
             "base": 5400,
-            "max": 5400
+            "max": 5940
           },
           "domain": "im_pace",
           "label": "Puissance Ironman",
@@ -3826,7 +3866,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_082",
@@ -3885,9 +3926,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 2700,
+                "min": 2430,
                 "base": 2700,
-                "max": 2700
+                "max": 2970
               },
               "domain": "im_pace",
               "label": "Puissance Ironman avec ravitaillement",
@@ -3908,7 +3949,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_083",
@@ -3957,9 +3999,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 5700,
+            "min": 4560,
             "base": 5700,
-            "max": 5700
+            "max": 6840
           },
           "domain": "moderate_lt1",
           "label": "Préfatigue aérobie",
@@ -3968,9 +4010,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2700,
+            "min": 2430,
             "base": 2700,
-            "max": 2700
+            "max": 2970
           },
           "domain": "im_pace",
           "label": "Bloc Ironman final",
@@ -3989,7 +4031,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_084",
@@ -4038,9 +4081,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1200,
             "base": 1500,
-            "max": 1500
+            "max": 1800
           },
           "domain": "moderate_lt1",
           "label": "Départ prudent",
@@ -4049,9 +4092,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1350,
             "base": 1500,
-            "max": 1500
+            "max": 1650
           },
           "domain": "703_pace",
           "label": "Établir allure course",
@@ -4060,9 +4103,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 1080,
             "base": 1200,
-            "max": 1200
+            "max": 1320
           },
           "domain": "703_pace",
           "label": "Maintenir effort",
@@ -4081,7 +4124,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_085",
@@ -4174,7 +4218,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_086",
@@ -4244,9 +4289,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 900,
+                "min": 810,
                 "base": 900,
-                "max": 900
+                "max": 990
               },
               "domain": "tempo",
               "label": "Puissance olympique individualisée",
@@ -4267,7 +4312,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_087",
@@ -4326,9 +4372,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 960,
+                "min": 870,
                 "base": 960,
-                "max": 960
+                "max": 1050
               },
               "domain": "tempo",
               "label": "CLM en position aéro",
@@ -4349,7 +4395,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_088",
@@ -4442,7 +4489,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_089",
@@ -4535,7 +4583,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_090",
@@ -4584,9 +4633,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1200,
+            "min": 960,
             "base": 1200,
-            "max": 1200
+            "max": 1440
           },
           "domain": "moderate_lt1",
           "label": "Effort à intensité contrôlée",
@@ -4605,9 +4654,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 1500,
+                "min": 1350,
                 "base": 1500,
-                "max": 1500
+                "max": 1650
               },
               "domain": "703_pace",
               "label": "Puissance course et nutrition",
@@ -4628,7 +4677,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_091",
@@ -4677,9 +4727,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 1500,
+            "min": 1200,
             "base": 1500,
-            "max": 1500
+            "max": 1800
           },
           "domain": "recovery",
           "label": "Décontraction",
@@ -4698,7 +4748,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_092",
@@ -4780,7 +4831,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_093",
@@ -4859,7 +4911,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_094",
@@ -4949,7 +5002,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_095",
@@ -5028,7 +5082,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_096",
@@ -5119,7 +5174,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_097",
@@ -5200,7 +5256,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_098",
@@ -5248,9 +5305,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2400,
+            "min": 1920,
             "base": 2400,
-            "max": 2400
+            "max": 2880
           },
           "domain": "moderate_lt1",
           "label": "Référence",
@@ -5270,9 +5327,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 2400,
+            "min": 1920,
             "base": 2400,
-            "max": 2400
+            "max": 2880
           },
           "domain": "moderate_lt1",
           "label": "Comparaison",
@@ -5291,7 +5348,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_099",
@@ -5404,7 +5462,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     },
     {
       "id": "V3P_BIKE_100",
@@ -5485,7 +5544,8 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
     }
   ]
 }
