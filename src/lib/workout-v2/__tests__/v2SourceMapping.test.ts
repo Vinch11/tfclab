@@ -4,6 +4,13 @@ describe("V1->V2 source mapping with proof, never assumed equivalence",()=>{
  it("classifies 920 sources explicitly and prevents implicit approval",()=>{
   const rows=proposeV2SourceFamilies(),summary=v2SourceMappingSummary();
   expect(rows).toHaveLength(920);
+  expect(summary.needsMetadata).toBe(889); // 895 initial undocumented minus 6 V1 Main-verified overlays
+  for(const id of ["D_SEMI_RECOVERY_30","D_SWIM_TRI_REGEN_1000","D_IM_BRICK_REGEN","D_BIKE_RECOVERY","D_RUN_REGEN","D_SWIM_REGEN"]){
+    const row=rows.find(r=>r.sourceId===id);
+    expect(row?.sourceIntent).toBe("recovery");
+    expect(row?.candidateFamilyIds.length).toBeGreaterThan(0);
+    expect(row?.migrated).toBe(false);
+  }
   expect(new Set(rows.map(r=>r.sourceId)).size).toBe(920);
   expect(summary.total).toBe(summary.needsMetadata+summary.needsSportReview+summary.missingFamily+summary.candidateForReview);
   expect(rows.every(r=>r.migrated===false&&r.coachApproved===false)).toBe(true);
