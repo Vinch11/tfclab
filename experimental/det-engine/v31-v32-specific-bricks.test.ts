@@ -45,6 +45,12 @@ describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
   expect(p.specificBrickReport.accepted.every(m=>
     m.tags.includes('two-reviewed-components')&&m.goals.includes('half'))).toBe(true);
   expect(p.allBricks).toHaveLength(4);
+  expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[0]))
+    .toEqual(['V3P_BIKE_090','V3P_RUN_041']);
+  expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[1]))
+    .toEqual(['V3P_BIKE_057','V3P_RUN_041']);
+  expect(p.contract.consumedSourceIds?.(p.specificBrickReport.accepted[2]))
+    .toEqual(['V3P_BIKE_085','V3P_RUN_041']);
  });
  it('leaves all the bricks unavailable when no synthetic coach reviews are supplied',()=>{
   const p=buildDetV3ContractFromCatalogue([]);
@@ -116,5 +122,9 @@ describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
   // A build-phase quality composition cannot masquerade as recovery.
   expect(afterBridge.contract.filterCandidate?.(afterBridge.specificBrickReport.accepted[0],
     {week:4,phase:'build',weekType:'recovery',slot:{sport:'brick'},dayIndex:5})).toBe(false);
+  expect(afterBridge.contract.filterCandidate?.(afterBridge.specificBrickReport.accepted[2],
+    {week:12,phase:'peak',weekType:'race',slot:{sport:'brick'},dayIndex:5})).toBe(false);
+  expect(afterBridge.contract.filterCandidate?.(afterBridge.specificBrickReport.accepted[2],
+    {week:11,phase:'peak',weekType:'taper',slot:{sport:'brick'},dayIndex:5})).toBe(false);
  });
 });
