@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { WORKOUT_V2_MODELS, WORKOUT_V2_GOALS, WORKOUT_V2_SPORTS, workoutV2Coverage } from "../catalog";
-import { instantiateWorkoutV2, type AthleteAnchor, type WorkoutV2Input } from "../instantiate";
+import { WORKOUT_V2_MODELS, WORKOUT_V2_GOALS, WORKOUT_V2_SPORTS, workoutV2Coverage } from "../../../../experimental/workout-v2/catalog";
+import { instantiateWorkoutV2, type AthleteAnchor, type WorkoutV2Input } from "../../../../experimental/workout-v2/instantiate";
 
 const anchors: NonNullable<WorkoutV2Input["anchors"]> = {
   ftpW: { value: 270, verified: true, sport: "bike" },
