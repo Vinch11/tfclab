@@ -1,7 +1,8 @@
 /**
  * Preview-only bounded session fitting. It never changes the physiological
  * domain, inserts sessions, or makes a candidate coach/production-approved.
- * Changing the number of work sets requires an explicit coach-preview flag.
+ * Changing high-intensity duration or workset counts requires an explicit
+ * coach-preview flag; default fitting may change only recovery/moderate work.
  * The weekly planner MUST separately validate load, phase, limiters & recovery.
  */
 import {
@@ -46,6 +47,7 @@ function collect(blocks: V3Block[], prefix = "", allowWorksetChange = false): Kn
     ];
     if (block.kind === "time" && block.seconds!.max > block.seconds!.min) {
       const isEasy = block.domain === "recovery" || block.domain === "moderate_lt1";
+      if (!isEasy && !allowWorksetChange) return [];
       return [{ path: path + ".seconds", kind: "seconds" as const, priority: isEasy ? 0 : 1,
         values: discrete(block.seconds!.min, block.seconds!.base, block.seconds!.max, 30) }];
     }
