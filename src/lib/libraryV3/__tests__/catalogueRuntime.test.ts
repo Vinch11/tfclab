@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { fitV3Duration } from "../../../../scripts/library-v3/durationFitter";
 import { previewV3Workout } from "../../../../scripts/library-v3/coachPreview";
 import {
   auditV3Catalogue, evaluateV3Workout, v3PilotCatalogue,
@@ -170,5 +171,37 @@ describe("TFCLab V3 — 400 candidate coverage and non-duplication", () => {
       }
       walk(w.blocks);
     }
+  });
+});
+describe("TFCLab V3 — deterministic bounded slot fitting (PREVIEW ONLY)", () => {
+  it("can fit 96 min threshold bike by selecting an allowed additional block, never changing its domain", () => {
+    const w = byId("V3P_BIKE_008");
+    const original = JSON.stringify(w);
+    const fitted = fitV3Duration(w, 96);
+    expect(fitted.code).toBe("FIT_WITHIN_DECLARED_BOUNDS");
+    expect(fitted.fitsSlot).toBe(true);
+    expect(fitted.computed.minutes).toBe(96);
+    expect(fitted.automaticSelectionAllowed).toBe(false);
+    expect(JSON.stringify(w)).toBe(original);
+  });
+  it("refuses a target that cannot be reached within bounded variants", () => {
+    const result = fitV3Duration(byId("V3P_BIKE_008"), 180);
+    expect(result.fitsSlot).toBe(false);
+    expect(result.code).toBe("OUTSIDE_DECLARED_BOUNDS");
+  });
+  it("refuses swimming slot-duration fitting without the relevant actual pace", () => {
+    const result = fitV3Duration(byId("V3P_SWIM_007"), 40);
+    expect(result.code).toBe("SWIM_PACE_REQUIRED");
+    expect(result.fitsSlot).toBe(false);
+  });
+  it("never converts estimated strength time into an exact scheduled 50min slot", () => {
+    const result = fitV3Duration(byId("V3P_STRENGTH_001"), 50);
+    expect(result.code).toBe("STRENGTH_DURATION_ONLY_ESTIMATED");
+    expect(result.automaticSelectionAllowed).toBe(false);
+  });
+  it("refuses invalid targets before any optimization", () => {
+    const result = fitV3Duration(byId("V3P_BIKE_008"), -1);
+    expect(result.code).toBe("INVALID_TARGET");
+    expect(result.fitsSlot).toBe(false);
   });
 });
