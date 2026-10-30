@@ -52,6 +52,15 @@ function cat(intent: V3Workout["primaryIntent"]): LibraryWorkout["cat"] {
   return "B";
 }
 export const V3_ENGINE_IDS = new Set(v3FullCatalogue.workouts.map(w => w.id));
+
+/** Fail-closed release/sync guard shared by plan page and Nolio controls. */
+export function planContainsV3Candidate(
+  plan: { weeks?: readonly { sessions?: readonly unknown[] }[] } | null | undefined,
+): boolean {
+  return !!plan?.weeks?.some(week =>
+    week.sessions?.some(session => /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session))));
+}
+
 export function lookupV3Recipe(id: string): V3Workout | null {
   return v3FullCatalogue.workouts.find(w => w.id === id) ?? null;
 }
