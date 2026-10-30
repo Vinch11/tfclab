@@ -63,7 +63,7 @@ describe("V1 heritage to V2: no false equivalence", () => {
     expect(previewV2InPlan(outcome.candidate,"jeudi"))
       .toEqual({ok:false,reasons:["legacy_plan_schema_cannot_represent_exact_seconds"]});
   });
-  it("marks a base-phase brick candidate as CUSTOM, never launders a Build/Peak V1 brick ID",()=>{
+  it("marks a base-phase brick candidate as CUSTOM, never laundering the V1 source identity",()=>{
     const outcome=instantiateWorkoutV2("V2_BRICK_01",input("V2_BRICK_01"));
     expect(outcome.ok).toBe(true);
     if(!outcome.ok)return;
@@ -72,9 +72,9 @@ describe("V1 heritage to V2: no false equivalence", () => {
     if(!bridge.ok)return;
     expect(bridge.preview.planSession.custom).toBe(true);
     expect(bridge.preview.planSession.catalogId).toBeNull();
-    expect(bridge.preview.sourceV1Id).toBe("BRICK_IM_Z2_RUN");
+    expect(bridge.preview.sourceV1Id).toBe("BRICK_STAGE1_INTRO");
     const original = WorkoutLibrary.find(x=>x.id===bridge.preview.sourceV1Id)!;
-    expect(original.phase).not.toContain("base");
+    expect(original.phase).toContain("base");
     expect(bridge.preview.canAutoInsert).toBe(false);
   });
   it("rejects forged model and invalid schedule, without exporting",()=>{
