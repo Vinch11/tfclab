@@ -71,7 +71,8 @@ export function fitWorkoutV2ToDuration(
     }
   }
   enumerate(0);
-  if(!winner)return {ok:false,reasons:attempts>=MAX_CANDIDATES?["search_budget_exhausted_without_exact_fit"]:["no_exact_recipe_within_declared_knobs"],attempts};
+  const chosen = winner as WorkoutV2Candidate | null;
+  if(!chosen)return {ok:false,reasons:attempts>=MAX_CANDIDATES?["search_budget_exhausted_without_exact_fit"]:["no_exact_recipe_within_declared_knobs"],attempts};
   // Only deliver a candidate, NEVER mark it as approved or auto-insertable.
-  return {ok:true,candidate:winner,attempts,selected:Object.fromEntries(ranges.map(({key})=>[key,winner!.parameters[key]!]))};
+  return {ok:true,candidate:chosen,attempts,selected:Object.fromEntries(ranges.map(({key})=>[key,chosen.parameters[key]!]))};
 }
