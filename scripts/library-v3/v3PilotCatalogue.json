@@ -6646,15 +6646,15 @@
       "id": "V3P_BIKE_040",
       "version": "3.0.0-pilot",
       "sport": "bike",
-      "title": "Test terrain 20 min non interprété automatiquement",
+      "title": "Contrôle sous-seuil 20 min standardisé",
       "primaryIntent": "test",
-      "primaryDomain": "mlss",
+      "primaryDomain": "sub_threshold",
       "phase": [
         "base",
         "build"
       ],
       "minimumLevel": "trained",
-      "focus": "Mesure terrain répétable, pas conversion automatique en MLSS",
+      "focus": "Reproductibilité de l'effort sous-seuil; ne sert ni à diagnostiquer MLSS ni à calculer FTP",
       "origin": "TFCLab — composition originale fondée sur principes, jamais reproduction attribuée à un entraîneur",
       "evidence": {
         "referenceIds": [
@@ -6717,8 +6717,8 @@
             "base": 1200,
             "max": 1200
           },
-          "domain": "mlss",
-          "label": "Effort maximal régulier de 20 min; enregistrer conditions",
+          "domain": "sub_threshold",
+          "label": "20 min régulier sous MLSS estimé; enregistrer FC, watts, RPE et conditions",
           "role": "main"
         },
         {
