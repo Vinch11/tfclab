@@ -21,7 +21,7 @@ export function examineD111WeeklyProfiles():D111Week[] {
    const common={profile,week:w.week,volumeMin:w.volumeMin,
     originalCriticalCodes:candidate.criticalDetails.filter(i=>i.week===w.week).map(i=>i.code),
     sportApproved:false as const,canExport:false as const};
-   if(!evidence.ok)return {...common,sourceVerified:false,reasonCodes:evidence.reasons,
+   if(evidence.ok===false)return {...common,sourceVerified:false,reasonCodes:evidence.reasons,
     nominal:null,plus3:null};
    return {...common,sourceVerified:true,reasonCodes:[],
     nominal:examineD110TimeRatio(evidence.sessions),
