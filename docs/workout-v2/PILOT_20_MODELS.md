@@ -125,3 +125,16 @@ Une première version de `fitWorkoutV2ToDuration` pouvait composer 100 min sans 
 **Conséquence opérationnelle :** il faut une décision sportive documentée sur le rôle du brick (sortie longue remplacée par le brick, ou brick court distinct d'une sortie longue), suivie d'un contrat source approprié et d'une preuve de capacité individuelle. Ni augmenter une durée maximale dans une fiche, ni insérer une transition, ni créer 100 modèles supplémentaires ne constitue cette décision. Aucun quota/phase/plancher n'a été changé.
 
 Cette confrontation **n'est pas** une exécution du D1 original ni une certification de son éventuel parcours complet. Elle utilise exactement ses exigences documentées pour prouver le conflit source/dose et l'absence de levée de NO-GO par la bibliothèque.
+
+
+## D1.2 — Option de calendrier **non appliquée** : brick court + sortie longue indépendante
+
+Module `experimental/workout-v2/separatedBrickProof.ts`, tests `src/lib/workout-v2/__tests__/separatedBrickProof.test.ts`.
+
+Le quota réel `computeWeeklySessionQuota("703","age_group",10,"load")` est **3 nages / 3 vélos / 3 courses / 1 brick / 1 renforcement**, 11 créneaux, deux créneaux/jour maximum, au moins un jour sans séance. La politique actuelle `effectiveSessionQuota` soustrait une séance vélo **et une séance totale** si un brick est présent : il reste 10 créneaux physiques au minimum. Séparer réellement le brick de la sortie longue tout en conservant toutes les fréquences initiales exigerait **11 créneaux physiques**, donc une révision explicite de cette convention. Aucun calcul de volume, durée ou capacité individuelle n'en découle automatiquement.
+
+Un calendrier synthétique de **créneaux seulement** est construit en lecture seule (repos lundi, sortie longue course mercredi, sortie longue vélo samedi, brick dimanche). Il démontre la possibilité **combinatoire** d'installer les 11 créneaux sur six jours à deux séances maximum. Il n'exécute pas DET ENGINE, ne produit aucun plan de 28 jours et ne valide ni les 10 h, ni la récupération, ni l'équivalence des doses. Il affiche les jours d'exposition course/vélo adjacents pour revue sportive.
+
+**Critère d'arrêt :** pas de modification de `weeklySlotLayout.ts`, `validateWeeklyQuotas.ts`, `sessionQuotaAccounting.ts` ou des planchers sans arbitrage sportif explicite de l'utilisateur. Ce sous-lot évite les faux GO : une possibilité de placement ne démontre ni l'entraînabilité ni la sécurité d'un plan individualisé.
+
+**Décision encore nécessaire :** autoriser expérimentalement la séparation avec (a) conservation des 3 vélos autonomes et 1 brick, (b) examen des contraintes de récupération/jours, (c) vérification de la somme de durées et (d) revue des preuves individuelles, ou conserver la politique actuelle et ses refus.
