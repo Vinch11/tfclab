@@ -6,6 +6,7 @@ import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationF
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { constructDeterministicPlan } from './engine';
+import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 
 const review:V3ReviewedSettings={
   id:'V3P_BIKE_002',athleteLevel:'trained',athleteLevelSource:'manual',
@@ -80,6 +81,35 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    expect(explicitlyApproved.report.accepted[0].durationMin).toEqual([96,96]);
    const original=v3FullCatalogue.workouts.find(w=>w.id===highIntensity.id)!;
    expect(evaluateV3Workout(original).minutes).toBe(78);
+ });
+ it('composes an exact 120min base 70.3 brick only after both component reviews and a separate brick approval',()=>{
+   const bike={...review,objective:'703'};
+   const run={...review,id:'V3P_RUN_001',objective:'703'};
+   const brick={id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true as const,transitionSeconds:300};
+   const missing=buildDetV3ContractFromCatalogue([bike],[brick]);
+   expect(missing.brickReport.accepted).toHaveLength(0);
+   expect(missing.brickReport.rejected[0].reason).toBe('brick_component_individual_review_missing');
+   const real=buildDetV3ContractFromCatalogue([bike,run],[brick]);
+   expect(real.report.accepted).toHaveLength(2);
+   expect(real.brickReport.accepted).toHaveLength(1);
+   const candidate=real.brickReport.accepted[0];
+   expect(candidate.id).toBe(V3_BASE_BRICK_ID);
+   expect(candidate.sport).toBe('brick');
+   expect(candidate.durationMin).toEqual([120,120]);
+   expect(candidate.phases).toEqual(['base']);
+   expect(candidate.structure).toContain('Vélo 80 min');
+   expect(candidate.structure).toContain('Transition 5 min');
+   expect(candidate.structure).toContain('Course 35 min');
+   expect(candidate.goals).toEqual(['half']);
+   expect(candidate.mainZoneMax).toBe(2);
+   expect(real.report.sourceCount).toBe(400);
+   expect(v3FullCatalogue.workouts).toHaveLength(400);
+   const badTransition=buildDetV3ContractFromCatalogue([bike,run],[{...brick,transitionSeconds:305}]);
+   expect(badTransition.brickReport.accepted).toHaveLength(0);
+   expect(badTransition.brickReport.rejected[0].reason).toContain('transition');
+   const mismatched=buildDetV3ContractFromCatalogue([bike,run],[{...brick,objective:'IM'}]);
+   expect(mismatched.brickReport.accepted).toHaveLength(0);
+   expect(mismatched.brickReport.rejected[0].reason).toContain('objective');
  });
  it('rejects unrecognized IDs, without turning a catalogue review into a scientific signoff',()=>{
    expect(()=>buildDetV3ContractFromCatalogue([{...review,id:'V3P_BIKE_999'}]))
