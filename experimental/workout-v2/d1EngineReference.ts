@@ -22,6 +22,9 @@ export interface ExperimentalAssemblyContract {
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
   /** D1.5 opt-in, reviewed candidate priority ONLY; the domain and all safeguards are unchanged. */
   preferReviewedCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number;prescribedDurationSec:number})=>boolean;
+  /** OPT-IN ONLY: each load week must select a reviewed threshold/VO2 card.
+   * Refuse when no verified review exists. Never insert HIT as a default. */
+  requireReviewedQualityWeekly?: boolean;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -122,6 +125,24 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           });
       });
       if(options.some(domain=>!domain.length))return refuse(`empty_catalogue_domain_week_${w.week}`);
+      // Strict, explicitly opt-in QA mode: a slot key flag alone is NOT
+      // evidence of a threshold/VO2 training stimulus. A reviewed card must
+      // be actually selected. No dose review => no invented HIT.
+      const reviewedQuality = (s:ParsedSession):boolean => {
+        if(!experimentalContract?.requireReviewedQualityWeekly || !s.catalogId)return false;
+        const m=catalog.find(m=>m.id===s.catalogId);
+        const source=slots.find(x=>x.dayIndex===s.dayIndex&&x.slot.sport===s.sport);
+        if(!m||!source?.slot.isKeySession||
+            !["seuil","vo2"].includes(m.intentFamily))return false;
+        return experimentalContract.preferReviewedCandidate?.(m,{
+          ...context,week:w.week,slot:source.slot,dayIndex:s.dayIndex,
+          prescribedDurationSec:(s.durationMin??0)*60,
+        })===true;
+      };
+      const requireReviewed = experimentalContract?.requireReviewedQualityWeekly===true&&
+        w.weekType==="load";
+      if(requireReviewed&&!options.some(domain=>domain.some(reviewedQuality)))
+        return refuse(`reviewed_quality_unavailable_week_${w.week}`);
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
@@ -130,7 +151,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
-        if(index===slots.length)return true;
+        if(index===slots.length)return !requireReviewed || chosen.some(reviewedQuality);
         for(const session of order[index].domain) {
           const id=session.catalogId;
           const m=id?catalog.find(m=>m.id===id):undefined;
