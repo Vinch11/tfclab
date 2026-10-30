@@ -53,6 +53,7 @@ function collect(blocks: V3Block[], prefix = "", allowWorksetChange = false): Kn
     }
     if (block.kind === "distance" && block.meters!.max > block.meters!.min) {
       const isEasy = block.domain === "recovery" || block.domain === "moderate_lt1";
+      if (!isEasy && !allowWorksetChange) return [];
       return [{ path: path + ".meters", kind: "meters" as const, priority: isEasy ? 0 : 2,
         values: discrete(block.meters!.min, block.meters!.base, block.meters!.max, 25) }];
     }
