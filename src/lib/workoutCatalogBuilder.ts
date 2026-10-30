@@ -782,7 +782,18 @@ export function buildWorkoutCatalog(
   // transformer `trainingLevel` en preuve d'une VMA insuffisante serait une
   // estimation, pas une vérification (consigne coach explicite).
   const v3PilotCandidates = options?.v3CoachPilot
-    ? buildV3CoachPilotPool(options.v3CoachPilot).accepted
+    ? buildV3CoachPilotPool(options.v3CoachPilot).accepted.filter(w => {
+        // Coach-reviewed ID alone is not evidence that the athlete has the
+        // minimum training level. The coach must enter it manually in TFCLab.
+        const signal = options.beginnerIntensitySignal;
+        if (!signal || signal.trainingLevelSource !== "manual") return false;
+        const ranks: Record<string, number> = {
+          untrained: 0, light: 1, trained: 2, highly_trained: 3,
+        };
+        const athleteRank = ranks[signal.trainingLevel];
+        const minimumRank = ranks[w.prerequisites?.minimumTrainingLevel ?? "untrained"];
+        return athleteRank !== undefined && minimumRank !== undefined && athleteRank >= minimumRank;
+      })
     : [];
   const SourceLibrary = [...WorkoutLibrary, ...v3PilotCandidates].filter(
     w => s2rGoal === (w.goals || []).includes("start_to_run")
