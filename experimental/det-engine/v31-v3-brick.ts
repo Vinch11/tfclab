@@ -1,5 +1,6 @@
 /**
- * One explicitly reviewed aerobic 70.3 brick in BASE from existing V3 sources.
+ * One explicitly reviewed aerobic 70.3 brick in BASE from existing V3 sources,
+ * with exact duration recomputed from bounded, individually configured components.
  * This is an EXPERIMENTAL COMPOSITION, not a 401st single-sport source or a
  * scientifically validated session. No automatic release or catalogue rewrite.
  */
