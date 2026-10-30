@@ -10,7 +10,7 @@ import {fitWorkoutV2ToDuration} from "./fit";
 import {previewV2InPlan} from "./planBridge";
 import {attachD110SourceBrickProof} from "./d110V1BrickSourceProof";
 import {examineD110TimeRatio,type D110Decision} from "./d110TimeRatioFeasibility";
-import {nativeChecks,type D18Issue} from "./d18ReplacementReview";
+import {nativeChecks} from "./d18ReplacementReview";
 import type {DayLower} from "@/lib/plan/planSchema";
 
 type Sport="bike"|"run";
