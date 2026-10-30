@@ -1,0 +1,30 @@
+{
+  "version": "d1-fixtures-1",
+  "frozenAt": "2026-10-30T07:15:00Z",
+  "clock": "2026-10-26T12:00:00Z",
+  "planStartDate": "2026-10-26",
+  "objective": "703",
+  "level": "trained",
+  "ambition": "age_group",
+  "rotationSeed": 0,
+  "maxNodes": 20000,
+  "profiles": [
+    "aerobic_dominant",
+    "glycolytic_dominant",
+    "balanced_typical"
+  ],
+  "constraints": "unrestricted",
+  "load": "known_synthetic",
+  "negativeCases": [
+    "unsupported_objective",
+    "unsupported_level",
+    "unsupported_ambition",
+    "unsupported_horizon",
+    "missing_start_date",
+    "all_sports_prohibited"
+  ],
+  "acceptance": "No fixture is declared admissible before actual generation and unchanged validation. No unknown reference is filled to obtain success.",
+  "blockWeeks": 4,
+  "preparationHorizon": "native 12 weeks from existing 703 fixture; declared event retained",
+  "amendment": "Integration correction before final execution: retain native preparation horizon and race date; project first four weeks only. Initial 4-week horizon correctly refused as declared_event_outside_plan (week 12). No sporting rule or physiology changed."
+}
