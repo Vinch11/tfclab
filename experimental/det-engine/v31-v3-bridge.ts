@@ -95,6 +95,15 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    const family=FAMILIES[card.primaryIntent];
    const normalizedGoal=normalizeRepairGoal(approval.objective);
    if(!normalizedGoal){refuse('unknown_race_objective');continue;}
+   // A race-specific anchor is NOT a generic interchangeable race pace.
+   // Distinguish an IM pacing source from a 70.3 prescription, and vice versa.
+   if(card.primaryIntent==='race_specific' &&
+      ((card.primaryDomain==='im_pace' && normalizedGoal!=='ironman') ||
+       (card.primaryDomain==='703_pace' && normalizedGoal!=='half') ||
+       (card.primaryDomain==='marathon_pace' && !['marathon','ironman'].includes(normalizedGoal)) ||
+       (card.primaryDomain==='semi_pace' && normalizedGoal!=='semi'))){
+    refuse('race_specific_anchor_incompatible_with_objective');continue;
+   }
    if(!family||!mainZones.length||!sport||card.sport==='strength'){refuse('unsupported_sport_or_intent');continue;}
    const meta:RepairWorkoutMetadata={
     metadataVersion:1,complete:true,id:card.id,sport,title:card.title,objective:card.focus,
