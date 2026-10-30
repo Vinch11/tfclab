@@ -119,6 +119,7 @@ export function materializeV3ForPlanEngine(
  * Scientific validation is not claimed, and no real plan is published.
  */
 export function buildV3CoachPilotPool(ctx: V3CoachPilotContext): V3AdapterResult {
+  if (ctx.acknowledgedExperimentalRisk !== true) throw new Error("V3_COACH_ACK_REQUIRED");
   const accepted: LibraryWorkout[] = [];
   const rejected: V3AdapterResult["rejected"] = [];
   for (const recipe of v3FullCatalogue.workouts) {
