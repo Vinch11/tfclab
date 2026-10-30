@@ -12,6 +12,12 @@ test.describe("D1.9 offline reviewer", () => {
     await expect(page.getByTestId("d19-no-go")).toContainText("NO-GO");
     await expect(page.getByTestId("d19-weeks")).toHaveText("4/4");
     await expect(page.getByTestId("d19-original-critical")).toHaveText("4");
+    await expect(page.getByTestId("d110-time-feasibility")).toBeVisible();
+    await expect(page.getByTestId("d110-bounds-swim")).toContainText("%");
+    await expect(page.getByTestId("d110-bounds-bike")).toContainText("%");
+    await expect(page.getByTestId("d110-bounds-run")).toContainText("%");
+    await expect(page.getByTestId("d110-time-feasibility")).toContainText("NO-GO");
+
     await expect(page.getByText("2026-10-26")).toBeVisible();
     await page.getByTestId("d19-week-4").click();
     await expect(page.getByText("2026-11-22")).toBeVisible();
