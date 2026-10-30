@@ -1,7 +1,7 @@
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
-import type { V3CoachPilotContext } from "@/lib/v3EngineBridge";
+import { planContainsV3Candidate, type V3CoachPilotContext } from "@/lib/v3EngineBridge";
 /**
  * AIPlanViewer — Interactive structured view of a parsed AI training plan
  */
@@ -950,8 +950,7 @@ export function AIPlanViewer({ plan: planProp, v3CoachPilot, onPlanChange, start
     if (onPlanChange) onPlanChange(updated); else setLocalPlan(updated);
   }, [plan, onPlanChange]);
   // V3 pilot prescriptions must never expose one-click/bulk real Nolio sending.
-  const hasV3PilotSessions = useMemo(() => plan.weeks.some(week => week.sessions.some(session =>
-    /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session)))), [plan]);
+  const hasV3PilotSessions = useMemo(() => planContainsV3Candidate(plan), [plan]);
   const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan, undefined, v3CoachPilot), [plan, v3CoachPilot]);
   const hasCoachBudget = Object.values(plan.weeklyQuotas ?? {}).some(entry => !!entry.volumeBudget);
   // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
