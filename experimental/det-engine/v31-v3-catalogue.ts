@@ -14,6 +14,7 @@ import {
   buildDetV3Contract, type DetV3Review, type V3SourceCard,
 } from './v31-v3-bridge';
 import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
+import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import type { ExperimentalAssemblyContract } from './engine';
 
 export interface V3ReviewedSettings extends DetV3Review {
@@ -105,7 +106,8 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
  * With no athlete-specific reviews, it MUST admit exactly zero sessions.
  */
 export function buildDetV3ContractFromCatalogue(
-  reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[]
+  reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[],
+  specificBrickReviews:readonly V32SpecificBrickReview[]=[]
 ) {
   const auditErrors=auditV3Catalogue(v3FullCatalogue);
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
@@ -139,22 +141,25 @@ export function buildDetV3ContractFromCatalogue(
     if(why)rejection.reason=why;
   }
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
-  const brickById=new Map(brickReport.accepted.map(card=>[card.id,card]));
-  const preferredBrickIds=new Set<string>(brickReviews.filter(review=>review.preferReviewedV3===true &&
-    brickById.has(review.id)).map(review=>review.id));
+  const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
+  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted];
+  const brickById=new Map(allBricks.map(card=>[card.id,card]));
+  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews]
+    .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
+    .map(review=>review.id));
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
     adapt(preparation,config){
       sourceContract.adapt(preparation,config);
-      if(!brickReport.accepted.length)return;
+      if(!allBricks.length)return;
       for(const phase of Object.keys(preparation.phaseRepairCatalogs)){
         preparation.phaseRepairCatalogs[phase]=[
           ...(preparation.phaseRepairCatalogs[phase]??[]),
-          ...brickReport.accepted.filter(card=>card.phases.includes(phase)),
+          ...allBricks.filter(card=>card.phases.includes(phase)),
         ];
       }
       for(const rows of [preparation.chunkRepairCatalogs,preparation.chunkRegenRepairCatalogs])
-        rows.forEach((row,i)=>{rows[i]=[...row,...brickReport.accepted];});
+        rows.forEach((row,i)=>{rows[i]=[...row,...allBricks];});
     },
     filterCandidate(card,ctx){
       const brick=brickById.get(card.id);
@@ -174,5 +179,5 @@ export function buildDetV3ContractFromCatalogue(
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
   };
-  return {contract,report,brickReport,auditErrors,sourceCounts:v3FullCatalogue.counts};
+  return {contract,report,brickReport,specificBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
 }
