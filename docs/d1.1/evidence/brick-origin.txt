@@ -1,0 +1,21 @@
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 171)   // PHASE 2A.4 — RÈGLE D'ALTERNANCE BRICK/SL VÉLO :
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 172)   //   Si un brick est requis ET longRideWeekly, le brick prend le samedi
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 173)   //   AVEC isLongSession=true, minDurationMin = slLongRideMin + 20 (le brick
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 174)   //   contient la sortie longue vélo). On NE programme PAS de SL vélo dédiée
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 175)   //   cette semaine-là, et la cible bike autonome est décrémentée de 1
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 176)   //   (le brick compte comme la sollicitation vélo longue).
+a8bd971c9 (Vinch11               2026-10-27 11:42:53 +0100 177)   const longBikeDay = (["samedi", ...(useAvailableDays ? ["dimanche", "vendredi", "jeudi", "mercredi", "mardi", "lundi"] : [])] as DayName[])
+a8bd971c9 (Vinch11               2026-10-27 11:42:53 +0100 178)     .find(d => canAdd(d, remaining.brick > 0 ? "brick" : "bike"));
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 179)   const brickAsSLBike =
+a8bd971c9 (Vinch11               2026-10-27 11:42:53 +0100 180)     remaining.brick > 0 && !!floors.longRideWeekly && !!longBikeDay;
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 181) 
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 182)   if (brickAsSLBike) {
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 183)     const slBikeMin = floors.slLongRideMin ?? 0;
+a8bd971c9 (Vinch11               2026-10-27 11:42:53 +0100 184)     findDay(longBikeDay!).slots.push({
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 185)       sport: "brick",
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 186)       isLongSession: true,
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 187)       isKeySession: true,
+d32e6567d (gpt-engineer-app[bot] 2026-07-14 14:36:32 +0000 188)       minDurationMin: slBikeMin > 0 ? slBikeMin + 20 : undefined,
+57ceeb1eb (gpt-engineer-app[bot] 2026-07-14 09:39:27 +0000  98)   "703": {
+13cc2b0f9 (gpt-engineer-app[bot] 2026-07-14 11:34:29 +0000  99)     finisher:   { hoursMin: 5,  hoursMax: 8,  swim: { min: 2, max: 2 }, bike: { min: 2, max: 2 }, run: { min: 2, max: 3 }, brick: { min: 0, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 7,  max: 9  }, maxSessionsPerDay: 2, minFullRestDays: 1 },
+57ceeb1eb (gpt-engineer-app[bot] 2026-07-14 09:39:27 +0000 100)     age_group:  { hoursMin: 8,  hoursMax: 11, swim: { min: 3, max: 3 }, bike: { min: 3, max: 3 }, run: { min: 3, max: 3 }, brick: { min: 1, max: 1 }, strength: { min: 1, max: 1 }, totalSessions: { min: 11, max: 11 }, maxSessionsPerDay: 2, minFullRestDays: 1 },

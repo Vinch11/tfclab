@@ -1,0 +1,41 @@
+{
+  "baseline": "b984096d25c47509590a24c4535a5ff9b41d0536",
+  "files": [
+    {
+      "path": "experimental/det-engine/engine.ts",
+      "unchanged": true,
+      "sha256": "0038bfac5c92bdaccdd2ae18d4b2af1c0d2e97451dcdd19ed797a59fb6e328cf"
+    },
+    {
+      "path": "src/engines/plan/weeklySlotLayout.ts",
+      "unchanged": true,
+      "sha256": "be6976f6a31b1bee02384ba112e8f83abd8f879069f027d9e017707d82fe61bb"
+    },
+    {
+      "path": "src/engines/plan/sessionSizingMatrix.ts",
+      "unchanged": true,
+      "sha256": "2f7c096bccb594bea3da821caab3d48c526f81805c38561a800a5c52f1934c4f"
+    },
+    {
+      "path": "src/lib/plan/validateWeeklyQuotas.ts",
+      "unchanged": true,
+      "sha256": "c21ffd8fa8c73c3b44bc533093baf305631e93a295faad044b035a530f628e4f"
+    },
+    {
+      "path": "src/lib/zones/tfclDoctrine.ts",
+      "unchanged": true,
+      "sha256": "2a93efaf679089f74ae2065a77699b1048fa34d528ac826bd2feaa9165c24231"
+    },
+    {
+      "path": "docs/d1/fixtures.json",
+      "unchanged": true,
+      "sha256": "0b4cd2a92496569369239309f467f0d4a8f3de98292a62c46c2399975f772887"
+    }
+  ],
+  "unchangedReleaseContracts": {
+    "contractHash": "432e7b4f032474ea8e2c4e7d9508767904034de121324efd937650ea10773383",
+    "catalogueHash": "81bcb1b2556b9bc1ed1e2f625dff9344cc6f2bd12141dd4796e8cd5dfb9d4b03",
+    "lockHash": "43e54e8dc3084150720a2ffdf7cb508a4559e40f79afa6c0ddc0d1964251f719"
+  },
+  "unchangedEdgeFunctions": true
+}

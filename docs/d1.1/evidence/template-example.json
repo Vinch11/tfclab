@@ -1,0 +1,277 @@
+{
+  "scope": "ADDITIONAL SYNTHETIC TEMPLATE TEST; NOT A D1 PROFILE OR GENERATED CALENDAR",
+  "parameters": {
+    "bike": {
+      "warmupSeconds": 600,
+      "mainSeconds": 2400,
+      "cooldownSeconds": 600
+    },
+    "run": {
+      "warmupSeconds": 300,
+      "mainSeconds": 600,
+      "cooldownSeconds": 300
+    },
+    "transition": {
+      "seconds": 120,
+      "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+      "instructions": "Descendre du vélo à l’arrêt ; poser le vélo ; changer de chaussures et retirer le casque ; démarrer la course sans accélérer. Fenêtre déclarée de 120 s, aucun sprint de transition."
+    },
+    "anchors": {
+      "ftpWatts": 265,
+      "runThresholdSecPerKm": 240,
+      "evidence": {
+        "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+        "asOf": "2026-10-26"
+      }
+    },
+    "capacity": {
+      "bikeSeconds": 3600,
+      "runSeconds": 1200,
+      "brickElapsedSeconds": 4920,
+      "evidence": {
+        "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+        "asOf": "2026-10-26"
+      }
+    },
+    "prescription": {
+      "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+      "asOf": "2026-10-26"
+    }
+  },
+  "context": {
+    "objective": "703",
+    "phase": "base",
+    "trainingLevel": "trained",
+    "ambition": "age_group",
+    "evaluationDate": "2026-10-26",
+    "sessionDate": "2026-10-26",
+    "minimumBikeSeconds": 0,
+    "minimumElapsedSeconds": 3600,
+    "availableSeconds": 5400,
+    "limiters": [
+      "TTE"
+    ],
+    "readiness": "favourable",
+    "disciplineAvailable": {
+      "bike": true,
+      "run": true
+    },
+    "monitoringInstructions": "Revue coach datée : récupération favorable, pas de douleur. Arrêter en cas de douleur ou d’intolérance et demander réévaluation, sans compensation."
+  },
+  "result": {
+    "status": "compiled_for_review",
+    "reasons": [],
+    "session": {
+      "modelId": "brick-base-703-v2",
+      "version": "1.0.0",
+      "sourceId": "BRICK_STAGE1_INTRO",
+      "sourceReference": "e31ffaba7d1fcefff8a60910713fd1fe9f18f89b",
+      "objective": "Adaptation vélo-course et sensations de transition en phase base",
+      "target": "703",
+      "phase": "base",
+      "discipline": "brick",
+      "segments": [
+        {
+          "discipline": "bike",
+          "role": "warmup",
+          "seconds": 600,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "moderate_lt1",
+            "zone": "Z2",
+            "reference": 265,
+            "unit": "W",
+            "ceiling": 198.75,
+            "minimum": 145.75,
+            "semantics": "range",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z2 facile, domaine modéré ≤ LT1 ; effort continu, sans accélération."
+        },
+        {
+          "discipline": "bike",
+          "role": "main",
+          "seconds": 2400,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "moderate_lt1",
+            "zone": "Z2",
+            "reference": 265,
+            "unit": "W",
+            "ceiling": 198.75,
+            "minimum": 145.75,
+            "semantics": "range",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z2 facile, domaine modéré ≤ LT1 ; effort continu, sans accélération."
+        },
+        {
+          "discipline": "bike",
+          "role": "cooldown",
+          "seconds": 600,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "moderate_lt1",
+            "zone": "Z2",
+            "reference": 265,
+            "unit": "W",
+            "ceiling": 198.75,
+            "minimum": 145.75,
+            "semantics": "range",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z2 facile, domaine modéré ≤ LT1 ; effort continu, sans accélération."
+        },
+        {
+          "discipline": "transition",
+          "role": "transition",
+          "seconds": 120,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": null,
+          "instructions": "Descendre du vélo à l’arrêt ; poser le vélo ; changer de chaussures et retirer le casque ; démarrer la course sans accélérer. Fenêtre déclarée de 120 s, aucun sprint de transition."
+        },
+        {
+          "discipline": "run",
+          "role": "warmup",
+          "seconds": 300,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "recovery",
+            "zone": "Z1",
+            "reference": 15,
+            "unit": "km/h",
+            "ceiling": 11.25,
+            "minimum": null,
+            "semantics": "ceiling",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z1 très facile ; adaptation aux sensations de transition, sans recherche d’allure de compétition."
+        },
+        {
+          "discipline": "run",
+          "role": "main",
+          "seconds": 600,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "recovery",
+            "zone": "Z1",
+            "reference": 15,
+            "unit": "km/h",
+            "ceiling": 11.25,
+            "minimum": null,
+            "semantics": "ceiling",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z1 très facile ; adaptation aux sensations de transition, sans recherche d’allure de compétition."
+        },
+        {
+          "discipline": "run",
+          "role": "cooldown",
+          "seconds": 300,
+          "repetitions": 1,
+          "recoveryBetweenRepetitionsSeconds": 0,
+          "intensity": {
+            "domain": "recovery",
+            "zone": "Z1",
+            "reference": 15,
+            "unit": "km/h",
+            "ceiling": 11.25,
+            "minimum": null,
+            "semantics": "ceiling",
+            "source": {
+              "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+              "asOf": "2026-10-26"
+            }
+          },
+          "instructions": "Z1 très facile ; adaptation aux sensations de transition, sans recherche d’allure de compétition."
+        }
+      ],
+      "exerciseSeconds": 4800,
+      "transitionSeconds": 120,
+      "elapsedSeconds": 4920,
+      "parameters": {
+        "bike": {
+          "warmupSeconds": 600,
+          "mainSeconds": 2400,
+          "cooldownSeconds": 600
+        },
+        "run": {
+          "warmupSeconds": 300,
+          "mainSeconds": 600,
+          "cooldownSeconds": 300
+        },
+        "transition": {
+          "seconds": 120,
+          "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+          "instructions": "Descendre du vélo à l’arrêt ; poser le vélo ; changer de chaussures et retirer le casque ; démarrer la course sans accélérer. Fenêtre déclarée de 120 s, aucun sprint de transition."
+        },
+        "anchors": {
+          "ftpWatts": 265,
+          "runThresholdSecPerKm": 240,
+          "evidence": {
+            "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+            "asOf": "2026-10-26"
+          }
+        },
+        "capacity": {
+          "bikeSeconds": 3600,
+          "runSeconds": 1200,
+          "brickElapsedSeconds": 4920,
+          "evidence": {
+            "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+            "asOf": "2026-10-26"
+          }
+        },
+        "prescription": {
+          "source": "SYNTHETIC COACH INPUT — template acceptance only, absent from unchanged D1 profiles",
+          "asOf": "2026-10-26"
+        }
+      },
+      "context": {
+        "objective": "703",
+        "phase": "base",
+        "trainingLevel": "trained",
+        "ambition": "age_group",
+        "evaluationDate": "2026-10-26",
+        "sessionDate": "2026-10-26",
+        "minimumBikeSeconds": 0,
+        "minimumElapsedSeconds": 3600,
+        "availableSeconds": 5400,
+        "limiters": [
+          "TTE"
+        ],
+        "readiness": "favourable",
+        "disciplineAvailable": {
+          "bike": true,
+          "run": true
+        },
+        "monitoringInstructions": "Revue coach datée : récupération favorable, pas de douleur. Arrêter en cas de douleur ou d’intolérance et demander réévaluation, sans compensation."
+      },
+      "limiterDecision": "Source de base facile inchangée ; aucune conversion limiteur → durée démontrée. Dose explicitement prescrite par le coach.",
+      "technicallyExecutable": true,
+      "individualPrescriptionApproved": false,
+      "scientificallyValidated": false
+    }
+  }
+}
