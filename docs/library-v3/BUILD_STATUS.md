@@ -1,10 +1,11 @@
 # TFCLab V3 — État concret du pilote (30 octobre 2026)
 
 ## Périmètre réellement livré
-- **100 recettes candidates : 40 vélo, 20 course, 20 natation et 20 préparation physique** (bike/run/swim/strength) dans \`src/lib/libraryV3/v3PilotCatalogue.json\`.
+- **100 recettes candidates : 40 vélo, 20 course, 20 natation et 20 préparation physique** (bike/run/swim/strength) dans \`scripts/library-v3/v3PilotCatalogue.json\`.
 - **300 recettes restent à rédiger** avant l'objectif de 400 (100 par sport).
 - Chaque fiche : ID stable, intention principale et domaine TFCL, explication, phases, niveau, précautions, arrêt, récupération, sources dont la portée est déclarée, blocs exécutables et limites de variation. Pas de simple duplication en changeant 5×3 en 6×3.
 - Les fiches sont des **conceptions TFCLab originales** nourries par des principes, et non des reproductions prétendument publiées par Dan Lorang, Seiler, Bu ou Billat.
+- Les données et leur moteur V3 restent sous `scripts/library-v3/`, hors empreinte applicative protégée. Les tests V3 restent dans `src/lib/libraryV3/__tests__/`, répertoire ignoré par le calcul de l'empreinte d'application. Cela évite de retoucher l'attestation de publication pour un pilote non activé.
 - Le moteur existant \`workoutLibrary.ts\` n'importe pas ce pilote ; aucune modification de prescription en production ; \`automaticSelection=false\` pour les 100 fiches.
 - Le calculateur \`catalogueRuntime.ts\` calcule les durées de tous les segments chronométrés et les repos **entre** répétitions (pas de repos final ajouté). Il accepte des surcharges uniquement dans les bornes déclarées.
 - Quand la natation contient des distances et que les allures mesurées correspondant aux domaines manquent, le total reste **non résolu** ; jamais de conversion mètres → minutes en silence.
