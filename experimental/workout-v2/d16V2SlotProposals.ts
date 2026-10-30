@@ -123,7 +123,7 @@ export function proposeD16V2ForSlot(input: D16Request): D16Result {
       anchors: input.anchors, maxDurationSec: slot.durationSec,
     };
     const fit: FitResult = fitWorkoutV2ToDuration(model.id, athleteInput, slot.durationSec);
-    if (!fit.ok) { rejectedModels.push({ modelId: model.id, reasons: fit.reasons }); continue; }
+    if (fit.ok === false) { rejectedModels.push({ modelId: model.id, reasons: fit.reasons }); continue; }
     const chosen = fit.candidate;
     // Only target-work steps; warm-up, cooldown, and recoveries are never
     // misclassified as actual threshold / VO2 stimulus minutes.
@@ -139,7 +139,7 @@ export function proposeD16V2ForSlot(input: D16Request): D16Result {
       continue;
     }
     const preview = previewV2InPlan(chosen, slot.day);
-    if (!preview.ok) {
+    if (preview.ok === false) {
       rejectedModels.push({ modelId: model.id, reasons: preview.reasons });
       continue;
     }
@@ -157,7 +157,7 @@ export function proposeD16V2ForSlot(input: D16Request): D16Result {
       phaseCompatible: true, readinessCompatible: true,
     }]);
     proposals.push({
-      modelId: model.id, chosen, preview, stimulusAudit,
+      modelId: model.id, chosen, preview: preview.preview, stimulusAudit,
       targetWorkSeconds, fitAttempts: fit.attempts,
     });
   }
