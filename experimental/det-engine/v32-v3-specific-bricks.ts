@@ -71,7 +71,7 @@ export function composeReviewedV32SpecificBricks(
     // These three blueprints require source baselines; changing even easy
     // components can change the endurance/quality balance of the combined
     // stimulus and needs a new individually reviewed blueprint.
-    const plannedTotal=Number(blueprint.id.split('_').at(-1));
+    const plannedTotal=Number(blueprint.id.split('_').slice(-1)[0]);
     if(!Number.isSafeInteger(total)||total!==plannedTotal||
        bikeMin<=0||runMin<=0||total>180){
       refuse('v32_exact_blueprint_dose_mismatch');continue;
