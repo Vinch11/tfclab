@@ -1,6 +1,7 @@
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
+import type { V3CoachPilotContext } from "@/lib/v3EngineBridge";
 /**
  * AIPlanViewer — Interactive structured view of a parsed AI training plan
  */
@@ -334,6 +335,7 @@ function formatRaceTimeHM(sec: number): string {
 
 interface SessionCardProps {
   session: ParsedSession;
+  v3CoachPilot?: V3CoachPilotContext;
   date?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
@@ -342,7 +344,7 @@ interface SessionCardProps {
   planTotalWeeks?: number;
 }
 
-function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
+function SessionCard({ session: rawSession, v3CoachPilot, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
 
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
@@ -387,7 +389,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
   );
 
   const catalogueIssues = useMemo(() => validateSessionCataloguePlan({ weeks: [{ weekNumber: session.weekNumber,
-    phase: session.phase, sessions: [session] }] }, objectifEffectif ?? undefined), [session, objectifEffectif]);
+    phase: session.phase, sessions: [session] }] }, objectifEffectif ?? undefined, v3CoachPilot), [session, objectifEffectif, v3CoachPilot]);
   // Rendu hybride : quand la fiche est résolue, on n'affiche que le delta IA.
   const contextLines = useMemo(
     () => (fiche ? extractContextLines(displayDetails, fiche) : []),
@@ -719,6 +721,7 @@ function WeekQualityBadge({ week }: { week: ParsedWeek }) {
 
 interface WeekViewProps {
   week: ParsedWeek;
+  v3CoachPilot?: V3CoachPilotContext;
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
@@ -728,7 +731,7 @@ interface WeekViewProps {
   raceGoals?: RaceGoal[];
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
+function WeekView({ week, v3CoachPilot, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
 
 
 
@@ -853,7 +856,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
+          return <SessionCard key={idx} session={session} v3CoachPilot={v3CoachPilot} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
         })}
 
         {week.coachNotes && (
@@ -871,6 +874,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
 
 interface AIPlanViewerProps {
   plan: ParsedPlan;
+  v3CoachPilot?: V3CoachPilotContext;
   startDate?: Date;
   raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
@@ -906,7 +910,7 @@ interface AIPlanViewerProps {
   identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, v3CoachPilot, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -948,7 +952,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // V3 pilot prescriptions must never expose one-click/bulk real Nolio sending.
   const hasV3PilotSessions = useMemo(() => plan.weeks.some(week => week.sessions.some(session =>
     /V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}/.test(JSON.stringify(session)))), [plan]);
-  const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan), [plan]);
+  const currentCatalogueIssues = useMemo(() => validateSessionCataloguePlan(plan, undefined, v3CoachPilot), [plan, v3CoachPilot]);
   const hasCoachBudget = Object.values(plan.weeklyQuotas ?? {}).some(entry => !!entry.volumeBudget);
   // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
   const displayedQuotaIssues = (plan.weeklyQuotaIssues ?? []).filter(issue =>
@@ -2094,12 +2098,12 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+          <WeekView week={currentWeek} v3CoachPilot={v3CoachPilot} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+            <WeekView key={i} week={week} v3CoachPilot={v3CoachPilot} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
           ))}
 
         </div>
