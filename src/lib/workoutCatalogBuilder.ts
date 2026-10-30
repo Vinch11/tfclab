@@ -1664,7 +1664,9 @@ export function buildWorkoutCatalog(
     objectif: w.objectif,
     phase: w.phase || [],
     durationMin: w.durationMin,
-    canonicalDurationMin: resolveCanonicalDuration(w, chunkPhase),
+    canonicalDurationMin: w.id.startsWith("V3P_")
+      ? w.durationMin[0] // V3 has an exact chronology, never round 78 to 80
+      : resolveCanonicalDuration(w, chunkPhase),
     structure: condenseStructure(w),
     variants: pickVariant(w, goals),
     ...(w.physiology ? { physiology: w.physiology } : {}),
