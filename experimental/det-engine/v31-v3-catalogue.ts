@@ -48,6 +48,29 @@ function configureBlocks(blocks: V3Block[], overrides: Overrides, seen:Set<strin
   });
 }
 
+/** Explicit edits of quality doses are not equivalent to easy volume fitting. */
+function requireDoseChangeApproval(workout:V3Workout,overrides:Overrides,allowed:boolean) {
+  if(allowed)return;
+  const inspect=(blocks:V3Block[],prefix=''):void=>{
+    blocks.forEach((b,i)=>{
+      const path=prefix?prefix+'.'+i:String(i);
+      if(b.kind==='repeat'){
+        if(overrides[path+'.count']!==undefined&&overrides[path+'.count']!==b.count.base)
+          throw Error('v3_workset_change_requires_coach_permission:'+path);
+        inspect(b.steps,path);
+      }else{
+        const key=b.kind==='time'?'seconds':b.kind==='distance'?'meters':'reps';
+        const value=overrides[path+'.'+key];
+        const bounds=b.kind==='time'?b.seconds!:b.kind==='distance'?b.meters!:b.reps!;
+        const easy=b.domain==='recovery'||b.domain==='moderate_lt1';
+        if(value!==undefined&&value!==bounds.base&&!easy)
+          throw Error('v3_intense_dose_change_requires_coach_permission:'+path);
+      }
+    });
+  };
+  inspect(workout.blocks);
+}
+
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   if (settings.overrides && settings.targetDurationMin !== undefined)
     throw Error('v3_conflicting_recipe_controls');
@@ -62,6 +85,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
       throw Error('v3_target_duration_unreachable:'+fit.code);
     overrides=fit.overrides;
   }
+  requireDoseChangeApproval(workout,overrides,settings.allowWorksetChange===true);
   const seen=new Set<string>();
   const configured={...workout,blocks:configureBlocks(workout.blocks,overrides,seen)};
   if(seen.size!==Object.keys(overrides).length)
