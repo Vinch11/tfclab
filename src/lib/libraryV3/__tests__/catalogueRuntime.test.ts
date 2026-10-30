@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { previewV3Workout } from "../coachPreview";
+import { previewV3Workout } from "../../../../scripts/library-v3/coachPreview";
 import {
   auditV3Catalogue, evaluateV3Workout, v3PilotCatalogue,
   type V3Workout,
-} from "../catalogueRuntime";
+} from "../../../../scripts/library-v3/catalogueRuntime";
 
 const byId = (id: string): V3Workout => {
   const workout = v3PilotCatalogue.workouts.find(w => w.id === id);
