@@ -58,8 +58,7 @@ export function examineD114MultiSession():D114Result[]{
    const r=runAlloc.get(originalModTotal-bikeTotal);
    if(!r)continue;
    const draft=entries.map(s=>({...s}));
-   bikes.forEach((s,i)=>{const target=draft.find(x=>x===s);void target;
-     const index=entries.indexOf(s);draft[index].after=b.values[i];});
+   bikes.forEach((s,i)=>{const index=entries.indexOf(s);draft[index].after=b.values[i];});
    runs.forEach((s,i)=>{const index=entries.indexOf(s);draft[index].after=r.values[i];});
    const evidence=attachD110SourceBrickProof(draft.map(s=>({sport:s.sport,id:s.id,minutes:s.after})));
    if(evidence.ok===false)continue;
