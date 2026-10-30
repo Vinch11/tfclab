@@ -7,7 +7,7 @@
  */
 import type { ExperimentalAssemblyContract } from './engine';
 import type { RepairWorkoutMetadata } from '../../supabase/functions/_shared/repairSportingEquivalence';
-import { isCompleteRepairWorkoutMetadata } from '../../supabase/functions/_shared/repairSportingEquivalence';
+import { isCompleteRepairWorkoutMetadata, normalizeRepairGoal } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { getDoctrineDomain, type DoctrineDomainId } from '../../src/lib/zones/tfclDoctrine';
 
 type Bound={min:number;base:number;max:number};
@@ -91,10 +91,12 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    const mainZones=[...new Set(main.flatMap(b=>b.zones))];
    const mainZoneMax=Math.max(0,...mainZones.map(z=>Number(z.replace('Z',''))));
    const family=FAMILIES[card.primaryIntent];
+   const normalizedGoal=normalizeRepairGoal(approval.objective);
+   if(!normalizedGoal){refuse('unknown_race_objective');continue;}
    if(!family||!mainZones.length||!sport||card.sport==='strength'){refuse('unsupported_sport_or_intent');continue;}
    const meta:RepairWorkoutMetadata={
     metadataVersion:1,complete:true,id:card.id,sport,title:card.title,objective:card.focus,
-    intentFamily:family,goals:[approval.objective],objectiveSpecific:true,
+    intentFamily:family,goals:[normalizedGoal],objectiveSpecific:true,
     phases:card.phase,durationMin:[seconds/60,seconds/60],mainZoneMax,specialContext:null,
     prerequisiteKeys:[],necessity:'Optionnel',when:card.phase.join(','),
     avoid:card.contraindications.join(' · '),tags:['v3-deterministic-candidate','individual-coach-approval-recorded'],
