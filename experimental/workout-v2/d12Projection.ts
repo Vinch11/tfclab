@@ -89,6 +89,8 @@ export interface D12ProjectionResult {
   slotsByWeek:number[];
   issues: {code:string;week?:number;severity:string}[];
   countCritical:number;
+  criticalDetails:Array<{code:string;week?:number;severity:string;message?:string}>;
+  weeklyPreview:Array<{week:number;volumeMin:number;bySport:Record<string,number>;sessions:Array<{day:string;sport:string;id:string|null;minutes:number;key:boolean}>}>;
   noLLM:true; canExport:false; canPersist:false;
   realPlanValidated:false; individualPrescriptionApproved:false;
 }
@@ -132,14 +134,24 @@ export function projectD12Profile(profile:D12Profile):D12ProjectionResult {
     const result=constructDeterministicPlan(structuredClone(prepared.athleteData),structuredClone(config),
       {maxNodes:20000,maxMilliseconds:Number.MAX_VALUE,experimentalFirstWeeks:4},contract);
     const issues=result.issues.map(x=>({code:x.code,week:x.week,severity:x.severity}));
+    const criticalDetails=result.issues.filter(x=>["error","critical","blocking"].includes(x.severity))
+      .map(x=>({code:x.code,week:x.week,severity:x.severity,message:x.message?.slice(0,320)}));
+    const weeklyPreview=(result.candidate?.weeks??[]).map(w=>{
+      const sessions=w.sessions.filter(s=>!s.isRest);
+      return {
+        week:w.weekNumber,volumeMin:sessions.reduce((n,s)=>n+(s.durationMin??0),0),
+        bySport:Object.fromEntries([...new Set(sessions.map(s=>s.sport))].map(s=>[s,sessions.filter(x=>x.sport===s).length])),
+        sessions:sessions.map(s=>({day:s.dayName,sport:s.sport,id:s.catalogId??null,minutes:s.durationMin??0,key:!!s.isKeySession})),
+      };
+    });
     return {profile,status:result.status,reason:result.reason??null,
       weeksConstructed:result.candidate?.weeks.length??0,
-      slotsByWeek:transformedWeeks,issues,countCritical:issues.filter(x=>["error","critical","blocking"].includes(x.severity)).length,
+      slotsByWeek:transformedWeeks,issues,countCritical:criticalDetails.length,criticalDetails,weeklyPreview,
       noLLM:true,canExport:false,canPersist:false,
       realPlanValidated:false,individualPrescriptionApproved:false};
   }catch(e){
     return {profile,status:"experimental_exception",reason:e instanceof Error?e.message:String(e),
-      weeksConstructed:0,slotsByWeek:transformedWeeks,issues:[],countCritical:0,
+      weeksConstructed:0,slotsByWeek:transformedWeeks,issues:[],countCritical:0,criticalDetails:[],weeklyPreview:[],
       noLLM:true,canExport:false,canPersist:false,
       realPlanValidated:false,individualPrescriptionApproved:false};
   }
