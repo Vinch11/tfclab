@@ -116,7 +116,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               const card=catalog.find(m=>m.id===s.catalogId);
               return card && experimentalContract.preferReviewedCandidate(card,{...context,week:w.week,slot,dayIndex,prescribedDurationSec:(s.durationMin??0)*60}) === true ? 1 : 0;
             };
+            // D1.17: a key CALENDAR slot is not proof of a quality DOSE.
+            // On load weeks, prefer explicitly non-recovery catalogue intents
+            // over recovery cards; keep all candidates and native safeguards.
+            // This is an ordering heuristic ONLY, not sporting approval.
+            const recoveryPenalty=(s:ParsedSession)=>{
+              if(!slot.isKeySession || w.weekType!=='load' || !s.catalogId)return 0;
+              const card=catalog.find(m=>m.id===s.catalogId);
+              const intent=(card?.intentFamily??'').toLowerCase();
+              return /recovery|récup|regen|régén|deload/.test(intent) ||
+                /^(D_RECOVERY|D_SWIM_RECOVERY|D_SWIM_TRI_REGEN|D_SEMI_RECOVERY|D_DELOAD|D_IM_BRICK_REGEN)/.test(s.catalogId) ? 1 : 0;
+            };
             return preferred(b)-preferred(a) ||
+              recoveryPenalty(a)-recoveryPenalty(b) ||
               (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
               w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!);
           });
