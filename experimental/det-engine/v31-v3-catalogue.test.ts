@@ -66,6 +66,21 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    const strength=buildDetV3ContractFromCatalogue([{...review,id:'V3P_STRENGTH_001'}]);
    expect(strength.report.accepted).toHaveLength(0);
  });
+ it('refuses manual increases to threshold workload without an explicit coach authorization',()=>{
+   const highIntensity={...review,id:'V3P_BIKE_008'};
+   for(const overrides of [{'1.count':4},{'1.0.seconds':840}]) {
+     const r=buildDetV3ContractFromCatalogue([{...highIntensity,overrides}]);
+     expect(r.report.accepted).toHaveLength(0);
+     expect(r.report.rejected.find(x=>x.id===highIntensity.id)?.reason).toContain('requires_coach_permission');
+   }
+   const explicitlyApproved=buildDetV3ContractFromCatalogue([
+     {...highIntensity,overrides:{'1.count':4},allowWorksetChange:true},
+   ]);
+   expect(explicitlyApproved.report.accepted).toHaveLength(1);
+   expect(explicitlyApproved.report.accepted[0].durationMin).toEqual([96,96]);
+   const original=v3FullCatalogue.workouts.find(w=>w.id===highIntensity.id)!;
+   expect(evaluateV3Workout(original).minutes).toBe(78);
+ });
  it('rejects unrecognized IDs, without turning a catalogue review into a scientific signoff',()=>{
    expect(()=>buildDetV3ContractFromCatalogue([{...review,id:'V3P_BIKE_999'}]))
      .toThrow('v3_unknown_reviewed_recipe');
