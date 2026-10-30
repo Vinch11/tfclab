@@ -73,7 +73,7 @@ export function materializeV3ForPlanEngine(
     }
     const phases = recipe.phase.filter((p): p is PhaseTag =>
       p === "base" || p === "build" || p === "peak" || p === "taper");
-    if (!phases.length || !recipe.primaryIntent || !recipe.blocks.length || recipe.sport === "strength") {
+    if (!phases.length || !recipe.primaryIntent || !recipe.blocks.length) {
       return { workout: null, code: "UNSAFE_DATA" };
     }
     const sports: Record<string, "cyclisme" | "course" | "natation"> = {
