@@ -140,7 +140,7 @@ export function buildDetV3ContractFromCatalogue(
   }
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
   const brickById=new Map(brickReport.accepted.map(card=>[card.id,card]));
-  const preferredBrickIds=new Set(brickReviews.filter(review=>review.preferReviewedV3===true &&
+  const preferredBrickIds=new Set<string>(brickReviews.filter(review=>review.preferReviewedV3===true &&
     brickById.has(review.id)).map(review=>review.id));
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
@@ -160,7 +160,7 @@ export function buildDetV3ContractFromCatalogue(
       const brick=brickById.get(card.id);
       if(brick){
         if(!brick.phases.includes(ctx.phase??''))return false;
-        // A long 120min brick is never a load-free recovery workout.
+        // A long aerobic brick is never a load-free recovery workout.
         if(/recovery|deload|recup|regeneration/.test(ctx.weekType??''))return false;
       }
       return sourceContract.filterCandidate?.(card,ctx)??true;
