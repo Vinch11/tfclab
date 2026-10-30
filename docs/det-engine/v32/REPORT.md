@@ -47,6 +47,14 @@ L'optimisation du catalogue a déplacé certains choix historiques : **le temps 
 - Le diagnostic des minutes confronte les métadonnées approuvées à la structure/durée réellement sélectionnée. Une simple chaîne ressemblant à « vélo + transition + course » ne vaut jamais preuve de répartition.
 - Le maintien de la bibliothèque historique et de la revue humaine est obligatoire.
 
+## Qualification supplémentaire — récupération minimale non attestée
+
+Les recettes V3 conservent leurs \`minimumRecoveryHours\` originales. L'exemple \`V3P_RUN_041\` employé par les trois compositions exige **36 heures** de récupération ; le vélo \`V3P_BIKE_090\` exige **24 heures**. Le calendrier 70.3 sélectionne notamment une composition le samedi puis une course le dimanche.
+
+Comme le plan ne donne pas les heures de début de chaque séance, la simple proximité de ces jours **ne prouve pas** qu'un délai de 36 heures est respecté. Le nouveau contrôle expérimental \`v3_recovery_hours_unverified\` est **bloquant pour l'attestation**, jamais un succès présumé. Il tient compte du minimum d'heures garanti par les dates (sans inventer d'horaires), des sports composant les bricks, et des séances voisines sur toute la chronologie, y compris d'une semaine à l'autre.
+
+Ainsi les 570 minutes mieux attribuées constituent une **amélioration d'observabilité de propositions**, et non une libération de 570 minutes de prescriptions immédiatement sûres. La revue réelle de la chronologie/horaires et la correction des incompatibilités de récupération restent nécessaires avant tout GO.
+
 ## Portée scientifique et reprise
 
 Il reste à identifier/attester les durées et les intentions exactes des anciens bricks, corriger les **volumes** du calendrier et non les étiquettes, puis vérifier intensités par segment, décharges effectives, séances clés et date de compétition réellement déclarée. Les 400 recettes candidates ne sont pas 400 séances scientifiquement validées. Les tests de persistance Supabase et exports réels Nolio/PDF restent nécessaires.
