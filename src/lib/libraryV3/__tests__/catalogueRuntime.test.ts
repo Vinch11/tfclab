@@ -12,10 +12,10 @@ const byId = (id: string): V3Workout => {
 };
 
 describe("TFCLab V3 pilot — isolated structured recipes", () => {
-  it("contains 48 actual candidate recipes, 12 in each sport", () => {
-    expect(v3PilotCatalogue.workouts).toHaveLength(48);
-    expect(v3PilotCatalogue.counts).toEqual({ bike: 12, run: 12, swim: 12, strength: 12 });
-    expect(new Set(v3PilotCatalogue.workouts.map(w => w.id)).size).toBe(48);
+  it("contains 100 actual candidate recipes, 40 bike and 20 in each other sport", () => {
+    expect(v3PilotCatalogue.workouts).toHaveLength(100);
+    expect(v3PilotCatalogue.counts).toEqual({ bike: 40, run: 20, swim: 20, strength: 20 });
+    expect(new Set(v3PilotCatalogue.workouts.map(w => w.id)).size).toBe(100);
   });
   it("all candidates pass the metadata and structure audit", () => {
     expect(auditV3Catalogue()).toEqual([]);
