@@ -17,6 +17,9 @@ test.describe("D1.9 offline reviewer", () => {
     await expect(page.getByTestId("d110-bounds-bike")).toContainText("%");
     await expect(page.getByTestId("d110-bounds-run")).toContainText("%");
     await expect(page.getByTestId("d110-time-feasibility")).toContainText("NO-GO");
+    await expect(page.getByTestId("d110-source-ratio")).toContainText("45 min vélo + 15 min course");
+    await expect(page.getByTestId("d110-source-percentages")).toContainText("vélo");
+    await expect(page.getByTestId("d110-source-percentages")).toContainText("course");
 
     await expect(page.getByText("2026-10-26")).toBeVisible();
     await page.getByTestId("d19-week-4").click();
