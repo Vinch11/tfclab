@@ -50,6 +50,6 @@ test.describe("V3 offline coach workbench — 400 usable manual drafts", () => {
     await page.locator(".sessionBtn").click();
     await expect(page.locator("#detail")).toContainText("Durée indicative");
     await expect(page.locator("#noticeText")).toContainText("non validée individuellement");
-    await expect(page.locator("body")).toContainText("aucun envoi Nolio");
+    await expect(page.locator("body")).toContainText("aucun export automatique Nolio");
   });
 });
