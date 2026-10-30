@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildWorkoutCatalog, serializeCatalogForPrompt } from "../workoutCatalogBuilder";
-import { buildV3CoachPilotPool, lookupV3Recipe, materializeV3ForPlanEngine } from "../v3EngineBridge";
+import { buildV3CoachPilotPool, lookupV3Recipe, materializeV3ForPlanEngine, planContainsV3Candidate } from "../v3EngineBridge";
 import { validateSessionCataloguePlan } from "../plan/sessionCatalogueValidation";
 
 const REVIEWED = { coachReviewedIds: new Set(["V3P_BIKE_008"]), acknowledgedExperimentalRisk: true as const };
@@ -73,6 +73,18 @@ describe("V3 -> REAL TFCLab workoutCatalogBuilder (isolated coach pilot)", () =>
     expect(pool.accepted).toHaveLength(0);
     expect(pool.rejected.map(r => r.code)).toContain("MISSING_SWIM_PACES");
     expect(pool.rejected.map(r => r.code)).toContain("STRENGTH_DURATION_UNVERIFIED");
+  });
+
+  it("blocks V3 saving and Nolio for an experimental session even when ID appears in details", () => {
+    expect(planContainsV3Candidate({
+      weeks: [{ sessions: [{ catalogId: "V3P_BIKE_008" }] }],
+    })).toBe(true);
+    expect(planContainsV3Candidate({
+      weeks: [{ sessions: [{ title: "Alternative", details: "V3P_RUN_002" }] }],
+    })).toBe(true);
+    expect(planContainsV3Candidate({
+      weeks: [{ sessions: [{ catalogId: "A_RUN_Z2_EASY" }] }],
+    })).toBe(false);
   });
 
   it("validates real V3 ID and duration in the final session catalogue contract", () => {
