@@ -99,7 +99,7 @@ if (res.ok) console.log(res.candidate.steps, res.candidate.plannedDurationSec);
 
 ### Sens précis de l'exemple « brick 100 minutes »
 
-Ce test vérifie qu'une **recette V2 candidate** peut remplir un créneau de 100 min via 67 min de vélo, 15 min de course, 10 min d'échauffement, 3 min de transition et 5 min de retour au calme. La séance produite **n'est ni la séance V1 `BRICK_STAGE1_INTRO`, ni la séance 70.3 race-pace incompatible**, et n'a aucune autorisation de substitution dans un calendrier réel. Le test ne démontre PAS que le refus sportif S2 de #427 est levé, ni que ce volume est adapté à un athlète précis.
+Le premier prototype démontrait mathématiquement un brick de 100 min, mais cet ajustement dépassait les bornes de la source V1 Stage 1. **Ce défaut de conception a été corrigé : le modèle Stage 1 est désormais borné à 45–60 min de vélo et 15–20 min de course, total dans 60–90 min. Il refuse directement 100 min.** Aucun ID V1 n'est usurpé ni aucun refus D1 levé.
 
 ### Verdict séparé
 
@@ -118,7 +118,7 @@ Référence immuable : PR [#427](https://github.com/Vinch11/tfclab/pull/427), SH
 - S3 : composante vélo longue ≥85min, brick ≥105min ;
 - S4 : composante vélo longue ≥70min, brick ≥90min.
 
-La nouvelle `fitWorkoutV2ToDuration` peut mathématiquement calculer un brick de 100min mais ne valide **pas** ces bornes héritées. Le cas test 100min livre 77min de vélo (échauffement compris), 20min de CAP et 3min de transition : **violations du plafond vélo V1, du plafond total V1 et du floor vélo D1**. Pour les quatre semaines, au moins le plancher vélo reste incompatible avec le plafond source 60min ; aucun plan complet n'est généré.
+Une première version de `fitWorkoutV2ToDuration` pouvait composer 100 min sans respecter la source. La version corrigée impose directement des paramètres Stage 1 : **100 min est maintenant refusé par l'ajusteur**. Un test forge volontairement le total de 100 min depuis un candidat conforme (78 min vélo, 20 min course, 2 min transition) et vérifie que le garde indépendant refuse à la fois le plafond vélo V1, le plafond total V1 et le floor vélo D1. Pour les quatre semaines, au moins le plancher vélo reste incompatible avec le plafond source 60min ; aucun plan complet n'est généré.
 
 `experimental/workout-v2/d1Compatibility.ts` effectue un examen conservateur sur le **texte et les bornes exactes de la source V1**, plus la convention D1 réellement archivée. Tout changement de ces sources ou de la fixture échoue fermé. L'examen retourne un refus détaillé, jamais une approbation individuelle ni une autorisation d'insertion. Tests dans `src/lib/workout-v2/__tests__/d1Compatibility.test.ts`.
 
