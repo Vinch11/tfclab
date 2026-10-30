@@ -30,6 +30,24 @@ describe("D1.2 experimental 28-day projection attempt (never approved)",()=>{
     expect(before.status).toBe("candidate_for_coach_arbitration");
     // The test intentionally does NOT assert a success; full plan acceptance
     // requires unchanged sporting validation and an authorized policy.
+    // Diagnostic comparison only: same candidate, no dosage mutation.
+    // Existing sport-ratio validator counts occurrences; this alternative
+    // divides total SWIM minutes by endurance minutes (SWIM+BIKE+RUN+BRICK).
+    // Strength is excluded, brick remains in denominator with no invented
+    // bike/run split. Time shares are NOT automatically approved targets.
+    const loadSessions=r.weeklyPreview.filter(w=>w.week<=3).flatMap(w=>w.sessions)
+      .filter(x=>["swim","bike","run","brick"].includes(x.sport));
+    const enduranceMinutes=loadSessions.reduce((n,x)=>n+x.minutes,0);
+    const swimMinutes=loadSessions.filter(x=>x.sport==="swim").reduce((n,x)=>n+x.minutes,0);
+    const durationShare=enduranceMinutes?Math.round(swimMinutes/enduranceMinutes*1000)/10:null;
+    expect(enduranceMinutes).toBeGreaterThan(0);
+    expect(swimMinutes).toBeGreaterThan(0);
+    expect(durationShare).not.toBeNull();
+    console.log("D12_DURATION_RATIO_DIAGNOSTIC="+JSON.stringify({
+      profile:r.profile,swimMinutes,enduranceMinutes,swimTimePct:durationShare,
+      comparisonOnly:true,nativeSessionCountSwimPct:29,
+      source:"same experimental four-week candidate S1–S3; strength excluded; brick not redistributed",
+    }));
     console.log("D12_PROJECTION_ATTEMPT="+JSON.stringify({
       profile:r.profile,status:r.status,reason:r.reason,weeksConstructed:r.weeksConstructed,
       slotsByWeek:r.slotsByWeek,critical:r.countCritical,
