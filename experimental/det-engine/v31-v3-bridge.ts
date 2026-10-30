@@ -30,6 +30,8 @@ export interface DetV3Review {
  objective:string;allPrerequisitesChecked:true;
  /** Explicitly reviewed against the individual athlete; not scientific validation. */
  individualCoachApproval:true;
+ /** Distinct from permission to use: explicit preference in otherwise tied choices. */
+ preferReviewedV3?:true;
  swimPacesSecPer100m?:Partial<Record<DoctrineDomainId,number>>;
 }
 const LEVELS=['untrained','light','trained','highly_trained'];
@@ -115,6 +117,7 @@ export function buildDetV3Contract(cards:readonly V3SourceCard[],reviews:readonl
 } {
  const report=ingestV3ForDeterministicEngine(cards,reviews);
  const approved=new Map(report.accepted.map(card=>[card.id,card]));
+ const preferred=new Set(reviews.filter(r=>r.preferReviewedV3===true && approved.has(r.id)).map(r=>r.id));
  return{report,contract:{
   id:'det-v31-v3-individual-coach-review',
   adapt(preparation) {
@@ -133,7 +136,7 @@ export function buildDetV3Contract(cards:readonly V3SourceCard[],reviews:readonl
   },
   doseRange(card){return approved.has(card.id)?approved.get(card.id)!.durationMin:card.durationMin;},
   rankCandidate(card,ctx){
-   if(!approved.has(card.id))return 0;
+   if(!preferred.has(card.id))return 0;
    // Do not prefer an easy recovery card for a non-long key intensity slot.
    if(ctx.slot.isKeySession && !ctx.slot.isLongSession && card.mainZoneMax<3)return 0;
    // Coach-reviewed V3 cards are tie-break candidates, never eligibility waivers.
