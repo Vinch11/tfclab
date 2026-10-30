@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { previewV3Workout } from "../coachPreview";
 import {
   auditV3Catalogue, evaluateV3Workout, v3PilotCatalogue,
   type V3Workout,
@@ -67,5 +68,29 @@ describe("TFCLab V3 pilot — isolated structured recipes", () => {
     expect(errors.some(e => e.includes("DUPLICATE_ID"))).toBe(true);
     expect(errors.some(e => e.includes("MISSING_INTENT"))).toBe(true);
     expect(errors.some(e => e.includes("UNTRACEABLE_REFERENCE"))).toBe(true);
+  });
+});
+describe("TFCLab V3 pilot — read-only previews", () => {
+  it("renders threshold blocks without inventing %FTP or an extra final rest", () => {
+    const p = previewV3Workout(byId("V3P_BIKE_008"));
+    expect(p.durationText).toContain("78.0 min");
+    expect(p.sections.some(s => s.includes("3×"))).toBe(true);
+    expect(p.fullText).toContain("Statut : candidat non validé");
+    expect(p.automaticallyPrescribable).toBe(false);
+  });
+  it("shows measured swim distance but refuses a fabricated duration", () => {
+    const p = previewV3Workout(byId("V3P_SWIM_007"));
+    expect(p.distanceM).toBe(1700);
+    expect(p.durationText).toContain("non résolue");
+    expect(p.unresolved.length).toBeGreaterThan(0);
+    expect(p.fullText).toContain("Distance : 1700 m");
+  });
+  it("reports strength appointment time as indicative, not exact", () => {
+    const p = previewV3Workout(byId("V3P_STRENGTH_001"));
+    expect(p.durationText).toContain("indicative");
+  });
+  it("rejects overrides outside safety bounds during preview", () => {
+    expect(() => previewV3Workout(byId("V3P_BIKE_008"), { overrides: { "1.count": 100 } }))
+      .toThrow("V3_OUT_OF_BOUNDS");
   });
 });
