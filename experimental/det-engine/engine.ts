@@ -32,6 +32,18 @@ export interface EngineResult {
   limiterPriorities:string[];
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
+
+/** Match the native final validator's explicit day-J/veille restrictions.
+ * This is a proactive selection guard, not an exemption from validation. */
+const RACE_DAY_ONLY_WHEN = /matin\s*comp[ée]tition|jour\s*j\b|veille\s*de\s*course/i;
+export function raceOnlySourceMatchesDay(
+  when:string|undefined, dayIndex:number, raceDayIndex:number|null
+):boolean {
+  if(!when || !RACE_DAY_ONLY_WHEN.test(when))return true;
+  if(raceDayIndex===null)return false;
+  if(/veille\s*de\s*course/i.test(when))return dayIndex===raceDayIndex-1;
+  return dayIndex===raceDayIndex;
+}
 /** All limits are hard caps; an exhausted search is not a proof of infeasibility. */
 export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanConfig,limits:SearchLimits=DEFAULT_LIMITS,experimentalContract?:ExperimentalAssemblyContract):EngineResult {
   const result:EngineResult={status:'refused',technicallyConstructed:false,constraintsSatisfied:false,
@@ -64,6 +76,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
       const allowedIds=new Set(w.eligible.map(m=>m.id));
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
+      const eventDay=layout.days.findIndex(d=>d.slots.some(s=>s.isRaceEvent));
+      const raceDayIndex=eventDay>=0?eventDay:null;
       if(slots.some(s=>s.slot.isRaceEvent))result.issues.push({code:'race_duration_unestimated',week:w.week,severity:'warning'});
       const weeklyUsage=new Map<string,number>();
       const chosen:ParsedSession[]=[];
@@ -73,6 +87,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
         return catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport)
+          .filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex))
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
           .filter(m=>!experimentalContract?.filterCandidate||experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}))
           .flatMap(m=>{
