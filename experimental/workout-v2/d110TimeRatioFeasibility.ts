@@ -138,6 +138,7 @@ export function examineD110ThreeProfiles():D110CohortEvidence[] {
       .flatMap(w=>w.sessions);
     const sessions=selected.map(s=>({sport:s.sport,durationMin:s.minutes}));
     const sourceProof=attachD110SourceBrickProof(selected.map(s=>({sport:s.sport,id:s.id,minutes:s.minutes})));
+    const sourceReasons=sourceProof.ok===false?sourceProof.reasons:[];
     return {
       profile,weeksConsidered:[1,2,3] as [1,2,3],
       nativeCriticalCount:plan.countCritical,
@@ -146,7 +147,7 @@ export function examineD110ThreeProfiles():D110CohortEvidence[] {
       withNativeEightPointCriticalMarginAsHypothesis:examineD110TimeRatio(sessions,8),
       sourceStage1:sourceProof.ok
         ? {status:"verified_planned_components" as const,count:sourceProof.count,reasons:[]}
-        : {status:"not_verified" as const,count:0,reasons:sourceProof.reasons},
+        : {status:"not_verified" as const,count:0,reasons:sourceReasons},
       sourceConditionedNominal:sourceProof.ok?examineD110TimeRatio(sourceProof.sessions):null,
       sourceConditionedPlus3:sourceProof.ok?examineD110TimeRatio(sourceProof.sessions,3):null,
       stillRequiresPolicyArbitration:true as const,sportApproved:false as const,
