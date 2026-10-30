@@ -18,6 +18,8 @@ describe("D1.2 experimental 28-day projection attempt (never approved)",()=>{
     expect(r.countCritical).toBeGreaterThan(0);
     expect(r.weeklyPreview).toHaveLength(4);
     expect(r.weeklyPreview.every(w=>w.sessions.length>0)).toBe(true);
+    expect(r.weeklyPreview.map(w=>w.volumeMin)).toEqual([360,395,430,300]);
+    expect(r.criticalDetails.some(x=>x.code==="load_pattern")).toBe(false);
     expect(before.status).toBe("candidate_for_coach_arbitration");
     // The test intentionally does NOT assert a success; full plan acceptance
     // requires unchanged sporting validation and an authorized policy.
