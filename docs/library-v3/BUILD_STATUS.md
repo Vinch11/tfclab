@@ -1,11 +1,11 @@
 # TFCLab V3 — État concret du pilote (30 octobre 2026)
 
 ## Périmètre réellement livré
-- **48 recettes candidates, 12 par sport** (bike/run/swim/strength) dans \`src/lib/libraryV3/v3PilotCatalogue.json\`.
-- **352 recettes restent à rédiger** avant l'objectif de 400 (100 par sport).
+- **100 recettes candidates : 40 vélo, 20 course, 20 natation et 20 préparation physique** (bike/run/swim/strength) dans \`src/lib/libraryV3/v3PilotCatalogue.json\`.
+- **300 recettes restent à rédiger** avant l'objectif de 400 (100 par sport).
 - Chaque fiche : ID stable, intention principale et domaine TFCL, explication, phases, niveau, précautions, arrêt, récupération, sources dont la portée est déclarée, blocs exécutables et limites de variation. Pas de simple duplication en changeant 5×3 en 6×3.
 - Les fiches sont des **conceptions TFCLab originales** nourries par des principes, et non des reproductions prétendument publiées par Dan Lorang, Seiler, Bu ou Billat.
-- Le moteur existant \`workoutLibrary.ts\` n'importe pas ce pilote ; aucune modification de prescription en production ; \`automaticSelection=false\` pour les 48 fiches.
+- Le moteur existant \`workoutLibrary.ts\` n'importe pas ce pilote ; aucune modification de prescription en production ; \`automaticSelection=false\` pour les 100 fiches.
 - Le calculateur \`catalogueRuntime.ts\` calcule les durées de tous les segments chronométrés et les repos **entre** répétitions (pas de repos final ajouté). Il accepte des surcharges uniquement dans les bornes déclarées.
 - Quand la natation contient des distances et que les allures mesurées correspondant aux domaines manquent, le total reste **non résolu** ; jamais de conversion mètres → minutes en silence.
 - Les temps des exercices en répétitions de préparation physique sont **estimés**, pas des durées certaines de séance (installation, réglage des charges et transitions inconnus).
