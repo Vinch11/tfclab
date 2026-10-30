@@ -13,6 +13,8 @@ import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
 import {
   buildDetV3Contract, type DetV3Review, type V3SourceCard,
 } from './v31-v3-bridge';
+import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
+import type { ExperimentalAssemblyContract } from './engine';
 
 export interface V3ReviewedSettings extends DetV3Review {
   /** Exact V3 paths such as "0.seconds" or "1.count". */
@@ -102,7 +104,9 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
  * Makes all 400 source candidates visible to DET-ENGINE for evaluation.
  * With no athlete-specific reviews, it MUST admit exactly zero sessions.
  */
-export function buildDetV3ContractFromCatalogue(reviews:readonly V3ReviewedSettings[]) {
+export function buildDetV3ContractFromCatalogue(
+  reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[]
+) {
   const auditErrors=auditV3Catalogue(v3FullCatalogue);
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
   if(v3FullCatalogue.workouts.length!==400 ||
@@ -129,10 +133,46 @@ export function buildDetV3ContractFromCatalogue(reviews:readonly V3ReviewedSetti
       return w;
     }
   });
-  const {contract,report}=buildDetV3Contract(cards as unknown as V3SourceCard[],qualifiedReviews);
+  const {contract:sourceContract,report}=buildDetV3Contract(cards as unknown as V3SourceCard[],qualifiedReviews);
   for(const rejection of report.rejected) {
     const why=faulty.get(rejection.id);
     if(why)rejection.reason=why;
   }
-  return {contract,report,auditErrors,sourceCounts:v3FullCatalogue.counts};
+  const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
+  const brickById=new Map(brickReport.accepted.map(card=>[card.id,card]));
+  const preferredBrickIds=new Set(brickReviews.filter(review=>review.preferReviewedV3===true &&
+    brickById.has(review.id)).map(review=>review.id));
+  const contract:ExperimentalAssemblyContract={
+    ...sourceContract,
+    adapt(preparation,config){
+      sourceContract.adapt(preparation,config);
+      if(!brickReport.accepted.length)return;
+      for(const phase of Object.keys(preparation.phaseRepairCatalogs)){
+        preparation.phaseRepairCatalogs[phase]=[
+          ...(preparation.phaseRepairCatalogs[phase]??[]),
+          ...brickReport.accepted.filter(card=>card.phases.includes(phase)),
+        ];
+      }
+      for(const rows of [preparation.chunkRepairCatalogs,preparation.chunkRegenRepairCatalogs])
+        rows.forEach((row,i)=>{rows[i]=[...row,...brickReport.accepted];});
+    },
+    filterCandidate(card,ctx){
+      const brick=brickById.get(card.id);
+      if(brick){
+        if(!brick.phases.includes(ctx.phase??''))return false;
+        // A long 120min brick is never a load-free recovery workout.
+        if(/recovery|deload|recup|regeneration/.test(ctx.weekType??''))return false;
+      }
+      return sourceContract.filterCandidate?.(card,ctx)??true;
+    },
+    doseRange(card,ctx){
+      const brick=brickById.get(card.id);
+      return brick?brick.durationMin:(sourceContract.doseRange?.(card,ctx)??card.durationMin);
+    },
+    rankCandidate(card,ctx){
+      if(preferredBrickIds.has(card.id))return -1;
+      return sourceContract.rankCandidate?.(card,ctx)??0;
+    },
+  };
+  return {contract,report,brickReport,auditErrors,sourceCounts:v3FullCatalogue.counts};
 }
