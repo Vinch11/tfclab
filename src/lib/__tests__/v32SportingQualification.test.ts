@@ -1,5 +1,6 @@
 import {describe,expect,it} from 'vitest';
 import {v3FullCatalogue,type V3Workout} from '../../../scripts/library-v3/catalogueRuntime';
+import {materializeV3ForPlanEngine} from '../v3EngineBridge';
 import ledger from '../../../scripts/library-v3/v32SportingReviewLedger.json';
 import {
  screenV32Catalogue,screenV32Source,v32SourceFingerprint,
@@ -129,6 +130,13 @@ describe('V3.2 sporting source qualification — complete 400 audit',()=>{
   const out=qualifyV32ForAthlete(w,inputs);
   expect(out.blockingReasons).toContain('race_specific_domain_objective_mismatch');
   expect(out.eligibleToSubmitToDet).toBe(false);
+ });
+ it('enforces source blockers and exact whole-minute duration in the legacy pilot too',()=>{
+  expect(materializeV3ForPlanEngine(byId.get('V3P_BIKE_024')!).code).toBe('UNSAFE_DATA');
+  expect(materializeV3ForPlanEngine(byId.get('V3P_BIKE_014')!).code).toBe('UNSAFE_DATA');
+  // The compatible reviewed source still yields the exact original dose.
+  const ok=materializeV3ForPlanEngine(byId.get('V3P_BIKE_008')!);
+  expect(ok.workout?.durationMin).toEqual([78,78]);
  });
  it('does not use cached fingerprints after recipe edits',()=>{
   const w=structuredClone(byId.get('V3P_BIKE_002')!);
