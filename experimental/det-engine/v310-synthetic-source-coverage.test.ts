@@ -153,6 +153,37 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       coachSessionStart:session=>confirmedSlot({
         week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
     });
+    // Independent final-calendar proof: the search may claim success only
+    // if EVERY endurance session in EVERY load week retains an exact V3 dose.
+    // The built calendar (not a ranking preview) must show >=75% classifiable
+    // Z1/Z2, <=30% unknown, and no invented zone minutes.
+    if(withClock.technicallyConstructed){
+      expect(withClock.candidate?.weeks).toHaveLength(cfg.weeksAvailable);
+      const loadRows=withClock.candidate!.weeks.flatMap(week=>{
+        if(withClock.candidate!.weeklyQuotas?.[week.weekNumber]?.weekType!=='load')return [];
+        const sessions=week.sessions.filter(s=>!s.isRest&&
+          ['swim','bike','run','brick'].includes(s.sport));
+        const doses=sessions.map(s=>s.catalogId?
+          contract.sourceStructuredZoneForId?.(s.catalogId,s.durationMin)??null:null);
+        expect(doses.length).toBeGreaterThan(0);
+        expect(doses.every(dose=>dose!==null)).toBe(true);
+        const low=doses.reduce((sum,dose)=>sum+(dose?.low??0),0);
+        const nonLow=doses.reduce((sum,dose)=>sum+(dose?.nonLow??0),0);
+        const unknown=doses.reduce((sum,dose)=>sum+(dose?.unknown??0),0);
+        const duration=sessions.reduce((sum,s)=>sum+(s.durationMin??0),0);
+        expect(low+nonLow+unknown).toBeCloseTo(duration,6);
+        expect(low+nonLow).toBeGreaterThan(0);
+        expect(low/(low+nonLow)).toBeGreaterThanOrEqual(0.75-1e-8);
+        expect(unknown/(low+nonLow+unknown)).toBeLessThanOrEqual(0.30+1e-8);
+        return [{week:week.weekNumber,sessionCount:sessions.length,low,nonLow,unknown,
+          lowPct:100*low/(low+nonLow)}];
+      });
+      expect(loadRows.length).toBeGreaterThan(0);
+      console.info('DET_V310_CERTIFIED_LOAD_WEEK_DOSES',JSON.stringify({
+        fixture:fixtureId,loads:loadRows,
+        peakS9:objective==='703'?loadRows.find(row=>row.week===9)??null:null,
+      }));
+    }
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
