@@ -6,7 +6,7 @@ import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContract
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { validateWeeklyQuotas } from '@/lib/plan/validateWeeklyQuotas';
 import { computeFinalValidationIssues } from '@/lib/plan/qa/finalValidation';
-import { validatePlan } from '@/engines/plan/planValidator';
+import { validatePlan,SPORT_RATIO_TARGETS } from '@/engines/plan/planValidator';
 import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionCatalogueContract';
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
 import { normalizeRepairSport, normalizeRepairGoal, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
@@ -16,6 +16,7 @@ import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repai
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
+import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
@@ -44,6 +45,8 @@ export interface ExperimentalAssemblyContract {
   annotateVerifiedDeloads?:true;
   /** Opt-in bounded chronology repair: swaps existing slots only, preserves quotas. */
   improveV3RecoveryLayout?:true;
+  /** Opt-in independent minute-based triathlon sport ratio audit, without suppressing native validators. */
+  auditVerifiedMultisportMinutes?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -388,6 +391,39 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           week:e.week,severity:e.verified?'warning':'blocking',
           message:JSON.stringify(e),
         });
+      }
+    }
+    if(experimentalContract?.auditVerifiedMultisportMinutes===true &&
+       ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+      try{
+        const quotas=Object.fromEntries(Object.entries(preparation.weeklyQuotas)
+          .map(([week,entry])=>[Number(week),entry.weekType]));
+        const audit=auditPlannedMinuteDistribution(plan,quotas,
+          experimentalContract.verifiedBrickCompositions??[]);
+        const total=audit.knownTotalMinutes;
+        const ratio=Object.fromEntries((['swim','bike','run'] as const).map(sport=>[
+          sport,total?100*audit.knownMinutes[sport]/total:null,
+        ])) as Record<'swim'|'bike'|'run',number|null>;
+        const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+        const targets=SPORT_RATIO_TARGETS[objectiveKey];
+        const deviations=(['swim','bike','run'] as const).filter(sport=>{
+          const v=ratio[sport],target=targets?.[sport];
+          return target&&v!==null&&(v<target[0]||v>target[1]);
+        });
+        const unproved=!total||audit.unresolvedBrickMinutes>0||
+          Object.values(ratio).some(x=>x===null);
+        result.issues.push({
+          code:unproved?'det_multisport_minute_ratio_unverifiable':
+            deviations.length?'det_multisport_minute_ratio_out_of_bounds':'det_multisport_minute_ratio_verified',
+          severity:unproved||deviations.length?'blocking':'warning',
+          message:JSON.stringify({objective:objectiveKey,ratio,targets,
+            unresolvedBrickMinutes:audit.unresolvedBrickMinutes,knownMinutes:audit.knownMinutes,
+            verifiedTransitionMinutes:audit.verifiedTransitionMinutes,
+            deviations,scope:audit.scope}),
+        });
+      }catch(error){
+        result.issues.push({code:'det_multisport_minute_ratio_unverifiable',
+          severity:'blocking',message:String(error)});
       }
     }
     if(experimentalContract?.verifiedBrickCompositions && normalizeRepairGoal(config.objective??'')==='half'){
