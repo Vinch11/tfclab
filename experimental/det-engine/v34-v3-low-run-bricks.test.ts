@@ -104,6 +104,12 @@ describe('V34 — lower run-recovery burden without changing sport floors',()=>{
      blocking:a.issues.filter(i=>['blocking','critical','error'].includes(i.severity))
        .slice(0,16).map(x=>({week:x.week,code:x.code}))},
   }));
+  expect(a.technicallyConstructed).toBe(true);
+  expect(selected.some(t=>t.week===7&&t.id==='V3B_703_BUILD_EASY_180'&&t.duration===180)).toBe(true);
+  expect(audit?.unresolvedBrickMinutes).toBe(0);
+  expect(a.issues.filter(i=>i.code==='v3_recovery_hours_unverified'&&
+    i.message?.includes('V3P_RUN_041'))).toHaveLength(0);
+  expect(a.constraintsSatisfied).toBe(false);
   expect(a.humanReviewRequired).toBe(true);
   expect(a.sportingRelevance).toBe('not_attested');
   expect(a.issues.some(i=>i.code==='v3_session_clock_invalid')).toBe(false);
