@@ -148,6 +148,14 @@ Un nouveau mode de recherche bornée `requireNativePolarizationOnLoadWeeks` est 
 
 **Priorité restante** : (1) décomposer ou refuser les quatre bricks 70.3 selon leurs **sources réelles** ; (2) sélectionner des calendriers sous 75 % minimum de volume facile **attesté** et non simplement reconnu par un regex ; (3) confronter les alertes natives au contenu structuré V3/mesuré puis exiger une revue humaine. Aucun GO sportif multisport ou de production.
 
+## V3.9.9 — recherche de polarisation, limites démontrées sans faux GO
+
+Le mode **opt-in exploratoire** `requireNativePolarizationOnLoadWeeks` a été testé sur les deux scénarios à **18 000 nœuds maximum et 8 secondes de recherche** chacun. La première version du DFS refusait avec `search_budget_exhausted` en **S5 (70.3)** et **S3 (Ironman)** : ni plan complet conforme, ni preuve d'infaisabilité.
+
+Le moteur dispose ensuite d'une **borne supérieure optimiste par domaine de séances**. Pour chaque créneau restant, elle suppose simultanément le maximum de minutes Z1–Z2 et le minimum de minutes non faciles parmi des séances pouvant être différentes, **ignore** les plafonds, interdictions et récupérations qui réduiraient encore les solutions : une borne sous 75 % est donc une preuve locale de non-admissibilité des sources considérées, jamais un faux rejet d'une solution réelle. Une borne suffisante ne vaut pas preuve de faisabilité et les validateurs natifs restent obligatoires. Les durées de renforcement non mesurées n'ajoutent aucune minute aérobie fictive.
+
+**Nouvelle exécution réelle, SHA `331ed94` (résultat spécialisé extrait des logs, bilan CI global encore à confirmer)** : l'élagage n'obtient toujours PAS de programme entier sous les budgets de recherche fixés : **70.3 S5, 18 001 nœuds**, **Ironman S7, 18 001 nœuds**. Il progresse jusqu'à S7 sur l'Ironman mais ne démontre pas de faisabilité complète ; verdict `det_native_polarization_target_search_unresolved`, **NON CONFORME**. Cela interdit de présenter cette optimisation seule comme une résolution de polarisation. Prochaine étape nécessaire : intégrer une sélection structurée de temps par zone réellement attesté et élargir les familles faciles/appropriées admises sur les créneaux sportivement admissibles, **avant** d'augmenter arbitrairement le budget de recherche.
+
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
 2. **70.3** : date/jour J placés, 12 semaines complètes, chaque budget coach ≤600 min, vraie décharge, ratios sportifs sur minutes attribuées, récupération à partir d'horaires coach authentifiés (ou refus), polarisation et séances clés conformes, toutes les validations natives sans blocage.
