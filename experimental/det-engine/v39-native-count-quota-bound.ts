@@ -13,8 +13,8 @@ import type {WeeklyQuota} from '@/engines/plan/sessionSizingMatrix';
 
 type WeekQuota={week:number;weekType:string;quota:WeeklyQuota};
 export interface NativeCountQuotaBound {
-  scope:'load_weeks_only';
-  loadedWeeks:number[];
+  scope:'all_non_race_weeks_conservative';
+  potentiallyCountedWeeks:number[];
   minimumMandatorySwimSessions:number;
   optimisticMaximumEnduranceSessions:number;
   optimisticMinimumSwimPct:number|null;
@@ -37,11 +37,15 @@ export function assessNativeSwimCountQuotaBound(
   if(!Number.isFinite(strictUpperSwimPct)||strictUpperSwimPct<=0||strictUpperSwimPct>100||
      !Number.isFinite(nativeErrorTolerancePp)||nativeErrorTolerancePp<0)
     throw Error('v39_count_quota_target_invalid');
-  const loadWeeks=weeks.filter(w=>w.weekType==='load');
+  // Native validator can include recovery/taper when the semantic theme is
+  // not recognised. Exclude ONLY explicit race weeks; consider every other
+  // week a possible contributor, then use the minimum per-week bound so
+  // excluding any subset cannot yield a false impossibility certificate.
+  const potentiallyCounted=weeks.filter(w=>w.weekType!=='race');
   let swims=0, maxEndurance=0, anyBrickPossible=false;
   const weeklyOptimisticLowerPcts:number[]=[];
-  let valid=loadWeeks.length>0;
-  for(const {quota:q} of loadWeeks){
+  let valid=potentiallyCounted.length>0;
+  for(const {quota:q} of potentiallyCounted){
     const ranges=[q.swim,q.bike,q.run,q.brick,q.strength,q.totalSessions];
     if(ranges.some(range=>!range||!Number.isSafeInteger(range.min)||
        !Number.isSafeInteger(range.max)||range.min<0||range.max<range.min)||
@@ -78,8 +82,8 @@ export function assessNativeSwimCountQuotaBound(
   const pct=valid&&weeklyOptimisticLowerPcts.length?
     Math.min(...weeklyOptimisticLowerPcts):null;
   return {
-    scope:'load_weeks_only',
-    loadedWeeks:loadWeeks.map(w=>w.week),
+    scope:'all_non_race_weeks_conservative',
+    potentiallyCountedWeeks:potentiallyCounted.map(w=>w.week),
     minimumMandatorySwimSessions:valid?swims:0,
     optimisticMaximumEnduranceSessions:valid?maxEndurance:0,
     optimisticMinimumSwimPct:pct,
