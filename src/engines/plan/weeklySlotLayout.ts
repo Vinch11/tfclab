@@ -146,6 +146,9 @@ function buildLayout(
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
   const canAdd = (d: DayName, sport: LayoutSport): boolean =>
     findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest &&
+    // The official competition claims the entire race day, never an extra
+    // training opportunity, even if the nominal daily session cap is two.
+    !findDay(d).slots.some(s=>s.isRaceEvent) &&
     !(findDay(d).slots.some(s=>s.sport==="strength") && findDay(d).slots.length>=2) &&
     !(opts.dayBans ?? []).some(b => b.day === d &&
       (b.sport === "any" || b.sport === sport || (sport === "brick" && (b.sport === "bike" || b.sport === "run"))));
