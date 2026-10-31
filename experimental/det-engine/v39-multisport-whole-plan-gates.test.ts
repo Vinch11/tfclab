@@ -59,6 +59,49 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
         improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
         auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
         requireRealQualityOnLoadWeeks:true});
+    // Experimental SECOND SEARCH, same approved sources, quota, athlete and
+    // restrictions. This does not replace the original baseline proof.
+    // It only reorders already checked source candidates, never edits doses.
+    const balanced=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,preferSourceBackedMultisportBalance:true});
+    const balancedBlockers=balanced.issues.filter(i=>blocking(i.severity));
+    const balancedRatio=balanced.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    const baseRatio=out.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    const readRatio=(message?:string)=>{
+      if(!message)return null;
+      try {
+        const item=JSON.parse(message) as {knownOnlyRatio?:{swim:number};conservativeBounds?:{swim:{minPct:number}}};
+        return {knownOnly:item.knownOnlyRatio?.swim??null,
+          minimumConservative:item.conservativeBounds?.swim.minPct??null};
+      }catch{return null;}
+    };
+    console.info('DET_V39_SOURCE_BACKED_BALANCE_COMPARISON',JSON.stringify({
+      fixture:fixtureId,objective,baselineConstructed:out.technicallyConstructed,
+      balancedConstructed:balanced.technicallyConstructed,
+      baselineRatio:readRatio(baseRatio?.message),
+      balancedRatio:readRatio(balancedRatio?.message),
+      baselineBlockingCodes:[...new Set(out.issues.filter(i=>blocking(i.severity)).map(i=>i.code))],
+      balancedBlockingCodes:[...new Set(balancedBlockers.map(i=>i.code))],
+      balancedReason:balanced.reason??null,
+      balancedSelectedV3:balanced.trace.filter(t=>t.id.startsWith('V3P_')||t.id.startsWith('V3B_')).length,
+      balancedWeeklyMinutes:balanced.candidate?.weeks.map(week=>({
+        week:week.weekNumber,minutes:week.sessions.filter(x=>!x.isRest)
+          .reduce((n,x)=>n+(x.durationMin??0),0),
+      }))??[],
+    }));
+    if(balanced.technicallyConstructed){
+      const cap=Math.floor(cfg.weeklyHours!*60);
+      expect(balanced.candidate!.weeks.every(week=>
+        week.sessions.filter(x=>!x.isRest).reduce((n,x)=>n+(x.durationMin??0),0)<=cap
+      )).toBe(true);
+      expect(balancedBlockers.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
+    }
+    expect(balanced.humanReviewRequired).toBe(true);
+    expect(balanced.sportingRelevance).toBe('not_attested');
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
