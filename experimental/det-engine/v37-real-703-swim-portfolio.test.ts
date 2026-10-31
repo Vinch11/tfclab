@@ -12,7 +12,7 @@ const swimIds=[
  'V3P_SWIM_103','V3P_SWIM_108','V3P_SWIM_118','V3P_SWIM_123',
  'V3P_SWIM_132','V3P_SWIM_133','V3P_SWIM_137','V3P_SWIM_142',
  'V3P_SWIM_143','V3P_SWIM_153','V3P_SWIM_158','V3P_SWIM_162',
- 'V3P_SWIM_163','V3P_SWIM_167','V3P_SWIM_178','V3P_SWIM_192',
+ 'V3P_SWIM_163','V3P_SWIM_167','V3P_SWIM_178','V3P_SWIM_197',
 ];
 const bikeRunIds=[
  'V3P_BIKE_002','V3P_BIKE_017','V3P_BIKE_090','V3P_BIKE_057',
@@ -29,6 +29,12 @@ function review(id:string) {
  };
 }
 describe('DET V37 — multi-sport 70.3 source selection in real solver',()=>{
+ it('refuses an Ironman swim race-pace source in a 70.3 plan despite complete synthetic coach review',()=>{
+  const wrong=buildDetV3ContractFromCatalogue([review('V3P_SWIM_192')]);
+  expect(wrong.report.accepted).toHaveLength(0);
+  expect(wrong.report.rejected.find(r=>r.id==='V3P_SWIM_192')?.reason)
+   .toContain('race_specific_anchor_incompatible_with_objective');
+ });
  it('uses reviewed V3 swim sessions in a 70.3 candidate without disguising existing safety failures',()=>{
   const fixture=preparePrevalidationFixture('B-70.3');
   const config={...fixture.planConfig,_outputFormat:'json' as const};
