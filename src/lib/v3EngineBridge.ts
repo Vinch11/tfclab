@@ -111,7 +111,7 @@ export function materializeV3ForPlanEngine(
         " (V3 candidate, independent sporting review pending)" },
       prerequisites: {
         minimumTrainingLevel: recipe.minimumLevel,
-        requireVerifiedProfile: ["sub_threshold", "mlss", "vo2max", "neuromuscular", "race_specific"].includes(recipe.primaryIntent),
+        requireVerifiedProfile: ["sub_threshold", "mlss", "mixed_intensity", "vo2max", "neuromuscular", "race_specific"].includes(recipe.primaryIntent),
         requireExplicitCoachApproval: true,
       },
       notes: "EXPERIMENTAL V3 — base chronology maintained; dose cannot be silently widened",
