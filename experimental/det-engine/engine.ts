@@ -477,6 +477,35 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         });
         return refuse('v310_structured_zone_necessary_bound_refused_week_'+w.week);
       }
+      // Structured V3 search: put fully certified, promising candidates
+      // first. Preserve the declared limiter ranking on KEY slots. This
+      // alters only exploration ORDER, never eligibility or validations.
+      // Pair the candidate with its zone profile so all later suffix bounds
+      // keep the identical index/source association.
+      if(requireStructuredZones){
+        for(let slotIndex=0;slotIndex<order.length;slotIndex++){
+          const {domain,slot}=order[slotIndex];
+          const candidates=domain.map((session,index)=>({
+            session,dose:zoneDomains[slotIndex][index],originalIndex:index,
+          }));
+          const rank=(session:ParsedSession)=>{
+            const card=catalog.find(card=>card.id===session.catalogId);
+            return card?(experimentalContract?.rankCandidate?.(card,{
+              ...context,week:w.week,slot:slot.slot,dayIndex:slot.dayIndex})??0):0;
+          };
+          const score=(dose:NativeZoneDose|null)=>
+            dose===null?-Infinity:dose.low-3*dose.nonLow-0.01*dose.unknown;
+          candidates.sort((a,b)=>
+            Number(a.dose===null)-Number(b.dose===null)||
+            (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
+            (qualityRequired&&slot.slot.isKeySession?
+              Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
+            score(b.dose)-score(a.dose)||
+            a.originalIndex-b.originalIndex);
+          order[slotIndex].domain=candidates.map(c=>c.session);
+          zoneDomains[slotIndex]=candidates.map(c=>c.dose);
+        }
+      }
       const rootZoneEnvelope=requireAnyStrictZones?
         optimisticNativeLowShareUpperBound([],zoneDomains):null;
       if(rootZoneEnvelope?.unmeasuredDomain || rootZoneEnvelope?.provablyBelow75){
