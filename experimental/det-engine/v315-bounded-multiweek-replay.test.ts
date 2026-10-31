@@ -69,12 +69,19 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
     };
     planner.mockImplementation((
       _a:PlanAthleteData,_c:PlanConfig,_b:unknown,c:ExperimentalAssemblyContract,
-    )=>isBanned(c)?observed('fully_valid'):observed('unresolved',priorTrace));
+    )=>{
+      if(isBanned(c))return observed('fully_valid');
+      const unresolved=observed('unresolved',priorTrace);
+      unresolved.reason='search_budget_exhausted';
+      return unresolved;
+    });
     const out=constructDeterministicPlanWithBoundedReplays(
       athlete,config,{maxNodes:160,maxMilliseconds:60000},contract);
     expect(out.evidence.verdict).toBe('all_gates_pass');
     expect(out.result?.constraintsSatisfied).toBe(true);
     expect(out.evidence.attempts[0].revisedWeeks).toEqual([]);
+    // Budget-exhausted week: revise a previously selected source promptly.
+    expect(out.evidence.attempts[1].revisedWeeks).toContain(2);
     expect(out.evidence.attempts.some(a=>
       a.revisedWeeks?.includes(2)&&a.excludedSourceIds?.includes(sessionSource))).toBe(true);
     expect(out.evidence.totalNodes).toBeLessThanOrEqual(160);
@@ -84,6 +91,22 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
       .toBe(true);
   });
 
+  it('tries a different admissible ratio target before pointless source exclusions',()=>{
+    planner.mockImplementation((
+      _a:PlanAthleteData,_c:PlanConfig,_limits:unknown,c:ExperimentalAssemblyContract,
+    )=>{
+      if(c.ratioTargetPreference?.swim===.16)return observed('fully_valid');
+      const failed=observed('unresolved',priorTrace);
+      failed.reason='no_catalogue_assignment_week_9';
+      return failed;
+    });
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,config,{maxNodes:160,maxMilliseconds:60000},contract);
+    expect(out.evidence.verdict).toBe('all_gates_pass');
+    expect(out.evidence.attempts).toHaveLength(2);
+    expect(out.evidence.attempts[1].target.swim).toBe(.16);
+    expect(out.evidence.attempts[1].revisedWeeks).toEqual([]);
+  });
   it('does not convert exact sport ratios into a false native sporting pass',()=>{
     planner.mockImplementation(()=>observed('ratios_only'));
     const out=constructDeterministicPlanWithBoundedReplays(
