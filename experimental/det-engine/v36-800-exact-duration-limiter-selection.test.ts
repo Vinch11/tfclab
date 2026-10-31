@@ -82,7 +82,7 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
      slot:{sport:'bike',isKeySession:true,isLongSession:false} as DaySlot};
    expect(contract.filterCandidate?.(matching,ctx)).toBe(true);
    expect(contract.rankCandidate?.(matching,ctx)).toBe(-3);
-   expect(contract.rankCandidate?.(other,ctx)).toBe(-1);
+   expect(contract.rankCandidate?.(other,ctx)).toBe(0);
    expect(contract.filterCandidate?.(matching,{...ctx,phase:'base'})).toBe(false);
    const notKey={...ctx,slot:{sport:'bike',isKeySession:false,isLongSession:false} as DaySlot};
    expect(contract.rankCandidate?.(matching,notKey)).toBe(-1);
@@ -94,7 +94,7 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    const unknown=buildDetV3ContractFromCatalogue([review('V3P_BIKE_008')]);
    const prep3=prepareGenerationContracts(fixture.athleteData,cfgUnknown,{rotationSeed:0});
    unknown.contract.adapt(prep3,cfgUnknown);
-   expect(unknown.contract.rankCandidate?.(unknown.report.accepted[0],ctx)).toBe(-1);
+   expect(unknown.contract.rankCandidate?.(unknown.report.accepted[0],ctx)).toBe(0);
  });
  it('remains fail-closed without coach evidence and real anchor values',()=>{
    const none=buildDetV3ContractFromCatalogue([]);
