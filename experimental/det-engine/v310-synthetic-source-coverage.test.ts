@@ -113,7 +113,10 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       fixture:fixtureId,objective,admittedSports,accepted:report.accepted.length,
       constructedWeeks:result.candidate?.weeks.length??0,nodes:result.nodes,
       reason:result.reason??null,firstMissingWeek:firstMissing?.week??null,
-      unprovedSlots,blockingCodes:[...new Set(result.issues.filter(i=>
+      unprovedSlots,
+      necessaryBound:result.issues.find(i=>
+        i.code==='det_v310_structured_zone_necessary_bound_refused')?.message??null,
+      blockingCodes:[...new Set(result.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     }));
     // A second, explicitly SYNTHETIC coach-confirmed schedule explores
@@ -149,6 +152,10 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       fixture:fixtureId,constructedWeeks:withClock.candidate?.weeks.length??0,
       reason:withClock.reason??null,nodes:withClock.nodes,
       unprovedWeek:blockedByClock?.week??null,
+      necessaryBound:withClock.issues.find(i=>
+        i.code==='det_v310_structured_zone_necessary_bound_refused')?.message??null,
+      structuredSearch:withClock.issues.find(i=>
+        i.code==='det_structured_polarization_target_search_unresolved')?.message??null,
       blockedCodes:[...new Set(withClock.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     }));
