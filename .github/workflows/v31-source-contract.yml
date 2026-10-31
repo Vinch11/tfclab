@@ -1,0 +1,30 @@
+name: V3.1 — 400 source-bound prescription contracts
+on:
+  pull_request:
+    paths:
+      - 'scripts/library-v3/**'
+      - 'src/lib/__tests__/v31Prescription*.test.ts'
+      - '.github/workflows/v31-source-contract.yml'
+  push:
+    branches:
+      - 'experiment/v3-1-all-400-prescription-contracts'
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: ESLint — exact diagnostics
+        run: bunx eslint scripts/library-v3/catalogueRuntime.ts scripts/library-v3/prescriptionContract.ts scripts/library-v3/resolvePrescription.ts src/lib/__tests__/v31PrescriptionContract.test.ts src/lib/__tests__/v31PrescriptionResolution.test.ts
+      - name: TypeScript — complete application
+        run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Verify all 400 offline workbench source records
+        run: node scripts/library-v3/checkWorkbenchSync.mjs
+      - name: Run all 400 V3.1 contract and resolution tests
+        run: bunx vitest run src/lib/__tests__/v31PrescriptionContract.test.ts src/lib/__tests__/v31PrescriptionResolution.test.ts
