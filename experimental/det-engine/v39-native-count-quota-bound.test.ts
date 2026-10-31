@@ -27,16 +27,17 @@ describe('DET V39 — optimistic mathematical bound against native count-only sp
     expect(r.mathematicallyCannotAvoidNativeSwimBlocker).toBe(false);
     expect(r.interpretation).toBe('necessary_condition_not_a_schedule_or_dose_validation');
   });
-  it('excludes race and recovery weeks rather than hiding non-load periods in the denominator',()=>{
+  it('includes possibly counted recovery/taper weeks and excludes only explicit race weeks',()=>{
     const load=quota([3,3],[2,2],[2,2],[1,1],[0,0],8);
+    const recovery=quota([2,2],[1,1],[1,1],[0,0],[0,0],4);
     const race=quota([0,0],[0,0],[0,0],[0,0],[0,0],1);
     const r=assessNativeSwimCountQuotaBound([
       {week:1,weekType:'load',quota:load},
-      {week:2,weekType:'recovery',quota:race},
+      {week:2,weekType:'recovery',quota:recovery},
       {week:3,weekType:'race',quota:race},
     ],20);
-    expect(r.loadedWeeks).toEqual([1]);
-    expect(r.minimumMandatorySwimSessions).toBe(3);
+    expect(r.potentiallyCountedWeeks).toEqual([1,2]);
+    expect(r.minimumMandatorySwimSessions).toBe(5);
     expect(r.optimisticMinimumSwimPct).toBeCloseTo(100/3);
   });
   it('declares uncertainty if quotas are internally contradictory, without inventing a count',()=>{
@@ -56,9 +57,9 @@ describe('DET V39 — optimistic mathematical bound against native count-only sp
     expect(r.optimisticMinimumSwimPct).toBe(25);
     expect(r.mathematicallyCannotAvoidNativeSwimBlocker).toBe(false);
   });
-  it('does not manufacture proof with zero eligible loading weeks',()=>{
+  it('does not manufacture proof with only official race weeks',()=>{
     const q=quota([0,0],[0,0],[0,0],[0,0],[0,0],1);
-    const r=assessNativeSwimCountQuotaBound([{week:1,weekType:'recovery',quota:q}],20);
+    const r=assessNativeSwimCountQuotaBound([{week:1,weekType:'race',quota:q}],20);
     expect(r.optimisticMinimumSwimPct).toBe(null);
   });
 });
