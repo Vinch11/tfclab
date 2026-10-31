@@ -34,7 +34,7 @@ afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V34 — lower run-recovery burden without changing sport floors',()=>{
  it('assembles only exact source-reviewed easy-run 70.3 bricks (173/120/160/180)',()=>{
   const p=buildDetV3ContractFromCatalogue(sources,base,specific,easy);
-  expect(p.report.sourceCount).toBe(400);
+  expect(p.report.sourceCount).toBe(800);
   expect(p.lowRunBrickReport.rejected).toEqual([]);
   expect(p.lowRunBrickReport.accepted.map(m=>m.durationMin))
     .toEqual([[173,173],[120,120],[160,160],[180,180]]);
