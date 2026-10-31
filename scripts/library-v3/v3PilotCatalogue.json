@@ -12010,14 +12010,14 @@
       "id": "V3P_BIKE_024",
       "version": "3.0.0-pilot",
       "sport": "bike",
-      "title": "Taper : activation 3×1 min",
-      "primaryIntent": "neuromuscular",
-      "primaryDomain": "neuromuscular",
+      "title": "Taper : activation gestuelle 3×1 min sous contrôle",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "tempo",
       "phase": [
         "taper"
       ],
       "minimumLevel": "trained",
-      "focus": "Réveil nerveux sans épuisement",
+      "focus": "Maintenir la fluidité de pédalage par trois accélérations de cadence à puissance tempo mesurée, sans sprint ni promesse alactique",
       "origin": "TFCLab — composition originale fondée sur principes, jamais reproduction attribuée à un entraîneur",
       "evidence": {
         "referenceIds": [
@@ -12031,10 +12031,12 @@
         "Douleur ou fatigue incompatible avec la charge",
         "Récupération insuffisante"
       ],
-      "stopRule": "Interrompre si douleur, perte technique ou dérive d'effort incompatible avec l'intention",
+      "stopRule": "Arrêter si douleur, fatigue, hausse anormale de l'effort ou perte de fluidité de pédalage",
       "minimumRecoveryHours": 18,
-      "prerequisites": [],
-      "methodology": "Dose individualisée selon profil, stade et charge qualitative",
+      "prerequisites": [
+        "Repère FTP/tempo individuel vérifié et qualité de cadence confirmée"
+      ],
+      "methodology": "Activation technique contrôlée en taper — ne pas assimiler 60 s à un stimulus alactique",
       "blocks": [
         {
           "kind": "time",
@@ -12055,7 +12057,7 @@
             "max": 3
           },
           "betweenSec": 180,
-          "label": "Mises en action",
+          "label": "Trois accélérations techniques non maximales",
           "steps": [
             {
               "kind": "time",
@@ -12064,8 +12066,8 @@
                 "base": 60,
                 "max": 60
               },
-              "domain": "neuromuscular",
-              "label": "Accélération contrôlée, pas maximal",
+              "domain": "tempo",
+              "label": "Cadence plus rapide mais fluide, puissance tempo sous MLSS — pas de sprint",
               "role": "main"
             }
           ],
@@ -12091,16 +12093,16 @@
       "status": "candidate",
       "prescription": {
         "physiologicalIntent": {
-          "statement": "Réveil nerveux sans épuisement",
-          "primaryIntent": "neuromuscular",
-          "primaryDomain": "neuromuscular",
+          "statement": "Maintenir la fluidité de pédalage par trois accélérations de cadence à puissance tempo mesurée, sans sprint ni promesse alactique",
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "tempo",
           "domainIds": [
-            "neuromuscular",
-            "recovery"
+            "recovery",
+            "tempo"
           ],
           "limiterKeys": [
-            "neuromuscular_recruitment",
             "movement_economy",
+            "technical_efficiency",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -12109,13 +12111,13 @@
         "individualization": {
           "anchors": [
             {
-              "domain": "neuromuscular",
-              "key": "bike_verified_sprint_power_range_w",
-              "transform": "no_assumed_numeric_sprint",
+              "domain": "recovery",
+              "key": "bike_ftp_w",
+              "transform": "tfclDoctrine.bike_fraction_of_ftp",
               "missing": "unresolved"
             },
             {
-              "domain": "recovery",
+              "domain": "tempo",
               "key": "bike_ftp_w",
               "transform": "tfclDoctrine.bike_fraction_of_ftp",
               "missing": "unresolved"
@@ -12181,12 +12183,14 @@
             "taper"
           ],
           "minimumRecoveryHours": 18,
-          "prerequisites": [],
+          "prerequisites": [
+            "Repère FTP/tempo individuel vérifié et qualité de cadence confirmée"
+          ],
           "contraindications": [
             "Douleur ou fatigue incompatible avec la charge",
             "Récupération insuffisante"
           ],
-          "stopRule": "Interrompre si douleur, perte technique ou dérive d'effort incompatible avec l'intention",
+          "stopRule": "Arrêter si douleur, fatigue, hausse anormale de l'effort ou perte de fluidité de pédalage",
           "requiresIndividualCoachReview": true,
           "requiresLoadAndFatigueCheck": true,
           "requiresWeeklySportingValidation": true,
@@ -18623,15 +18627,15 @@
       "id": "V3P_SWIM_020",
       "version": "3.0.0-pilot",
       "sport": "swim",
-      "title": "Vitesse technique 50m relâché",
-      "primaryIntent": "neuromuscular",
-      "primaryDomain": "neuromuscular",
+      "title": "Coordination rapide 50 m — technique sans sprint",
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "moderate_lt1",
       "phase": [
         "build",
         "peak"
       ],
       "minimumLevel": "trained",
-      "focus": "Maintenir vitesse sans casser le placement",
+      "focus": "Améliorer l'alignement et la coordination sur 50 m à une allure modérée mesurée, sans revendiquer un sprint alactique",
       "origin": "TFCLab — composition originale fondée sur principes, jamais reproduction attribuée à un entraîneur",
       "evidence": {
         "referenceIds": [
@@ -18645,10 +18649,12 @@
         "Douleur ou fatigue incompatible avec la charge",
         "Récupération insuffisante"
       ],
-      "stopRule": "Interrompre si douleur, perte technique ou dérive d'effort incompatible avec l'intention",
+      "stopRule": "Arrêter si épaule douloureuse, gêne respiratoire ou technique de nage dégradée",
       "minimumRecoveryHours": 36,
-      "prerequisites": [],
-      "methodology": "Dose individualisée selon profil, stade et charge qualitative",
+      "prerequisites": [
+        "Allure de nage modérée individuelle confirmée, nage sous surveillance"
+      ],
+      "methodology": "Répétitions techniques à effort modéré, jamais un sprint alactique de 50m",
       "blocks": [
         {
           "kind": "distance",
@@ -18669,7 +18675,7 @@
             "max": 10
           },
           "betweenSec": 75,
-          "label": "50 m techniques rapides",
+          "label": "50 m technique à effort modéré",
           "steps": [
             {
               "kind": "distance",
@@ -18678,8 +18684,8 @@
                 "base": 50,
                 "max": 50
               },
-              "domain": "neuromuscular",
-              "label": "Rapide mais propre, récupération complète",
+              "domain": "moderate_lt1",
+              "label": "50 m technique : placement, respiration et propulsion à allure sous LT1",
               "role": "main"
             }
           ],
@@ -18705,16 +18711,16 @@
       "status": "candidate",
       "prescription": {
         "physiologicalIntent": {
-          "statement": "Maintenir vitesse sans casser le placement",
-          "primaryIntent": "neuromuscular",
-          "primaryDomain": "neuromuscular",
+          "statement": "Améliorer l'alignement et la coordination sur 50 m à une allure modérée mesurée, sans revendiquer un sprint alactique",
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
           "domainIds": [
-            "neuromuscular",
+            "moderate_lt1",
             "recovery"
           ],
           "limiterKeys": [
-            "neuromuscular_recruitment",
             "movement_economy",
+            "technical_efficiency",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -18723,8 +18729,8 @@
         "individualization": {
           "anchors": [
             {
-              "domain": "neuromuscular",
-              "key": "swim_domain_pace_sec_per_100m.neuromuscular",
+              "domain": "moderate_lt1",
+              "key": "swim_domain_pace_sec_per_100m.moderate_lt1",
               "transform": "measured_domain_pace_only",
               "missing": "unresolved"
             },
@@ -18771,7 +18777,7 @@
             "min": 50,
             "base": 50,
             "max": 50,
-            "risk": "coach_approval_quality_dose"
+            "risk": "bounded_session_dose"
           },
           {
             "path": "2.meters",
@@ -18787,7 +18793,7 @@
           "classification": "requires_individual_pace",
           "requiredMeasurements": [
             "swim_domain_pace_sec_per_100m.recovery",
-            "swim_domain_pace_sec_per_100m.neuromuscular"
+            "swim_domain_pace_sec_per_100m.moderate_lt1"
           ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "timeboxed_including_rest"
@@ -18799,12 +18805,14 @@
             "peak"
           ],
           "minimumRecoveryHours": 36,
-          "prerequisites": [],
+          "prerequisites": [
+            "Allure de nage modérée individuelle confirmée, nage sous surveillance"
+          ],
           "contraindications": [
             "Douleur ou fatigue incompatible avec la charge",
             "Récupération insuffisante"
           ],
-          "stopRule": "Interrompre si douleur, perte technique ou dérive d'effort incompatible avec l'intention",
+          "stopRule": "Arrêter si épaule douloureuse, gêne respiratoire ou technique de nage dégradée",
           "requiresIndividualCoachReview": true,
           "requiresLoadAndFatigueCheck": true,
           "requiresWeeklySportingValidation": true,
