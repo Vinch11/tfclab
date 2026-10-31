@@ -170,6 +170,8 @@ export function buildDetV3ContractFromCatalogue(
       const brick=brickById.get(card.id);
       if(brick){
         if(!brick.phases.includes(ctx.phase??''))return false;
+        // A short, entirely easy brick must not masquerade as an intensity key.
+        if(ctx.slot.isKeySession && !ctx.slot.isLongSession && brick.mainZoneMax<3)return false;
         // Composite bricks require a genuine loading week, never a nominal
         // taper, race, or recovery week even if the phase metadata is stale.
         if(ctx.weekType!=='load')return false;
