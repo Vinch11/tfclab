@@ -155,6 +155,37 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     }
     expect(swimOnly.humanReviewRequired).toBe(true);
     expect(swimOnly.sportingRelevance).toBe('not_attested');
+    // Last-stage candidate: keep swim source doses and prefer ONLY explicitly
+    // Z1/Z2 reviewed easy sessions in NON-key slots. Never assume a missing
+    // zone label implies easy training. No native validator is suppressed.
+    const easySwim=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'swim',
+        preferCertifiedEasyOnNonKeySlots:true});
+    const easyRatio=easySwim.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    const blocksByCode=(items:typeof easySwim.issues)=>
+      Object.fromEntries([...new Set(items.filter(i=>blocking(i.severity)).map(i=>i.code))]
+        .map(code=>[code,items.filter(i=>blocking(i.severity)&&i.code===code).map(i=>i.week??null)]));
+    console.info('DET_V39_SWIM_EASY_POLARIZATION_COMPARISON',JSON.stringify({
+      fixture:fixtureId,objective,constructed:easySwim.technicallyConstructed,
+      ratioSwimOnly:readRatio(swimRatio?.message),
+      ratioEasySwim:readRatio(easyRatio?.message),
+      blockerWeeksSwimOnly:blocksByCode(swimOnly.issues),
+      blockerWeeksEasySwim:blocksByCode(easySwim.issues),
+      reason:easySwim.reason??null,
+    }));
+    if(easySwim.technicallyConstructed){
+      expect(easySwim.candidate!.weeks.every(week=>
+        week.sessions.filter(x=>!x.isRest).reduce((n,x)=>n+(x.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+      expect(easySwim.issues.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
+    }
+    expect(easySwim.sportingRelevance).toBe('not_attested');
+    expect(easySwim.humanReviewRequired).toBe(true);
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
