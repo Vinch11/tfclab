@@ -52,6 +52,9 @@ export interface ExperimentalAssemblyContract {
   /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
    * keeping original source doses and key-limiter ranking intact. */
   preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim';
+  /** Experimental tie-breaker on NON-key slots: favor only clearly easy
+   * Z1/Z2 approved sources, never infer easy from unknown/mixed intensity. */
+  preferCertifiedEasyOnNonKeySlots?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -311,8 +314,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               balance && (balanceMode==='all'||balanceMode===slot.sport) &&
                 (slot.sport==='bike'||slot.sport==='run')?
                 (b.durationMin??0)-(a.durationMin??0):0;
+            const certifiedEasy=(session:ParsedSession)=>{
+              const source=catalog.find(m=>m.id===session.catalogId);
+              return source!==undefined && source.mainZoneMax>=1 &&
+                source.mainZoneMax<=2 && !!session.zones?.length &&
+                session.zones.every(zone=>/^Z[12]$/i.test(zone.trim()));
+            };
+            const easyPriority=experimentalContract?.preferCertifiedEasyOnNonKeySlots===true &&
+              !slot.isKeySession?
+                Number(certifiedEasy(b))-Number(certifiedEasy(a)):0;
             return (slot.isKeySession?rank(a)-rank(b):0)||
-              dosePriority||
+              easyPriority||dosePriority||
               (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
               (!slot.isKeySession?rank(a)-rank(b):0)||
               w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||
