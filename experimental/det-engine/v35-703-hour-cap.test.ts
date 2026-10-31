@@ -50,6 +50,8 @@ describe('DET V35 — coach availability is a hard construction cap when opted i
     originalOverCap:oldWeeks.filter(w=>w.minutes>600),
     cappedConstructed:capped.technicallyConstructed,cappedReason:capped.reason,
     cappedOverCap:newWeeks.filter(w=>w.minutes>600),
+    cappedBricks:capped.trace.filter(t=>t.id.startsWith('V3B_703_'))
+      .map(t=>({week:t.week,id:t.id,duration:t.duration})),
     cappedWeeks:newWeeks,blocking:capped.issues.filter(i=>
       ['blocking','critical','error'].includes(i.severity)).slice(0,16).map(i=>i.code),
   }));
