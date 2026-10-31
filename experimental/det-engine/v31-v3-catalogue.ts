@@ -10,6 +10,10 @@ import {
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
+import {
+  auditV3SportingRegistry,qualifyV3IndividualSportingSource,
+  type V3IndividualSportingEvidence,
+} from '../../scripts/library-v3/sportingQualification800';
 import {resolveV3IntensityTargets, type V3AthleteAnchors, type V3IntensityTarget} from '../../scripts/library-v3/resolveV3Intensity';
 import {
   buildDetV3Contract, type DetV3Review, type V3SourceCard,
@@ -20,6 +24,10 @@ import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-
 import type { ExperimentalAssemblyContract } from './engine';
 
 export interface V3ReviewedSettings extends DetV3Review {
+  /** Separate expected athlete identity (not inferred from the review itself). */
+  expectedAthleteId?:string;
+  /** Explicit source-and-athlete sporting qualification evidence. */
+  sportingReview?:V3IndividualSportingEvidence;
   /** Measured or explicitly verified athlete anchors: never generated or filled from population defaults. */
   athleteAnchors?: V3AthleteAnchors;
   /** Exact V3 paths such as "0.seconds" or "1.count". */
@@ -154,7 +162,7 @@ export function buildDetV3ContractFromCatalogue(
   specificBrickReviews:readonly V32SpecificBrickReview[]=[],
   lowRunBrickReviews:readonly V34SafeBrickReview[]=[]
 ) {
-  const auditErrors=auditV3Catalogue(v3FullCatalogue);
+  const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry()];
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
   if(v3FullCatalogue.workouts.length!==800 ||
       ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
@@ -173,6 +181,9 @@ export function buildDetV3ContractFromCatalogue(
     const settings=reviewMap.get(w.id);
     if(!settings)return w;
     try {
+      const sporting=qualifyV3IndividualSportingSource(w,settings.sportingReview,settings.expectedAthleteId);
+      if(!sporting.allowedToSubmitToDet)
+        throw Error('v3_sporting_gate_refused:'+sporting.blockingReasons.join(';'));
       const configured=configureWorkout(w,settings);
       const checked=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
       if(checked.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+checked.missing.join(','));
@@ -193,6 +204,7 @@ export function buildDetV3ContractFromCatalogue(
     if(!intensity)throw Error('v3_resolved_intensity_proof_missing:'+admitted.id);
     admitted.structure+=' | CIBLES INDIVIDUALISÉES: '+intensity;
     admitted.tags.push('v3-intensity-anchors-individually-verified');
+    admitted.tags.push('v3-sporting-source-individually-reviewed-candidate');
   }
   for(const rejection of report.rejected) {
     const why=faulty.get(rejection.id);
