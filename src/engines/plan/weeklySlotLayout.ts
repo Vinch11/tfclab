@@ -162,9 +162,12 @@ function buildLayout(
   }
 
   for(const event of opts.raceEvents??[]) {
-    if(remaining[event.sport]>0 && canAdd(event.dayName,event.sport) && !findDay(event.dayName).slots.some(s=>s.sport===event.sport || (event.sport==="brick"&&(s.sport==="run"||s.sport==="bike")) || (event.sport==="run"&&s.sport==="brick"))) {
+    // An official race must be reserved even if TRAINING brick.max is zero.
+    // It does not manufacture a permitted brick workout. The declared event
+    // is checked separately by planningFeasibility and is not sourced from V3.
+    if(canAdd(event.dayName,event.sport) && !findDay(event.dayName).slots.some(s=>s.sport===event.sport || (event.sport==="brick"&&(s.sport==="run"||s.sport==="bike")) || (event.sport==="run"&&s.sport==="brick"))) {
       findDay(event.dayName).slots.push({sport:event.sport,isRaceEvent:true,isKeySession:true});
-      remaining[event.sport]--;
+      remaining[event.sport]=Math.max(0,remaining[event.sport]-1);
     }
   }
 
@@ -217,7 +220,10 @@ function buildLayout(
     remaining.brick--;
   }
   // A replacement is earned by a brick actually placed, not a desired count.
-  const actualBricks = days.flatMap(d => d.slots).filter(s => s.sport === "brick").length;
+  // A race above the training-brick maximum does NOT stand in for an
+  // independent long ride or reduce a mandatory bike training frequency.
+  const actualBricks = Math.min(quota.brick.max,
+    days.flatMap(d => d.slots).filter(s => s.sport === "brick").length);
   remaining.bike = Math.max(0, effectiveSessionQuota({ bike: { min: targets.bike, max: targets.bike } }, actualBricks).bike.min
     - days.flatMap(d => d.slots).filter(s => s.sport === "bike").length);
 
@@ -353,8 +359,11 @@ function buildLayout(
 export function buildWeeklySlotLayout(quota: WeeklyQuota, floors: SizingFloors, weekType: WeekType, opts: SlotLayoutOptions = {}): WeeklySlotLayout {
   const deficit = (layout: WeeklySlotLayout) => {
     const slots = layout.days.flatMap(d => d.slots);
-    const effective = effectiveSessionQuota(quota, slots.filter(s => s.sport === "brick").length);
-    return Math.max(0, effective.totalSessions.min - slots.length)
+    const effective = effectiveSessionQuota(quota, Math.min(quota.brick.max,
+      slots.filter(s => s.sport === "brick").length));
+    const raceOverflow = Math.max(0,slots.filter(s => s.isRaceEvent && s.sport === "brick").length-quota.brick.max)
+      + Math.max(0,slots.filter(s => s.isRaceEvent && s.sport === "run").length-quota.run.max);
+    return Math.max(0, effective.totalSessions.min - (slots.length-raceOverflow))
       + (["swim", "bike", "run", "brick", "strength"] as const).reduce((n, sport) =>
         n + Math.max(0, (sport === "bike" ? effective.bike.min : quota[sport].min)
           - slots.filter(s => s.sport === sport).length), 0);
