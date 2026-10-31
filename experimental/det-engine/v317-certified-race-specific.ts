@@ -38,12 +38,16 @@ export function certifyReviewedRaceSpecificPeak(
   if(!peak.length)return refuse('race_specific_peak_phase_missing');
   const sourceIds=new Set<string>();
   const rejected:string[]=[];
+  // Unavailable proof providers invalidate the whole certificate, even
+  // when a different session has individually verified race-pace evidence.
+  let providerUnavailable=false;
   for(const w of peak){
     for(const session of w.sessions as ParsedSession[]){
       if(session.isRest||!session.catalogId)continue;
       let review:ProvenRaceSource|null|undefined;
       try{review=approved(session.catalogId);}
       catch{
+        providerUnavailable=true;
         rejected.push('source_review_provider_error:'+session.catalogId);
         continue;
       }
@@ -57,7 +61,11 @@ export function certifyReviewedRaceSpecificPeak(
       let dose:NativeZoneDose|null|undefined;
       if(typeof session.durationMin==='number'){
         try{dose=sourceDose(session.catalogId,session.durationMin);}
-        catch{rejected.push('source_dose_provider_error:'+session.catalogId);continue;}
+        catch{
+          providerUnavailable=true;
+          rejected.push('source_dose_provider_error:'+session.catalogId);
+          continue;
+        }
       }
       if(typeof session.durationMin!=='number'||
          !zonesValid(dose,session.durationMin)){
@@ -67,6 +75,7 @@ export function certifyReviewedRaceSpecificPeak(
       sourceIds.add(session.catalogId);
     }
   }
+  if(providerUnavailable)return refuse('race_specific_evidence_provider_unavailable',rejected);
   if(!sourceIds.size)return refuse('no_individually_approved_race_pace_source_in_peak',rejected);
   return {verdict:'verified',reason:'approved_goal_specific_source_and_exact_dose_in_peak',
     sourceIds:[...sourceIds].sort(),peakWeeks:peak.map(w=>w.weekNumber),
