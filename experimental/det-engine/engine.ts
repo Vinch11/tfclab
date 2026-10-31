@@ -19,6 +19,7 @@ import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
+import {assessStrictNativePolarizationTarget} from './v39-strict-native-polarization-target';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -62,6 +63,9 @@ export interface ExperimentalAssemblyContract {
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
   requireRealQualityOnLoadWeeks?:true;
+  /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
+   * unknown intensity minutes on load weeks; no physiological attestation. */
+  requireNativePolarizationOnLoadWeeks?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -391,7 +395,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
-        if(index===slots.length)return !qualityRequired||chosen.some(isQuality);
+        if(index===slots.length){
+          if(qualityRequired&&!chosen.some(isQuality))return false;
+          if(experimentalContract?.requireNativePolarizationOnLoadWeeks===true &&
+             entry.weekType==='load')
+            return assessStrictNativePolarizationTarget(chosen).admissible;
+          return true;
+        }
         for(const session of order[index].domain) {
           const id=session.catalogId;
           const m=id?catalog.find(m=>m.id===id):undefined;
@@ -410,7 +420,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
         return false;
       }
-      if(!search(0,0))return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
+      if(!search(0,0)){
+        if(experimentalContract?.requireNativePolarizationOnLoadWeeks===true&&entry.weekType==='load'){
+          result.issues.push({code:'det_native_polarization_target_search_unresolved',
+            week:w.week,severity:'blocking',message:JSON.stringify({
+              targetLowPct:75,maxUnknownPct:30,
+              reason:exhausted?'bounded_search_exhausted':'no_assignment_found',
+              inspectedNodes:result.nodes,scientificAttestation:false,
+            })});
+        }
+        return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
+      }
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
