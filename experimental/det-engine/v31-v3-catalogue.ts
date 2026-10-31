@@ -259,7 +259,7 @@ export function buildDetV3ContractFromCatalogue(
   const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
   const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted];
   const brickById=new Map(allBricks.map(card=>[card.id,card]));
-  const approvedBrickTransitions=new Map(
+  const approvedBrickTransitions=new Map<string,number>(
     [...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
       .map(r=>[r.id,r.transitionSeconds] as const));
   for(const brick of allBricks){
