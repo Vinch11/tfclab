@@ -75,7 +75,7 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
         technicallyConstructed:actual.technicallyConstructed,
         constraintsSatisfied:actual.constraintsSatisfied,
         selectedSourceIds:selected.map(t=>({id:t.id,week:t.week,day:t.day})),
-        keySessions,blocking:blockers.map(x=>({code:x.code,week:x.week})),
+        keySessions,blocking:blockers.map(x=>({code:x.code,week:x.week,message:x.message?.slice(0,2600)})),
       }));
       expect(actual.humanReviewRequired).toBe(true);
       expect(actual.sportingRelevance).toBe('not_attested');
