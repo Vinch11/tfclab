@@ -30,7 +30,12 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     vi.stubGlobal('fetch',()=>{throw Error('DET_V39_NETWORK_FORBIDDEN');});
     const f=preparePrevalidationFixture(fixtureId);
     const objective=fixtureId==='B-70.3'?'703' as const:'IM' as const;
-    const cfg={...f.planConfig,_outputFormat:'json' as const};
+    // Explicit A-race dates: the QA fixture had NO event date, which makes day-J unverifiable.
+    // This is declared synthetic race context, not a default for real athletes.
+    const raceDate=fixtureId==='B-70.3'?'2027-01-17':'2027-02-14';
+    const cfg={...f.planConfig,planStartDate:'2026-10-26',raceDate,
+      raceGoals:[{objective,raceDate,priority:'A' as const}],
+      _outputFormat:'json' as const};
     expect(cfg.weeklyHours).toBeGreaterThan(0);
     const reviews=baseSourceIds.map(id=>review(id,objective,id==='V3P_BIKE_002'?65:id==='V3P_BIKE_016'?139:undefined));
     const brickReviews=objective==='703'?[{
