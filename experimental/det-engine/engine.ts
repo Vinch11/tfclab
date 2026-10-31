@@ -99,7 +99,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       for(const week of report.weeks){
         const entry=preparation.weeklyQuotas[week.week];
         if(!entry?.layout)continue;
-        const eligibleSports=new Set(week.eligible.map(c=>normalizeRepairSport(c.sport)));
+        // Use EXACTLY the same physical catalogue as the deterministic
+        // assignment below. The prevalidation source list can contain IDs
+        // not present in these assembled pools; those cannot fill a slot.
+        const actualCatalog=[...new Map([
+          ...Object.values(preparation.phaseRepairCatalogs).flat(),
+          ...preparation.chunkRepairCatalogs.flat(),
+          ...preparation.chunkRegenRepairCatalogs.flat(),
+        ].map(m=>[m.id,m])).values()];
+        const allowedIds=new Set(week.eligible.map(c=>c.id));
+        const eligibleSports=new Set(actualCatalog.filter(m=>allowedIds.has(m.id))
+          .map(m=>normalizeRepairSport(m.sport)));
         const optionalMissing=new Set<LayoutSport>();
         for(const day of entry.layout.days)for(const slot of day.slots){
           if(!slot.isRaceEvent && entry.quota[slot.sport].min===0 &&
