@@ -56,7 +56,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     const out=constructDeterministicPlan(f.athleteData,cfg,
       {maxNodes:12000,maxMilliseconds:8000},{...contract,
         enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
-        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true});
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true});
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
@@ -92,6 +93,7 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       nativeRaceEventPlaced:nativeRaceWeek?.layout?.days.some(d=>d.slots.some(s=>s.isRaceEvent))??false,
       weeks,selectedV3:named.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
       hardBlockers:byCode,
+      verifiedMinuteRatio:out.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'))?.message??null,
       blockerExamples:Object.fromEntries([...new Set(blockingIssues.map(i=>i.code))].map(code=>
         [code,blockingIssues.filter(i=>i.code===code).slice(0,2)
           .map(i=>({week:i.week??null,message:i.message?.slice(0,450)??''}))])),
