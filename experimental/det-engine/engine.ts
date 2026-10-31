@@ -16,7 +16,8 @@ import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repai
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
-import {auditPlannedMinuteDistribution} from './v31-time-ratio';
+import {auditPlannedMinuteDistribution,splitVerifiedV3Brick} from './v31-time-ratio';
+import {assessGlobalSourceRatioEnvelope,type RatioSlotDomain,type ExactSportMinutes} from './v311-global-ratio-domain-bounds';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
@@ -60,6 +61,8 @@ export interface ExperimentalAssemblyContract {
   improveV3RecoveryLayout?:true;
   /** Opt-in independent minute-based triathlon sport ratio audit, without suppressing native validators. */
   auditVerifiedMultisportMinutes?:true;
+  /** V311: global optimistic domain ratios over only exact approved source doses. */
+  auditGlobalSourceSportRatioBounds?:true;
   /** Experimental ONLY: migrate the erroneous COUNT sport ratio to strict
    * source-certified minutes, conditioned on full brick and frequency proof.
    * Native validation remains the default when this flag is absent. */
@@ -253,6 +256,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const started=performance.now();
     let exhausted=false;
     let previousLoad:number|undefined;
+    const sourceSlotRatioDomains:RatioSlotDomain[]=[];
     for(const w of report.weeks) {
       const entry=preparation.weeklyQuotas[w.week];
       const layout=entry.layout!;
@@ -430,6 +434,32 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             afterReview:afterReview.length,afterDuration:afterDuration.length,
             finalAdmissible:0,samples})});
         return refuse('empty_catalogue_domain_week_'+w.week);
+      }
+      // Source-specific full-horizon diagnostic, constructed from the very
+      // same admitted options the DFS receives. Never use unspecified legacy
+      // brick minutes to prove a global sport ratio impossible.
+      if(experimentalContract?.auditGlobalSourceSportRatioBounds===true&&
+         entry.weekType==='load'&&
+         ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+        slots.forEach(({slot},index)=>{
+          if(!['swim','bike','run','brick'].includes(slot.sport))return;
+          const choices=options[index].map((session):ExactSportMinutes|null=>{
+            const duration=session.durationMin;
+            if(typeof duration!=='number'||!Number.isFinite(duration)||duration<=0)return null;
+            if(session.sport==='brick'){
+              try {
+                const split=splitVerifiedV3Brick(session.catalogId??undefined,
+                  session.details,duration,experimentalContract.verifiedBrickCompositions??[]);
+                return split?{swim:0,bike:split.bike,run:split.run,
+                  transition:split.transition}:null;
+              }catch{return null;}
+            }
+            return {swim:session.sport==='swim'?duration:0,
+              bike:session.sport==='bike'?duration:0,
+              run:session.sport==='run'?duration:0,transition:0};
+          });
+          sourceSlotRatioDomains.push({week:w.week,sport:slot.sport,choices});
+        });
       }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
@@ -637,6 +667,24 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.auditGlobalSourceSportRatioBounds===true&&
+       ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+      const objective=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+      const raw=SPORT_RATIO_TARGETS[objective];
+      if(raw.swim&&raw.bike&&raw.run){
+        const bound=assessGlobalSourceRatioEnvelope(sourceSlotRatioDomains,{
+          swim:raw.swim,bike:raw.bike,run:raw.run,
+        });
+        result.issues.push({code:
+          bound.verdict==='provably_unreachable_in_current_domains'?
+            'det_v311_global_ratio_unreachable_in_approved_domains':
+            bound.verdict==='unverified'?
+            'det_v311_global_ratio_domains_unverified':
+            'det_v311_global_ratio_domains_not_refuted',
+          severity:bound.verdict==='provably_unreachable_in_current_domains'?
+            'blocking':'warning',message:JSON.stringify(bound)});
+      }
+    }
     if(experimentalContract?.auditStructuredPolarizationSources===true){
       const rows=plan.weeks.map(week=>{
         let proven=0;const missing:string[]=[];
