@@ -19,7 +19,7 @@ import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
-import {assessStrictNativePolarizationTarget} from './v39-strict-native-polarization-target';
+import {assessStrictNativePolarizationTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -390,11 +390,40 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
       for(let i=order.length-1;i>=0;i--)minimumSuffix[i]=minimumSuffix[i+1]+Math.min(...order[i].domain.map(s=>s.durationMin??0));
+      const requireStrictNativeZones=
+        experimentalContract?.requireNativePolarizationOnLoadWeeks===true &&
+        entry.weekType==='load';
+      const nativeProfiles=new Map<ParsedSession,NativeZoneDose|null>();
+      const zoneDomains=requireStrictNativeZones?order.map(({domain})=>domain.map(session=>{
+        const dose=nativeZoneDoseForCandidate(session);
+        nativeProfiles.set(session,dose);
+        return dose;
+      })):[];
+      const rootZoneEnvelope=requireStrictNativeZones?
+        optimisticNativeLowShareUpperBound([],zoneDomains):null;
+      if(rootZoneEnvelope?.unmeasuredDomain || rootZoneEnvelope?.provablyBelow75){
+        result.issues.push({code:'det_native_polarization_source_envelope_refused',
+          week:w.week,severity:'blocking',message:JSON.stringify({
+            upperBoundLowPct:rootZoneEnvelope.upperPct,
+            noVerifiedDurationDomain:rootZoneEnvelope.unmeasuredDomain,
+            provablyBelow75:rootZoneEnvelope.provablyBelow75,
+            scope:'current_reviewed_slot_domains_only',
+            interpretation:'necessary_condition_not_an_approved_plan',
+          })});
+        return refuse(`native_polarization_source_envelope_refused_week_${w.week}`);
+      }
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
+        if(requireStrictNativeZones){
+          const selected=chosen.map(session=>nativeProfiles.get(session));
+          if(selected.some(dose=>dose==null))return false;
+          const upper=optimisticNativeLowShareUpperBound(
+            selected as NativeZoneDose[],zoneDomains.slice(index));
+          if(upper.unmeasuredDomain||upper.provablyBelow75)return false;
+        }
         if(index===slots.length){
           if(qualityRequired&&!chosen.some(isQuality))return false;
           if(experimentalContract?.requireNativePolarizationOnLoadWeeks===true &&
