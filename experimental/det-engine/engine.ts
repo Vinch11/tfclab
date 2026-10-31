@@ -14,6 +14,7 @@ import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
+import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -27,6 +28,8 @@ export interface ExperimentalAssemblyContract {
   consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
   /** Read-only source recovery floors. Without training start times, proof may be impossible. */
   sourceRecoveryForId?:(id:string)=>readonly {sourceId:string;sport:string;hours:number}[];
+  /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
+  verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
   /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
 }
@@ -185,6 +188,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.verifiedBrickCompositions && /^(703|70\\.3)$/.test(config.objective??'')){
+      // Strictly diagnostic: a mathematically possible bike addition has NOT
+      // passed dose, source, load-ramp, fatigue or recovery checks.
+      const feasibility=auditV35BikeOnlyFeasibility(plan,preparation.weeklyQuotas,
+        experimentalContract.verifiedBrickCompositions,23);
+      result.issues.push({code:'v35_bike_only_volume_feasibility',
+        severity:feasibility.verdict==='provably_impossible_under_week_caps'?'blocking':'warning',
+        message:JSON.stringify(feasibility)});
+    }
     if(experimentalContract?.sourceRecoveryForId){
       result.issues.push(...auditSourceRecoveryTiming({
         plan, sourcesForId:experimentalContract.sourceRecoveryForId,
