@@ -9,6 +9,8 @@ export interface CoachSessionStart {
   provenance:'coach_confirmed';
   /** Local training-day minute (00:00 = 0, 23:59 = 1439). */
   minuteOfDay:number;
+  /** Explicit UTC offset at this session date, to handle clock changes / DST. */
+  utcOffsetMinutes:number;
 }
 export type SourceRecoveryFloor={sourceId:string;sport:string;hours:number};
 export type RecoveryTimingIssue={
@@ -24,25 +26,27 @@ export interface RecoveryTimingInput {
 }
 
 const MINUTES_PER_DAY=1440;
-function starts(session:ParsedSession,source?:RecoveryTimingInput['startForSession']):number|null {
+function starts(session:ParsedSession,source?:RecoveryTimingInput['startForSession']):CoachSessionStart|null {
   const time=source?.(session);
   if(time===undefined||time===null)return null;
   if(time.provenance!=='coach_confirmed'||!Number.isSafeInteger(time.minuteOfDay)||
-    time.minuteOfDay<0||time.minuteOfDay>=MINUTES_PER_DAY)
+    time.minuteOfDay<0||time.minuteOfDay>=MINUTES_PER_DAY||
+    !Number.isSafeInteger(time.utcOffsetMinutes)||time.utcOffsetMinutes< -720||
+    time.utcOffsetMinutes>840)
     throw Error('v3_session_clock_invalid');
-  return time.minuteOfDay;
+  return time;
 }
 function serves(requested:string,sport:string):boolean {
   return requested===sport||(sport==='brick'&&(requested==='bike'||requested==='run'));
 }
-type Entry={session:ParsedSession;week:number;day:number;start:number|null};
+type Entry={session:ParsedSession;week:number;day:number;start:CoachSessionStart|null};
 export function auditSourceRecoveryTiming(input:RecoveryTimingInput):RecoveryTimingIssue[] {
   const issues:RecoveryTimingIssue[]=[];
   const source=input.startForSession;
   const records:Entry[]=[];
   for(const week of input.plan.weeks)for(const session of week.sessions){
     if(session.isRest)continue;
-    let start:number|null=null;
+    let start:CoachSessionStart|null=null;
     try{start=starts(session,source);}
     catch{
       issues.push({code:'v3_session_clock_invalid',week:week.weekNumber,severity:'blocking',
@@ -56,14 +60,16 @@ export function auditSourceRecoveryTiming(input:RecoveryTimingInput):RecoveryTim
     }
     records.push({session,week:week.weekNumber,day,start});
   }
-  records.sort((a,b)=>a.day-b.day||((a.start??0)-(b.start??0)));
+  const utcStart=(entry:Entry)=>entry.start===null?null:
+    entry.day*MINUTES_PER_DAY+entry.start.minuteOfDay-entry.start.utcOffsetMinutes;
+  records.sort((a,b)=>a.day-b.day||((utcStart(a)??0)-(utcStart(b)??0)));
   // Only compare time windows when BOTH clocks are coach-confirmed.
   for(let i=0;i<records.length;i++)for(let j=i+1;j<records.length;j++){
     const a=records[i],b=records[j];
     if(b.day!==a.day)break;
     if(a.start===null||b.start===null)continue;
     if(!(Number.isFinite(a.session.durationMin)&&Number.isFinite(b.session.durationMin)))continue;
-    if(a.start+(a.session.durationMin??0)>b.start)
+    if(utcStart(a)!+(a.session.durationMin??0)>utcStart(b)!)
       issues.push({code:'v3_coach_session_overlap',week:b.week,severity:'blocking',
         message:'Coach-confirmed clock overlap on '+a.session.dayName+' S'+a.week});
   }
@@ -87,8 +93,7 @@ export function auditSourceRecoveryTiming(input:RecoveryTimingInput):RecoveryTim
       const duration=current.session.durationMin;
       const verifiedGap=current.start!==null&&following.start!==null&&
         typeof duration==='number'&&Number.isFinite(duration)&&duration>0
-        ?(following.day*MINUTES_PER_DAY+following.start)-
-          (current.day*MINUTES_PER_DAY+current.start+duration)
+        ?utcStart(following)!-(utcStart(current)!+duration)
         :null;
       // A confirmed clock is a tighter proof than conservative calendar-only
       // lower bound. If clock evidence is incomplete, never use its fragments.
