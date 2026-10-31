@@ -33,6 +33,7 @@ export interface GlobalSourceRatioEnvelope {
   interpretation:'necessary_not_sufficient_current_approved_slots_only';
 }
 const sports=['swim','bike','run'] as const;
+const dimensions=['swim','bike','run','transition'] as const;
 const valid=(v:number)=>Number.isFinite(v)&&v>=0;
 export function assessGlobalSourceRatioEnvelope(
   slots:readonly RatioSlotDomain[],
@@ -55,7 +56,7 @@ export function assessGlobalSourceRatioEnvelope(
   for(const slot of slots){
     if(!Number.isSafeInteger(slot.week)||slot.week<=0||!slot.choices.length)
       return {...base,reason:'invalid_or_empty_source_slot'};
-    if(slot.choices.some(c=>!c||[...sports,'transition'].some(s=>!valid(c[s]))||
+    if(slot.choices.some(c=>!c||dimensions.some(s=>!valid(c[s]))||
       c.swim+c.bike+c.run+c.transition<=0))
       return {...base,reason:'unverified_source_or_brick_dose'};
     const choices=slot.choices as ExactSportMinutes[];
