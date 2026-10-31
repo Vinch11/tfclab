@@ -199,7 +199,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             ': optional sport with zero actually eligible sources; weekly minima revalidated'});
       }
       if(changed)report=assessPreparedGeneration(config,preparation);
+      // A coach-confirmed, sport-specific appointment schedule MUST NOT be
+      // silently rewritten by a day-only recovery optimization. Keep the
+      // declared slots fixed and verify their actual recovery gaps later.
+      const verifiedSlotClockMode=experimentalContract.coachSlotStart!==undefined &&
+        experimentalContract.coachSessionStart!==undefined;
+      if(verifiedSlotClockMode && experimentalContract.improveV3RecoveryLayout===true){
+        result.issues.push({code:'det_v310_preserved_coach_confirmed_slot_layout',
+          severity:'warning',message:'No automatic day swaps under explicit coach-confirmed appointment clocks'});
+      }
       if(experimentalContract.improveV3RecoveryLayout===true &&
+         !verifiedSlotClockMode &&
          experimentalContract.enforceCalendarSafeV3Recovery===true &&
          experimentalContract.sourceRecoveryForId){
         const contexts=report.weeks.flatMap(week=>{
