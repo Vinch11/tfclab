@@ -29,6 +29,7 @@ import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type ConfirmedSlotStart} from './v39-calendar-safe-recovery';
 import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
+import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
@@ -270,6 +271,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const started=performance.now();
     let exhausted=false;
     let previousLoad:number|undefined;
+    let previousCalendarWeekMinutes:number|null=null;
     const sourceSlotRatioDomains:RatioSlotDomain[]=[];
     const sourceLoadLedger={swim:0,bike:0,run:0};
     let sourceLoadLedgerVerified=true;
@@ -332,6 +334,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ceiling=Math.min(ceiling,Math.floor(config.weeklyHours*60));
       }
       if(previousLoad!==undefined&&entry.volumeBudget)ceiling=Math.min(ceiling,previousLoad*(entry.weekType==='recovery'?0.7:1+entry.volumeBudget.weeklyIncreasePctMax));
+      if(experimentalContract?.requireMeasuredDeloadSelection===true &&
+         entry.weekType==='recovery'){
+        const realCap=measuredRecoveryCeiling(previousCalendarWeekMinutes);
+        if(realCap===null){
+          result.issues.push({code:'det_v315_recovery_reference_minutes_unverified',
+            week:w.week,severity:'blocking',message:
+            'The immediately preceding week has unmeasured training time; a -30% recovery week cannot be certified.'});
+          return refuse('v315_recovery_reference_minutes_unverified_week_'+w.week);
+        }
+        ceiling=Math.min(ceiling,realCap);
+      }
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
         return catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport)
@@ -369,7 +382,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const unverified=checked.unknown.filter(code=>
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
-          }).filter(session=>{
+          }).filter(session=>
+            experimentalContract?.requireMeasuredDeloadSelection!==true ||
+            entry.weekType!=='recovery' ||
+            (typeof session.durationMin==='number'&&
+             Number.isFinite(session.durationMin)&&session.durationMin>0)
+          ).filter(session=>{
             if(!sprintBanned)return true;
             // Conservative candidate-level guard for a declared coach ban.
             // Do not rely on the final validator to find this after planning.
@@ -805,7 +823,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
+      if(experimentalContract?.requireMeasuredDeloadSelection===true &&
+         entry.weekType==='recovery'&&measuredTrainingMinutes(chosen)===null){
+        result.issues.push({code:'det_v315_recovery_duration_not_verified',
+          week:w.week,severity:'blocking'});
+        return refuse('v315_recovery_duration_not_verified_week_'+w.week);
+      }
       plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
+      previousCalendarWeekMinutes=measuredTrainingMinutes(chosen);
       if(entry.weekType==='load'&&
          experimentalContract?.preferSourceBackedMultisportBalance==='triathlon_targets'){
         for(const session of chosen.filter(s=>
