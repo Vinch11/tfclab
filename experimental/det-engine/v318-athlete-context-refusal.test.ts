@@ -43,7 +43,7 @@ const variations=[
   {
     label:'load not individually compatible',
     change:(r:V3ReviewedSettings):V3ReviewedSettings=>({...r,
-      sportingReview:{...r.sportingReview!,trainingLoadCompatible:false as true}}),
+      sportingReview:{...r.sportingReview!,trainingLoadCompatible:false as unknown as true}}),
     reason:'recent_load_not_compatible_with_workout',
   },
   {
