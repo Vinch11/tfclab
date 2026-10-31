@@ -13303,7 +13303,7 @@
       "id": "V3P_SWIM_083",
       "version": "3.0.0-pilot",
       "sport": "swim",
-      "title": "Sprint 50 m récupération très longue",
+      "title": "Sprint 25 m alactique sous limite de temps individuelle",
       "primaryIntent": "neuromuscular",
       "primaryDomain": "neuromuscular",
       "phase": [
@@ -13311,7 +13311,7 @@
         "peak"
       ],
       "minimumLevel": "trained",
-      "focus": "Puissance sans dégradation technique",
+      "focus": "Développer le recrutement rapide sur 25 m avec effort vérifié ≤20 secondes et récupération inter-répétitions longue",
       "origin": "TFCLab original — principes reconnus, non-validation d'une recette précise",
       "evidence": {
         "referenceIds": [
@@ -13326,12 +13326,14 @@
         "Risque de nage sans surveillance appropriée",
         "Apnée prolongée non autorisée"
       ],
-      "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
+      "stopRule": "Arrêter en cas de douleur d'épaule, essoufflement anormal, perte de vitesse ou de technique; jamais apnée forcée",
       "minimumRecoveryHours": 36,
       "prerequisites": [
-        "Repère d'intensité réel et technique mature"
+        "Repère d'intensité réel et technique mature",
+        "Bassin 25m ou distance jalonnée et temps de sprint individuel 25 m ≤20 s confirmé",
+        "Récupération au moins 90 s entre efforts, arrêt en cas de baisse de vitesse"
       ],
-      "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
+      "methodology": "Sprint de 25 m uniquement si la durée individuelle est ≤20 s; jamais déduit de la distance seule",
       "blocks": [
         {
           "kind": "distance",
@@ -13352,17 +13354,17 @@
             "max": 7
           },
           "betweenSec": 120,
-          "label": "Vitesse élevée mais propre",
+          "label": "Accélérations 25 m vérifiées ≤20 secondes",
           "steps": [
             {
               "kind": "distance",
               "meters": {
-                "min": 50,
-                "base": 50,
-                "max": 50
+                "min": 25,
+                "base": 25,
+                "max": 25
               },
               "domain": "neuromuscular",
-              "label": "Vitesse élevée mais propre",
+              "label": "25 m très rapide, chronométré ≤20 s, arrêt si perte de technique",
               "role": "main"
             }
           ],
@@ -13389,7 +13391,7 @@
       "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
       "prescription": {
         "physiologicalIntent": {
-          "statement": "Puissance sans dégradation technique",
+          "statement": "Développer le recrutement rapide sur 25 m avec effort vérifié ≤20 secondes et récupération inter-répétitions longue",
           "primaryIntent": "neuromuscular",
           "primaryDomain": "neuromuscular",
           "domainIds": [
@@ -13452,9 +13454,9 @@
           {
             "path": "1.0.meters",
             "unit": "meters",
-            "min": 50,
-            "base": 50,
-            "max": 50,
+            "min": 25,
+            "base": 25,
+            "max": 25,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -13484,14 +13486,16 @@
           ],
           "minimumRecoveryHours": 36,
           "prerequisites": [
-            "Repère d'intensité réel et technique mature"
+            "Repère d'intensité réel et technique mature",
+            "Bassin 25m ou distance jalonnée et temps de sprint individuel 25 m ≤20 s confirmé",
+            "Récupération au moins 90 s entre efforts, arrêt en cas de baisse de vitesse"
           ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
             "Apnée prolongée non autorisée"
           ],
-          "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
+          "stopRule": "Arrêter en cas de douleur d'épaule, essoufflement anormal, perte de vitesse ou de technique; jamais apnée forcée",
           "requiresIndividualCoachReview": true,
           "requiresLoadAndFatigueCheck": true,
           "requiresWeeklySportingValidation": true,
