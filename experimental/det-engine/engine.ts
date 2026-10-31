@@ -18,6 +18,7 @@ import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
+import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -41,6 +42,8 @@ export interface ExperimentalAssemblyContract {
   enforceCalendarSafeV3Recovery?:true;
   /** Opt-in: label only recovery weeks with a measured >=30% week-over-week dose reduction. */
   annotateVerifiedDeloads?:true;
+  /** Opt-in bounded chronology repair: swaps existing slots only, preserves quotas. */
+  improveV3RecoveryLayout?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -162,6 +165,29 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             ': optional sport with zero actually eligible sources; weekly minima revalidated'});
       }
       if(changed)report=assessPreparedGeneration(config,preparation);
+      if(experimentalContract.improveV3RecoveryLayout===true &&
+         experimentalContract.enforceCalendarSafeV3Recovery===true &&
+         experimentalContract.sourceRecoveryForId){
+        const contexts=report.weeks.flatMap(week=>{
+          const entry=preparation.weeklyQuotas[week.week];
+          return entry?.layout?[{
+            week:week.week,layout:entry.layout,quota:entry.quota,
+            reviewedIds:week.eligible.map(src=>({id:src.id,sport:src.sport})),
+          }]:[];
+        });
+        const repair=improveCalendarRecoveryByExistingSlotSwaps(contexts,
+          experimentalContract.sourceRecoveryForId,preparation.dayBans,12);
+        for(const context of contexts)preparation.weeklyQuotas[context.week].layout=context.layout;
+        if(repair.swaps.length)report=assessPreparedGeneration(config,preparation);
+        for(const swap of repair.swaps)result.issues.push({
+          code:'det_v3_recovery_slot_swap',week:swap.week,severity:'warning',
+          message:JSON.stringify(swap),
+        });
+        result.issues.push({code:'det_v3_recovery_layout_search_summary',
+          severity:'warning',message:JSON.stringify({
+            permittedSlotSwaps:repair.swaps.length,remainingUnprovenV3Domains:repair.remainingMissing,
+          })});
+      }
     }
     result.issues.push(...report.issues.map(i=>({...i})));
     if(experimentalContract)result.issues.push({code:'experimental_contract_requires_review',severity:'warning'});
