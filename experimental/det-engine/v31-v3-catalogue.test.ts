@@ -1,6 +1,7 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import { describe,it,expect,vi,afterEach } from 'vitest';
 import { v3FullCatalogue, evaluateV3Workout } from '../../scripts/library-v3/catalogueRuntime';
-import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
+import { type V3ReviewedSettings } from './v31-v3-catalogue';
 import { evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
