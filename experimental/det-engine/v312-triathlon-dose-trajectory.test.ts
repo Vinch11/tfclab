@@ -10,8 +10,8 @@ describe('DET V312 — advisory source-dose trajectory, no validator bypass',()=
     const domains=[
       {id:'s1',choices:[c(30),c(45),c(55)]},
       {id:'s2',choices:[c(30),c(45),c(55)]},
-      {id:'b',choices:[c(0,90),c(0,160),c(0,200)]},
-      {id:'r',choices:[c(0,0,65),c(0,0,90),c(0,0,110)]},
+      {id:'b',choices:[c(0,190),c(0,260),c(0,320)]},
+      {id:'r',choices:[c(0,0,95),c(0,0,110),c(0,0,120)]},
     ];
     const trajectory=planTriathlonRatioTrajectory('703',domains,{
       swim:0,bike:0,run:0,
