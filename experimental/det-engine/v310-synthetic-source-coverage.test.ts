@@ -399,6 +399,7 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         preferSourceBackedMultisportBalance:'triathlon_targets',
         requireFinalTriathlonMinuteRatios:true,
         requireStructuredPolarizationOnLoadWeeks:true,
+        reconcileReviewedSourcePolarization:true,
         auditVerifiedMultisportMinutes:true,
         auditGlobalSourceSportRatioBounds:true,
         applyReviewedMinuteSportRatio:true,
@@ -417,6 +418,9 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         ?.message??null,
       countRatioMigration:fullReplays.result?.issues.find(i=>
         i.code==='det_native_count_ratio_migration_decision')?.message??null,
+      polarizationMigration:fullReplays.result?.issues.find(i=>
+        i.code==='det_v315_native_text_polarization_reconciliation_decision')
+        ?.message??null,
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
     expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
