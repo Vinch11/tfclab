@@ -13,13 +13,13 @@ export function planningFeasibility(quota: MechanicalQuota, layout: MechanicalLa
  for(const event of required) {
   const matches=layout.days.filter(d=>d.dayName===event.dayName).flatMap(d=>d.slots)
    .filter(s=>s.isRaceEvent&&s.sport===event.sport);
-  if(matches.length!==1)issues.push('declared_event_unplaced');
+  if(optIn?matches.length!==1:matches.length===0)issues.push('declared_event_unplaced');
  }
  // A declared competition is never a V3 training brick. Only an EXACT,
  // explicitly reserved official event may exceed a zero training-brick
  // quota; a second unapproved brick still breaches the original maximum.
  // Keep the real event in daily/rest-day capacity accounting.
- for(const day of layout.days)for(const slot of day.slots)if(slot.isRaceEvent&&
+ for(const day of layout.days)for(const slot of day.slots)if(optIn&&slot.isRaceEvent&&
   !required.some(e=>e.dayName===day.dayName&&e.sport===slot.sport))
    issues.push('undeclared_race_event_slot');
  const overflowBySport=Object.fromEntries(sports.map(sport=>{
