@@ -19,6 +19,8 @@ export interface V32DoseBounds {
 }
 export interface V32SourceQualification {
   id:string;
+  /** Non-cryptographic source-drift fingerprint, not a scientific signature. */
+  sourceFingerprint:string;
   sport:V3Sport;
   sourceStatus:V32SourceStatus;
   automatedReviewOnly:true;
@@ -80,6 +82,20 @@ function bounds(blocks:readonly V3Block[],sport:V3Sport):V32DoseBounds{
 }
 function leaves(blocks:readonly V3Block[]):Array<Exclude<V3Block,{kind:'repeat'}>> {
  return blocks.flatMap(b=>b.kind==='repeat'?leaves(b.steps):[b]);
+}
+/** Snapshot detector: reproducibility only, not an authentication mechanism. */
+export function v32SourceFingerprint(w:V3Workout):string {
+ const payload=JSON.stringify({
+   id:w.id,title:w.title,primaryIntent:w.primaryIntent,primaryDomain:w.primaryDomain,
+   phase:w.phase,minimumLevel:w.minimumLevel,focus:w.focus,
+   contraindications:w.contraindications,stopRule:w.stopRule,
+   minimumRecoveryHours:w.minimumRecoveryHours,prerequisites:w.prerequisites,
+   equipment:(w as V3Workout&{equipment?:string[]}).equipment??null,
+   blocks:w.blocks,prescriptionContract:w.prescriptionContract,
+ });
+ let h=2166136261;
+ for(let i=0;i<payload.length;i++){h^=payload.charCodeAt(i);h=Math.imul(h,16777619);}
+ return (h>>>0).toString(16).padStart(8,'0');
 }
 const HIGH=new Set(['mlss','sub_threshold','vo2max','neuromuscular','mixed_intensity']);
 export function screenV32Source(workout:V3Workout):V32SourceQualification {
@@ -166,7 +182,7 @@ export function screenV32Source(workout:V3Workout):V32SourceQualification {
    addFlag('high_training_level_must_be_manually_confirmed');
  }
  return {
-   id:workout.id,sport:workout.sport,
+   id:workout.id,sourceFingerprint:v32SourceFingerprint(workout),sport:workout.sport,
    sourceStatus:sourceBlockers.length?'source_blocked':'source_prequalified_pending_coach_review',
    automatedReviewOnly:true,approvedForAthlete:false,
    physiologicalIntent:workout.primaryIntent,
