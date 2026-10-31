@@ -44,10 +44,18 @@ export interface EngineResult {
   limiterPriorities:string[];
 }
 /** A frequency-only marker never represents a performed zero-minute workout. */
+/** V3 strength has real neuromuscular/RPE anchors, never aerobic zones. */
+function isIndividuallyReviewedV3Strength(card:RepairWorkoutMetadata):boolean {
+  return normalizeRepairSport(card.sport)==='strength'&&card.mainZoneMax===0&&
+    card.zones.length===0&&
+    card.tags.includes('v3-strength-timebox-no-fabricated-aerobic-zone')&&
+    card.tags.includes('v3-sporting-source-individually-reviewed-candidate')&&
+    card.tags.includes('v3-intensity-anchors-individually-verified');
+}
 function isCountOnlyStrength(card:RepairWorkoutMetadata):boolean {
-  return normalizeRepairSport(card.sport)==='strength'&&
-    card.durationMin[0]===0&&card.durationMin[1]===0&&card.mainZoneMax===0&&
-    card.zones.length===0&&card.tags.includes('v3-strength-frequency-only-unknown-duration');
+  return isIndividuallyReviewedV3Strength(card)&&
+    card.durationMin[0]===0&&card.durationMin[1]===0&&
+    card.tags.includes('v3-strength-frequency-only-unknown-duration');
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
 
@@ -140,7 +148,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               sport:slot.sport,title:m.title,details:m.structure,catalogId:m.id,custom:false,durationMin:duration,
               isRest:false,isKeySession:!!slot.isKeySession,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones};
             const checked=checkSessionCatalogue(session,{...context,catalog});
-            return checked.errors.length||checked.unknown.length?[]:[session];
+            // A timeboxed V3 strength prescription has confirmed appointment
+            // minutes but correctly NO aerobic Z1-Z7. The legacy validator
+            // flags absent aerobic zones as unknown; this ONE inapplicable
+            // check cannot make all 100 timed strength sources unselectable.
+            const unverified=checked.unknown.filter(code=>
+              !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
+            return checked.errors.length||unverified.length?[]:[session];
           }).sort((a,b)=>(usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
             (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===a.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)-
             (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===b.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)||
