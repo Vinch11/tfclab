@@ -155,6 +155,43 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     }
     expect(swimOnly.humanReviewRequired).toBe(true);
     expect(swimOnly.sportingRelevance).toBe('not_attested');
+    // Evidence-gated experimental migration of the defective COUNT sport
+    // ratio: same verified source assignments as the swim-only candidate.
+    // 70.3 has unresolved legacy bricks, so it MUST retain native blocking.
+    const minuteReconciled=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'swim',
+        applyReviewedMinuteSportRatio:true});
+    const migrationDecision=minuteReconciled.issues.find(i=>
+      i.code==='det_native_count_ratio_migration_decision');
+    const parsedMigration=migrationDecision?.message?
+      JSON.parse(migrationDecision.message) as {verdict:string;reason:string;ratios?:unknown}:null;
+    console.info('DET_V39_CERTIFIED_RATIO_MIGRATION',JSON.stringify({
+      fixture:fixtureId,objective,constructed:minuteReconciled.technicallyConstructed,
+      migration:parsedMigration,
+      blockingCodes:[...new Set(minuteReconciled.issues.filter(i=>blocking(i.severity)).map(i=>i.code))],
+      quotaDrifts:minuteReconciled.issues.filter(i=>i.code==='quota_range_drift')
+        .map(i=>({week:i.week,message:i.message})),
+      legacyCountDiagnostics:minuteReconciled.issues.filter(i=>
+        i.code==='det_superseded_count_sport_ratio_diagnostic').length,
+      strictMinuteGate:minuteReconciled.issues.some(i=>
+        i.code==='det_strict_minute_sport_ratio_verified'),
+    }));
+    expect(minuteReconciled.humanReviewRequired).toBe(true);
+    expect(minuteReconciled.sportingRelevance).toBe('not_attested');
+    expect(minuteReconciled.constraintsSatisfied).toBe(false); // Other safety gates remain.
+    expect(minuteReconciled.issues.filter(i=>i.code==='v3_recovery_hours_unverified'))
+      .toEqual([]);
+    if(objective==='703'){
+      expect(minuteReconciled.issues.some(i=>i.code==='sport_ratio'&&blocking(i.severity)))
+        .toBe(true);
+      expect(minuteReconciled.issues.some(i=>i.code==='det_strict_minute_sport_ratio_verified'))
+        .toBe(false);
+    }
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
