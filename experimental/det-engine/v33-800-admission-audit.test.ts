@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {v3FullCatalogue} from '../../scripts/library-v3/catalogueRuntime';
 import {buildDetV3ContractFromCatalogue, type V3ReviewedSettings} from './v31-v3-catalogue';
+import {evaluateRepairSportingEquivalence,isCompleteRepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 
 function objectiveForDomain(domain:string|null):string{
@@ -26,6 +27,16 @@ describe('V3.3 — real 800-source DET admission capability under explicitly syn
   // review; this is a technical admission proof, not real athlete approval.
   expect(result.report.accepted).toHaveLength(800);
   expect(result.report.rejected).toHaveLength(0);
+  // Distinct from adapter admission: every accepted card must also have a
+  // genuinely compatible objective+phase+load context in DET's existing
+  // sporting-equivalence gate. No one scenario can prescribe all 800 at once.
+  const contextEligible=result.report.accepted.filter(m=>
+    isCompleteRepairWorkoutMetadata(m)&&
+    evaluateRepairSportingEquivalence(null,m,{
+      objective:m.goals[0],phase:m.phases[0],weekType:'load',operation:'insertion',
+    }).compatible);
+  expect(contextEligible).toHaveLength(800);
+  expect(new Set(contextEligible.map(m=>m.id)).size).toBe(800);
   expect(result.report.accepted.every(m=>m.tags.includes('v3-intensity-anchors-individually-verified'))).toBe(true);
   const acceptedBySport=Object.fromEntries(['bike','run','swim','strength'].map(s=>[
    s,result.report.accepted.filter(x=>x.sport===s).length,
