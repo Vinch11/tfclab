@@ -831,7 +831,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil extensif 4 blocs",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -906,9 +906,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -1093,8 +1093,8 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Over-under sans confusion du seuil",
-      "primaryIntent": "mlss",
-      "primaryDomain": "mlss",
+      "primaryIntent": "mixed_intensity",
+      "primaryDomain": "tempo",
       "phase": [
         "build"
       ],
@@ -1194,9 +1194,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
-          "primaryDomain": "mlss",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "primaryIntent": "mixed_intensity",
+          "primaryDomain": "tempo",
+          "capacityFocus": "mixed_heavy_severe_domain_transitions",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -2473,7 +2473,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Cruise intervals au sous-seuil",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -2548,9 +2548,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -9404,7 +9404,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil progressif 4×10",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -9480,9 +9480,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -13971,7 +13971,7 @@
       "version": "3.0.0-pilot",
       "sport": "strength",
       "title": "Adducteurs Copenhagen progressif",
-      "primaryIntent": "max_strength",
+      "primaryIntent": "strength_endurance",
       "primaryDomain": null,
       "phase": [
         "base",
@@ -14085,9 +14085,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "max_strength",
+          "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "capacityFocus": "maximal_strength",
+          "capacityFocus": "local_muscular_endurance",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
