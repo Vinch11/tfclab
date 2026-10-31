@@ -457,7 +457,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         nativeProfiles.set(session,dose);
         return dose;
       })):[];
-      const structuredDomains=requireStructuredZones?
+      let structuredDomains=requireStructuredZones?
         order.map(({domain},slotIndex)=>domain.map((session,candidateIndex)=>{
           const dose=zoneDomains[slotIndex][candidateIndex];
           return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
@@ -505,6 +505,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           order[slotIndex].domain=candidates.map(c=>c.session);
           zoneDomains[slotIndex]=candidates.map(c=>c.dose);
         }
+        // Keep the exact same candidate-to-evidence alignment after sorting.
+        structuredDomains=order.map(({domain},slotIndex)=>domain.map((session,candidateIndex)=>{
+          const dose=zoneDomains[slotIndex][candidateIndex];
+          return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
+        }));
       }
       const rootZoneEnvelope=requireAnyStrictZones?
         optimisticNativeLowShareUpperBound([],zoneDomains):null;
