@@ -100,6 +100,14 @@ function normalizedSwimPaces(settings:V3ReviewedSettings) {
     merged.mlss=settings.athleteAnchors.cssSecPer100m;
   return merged;
 }
+function measuredAnchorInputs(settings:V3ReviewedSettings):V3AthleteAnchors {
+  // CSS-derived MLSS may be used for duration but must remain a *proxy* in evidence.
+  // Only genuine directly supplied domain paces are presented as direct measurements.
+  return {...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:{
+    ...(settings.swimPacesSecPer100m??{}),
+    ...(settings.athleteAnchors?.swimDomainPacesSecPer100m??{}),
+  }};
+}
 function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
   return targets.map(t=>t.metric==='coach_rpe_load'?
     'Force: charge/RPE individuels confirmés par le coach':
@@ -132,9 +140,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   if(result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0)
     throw Error('v3_fractional_minute_not_supported');
   // No athlete-specific physiological dose may be inferred from a slot duration.
-  const resolved=resolveV3IntensityTargets(configured,{
-    ...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:swimPaces,
-  });
+  const resolved=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
   if(resolved.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+resolved.missing.join(','));
   return configured;
 }
@@ -168,9 +174,7 @@ export function buildDetV3ContractFromCatalogue(
     if(!settings)return w;
     try {
       const configured=configureWorkout(w,settings);
-      const checked=resolveV3IntensityTargets(configured,{
-        ...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:normalizedSwimPaces(settings),
-      });
+      const checked=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
       if(checked.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+checked.missing.join(','));
       resolvedIntensityTexts.set(w.id,verifiedTargetsText(checked.targets));
       qualifiedReviews.push({...settings,swimPacesSecPer100m:normalizedSwimPaces(settings)});
