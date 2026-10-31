@@ -43,7 +43,11 @@ describe('V3.3 — real 800-source DET admission capability under explicitly syn
   expect(acceptedBySport.bike).toBeGreaterThanOrEqual(100);
   expect(acceptedBySport.run).toBeGreaterThanOrEqual(100);
   expect(acceptedBySport.swim).toBeGreaterThanOrEqual(100);
-  expect(acceptedBySport.strength).toBeGreaterThanOrEqual(100);
+  // All 200 strength sources now have a frequency-only option where source
+  // duration is unmeasured; exact time remains optional, never inferred.
+  expect(acceptedBySport.strength).toBe(200);
+  expect(result.report.accepted.filter(x=>x.sport==='strength'&&
+    x.tags.includes('v3-strength-frequency-only-unknown-duration'))).toHaveLength(100);
   // These three formerly unsafe sources have deliberately redefined
   // physiological stimuli. Each still needs real athlete data to become eligible.
   expect(v3FullCatalogue.workouts.find(w=>w.id==='V3P_BIKE_024')?.primaryIntent).toBe('technique_economy');
