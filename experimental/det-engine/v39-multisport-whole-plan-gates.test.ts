@@ -183,7 +183,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
         auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
         requireRealQualityOnLoadWeeks:true,
         preferSourceBackedMultisportBalance:'swim',
-        applyReviewedMinuteSportRatio:true});
+        applyReviewedMinuteSportRatio:true,
+        auditStructuredPolarizationSources:true});
     const migrationDecision=minuteReconciled.issues.find(i=>
       i.code==='det_native_count_ratio_migration_decision');
     const parsedMigration=migrationDecision?.message?
@@ -199,6 +200,17 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       strictMinuteGate:minuteReconciled.issues.some(i=>
         i.code==='det_strict_minute_sport_ratio_verified'),
     }));
+    const coverageIssue=minuteReconciled.issues.find(i=>
+      i.code==='det_v310_structured_zone_selection_coverage');
+    expect(coverageIssue?.severity).toBe('warning');
+    const coverage=JSON.parse(coverageIssue!.message!) as {
+      weeks:Array<{week:number;proven:number;missing:string[]}>};
+    expect(coverage.weeks).toHaveLength(cfg.weeksAvailable);
+    console.info('DET_V310_STRUCTURED_ZONE_COVERAGE',JSON.stringify({
+      fixture:fixtureId,objective,
+      provedSessions:coverage.weeks.reduce((n,w)=>n+w.proven,0),
+      unverifiedSourceIds:[...new Set(coverage.weeks.flatMap(w=>w.missing))],
+    }));
     expect(minuteReconciled.humanReviewRequired).toBe(true);
     expect(minuteReconciled.sportingRelevance).toBe('not_attested');
     expect(minuteReconciled.constraintsSatisfied).toBe(false); // Other safety gates remain.
@@ -210,6 +222,27 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       expect(minuteReconciled.issues.some(i=>i.code==='det_strict_minute_sport_ratio_verified'))
         .toBe(false);
     }
+    // Proof-first search: no unreviewed legacy source can masquerade as
+    // verified Z1/Z2 simply because its textual description sounds easy.
+    const strictStructured=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:2000,maxMilliseconds:3000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'swim',
+        requireStructuredPolarizationOnLoadWeeks:true});
+    console.info('DET_V310_STRUCTURED_POLARIZATION_SEARCH',JSON.stringify({
+      fixture:fixtureId,objective,
+      constructed:strictStructured.technicallyConstructed,
+      reason:strictStructured.reason??null,nodes:strictStructured.nodes,
+      blockers:strictStructured.issues.filter(i=>blocking(i.severity)),
+    }));
+    expect(strictStructured.sportingRelevance).toBe('not_attested');
+    expect(strictStructured.humanReviewRequired).toBe(true);
+    if(strictStructured.technicallyConstructed){
+      expect(strictStructured.constraintsSatisfied).toBe(false); // No accidental waiver of native rules.
+    }else expect(strictStructured.status).toBe('refused');
     // Bounded experimental search for 75% of CLASSIFIABLE minutes Z1/Z2
     // using the existing native estimator, not assumed easy volume.
     // Failure proves only a bounded search refusal, NOT impossibility.
