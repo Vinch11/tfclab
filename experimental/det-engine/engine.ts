@@ -31,6 +31,7 @@ import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
+import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
@@ -89,6 +90,10 @@ export interface ExperimentalAssemblyContract {
   /** V315 only: validate training frequency excluding certified official race
    * EVENTS, while preserving physical and native validation of the full plan. */
   verifyOfficialRaceQuotaProjection?:true;
+  /** V315 isolated evidence-based replacement of native TEXT zone estimates,
+   * only when ALL real V3 source dose blocks meet the stricter per-load-week
+   * contract; never changes native validators in the released application. */
+  reconcileReviewedSourcePolarization?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -1056,9 +1061,38 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     config.constraints,config.raceGoals?.some(g=>g.raceFormat==='lcw_3day'),config.deloadCadenceWeeks,
     config.ambitionMeta?{trainingLevel:config.ambitionMeta.trainingLevel,trainingLevelSource:config.ambitionMeta.trainingLevelSource}:undefined,
     config.raceGoals,config.planStartDate,{maxAvailableWeeklyHours:config.weeklyHours},undefined,config.strengthSessionsPerWeek);
-  const nativeIssues=validation.issues.map(i=>({
+  let nativeIssues=validation.issues.map(i=>({
     code:i.rule,week:i.week,severity:i.severity,message:i.message,
   }));
+  if(experimentalContract?.reconcileReviewedSourcePolarization===true){
+    if(experimentalContract.requireStructuredPolarizationOnLoadWeeks!==true||
+       !experimentalContract.sourceStructuredZoneForId){
+      result.issues.push({code:'det_v315_source_polarization_contract_missing',
+        severity:'blocking',message:
+        'Cannot replace approximate native polarization without independently reviewed exact V3 source blocks.'});
+    }else{
+      const weekTypes=Object.fromEntries(Object.entries(
+        result.candidate!.weeklyQuotas??{}).map(([week,entry])=>[
+          Number(week),entry.weekType,
+        ]));
+      const migration=reconcileTextPolarizationWithReviewedSources({
+        plan:result.candidate!,weekTypes,nativeIssues,
+        certifiedDose:(id,durationMin)=>
+          experimentalContract.sourceStructuredZoneForId?.(id,durationMin)??null,
+      });
+      result.issues.push({
+        code:'det_v315_native_text_polarization_reconciliation_decision',
+        severity:migration.verdict==='refused'?'blocking':'warning',
+        message:JSON.stringify({
+          verdict:migration.verdict,reason:migration.reason,
+          nativeFindings:migration.nativeFindings,weeks:migration.weeks,
+          scientificAttestation:false,
+        }),
+      });
+      if(migration.verdict==='replaced_native_text_with_proven_blocks')
+        nativeIssues=migration.issues;
+    }
+  }
   if(experimentalContract?.applyReviewedMinuteSportRatio===true &&
      experimentalContract.auditVerifiedMultisportMinutes===true &&
      ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'') &&
