@@ -150,7 +150,7 @@ export function buildDetV3ContractFromCatalogue(
   const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
     .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
     .map(review=>review.id));
-  const lowRunPreferred=new Set(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
+  const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
     lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
