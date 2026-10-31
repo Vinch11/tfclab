@@ -385,12 +385,42 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       expect(exactFinalRatio.status).toBe('refused');
       expect(v314Success).toBeUndefined();
     }
+    // V317: use only individually approved and GOAL-SPECIFIC race pace sources
+    // in the actual peak calendar. These extra reviews are SYNTHETIC QA only.
+    // The earlier V310/V314 comparisons retain their original source pool.
+    const exactPeakIds=objective==='703'?
+      ['V3P_BIKE_012','V3P_BIKE_084','V3P_SWIM_199']:
+      ['V3P_BIKE_038','V3P_BIKE_081','V3P_SWIM_194'];
+    const peakReviews=exactPeakIds.map(id=>({
+      id,objective,athleteLevel:'trained' as const,
+      athleteLevelSource:'manual' as const,
+      allPrerequisitesChecked:true as const,individualCoachApproval:true as const,
+      preferReviewedV3:true as const,athleteAnchors:syntheticV3ReviewAnchors(),
+      ...syntheticV3SportingContext(id),
+    } satisfies V3ReviewedSettings));
+    const {contract:peakContract,report:peakReport}=buildDetV3ContractFromCatalogue(
+      [...reviews,...peakReviews],brickReviews,specific,easy);
+    const peakAccepted=peakReport.accepted.filter(card=>
+      peakContract.reviewedRaceSpecificForId?.(card.id)?.objective===objective);
+    console.info('DET_V317_SOURCE_POOL',JSON.stringify({
+      fixture:fixtureId,objective,
+      approvedExactPeak:peakAccepted.map(s=>s.id),
+      rejectedExtraSources:peakReport.rejected.filter(s=>exactPeakIds.includes(s.id)),
+    }));
+    expect(peakAccepted.length).toBeGreaterThan(0);
     // V3.15: revise choices from Week 1, not only the last loading week.
     // Every replay builds the real complete DET calendar from independently
     // approved synth sources, honoring the same clocks and sport guards.
     const fullReplays=constructDeterministicPlanWithBoundedReplays(
       f.athleteData,cfg,{maxNodes:200000,maxMilliseconds:16000},
-      {...contract,
+      {...peakContract,
+        requireReviewedRaceSpecificPeak:true,
+        rankCandidate:(card,context)=>{
+          const source=peakContract.reviewedRaceSpecificForId?.(card.id);
+          if(context.phase==='peak'&&context.slot.isKeySession&&
+             source?.objective===objective)return -4;
+          return peakContract.rankCandidate?.(card,context)??0;
+        },
         enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
         enforceConfirmedNoSameDayOverlap:true,
         requireMeasuredDeloadSelection:true,
@@ -422,6 +452,9 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       polarizationMigration:fullReplays.result?.issues.find(i=>
         i.code==='det_v315_native_text_polarization_reconciliation_decision')
         ?.message??null,
+      certifiedSpecificPeak:fullReplays.result?.issues.find(i=>
+        i.code.startsWith('det_v317_individually_reviewed_peak_specificity_'))
+        ?.message??null,
       taperPhaseErrors:fullReplays.result?.issues.filter(i=>i.code==='phase_coherence')
         .map(i=>({week:i.week??null,message:i.message??null}))??[],
       actualTaperSessions:fullReplays.result?.candidate?.weeks.filter(w=>w.phase==='taper')
@@ -430,6 +463,13 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
             details:x.details.slice(0,120)}))}))??[],
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
+    if(fullReplays.evidence.verdict==='all_gates_pass'){
+      const proof=fullReplays.result?.issues.find(i=>
+        i.code==='det_v317_individually_reviewed_peak_specificity_verified');
+      expect(proof).toBeDefined();
+      const details=JSON.parse(proof!.message!) as {sourceIds:string[]};
+      expect(details.sourceIds.length).toBeGreaterThan(0);
+    }
     expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
     // V316: a full plan and exact ratios are NOT sufficient when the native
     // phase validator still reports a peak mismatch or no race specificity.
