@@ -13,21 +13,21 @@ const review:V3ReviewedSettings={
   objective:'IM',allPrerequisitesChecked:true,individualCoachApproval:true,
 };
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
-describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
- it('contains exactly 100 candidates in each sport, with no unreviewed admissibility',()=>{
+describe('V31 — actual 800-source catalogue ingestion to DET-ENGINE',()=>{
+ it('contains exactly 200 candidates in each sport, with no unreviewed admissibility',()=>{
    const result=buildDetV3ContractFromCatalogue([]);
-   expect(v3FullCatalogue.workouts).toHaveLength(400);
-   expect(result.sourceCounts).toEqual({bike:100,run:100,swim:100,strength:100});
+   expect(v3FullCatalogue.workouts).toHaveLength(800);
+   expect(result.sourceCounts).toEqual({bike:200,run:200,swim:200,strength:200});
    expect(result.auditErrors).toEqual([]);
-   expect(result.report.sourceCount).toBe(400);
+   expect(result.report.sourceCount).toBe(800);
    expect(result.report.accepted).toHaveLength(0);
-   expect(result.report.rejected).toHaveLength(400);
+   expect(result.report.rejected).toHaveLength(800);
    expect(result.report.rejected.every(r=>r.reason==='individual_coach_review_missing')).toBe(true);
  });
  it('maps an actual reviewed bike recipe into normalized race-goal contract',()=>{
    const r=buildDetV3ContractFromCatalogue([review]);
    expect(r.report.accepted).toHaveLength(1);
-   expect(r.report.rejected).toHaveLength(399);
+   expect(r.report.rejected).toHaveLength(799);
    const admitted=r.report.accepted[0];
    expect(admitted.id).toBe(review.id);
    expect(admitted.goals).toEqual(['ironman']);
@@ -39,7 +39,7 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
      objective:'70.3',phase:'base',weekType:'load',operation:'insertion',
    }).compatible).toBe(false);
  });
- it('preserves the real 400-card source data while respecting bounded modifications',()=>{
+ it('preserves the real 800-card source data while respecting bounded modifications',()=>{
    const settings:V3ReviewedSettings={...review,overrides:{'0.seconds':900}};
    const r=buildDetV3ContractFromCatalogue([settings]);
    expect(r.report.accepted).toHaveLength(1);
@@ -115,8 +115,8 @@ describe('V31 — actual 400-source catalogue ingestion to DET-ENGINE',()=>{
    expect(candidate.structure).toContain('Course 35 min');
    expect(candidate.goals).toEqual(['half']);
    expect(candidate.mainZoneMax).toBe(2);
-   expect(real.report.sourceCount).toBe(400);
-   expect(v3FullCatalogue.workouts).toHaveLength(400);
+   expect(real.report.sourceCount).toBe(800);
+   expect(v3FullCatalogue.workouts).toHaveLength(800);
    const fitted=buildDetV3ContractFromCatalogue([{...bike,targetDurationMin:65},run],[brick]);
    expect(fitted.report.accepted.find(x=>x.id===bike.id)?.durationMin).toEqual([65,65]);
    expect(fitted.brickReport.accepted[0].durationMin).toEqual([105,105]);
