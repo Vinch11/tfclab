@@ -178,6 +178,7 @@ const makeExpansion=function makeExpansion(sport) {
   for(let c=0;c<20;c++){
     let [title,intent,dStr,shape,w0,r0,focus,level]=lines[sport][c].split("|");const domain=dStr==="null"?null:dStr;
     if(intent==="minimal")intent="technique_economy";
+    if(intent==="mlss"&&dStr==="sub_threshold")intent="sub_threshold";
     for(let v=0;v<5;v++){
       const id="V3P_"+sport.toUpperCase()+"_"+String(101+c*5+v).padStart(3,"0"), variant=names[v], phase=phases[v];
       let work=Math.round(Number(w0)*mult[v]/60)*60,rest=Math.ceil(Number(r0)/60)*60,count=reps[v], blocks=[];
