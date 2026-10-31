@@ -27,6 +27,7 @@ export interface V3CoachPilotContext {
   /** Mandatory in practice: an athlete+source-bound V3.2 decision for every selected card. */
   individualInputsById?: ReadonlyMap<string,V32IndividualInputs>;
   acknowledgedExperimentalRisk: true;
+  /** @deprecated Pilot-wide paces cannot override athlete-confirmed V3.2 values. */
   swimPaces?: Paces;
   sports?: readonly V3Workout["sport"][];
 }
@@ -153,7 +154,14 @@ export function buildV3CoachPilotPool(ctx: V3CoachPilotContext): V3AdapterResult
     // Legacy pilot cannot bypass V3.2 by supplying a bare set of reviewed IDs.
     // Missing individual inputs stay rejected; default pipeline behavior is unchanged.
     const individual = ctx.individualInputsById?.get(recipe.id);
-    if (!individual || !qualifyV32ForAthlete(recipe, individual).eligibleToSubmitToDet) {
+    let qualified = false;
+    try {
+      qualified = !!individual && qualifyV32ForAthlete(recipe, individual).eligibleToSubmitToDet;
+    } catch {
+      // Malformed synthetic or UI-supplied input is a refusal, never a planner crash.
+      qualified = false;
+    }
+    if (!qualified || !individual) {
       rejected.push({ id: recipe.id, code: "INDIVIDUAL_QUALIFICATION_FAILED" });
       continue;
     }
