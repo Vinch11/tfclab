@@ -42,6 +42,10 @@ const STRUCTURED_INTENT_FAMILY: Readonly<Record<PhysiologicalIntent, IntentFamil
   moderate_lt1: "endurance_fondamentale",
   recovery: "recuperation",
   mlss: "seuil",
+  // Wide catalogue family only: physiological sub-threshold is NEVER MLSS.
+  sub_threshold: "seuil",
+  // Mixed tempo/severe sessions must not be silently substituted for VO2 or MLSS.
+  mixed_intensity: "other",
   vo2max: "vo2",
   neuromuscular: "sprint",
   max_strength: "force",
