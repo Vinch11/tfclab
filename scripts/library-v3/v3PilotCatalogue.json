@@ -7174,7 +7174,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -7421,7 +7428,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -7665,7 +7679,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -7907,7 +7928,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -8152,7 +8180,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -8400,7 +8435,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -8645,7 +8687,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -8890,7 +8939,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -9408,7 +9464,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -9650,7 +9713,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -9893,7 +9963,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -19034,7 +19111,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -19290,7 +19374,11 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -19532,7 +19620,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -19791,7 +19886,11 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -20033,7 +20132,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -20275,7 +20381,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -20518,7 +20631,14 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:2.0",
+            "strength_measured_setup_transition_seconds:2.0",
+            "strength_coach_confirmed_rpe_and_load:2.0"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
@@ -20769,7 +20889,17 @@
         "duration": {
           "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
           "classification": "estimated_not_slot_confirmed",
-          "requiredMeasurements": [],
+          "requiredMeasurements": [
+            "strength_measured_seconds_per_rep:1.0",
+            "strength_measured_setup_transition_seconds:1.0",
+            "strength_coach_confirmed_rpe_and_load:1.0",
+            "strength_measured_seconds_per_rep:1.1",
+            "strength_measured_setup_transition_seconds:1.1",
+            "strength_coach_confirmed_rpe_and_load:1.1",
+            "strength_measured_seconds_per_rep:1.2",
+            "strength_measured_setup_transition_seconds:1.2",
+            "strength_coach_confirmed_rpe_and_load:1.2"
+          ],
           "unknownBehavior": "unresolved_not_filled_or_rounded",
           "strengthRepsInterpretation": "estimated_movement_time_not_appointment_duration"
         },
