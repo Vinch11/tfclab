@@ -1,7 +1,8 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import {describe,expect,it} from "vitest";
 import {auditV3Catalogue,evaluateV3Workout,v3FullCatalogue,v3PilotCatalogue} from "../../scripts/library-v3/catalogueRuntime";
 import {resolveV3IntensityTargets} from "../../scripts/library-v3/resolveV3Intensity";
-import {buildDetV3ContractFromCatalogue} from "./v31-v3-catalogue";
+
 import {preparePrevalidationFixture} from "@/qa/sports-plan-lab/prevalidationFixtures";
 import {prepareGenerationContracts} from "@/lib/plan/prepareGenerationContracts";
 import {assessPreparedGeneration} from "@/lib/plan/prevalidateTrainingPlan";
