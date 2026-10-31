@@ -125,6 +125,11 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     // audited: this assertion must not be replaced by a synthetic fallback.
     expect(out.technicallyConstructed).toBe(true);
     expect(weeks).toHaveLength(cfg.weeksAvailable!);
+    if(objective==='IM'&&cfg.prohibitions?.some(p=>/sprint\s*ban/i.test(p))){
+      // A real declared ban must be applied BEFORE candidate selection, not
+      // merely detected as an error after the completed calendar.
+      expect(blockingIssues.filter(i=>i.code==='prohibition_compliance')).toEqual([]);
+    }
     // Never invent week totals if the solver returned no candidate.
     expect(weeks.every(w=>w.totalKnownMinutes<=capMin)).toBe(true);
     expect(out.constraintsSatisfied).toBe(out.technicallyConstructed&&blockingIssues.length===0);
