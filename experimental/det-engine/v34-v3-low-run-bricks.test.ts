@@ -107,6 +107,14 @@ describe('V34 — lower run-recovery burden without changing sport floors',()=>{
   expect(a.technicallyConstructed).toBe(true);
   expect(selected.some(t=>t.week===7&&t.id==='V3B_703_BUILD_EASY_180'&&t.duration===180)).toBe(true);
   expect(audit?.unresolvedBrickMinutes).toBe(0);
+  // This feasibility check must be called from the REAL engine, not a
+  // stand-alone catalogue test. It cannot approve extra load by itself.
+  const v35=a.issues.find(i=>i.code==='v35_bike_only_volume_feasibility');
+  expect(v35).toBeDefined();
+  const volume=JSON.parse(v35!.message!);
+  expect(volume.knownMinutes).toEqual(audit?.knownMinutes);
+  expect(volume.requiredAdditionalBikeMinutes).toBe(57);
+  expect(volume.interpretation).toBe('necessary_condition_only_not_a_training_prescription');
   expect(a.issues.filter(i=>i.code==='v3_recovery_hours_unverified'&&
     i.message?.includes('V3P_RUN_041'))).toHaveLength(0);
   expect(a.constraintsSatisfied).toBe(false);
