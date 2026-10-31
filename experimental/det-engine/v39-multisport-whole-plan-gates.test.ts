@@ -57,7 +57,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       {maxNodes:12000,maxMilliseconds:8000},{...contract,
         enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
         improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
-        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true});
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true});
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
