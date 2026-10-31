@@ -7521,7 +7521,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Sous-seuil extensif — maîtrise initiale",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base"
@@ -7542,10 +7542,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7607,15 +7606,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumuler du travail sous MLSS avec récupération suffisante ; variation maîtrise initiale",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7695,10 +7692,9 @@
           "phases": [
             "base"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -7717,7 +7713,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Sous-seuil extensif — consolidation",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -7739,10 +7735,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7804,15 +7799,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumuler du travail sous MLSS avec récupération suffisante ; variation consolidation",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7893,10 +7886,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -7915,7 +7907,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Sous-seuil extensif — progression contrôlée",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -7937,10 +7929,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -8002,15 +7993,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumuler du travail sous MLSS avec récupération suffisante ; variation progression contrôlée",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -8091,10 +8080,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -8113,7 +8101,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Sous-seuil extensif — dose extensive",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build",
@@ -8135,10 +8123,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -8200,15 +8187,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumuler du travail sous MLSS avec récupération suffisante ; variation dose extensive",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -8289,10 +8274,9 @@
             "build",
             "peak"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -8311,7 +8295,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Sous-seuil extensif — rappel allégé",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "taper",
@@ -8333,10 +8317,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -8398,15 +8381,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumuler du travail sous MLSS avec récupération suffisante ; variation rappel allégé",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -8487,10 +8468,9 @@
             "taper",
             "peak"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -17306,7 +17286,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Rythme sous-seuil progressif — maîtrise initiale",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base"
@@ -17327,10 +17307,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -17397,15 +17376,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Tester stabilité du geste à effort sous-seuil ; variation maîtrise initiale",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -17485,10 +17462,9 @@
           "phases": [
             "base"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -17507,7 +17483,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Rythme sous-seuil progressif — consolidation",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -17529,10 +17505,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -17599,15 +17574,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Tester stabilité du geste à effort sous-seuil ; variation consolidation",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -17688,10 +17661,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -17710,7 +17682,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Rythme sous-seuil progressif — progression contrôlée",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -17732,10 +17704,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -17802,15 +17773,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Tester stabilité du geste à effort sous-seuil ; variation progression contrôlée",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -17891,10 +17860,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -17913,7 +17881,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Rythme sous-seuil progressif — dose extensive",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build",
@@ -17935,10 +17903,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -18005,15 +17972,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Tester stabilité du geste à effort sous-seuil ; variation dose extensive",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -18094,10 +18059,9 @@
             "build",
             "peak"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
@@ -18116,7 +18080,7 @@
       "version": "3.1.0-candidate",
       "sport": "run",
       "title": "Rythme sous-seuil progressif — rappel allégé",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "taper",
@@ -18138,10 +18102,9 @@
         "Augmentation des impacts incompatible avec charge récente"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 48,
+      "minimumRecoveryHours": 24,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -18208,15 +18171,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Tester stabilité du geste à effort sous-seuil ; variation rappel allégé",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -18297,10 +18258,9 @@
             "taper",
             "peak"
           ],
-          "minimumRecoveryHours": 48,
+          "minimumRecoveryHours": 24,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur locomotrice ou reprise de blessure non validée",
