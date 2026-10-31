@@ -15,7 +15,7 @@ export function syntheticV32BikeInputs(id:string):V32IndividualInputs {
    sourceId:id,athleteId:'synthetic-athlete-A',
    sourceFingerprint:v32SourceFingerprint(workout),
    athleteScoped:true,coachApproved:true,
-   trainingLevel:'highly_trained',trainingLevelSource:'manual',
+   trainingLevel:'trained',trainingLevelSource:'manual',
    currentPhase:workout.phase[0],objective:'IRONMAN 70.3',
    recentLoad:'moderate',fatigue:'ready',
    injuryRisk:'cleared_by_coach_screen',
