@@ -4,6 +4,7 @@ import {buildDetV3ContractFromCatalogue, type V3ReviewedSettings} from './v31-v3
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 import {checkSessionCatalogue,catalogueEligibility} from '../../supabase/functions/_shared/sessionCatalogueContract';
 import {normalizeRepairSport} from '../../supabase/functions/_shared/repairSportingEquivalence';
+import {isRaceDaySession} from '../../supabase/functions/_shared/raceDayIdentity';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 const goal=(domain:string|null)=>{
  if(domain==='703_pace')return '703';
@@ -64,6 +65,20 @@ describe('DET V37 — per-source real slot eligibility for all 800 V3 recipes',(
   expect(passed).toBe(800);
   expect(rejectedWrongSport).toBe(800);
   expect(phaseRejected).toBeGreaterThan(500);
+ });
+ it('keeps marathon negative-split TRAINING separate from the actual day-J event',()=>{
+  const original=v3FullCatalogue.workouts.find(w=>w.id==='V3P_RUN_083')!;
+  expect(original.title).toBe('Marathon : négative split de compétition');
+  const review=reviews().find(r=>r.id===original.id)!;
+  const result=buildDetV3ContractFromCatalogue([review]);
+  expect(result.report.accepted).toHaveLength(1);
+  const selected=result.report.accepted[0];
+  expect(selected.tags).toContain('v3-verified-training-not-race-event');
+  expect(selected.structure).toContain('TITRE SOURCE CONSERVÉ: '+original.title);
+  expect(isRaceDaySession({title:selected.title,details:selected.structure})).toBe(false);
+  // Do not relax the application's strong day-J identity.
+  expect(isRaceDaySession({title:'🏁 COURSE : Marathon objectif'})).toBe(true);
+  expect(v3FullCatalogue.workouts.find(w=>w.id===original.id)?.title).toBe(original.title);
  });
  it('refuses sources with no individual proof and cannot silently substitute a different phase',()=>{
   const noReview=buildDetV3ContractFromCatalogue([]);
