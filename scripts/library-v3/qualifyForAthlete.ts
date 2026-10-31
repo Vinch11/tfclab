@@ -169,8 +169,8 @@ export function qualifyV32ForAthlete(
  if(workout.sport==='swim'){
    for(const segment of workout.prescriptionContract.intensity.segments){
      if(!segment.domain)continue;
-     const intensityPace=inputs.calibration.swimPacesSecondsPer100m?.[segment.domain];
-     const durationPace=inputs.duration.swimPacesSecondsPer100m?.[segment.domain];
+     const intensityPace=inputs.calibration?.swimPacesSecondsPer100m?.[segment.domain];
+     const durationPace=inputs.duration?.swimPacesSecondsPer100m?.[segment.domain];
      if(intensityPace!==undefined&&durationPace!==undefined&&intensityPace!==durationPace)
        reject('swim_calibration_duration_pace_mismatch:'+segment.domain);
    }
