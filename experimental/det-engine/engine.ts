@@ -30,6 +30,8 @@ export interface ExperimentalAssemblyContract {
   sourceRecoveryForId?:(id:string)=>readonly {sourceId:string;sport:string;hours:number}[];
   /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
   verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
+  /** V35 safety experiment: enforce the stated availability even without a volume ramp. */
+  enforceWeeklyHoursCap?:true;
   /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
 }
@@ -93,6 +95,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
+      // Without a coach volume ramp, the historical solver used Infinity.
+      // This opt-in never expands a pre-existing stricter bound. No inferred
+      // increase in training hours is permitted.
+      if(experimentalContract?.enforceWeeklyHoursCap===true &&
+         typeof config.weeklyHours==='number' && Number.isFinite(config.weeklyHours) &&
+         config.weeklyHours>0) {
+        ceiling=Math.min(ceiling,Math.floor(config.weeklyHours*60));
+      }
       if(previousLoad!==undefined&&entry.volumeBudget)ceiling=Math.min(ceiling,previousLoad*(entry.weekType==='recovery'?0.7:1+entry.volumeBudget.weeklyIncreasePctMax));
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
