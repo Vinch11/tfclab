@@ -35,13 +35,19 @@ export interface ExperimentalAssemblyContract {
   /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
 }
-export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
+export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
   status:'refused'|'candidate'; reason?:string; technicallyConstructed:boolean;
   constraintsSatisfied:boolean; sportingRelevance:'not_attested'; humanReviewRequired:true;
   candidate?:ParsedPlan; trace:ChoiceTrace[]; nodes:number;
   issues:Array<{code:string;week?:number;severity:string;message?:string}>;
   limiterPriorities:string[];
+}
+/** A frequency-only marker never represents a performed zero-minute workout. */
+function isCountOnlyStrength(card:RepairWorkoutMetadata):boolean {
+  return normalizeRepairSport(card.sport)==='strength'&&card.intentFamily==='force'&&
+    card.durationMin[0]===0&&card.durationMin[1]===0&&card.mainZoneMax===0&&
+    card.zones.length===0&&card.tags.includes('v3-strength-frequency-only-unknown-duration');
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
 
@@ -111,6 +117,20 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
           .filter(m=>!experimentalContract?.filterCandidate||experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}))
           .flatMap(m=>{
+            if(isCountOnlyStrength(m)){
+              // Strength contributes one prescribed session, not a fabricated
+              // zero-minute workload. Unknown time remains absent.
+              const session:ParsedSession={
+                weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
+                sport:'strength',title:m.title,details:m.structure,catalogId:m.id,custom:false,
+                isRest:false,isKeySession:!!slot.isKeySession,zones:[],
+              };
+              const checked=checkSessionCatalogue(session,{...context,catalog});
+              // Only duration and aerobic-zone checks are inapplicable.
+              const unexpected=checked.unknown.filter(code=>
+                !['duration_not_preserved','intensity_not_declared'].includes(code));
+              return checked.errors.length||unexpected.length?[]:[session];
+            }
             // Only the original catalogue dose range is executable; preserve full structure.
             const explicitRange=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
             if(explicitRange===null)return [];
@@ -137,6 +157,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         const afterReview=equivalent.filter(m=>!experimentalContract?.filterCandidate||
           experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}));
         const afterDuration=afterReview.filter(m=>{
+          if(isCountOnlyStrength(m))return true;
           const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
           if(range===null)return false;
           const chosen=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
@@ -144,7 +165,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         });
         const samples=afterDuration.slice(0,4).map(m=>{
           const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
-          const duration=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
+          const duration=isCountOnlyStrength(m)?undefined:
+            Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
           const session:ParsedSession={
             weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
             sport:slot.sport,title:m.title,details:m.structure,catalogId:m.id,custom:false,
@@ -193,8 +215,25 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(!search(0,0))return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
-      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin!,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé.'});}
+      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé.'});}
       plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
+      const countOnly=chosen.filter(session=>session.catalogId&&
+        catalog.some(m=>m.id===session.catalogId&&isCountOnlyStrength(m))).length;
+      if(countOnly){
+        result.issues.push({
+          code:'v3_strength_frequency_count_without_duration',week:w.week,severity:'warning',
+          message:countOnly+' séance(s) de renforcement V3 prescrite(s) en fréquence ; durée inconnue, non comptabilisée dans les minutes hebdomadaires.',
+        });
+        // Historic weekly-hours and total-volume ceilings cannot be certified
+        // when strength time remains unknown; never silently pass these gates.
+        if((typeof config.weeklyHours==='number'&&config.weeklyHours>0)||
+           entry.volumeBudget){
+          result.issues.push({
+            code:'v3_total_weekly_minutes_unverifiable_strength',week:w.week,severity:'blocking',
+            message:'Renforcement correctement décompté en séances, mais plafonds horaires et progression de volume total non vérifiables sans durée.',
+          });
+        }
+      }
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
