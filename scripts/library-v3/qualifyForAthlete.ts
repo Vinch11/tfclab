@@ -35,6 +35,8 @@ export interface V32CoachIndividualReview {
   equipmentAndEnvironmentConfirmed:true;
   raceSpecificContextConfirmed?:true;
   testProtocolConfirmed?:true;
+  /** A test may establish a missing threshold; coach controls its effort protocol. */
+  testEffortGuidanceConfirmed?:true;
   cssPairedTestConfirmed?:true;
   highStimulusHistoryConfirmed?:true;
   runningImpactToleranceConfirmed?:true;
@@ -80,6 +82,8 @@ function goal(raw:string):string|null {
  if(/(?:^|\D)10\s*k(?:m)?(?:\D|$)/.test(v))return'10k';
  if(/(?:^|\D)5\s*k(?:m)?(?:\D|$)/.test(v))return'5k';
  if(/trail/.test(v))return'trail';
+ if(/start.?to.?run|debut.*cour|reprise.*cour/.test(v))return'start_to_run';
+ if(/fitness|general|remise en forme|renforcement/.test(v))return'general';
  return null;
 }
 function raceDomainAllows(domain:string|null,objective:string):boolean {
@@ -131,8 +135,11 @@ export function qualifyV32ForAthlete(
  }
  if(workout.primaryIntent==='race_specific'&&r?.raceSpecificContextConfirmed!==true)
    reject('race_specific_relevance_not_confirmed');
- if(workout.primaryIntent==='test'&&r?.testProtocolConfirmed!==true)
-   reject('test_protocol_not_confirmed');
+ if(workout.primaryIntent==='test'){
+   if(r?.testProtocolConfirmed!==true)reject('test_protocol_not_confirmed');
+   if(r?.testEffortGuidanceConfirmed!==true)
+     reject('test_effort_guidance_not_coach_confirmed');
+ }
  if(['V3P_SWIM_091','V3P_SWIM_092'].includes(workout.id)&&r?.cssPairedTestConfirmed!==true)
    reject('css_requires_400m_and_200m_together_not_a_single_trial');
  if(['mlss','sub_threshold','vo2max','neuromuscular','mixed_intensity'].includes(workout.primaryIntent)){
@@ -145,10 +152,15 @@ export function qualifyV32ForAthlete(
  if(workout.sport==='swim'&&r?.swimSupervisionConfirmed!==true)
    reject('swimming_safety_supervision_not_confirmed');
  let intensitySegments=0,durationSeconds:number|null=null;
- try {
-  const intensity=resolveV31Intensity(workout,inputs.calibration);
-  intensitySegments=intensity.segments.length;
-  for(const miss of intensity.missing)need('intensity:'+miss);
+ if(workout.primaryIntent==='test'){
+   // A controlled field test may be needed precisely BECAUSE the athlete's
+   // threshold is unknown. Never invent an FTP/CSS/pace to run the test.
+   // Coach-confirmed test instructions replace metric-derived intensities.
+   intensitySegments=0;
+ }else try {
+   const intensity=resolveV31Intensity(workout,inputs.calibration);
+   intensitySegments=intensity.segments.length;
+   for(const miss of intensity.missing)need('intensity:'+miss);
  }catch{reject('individual_intensity_source_or_structure_invalid');}
  try {
   const duration=resolveV31Duration(workout,inputs.duration);
