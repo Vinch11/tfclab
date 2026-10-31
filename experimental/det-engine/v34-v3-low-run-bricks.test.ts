@@ -7,10 +7,12 @@ import {splitVerifiedV3Brick,auditPlannedMinuteDistribution} from './v31-time-ra
 import {constructDeterministicPlan} from './engine';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const review=(id:string,targetDurationMin?:number):V3ReviewedSettings=>({
   id,objective:'703',athleteLevel:'trained',athleteLevelSource:'manual',
   allPrerequisitesChecked:true,individualCoachApproval:true,
+  athleteAnchors:syntheticV3ReviewAnchors(),
   ...(targetDurationMin===undefined?{}:{targetDurationMin}),
 });
 const sources=[
