@@ -207,7 +207,7 @@ const makeExpansion=function makeExpansion(sport) {
         const low=domain==="mlss"?"tempo":domain==="sub_threshold"?"moderate_lt1":"recovery";
         blocks.push({kind:"repeat",label:title+" alternance contrôlée",count:q(count,Math.max(1,count-1),count+1),betweenSec:rest,
           betweenSecBounds:q(rest,Math.max(0,rest-30),rest+60),
-          steps:[makeMain(work,title+" fraction prioritaire"),bt(Math.max(60,work/2),low,"main","Fraction basse sans surdose")]});
+          steps:[makeMain(work,title+" fraction prioritaire"),bt(Math.max(60,Math.round((work/2)/60)*60),low,"main","Fraction basse sans surdose")]});
       }else if(shape==="micro60"||shape==="micro30"||shape==="micro40"||shape==="sprint"){
         const hard=shape==="micro60"?60:shape==="micro30"?30:shape==="micro40"?40:15;
         const easy=shape==="micro60"?120:shape==="micro30"?30:shape==="micro40"?20:45;
