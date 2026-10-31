@@ -1,7 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {v3FullCatalogue} from '../../../scripts/library-v3/catalogueRuntime';
 import {resolveV31Duration,resolveV31Intensity,type V31AthleteCalibration} from '../../../scripts/library-v3/resolvePrescription';
-import type {DoctrineDomainId} from '../../zones/tfclDoctrine';
+import type {DoctrineDomainId} from '../zones/tfclDoctrine';
 
 const DOMAINS:DoctrineDomainId[]=[
  'recovery','moderate_lt1','tempo','im_pace','703_pace',
