@@ -84,6 +84,23 @@ Code expérimental ajouté aux commits `56a7fc6`, `ff09b07` et `68c6fe7` : le no
 
 **Preuve physiologique 1 : PASS observé sur le 10 km. Preuve sportive multisport 2 : NO-GO. Production : NO-GO.**
 
+## V3.9.5 — preuve d'incompatibilité des ratios *en nombre*, et essai de doses V3 réellement choisies
+
+**Preuve exécutée CI spécialisée, SHA `a3c4866` : 149 tests réussis / 7 ignorés.** Nouveau certificat `v39-native-count-quota-bound.ts`, calculé sur les **quotas réels de chaque semaine de charge** et conservateur même si le validateur historique exclut certaines semaines par thème. Il accorde tous les créneaux possibles aux sports autres que la natation et un avantage supplémentaire dû à l'arrondi historique des bricks impairs.
+
+| Scénario | Ratio natation minimal possible dans le validateur historique en nombre de séances | Seuil d'erreur historique natation | Conséquence |
+|---|---:|---:|---|
+| 70.3 | **33,33 %** | **28 %** (borne 20 % + tolérance d'erreur 8 points) | **Erreur native inévitable avec ces quotas** |
+| Ironman | **40,00 %** | **28 %** | **Erreur native inévitable avec ces quotas** |
+
+Le constat ne dépend ni des 800 recettes ni de leur durée : augmenter la bibliothèque ne peut pas réparer cette impossibilité par quota. Ne pas affaiblir les cibles **15–20 %** ni supprimer les quotas sportifs : le chantier ultérieur doit rendre la **validation de ratio** cohérente avec les **minutes exactes / compositions attestées**, et contrôler la fréquence séparément. Pendant ce diagnostic, le validateur natif défectueux **reste actif et bloquant** : pas de faux GO.
+
+**Essai de préférence des sources déjà admissibles**, à structure et intensité non modifiées : base 70.3 ~29,97 % de natation en minutes directement attribuées (borne favorable bricks : 23,13 %) contre 17,19 % sous préférence *toutes disciplines* (borne favorable bricks : 13,39 %). Ironman : 24,00 % en base contre **11,96 %** en préférence *toutes disciplines*, sous la cible minimale de **15 %**. Tous les plafonds horaires et la construction 12/12, 16/16 sont conservés, mais les deux plans restent **NON CONFORMES**. Le mode « toutes disciplines » **surcorrige**, donc n'est pas promu en solution.
+
+**Variante `bike` isolée au SHA `651a971`** : préserve la sélection natation/CAP historique, oriente uniquement les candidats vélo déjà individuellement admissibles. Une comparaison sur le vrai moteur 70.3/IM doit encore confirmer son résultat CI et ses garde-fous ; aucune conformité présumée.
+
+**Décision de conception** : les ratios de *volume* doivent dépendre des minutes et compositions de bricks **certifiées** ; les *quotas de fréquence* doivent rester une obligation séparée. L'ancienne méthode compte arbitrairement un brick pour une demi-séance vélo et une demi-séance course, avec arrondi ; elle ne mesure pas la distribution physique du volume. La correction du validateur nécessite une migration explicite avec tests de non-régression et refus si une provenance de brick manque.
+
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
 2. **70.3** : date/jour J placés, 12 semaines complètes, chaque budget coach ≤600 min, vraie décharge, ratios sportifs sur minutes attribuées, récupération à partir d'horaires coach authentifiés (ou refus), polarisation et séances clés conformes, toutes les validations natives sans blocage.
