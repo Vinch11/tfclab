@@ -23,6 +23,7 @@ import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-br
 import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-v3-low-run-bricks';
 import type { ExperimentalAssemblyContract } from './engine';
+import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 
 export interface V3ReviewedSettings extends DetV3Review {
   /** Separate expected athlete identity (not inferred from the review itself). */
@@ -239,11 +240,46 @@ export function buildDetV3ContractFromCatalogue(
     const why=faulty.get(rejection.id);
     if(why)rejection.reason=why;
   }
+  // V310: preserve an exact athlete-configured block ledger ONLY for accepted
+  // source reviews whose computed dose matches the source admitted to DET.
+  // The textual candidate structure is never parsed to fabricate zone time.
+  const verifiedZoneDoses=new Map<string,StructuredZoneDose>();
+  const configuredById=new Map(cards.map(card=>[card.id,card]));
+  for(const admitted of report.accepted){
+    const settings=reviewMap.get(admitted.id);
+    const configured=configuredById.get(admitted.id);
+    if(!settings||!configured||admitted.sport==='strength')continue;
+    const candidate=structuredV3ZoneDose(configured,normalizedSwimPaces(settings));
+    if(candidate&&admitted.durationMin[0]===admitted.durationMin[1]&&
+       matchingStructuredDose(candidate,admitted.durationMin[0]))
+      verifiedZoneDoses.set(admitted.id,candidate);
+  }
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
   const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
   const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
   const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted];
   const brickById=new Map(allBricks.map(card=>[card.id,card]));
+  const approvedBrickTransitions=new Map(
+    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
+      .map(r=>[r.id,r.transitionSeconds] as const));
+  for(const brick of allBricks){
+    const transition=approvedBrickTransitions.get(brick.id);
+    if(transition===undefined)continue;
+    const componentIds=brick.tags.flatMap(tag=>{
+      const raw=tag.startsWith('bike-source:')?tag.slice('bike-source:'.length):
+        tag.startsWith('run-source:')?tag.slice('run-source:'.length):tag;
+      return /^V3P_(BIKE|RUN)_\d{3}$/.test(raw)?[raw]:[];
+    });
+    const unique=[...new Set(componentIds)];
+    if(unique.length!==2||brick.durationMin[0]!==brick.durationMin[1])continue;
+    const bikeId=unique.find(id=>id.startsWith('V3P_BIKE_'));
+    const runId=unique.find(id=>id.startsWith('V3P_RUN_'));
+    if(!bikeId||!runId)continue;
+    const combined=composeReviewedBrickZoneDose(
+      verifiedZoneDoses.get(bikeId)??null,verifiedZoneDoses.get(runId)??null,
+      transition,brick.durationMin[0]);
+    if(combined)verifiedZoneDoses.set(brick.id,combined);
+  }
   const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
     .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
     .map(review=>review.id));
@@ -320,6 +356,10 @@ export function buildDetV3ContractFromCatalogue(
           tag.startsWith('run-source:')?tag.slice('run-source:'.length):tag;
         return /^V3P_(BIKE|RUN)_\d{3}$/.test(value)?[value]:[];
       }))];
+    },
+    sourceStructuredZoneForId(id,chosenDurationMin){
+      const ledger=matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
+      return ledger?{low:ledger.low,nonLow:ledger.mid+ledger.high,unknown:ledger.unknown}:null;
     },
     sourceRecoveryForId(id){
       const meta=report.accepted.find(m=>m.id===id)||brickById.get(id);
