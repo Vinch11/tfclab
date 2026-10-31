@@ -26,6 +26,7 @@ import {assessStructuredZoneNecessaryBounds,type BoundedZoneChoice} from './v310
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type ConfirmedSlotStart} from './v39-calendar-safe-recovery';
+import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
@@ -56,6 +57,8 @@ export interface ExperimentalAssemblyContract {
   coachSlotStart?:ConfirmedSlotStart;
   /** Opt-in: discard V3 source doses without a provable calendar-only recovery window. */
   enforceCalendarSafeV3Recovery?:true;
+  /** Opt-in V313: reject source doses that cross an authentic coach-confirmed same-day start. */
+  enforceConfirmedNoSameDayOverlap?:true;
   /** Opt-in: label only recovery weeks with a measured >=30% week-over-week dose reduction. */
   annotateVerifiedDeloads?:true;
   /** Opt-in bounded chronology repair: swaps existing slots only, preserves quotas. */
@@ -291,6 +294,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       let calendarRecoveryExclusions=0;
+      let confirmedOverlapExclusions=0;
       let sprintBanExclusions=0;
       const sprintBanned=experimentalContract?.filterDeclaredSprintBanCandidates===true &&
         config.prohibitions?.some(text=>/sprint\s*ban/i.test(text))===true;
@@ -374,6 +378,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             }
             if(!viable)calendarRecoveryExclusions++;
             return viable;
+          }).filter(session=>{
+            if(experimentalContract?.enforceConfirmedNoSameDayOverlap!==true)return true;
+            const here={week:w.week,dayIndex,sport:slot.sport};
+            let sessionStart:CoachSessionStart|null|undefined;
+            try{sessionStart=experimentalContract.coachSessionStart?.(session);}
+            catch{sessionStart=null;}
+            const viable=confirmedNoSameDayOverlap(here,session.durationMin,
+              scheduledSports,experimentalContract.coachSlotStart,sessionStart);
+            if(!viable)confirmedOverlapExclusions++;
+            return viable;
           }).sort((a,b)=>{
             // Sport-specific eligibility, dose and safety are already checked
             // above. On a KEY slot, the declared limiter is the first real
@@ -414,6 +428,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(calendarRecoveryExclusions)result.issues.push({
         code:'det_v3_calendar_recovery_candidates_excluded',week:w.week,severity:'warning',
         message:calendarRecoveryExclusions+' source-slot prescriptions excluded: full recovery hours cannot be proven from day-only layout',
+      });
+      if(confirmedOverlapExclusions)result.issues.push({
+        code:'det_v313_confirmed_overlap_candidates_excluded',week:w.week,
+        severity:'warning',message:confirmedOverlapExclusions+
+          ' candidate source-slot doses refused: coach-confirmed same-day appointment overlap or absent/ambiguous proof',
       });
       const emptyIndex=options.findIndex(domain=>domain.length===0);
       if(emptyIndex>=0){
