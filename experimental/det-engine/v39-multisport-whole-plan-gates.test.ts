@@ -67,7 +67,7 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
         enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
         improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
         auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
-        requireRealQualityOnLoadWeeks:true,preferSourceBackedMultisportBalance:true});
+        requireRealQualityOnLoadWeeks:true,preferSourceBackedMultisportBalance:'all'});
     const balancedBlockers=balanced.issues.filter(i=>blocking(i.severity));
     const balancedRatio=balanced.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
     const baseRatio=out.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
@@ -102,6 +102,33 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     }
     expect(balanced.humanReviewRequired).toBe(true);
     expect(balanced.sportingRelevance).toBe('not_attested');
+    // The all-sports heuristic can overshoot: isolate BIKE duration choices
+    // while retaining the original swim/run and key-limiter selection order.
+    const bikeOnly=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'bike'});
+    const bikeRatio=bikeOnly.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    console.info('DET_V39_BIKE_ONLY_RATIO_COMPARISON',JSON.stringify({
+      fixture:fixtureId,objective,technicallyConstructed:bikeOnly.technicallyConstructed,
+      original:readRatio(baseRatio?.message),
+      allSports:readRatio(balancedRatio?.message),
+      bikeOnly:readRatio(bikeRatio?.message),
+      blockerCodes:[...new Set(bikeOnly.issues.filter(i=>blocking(i.severity)).map(i=>i.code))],
+      selectedV3:bikeOnly.trace.filter(t=>t.id.startsWith('V3P_')||t.id.startsWith('V3B_')).length,
+      reason:bikeOnly.reason??null,
+    }));
+    if(bikeOnly.technicallyConstructed){
+      expect(bikeOnly.candidate!.weeks.every(week=>
+        week.sessions.filter(x=>!x.isRest).reduce((n,x)=>n+(x.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+      expect(bikeOnly.issues.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
+    }
+    expect(bikeOnly.humanReviewRequired).toBe(true);
+    expect(bikeOnly.sportingRelevance).toBe('not_attested');
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
