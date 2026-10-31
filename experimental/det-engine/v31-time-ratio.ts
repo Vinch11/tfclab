@@ -59,14 +59,16 @@ export function splitVerifiedV3Brick(
  const source=approved.find(x=>x.id===id);
  if(!source)return null;
  if(source.sport!=='brick'||!source.tags.includes('two-reviewed-components')||
-   !source.tags.some(tag=>tag==='v3-brick-composition-candidate'||tag==='v3-v32-experimental-composition')){
+   !source.tags.some(tag=>['v3-brick-composition-candidate',
+     'v3-v32-experimental-composition','v3-v34-low-run-composition'].includes(tag))){
    throw Error('v31_untrusted_composite_provenance');
  }
  if(details!==source.structure||source.durationMin[0]!==source.durationMin[1]||
    source.durationMin[0]!==totalDurationMin){
    throw Error('v31_composite_structure_or_duration_tampered');
  }
- if(source.tags.includes('v3-v32-experimental-composition') &&
+ if((source.tags.includes('v3-v32-experimental-composition')||
+     source.tags.includes('v3-v34-low-run-composition')) &&
     (!source.tags.some(tag=>/^bike-source:V3P_BIKE_\d{3}$/.test(tag))||
      !source.tags.some(tag=>/^run-source:V3P_RUN_\d{3}$/.test(tag)))){
    throw Error('v31_v32_component_provenance_missing');
