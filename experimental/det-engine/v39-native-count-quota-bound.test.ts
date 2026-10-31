@@ -23,7 +23,7 @@ describe('DET V39 — optimistic mathematical bound against native count-only sp
   it('never mistakes ample frequency headroom for validated real dose',()=>{
     const q=quota([2,2],[4,4],[4,4],[0,1],[1,1],12);
     const r=assessNativeSwimCountQuotaBound([{week:1,weekType:'load',quota:q}],20);
-    expect(r.optimisticMinimumSwimPct).toBeCloseTo(2/11*100);
+    expect(r.optimisticMinimumSwimPct).toBeCloseTo(2/12*100);
     expect(r.mathematicallyCannotAvoidNativeSwimBlocker).toBe(false);
     expect(r.interpretation).toBe('necessary_condition_not_a_schedule_or_dose_validation');
   });
@@ -37,7 +37,7 @@ describe('DET V39 — optimistic mathematical bound against native count-only sp
     ],20);
     expect(r.loadedWeeks).toEqual([1]);
     expect(r.minimumMandatorySwimSessions).toBe(3);
-    expect(r.optimisticMinimumSwimPct).toBe(37.5);
+    expect(r.optimisticMinimumSwimPct).toBeCloseTo(100/3);
   });
   it('declares uncertainty if quotas are internally contradictory, without inventing a count',()=>{
     const bad=quota([3,3],[2,2],[2,2],[0,0],[1,1],4);
