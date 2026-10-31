@@ -68,6 +68,9 @@ export function constructDeterministicPlanWithBoundedReplays(
   const rows:ReplayAttempt[]=[];
   let totalNodes=0;
   let last:EngineResult|null=null;
+  let best:EngineResult|null=null;
+  let bestIndex=-1;
+  let bestHardIssueCount=Infinity;
   for(let i=0;i<preset[objective].length;i++){
     const remainingMillis=limits.maxMilliseconds-(performance.now()-started);
     const remainingNodes=limits.maxNodes-totalNodes;
@@ -98,16 +101,27 @@ export function constructDeterministicPlanWithBoundedReplays(
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     });
     if(strictRatiosMet){
-      result.nodes=totalNodes;
-      result.issues.push({code:'det_v315_full_horizon_replay_ratio_found',
-        severity:'warning',message:JSON.stringify({
-          selectedReplay:i+1,attempts:rows.length,totalNodes,
-          nativeConstraintsSatisfied:result.constraintsSatisfied,
-          realSourceDosesOnly:true,allPriorWeeksRebuilt:true,
-        })});
-      return fail(result.constraintsSatisfied?'all_gates_pass':
-        'ratio_feasible_native_blockers_remain',rows,totalNodes,result);
+      const hardCount=result.issues.filter(issue=>
+        ['blocking','error','critical'].includes(issue.severity)).length;
+      if(hardCount<bestHardIssueCount){
+        best=result;bestIndex=i;bestHardIssueCount=hardCount;
+      }
+      // Stop ONLY when all independent native/sporting gates pass. A first
+      // ratio-compliant but unsafe plan must not hide better alternatives.
+      if(result.constraintsSatisfied)break;
     }
+  }
+  if(best){
+    best.nodes=totalNodes;
+    best.issues.push({code:'det_v315_full_horizon_replay_ratio_found',
+      severity:'warning',message:JSON.stringify({
+        selectedReplay:bestIndex+1,attempts:rows.length,totalNodes,
+        nativeConstraintsSatisfied:best.constraintsSatisfied,
+        independentHardIssueCount:bestHardIssueCount,
+        realSourceDosesOnly:true,allPriorWeeksRebuilt:true,
+      })});
+    return fail(best.constraintsSatisfied?'all_gates_pass':
+      'ratio_feasible_native_blockers_remain',rows,totalNodes,best);
   }
   // The best observed prefix is NOT a valid candidate and must not escape
   // under an exhausted multiweek search.
