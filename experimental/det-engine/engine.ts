@@ -9,10 +9,12 @@ import { computeFinalValidationIssues } from '@/lib/plan/qa/finalValidation';
 import { validatePlan } from '@/engines/plan/planValidator';
 import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionCatalogueContract';
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
-import { normalizeRepairSport, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
+import { normalizeRepairSport, normalizeRepairGoal, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
+import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
+import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -20,6 +22,18 @@ export interface ExperimentalAssemblyContract {
   adapt:(preparation:ReturnType<typeof prepareGenerationContracts>,config:PlanConfig)=>void;
   filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
+  /** Optional review-scoped deterministic tie-breaker; never skips any validation. */
+  rankCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>number;
+  /** One V3 source cannot be used twice via two different composites in one week. */
+  consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
+  /** Read-only source recovery floors. Without training start times, proof may be impossible. */
+  sourceRecoveryForId?:(id:string)=>readonly {sourceId:string;sport:string;hours:number}[];
+  /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
+  verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
+  /** V35 safety experiment: enforce the stated availability even without a volume ramp. */
+  enforceWeeklyHoursCap?:true;
+  /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
+  coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -30,6 +44,18 @@ export interface EngineResult {
   limiterPriorities:string[];
 }
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
+
+/** Match the native final validator's explicit day-J/veille restrictions.
+ * This is a proactive selection guard, not an exemption from validation. */
+const RACE_DAY_ONLY_WHEN = /matin\s*comp[ée]tition|jour\s*j\b|veille\s*de\s*course/i;
+export function raceOnlySourceMatchesDay(
+  when:string|undefined, dayIndex:number, raceDayIndex:number|null
+):boolean {
+  if(!when || !RACE_DAY_ONLY_WHEN.test(when))return true;
+  if(raceDayIndex===null)return false;
+  if(/veille\s*de\s*course/i.test(when))return dayIndex===raceDayIndex-1;
+  return dayIndex===raceDayIndex;
+}
 /** All limits are hard caps; an exhausted search is not a proof of infeasibility. */
 export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanConfig,limits:SearchLimits=DEFAULT_LIMITS,experimentalContract?:ExperimentalAssemblyContract):EngineResult {
   const result:EngineResult={status:'refused',technicallyConstructed:false,constraintsSatisfied:false,
@@ -62,15 +88,26 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
       const allowedIds=new Set(w.eligible.map(m=>m.id));
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
+      const eventDay=layout.days.findIndex(d=>d.slots.some(s=>s.isRaceEvent));
+      const raceDayIndex=eventDay>=0?eventDay:null;
       if(slots.some(s=>s.slot.isRaceEvent))result.issues.push({code:'race_duration_unestimated',week:w.week,severity:'warning'});
       const weeklyUsage=new Map<string,number>();
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
+      // Without a coach volume ramp, the historical solver used Infinity.
+      // This opt-in never expands a pre-existing stricter bound. No inferred
+      // increase in training hours is permitted.
+      if(experimentalContract?.enforceWeeklyHoursCap===true &&
+         typeof config.weeklyHours==='number' && Number.isFinite(config.weeklyHours) &&
+         config.weeklyHours>0) {
+        ceiling=Math.min(ceiling,Math.floor(config.weeklyHours*60));
+      }
       if(previousLoad!==undefined&&entry.volumeBudget)ceiling=Math.min(ceiling,previousLoad*(entry.weekType==='recovery'?0.7:1+entry.volumeBudget.weeklyIncreasePctMax));
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
         return catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport)
+          .filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex))
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
           .filter(m=>!experimentalContract?.filterCandidate||experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}))
           .flatMap(m=>{
@@ -85,9 +122,47 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const checked=checkSessionCatalogue(session,{...context,catalog});
             return checked.errors.length||checked.unknown.length?[]:[session];
           }).sort((a,b)=>(usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
+            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===a.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)-
+            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===b.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)||
             w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!));
       });
-      if(options.some(domain=>!domain.length))return refuse(`empty_catalogue_domain_week_${w.week}`);
+      const emptyIndex=options.findIndex(domain=>domain.length===0);
+      if(emptyIndex>=0){
+        // Preserve the refusal; expose where each candidate disappears.
+        const {slot,dayIndex,dayName}=slots[emptyIndex];
+        const sportMatches=catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport);
+        const afterRaceDayContext=sportMatches.filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex));
+        const equivalent=afterRaceDayContext.filter(m=>
+          evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible);
+        const afterReview=equivalent.filter(m=>!experimentalContract?.filterCandidate||
+          experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}));
+        const afterDuration=afterReview.filter(m=>{
+          const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
+          if(range===null)return false;
+          const chosen=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
+          return chosen<=Math.min(m.durationMin[1],slot.maxDurationMin??Infinity,range?.[1]??Infinity);
+        });
+        const samples=afterDuration.slice(0,4).map(m=>{
+          const range=experimentalContract?.doseRange?.(m,{...context,week:w.week,slot,dayIndex});
+          const duration=Math.max(m.durationMin[0],slot.minDurationMin??0,range?.[0]??0);
+          const session:ParsedSession={
+            weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
+            sport:slot.sport,title:m.title,details:m.structure,catalogId:m.id,custom:false,
+            durationMin:duration,isRest:false,isKeySession:!!slot.isKeySession,
+            zones:m.mainZoneMax?['Z'+m.mainZoneMax]:m.zones,
+          };
+          return {id:m.id,checks:checkSessionCatalogue(session,{...context,catalog})};
+        });
+        result.issues.push({code:'det_empty_catalogue_slot',week:w.week,severity:'blocking',
+          message:JSON.stringify({day:dayName,sport:slot.sport,phase:w.phase,weekType:w.weekType,
+            minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
+            allInCatalog:catalog.filter(m=>normalizeRepairSport(m.sport)===slot.sport).length,
+            eligibleSportMatches:sportMatches.length,afterRaceDayContext:afterRaceDayContext.length,
+            equivalent:equivalent.length,
+            afterReview:afterReview.length,afterDuration:afterDuration.length,
+            finalAdmissible:0,samples})});
+        return refuse('empty_catalogue_domain_week_'+w.week);
+      }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
@@ -101,12 +176,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const id=session.catalogId;
           const m=id?catalog.find(m=>m.id===id):undefined;
           if(m&&(weeklyUsage.get(id!)??0)>=Math.min(1,catalogueWeeklyUsageCapacity(m)))continue; // B13 forbids intra-week duplicate IDs.
+          const sourceKeys=m?(experimentalContract?.consumedSourceIds?.(m)??[]).map(src=>'v3-source:'+src):[];
+          if(sourceKeys.some(key=>(weeklyUsage.get(key)??0)>=1))continue;
           // Preserve the existing layout's 48h separation for quality of the same sport.
           const quality=m&&m.mainZoneMax>=3;
           if(quality&&chosen.some(s=>s.sport===session.sport&&Math.abs(s.dayIndex-session.dayIndex)<2&&(catalog.find(m=>m.id===s.catalogId)?.mainZoneMax??0)>=3))continue;
           chosen.push(session);if(id)weeklyUsage.set(id,(weeklyUsage.get(id)??0)+1);
+          for(const key of sourceKeys)weeklyUsage.set(key,(weeklyUsage.get(key)??0)+1);
           if(search(index+1,total+(session.durationMin??0)))return true;
           chosen.pop();if(id)weeklyUsage.set(id,weeklyUsage.get(id)!-1);
+          for(const key of sourceKeys)weeklyUsage.set(key,weeklyUsage.get(key)!-1);
           if(exhausted)return false;
         }
         return false;
@@ -119,6 +198,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.verifiedBrickCompositions && normalizeRepairGoal(config.objective??'')==='half'){
+      // Strictly diagnostic: a mathematically possible bike addition has NOT
+      // passed dose, source, load-ramp, fatigue or recovery checks.
+      const feasibility=auditV35BikeOnlyFeasibility(plan,preparation.weeklyQuotas,
+        experimentalContract.verifiedBrickCompositions,23);
+      result.issues.push({code:'v35_bike_only_volume_feasibility',
+        severity:feasibility.verdict==='provably_impossible_under_week_caps'?'blocking':'warning',
+        message:JSON.stringify(feasibility)});
+    }
+    if(experimentalContract?.sourceRecoveryForId){
+      result.issues.push(...auditSourceRecoveryTiming({
+        plan, sourcesForId:experimentalContract.sourceRecoveryForId,
+        startForSession:experimentalContract.coachSessionStart,
+      }));
+    }
     const merged:MergedPlan={...plan,weeks:plan.weeks.map(w=>({...w,sessions:w.sessions.map(s=>({...s,isKeySession:!!s.isKeySession,catalogId:s.catalogId??null,custom:!!s.custom,durationMin:s.durationMin??0,zones:s.zones??[]}))}))};
     result.issues.push(...validateWeeklyQuotas(merged,preparation.weeklyQuotas).map(i=>({code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason})));
   }
