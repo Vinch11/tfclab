@@ -4,7 +4,7 @@
  * No production athlete, no inferred anchors, no publication.
  */
 import {afterEach,describe,expect,it,vi} from 'vitest';
-import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
+import {planningCases,preparePlanningCaseContext} from '@/qa/sports-plan-lab/planningMatrix';
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
@@ -53,11 +53,16 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
   it('records the complete cohort outcome and requires a changed real-world key-slot choice',()=>{
     vi.useFakeTimers({toFake:['Date']});
     vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
-    const prepared=preparePrevalidationFixture('B-10K',{
-      objective:'10K',trainingLevel:'trained',ambition:'competitor',
-      planStartDate:'2026-10-26',raceDate:'2027-01-03',
-      raceGoals:[{objective:'10K',raceDate:'2027-01-03',priority:'A'}],
-      weeklyHours:8,sessionsPerWeek:7,maxSessionsPerDay:2,maxDoubleDaysPerWeek:2,
+    // The former 7-sessions fixture was upgraded by the historic sizing matrix
+    // to a MANDATORY bike slot (min=1), while this reviewed source cohort is
+    // run + strength only. That would prove only an unrelated missing sport.
+    // Keep the athlete TRAINED but choose a legitimate 10K finisher programme
+    // with optional bike (min=0) rather than weakening quota safety rules.
+    const spec=planningCases().find(c=>c.objective==='10K'&&c.level==='trained'&&
+      c.ambition==='finisher'&&c.load==='unknown');
+    if(!spec)throw Error('det_v39_missing_trained_10k_case');
+    const {prepared}=preparePlanningCaseContext({
+      ...spec,constraints:'unrestricted',intermediate:false,duration:'native',
     });
     const outcomes=[];
     for(const scenario of limiterScenarios){
