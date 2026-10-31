@@ -134,7 +134,7 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    const strengthMain=card.sport==='strength' && card.primaryDomain===null &&
      card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(step=>
        step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange ||
-       countOnlyStrength&&step.role==='main'&&['time','reps'].includes(step.kind)));
+       countOnlyStrength&&(step.kind==='time'||step.kind==='reps')&&step.role==='main'));
    if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
      refuse('strength_timebox_or_coach_load_verification_missing');continue;
    }
