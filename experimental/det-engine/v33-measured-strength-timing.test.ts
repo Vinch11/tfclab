@@ -18,11 +18,28 @@ const settings={
  ...syntheticV3SportingContext(source.id),
 };
 describe('DET V3.3 — real coach measured historical strength scheduling',()=>{
- it('keeps 99 legacy repetition cards estimated until actual individual exercise and setup seconds exist',()=>{
+ it('admits a reviewed legacy strength session by frequency without pretending the duration is known',()=>{
   expect(evaluateV3Workout(source).status).toBe('estimated');
-  const absent=buildDetV3ContractFromCatalogue([settings]);
-  expect(absent.report.accepted).toHaveLength(0);
-  expect(absent.report.rejected.find(x=>x.id===source.id)?.reason).toContain('v3_timing_is_only_estimated');
+  const countOnly=buildDetV3ContractFromCatalogue([settings]);
+  expect(countOnly.report.accepted).toHaveLength(1);
+  const selected=countOnly.report.accepted[0];
+  expect(selected.id).toBe(source.id);
+  expect(selected.sport).toBe('strength');
+  expect(selected.intentFamily).toBe('force');
+  expect(selected.durationMin).toEqual([0,0]); // count-mode marker, NOT training minutes
+  expect(selected.tags).toContain('v3-strength-frequency-only-unknown-duration');
+  expect(selected.zones).toEqual([]);
+  expect(selected.structure).toContain('durée non mesurée');
+  expect(evaluateV3Workout(source).status).toBe('estimated');
+ });
+ it('does not falsely use the nominal duration of a historic timed core exercise',()=>{
+  const id='V3P_STRENGTH_009';
+  const result=buildDetV3ContractFromCatalogue([{
+   ...settings,id,...syntheticV3SportingContext(id),
+  }]);
+  expect(result.report.accepted).toHaveLength(1);
+  expect(result.report.accepted[0].durationMin).toEqual([0,0]);
+  expect(result.report.accepted[0].tags).toContain('v3-strength-frequency-only-unknown-duration');
  });
  it('turns measured reps and preparation into exactly 32 min with source intact',()=>{
   const configured=configureMeasuredStrengthTiming(source,measured);
