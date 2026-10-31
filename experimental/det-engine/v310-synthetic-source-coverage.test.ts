@@ -6,6 +6,7 @@
 import {describe,expect,it,vi,afterEach} from 'vitest';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {constructDeterministicPlan} from './engine';
+import {constructDeterministicPlanWithBoundedReplays} from './v315-bounded-multiweek-replay';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
 import {assessPreparedGeneration} from '@/lib/plan/prevalidateTrainingPlan';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -384,6 +385,73 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       expect(exactFinalRatio.status).toBe('refused');
       expect(v314Success).toBeUndefined();
     }
+    // V3.15: revise choices from Week 1, not only the last loading week.
+    // Every replay builds the real complete DET calendar from independently
+    // approved synth sources, honoring the same clocks and sport guards.
+    const fullReplays=constructDeterministicPlanWithBoundedReplays(
+      f.athleteData,cfg,{maxNodes:200000,maxMilliseconds:16000},
+      {...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        enforceConfirmedNoSameDayOverlap:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'triathlon_targets',
+        requireFinalTriathlonMinuteRatios:true,
+        requireStructuredPolarizationOnLoadWeeks:true,
+        auditVerifiedMultisportMinutes:true,
+        auditGlobalSourceSportRatioBounds:true,
+        applyReviewedMinuteSportRatio:true,
+        auditStructuredPolarizationSources:true,
+        coachSlotStart:confirmedSlot,
+        coachSessionStart:session=>confirmedSlot({
+          week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+      });
+    console.info('DET_V315_FULL_HORIZON_REPLAYS',JSON.stringify({
+      fixture:fixtureId,objective,evidence:fullReplays.evidence,
+      ratio:fullReplays.result?ratioDiagnostic(fullReplays.result):null,
+      blockers:fullReplays.result?blockers(fullReplays.result):[],
+    }));
+    expect(fullReplays.evidence.experimentalOnly).toBe(true);
+    expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
+    if(fullReplays.evidence.verdict==='bounded_search_unresolved'){
+      expect(fullReplays.result?.status).toBe('refused');
+      expect(fullReplays.result?.technicallyConstructed).toBe(false);
+      expect(fullReplays.result?.candidate).toBeUndefined();
+    }else{
+      expect(fullReplays.result?.technicallyConstructed).toBe(true);
+      expect(fullReplays.result?.issues.some(i=>
+        i.code==='det_multisport_minute_ratio_verified')).toBe(true);
+    }
+    // Independent strict deload trial: a nominal recovery label cannot
+    // substitute a measured 30% reduction against the IMMEDIATELY prior week.
+    const strictDeload=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:6000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        enforceConfirmedNoSameDayOverlap:true,
+        requireMeasuredDeloadSelection:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'triathlon_targets',
+        requireStructuredPolarizationOnLoadWeeks:true,
+        coachSlotStart:confirmedSlot,
+        coachSessionStart:session=>confirmedSlot({
+          week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+      });
+    console.info('DET_V315_REAL_DELOAD_SEARCH',JSON.stringify({
+      fixture:fixtureId,objective,
+      weeks:strictDeload.candidate?.weeks.length??0,
+      nodes:strictDeload.nodes,reason:strictDeload.reason??null,
+      deloadBlockers:strictDeload.issues.filter(i=>
+        i.code.startsWith('det_v315_recovery_')||
+        i.code==='det_scheduled_deload_not_proven').map(i=>({
+          week:i.week,code:i.code,message:i.message??null,
+        })),
+      nativeConstraintsSatisfied:strictDeload.constraintsSatisfied,
+    }));
+    if(strictDeload.technicallyConstructed)
+      expect(strictDeload.issues.filter(i=>
+        i.code==='det_scheduled_deload_not_proven')).toEqual([]);
+
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
