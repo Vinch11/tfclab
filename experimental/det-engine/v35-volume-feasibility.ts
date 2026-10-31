@@ -15,7 +15,7 @@ import { auditPlannedMinuteDistribution } from './v31-time-ratio';
 
 export interface V35WeekBudget {
   weekType:string;
-  volumeBudget?:{ maxMinutes:number; weeklyIncreasePctMax:number } | null;
+  volumeBudget?:{ maxMinutes:number; weeklyIncreasePctMax:number; referenceSource?:'coach'|'internal-matrix' } | null;
 }
 export interface V35WeekHeadroom {
   week:number;
@@ -27,6 +27,7 @@ export type V35FeasibilityVerdict =
   'baseline_not_fully_attributable' |
   'baseline_duration_invalid' |
   'coach_volume_ceiling_missing' |
+  'volume_ceiling_not_coach_confirmed' |
   'baseline_exceeds_declared_ceiling' |
   'provably_impossible_under_week_caps' |
   'room_under_caps_only_not_executable' |
@@ -60,7 +61,7 @@ export function auditV35BikeOnlyFeasibility(
   // Ceil with a small numeric guard: meeting the threshold, not rounding it.
   const needed=total>0?Math.max(0,Math.ceil(distribution.knownMinutes.swim*100/targetMaxSwimPct-total-1e-9)):null;
   const weeks:V35WeekHeadroom[]=[];
-  let baselineInvalid=false,missingCap=false,exceedsCap=false,headroom=0;
+  let baselineInvalid=false,missingCap=false,nonCoachCap=false,exceedsCap=false,headroom=0;
   for(const week of plan.weeks){
     if(types[week.weekNumber]!=='load')continue;
     let planned=0;
@@ -75,6 +76,7 @@ export function auditV35BikeOnlyFeasibility(
     const finiteCap=typeof cap==='number'&&Number.isSafeInteger(cap)&&cap>0?cap:null;
     if(finiteCap===null)missingCap=true;
     else{
+      if(quotas[week.weekNumber]?.volumeBudget?.referenceSource!=='coach')nonCoachCap=true;
       if(planned>finiteCap)exceedsCap=true;
       headroom+=Math.max(0,finiteCap-planned);
     }
@@ -86,6 +88,7 @@ export function auditV35BikeOnlyFeasibility(
   if(distribution.unresolvedBrickMinutes>0||!total||!weeks.length)verdict='baseline_not_fully_attributable';
   else if(baselineInvalid)verdict='baseline_duration_invalid';
   else if(missingCap)verdict='coach_volume_ceiling_missing';
+  else if(nonCoachCap)verdict='volume_ceiling_not_coach_confirmed';
   else if(exceedsCap)verdict='baseline_exceeds_declared_ceiling';
   else if(needed===0)verdict='already_within_planned_swim_ceiling';
   else if(needed!==null&&headroom<needed)verdict='provably_impossible_under_week_caps';
