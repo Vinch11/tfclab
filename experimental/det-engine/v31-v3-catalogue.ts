@@ -15,6 +15,7 @@ import {
 } from './v31-v3-bridge';
 import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
 import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
+import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-v3-low-run-bricks';
 import type { ExperimentalAssemblyContract } from './engine';
 
 export interface V3ReviewedSettings extends DetV3Review {
@@ -107,7 +108,8 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
  */
 export function buildDetV3ContractFromCatalogue(
   reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[],
-  specificBrickReviews:readonly V32SpecificBrickReview[]=[]
+  specificBrickReviews:readonly V32SpecificBrickReview[]=[],
+  lowRunBrickReviews:readonly V34SafeBrickReview[]=[]
 ) {
   const auditErrors=auditV3Catalogue(v3FullCatalogue);
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
@@ -142,11 +144,14 @@ export function buildDetV3ContractFromCatalogue(
   }
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
   const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
-  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted];
+  const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
+  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted];
   const brickById=new Map(allBricks.map(card=>[card.id,card]));
-  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews]
+  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
     .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
     .map(review=>review.id));
+  const lowRunPreferred=new Set(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
+    lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
     adapt(preparation,config){
@@ -176,6 +181,7 @@ export function buildDetV3ContractFromCatalogue(
       return brick?brick.durationMin:(sourceContract.doseRange?.(card,ctx)??card.durationMin);
     },
     rankCandidate(card,ctx){
+      if(lowRunPreferred.has(card.id))return -2;
       if(preferredBrickIds.has(card.id))return -1;
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
@@ -201,5 +207,5 @@ export function buildDetV3ContractFromCatalogue(
       });
     },
   };
-  return {contract,report,brickReport,specificBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
+  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
 }
