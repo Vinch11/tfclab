@@ -42,6 +42,9 @@ function reviews(){
       expectedAthleteId:athleteId,
       sportingReview:{...context.sportingReview,athleteId},
       athleteAnchors:syntheticV3ReviewAnchors(),
+      // Same 60-minute key-slot dose: adjust only source-bounded easy warm-up/
+      // cooldown; threshold and VO2 work-set repetition counts remain unchanged.
+      ...(id==='V3P_RUN_008'||id==='V3P_RUN_009'?{targetDurationMin:60}:{}),
     };
   });
 }
