@@ -92,6 +92,9 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       nativeRaceEventPlaced:nativeRaceWeek?.layout?.days.some(d=>d.slots.some(s=>s.isRaceEvent))??false,
       weeks,selectedV3:named.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
       hardBlockers:byCode,
+      blockerExamples:Object.fromEntries([...new Set(blockingIssues.map(i=>i.code))].map(code=>
+        [code,blockingIssues.filter(i=>i.code===code).slice(0,2)
+          .map(i=>({week:i.week??null,message:i.message?.slice(0,450)??''}))])),
       recoveryLayoutRepairs:out.issues.filter(i=>i.code==='det_v3_recovery_slot_swap'||
         i.code==='det_v3_recovery_layout_search_summary').map(i=>({week:i.week??null,code:i.code,detail:i.message})),
       deloadEvidence:out.issues.filter(i=>i.code==='det_measured_deload_verified'||
