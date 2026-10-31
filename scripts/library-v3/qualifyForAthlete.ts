@@ -18,6 +18,10 @@ type Level=typeof LEVELS[number];
 export interface V32CoachIndividualReview {
   /** Explicitly scoped to this recipe AND the athlete; no bulk approval. */
   sourceId:string;
+  /** Identity of the athlete for whom THIS source was reviewed; never reusable. */
+  athleteId:string;
+  /** Review invalidated by any edit of the source dose, intent or safety metadata. */
+  sourceFingerprint:string;
   athleteScoped:true;
   coachApproved:true;
   trainingLevel:Level;
@@ -44,6 +48,8 @@ export interface V32CoachIndividualReview {
   sportLimitersReviewed:true;
 }
 export interface V32IndividualInputs {
+  /** Athlete who will receive the proposed workout, independently of the review payload. */
+  athleteId:string;
   review:V32CoachIndividualReview;
   calibration:V31AthleteCalibration;
   duration:V31DurationInputs;
@@ -105,6 +111,13 @@ export function qualifyV32ForAthlete(
  const r=inputs.review;
  if(!r||r.coachApproved!==true||r.athleteScoped!==true||r.sourceId!==workout.id)
    reject('source_and_athlete_scoped_coach_approval_missing');
+ // A boolean athleteScoped flag is not a binding: prevent review replay across
+ // athletes, or after any source update. Caller identity is independently supplied.
+ const athleteId=inputs.athleteId?.trim();
+ if(!athleteId||!r?.athleteId?.trim()||r.athleteId.trim()!==athleteId)
+   reject('individual_coach_review_athlete_id_mismatch');
+ if(r?.sourceFingerprint!==source.sourceFingerprint)
+   reject('individual_coach_review_stale_source_fingerprint');
  if(!r||r.trainingLevelSource!=='manual'||!LEVELS.includes(r.trainingLevel))
    reject('manual_training_level_missing');
  else if(LEVELS.indexOf(r.trainingLevel)<LEVELS.indexOf(workout.minimumLevel))
