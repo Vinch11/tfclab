@@ -7,7 +7,7 @@
  * bans, official race and quota limits. All native validators still run.
  */
 import type {WeeklyQuota} from '@/engines/plan/sessionSizingMatrix';
-import type {WeeklySlotLayout,LayoutSport,DaySlot,DayName} from '@/engines/plan/weeklySlotLayout';
+import type {WeeklySlotLayout,LayoutSport,DayName} from '@/engines/plan/weeklySlotLayout';
 import {planningFeasibility} from '../../supabase/functions/_shared/planningFeasibility';
 import {calendarOnlyRecoverySafe,type ScheduledSport,type V3RecoveryRequirement} from './v39-calendar-safe-recovery';
 
@@ -21,8 +21,6 @@ function schedule(weeks:readonly RepairWeek[]):ScheduledSport[]{
   return weeks.flatMap(w=>w.layout.days.flatMap((d,dayIndex)=>
     d.slots.map(s=>({week:w.week,dayIndex,sport:s.sport}))));
 }
-const validSport=(sport:string):sport is LayoutSport=>
-  ['swim','bike','run','brick','strength'].includes(sport);
 function violatesBan(day:DayName,sport:LayoutSport,bans:readonly DayBan[]):boolean{
   return bans.some(b=>b.day===day&&(b.sport==='any'||b.sport===sport||
     (sport==='brick'&&(b.sport==='bike'||b.sport==='run'))));
