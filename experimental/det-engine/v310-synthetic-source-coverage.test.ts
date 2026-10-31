@@ -280,6 +280,11 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
     expect(targeted.humanReviewRequired).toBe(true);
     expect(targeted.sportingRelevance).toBe('not_attested');
     if(targeted.technicallyConstructed){
+      // A complete V3 strict-mode calendar MUST have usable source-backed
+      // ranking domains; a silent fallback to the old ranking is a real
+      // regression, even though the native validators still refuse NO-GO.
+      expect(ratioTrajectory.length).toBeGreaterThan(0);
+      expect(ratioTrajectory.filter(x=>x.detail?.available!==true)).toEqual([]);
       expect(targeted.candidate?.weeks.length).toBe(cfg.weeksAvailable);
       expect(targeted.candidate!.weeks.every(week=>
         week.sessions.filter(s=>!s.isRest)
