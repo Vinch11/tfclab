@@ -1061,9 +1061,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     config.constraints,config.raceGoals?.some(g=>g.raceFormat==='lcw_3day'),config.deloadCadenceWeeks,
     config.ambitionMeta?{trainingLevel:config.ambitionMeta.trainingLevel,trainingLevelSource:config.ambitionMeta.trainingLevelSource}:undefined,
     config.raceGoals,config.planStartDate,{maxAvailableWeeklyHours:config.weeklyHours},undefined,config.strengthSessionsPerWeek);
-  let nativeIssues=validation.issues.map(i=>({
-    code:i.rule,week:i.week,severity:i.severity,message:i.message,
-  }));
+  let nativeIssues:Array<{code:string;week?:number;severity:string;message?:string}>=
+    validation.issues.map(i=>({
+      code:i.rule,week:i.week,severity:i.severity,message:i.message,
+    }));
   if(experimentalContract?.reconcileReviewedSourcePolarization===true){
     if(experimentalContract.requireStructuredPolarizationOnLoadWeeks!==true||
        !experimentalContract.sourceStructuredZoneForId){
