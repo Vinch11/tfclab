@@ -10,6 +10,7 @@ const quota:MechanicalQuota={
   totalSessions:{min:7,max:8},maxSessionsPerDay:2,minFullRestDays:1,
 };
 const layout:MechanicalLayout={
+  officialRaceOutsideTrainingQuota:true,
   requiredEvents:[{dayName:'dimanche',sport:'brick'}],
   days:[
     {dayName:'lundi',isRest:true,slots:[]},
