@@ -671,6 +671,11 @@ function validateKeySessionSelfDeclaration(plan: ParsedPlan): { issues: Validati
  */
 export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (session.isRest) return 0;
+  // Experimental V3 strength may deliberately be prescribed by weekly session
+  // COUNT with no verified duration. Never derive fake minutes from exercise
+  // labels (e.g. 3x30s plank) or from the original estimated exercise timing.
+  if (normalizeSport(session.sport)==='Renfo' &&
+      session.details?.includes('FRÉQUENCE UNIQUEMENT : durée non mesurée')) return null;
   if (typeof session.durationMin === 'number' && Number.isFinite(session.durationMin) && session.durationMin > 0) {
     return session.durationMin;
   }

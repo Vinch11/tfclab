@@ -58,7 +58,7 @@ describe('V31 — actual 800-source catalogue ingestion to DET-ENGINE',()=>{
    expect(r.report.accepted).toHaveLength(1);
    expect(r.report.accepted[0].durationMin).toEqual([83,83]);
  });
- it('refuses unsupported override paths, out-of-range edits, missing swimming data and estimated strength',()=>{
+ it('refuses unsupported override paths and missing swim paces, but allows reviewed strength by count',()=>{
    for(const override of [{'x.seconds':30},{'0.seconds':999999}]) {
      const r=buildDetV3ContractFromCatalogue([{...review,overrides:override}]);
      expect(r.report.accepted).toHaveLength(0);
@@ -68,7 +68,9 @@ describe('V31 — actual 800-source catalogue ingestion to DET-ENGINE',()=>{
    expect(s.report.accepted).toHaveLength(0);
    expect(s.report.rejected.find(x=>x.id==='V3P_SWIM_001')?.reason).toContain('v3_timing_unresolved');
    const strength=buildDetV3ContractFromCatalogue([{...review,id:'V3P_STRENGTH_001'}]);
-   expect(strength.report.accepted).toHaveLength(0);
+   expect(strength.report.accepted).toHaveLength(1);
+   expect(strength.report.accepted[0].durationMin).toEqual([0,0]);
+   expect(strength.report.accepted[0].tags).toContain('v3-strength-frequency-only-unknown-duration');
  });
  it('refuses incompatible race-pace physiological anchors even after a synthetic coach review',()=>{
    const cases=[

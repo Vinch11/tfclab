@@ -47,7 +47,7 @@ describe('V31 — true DET-ENGINE V3 bridge remains a closed experiment',()=>{
   const reviews=[review,{...review,id:swim.id},{...review,id:strength.id}];
   const a=ingestV3ForDeterministicEngine([swim,strength],reviews);
   expect(a.accepted).toHaveLength(0);
-  expect(a.rejected.map(x=>x.reason)).toEqual(['individual_duration_unknown','exercise_time_estimated']);
+  expect(a.rejected.map(x=>x.reason)).toEqual(['individual_duration_unknown','strength_timebox_or_coach_load_verification_missing']);
  });
  it('rejects an automatic-approval flag, missing prerequisites or insufficient level',()=>{
   const automatic={...candidate,automaticSelection:true} as unknown as V3SourceCard;
