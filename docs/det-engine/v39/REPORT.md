@@ -86,7 +86,7 @@ Code expérimental ajouté aux commits `56a7fc6`, `ff09b07` et `68c6fe7` : le no
 
 ## V3.9.5 — preuve d'incompatibilité des ratios *en nombre*, et essai de doses V3 réellement choisies
 
-**Preuve exécutée CI spécialisée, SHA `a3c4866` : 149 tests réussis / 7 ignorés.** Nouveau certificat `v39-native-count-quota-bound.ts`, calculé sur les **quotas réels de chaque semaine de charge** et conservateur même si le validateur historique exclut certaines semaines par thème. Il accorde tous les créneaux possibles aux sports autres que la natation et un avantage supplémentaire dû à l'arrondi historique des bricks impairs.
+**Preuve exécutée CI spécialisée, SHA `a3c4866` : 149 tests réussis / 7 ignorés.** Nouveau certificat `v39-native-count-quota-bound.ts`, calculé sur **toutes les semaines non-race susceptibles d'être comptées par le validateur historique (charge, récupération, affûtage)** et conservateur même si celui-ci en exclut certaines par thème. Il accorde tous les créneaux possibles aux sports autres que la natation et un avantage supplémentaire dû à l'arrondi historique des bricks impairs.
 
 | Scénario | Ratio natation minimal possible dans le validateur historique en nombre de séances | Seuil d'erreur historique natation | Conséquence |
 |---|---:|---:|---|
@@ -100,6 +100,22 @@ Le constat ne dépend ni des 800 recettes ni de leur durée : augmenter la bibli
 **Variante `bike` isolée au SHA `651a971`** : préserve la sélection natation/CAP historique, oriente uniquement les candidats vélo déjà individuellement admissibles. Une comparaison sur le vrai moteur 70.3/IM doit encore confirmer son résultat CI et ses garde-fous ; aucune conformité présumée.
 
 **Décision de conception** : les ratios de *volume* doivent dépendre des minutes et compositions de bricks **certifiées** ; les *quotas de fréquence* doivent rester une obligation séparée. L'ancienne méthode compte arbitrairement un brick pour une demi-séance vélo et une demi-séance course, avec arrondi ; elle ne mesure pas la distribution physique du volume. La correction du validateur nécessite une migration explicite avec tests de non-régression et refus si une provenance de brick manque.
+
+## V3.9.6 — progrès sportif observé avec préférence ciblée natation, sans toucher aux sources
+
+**Preuve exécutée SHA `3742839` : 149 tests spécialisés réussis, 7 ignorés.** Sous les mêmes athlètes synthétiques, les mêmes 800 fiches sources de la bibliothèque (seules les fiches individuellement approuvées sont candidates), les mêmes contraintes coach et les mêmes garde-fous, la préférence `preferSourceBackedMultisportBalance:'swim'` modifie uniquement **l'ordre des séances natation admissibles** ; aucun bloc, durée, heure ni dose ne sont inventés. Le ranking du limiteur sur une séance clé reste prioritaire.
+
+| Volume de natation (semaines de charge, minutes attribuées) | Mode natif | Préférence vélo seule | Préférence natation seule | Préférence toutes disciplines |
+|---|---:|---:|---:|---:|
+| 70.3 — % des minutes connues | 29,97 % | 27,93 % | **20,39 %** | 17,19 % |
+| 70.3 — borne basse favorable incluant 750 min bricks inconnus | 23,13 % | 21,70 % | **15,26 %** | 13,39 % |
+| Ironman — % réellement attribués | 24,00 % | 20,72 % | **15,35 %** | 11,96 % |
+
+**Ironman** : 16/16 semaines ; sous **840 min/sem**, sans récupération V3 non prouvée ; ratio minute `det_multisport_minute_ratio_provably_out_of_bounds` **absent** en mode natation seule. Le nouveau ratio natation **15,35 %** est dans la plage 15–20 %. Le moteur maintient toutefois les erreurs de polarisation et de `sport_ratio` **historique en nombre**, lui-même prouvé incompatible avec les quotas.
+
+**70.3** : 12/12 semaines ; sous **600 min/sem**, sans récupération V3 non prouvée ; la préférence natation seule supprime les bloqueurs de décharge `det_scheduled_deload_not_proven`, de progression `load_pattern` et de catégories `lorang_categories` observés au départ. Restent `det_multisport_minute_ratio_unverifiable` (bricks non décomposés), polarisation et ratio historique en nombre. Une plage **15,26–20,39 %** n'est PAS un volume attesté : les 750 min de bricks ont encore une attribution indéterminée.
+
+**Décision** : la préférence natation seule est un **candidat test-only prometteur**, non une règle universelle ni un plan validé. La preuve de conformité totale demeure NON OBTENUE. Les deux urgences vérifiées sont (a) retirer mathématiquement le faux blocage d'un ratio de volume mesuré en nombre de séances, **sans supprimer le contrôle de fréquence** ; (b) faire passer les échecs de polarisation à partir de vraies séances et minutes de zones, sans inventer de temps Z1/Z2 ni de source de brick.
 
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
