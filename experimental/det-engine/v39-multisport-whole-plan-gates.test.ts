@@ -54,7 +54,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     const {report,contract}=buildDetV3ContractFromCatalogue(reviews,brickReviews,specific,easy);
     expect(report.accepted.length).toBeGreaterThan(0);
     const out=constructDeterministicPlan(f.athleteData,cfg,
-      {maxNodes:12000,maxMilliseconds:8000},{...contract,enforceWeeklyHoursCap:true});
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true});
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
@@ -100,6 +101,11 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       expect(raceSlots.filter(slot=>slot.sport==='brick'&&!slot.isRaceEvent)).toHaveLength(0);
       expect(eventLayout.placed).toEqual([{day:'dimanche',sport:'brick'}]);
     }
+    // Under this explicit day-only safety mode, V3 sources must have their
+    // FULL next-same-sport recovery proven without coach timestamps. A V3
+    // source that cannot fit must not be selected merely to fill a quota.
+    expect(blockingIssues.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
+    if(out.technicallyConstructed)expect(named.length).toBeGreaterThan(0);
     // Never invent week totals if the solver returned no candidate.
     expect(weeks.every(w=>w.totalKnownMinutes<=capMin)).toBe(true);
     expect(out.constraintsSatisfied).toBe(out.technicallyConstructed&&blockingIssues.length===0);
