@@ -97,10 +97,19 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
   }
   try {
    const steps=card.blocks.map(b=>evaluate(b,approval));
-   if(!steps.length||steps.some(b=>b.estimated)){refuse('exercise_time_estimated');continue;}
+   // A strength session is scheduled by its weekly frequency when the
+   // source has no individually measured execution/transition times.
+   // The metadata [0,0] below is ONLY a count-mode protocol marker; it
+   // must never be interpreted as a zero-minute performed workout.
+   const countOnlyStrength=card.sport==='strength'&&steps.some(b=>b.estimated);
+   if(!steps.length||(steps.some(b=>b.estimated)&&!countOnlyStrength)){
+     refuse('exercise_time_estimated');continue;
+   }
    if(steps.some(b=>b.seconds===null)){refuse('individual_duration_unknown');continue;}
    const seconds=steps.reduce((s,b)=>s+(b.seconds??0),0);
-   if(seconds<=0||!Number.isSafeInteger(seconds)||seconds%60!==0){refuse('non_integer_minute_execution');continue;}
+   if(!countOnlyStrength&&(seconds<=0||!Number.isSafeInteger(seconds)||seconds%60!==0)){
+     refuse('non_integer_minute_execution');continue;
+   }
    const sport={bike:'bike',run:'run',swim:'swim',strength:'strength'}[card.sport];
    const zones=[...new Set(steps.flatMap(b=>b.zones))];
    const main=card.blocks.filter(b=>b.kind==='repeat'||b.role==='main').map(b=>evaluate(b,approval));
@@ -119,8 +128,9 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
     refuse('race_specific_anchor_incompatible_with_objective');continue;
    }
    const strengthMain=card.sport==='strength' && card.primaryDomain===null &&
-     card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(step=>step.kind==='time'&&
-       !!step.repsTarget&&!!step.rpeRange));
+     card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(step=>
+       (step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange) ||
+       (countOnlyStrength&&step.kind==='reps'&&!!step.reps)));
    if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
      refuse('strength_timebox_or_coach_load_verification_missing');continue;
    }
@@ -135,7 +145,8 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    const meta:RepairWorkoutMetadata={
     metadataVersion:1,complete:true,id:card.id,sport,title:card.title,objective:card.focus,
     intentFamily:family,goals:[normalizedGoal],objectiveSpecific:true,
-    phases:card.phase,durationMin:[seconds/60,seconds/60],mainZoneMax,specialContext:null,
+    phases:card.phase,durationMin:countOnlyStrength?[0,0]:[seconds/60,seconds/60],
+    mainZoneMax,specialContext:null,
     prerequisiteKeys:[],necessity:'Optionnel',when:card.phase.join(','),
     avoid:card.contraindications.join(' · '),tags:['v3-deterministic-candidate','individual-coach-approval-recorded'],
     structure:steps.map((step,i)=>i+': '+step.text).join(' | '),zones,variants:{},
@@ -145,6 +156,10 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    meta.tags.push('v3-primary-domain:'+(card.primaryDomain??'nonmetabolic'));
    if(card.primaryIntent==='sub_threshold')meta.tags.push('v3-subthreshold-not-equivalent-to-mlss');
    if(card.sport==='strength')meta.tags.push('v3-strength-timebox-no-fabricated-aerobic-zone');
+   if(countOnlyStrength){
+     meta.tags.push('v3-strength-frequency-only-unknown-duration');
+     meta.structure+=' | FRÉQUENCE UNIQUEMENT : durée non mesurée, aucune minute déduite';
+   }
    accepted.push(meta);
   } catch(e){refuse('invalid_structure_or_domain:'+String(e));}
  }
