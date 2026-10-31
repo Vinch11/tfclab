@@ -6996,7 +6996,7 @@
       "version": "3.1.0-candidate",
       "sport": "bike",
       "title": "Sous-seuil fractionné — maîtrise initiale",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base"
@@ -7017,10 +7017,9 @@
         "Terrain, matériel ou hydratation non sûrs"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 36,
+      "minimumRecoveryHours": 18,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7082,15 +7081,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Augmenter le temps cumulé juste sous le seuil ; variation maîtrise initiale",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7170,10 +7167,9 @@
           "phases": [
             "base"
           ],
-          "minimumRecoveryHours": 36,
+          "minimumRecoveryHours": 18,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur ou fatigue inappropriée",
@@ -7192,7 +7188,7 @@
       "version": "3.1.0-candidate",
       "sport": "bike",
       "title": "Sous-seuil fractionné — consolidation",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -7214,10 +7210,9 @@
         "Terrain, matériel ou hydratation non sûrs"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 36,
+      "minimumRecoveryHours": 18,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7279,15 +7274,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Augmenter le temps cumulé juste sous le seuil ; variation consolidation",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7368,10 +7361,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 36,
+          "minimumRecoveryHours": 18,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur ou fatigue inappropriée",
@@ -7390,7 +7382,7 @@
       "version": "3.1.0-candidate",
       "sport": "bike",
       "title": "Sous-seuil fractionné — progression contrôlée",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -7412,10 +7404,9 @@
         "Terrain, matériel ou hydratation non sûrs"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 36,
+      "minimumRecoveryHours": 18,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7477,15 +7468,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Augmenter le temps cumulé juste sous le seuil ; variation progression contrôlée",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7566,10 +7555,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 36,
+          "minimumRecoveryHours": 18,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur ou fatigue inappropriée",
@@ -7588,7 +7576,7 @@
       "version": "3.1.0-candidate",
       "sport": "bike",
       "title": "Sous-seuil fractionné — dose extensive",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build",
@@ -7610,10 +7598,9 @@
         "Terrain, matériel ou hydratation non sûrs"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 36,
+      "minimumRecoveryHours": 18,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7675,15 +7662,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Augmenter le temps cumulé juste sous le seuil ; variation dose extensive",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7764,10 +7749,9 @@
             "build",
             "peak"
           ],
-          "minimumRecoveryHours": 36,
+          "minimumRecoveryHours": 18,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur ou fatigue inappropriée",
@@ -7786,7 +7770,7 @@
       "version": "3.1.0-candidate",
       "sport": "bike",
       "title": "Sous-seuil fractionné — rappel allégé",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "taper",
@@ -7808,10 +7792,9 @@
         "Terrain, matériel ou hydratation non sûrs"
       ],
       "stopRule": "Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
-      "minimumRecoveryHours": 36,
+      "minimumRecoveryHours": 18,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -7873,15 +7856,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Augmenter le temps cumulé juste sous le seuil ; variation rappel allégé",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7962,10 +7943,9 @@
             "taper",
             "peak"
           ],
-          "minimumRecoveryHours": 36,
+          "minimumRecoveryHours": 18,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur ou fatigue inappropriée",
