@@ -121,10 +121,10 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    unknown.contract.adapt(prep3,cfgUnknown);
    expect(unknown.contract.rankCandidate?.(unknown.report.accepted[0],ctx)).toBe(-1);
  });
- it('never substitutes easy aerobic/recovery V3 for a short hard key session',()=>{
+ it('does not conflate key-session flags with proof of high intensity',()=>{
    const ids=['V3P_RUN_001','V3P_RUN_002','V3P_BIKE_008','V3P_SWIM_108'];
    const {report,contract}=buildDetV3ContractFromCatalogue(ids.map(id=>review(id)));
-   expect(report.accepted.map(m=>m.id)).toEqual(ids);
+   expect(new Set(report.accepted.map(m=>m.id))).toEqual(new Set(ids));
    const ctx=(sport:string,isKeySession:boolean,isLongSession:boolean)=>({
      week:3,phase:'build',weekType:'load',dayIndex:2,
      slot:{sport,isKeySession,isLongSession} as DaySlot,
@@ -133,8 +133,11 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    const runEasy=report.accepted.find(m=>m.id==='V3P_RUN_002')!;
    const threshold=report.accepted.find(m=>m.id==='V3P_BIKE_008')!;
    const technique=report.accepted.find(m=>m.id==='V3P_SWIM_108')!;
-   expect(contract.filterCandidate?.(runRecovery,ctx('run',true,false))).toBe(false);
-   expect(contract.filterCandidate?.(runEasy,ctx('run',true,false))).toBe(false);
+   expect(contract.filterCandidate?.(runRecovery,ctx('run',true,false))).toBe(true);
+   expect(contract.filterCandidate?.(runEasy,ctx('run',true,false))).toBe(true);
+   // Only ranking avoids an inappropriate boost for easy short key work.
+   expect(contract.rankCandidate?.(runRecovery,ctx('run',true,false))).toBe(0);
+   expect(contract.rankCandidate?.(runEasy,ctx('run',true,false))).toBe(0);
    expect(contract.filterCandidate?.(runEasy,ctx('run',true,true))).toBe(true);
    expect(contract.filterCandidate?.(runRecovery,ctx('run',false,false))).toBe(true);
    expect(contract.filterCandidate?.(threshold,ctx('bike',true,false))).toBe(true);
