@@ -17,6 +17,7 @@ import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
+import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -38,6 +39,8 @@ export interface ExperimentalAssemblyContract {
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
   /** Opt-in: discard V3 source doses without a provable calendar-only recovery window. */
   enforceCalendarSafeV3Recovery?:true;
+  /** Opt-in: label only recovery weeks with a measured >=30% week-over-week dose reduction. */
+  annotateVerifiedDeloads?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -351,6 +354,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.annotateVerifiedDeloads){
+      const evidence=annotateOnlyMeasuredDeloads(plan);
+      for(const e of evidence.filter(x=>x.scheduledRecovery)){
+        result.issues.push({
+          code:e.verified?'det_measured_deload_verified':'det_scheduled_deload_not_proven',
+          week:e.week,severity:e.verified?'warning':'blocking',
+          message:JSON.stringify(e),
+        });
+      }
+    }
     if(experimentalContract?.verifiedBrickCompositions && normalizeRepairGoal(config.objective??'')==='half'){
       // Strictly diagnostic: a mathematically possible bike addition has NOT
       // passed dose, source, load-ramp, fatigue or recovery checks.
