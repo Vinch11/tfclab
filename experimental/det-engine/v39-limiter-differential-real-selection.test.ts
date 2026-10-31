@@ -66,6 +66,12 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
       expect(report.accepted.map(w=>w.id).sort()).toEqual([...candidates].sort());
       const p=prepareGenerationContracts(prepared.athleteData,cfg,{rotationSeed:0});
       contract.adapt(p,cfg);
+      console.info('DET_V39_WEEK1_QUOTA',JSON.stringify({
+        limiter:scenario.key,quota:p.weeklyQuotas[1]?.quota,
+        slots:p.weeklyQuotas[1]?.layout?.days.map(d=>({
+          day:d.dayName,slots:d.slots.map(x=>({sport:x.sport,isKey:x.isKeySession})),
+        })),
+      }));
       const cards=new Map(report.accepted.map(c=>[c.id,c]));
       const buildKeyContext={week:4,phase:'build',weekType:'load',dayIndex:2,
         slot:{sport:'run',isKeySession:true,isLongSession:false} as DaySlot};
@@ -84,7 +90,7 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
         technicallyConstructed:actual.technicallyConstructed,
         constraintsSatisfied:actual.constraintsSatisfied,
         selectedSourceIds:selected.map(t=>({id:t.id,week:t.week,day:t.day})),
-        keySessions,blocking:blockers.map(x=>({code:x.code,week:x.week,message:x.message?.slice(0,2600)})),
+        keySessions,warnings:actual.issues.filter(i=>i.severity==='warning').map(i=>i.code),blocking:blockers.map(x=>({code:x.code,week:x.week,message:x.message?.slice(0,2600)})),
       }));
       expect(actual.humanReviewRequired).toBe(true);
       expect(actual.sportingRelevance).toBe('not_attested');
