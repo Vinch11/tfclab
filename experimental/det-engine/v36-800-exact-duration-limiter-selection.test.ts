@@ -51,6 +51,24 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    }]);
    expect(unmeasured.report.accepted).toHaveLength(0);
  });
+ it('retains fractional swim seconds from real individual anchor precision without rounding',()=>{
+   const source=find('V3P_SWIM_001');
+   const custom=anchors();
+   custom.swimDomainPacesSecPer100m={
+     ...custom.swimDomainPacesSecPer100m,recovery:113.7,moderate_lt1:105.2,
+   };
+   const measured=evaluateV3Workout(source,{swimPaces:custom.swimDomainPacesSecPer100m});
+   expect(measured.status).toBe('confirmed');
+   expect(measured.seconds).toBeCloseTo(1470.4,8);
+   const result=buildDetV3ContractFromCatalogue([{
+     ...review(source.id),athleteAnchors:custom,
+   }]);
+   expect(result.report.accepted).toHaveLength(1);
+   const card=result.report.accepted[0];
+   expect(card.durationMin[0]*60).toBeCloseTo(measured.seconds!,8);
+   expect(card.tags).toContain('v3-subminute-duration-no-rounding');
+   expect(card.tags.some(t=>t.startsWith('v3-exact-duration-seconds:'))).toBe(true);
+ });
  it('admits real mixed-stimulus structure distinctly from threshold and forbids it in recovery',()=>{
    const actual=buildDetV3ContractFromCatalogue([review('V3P_BIKE_009')]);
    expect(actual.report.accepted).toHaveLength(1);
