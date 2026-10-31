@@ -142,6 +142,9 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
       preferSourceBackedMultisportBalance:'swim',
       requireStructuredPolarizationOnLoadWeeks:true,
+      auditVerifiedMultisportMinutes:true,
+      applyReviewedMinuteSportRatio:true,
+      auditStructuredPolarizationSources:true,
       coachSlotStart:confirmedSlot,
       coachSessionStart:session=>confirmedSlot({
         week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
@@ -156,6 +159,13 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         i.code==='det_v310_structured_zone_necessary_bound_refused')?.message??null,
       structuredSearch:withClock.issues.find(i=>
         i.code==='det_structured_polarization_target_search_unresolved')?.message??null,
+      completeSportingConstraintsSatisfied:withClock.constraintsSatisfied,
+      minuteSportRatio:withClock.issues.filter(i=>
+        i.code.startsWith('det_multisport_minute_ratio_')).map(i=>i.message),
+      migratedCountRatio:withClock.issues.find(i=>
+        i.code==='det_native_count_ratio_migration_decision')?.message??null,
+      strictMinuteSportRatioVerified:withClock.issues.some(i=>
+        i.code==='det_strict_minute_sport_ratio_verified'),
       blockedCodes:[...new Set(withClock.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     }));
