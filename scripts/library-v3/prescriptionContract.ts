@@ -47,6 +47,7 @@ export interface V3PrescriptionContract {
 const CAPACITY:Record<V3Intent,string>={
  recovery:'recovery_and_load_management',
  moderate_lt1:'aerobic_endurance_and_lt1',
+ sub_threshold:'sustainable_work_below_mlss_not_threshold',
  mlss:'threshold_sustainable_power_or_speed',
  vo2max:'maximal_aerobic_power',
  neuromuscular:'neuromuscular_power_and_speed',
