@@ -22,7 +22,7 @@ import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
-import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
+import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type ConfirmedSlotStart} from './v39-calendar-safe-recovery';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
@@ -47,6 +47,10 @@ export interface ExperimentalAssemblyContract {
   enforceWeeklyHoursCap?:true;
   /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
+  /** V310: separate confirmed calendar-slot clocks, needed ONLY to prove
+   * adjacent-day source recovery. Must agree with coachSessionStart for the
+   * actual selected session; absent/inconsistent evidence fails closed. */
+  coachSlotStart?:ConfirmedSlotStart;
   /** Opt-in: discard V3 source doses without a provable calendar-only recovery window. */
   enforceCalendarSafeV3Recovery?:true;
   /** Opt-in: label only recovery weeks with a measured >=30% week-over-week dose reduction. */
@@ -312,8 +316,22 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           }).filter(session=>{
             if(!experimentalContract?.enforceCalendarSafeV3Recovery||!session.catalogId||
                !experimentalContract.sourceRecoveryForId)return true;
-            const viable=calendarOnlyRecoverySafe({week:w.week,dayIndex,sport:slot.sport},
-              experimentalContract.sourceRecoveryForId(session.catalogId),scheduledSports);
+            const here={week:w.week,dayIndex,sport:slot.sport};
+            const requirements=experimentalContract.sourceRecoveryForId(session.catalogId);
+            let viable=calendarOnlyRecoverySafe(here,requirements,scheduledSports);
+            if(!viable&&experimentalContract.coachSlotStart&&experimentalContract.coachSessionStart){
+              const actual=experimentalContract.coachSessionStart(session);
+              const designated=experimentalContract.coachSlotStart(here);
+              // A clock associated with a trial source may NOT contradict
+              // the independently declared slot clock (no fabricated times).
+              const consistent=actual?.provenance==='coach_confirmed'&&
+                designated?.provenance==='coach_confirmed'&&
+                actual.minuteOfDay===designated.minuteOfDay&&
+                actual.utcOffsetMinutes===designated.utcOffsetMinutes;
+              if(consistent)viable=calendarOrConfirmedClockRecoverySafe(
+                here,session.durationMin,requirements,scheduledSports,
+                experimentalContract.coachSlotStart);
+            }
             if(!viable)calendarRecoveryExclusions++;
             return viable;
           }).sort((a,b)=>{
