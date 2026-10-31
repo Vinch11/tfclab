@@ -177,7 +177,10 @@ export function buildDetV3ContractFromCatalogue(
       const checked=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
       if(checked.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+checked.missing.join(','));
       resolvedIntensityTexts.set(w.id,verifiedTargetsText(checked.targets));
-      qualifiedReviews.push({...settings,swimPacesSecPer100m:normalizedSwimPaces(settings)});
+      qualifiedReviews.push({...settings,swimPacesSecPer100m:normalizedSwimPaces(settings),
+        ...(w.sport==='strength'&&settings.athleteAnchors?.coachValidatedStrengthLoadAndRpe===true?
+          {verifiedStrengthLoadAndRpe:true as const}:{}),
+      });
       return configured;
     }catch(e){
       faulty.set(w.id,String(e));
