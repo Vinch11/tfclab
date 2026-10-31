@@ -84,7 +84,8 @@ export function resolveV31Intensity(w:V3Workout,athlete:V31AthleteCalibration):V
       const ftp=athlete.bikeFTPWatts;
       if(!valid(ftp)){need('bike_FTP_watts');continue;}
       if(!doctrine.bike){need('bike_domain_without_power_range:'+domain);continue;}
-      let min=doctrine.bike.min*ftp,max=doctrine.bike.max*ftp;
+      const min=doctrine.bike.min*ftp;
+      let max=doctrine.bike.max*ftp;
       if(domain==='recovery'||domain==='moderate_lt1'){
         const lt1=athlete.bikeLT1Watts;
         if(!valid(lt1)||lt1>=ftp){need('bike_individual_LT1_watts');continue;}
