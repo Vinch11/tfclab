@@ -25,8 +25,12 @@ export interface PlannedMinuteDistribution {
   interpretation:'diagnostic_only_not_a_prescription_validation';
 }
 
+/** An individually calculated V3 dose may contain exact fractional minutes
+ * (e.g. 90 seconds = 1.5 min). The audit must not round it or reject it
+ * merely for not being an integer. Positive finite source dose is still
+ * mandatory; unmeasured time remains a hard refusal. */
 function assertMinutes(n:number|undefined):number {
-  if(typeof n!=='number'||!Number.isSafeInteger(n)||n<=0)
+  if(typeof n!=='number'||!Number.isFinite(n)||n<=0||n>1440)
     throw Error('v31_planned_duration_unavailable');
   return n;
 }
