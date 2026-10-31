@@ -18,6 +18,29 @@ describe('DET V310 — exact source-zone provenance, with no easy-minute inventi
     expect(matchingStructuredDose(dose,60)).toEqual(dose);
     expect(matchingStructuredDose(dose,55)).toBeNull();
   });
+  it('rejects forged, negative, nonfinite or non-conserving time-in-zone ledgers',()=>{
+    const original=structuredV3ZoneDose(source('V3P_BIKE_002','bike',[
+      time(3600,'moderate_lt1')]),{})!;
+    expect(matchingStructuredDose(original,60)).toEqual(original);
+    expect(matchingStructuredDose({...original,low:original.low+5},60)).toBeNull();
+    expect(matchingStructuredDose({...original,unknown:-1},60)).toBeNull();
+    expect(matchingStructuredDose({...original,mid:Number.NaN},60)).toBeNull();
+    expect(matchingStructuredDose({...original,high:Infinity},60)).toBeNull();
+    const swimming=structuredV3ZoneDose(source('V3P_SWIM_002','swim',[{
+      kind:'distance',label:'Swim 100m',role:'main',domain:'mlss',
+      meters:{min:100,base:100,max:100},
+    }]),{mlss:101})!;
+    expect(matchingStructuredDose(swimming,101/60)).toEqual(swimming);
+    expect(matchingStructuredDose(swimming,1.6)).toBeNull();
+  });
+  it('rejects brick composition when a reviewed component ledger is corrupted',()=>{
+    const bike=structuredV3ZoneDose(source('V3P_BIKE_002','bike',[
+      time(3600,'moderate_lt1')]),{})!;
+    const run=structuredV3ZoneDose(source('V3P_RUN_001','run',[
+      time(1200,'recovery')]),{})!;
+    expect(composeReviewedBrickZoneDose({...bike,low:65},run,300,85)).toBeNull();
+    expect(composeReviewedBrickZoneDose(bike,{...run,unknown:-1},300,85)).toBeNull();
+  });
   it('keeps inter-repetition passive pauses UNKNOWN, never easy',()=>{
     const workout=source('V3P_RUN_005','run',[{
       kind:'repeat',label:'Intervals',count:{min:4,base:4,max:4},betweenSec:60,
