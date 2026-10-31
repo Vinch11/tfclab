@@ -10,7 +10,7 @@ export const SYNTHETIC_V3_ANCHORS:V3AthleteAnchors={
   swimDomainPacesSecPer100m:{
     recovery:120,moderate_lt1:110,tempo:103,im_pace:108,
     '703_pace':102,marathon_pace:103,sub_threshold:98,semi_pace:98,
-    mlss:95,vo2max:88,neuromuscular:84,
+    mlss:95,vo2max:88,neuromuscular:80,
   },
   coachValidatedStrengthLoadAndRpe:true,
 };
