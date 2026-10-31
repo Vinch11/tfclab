@@ -164,7 +164,9 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   // For historical strength, the weekly prescription is a count of reviewed
   // sessions, not a fabricated appointment duration. Other sports still
   // require executable minute-level timing.
-  const strengthCountOnly=configured.sport==='strength' && result.status==='estimated';
+  const hasTimedStrengthProtocol=configured.blocks.some(b=>b.kind==='repeat'&&b.steps.some(
+    step=>step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange));
+  const strengthCountOnly=configured.sport==='strength'&&!hasTimedStrengthProtocol;
   if(result.status==='estimated'&&!strengthCountOnly)throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
   if(!strengthCountOnly &&
