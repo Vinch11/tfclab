@@ -54,7 +54,7 @@ describe('DET V312 — advisory source-dose trajectory, no validator bypass',()=
   it('permits only physically meaningful in-range replay targets',()=>{
     const domains=[
       {id:'swim',choices:[c(30),c(60)]},
-      {id:'bike',choices:[c(0,90),c(0,160)]},
+      {id:'bike',choices:[c(0,90),c(0,160),c(0,240)]},
       {id:'run',choices:[c(0,0,80),c(0,0,110)]},
     ];
     const normal=planTriathlonRatioTrajectory('IM',domains,
