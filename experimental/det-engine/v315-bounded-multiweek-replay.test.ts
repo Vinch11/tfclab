@@ -95,7 +95,7 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
     planner.mockImplementation((
       _a:PlanAthleteData,_c:PlanConfig,_limits:unknown,c:ExperimentalAssemblyContract,
     )=>{
-      if(c.ratioTargetPreference?.swim===.16)return observed('fully_valid');
+      if(c?.ratioTargetPreference?.swim===.16)return observed('fully_valid');
       const failed=observed('unresolved',priorTrace);
       failed.reason='no_catalogue_assignment_week_9';
       return failed;
@@ -117,7 +117,7 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
       planner.mockImplementation((
         _a:PlanAthleteData,_c:PlanConfig,_limits:unknown,c:ExperimentalAssemblyContract,
       )=>{
-        if(c.ratioTargetPreference?.swim===.16)return observed('fully_valid');
+        if(c?.ratioTargetPreference?.swim===.16)return observed('fully_valid');
         const failed=observed('unresolved',priorTrace);
         failed.reason='no_catalogue_assignment_week_9';
         return failed;
