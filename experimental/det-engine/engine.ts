@@ -18,6 +18,7 @@ import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
+import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -586,6 +587,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
     }
   } else result.issues.push(...nativeIssues);
+  if(experimentalContract?.auditVerifiedMultisportMinutes===true &&
+     ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+    const failed=validation.issues.filter(i=>i.rule==='polarization' &&
+      i.severity==='error'&&typeof i.week==='number').map(i=>i.week!);
+    if(failed.length){
+      const attribution=diagnoseNativePolarizationWeeks(result.candidate!,failed);
+      result.issues.push({code:'det_native_polarization_source_attribution',severity:'warning',
+        message:JSON.stringify(attribution)});
+    }
+  }
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
   result.technicallyConstructed=result.candidate!.weeks.length===config.weeksAvailable;
