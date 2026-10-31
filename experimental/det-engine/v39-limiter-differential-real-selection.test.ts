@@ -48,7 +48,7 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
       objective:'10K',trainingLevel:'trained',ambition:'competitor',
       planStartDate:'2026-10-26',raceDate:'2027-01-03',
       raceGoals:[{objective:'10K',raceDate:'2027-01-03',priority:'A'}],
-      weeklyHours:6,sessionsPerWeek:5,maxSessionsPerDay:1,
+      weeklyHours:8,sessionsPerWeek:7,maxSessionsPerDay:2,maxDoubleDaysPerWeek:2,
     });
     const outcomes=[];
     for(const scenario of limiterScenarios){
