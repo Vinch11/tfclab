@@ -787,6 +787,10 @@ export function buildWorkoutCatalog(
         // minimum training level. The coach must enter it manually in TFCLab.
         const signal = options.beginnerIntensitySignal;
         if (!signal || signal.trainingLevelSource !== "manual") return false;
+        // Do not reuse the V3.2 athlete review against a contradictory plan-level
+        // training classification, even if both levels exceed this source's floor.
+        const individual=options.v3CoachPilot?.individualInputsById?.get(w.id);
+        if(!individual||individual.review.trainingLevel!==signal.trainingLevel)return false;
         const ranks: Record<string, number> = {
           untrained: 0, light: 1, trained: 2, highly_trained: 3,
         };

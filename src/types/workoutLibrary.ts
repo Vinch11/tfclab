@@ -22,6 +22,8 @@ export type PhysiologicalIntent =
   | "moderate_lt1"
   | "recovery"
   | "mlss"
+  | "sub_threshold"
+  | "mixed_intensity"
   | "vo2max"
   | "neuromuscular"
   | "max_strength"

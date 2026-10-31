@@ -10,6 +10,8 @@ import {
   v3FullCatalogue, evaluateV3Workout,
   type Paces, type V3Workout, type V3Block, type Overrides,
 } from "../../scripts/library-v3/catalogueRuntime";
+import { screenV32Source } from "../../scripts/library-v3/sportingQualification";
+import { qualifyV32ForAthlete, type V32IndividualInputs } from "../../scripts/library-v3/qualifyForAthlete";
 
 const V3_GOALS: Record<V3Workout["sport"], WorkoutGoal[]> = {
   bike: ["ironman", "half", "sprint", "olympic"],
@@ -18,10 +20,14 @@ const V3_GOALS: Record<V3Workout["sport"], WorkoutGoal[]> = {
   strength: ["ironman", "half", "sprint", "olympic", "5k", "10k", "semi", "marathon", "trail_short", "trail_long"],
 };
 export type V3EngineRefusal = "NOT_REVIEWED_BY_COACH" | "UNKNOWN_ID" |
-  "MISSING_SWIM_PACES" | "STRENGTH_DURATION_UNVERIFIED" | "UNSAFE_DATA";
+  "MISSING_SWIM_PACES" | "STRENGTH_DURATION_UNVERIFIED" | "UNSAFE_DATA" |
+  "INDIVIDUAL_QUALIFICATION_FAILED";
 export interface V3CoachPilotContext {
   coachReviewedIds: ReadonlySet<string>;
+  /** Mandatory in practice: an athlete+source-bound V3.2 decision for every selected card. */
+  individualInputsById?: ReadonlyMap<string,V32IndividualInputs>;
   acknowledgedExperimentalRisk: true;
+  /** @deprecated Pilot-wide paces cannot override athlete-confirmed V3.2 values. */
   swimPaces?: Paces;
   sports?: readonly V3Workout["sport"][];
 }
@@ -68,6 +74,9 @@ export function materializeV3ForPlanEngine(
   recipe: V3Workout,
   options: { swimPaces?: Paces; overrides?: Overrides } = {},
 ): { workout: LibraryWorkout | null; code?: V3EngineRefusal } {
+  if (screenV32Source(recipe).sourceStatus === "source_blocked") {
+    return { workout: null, code: "UNSAFE_DATA" };
+  }
   if (recipe.status !== "candidate" || recipe.automaticSelection !== false) {
     return { workout: null, code: "UNSAFE_DATA" };
   }
@@ -97,7 +106,12 @@ export function materializeV3ForPlanEngine(
       text: desc(b),
       zones: zonesOf(b),
     }));
-    const minutes = Math.ceil(d.minutes * 10) / 10;
+    // The historical engine carries integer minutes, not arbitrary fractions.
+    // Refuse instead of making an unapproved dose by rounding a V3 source.
+    if (d.seconds === null || !Number.isSafeInteger(d.seconds) || d.seconds % 60 !== 0) {
+      return { workout: null, code: "UNSAFE_DATA" };
+    }
+    const minutes = d.seconds / 60;
     const workout: LibraryWorkout = {
       id: recipe.id, cat: cat(recipe.primaryIntent), sport,
       objectif: recipe.title + " — " + recipe.focus,
@@ -111,7 +125,7 @@ export function materializeV3ForPlanEngine(
         " (V3 candidate, independent sporting review pending)" },
       prerequisites: {
         minimumTrainingLevel: recipe.minimumLevel,
-        requireVerifiedProfile: ["mlss", "vo2max", "neuromuscular", "race_specific"].includes(recipe.primaryIntent),
+        requireVerifiedProfile: ["sub_threshold", "mlss", "mixed_intensity", "vo2max", "neuromuscular", "race_specific"].includes(recipe.primaryIntent),
         requireExplicitCoachApproval: true,
       },
       notes: "EXPERIMENTAL V3 — base chronology maintained; dose cannot be silently widened",
@@ -137,7 +151,25 @@ export function buildV3CoachPilotPool(ctx: V3CoachPilotContext): V3AdapterResult
       rejected.push({ id: recipe.id, code: "NOT_REVIEWED_BY_COACH" });
       continue;
     }
-    const out = materializeV3ForPlanEngine(recipe, { swimPaces: ctx.swimPaces });
+    // Legacy pilot cannot bypass V3.2 by supplying a bare set of reviewed IDs.
+    // Missing individual inputs stay rejected; default pipeline behavior is unchanged.
+    const individual = ctx.individualInputsById?.get(recipe.id);
+    let qualified = false;
+    try {
+      qualified = !!individual && qualifyV32ForAthlete(recipe, individual).eligibleToSubmitToDet;
+    } catch {
+      // Malformed synthetic or UI-supplied input is a refusal, never a planner crash.
+      qualified = false;
+    }
+    if (!qualified || !individual) {
+      rejected.push({ id: recipe.id, code: "INDIVIDUAL_QUALIFICATION_FAILED" });
+      continue;
+    }
+    // Duration must be computed with the paces that passed individual V3.2.
+    // Do not trust an independent, potentially inconsistent pilot-wide pace map.
+    const out = materializeV3ForPlanEngine(recipe, {
+      swimPaces: recipe.sport === "swim" ? individual.duration.swimPacesSecondsPer100m : undefined,
+    });
     if (out.workout) accepted.push(out.workout);
     else rejected.push({ id: recipe.id, code: out.code ?? "UNSAFE_DATA" });
   }

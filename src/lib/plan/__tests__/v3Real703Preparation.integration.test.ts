@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { preparePrevalidationFixture } from "@/qa/sports-plan-lab/prevalidationFixtures";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
+import { syntheticV32BikeInputs } from "@/lib/__tests__/v32SyntheticPilotFixture";
 
 /**
  * Real production preparation path: goal -> physiology/context -> phase/chunk
@@ -22,6 +23,7 @@ describe("V3 in the REAL 70.3 generation-preparation engine", () => {
       rotationSeed: 11,
       v3CoachPilot: {
         coachReviewedIds: new Set(["V3P_BIKE_008"]),
+        individualInputsById:new Map([["V3P_BIKE_008",syntheticV32BikeInputs("V3P_BIKE_008")]]),
         acknowledgedExperimentalRisk: true,
       },
     });

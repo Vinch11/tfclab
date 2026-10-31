@@ -1874,7 +1874,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -3284,7 +3288,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil 3×12 min",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3366,9 +3370,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -3421,7 +3425,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil 6×5 min",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3503,9 +3507,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -3558,7 +3562,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil pyramidal 6–9–12–9–6",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3716,9 +3720,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -11169,7 +11173,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -11292,7 +11300,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -11415,7 +11427,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -11550,7 +11566,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
