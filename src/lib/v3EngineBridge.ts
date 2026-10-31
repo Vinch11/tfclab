@@ -157,7 +157,11 @@ export function buildV3CoachPilotPool(ctx: V3CoachPilotContext): V3AdapterResult
       rejected.push({ id: recipe.id, code: "INDIVIDUAL_QUALIFICATION_FAILED" });
       continue;
     }
-    const out = materializeV3ForPlanEngine(recipe, { swimPaces: ctx.swimPaces });
+    // Duration must be computed with the paces that passed individual V3.2.
+    // Do not trust an independent, potentially inconsistent pilot-wide pace map.
+    const out = materializeV3ForPlanEngine(recipe, {
+      swimPaces: recipe.sport === "swim" ? individual.duration.swimPacesSecondsPer100m : undefined,
+    });
     if (out.workout) accepted.push(out.workout);
     else rejected.push({ id: recipe.id, code: out.code ?? "UNSAFE_DATA" });
   }
