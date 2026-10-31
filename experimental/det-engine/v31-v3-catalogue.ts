@@ -42,10 +42,14 @@ function configureBlocks(blocks: V3Block[], overrides: Overrides, seen:Set<strin
   return blocks.map((b,i):V3Block=>{
     const path=prefix?prefix+'.'+i:String(i);
     switch(b.kind) {
-      case 'repeat': return {...b,
-        count:alterBound(b.count,path+'.count',overrides,seen,true),
-        steps:configureBlocks(b.steps,overrides,seen,path)};
-      case 'time': return {...b,seconds:alterBound(b.seconds!,path+'.seconds',overrides,seen,false)};
+      case 'repeat': {
+        const rest=b.betweenSecBounds?alterBound(b.betweenSecBounds,path+'.betweenSec',overrides,seen,true):undefined;
+        return {...b,count:alterBound(b.count,path+'.count',overrides,seen,true),
+          betweenSec:rest?.base??b.betweenSec,betweenSecBounds:rest,
+          steps:configureBlocks(b.steps,overrides,seen,path)};
+      }
+      case 'time': return {...b,seconds:alterBound(b.seconds!,path+'.seconds',overrides,seen,false),
+        repsTarget:b.repsTarget?alterBound(b.repsTarget,path+'.repsTarget',overrides,seen,true):undefined};
       case 'distance': return {...b,meters:alterBound(b.meters!,path+'.meters',overrides,seen,false)};
       case 'reps': return {...b,reps:alterBound(b.reps!,path+'.reps',overrides,seen,true)};
     }
@@ -59,11 +63,16 @@ function requireDoseChangeApproval(workout:V3Workout,overrides:Overrides,allowed
     blocks.forEach((b,i)=>{
       const path=prefix?prefix+'.'+i:String(i);
       if(b.kind==='repeat'){
+        if(overrides[path+'.betweenSec']!==undefined&&overrides[path+'.betweenSec']!==b.betweenSec)
+          throw Error('v3_rest_change_requires_coach_permission:'+path);
         if(overrides[path+'.count']!==undefined&&overrides[path+'.count']!==b.count.base)
           throw Error('v3_workset_change_requires_coach_permission:'+path);
         inspect(b.steps,path);
       }else{
         const key=b.kind==='time'?'seconds':b.kind==='distance'?'meters':'reps';
+        if(b.kind==='time'&&b.repsTarget&&overrides[path+'.repsTarget']!==undefined&&
+          overrides[path+'.repsTarget']!==b.repsTarget.base)
+          throw Error('v3_repetitions_change_requires_coach_permission:'+path);
         const value=overrides[path+'.'+key];
         const bounds=b.kind==='time'?b.seconds!:b.kind==='distance'?b.meters!:b.reps!;
         const easy=b.domain==='recovery'||b.domain==='moderate_lt1';
