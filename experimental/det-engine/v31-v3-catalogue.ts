@@ -169,9 +169,13 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   const strengthCountOnly=configured.sport==='strength'&&!hasTimedStrengthProtocol;
   if(result.status==='estimated'&&!strengthCountOnly)throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
+  // Preserve the individually calculated seconds, including sub-minute
+  // doses and swim fractional seconds. A time estimate cannot be rounded
+  // upward just to satisfy the historical whole-minute catalogue restriction.
   if(!strengthCountOnly &&
-     (result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0))
-    throw Error('v3_fractional_minute_not_supported');
+     (result.seconds===null||!Number.isFinite(result.seconds)||result.seconds<=0||
+      result.seconds>24*60*60))
+    throw Error('v3_exact_duration_invalid_or_above_day_limit');
   // No athlete-specific physiological dose may be inferred from a slot duration.
   const resolved=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
   if(resolved.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+resolved.missing.join(','));
@@ -245,10 +249,23 @@ export function buildDetV3ContractFromCatalogue(
     .map(review=>review.id));
   const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
     lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
+  // Tie-breaks use only explicit canonical limiter keys from the athlete's
+  // plan and the 800 source records. Never guess a synonym or silently claim
+  // a physiological match merely because the sport/phase fits.
+  const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
+    card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)
+      ?.prescription.physiologicalIntent.limiterKeys??[],
+  ] as const));
+  const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
+    r.preferReviewedV3===true&&reviewedSourceLimiters.has(r.id)).map(r=>r.id));
+  let planLimiters=new Set<string>();
+  const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\s-]+/g,'_');
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
     verifiedBrickCompositions:allBricks,
     adapt(preparation,config){
+      planLimiters=new Set((config.identifiedLimitersRaw??[])
+        .filter((x):x is string=>typeof x==='string').map(canonicalLimiter));
       sourceContract.adapt(preparation,config);
       if(!allBricks.length)return;
       for(const phase of Object.keys(preparation.phaseRepairCatalogs)){
@@ -279,6 +296,19 @@ export function buildDetV3ContractFromCatalogue(
     rankCandidate(card,ctx){
       if(lowRunPreferred.has(card.id))return -2;
       if(preferredBrickIds.has(card.id))return -1;
+      // Never prefer a source merely because it appears in the library.
+      // A source must already be admitted, explicitly preferred by coach,
+      // and target a declared limiter on a matching key slot.
+      if(ctx.slot.isKeySession&&preferredReviewedSources.has(card.id)){
+        const keys=reviewedSourceLimiters.get(card.id)??[];
+        const matches=keys.some(key=>planLimiters.has(canonicalLimiter(key)));
+        const appropriateDose=ctx.slot.isLongSession || card.mainZoneMax>=3 ||
+          card.sport==='strength';
+        if(matches&&appropriateDose)return -3;
+        // Complementary sessions remain eligible with the ordinary coach
+        // preference. A limiter match strengthens ranking, never enforces
+        // that EVERY training session targets the primary limiter.
+      }
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
     consumedSourceIds(card){

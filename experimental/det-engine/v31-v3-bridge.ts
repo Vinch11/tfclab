@@ -39,6 +39,7 @@ export interface DetV3Review {
 const LEVELS=['untrained','light','trained','highly_trained'];
 const FAMILIES:Record<string,RepairWorkoutMetadata['intentFamily']>={
  recovery:'recuperation',moderate_lt1:'endurance_fondamentale',sub_threshold:'seuil',mlss:'seuil',vo2max:'vo2',
+ mixed_intensity:'mixed_intensity',
  neuromuscular:'sprint',max_strength:'force',strength_endurance:'force',
  technique_economy:'technique',mobility_prevention:'technique',
  race_specific:'race_pace',mixed_specific:'brick',fatmax:'fatmax',test:'test',
@@ -109,8 +110,8 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    }
    if(steps.some(b=>b.seconds===null)&&!countOnlyStrength){refuse('individual_duration_unknown');continue;}
    const seconds=steps.reduce((s,b)=>s+(b.seconds??0),0);
-   if(!countOnlyStrength&&(seconds<=0||!Number.isSafeInteger(seconds)||seconds%60!==0)){
-     refuse('non_integer_minute_execution');continue;
+   if(!countOnlyStrength&&(!Number.isFinite(seconds)||seconds<=0||seconds>24*60*60)){
+     refuse('invalid_or_unbounded_exact_duration');continue;
    }
    const sport={bike:'bike',run:'run',swim:'swim',strength:'strength'}[card.sport];
    // Warm-up blocks in historical strength may carry a "recovery" domain;
@@ -138,10 +139,17 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
      refuse('strength_timebox_or_coach_load_verification_missing');continue;
    }
-   // Intent mixed_intensity has no safe precise equivalent in the legacy
-   // repair-metadata schema. Fail closed rather than miscast it as MLSS/VO2.
    if(card.primaryIntent==='mixed_intensity'){
-     refuse('mixed_intensity_requires_distinct_det_intent_family');continue;
+     // Independently prove two distinct MAIN domains; not an arbitrary alias
+     // for VO2, MLSS or a post hoc composite. Full source sport audit precedes
+     // this converter in the 800-source catalogue.
+     const mainDomains=new Set<string>();
+     const collectMain=(blocks:V3Block[]):void=>{for(const b of blocks){
+       if(b.kind==='repeat')collectMain(b.steps);
+       else if(b.role==='main'&&b.domain)mainDomains.add(b.domain);
+     }};
+     collectMain(card.blocks);
+     if(mainDomains.size<2){refuse('mixed_stimulus_requires_two_main_domains');continue;}
    }
    if(!family||(!mainZones.length&&card.sport!=='strength')||!sport){
      refuse('unsupported_sport_or_intent');continue;
@@ -160,6 +168,13 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    meta.tags.push('v3-primary-domain:'+(card.primaryDomain??'nonmetabolic'));
    if(card.primaryIntent==='sub_threshold')meta.tags.push('v3-subthreshold-not-equivalent-to-mlss');
    if(card.sport==='strength')meta.tags.push('v3-strength-timebox-no-fabricated-aerobic-zone');
+   if(!countOnlyStrength){
+     meta.tags.push('v3-exact-duration-seconds:'+String(seconds));
+     meta.structure+=' | DURÉE CALCULÉE : '+String(seconds)+' secondes exactes (sans arrondi)';
+     if(seconds%60!==0)meta.tags.push('v3-subminute-duration-no-rounding');
+   }
+   if(card.primaryIntent==='mixed_intensity')
+     meta.tags.push('v3-mixed-stimulus-distinct-main-domains');
    if(countOnlyStrength){
      meta.tags.push('v3-strength-frequency-only-unknown-duration');
      meta.structure+=' | FRÉQUENCE UNIQUEMENT : durée non mesurée, aucune minute déduite';

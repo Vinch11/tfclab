@@ -94,7 +94,7 @@ describe('V3.3 — all 800 actual source sporting qualifications',()=>{
    expect(got.blockingReasons.length).toBeGreaterThan(0);
   }
  });
- it('preserves subthreshold distinct from true MLSS and refuses unmapped mixed stimulus',()=>{
+ it('preserves subthreshold distinct from MLSS and keeps mixed stimulus independently typed',()=>{
   const sub=find('V3P_BIKE_141');
   expect(sub.primaryIntent).toBe('sub_threshold');
   const ctx=syntheticV3SportingContext(sub.id);
@@ -112,9 +112,11 @@ describe('V3.3 — all 800 actual source sporting qualifications',()=>{
    individualCoachApproval:true,allPrerequisitesChecked:true,
    athleteAnchors:syntheticV3ReviewAnchors(),...mctx,
   }]);
-  expect(refused.report.accepted).toHaveLength(0);
-  expect(refused.report.rejected.find(x=>x.id===mixed.id)?.reason)
-    .toBe('mixed_intensity_requires_distinct_det_intent_family');
+  expect(refused.report.accepted).toHaveLength(1);
+  expect(refused.report.accepted[0].intentFamily).toBe('mixed_intensity');
+  expect(refused.report.accepted[0].tags).toContain('v3-mixed-stimulus-distinct-main-domains');
+  expect(refused.report.accepted[0].zones.length).toBeGreaterThan(1);
+  expect(refused.report.accepted[0].intentFamily).not.toBe('seuil');
  });
  it('accepts as candidate only with complete athlete-scoped proof and never publishes',()=>{
   const w=find('V3P_STRENGTH_101'),ctx=syntheticV3SportingContext(w.id);

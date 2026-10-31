@@ -8,6 +8,7 @@
 export type RepairIntentFamily =
   | "endurance_fondamentale"
   | "seuil"
+  | "mixed_intensity"
   | "vo2"
   | "sprint"
   | "technique"
@@ -64,7 +65,7 @@ export interface RepairCompatibilityResult {
 
 const VERIFIED_REPAIR_INTENTS = new Set<RepairIntentFamily>([
   "endurance_fondamentale", "seuil", "vo2", "sprint", "technique", "force",
-  "recuperation", "test", "race_pace", "brick", "fatmax",
+  "recuperation", "test", "race_pace", "brick", "fatmax", "mixed_intensity",
 ]);
 
 export function isCompleteRepairWorkoutMetadata(value: unknown): value is RepairWorkoutMetadata {
@@ -201,7 +202,7 @@ export function evaluateRepairSportingEquivalence(
 
   if (isRecoveryWeekType(context.weekType)) {
     if (candidate.mainZoneMax > 2) reasons.push(`recovery_zone:z${candidate.mainZoneMax}`);
-    if (["seuil", "vo2", "sprint", "race_pace", "test", "fatmax"].includes(candidate.intentFamily)) {
+    if (["seuil", "vo2", "sprint", "race_pace", "test", "fatmax", "mixed_intensity"].includes(candidate.intentFamily)) {
       reasons.push(`recovery_intent:${candidate.intentFamily}`);
     }
   }
