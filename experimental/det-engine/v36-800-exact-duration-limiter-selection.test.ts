@@ -78,6 +78,10 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    expect(mixed.zones.length).toBeGreaterThanOrEqual(2);
    expect(classifyIntentEvidence(mixed.title+' '+mixed.structure,mixed.mainZoneMax).family)
     .toBe('mixed_intensity');
+   expect(mixed.structure).toContain('V3_MIXED_STIMULUS');
+   // Historical over-under metadata is NOT silently reclassified:
+   // it carries no V3-specific source attestation marker.
+   expect(classifyIntentEvidence('Over-under au seuil 3x8min',4).family).toBe('seuil');
    expect(evaluateRepairSportingEquivalence(null,mixed,{
      objective:'IM',phase:'build',weekType:'load',operation:'insertion',
    }).compatible).toBe(true);
