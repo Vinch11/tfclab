@@ -54,23 +54,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Squat technique contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Squat technique contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -146,17 +146,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -258,23 +258,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Squat technique contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Squat technique contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -350,17 +350,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -463,23 +463,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Squat technique contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Squat technique contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -555,17 +555,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -668,23 +668,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Squat technique contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Squat technique contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -760,17 +760,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -873,23 +873,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Squat technique contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Squat technique contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -965,17 +965,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -1077,23 +1077,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Charnière hanche soulevé roumain ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Charnière hanche soulevé roumain ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -1169,17 +1169,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -1281,23 +1281,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Charnière hanche soulevé roumain ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Charnière hanche soulevé roumain ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -1373,17 +1373,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -1486,23 +1486,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Charnière hanche soulevé roumain ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Charnière hanche soulevé roumain ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -1578,17 +1578,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -1691,23 +1691,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Charnière hanche soulevé roumain ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Charnière hanche soulevé roumain ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -1783,17 +1783,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -1896,23 +1896,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Charnière hanche soulevé roumain ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Charnière hanche soulevé roumain ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -1988,17 +1988,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -2100,23 +2100,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Fente arrière assistée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Fente arrière assistée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -2192,17 +2192,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -2304,23 +2304,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Fente arrière assistée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Fente arrière assistée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -2396,17 +2396,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -2509,23 +2509,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Fente arrière assistée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Fente arrière assistée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -2601,17 +2601,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -2714,23 +2714,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Fente arrière assistée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Fente arrière assistée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -2806,17 +2806,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -2919,23 +2919,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Fente arrière assistée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Fente arrière assistée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -3011,17 +3011,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -3123,23 +3123,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Montée de step contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Montée de step contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -3215,17 +3215,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -3327,23 +3327,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Montée de step contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Montée de step contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -3419,17 +3419,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -3532,23 +3532,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Montée de step contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Montée de step contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -3624,17 +3624,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -3737,23 +3737,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Montée de step contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Montée de step contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -3829,17 +3829,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -3942,23 +3942,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Montée de step contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Montée de step contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -4034,17 +4034,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -4146,23 +4146,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mollets extension debout ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mollets extension debout ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -4238,17 +4238,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -4350,23 +4350,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mollets extension debout ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mollets extension debout ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -4442,17 +4442,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -4555,23 +4555,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mollets extension debout ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mollets extension debout ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -4647,17 +4647,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -4760,23 +4760,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Mollets extension debout ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mollets extension debout ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -4852,17 +4852,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -4965,23 +4965,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mollets extension debout ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mollets extension debout ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -5057,17 +5057,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -5169,23 +5169,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Soléaire genou fléchi ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Soléaire genou fléchi ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -5261,17 +5261,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -5373,23 +5373,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Soléaire genou fléchi ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Soléaire genou fléchi ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -5465,17 +5465,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -5578,23 +5578,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Soléaire genou fléchi ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Soléaire genou fléchi ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -5670,17 +5670,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -5783,23 +5783,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Soléaire genou fléchi ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Soléaire genou fléchi ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -5875,17 +5875,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -5988,23 +5988,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Soléaire genou fléchi ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Soléaire genou fléchi ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -6080,17 +6080,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -6192,23 +6192,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Ischio-jambiers flexion contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Ischio-jambiers flexion contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -6284,17 +6284,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -6396,23 +6396,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Ischio-jambiers flexion contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Ischio-jambiers flexion contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -6488,17 +6488,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -6601,23 +6601,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Ischio-jambiers flexion contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Ischio-jambiers flexion contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -6693,17 +6693,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -6806,23 +6806,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Ischio-jambiers flexion contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Ischio-jambiers flexion contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -6898,17 +6898,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -7011,23 +7011,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Ischio-jambiers flexion contrôlée ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Ischio-jambiers flexion contrôlée ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -7103,17 +7103,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -7225,13 +7225,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Nordic assisté excentrique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Nordic assisté excentrique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -7315,9 +7315,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -7429,13 +7429,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Nordic assisté excentrique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Nordic assisté excentrique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -7519,9 +7519,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -7634,13 +7634,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Nordic assisté excentrique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Nordic assisté excentrique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -7724,9 +7724,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -7839,13 +7839,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Nordic assisté excentrique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Nordic assisté excentrique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -7929,9 +7929,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -8044,13 +8044,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Nordic assisté excentrique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Nordic assisté excentrique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -8134,9 +8134,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -8238,23 +8238,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Tirage horizontal scapulaire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Tirage horizontal scapulaire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -8330,17 +8330,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -8442,23 +8442,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Tirage horizontal scapulaire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Tirage horizontal scapulaire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -8534,17 +8534,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -8647,23 +8647,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Tirage horizontal scapulaire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Tirage horizontal scapulaire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -8739,17 +8739,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -8852,23 +8852,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Tirage horizontal scapulaire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Tirage horizontal scapulaire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -8944,17 +8944,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -9057,23 +9057,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Tirage horizontal scapulaire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Tirage horizontal scapulaire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -9149,17 +9149,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -9261,23 +9261,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Poussée horizontale technique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Poussée horizontale technique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -9353,17 +9353,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -9465,23 +9465,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Poussée horizontale technique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Poussée horizontale technique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -9557,17 +9557,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -9670,23 +9670,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Poussée horizontale technique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Poussée horizontale technique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -9762,17 +9762,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -9875,23 +9875,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Poussée horizontale technique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Poussée horizontale technique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -9967,17 +9967,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -10080,23 +10080,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Poussée horizontale technique ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Poussée horizontale technique ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -10172,17 +10172,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -10284,23 +10284,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-rotation du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-rotation du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -10376,17 +10376,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -10488,23 +10488,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-rotation du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-rotation du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -10580,17 +10580,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -10693,23 +10693,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-rotation du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-rotation du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -10785,17 +10785,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -10898,23 +10898,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-rotation du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-rotation du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -10990,17 +10990,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -11103,23 +11103,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-rotation du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-rotation du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -11195,17 +11195,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -11307,23 +11307,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-extension du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-extension du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -11399,17 +11399,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -11511,23 +11511,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-extension du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-extension du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -11603,17 +11603,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -11716,23 +11716,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-extension du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-extension du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -11808,17 +11808,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -11921,23 +11921,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-extension du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-extension du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -12013,17 +12013,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -12126,23 +12126,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Anti-extension du tronc ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Anti-extension du tronc ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -12218,17 +12218,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -12330,23 +12330,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Bassin stabilisation latérale ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Bassin stabilisation latérale ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -12422,17 +12422,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -12534,23 +12534,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Bassin stabilisation latérale ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Bassin stabilisation latérale ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -12626,17 +12626,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -12739,23 +12739,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Bassin stabilisation latérale ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Bassin stabilisation latérale ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -12831,17 +12831,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -12944,23 +12944,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Bassin stabilisation latérale ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Bassin stabilisation latérale ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -13036,17 +13036,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -13149,23 +13149,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Bassin stabilisation latérale ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Bassin stabilisation latérale ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -13241,17 +13241,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -13353,23 +13353,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Réception pliométrique préparatoire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Réception pliométrique préparatoire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -13445,17 +13445,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -13557,23 +13557,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Réception pliométrique préparatoire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Réception pliométrique préparatoire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -13649,17 +13649,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -13762,23 +13762,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Réception pliométrique préparatoire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Réception pliométrique préparatoire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -13854,17 +13854,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -13967,23 +13967,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Réception pliométrique préparatoire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Réception pliométrique préparatoire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -14059,17 +14059,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -14172,23 +14172,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Réception pliométrique préparatoire ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Réception pliométrique préparatoire ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -14264,17 +14264,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -14387,13 +14387,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pliométrie faible amplitude ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pliométrie faible amplitude ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -14477,9 +14477,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -14593,13 +14593,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pliométrie faible amplitude ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pliométrie faible amplitude ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -14683,9 +14683,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -14800,13 +14800,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pliométrie faible amplitude ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pliométrie faible amplitude ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -14890,9 +14890,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -15007,13 +15007,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Pliométrie faible amplitude ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pliométrie faible amplitude ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -15097,9 +15097,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -15214,13 +15214,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pliométrie faible amplitude ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pliométrie faible amplitude ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -15304,9 +15304,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -15419,13 +15419,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Coordination saut latéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Coordination saut latéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -15509,9 +15509,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -15623,13 +15623,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Coordination saut latéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Coordination saut latéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -15713,9 +15713,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -15828,13 +15828,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Coordination saut latéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Coordination saut latéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -15918,9 +15918,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -16033,13 +16033,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Coordination saut latéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Coordination saut latéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -16123,9 +16123,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -16238,13 +16238,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Coordination saut latéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Coordination saut latéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 2,
                 "base": 4,
@@ -16328,9 +16328,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -16432,23 +16432,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Rotateurs externes épaule ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Rotateurs externes épaule ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -16524,17 +16524,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -16636,23 +16636,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Rotateurs externes épaule ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Rotateurs externes épaule ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -16728,17 +16728,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -16841,23 +16841,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Rotateurs externes épaule ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Rotateurs externes épaule ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -16933,17 +16933,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -17046,23 +17046,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Rotateurs externes épaule ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Rotateurs externes épaule ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -17138,17 +17138,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -17251,23 +17251,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Rotateurs externes épaule ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Rotateurs externes épaule ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -17343,17 +17343,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -17465,13 +17465,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mobilité thoracique active ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mobilité thoracique active ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -17555,9 +17555,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -17669,13 +17669,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mobilité thoracique active ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mobilité thoracique active ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -17759,9 +17759,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -17874,13 +17874,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mobilité thoracique active ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mobilité thoracique active ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -17964,9 +17964,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -18079,13 +18079,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Mobilité thoracique active ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mobilité thoracique active ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -18169,9 +18169,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -18284,13 +18284,13 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Mobilité thoracique active ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Mobilité thoracique active ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -18374,9 +18374,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -18478,23 +18478,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 30,
-                "base": 30,
-                "max": 30
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pont fessier unilatéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pont fessier unilatéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -18570,17 +18570,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 30,
-            "base": 30,
-            "max": 30,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -18682,23 +18682,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pont fessier unilatéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pont fessier unilatéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -18774,17 +18774,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -18887,23 +18887,23 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pont fessier unilatéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pont fessier unilatéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -18979,17 +18979,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -19092,23 +19092,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 60,
-                "base": 60,
-                "max": 60
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Pont fessier unilatéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pont fessier unilatéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -19184,17 +19184,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 60,
-            "base": 60,
-            "max": 60,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -19297,23 +19297,23 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 75,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 75,
-            "max": 105
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Pont fessier unilatéral ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Pont fessier unilatéral ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -19389,17 +19389,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 75,
-            "max": 105,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -19501,23 +19501,23 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 45,
-                "base": 45,
-                "max": 45
+                "min": 60,
+                "base": 60,
+                "max": 60
               },
               "domain": null,
               "role": "main",
-              "label": "Circuit complet de force utile ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Circuit complet de force utile ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -19593,17 +19593,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 45,
-            "base": 45,
-            "max": 45,
+            "min": 60,
+            "base": 60,
+            "max": 60,
             "risk": "bounded_session_dose"
           },
           {
@@ -19705,11 +19705,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
@@ -19721,7 +19721,7 @@
               },
               "domain": null,
               "role": "main",
-              "label": "Circuit complet de force utile ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Circuit complet de force utile ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -19797,9 +19797,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
@@ -19910,11 +19910,11 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
@@ -19926,7 +19926,7 @@
               },
               "domain": null,
               "role": "main",
-              "label": "Circuit complet de force utile ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Circuit complet de force utile ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -20002,9 +20002,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
@@ -20115,23 +20115,23 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
               "kind": "time",
               "seconds": {
-                "min": 75,
-                "base": 75,
-                "max": 75
+                "min": 120,
+                "base": 120,
+                "max": 120
               },
               "domain": null,
               "role": "main",
-              "label": "Circuit complet de force utile ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Circuit complet de force utile ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -20207,17 +20207,17 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 75,
-            "base": 75,
-            "max": 75,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -20320,11 +20320,11 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 75,
-            "base": 90,
-            "max": 120
+            "min": 105,
+            "base": 120,
+            "max": 150
           },
           "steps": [
             {
@@ -20336,7 +20336,7 @@
               },
               "domain": null,
               "role": "main",
-              "label": "Circuit complet de force utile ; stop si qualité dégradée avant la fin du créneau",
+              "label": "Circuit complet de force utile ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
               "repsTarget": {
                 "min": 5,
                 "base": 8,
@@ -20412,9 +20412,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 120,
+            "min": 105,
+            "base": 120,
+            "max": 150,
             "risk": "recovery_dose"
           },
           {
