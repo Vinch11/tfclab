@@ -132,6 +132,19 @@ describe('V3.2 sporting source qualification — complete 400 audit',()=>{
   expect(out.eligibleToSubmitToDet).toBe(false);
   expect(out.blockingReasons).toContain('individual_coach_review_athlete_id_mismatch');
  });
+ it('rejects inconsistent swim time and intensity calibrations',()=>{
+  const w=byId.get('V3P_SWIM_007')!;
+  const inputs=context(w);
+  const domain=w.prescriptionContract.intensity.segments.find(s=>s.domain)?.domain;
+  expect(domain).toBeTruthy();
+  if(!domain)throw Error('synthetic_swim_domain_missing');
+  inputs.duration.swimPacesSecondsPer100m={
+   ...inputs.duration.swimPacesSecondsPer100m,[domain]:123,
+  };
+  const out=qualifyV32ForAthlete(w,inputs);
+  expect(out.eligibleToSubmitToDet).toBe(false);
+  expect(out.blockingReasons).toContain('swim_calibration_duration_pace_mismatch:'+domain);
+ });
  it('refuses source mismatch even with valid-looking synthetic athlete evidence',()=>{
   const w=byId.get('V3P_SWIM_083')!;
   const result=qualifyV32ForAthlete(w,context(w));
