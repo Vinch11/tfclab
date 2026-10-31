@@ -259,7 +259,7 @@ export function buildDetV3ContractFromCatalogue(
   const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
     r.preferReviewedV3===true&&reviewedSourceLimiters.has(r.id)).map(r=>r.id));
   let planLimiters=new Set<string>();
-  const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\\s-]+/g,'_');
+  const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\s-]+/g,'_');
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
     verifiedBrickCompositions:allBricks,
