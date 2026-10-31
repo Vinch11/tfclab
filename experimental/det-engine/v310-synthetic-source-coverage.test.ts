@@ -294,6 +294,47 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         ['blocking','critical','error'].includes(i.severity))).toEqual([]);
       expect(targeted.constraintsSatisfied).toBe(blockers(targeted).length===0);
     }
+    // V3.13 explicit SAME-FIXTURE comparison: the coach supplied a
+    // synthetic timetable, so a selected session may not run into another
+    // appointment. The filter must act BEFORE DFS, not merely issue a native
+    // post-hoc refusal. Never claim conformant on a failed selection.
+    const noOverlap=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:6000,maxMilliseconds:6000},{...contract,
+      enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+      enforceConfirmedNoSameDayOverlap:true,
+      improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+      filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+      preferSourceBackedMultisportBalance:'triathlon_targets',
+      requireStructuredPolarizationOnLoadWeeks:true,
+      auditVerifiedMultisportMinutes:true,
+      auditGlobalSourceSportRatioBounds:true,
+      applyReviewedMinuteSportRatio:true,
+      auditStructuredPolarizationSources:true,
+      coachSlotStart:confirmedSlot,
+      coachSessionStart:session=>confirmedSlot({
+        week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+    });
+    console.info('DET_V313_NO_OVERLAP_COMPARE',JSON.stringify({
+      fixture:fixtureId,objective,
+      before:{weeks:targeted.candidate?.weeks.length??0,nodes:targeted.nodes,
+        ratio:ratioDiagnostic(targeted),
+        overlapBlockers:targeted.issues.filter(i=>i.code==='v3_coach_session_overlap')
+          .map(i=>({week:i.week,message:i.message}))},
+      screened:{weeks:noOverlap.candidate?.weeks.length??0,nodes:noOverlap.nodes,
+        reason:noOverlap.reason??null,ratio:ratioDiagnostic(noOverlap),
+        blockers:blockers(noOverlap),screenedCount:noOverlap.issues
+          .filter(i=>i.code==='det_v313_confirmed_overlap_candidates_excluded')
+          .length},
+    }));
+    expect(noOverlap.humanReviewRequired).toBe(true);
+    expect(noOverlap.sportingRelevance).toBe('not_attested');
+    if(noOverlap.technicallyConstructed){
+      expect(noOverlap.candidate?.weeks.length).toBe(cfg.weeksAvailable);
+      expect(noOverlap.issues.filter(i=>i.code==='v3_coach_session_overlap')).toEqual([]);
+      expect(noOverlap.candidate!.weeks.every(week=>
+        week.sessions.filter(s=>!s.isRest).reduce((sum,s)=>sum+(s.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+    }
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
