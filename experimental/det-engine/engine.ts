@@ -19,7 +19,7 @@ import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
-import {assessStrictNativePolarizationTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
+import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -38,6 +38,9 @@ export interface ExperimentalAssemblyContract {
   consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
   /** Read-only source recovery floors. Without training start times, proof may be impossible. */
   sourceRecoveryForId?:(id:string)=>readonly {sourceId:string;sport:string;hours:number}[];
+  /** V310: EXACT personally configured V3 blocks and separately approved brick
+   * transitions; null means no source/time-zone proof and MUST fail closed. */
+  sourceStructuredZoneForId?:(id:string,chosenDurationMin:number|undefined)=>NativeZoneDose|null;
   /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
   verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
   /** V35 safety experiment: enforce the stated availability even without a volume ramp. */
@@ -66,6 +69,11 @@ export interface ExperimentalAssemblyContract {
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
    * unknown intensity minutes on load weeks; no physiological attestation. */
   requireNativePolarizationOnLoadWeeks?:true;
+  /** V310 opt-in: source BLOCK duration, never native text interpretation.
+   * The unchanged final native validator remains mandatory. */
+  requireStructuredPolarizationOnLoadWeeks?:true;
+  /** Read-only full-plan trace: verified and missing block-zone sources. */
+  auditStructuredPolarizationSources?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -393,31 +401,43 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const requireStrictNativeZones=
         experimentalContract?.requireNativePolarizationOnLoadWeeks===true &&
         entry.weekType==='load';
+      const requireStructuredZones=
+        experimentalContract?.requireStructuredPolarizationOnLoadWeeks===true &&
+        entry.weekType==='load';
+      const requireAnyStrictZones=requireStrictNativeZones||requireStructuredZones;
       const nativeProfiles=new Map<ParsedSession,NativeZoneDose|null>();
-      const zoneDomains=requireStrictNativeZones?order.map(({domain})=>domain.map(session=>{
-        const dose=nativeZoneDoseForCandidate(session);
+      const zoneDomains=requireAnyStrictZones?order.map(({domain})=>domain.map(session=>{
+        const dose=requireStructuredZones?
+          (session.isRest||normalizeRepairSport(session.sport)==='strength'?
+            {low:0,nonLow:0,unknown:0}:
+            (session.catalogId?
+              experimentalContract?.sourceStructuredZoneForId?.(session.catalogId,session.durationMin)??null:null)):
+          nativeZoneDoseForCandidate(session);
         nativeProfiles.set(session,dose);
         return dose;
       })):[];
-      const rootZoneEnvelope=requireStrictNativeZones?
+      const rootZoneEnvelope=requireAnyStrictZones?
         optimisticNativeLowShareUpperBound([],zoneDomains):null;
       if(rootZoneEnvelope?.unmeasuredDomain || rootZoneEnvelope?.provablyBelow75){
-        result.issues.push({code:'det_native_polarization_source_envelope_refused',
+        const proofKind=requireStructuredZones?'structured_v3_blocks':'native_text_estimate';
+        result.issues.push({code:requireStructuredZones?
+          'det_structured_polarization_source_envelope_refused':
+          'det_native_polarization_source_envelope_refused',
           week:w.week,severity:'blocking',message:JSON.stringify({
             upperBoundLowPct:rootZoneEnvelope.upperPct,
-            noVerifiedDurationDomain:rootZoneEnvelope.unmeasuredDomain,
+            unprovedSourceDomain:rootZoneEnvelope.unmeasuredDomain,
             provablyBelow75:rootZoneEnvelope.provablyBelow75,
-            scope:'current_reviewed_slot_domains_only',
+            proofKind,scope:'current_reviewed_slot_domains_only',
             interpretation:'necessary_condition_not_an_approved_plan',
           })});
-        return refuse(`native_polarization_source_envelope_refused_week_${w.week}`);
+        return refuse(`${proofKind}_polarization_source_envelope_refused_week_${w.week}`);
       }
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
-        if(requireStrictNativeZones){
+        if(requireAnyStrictZones){
           const selected=chosen.map(session=>nativeProfiles.get(session));
           if(selected.some(dose=>dose==null))return false;
           const upper=optimisticNativeLowShareUpperBound(
@@ -426,8 +446,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
         if(index===slots.length){
           if(qualityRequired&&!chosen.some(isQuality))return false;
-          if(experimentalContract?.requireNativePolarizationOnLoadWeeks===true &&
-             entry.weekType==='load')
+          if(requireStructuredZones)
+            return assessStrictStructuredZoneTarget(
+              chosen.map(session=>nativeProfiles.get(session)!) as NativeZoneDose[]).admissible;
+          if(requireStrictNativeZones)
             return assessStrictNativePolarizationTarget(chosen).admissible;
           return true;
         }
@@ -450,10 +472,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
-        if(experimentalContract?.requireNativePolarizationOnLoadWeeks===true&&entry.weekType==='load'){
-          result.issues.push({code:'det_native_polarization_target_search_unresolved',
+        if(requireAnyStrictZones){
+          result.issues.push({code:requireStructuredZones?
+            'det_structured_polarization_target_search_unresolved':
+            'det_native_polarization_target_search_unresolved',
             week:w.week,severity:'blocking',message:JSON.stringify({
               targetLowPct:75,maxUnknownPct:30,
+              proofKind:requireStructuredZones?'structured_v3_blocks':'native_text_estimate',
               reason:exhausted?'bounded_search_exhausted':'no_assignment_found',
               inspectedNodes:result.nodes,scientificAttestation:false,
             })});
@@ -484,6 +509,27 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.auditStructuredPolarizationSources===true){
+      const rows=plan.weeks.map(week=>{
+        let proven=0;const missing:string[]=[];
+        const sums={low:0,nonLow:0,unknown:0};
+        for(const session of week.sessions){
+          if(session.isRest||normalizeRepairSport(session.sport)==='strength')continue;
+          if(session.durationMin===0&&session.title.startsWith('COURSE :'))continue;
+          const profile=session.catalogId?
+            experimentalContract.sourceStructuredZoneForId?.(session.catalogId,session.durationMin):null;
+          if(!profile){missing.push(session.catalogId??session.title);continue;}
+          proven++;
+          sums.low+=profile.low;sums.nonLow+=profile.nonLow;sums.unknown+=profile.unknown;
+        }
+        return {week:week.weekNumber,proven,missing,sums};
+      });
+      result.issues.push({code:'det_v310_structured_zone_selection_coverage',
+        severity:'warning',message:JSON.stringify({
+          provenance:'v3_individually_configured_blocks_only',
+          notNativeValidatorSubstitution:true,weeks:rows,
+        })});
+    }
     if(experimentalContract?.annotateVerifiedDeloads){
       const evidence=annotateOnlyMeasuredDeloads(plan);
       for(const e of evidence.filter(x=>x.scheduledRecovery)){
