@@ -15971,9 +15971,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 75,
-                "base": 90,
-                "max": 105
+                "min": 90,
+                "base": 120,
+                "max": 150
               },
               "domain": "tempo",
               "role": "main",
@@ -16076,9 +16076,9 @@
           {
             "path": "1.1.seconds",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 105,
+            "min": 90,
+            "base": 120,
+            "max": 150,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -16416,9 +16416,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 120,
-                "base": 150,
-                "max": 180
+                "min": 150,
+                "base": 180,
+                "max": 210
               },
               "domain": "tempo",
               "role": "main",
@@ -16521,9 +16521,9 @@
           {
             "path": "1.1.seconds",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 180,
+            "min": 150,
+            "base": 180,
+            "max": 210,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -16862,9 +16862,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 75,
-                "base": 90,
-                "max": 105
+                "min": 90,
+                "base": 120,
+                "max": 150
               },
               "domain": "tempo",
               "role": "main",
@@ -16967,9 +16967,9 @@
           {
             "path": "1.1.seconds",
             "unit": "seconds",
-            "min": 75,
-            "base": 90,
-            "max": 105,
+            "min": 90,
+            "base": 120,
+            "max": 150,
             "risk": "coach_approval_quality_dose"
           },
           {
