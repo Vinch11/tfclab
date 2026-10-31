@@ -65,7 +65,6 @@ export interface V3SportingGateResult {
 }
 const RECORDS:ReadonlyArray<V3SportingSourceRecord>=raw.records as V3SportingSourceRecord[];
 const REGISTRY=new Map(RECORDS.map(r=>[r.id,r]));
-const LEVELS=["untrained","light","trained","highly_trained"] as const;
 const HIGH=new Set(["mlss","sub_threshold","mixed_intensity","vo2max","neuromuscular","test"]);
 const PLAN_CHECKS=[
  "weekly_volume_within_coach_limit","load_progression_and_true_deload",
