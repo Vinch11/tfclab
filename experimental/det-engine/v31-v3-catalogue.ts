@@ -249,10 +249,23 @@ export function buildDetV3ContractFromCatalogue(
     .map(review=>review.id));
   const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
     lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
+  // Tie-breaks use only explicit canonical limiter keys from the athlete's
+  // plan and the 800 source records. Never guess a synonym or silently claim
+  // a physiological match merely because the sport/phase fits.
+  const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
+    card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)?
+      .prescription.physiologicalIntent.limiterKeys??[],
+  ] as const));
+  const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
+    r.preferReviewedV3===true&&reviewedSourceLimiters.has(r.id)).map(r=>r.id));
+  let planLimiters=new Set<string>();
+  const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\\s-]+/g,'_');
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
     verifiedBrickCompositions:allBricks,
     adapt(preparation,config){
+      planLimiters=new Set((config.identifiedLimitersRaw??[])
+        .filter((x):x is string=>typeof x==='string').map(canonicalLimiter));
       sourceContract.adapt(preparation,config);
       if(!allBricks.length)return;
       for(const phase of Object.keys(preparation.phaseRepairCatalogs)){
@@ -283,6 +296,16 @@ export function buildDetV3ContractFromCatalogue(
     rankCandidate(card,ctx){
       if(lowRunPreferred.has(card.id))return -2;
       if(preferredBrickIds.has(card.id))return -1;
+      // Never prefer a source merely because it appears in the library.
+      // A source must already be admitted, explicitly preferred by coach,
+      // and target a declared limiter on a matching key slot.
+      if(ctx.slot.isKeySession&&preferredReviewedSources.has(card.id)){
+        const keys=reviewedSourceLimiters.get(card.id)??[];
+        const matches=keys.some(key=>planLimiters.has(canonicalLimiter(key)));
+        const appropriateDose=ctx.slot.isLongSession || card.mainZoneMax>=3 ||
+          card.sport==='strength';
+        if(matches&&appropriateDose)return -3;
+      }
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
     consumedSourceIds(card){
