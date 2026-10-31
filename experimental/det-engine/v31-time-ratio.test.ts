@@ -38,6 +38,27 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   expect(report.conservativeBounds.bike.maxPct).toBeGreaterThan(report.conservativeBounds.bike.minPct);
   expect(report.interpretation).toBe('diagnostic_only_not_a_prescription_validation');
  });
+ it('preserves verified fractional endurance doses and never rounds missing time',()=>{
+  const base={weekNumber:1,weekTheme:'build',phase:'build',
+    dayIndex:1,dayName:'mardi',isRest:false} as const;
+  const session=(sport:'swim'|'bike'|'run',durationMin:number)=>({
+    ...base,sport,title:'Exact measured source',details:'Original V3 structured dose',
+    durationMin,
+  });
+  const p={title:'QA-fractional',phases:[],totalWeeks:1,
+    weeks:[{weekNumber:1,theme:'build',phase:'build',sessions:[
+      session('swim',37.5),session('bike',91.25),session('run',55.75),
+    ]}]};
+  const audit=auditPlannedMinuteDistribution(p,{1:'load'});
+  expect(audit.knownMinutes).toEqual({swim:37.5,bike:91.25,run:55.75});
+  expect(audit.knownTotalMinutes).toBe(184.5);
+  expect(audit.unresolvedBrickMinutes).toBe(0);
+  const broken={...p,weeks:[{...p.weeks[0],sessions:[
+    {...p.weeks[0].sessions[0],durationMin:undefined},...p.weeks[0].sessions.slice(1),
+  ]}]};
+  expect(()=>auditPlannedMinuteDistribution(broken,{1:'load'}))
+    .toThrow('v31_planned_duration_unavailable');
+ });
  it('reports 70.3 real solve minutes without declaring inherited brick doses exact',()=>{
   vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN');});
   const fixture=preparePrevalidationFixture('B-70.3');
