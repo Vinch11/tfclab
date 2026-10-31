@@ -30819,7 +30819,7 @@
       "phases": [
         "base"
       ],
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "requiredMeasurements": [
         "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery",
@@ -30827,8 +30827,7 @@
       ],
       "requiredDurationInputs": [],
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "contraindications": [
         "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -30866,7 +30865,7 @@
         "base",
         "build"
       ],
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "requiredMeasurements": [
         "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery",
@@ -30874,8 +30873,7 @@
       ],
       "requiredDurationInputs": [],
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "contraindications": [
         "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -30913,7 +30911,7 @@
         "base",
         "build"
       ],
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "requiredMeasurements": [
         "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery",
@@ -30921,8 +30919,7 @@
       ],
       "requiredDurationInputs": [],
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "contraindications": [
         "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -30960,7 +30957,7 @@
         "build",
         "peak"
       ],
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "requiredMeasurements": [
         "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery",
@@ -30968,8 +30965,7 @@
       ],
       "requiredDurationInputs": [],
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "contraindications": [
         "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -31007,7 +31003,7 @@
         "taper",
         "peak"
       ],
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "requiredMeasurements": [
         "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery",
@@ -31015,8 +31011,7 @@
       ],
       "requiredDurationInputs": [],
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "contraindications": [
         "Douleur d'épaule, gêne respiratoire ou technique dégradée",
