@@ -49,9 +49,9 @@ export interface ExperimentalAssemblyContract {
   improveV3RecoveryLayout?:true;
   /** Opt-in independent minute-based triathlon sport ratio audit, without suppressing native validators. */
   auditVerifiedMultisportMinutes?:true;
-  /** Opt-in ONLY: prefer already-approved longer bike/run and shorter swim
-   * source doses, without changing any source block or overriding key limiter. */
-  preferSourceBackedMultisportBalance?:true;
+  /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
+   * keeping original source doses and key-limiter ranking intact. */
+  preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim';
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -299,14 +299,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             // weekly frequency or final plan validators.
             const rank=(s:ParsedSession)=>experimentalContract?.rankCandidate?.(
               catalog.find(m=>m.id===s.catalogId)!,{...context,week:w.week,slot,dayIndex})??0;
-            const balance=experimentalContract?.preferSourceBackedMultisportBalance===true &&
+            const balanceMode=experimentalContract?.preferSourceBackedMultisportBalance;
+            const balance=!!balanceMode &&
               ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
             // Only compare the ACTUAL approved source-backed chosen dose.
             // No duration fitting, no extra sports, no imaginary workout.
             // Real key limiter matching always keeps highest priority.
-            const dosePriority=balance && slot.sport==='swim'?
+            const dosePriority=balance && (balanceMode==='all'||balanceMode==='swim') &&
+              slot.sport==='swim'?
               (a.durationMin??Infinity)-(b.durationMin??Infinity):
-              balance && (slot.sport==='bike'||slot.sport==='run')?
+              balance && (balanceMode==='all'||balanceMode===slot.sport) &&
+                (slot.sport==='bike'||slot.sport==='run')?
                 (b.durationMin??0)-(a.durationMin??0):0;
             return (slot.isKeySession?rank(a)-rank(b):0)||
               dosePriority||
