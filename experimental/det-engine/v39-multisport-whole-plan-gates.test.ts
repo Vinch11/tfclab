@@ -120,6 +120,11 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     // source that cannot fit must not be selected merely to fill a quota.
     expect(blockingIssues.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
     if(out.technicallyConstructed)expect(named.length).toBeGreaterThan(0);
+    // Once the clock-free chronology repair is enabled, both complete
+    // calendars must remain constructible. Conformance is independently
+    // audited: this assertion must not be replaced by a synthetic fallback.
+    expect(out.technicallyConstructed).toBe(true);
+    expect(weeks).toHaveLength(cfg.weeksAvailable!);
     // Never invent week totals if the solver returned no candidate.
     expect(weeks.every(w=>w.totalKnownMinutes<=capMin)).toBe(true);
     expect(out.constraintsSatisfied).toBe(out.technicallyConstructed&&blockingIssues.length===0);
