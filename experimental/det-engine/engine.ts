@@ -47,6 +47,8 @@ export interface ExperimentalAssemblyContract {
   improveV3RecoveryLayout?:true;
   /** Opt-in independent minute-based triathlon sport ratio audit, without suppressing native validators. */
   auditVerifiedMultisportMinutes?:true;
+  /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
+  filterDeclaredSprintBanCandidates?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -216,6 +218,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       let calendarRecoveryExclusions=0;
+      let sprintBanExclusions=0;
+      const sprintBanned=experimentalContract?.filterDeclaredSprintBanCandidates===true &&
+        config.prohibitions?.some(text=>/sprint\\s*ban/i.test(text))===true;
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
       // Without a coach volume ramp, the historical solver used Infinity.
       // This opt-in never expands a pre-existing stricter bound. No inferred
@@ -264,6 +269,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
           }).filter(session=>{
+            if(!sprintBanned)return true;
+            // Conservative candidate-level guard for a declared coach ban.
+            // Do not rely on the final validator to find this after planning.
+            const text=session.title+' '+session.details;
+            const forbidden=/(?:sprint|pmax|neuromuscul|all[ -]?out|tabata|plyom|pliom|explosif)/i.test(text);
+            if(forbidden)sprintBanExclusions++;
+            return !forbidden;
+          }).filter(session=>{
             if(!experimentalContract?.enforceCalendarSafeV3Recovery||!session.catalogId||
                !experimentalContract.sourceRecoveryForId)return true;
             const viable=calendarOnlyRecoverySafe({week:w.week,dayIndex,sport:slot.sport},
@@ -285,6 +298,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||
               a.catalogId!.localeCompare(b.catalogId!);
           });
+      });
+      if(sprintBanExclusions)result.issues.push({
+        code:'det_declared_sprint_ban_candidate_excluded',week:w.week,severity:'warning',
+        message:sprintBanExclusions+' sport/phase eligible catalogue candidates excluded under coach-confirmed Sprint Ban',
       });
       if(calendarRecoveryExclusions)result.issues.push({
         code:'det_v3_calendar_recovery_candidates_excluded',week:w.week,severity:'warning',
