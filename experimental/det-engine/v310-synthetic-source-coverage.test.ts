@@ -335,6 +335,55 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         week.sessions.filter(s=>!s.isRest).reduce((sum,s)=>sum+(s.durationMin??0),0)
           <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
     }
+    // V3.14: the SAME real solver, approved synthetic catalogue, clocks,
+    // recovery, polarization and day-J conditions. The final LOAD week must
+    // now satisfy ALL three strict cumulative sport-minute targets, or refuse.
+    // A bounded search refusal is never presented as a proof of impossibility.
+    const exactFinalRatio=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:16000,maxMilliseconds:10000},{...contract,
+      enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+      enforceConfirmedNoSameDayOverlap:true,
+      improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+      filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+      preferSourceBackedMultisportBalance:'triathlon_targets',
+      requireFinalTriathlonMinuteRatios:true,
+      requireStructuredPolarizationOnLoadWeeks:true,
+      auditVerifiedMultisportMinutes:true,
+      auditGlobalSourceSportRatioBounds:true,
+      applyReviewedMinuteSportRatio:true,
+      auditStructuredPolarizationSources:true,
+      coachSlotStart:confirmedSlot,
+      coachSessionStart:session=>confirmedSlot({
+        week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+    });
+    const v314Success=exactFinalRatio.issues.find(i=>
+      i.code==='det_v314_final_load_ratio_selected');
+    const v314Unresolved=exactFinalRatio.issues.find(i=>
+      i.code==='det_v314_final_load_ratio_search_unresolved');
+    console.info('DET_V314_EXACT_FINAL_LOAD_RATIO_TRIAL',JSON.stringify({
+      fixture:fixtureId,objective,
+      builtWeeks:exactFinalRatio.candidate?.weeks.length??0,
+      nodes:exactFinalRatio.nodes,reason:exactFinalRatio.reason??null,
+      finalLoadRatioSelected:!!v314Success,finalLoadRatioUnresolved:!!v314Unresolved,
+      ratios:ratioDiagnostic(exactFinalRatio),
+      blockingCodes:blockers(exactFinalRatio),
+      nativeConstraintsSatisfied:exactFinalRatio.constraintsSatisfied,
+    }));
+    expect(exactFinalRatio.humanReviewRequired).toBe(true);
+    expect(exactFinalRatio.sportingRelevance).toBe('not_attested');
+    // Neither status may misrepresent an incomplete search as sporting GO.
+    if(exactFinalRatio.technicallyConstructed){
+      expect(v314Success).toBeDefined();
+      expect(v314Unresolved).toBeUndefined();
+      const strictSportRatio=ratioDiagnostic(exactFinalRatio);
+      expect(strictSportRatio).not.toBeNull();
+      expect(strictSportRatio?.unresolvedBrickMinutes).toBe(0);
+      expect(strictSportRatio?.deviations).toEqual([]);
+      expect(exactFinalRatio.candidate!.weeks).toHaveLength(cfg.weeksAvailable);
+    }else{
+      expect(exactFinalRatio.status).toBe('refused');
+      expect(v314Success).toBeUndefined();
+    }
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
