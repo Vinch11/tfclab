@@ -7,10 +7,12 @@ import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContract
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { constructDeterministicPlan } from './engine';
 import { V3_BASE_BRICK_ID, type V3BaseBrickReview } from './v31-v3-brick';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const review:V3ReviewedSettings={
   id:'V3P_BIKE_002',athleteLevel:'trained',athleteLevelSource:'manual',
   objective:'IM',allPrerequisitesChecked:true,individualCoachApproval:true,
+  athleteAnchors:syntheticV3ReviewAnchors(),
 };
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V31 — actual 800-source catalogue ingestion to DET-ENGINE',()=>{
@@ -61,7 +63,7 @@ describe('V31 — actual 800-source catalogue ingestion to DET-ENGINE',()=>{
      expect(r.report.accepted).toHaveLength(0);
      expect(r.report.rejected.find(x=>x.id===review.id)?.reason).toContain('v3_');
    }
-   const s=buildDetV3ContractFromCatalogue([{...review,id:'V3P_SWIM_001'}]);
+   const s=buildDetV3ContractFromCatalogue([{...review,id:'V3P_SWIM_001',athleteAnchors:undefined}]);
    expect(s.report.accepted).toHaveLength(0);
    expect(s.report.rejected.find(x=>x.id==='V3P_SWIM_001')?.reason).toContain('v3_timing_unresolved');
    const strength=buildDetV3ContractFromCatalogue([{...review,id:'V3P_STRENGTH_001'}]);
