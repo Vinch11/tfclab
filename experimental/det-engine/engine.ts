@@ -19,6 +19,7 @@ import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution,splitVerifiedV3Brick} from './v31-time-ratio';
 import {assessGlobalSourceRatioEnvelope,type RatioSlotDomain,type ExactSportMinutes} from './v311-global-ratio-domain-bounds';
 import {planTriathlonRatioTrajectory,triathlonCandidateDoseDistance,type TriContribution} from './v312-triathlon-dose-trajectory';
+import {assessCumulativeTriathlonRatioPotential,hasExactStrictTriathlonRatio} from './v314-cumulative-ratio-search';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
@@ -74,6 +75,9 @@ export interface ExperimentalAssemblyContract {
   /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
    * keeping original source doses and key-limiter ranking intact. */
   preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim'|'triathlon'|'triathlon_targets';
+  /** V314 opt-in: on the FINAL load week, search until ALL cumulative exact
+   * 70.3/IM sport-minute targets pass. Never relax native validators. */
+  requireFinalTriathlonMinuteRatios?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -263,6 +267,20 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const sourceSlotRatioDomains:RatioSlotDomain[]=[];
     const sourceLoadLedger={swim:0,bike:0,run:0};
     let sourceLoadLedgerVerified=true;
+    const strictFinalRatioRequested=experimentalContract?.requireFinalTriathlonMinuteRatios===true;
+    const objectiveForRatio=normalizeRepairGoal(config.objective??'')==='half'?'703':
+      normalizeRepairGoal(config.objective??'')==='ironman'?'IM':null;
+    if(strictFinalRatioRequested&&(
+      !objectiveForRatio||
+      experimentalContract?.preferSourceBackedMultisportBalance!=='triathlon_targets'||
+      experimentalContract?.requireStructuredPolarizationOnLoadWeeks!==true)){
+      result.issues.push({code:'det_v314_final_ratio_requires_structured_targets',
+        severity:'blocking',message:'Strict final ratio search requires verified V3 structured polarization and triathlon_targets; no unproved source may be counted.'});
+      return refuse('v314_strict_final_ratio_prerequisites_missing');
+    }
+    const lastLoadWeekNumber=report.weeks.reduce((last,w)=>
+      preparation.weeklyQuotas[w.week]?.weekType==='load'?w.week:last,0);
+    if(strictFinalRatioRequested&&!lastLoadWeekNumber)return refuse('v314_no_load_weeks_to_certify');
     const exactTriContribution=(session:ParsedSession):TriContribution|null=>{
       if(!session.catalogId||!['swim','bike','run','brick'].includes(session.sport)||
          typeof session.durationMin!=='number'||!Number.isFinite(session.durationMin)||
@@ -534,6 +552,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         experimentalContract?.requireStructuredPolarizationOnLoadWeeks===true &&
         entry.weekType==='load';
       const requireAnyStrictZones=requireStrictNativeZones||requireStructuredZones;
+      const finalRatioGate=strictFinalRatioRequested&&entry.weekType==='load'&&
+        w.week===lastLoadWeekNumber;
+      if(finalRatioGate&&!sourceLoadLedgerVerified){
+        result.issues.push({code:'det_v314_previous_load_minutes_unverified',
+          week:w.week,severity:'blocking',message:'An earlier selected load-week session or brick has no exact, independently certified sport-minute split.'});
+        return refuse('v314_previous_load_minutes_unverified');
+      }
       const nativeProfiles=new Map<ParsedSession,NativeZoneDose|null>();
       const zoneDomains=requireAnyStrictZones?order.map(({domain})=>domain.map(session=>{
         const dose=requireStructuredZones?
@@ -639,6 +664,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
         }));
       }
+      // Search on the last loading week against the ACTUAL cumulative
+      // V3-certified endurance ledger; transitions are excluded. Independent
+      // slot extrema prune only provably unreachable remaining combinations.
+      // Earlier loading weeks are not retroactively altered by this guard.
+      const ratioDomains=finalRatioGate?order.map(({domain,slot})=>
+        ['swim','bike','run','brick'].includes(slot.slot.sport)?
+          domain.map(exactTriContribution):null):null;
       const rootZoneEnvelope=requireAnyStrictZones?
         optimisticNativeLowShareUpperBound([],zoneDomains):null;
       if(rootZoneEnvelope?.unmeasuredDomain || rootZoneEnvelope?.provablyBelow75){
@@ -686,7 +718,23 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             }
           }
         }
+        if(finalRatioGate){
+          const selectedRatioDoses=chosen.filter(s=>
+            ['swim','bike','run','brick'].includes(s.sport)).map(exactTriContribution);
+          const remainingRatioDomains=(ratioDomains?.slice(index).filter(
+            (domain):domain is (TriContribution|null)[]=>domain!==null)??[]);
+          const bound=assessCumulativeTriathlonRatioPotential(
+            objectiveForRatio!,sourceLoadLedger,selectedRatioDoses,remainingRatioDomains);
+          if(bound.verdict!=='not_refuted'){
+            countPrune('v314_'+bound.verdict);
+            return false;
+          }
+        }
         if(index===slots.length){
+          if(finalRatioGate&&!hasExactStrictTriathlonRatio(objectiveForRatio!,
+            sourceLoadLedger,chosen.filter(s=>
+              ['swim','bike','run','brick'].includes(s.sport)).map(exactTriContribution)))
+            return false;
           if(qualityRequired&&!chosen.some(isQuality))return false;
           if(requireStructuredZones)
             return assessStrictStructuredZoneTarget(
@@ -714,6 +762,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
+        if(finalRatioGate)result.issues.push({
+          code:'det_v314_final_load_ratio_search_unresolved',
+          week:w.week,severity:'blocking',message:JSON.stringify({
+            objective:objectiveForRatio,verifiedEarlierLoadMinutes:sourceLoadLedger,
+            searchBudgetExhausted:exhausted,inspectedNodes:result.nodes,
+            scope:'final_load_week_with_earlier_load_weeks_frozen',
+            interpretation:'failed_or_bounded_search_not_a_proof_of_global_impossibility',
+          }),
+        });
         if(requireAnyStrictZones){
           result.issues.push({code:requireStructuredZones?
             'det_structured_polarization_target_search_unresolved':
@@ -729,6 +786,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
         return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
       }
+      if(finalRatioGate)result.issues.push({
+        code:'det_v314_final_load_ratio_selected',week:w.week,severity:'warning',
+        message:JSON.stringify({objective:objectiveForRatio,
+          verifiedEarlierLoadMinutes:sourceLoadLedger,
+          finalLoadWeekSources:chosen.filter(s=>
+            ['swim','bike','run','brick'].includes(s.sport))
+            .map(s=>({id:s.catalogId,minutes:exactTriContribution(s)})),
+          interpretation:'source_exact_minutes_only_native_validation_still_required',
+        }),
+      });
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
