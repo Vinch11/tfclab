@@ -71,11 +71,13 @@ export function constructDeterministicPlanWithBoundedReplays(
   for(let i=0;i<preset[objective].length;i++){
     const remainingMillis=limits.maxMilliseconds-(performance.now()-started);
     const remainingNodes=limits.maxNodes-totalNodes;
-    if(remainingMillis<=0||remainingNodes<=0)break;
+    // The underlying DFS increments its node counter *before* checking its
+    // limit, so reserve one node per attempt against the GLOBAL budget.
+    if(remainingMillis<=0||remainingNodes<2)break;
     const remainingAttempts=preset[objective].length-i;
     const currentLimits:SearchLimits={
       maxMilliseconds:remainingMillis,
-      maxNodes:Math.max(1,Math.floor(remainingNodes/remainingAttempts)),
+      maxNodes:Math.max(1,Math.floor(remainingNodes/remainingAttempts)-1),
     };
     const target=preset[objective][i];
     const result=constructDeterministicPlan(athlete,config,currentLimits,{
