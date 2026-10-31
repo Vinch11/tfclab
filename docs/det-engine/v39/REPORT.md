@@ -125,6 +125,29 @@ CI spécialisée du SHA `23f0201` : **149 tests réussis, 7 ignorés**, et essai
 
 **Décision : REJET** de cet ordre de sélection « easy non-key ». Les modifications ont été annulées (moteur au commit `24551b5`, test au commit `f41dc6b`) et la variante natation seule retrouve le statut de meilleur candidat test-only. L'essai rejeté reste documenté, mais non actif. Pour corriger la polarisation, il faut caractériser les minutes Z1/Z2 réelles et leurs séquences dans les sources approuvées, et trouver des affectations compatibles **avec la décharge, les séances clés, les ratios sportifs et la récupération simultanément** ; ne pas augmenter artificiellement les minutes faciles.
 
+## V3.9.8 — migration expérimentale des ratios en minutes strictes, enfin attestée sur l'IM
+
+**Exécution réelle SHA `87077fe`, CI spécialisée : 159 tests réussis, 7 ignorés** (Deno, ESLint, Playwright et DET spécialisés verts ; CI frontend reste rouge sur les deux empreintes Lovable et la matrice globale). Production et validateur historique inchangés.
+
+Nouveau contrat expérimental `applyReviewedMinuteSportRatio` : l'ancien contrôle `sport_ratio` (calculé en **nombre** de séances, incompatible avec les quotas) ne peut être remplacé que SI (a) toutes les séances d'endurance des semaines de charge possèdent des durées vérifiables, (b) tout brick a une composition bike/transition/run **individuellement approuvée et exacte**, (c) les trois proportions **en minutes** sont dans leurs cibles strictes, (d) les quotas de fréquence restent contrôlés, (e) aucun sport exclu ou ambigu ne nécessite une redistribution de cible. Les interdictions autres qu'une exclusion de sport, notamment `Sprint Ban`, passent toujours les validateurs natifs correspondants. Les anciennes erreurs ne disparaissent pas : elles deviennent des avertissements **historisés** avec leur sévérité et message d'origine, uniquement après substitution par une preuve plus stricte. Les contrôles natifs des autres dimensions restent inchangés.
+
+**Résultat IM, variante natation seule** : **15,3455 % natation**, **52,4572 % vélo**, **32,1973 % CAP** sur les minutes attribuées. Les cibles strictes sont respectivement **15–20 %, 45–55 %, 25–35 %** : **trois sur trois PASS simultané**, zéro brick non décomposable et zéro quota en dérive. Le moteur remplace effectivement **deux** erreurs count-only par deux diagnostics explicites ; le journal inscrit `det_strict_minute_sport_ratio_verified`. **Résultat sportif global : NO-GO** : quatre semaines demeurent bloquées pour polarisation (S6, S7, S9, S10). Le remplacement ne dispense **jamais** d'un contrôle de charge, de récupération, de sécurité ou de polarisation.
+
+**Résultat 70.3, variante natation seule** : migration **REFUSÉE** parce que quatre bricks ne disposent pas d'une chronologie vélo/course individuelle certifiée ; 750 minutes de bricks au total :
+- S5 `B_703_BRICK_RACE_PACE` — **180 min** ;
+- S6 `B_IM_BRICK_LONG_MARATHON_PACE` — **300 min** (la présence d'une fiche nommée IM dans un plan 70.3 mérite vérification d'équivalence sportive, sans en déduire seule une erreur) ;
+- S7 `B_BRICK_RACE_PACE_SHORT_703` — **120 min** ;
+- S9 `V3_BRICK_703_RACE_PACE` — **150 min**.
+
+**Origine des blocages de polarisation, selon le parseur NATIVE du plan (diagnostic ≠ qualification indépendante des zones)** :
+- 70.3 S6 : brick S6 de 300 min dont environ **223 min Z3 estimées** ; S9 : brick 150 min évalué à **143 min Z4+ estimées** + vélo V3P_BIKE_089 évalué à **120 min Z3**.
+- IM S7 : `B_LCW_BIKE_LONG_RACE_SAT` évalué à environ **148 min Z4+**, plus `V3P_BIKE_057` à **74 min Z3** ; S9/S10 : long runs A_IM_RUN_PACE (100 min Z3 estimées) et V2_RUN_SORTIE_LONGUE_STRUCTUREE (93 min Z3 estimées) combinées avec vélo V3P_BIKE_057 (74 min Z3).
+- Ces calculs sont des **attributions de l'heuristique native** à partir des textes et zones : ils identifient les sources à réexaminer, et ne doivent jamais se substituer à une décomposition des blocs certifiée.
+
+Un nouveau mode de recherche bornée `requireNativePolarizationOnLoadWeeks` est en **essai**, pour demander au DFS une distribution native Z1–Z2 ≥75 % par semaine de charge avec inconnus ≤30 %, sans abaisser les règles ni inventer du temps facile. Un échec de budget de recherche devra être rapporté comme *recherche épuisée*, jamais comme preuve d'impossibilité ; résultat CI complet non présumé.
+
+**Priorité restante** : (1) décomposer ou refuser les quatre bricks 70.3 selon leurs **sources réelles** ; (2) sélectionner des calendriers sous 75 % minimum de volume facile **attesté** et non simplement reconnu par un regex ; (3) confronter les alertes natives au contenu structuré V3/mesuré puis exiger une revue humaine. Aucun GO sportif multisport ou de production.
+
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
 2. **70.3** : date/jour J placés, 12 semaines complètes, chaque budget coach ≤600 min, vraie décharge, ratios sportifs sur minutes attribuées, récupération à partir d'horaires coach authentifiés (ou refus), polarisation et séances clés conformes, toutes les validations natives sans blocage.
