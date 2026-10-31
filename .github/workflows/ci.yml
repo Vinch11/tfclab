@@ -131,9 +131,12 @@ jobs:
           fi
 
           echo "Erreurs eslint — base: $BASE_ERRORS, après ce diff: $HEAD_ERRORS"
-          if [ "$HEAD_ERRORS" -gt "$BASE_ERRORS" ]; then
-            # Render individual problems: previous JSON-only output hid actionable errors.
+          # Report underlying errors even when inherited from a stacked PR base.
+          # Otherwise a child branch can look clean while its parent remains red.
+          if [ "$HEAD_ERRORS" -gt 0 ]; then
             echo "$HEAD_JSON" | jq -r '.[] | select(.errorCount > 0) | .filePath as $f | .messages[] | select(.severity == 2) | "\($f):\(.line):\(.column): \(.ruleId): \(.message)"'
+          fi
+          if [ "$HEAD_ERRORS" -gt "$BASE_ERRORS" ]; then
             echo "::error::Ce diff introduit $((HEAD_ERRORS - BASE_ERRORS)) nouvelle(s) erreur(s) eslint (dette préexistante tolérée, régression non)."
             exit 1
           fi
