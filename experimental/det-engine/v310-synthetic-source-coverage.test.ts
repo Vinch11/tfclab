@@ -6,6 +6,10 @@
 import {describe,expect,it,vi,afterEach} from 'vitest';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {constructDeterministicPlan} from './engine';
+import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
+import {assessPreparedGeneration} from '@/lib/plan/prevalidateTrainingPlan';
+import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
+import {normalizeRepairSport} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 import {V3_BASE_BRICK_ID} from './v31-v3-brick';
@@ -60,6 +64,30 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
     const {contract,report}=buildDetV3ContractFromCatalogue(reviews,brickReviews,specific,easy);
     const admittedSports=Object.fromEntries(['swim','run','bike'].map(sport=>[
       sport,report.accepted.filter(m=>m.sport===sport).length]));
+    const preparation=prepareGenerationContracts(f.athleteData,cfg,{rotationSeed:0});
+    contract.adapt(preparation,cfg);
+    const prevalidation=assessPreparedGeneration(cfg,preparation);
+    const allowed=new Set(prevalidation.weeks[0].eligible.map(x=>x.id));
+    const allSlots=prevalidation.weeks.flatMap(w=>preparation.weeklyQuotas[w.week]?.layout?.days
+      .flatMap((day,dayIndex)=>day.slots.map(slot=>({week:w.week,dayIndex,sport:slot.sport})))??[]);
+    const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),
+      ...preparation.chunkRepairCatalogs.flat(),
+      ...preparation.chunkRegenRepairCatalogs.flat()].map(x=>[x.id,x])).values()];
+    const week1=preparation.weeklyQuotas[1]?.layout;
+    const evidence=week1?.days.flatMap((day,dayIndex)=>day.slots.map(slot=>{
+      const cards=catalog.filter(x=>allowed.has(x.id)&&
+        normalizeRepairSport(x.sport)===slot.sport&&x.id.startsWith('V3P_'));
+      const timed=cards.filter(x=>contract.sourceStructuredZoneForId?.(x.id,x.durationMin[0]));
+      const calendarSafe=timed.filter(x=>calendarOnlyRecoverySafe(
+        {week:1,dayIndex,sport:slot.sport},contract.sourceRecoveryForId?.(x.id)??[],
+        allSlots));
+      return {day:day.dayName,sport:slot.sport,key:!!slot.isKeySession,
+        v3Eligible:cards.length,v3Structured:timed.length,
+        v3CalendarSafe:calendarSafe.length,
+        examples:timed.slice(0,3).map(x=>x.id)};
+    }))??[];
+    console.info('DET_V310_QA_PHYSICAL_COVERAGE_BY_SLOT',JSON.stringify({
+      fixture:fixtureId,evidence}));
     expect(admittedSports.swim).toBeGreaterThan(0);
     expect(admittedSports.run).toBeGreaterThan(2);
     const result=constructDeterministicPlan(f.athleteData,cfg,
