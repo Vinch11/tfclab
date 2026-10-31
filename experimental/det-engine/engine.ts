@@ -741,7 +741,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const feasibility=auditV35BikeOnlyFeasibility(plan,preparation.weeklyQuotas,
         experimentalContract.verifiedBrickCompositions,23);
       result.issues.push({code:'v35_bike_only_volume_feasibility',
-        severity:feasibility.verdict==='provably_impossible_under_week_caps'?'blocking':'warning',
+        severity:['provably_impossible_under_week_caps','baseline_duration_invalid']
+          .includes(feasibility.verdict)?'blocking':'warning',
         message:JSON.stringify(feasibility)});
     }
     if(experimentalContract?.sourceRecoveryForId){
