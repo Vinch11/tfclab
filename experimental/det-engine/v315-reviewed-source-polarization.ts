@@ -39,6 +39,9 @@ export function reconcileTextPolarizationWithReviewedSources(input:{
     return fail('week_type_unverified');
   const rows:PolarizationMigration['weeks']=[];
   for(const w of plan.weeks.filter(w=>weekTypes[w.weekNumber]==='load')){
+    if(w.sessions.some(s=>!s.isRest&&!endure.has(s.sport)&&
+      s.sport!=='strength'))
+      return fail('unclassified_training_sport_has_no_zone_proof');
     const sessions=w.sessions.filter(s=>!s.isRest&&endure.has(s.sport));
     if(!sessions.length)return fail('load_week_endurance_empty');
     let low=0,nonLow=0,unknown=0;
@@ -47,7 +50,9 @@ export function reconcileTextPolarizationWithReviewedSources(input:{
       if(!s.catalogId||typeof minutes!=='number'||
          !Number.isFinite(minutes)||minutes<=0)
         return fail('source_or_duration_not_proven');
-      const dose=certifiedDose(s.catalogId,minutes);
+      let dose:NativeZoneDose|null|undefined;
+      try{dose=certifiedDose(s.catalogId,minutes);}
+      catch{return fail('source_zone_provider_threw');}
       if(!dose||[dose.low,dose.nonLow,dose.unknown].some(v=>
         !Number.isFinite(v)||v<0)||
          Math.abs(dose.low+dose.nonLow+dose.unknown-minutes)>tolerance)
