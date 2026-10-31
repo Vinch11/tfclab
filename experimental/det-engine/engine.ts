@@ -49,6 +49,8 @@ export interface ExperimentalAssemblyContract {
   auditVerifiedMultisportMinutes?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
+  /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
+  requireRealQualityOnLoadWeeks?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -350,13 +352,22 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
+      const qualityRequired=experimentalContract?.requireRealQualityOnLoadWeeks===true &&
+        entry.weekType==='load'&&config.ambition!=='finisher'&&
+        ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+      const isQuality=(session:ParsedSession)=>!!session.isKeySession&&
+        session.zones?.some(zone=>/z\\s*[4-7]/i.test(zone))===true;
+      const qualitySuffix=Array(order.length+1).fill(false) as boolean[];
+      for(let i=order.length-1;i>=0;i--)
+        qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
       for(let i=order.length-1;i>=0;i--)minimumSuffix[i]=minimumSuffix[i+1]+Math.min(...order[i].domain.map(s=>s.durationMin??0));
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
-        if(index===slots.length)return true;
+        if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
+        if(index===slots.length)return !qualityRequired||chosen.some(isQuality);
         for(const session of order[index].domain) {
           const id=session.catalogId;
           const m=id?catalog.find(m=>m.id===id):undefined;
