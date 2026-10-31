@@ -113,9 +113,11 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
      refuse('non_integer_minute_execution');continue;
    }
    const sport={bike:'bike',run:'run',swim:'swim',strength:'strength'}[card.sport];
-   const zones=[...new Set(steps.flatMap(b=>b.zones))];
+   // Warm-up blocks in historical strength may carry a "recovery" domain;
+   // do NOT convert that into an aerobic Z1 prescription for strength.
+   const zones=card.sport==='strength'?[]:[...new Set(steps.flatMap(b=>b.zones))];
    const main=card.blocks.filter(b=>b.kind==='repeat'||b.role==='main').map(b=>evaluate(b,approval));
-   const mainZones=[...new Set(main.flatMap(b=>b.zones))];
+   const mainZones=card.sport==='strength'?[]:[...new Set(main.flatMap(b=>b.zones))];
    const mainZoneMax=Math.max(0,...mainZones.map(z=>Number(z.replace('Z',''))));
    const family=FAMILIES[card.primaryIntent];
    const normalizedGoal=normalizeRepairGoal(approval.objective);
