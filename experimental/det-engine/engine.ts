@@ -562,8 +562,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           objectiveKey,order.filter(x=>['swim','bike','run','brick'].includes(x.slot.slot.sport))
             .map(({domain,slot})=>{
               const index=order.findIndex(x=>x.slot===slot);
+              // Strict V3 search already rejects any non-certified
+              // candidate before it can become a selected assignment.
+              // Do not let a legacy alternative invalidate an otherwise
+              // fully certified slot's advisory trajectory; ONLY actual
+              // independently verified candidates contribute its bounds.
               return {id:ratioSlotKeys[index],
-                choices:domain.map(session=>exactTriContribution(session))};
+                choices:domain.map(session=>exactTriContribution(session))
+                  .filter((dose):dose is TriContribution=>dose!==null)};
             }),sourceLoadLedger,ceiling):null;
         if(targetRatioMode)result.issues.push({code:'det_v312_source_ratio_trajectory',
           week:w.week,severity:'warning',message:JSON.stringify({
