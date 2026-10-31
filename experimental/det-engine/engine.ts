@@ -762,6 +762,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           })});
         return refuse(`${proofKind}_polarization_source_envelope_refused_week_${w.week}`);
       }
+      if(requiresRaceSpecificPeak&&!raceSpecificSuffix[0]){
+        result.issues.push({
+          code:'det_v316_race_specific_source_domain_empty',
+          week:w.week,severity:'blocking',message:JSON.stringify({
+            phase:w.phase,weekType:w.weekType,
+            eligibleSlots:order.length,
+            provenRaceSpecificSourceCandidates:0,
+            previousPeakSourceSeen:peakRaceSpecificSeen,
+            nativePatternMirrored:true,
+            remedy:'coach review of appropriate source coverage or phase layout',
+            noArtificialIntensityOrWorkoutInserted:true,
+          }),
+        });
+        return refuse('v316_race_specific_source_missing_week_'+w.week);
+      }
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
       const strictPrunes:Record<string,number>={};
       const countPrune=(reason:string)=>{strictPrunes[reason]=(strictPrunes[reason]??0)+1;};
