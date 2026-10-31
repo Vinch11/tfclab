@@ -29,7 +29,8 @@ export interface V31IntensitySegment {
   role:string;
   unit:'watts'|'seconds_per_km'|'seconds_per_100m'|'rpe'|'kg';
   min:number;
-  max:number;
+  /** null means no finite upper pace bound (e.g. very easy run). */
+  max:number|null;
   provenance:'coach_confirmed'|'derived_from_individual_threshold';
 }
 export interface V31IntensityResult {
@@ -47,9 +48,9 @@ export function resolveV31Intensity(w:V3Workout,athlete:V31AthleteCalibration):V
   const missing:string[]=[];
   const need=(key:string)=>missing.push(key);
   const values=(path:string,domain:DoctrineDomainId|null,role:string,
-    unit:V31IntensitySegment['unit'],min:number,max:number,
+    unit:V31IntensitySegment['unit'],min:number,max:number|null,
     provenance:V31IntensitySegment['provenance'])=>{
-      if(!Number.isFinite(min)||!Number.isFinite(max)||min<0||max<=0||min>max){
+      if(!Number.isFinite(min)||min<0||(max!==null&&(!Number.isFinite(max)||max<=0||min>max))){
         need('INCOMPATIBLE_CALIBRATION:'+path);return;
       }
       segments.push({path,domain,role,unit,min,max,provenance});
@@ -108,7 +109,7 @@ export function resolveV31Intensity(w:V3Workout,athlete:V31AthleteCalibration):V
       if(!valid(threshold)){need('run_individual_MLSS_pace');continue;}
       if(!doctrine.run||doctrine.run.max<=0){need('run_domain_without_pace_range:'+domain);continue;}
       let fastest=threshold/doctrine.run.max;
-      const slowest=doctrine.run.min>0?threshold/doctrine.run.min:threshold*2;
+      const slowest=doctrine.run.min>0?threshold/doctrine.run.min:null;
       if(domain==='recovery'||domain==='moderate_lt1'){
         const lt1=athlete.runLT1PaceSecondsPerKm;
         if(!valid(lt1)||lt1<=threshold){need('run_individual_LT1_pace');continue;}
