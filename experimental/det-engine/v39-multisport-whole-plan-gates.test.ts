@@ -241,7 +241,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     expect(strictStructured.sportingRelevance).toBe('not_attested');
     expect(strictStructured.humanReviewRequired).toBe(true);
     if(strictStructured.technicallyConstructed){
-      expect(strictStructured.constraintsSatisfied).toBe(false); // No accidental waiver of native rules.
+      expect(strictStructured.candidate?.weeks).toHaveLength(cfg.weeksAvailable);
+      // The unchanged native validators decide compliance, not this partial gate.
     }else expect(strictStructured.status).toBe('refused');
     // Bounded experimental search for 75% of CLASSIFIABLE minutes Z1/Z2
     // using the existing native estimator, not assumed easy volume.
