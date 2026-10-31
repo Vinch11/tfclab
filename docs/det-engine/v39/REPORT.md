@@ -117,6 +117,14 @@ Le constat ne dépend ni des 800 recettes ni de leur durée : augmenter la bibli
 
 **Décision** : la préférence natation seule est un **candidat test-only prometteur**, non une règle universelle ni un plan validé. La preuve de conformité totale demeure NON OBTENUE. Les deux urgences vérifiées sont (a) retirer mathématiquement le faux blocage d'un ratio de volume mesuré en nombre de séances, **sans supprimer le contrôle de fréquence** ; (b) faire passer les échecs de polarisation à partir de vraies séances et minutes de zones, sans inventer de temps Z1/Z2 ni de source de brick.
 
+## V3.9.7 — préférence Z1/Z2 non-clé refusée après preuve négative
+
+CI spécialisée du SHA `23f0201` : **149 tests réussis, 7 ignorés**, et essais comparatifs du vrai `constructDeterministicPlan`. La tentative `preferCertifiedEasyOnNonKeySlots` n'a **réduit aucune semaine bloquée pour polarisation** :
+- 70.3 : polarization S5/S6/S7/S9 **inchangée** ; refus de décharge S4, `load_pattern` et `lorang_categories` **réintroduits** alors qu'ils avaient disparu avec la préférence natation seule.
+- Ironman : polarization S6/S7/S9/S10 **inchangée** ; la natation varie de 15,35 % à 15,50 %, sans avantage pertinent.
+
+**Décision : REJET** de cet ordre de sélection « easy non-key ». Les modifications ont été annulées (moteur au commit `24551b5`, test au commit `f41dc6b`) et la variante natation seule retrouve le statut de meilleur candidat test-only. L'essai rejeté reste documenté, mais non actif. Pour corriger la polarisation, il faut caractériser les minutes Z1/Z2 réelles et leurs séquences dans les sources approuvées, et trouver des affectations compatibles **avec la décharge, les séances clés, les ratios sportifs et la récupération simultanément** ; ne pas augmenter artificiellement les minutes faciles.
+
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
 2. **70.3** : date/jour J placés, 12 semaines complètes, chaque budget coach ≤600 min, vraie décharge, ratios sportifs sur minutes attribuées, récupération à partir d'horaires coach authentifiés (ou refus), polarisation et séances clés conformes, toutes les validations natives sans blocage.
