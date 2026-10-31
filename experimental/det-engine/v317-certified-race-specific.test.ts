@@ -44,6 +44,29 @@ describe('DET V317 — real reviewed race-pace evidence, no regex promotion',()=
     expect(certifyReviewedRaceSpecificPeak(base,'703',good,dose).verdict)
       .toBe('refused');
   });
+  it('rejects a second reviewed source with the wrong objective even when a first source is valid',()=>{
+    const base=plan('V3P_BIKE_089');
+    base.weeks[0].sessions.push(plan('V3P_SWIM_194','swim',50).weeks[0].sessions[0]);
+    const result=certifyReviewedRaceSpecificPeak(base,'703',id=>({
+      sourceId:id,objective:id==='V3P_SWIM_194'?'IM':'703',
+    }),dose);
+    expect(result.verdict).toBe('refused');
+    expect(result.reason).toBe('race_specific_reviewed_source_invalid');
+    expect(result.sourceIds).toEqual([]);
+    expect(result.rejected).toContain('wrong_source_or_objective:V3P_SWIM_194');
+  });
+  it('rejects an incorrect second individually reviewed dose even when a first source is valid',()=>{
+    const base=plan('V3P_BIKE_089');
+    base.weeks[0].sessions.push(plan('V3P_SWIM_194','swim',50).weeks[0].sessions[0]);
+    const result=certifyReviewedRaceSpecificPeak(base,'703',id=>({
+      sourceId:id,objective:'703',
+    }),(id,minutes)=>id==='V3P_SWIM_194'?
+      {low:20,nonLow:10,unknown:0}:dose(id,minutes));
+    expect(result.verdict).toBe('refused');
+    expect(result.reason).toBe('race_specific_reviewed_source_invalid');
+    expect(result.sourceIds).toEqual([]);
+    expect(result.rejected).toContain('missing_exact_individual_dose:V3P_SWIM_194');
+  });
   it('refuses an approved-source provider that throws',()=>{
     expect(certifyReviewedRaceSpecificPeak(
       plan('V3P_BIKE_089'),'703',()=>{
