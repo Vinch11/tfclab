@@ -36,13 +36,26 @@ The five existing JSON sources have **not been discarded** or reassigned new IDs
 
 | Discipline | Whole-minute base duration established | Needs more evidence or a bounded adjustment |
 |---|---:|---:|
-| Bike | 189 | 11 fractional-minute baselines |
+| Bike | 191 | 9 fractional-minute baselines |
 | Run | 191 | 9 fractional-minute baselines |
 | Swim | 100 | 100 historical distance prescriptions requiring domain-specific paces |
 | Strength | 101 | 99 historical movement-time estimates |
-| **Total** | **581** | **219** |
+| **Total** | **583** | **217** |
 
 These are **catalogue timing facts**, not counts of athlete-admissible sessions. Every source still requires available athlete anchor(s), a check of coach-defined load, and an individual review. The bridge rejects absent FTP/pace/PMA/vVO2/RPE evidence rather than substituting arbitrary values; target bands and provenance survive in the individual candidate text.
+
+## 800 source-by-source sporting qualification (V3.3)
+
+The read-only `v33SportingReview800.json` register contains **800 individual source decisions, 800 drift fingerprints, sport, intent, domain, limiter targets, source restrictions, required athlete measurements and contraindications**. The gate `sportingQualification800.ts` recomputes the source fingerprint, checks internal stimulus contradictions and rejects missing individual coach evidence **before DET's metadata bridge**. Missing fitness/load/clearance, injury review, source prerequisites, fatigue or event specificity always fail closed.
+
+- All **800/800 are structurally prequalified for individual coach review** after rebuilding three original unsafe source definitions; **0/800 have independent human sports approval**, laboratory validation or real athlete approval.
+- `V3P_BIKE_024`: 60s non-maximal work is now explicitly tempo-based technique/cadence activation, not an "alactic" stimulus.
+- `V3P_SWIM_020`: former 50m alleged alactic repetitions are now technique-only 50m under LT1, with own measured moderate pace.
+- `V3P_SWIM_083`: 50m sprint changed to 25m; any athlete with unmeasured sprint pace or individual 25m effort **over 20 seconds** is still blocked, as is insufficient recovery under 90 seconds.
+- These three redesigns **invalidate the previous PR448 source verdict**: their updated records identify post-PR448 automated re-screening, without asserting human evidence.
+- Separate source-specific `sub_threshold` and `mlss` tags are kept. `mixed_intensity` is explicitly refused by the current DET metadata adapter until a *truthful distinct intent family* exists.
+- Test-only fixture `syntheticV3SportingContext` supplies synthetic coach evidence, never production defaults.
+- A source allowed into the deterministic prevalidation still must pass weekly plans, progression, load, injury context, recovery with real start times, and goal-specific distribution; it is **never publishable** merely from the source decision.
 
 ## Automated checks
 
