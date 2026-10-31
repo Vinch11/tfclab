@@ -68,7 +68,7 @@ describe('V3.2 sporting source qualification — complete 400 audit',()=>{
    expect(r!.reviewAuthority).toBe('automated_sport_screen_only');
   }
   const blocked=all.filter(x=>x.sourceStatus==='source_blocked').map(x=>x.id);
-  expect(blocked).toEqual(['V3P_SWIM_020','V3P_BIKE_024','V3P_SWIM_083']);
+  expect(blocked).toEqual(['V3P_BIKE_024','V3P_SWIM_020','V3P_SWIM_083']);
  });
  it('classifies corrected threshold, mixed interval and force sources correctly',()=>{
   for(const id of ['V3P_BIKE_007','V3P_RUN_007','V3P_SWIM_068']){
