@@ -32,6 +32,7 @@ import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
+import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
@@ -94,6 +95,9 @@ export interface ExperimentalAssemblyContract {
    * only when ALL real V3 source dose blocks meet the stricter per-load-week
    * contract; never changes native validators in the released application. */
   reconcileReviewedSourcePolarization?:true;
+  /** V315 only: avoid already forbidden taper-phase candidates before DFS;
+   * unchanged final native phase validator remains authoritative. */
+  excludeNativeForbiddenTaperCandidates?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -331,6 +335,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       let calendarRecoveryExclusions=0;
       let confirmedOverlapExclusions=0;
       let sprintBanExclusions=0;
+      let taperPhaseExclusions=0;
       const sprintBanned=experimentalContract?.filterDeclaredSprintBanCandidates===true &&
         config.prohibitions?.some(text=>/sprint\s*ban/i.test(text))===true;
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
@@ -391,6 +396,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const unverified=checked.unknown.filter(code=>
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
+          }).filter(session=>{
+            if(experimentalContract?.excludeNativeForbiddenTaperCandidates!==true ||
+               (w.phase!=='taper'&&entry.weekType!=='taper'))return true;
+            const disallowed=candidateViolatesNativeTaperPhase(session);
+            if(disallowed)taperPhaseExclusions++;
+            return !disallowed;
           }).filter(session=>
             experimentalContract?.requireMeasuredDeloadSelection!==true ||
             entry.weekType!=='recovery' ||
@@ -471,6 +482,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||
               a.catalogId!.localeCompare(b.catalogId!);
           });
+      });
+      if(taperPhaseExclusions)result.issues.push({
+        code:'det_v315_taper_candidate_phase_exclusions',
+        week:w.week,severity:'warning',
+        message:taperPhaseExclusions+' phase-incompatible reviewed candidates rejected before DFS; native validator retained',
       });
       if(sprintBanExclusions)result.issues.push({
         code:'det_declared_sprint_ban_candidate_excluded',week:w.week,severity:'warning',
