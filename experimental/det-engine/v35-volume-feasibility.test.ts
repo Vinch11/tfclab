@@ -16,7 +16,7 @@ function candidate(includeLegacyBrick=false):ParsedPlan {
   }]};
 }
 const cap=(maxMinutes:number):Record<number,V35WeekBudget>=>({
-  1:{weekType:'load',volumeBudget:{maxMinutes,weeklyIncreasePctMax:0.1}},
+  1:{weekType:'load',volumeBudget:{maxMinutes,weeklyIncreasePctMax:0.1,referenceSource:'coach'}},
 });
 describe('DET V35 — necessary-condition gate, never an authorization to add load',()=>{
   it('finds exactly 57 minutes to reach 23% without changing the candidate',()=>{
@@ -39,6 +39,12 @@ describe('DET V35 — necessary-condition gate, never an authorization to add lo
     const report=auditV35BikeOnlyFeasibility(candidate(),{1:{weekType:'load'}},[]);
     expect(report.optimisticCombinedHeadroomMinutes).toBeNull();
     expect(report.verdict).toBe('coach_volume_ceiling_missing');
+  });
+  it('does not treat a matrix-derived cap as a coach-confirmed hard budget',()=>{
+    const report=auditV35BikeOnlyFeasibility(candidate(),
+      {1:{weekType:'load',volumeBudget:{maxMinutes:3500,weeklyIncreasePctMax:0.1,
+        referenceSource:'internal-matrix'}}},[]);
+    expect(report.verdict).toBe('volume_ceiling_not_coach_confirmed');
   });
   it('refuses to infer a ratio from an undecomposed historic brick',()=>{
     const report=auditV35BikeOnlyFeasibility(candidate(true),cap(4000),[]);
