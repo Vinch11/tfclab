@@ -166,6 +166,12 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       completeSportingConstraintsSatisfied:withClock.constraintsSatisfied,
       minuteSportRatio:withClock.issues.filter(i=>
         i.code.startsWith('det_multisport_minute_ratio_')).map(i=>i.message),
+      loadWeekDoseExceptions:withClock.candidate?.weeks.flatMap(w=>
+        withClock.candidate?.weeklyQuotas?.[w.weekNumber]?.weekType!=='load'?[]:
+        w.sessions.filter(x=>!x.isRest&&['swim','bike','run','brick'].includes(x.sport)&&
+          (typeof x.durationMin!=='number'||!Number.isSafeInteger(x.durationMin)||x.durationMin<=0))
+          .map(x=>({week:w.weekNumber,id:x.catalogId??x.title,sport:x.sport,
+            duration:x.durationMin??null})))??[],
       migratedCountRatio:withClock.issues.find(i=>
         i.code==='det_native_count_ratio_migration_decision')?.message??null,
       strictMinuteSportRatioVerified:withClock.issues.some(i=>
