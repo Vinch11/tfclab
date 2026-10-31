@@ -17,6 +17,7 @@ import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
+import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
@@ -434,6 +435,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ])) as Record<'swim'|'bike'|'run',number|null>;
         const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
         const targets=SPORT_RATIO_TARGETS[objectiveKey];
+        // This bounds the required actual reallocation before optimizing
+        // sources. Unresolved brick minutes are all optimistically assigned
+        // to non-swim endurance; free weekly minutes are theoretical only.
+        const capacityCertificate=targets?.swim?certifySwimRatioCapacity(
+          audit.knownMinutes,audit.unresolvedBrickMinutes,targets.swim[1],
+          plan,audit.weeks,Object.fromEntries(audit.weeks.map(week=>{
+            const entry=preparation.weeklyQuotas[week];
+            return [week,Math.min(
+              Math.floor((config.weeklyHours??Infinity)*60),
+              entry.volumeBudget?.maxMinutes??Infinity,
+            )];
+          })),
+        ):null;
         const sports=['swim','bike','run'] as const;
         const deviations=sports.filter(sport=>{
           const v=ratio[sport],target=targets?.[sport];
@@ -459,7 +473,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             unresolvedBrickMinutes:audit.unresolvedBrickMinutes,
             conservativeBounds:audit.conservativeBounds,knownMinutes:audit.knownMinutes,
             verifiedTransitionMinutes:audit.verifiedTransitionMinutes,
-            provablyOutOfRange,deviations,scope:audit.scope}),
+            provablyOutOfRange,deviations,scope:audit.scope,
+            capacityCertificate}),
         });
       }catch(error){
         result.issues.push({code:'det_multisport_minute_ratio_unverifiable',
