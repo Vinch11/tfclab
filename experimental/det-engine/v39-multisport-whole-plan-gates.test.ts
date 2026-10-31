@@ -137,6 +137,24 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
         requireRealQualityOnLoadWeeks:true,
         preferSourceBackedMultisportBalance:'swim'});
     const swimRatio=swimOnly.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    const parseDetails=(message?:string)=>{
+      if(!message)return null;
+      try{return JSON.parse(message) as Record<string,unknown>;}catch{return null;}
+    };
+    const detail=parseDetails(swimRatio?.message);
+    const polarization=parseDetails(swimOnly.issues.find(i=>
+      i.code==='det_native_polarization_source_attribution')?.message);
+    const polarizationTop=Array.isArray(polarization)?polarization.map(
+      w=>({week:w.week,lowPctOfClassifiable:w.lowPctOfClassifiable,
+        unknownPctOfTotal:w.unknownPctOfTotal,
+        offenders:(w.observedSessions as Array<Record<string,unknown>>).slice(0,4)
+          .map(s=>({id:s.id,sport:s.sport,day:s.day,highMin:s.highMin,
+            midMin:s.midMin,lowMin:s.lowMin,unknownMin:s.unknownMin}))})):null;
+    console.info('DET_V39_REMAINING_SOURCE_BARRIERS',JSON.stringify({
+      fixture:fixtureId,objective,
+      unknownBricks:detail?.unresolvedBricks??[],
+      polarizationTop,
+    }));
     console.info('DET_V39_SWIM_ONLY_RATIO_COMPARISON',JSON.stringify({
       fixture:fixtureId,objective,technicallyConstructed:swimOnly.technicallyConstructed,
       original:readRatio(baseRatio?.message),
