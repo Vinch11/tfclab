@@ -1,5 +1,6 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import { describe,it,expect,vi,afterEach } from 'vitest';
-import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
+import { type V3ReviewedSettings } from './v31-v3-catalogue';
 import { V32_703_BRICK_BLUEPRINTS, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import { auditPlannedMinuteDistribution,splitVerifiedV3Brick } from './v31-time-ratio';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
