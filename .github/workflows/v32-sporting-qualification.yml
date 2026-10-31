@@ -1,0 +1,30 @@
+name: V3.2 — sporting qualification of 400 real sources
+on:
+  pull_request:
+    paths:
+      - 'scripts/library-v3/**'
+      - 'src/lib/__tests__/v32SportingQualification.test.ts'
+      - '.github/workflows/v32-sporting-qualification.yml'
+  push:
+    branches:
+      - 'experiment/v3-2-sporting-qualification-400'
+permissions:
+  contents: read
+jobs:
+  sporting-400:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: ESLint — new sporting gate
+        run: bunx eslint scripts/library-v3/sportingQualification.ts scripts/library-v3/qualifyForAthlete.ts src/lib/__tests__/v32SportingQualification.test.ts
+      - name: TypeScript — application and tests
+        run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Source and sporting ledger/coach workbench synchronization
+        run: node scripts/library-v3/checkWorkbenchSync.mjs
+      - name: Exhaustive 400/400 sporting source and athlete gating tests
+        run: bunx vitest run src/lib/__tests__/v31PrescriptionContract.test.ts src/lib/__tests__/v31PrescriptionResolution.test.ts src/lib/__tests__/v32SportingQualification.test.ts
