@@ -52,6 +52,13 @@ describe('V34 — lower run-recovery burden without changing sport floors',()=>{
     })).toBe(-2);
   }
   expect(p.allBricks).toHaveLength(7);
+  expect(p.lowRunBrickReport.accepted[1].mainZoneMax).toBe(2);
+  expect(p.contract.filterCandidate?.(p.lowRunBrickReport.accepted[1],{
+    week:6,phase:'build',weekType:'load',slot:{sport:'brick',isKeySession:true},dayIndex:5
+  })).toBe(false);
+  expect(p.contract.filterCandidate?.(p.lowRunBrickReport.accepted[1],{
+    week:6,phase:'build',weekType:'load',slot:{sport:'brick',isKeySession:true,isLongSession:true},dayIndex:5
+  })).toBe(true);
  });
  it('refuses absent review, wrong transition or altered bike source dosage',()=>{
   expect(buildDetV3ContractFromCatalogue(sources,base,specific).lowRunBrickReport.accepted)
