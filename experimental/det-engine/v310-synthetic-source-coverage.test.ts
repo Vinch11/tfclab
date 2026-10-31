@@ -401,6 +401,7 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         auditVerifiedMultisportMinutes:true,
         auditGlobalSourceSportRatioBounds:true,
         applyReviewedMinuteSportRatio:true,
+        verifyOfficialRaceQuotaProjection:true,
         auditStructuredPolarizationSources:true,
         coachSlotStart:confirmedSlot,
         coachSessionStart:session=>confirmedSlot({
@@ -410,6 +411,11 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       fixture:fixtureId,objective,evidence:fullReplays.evidence,
       ratio:fullReplays.result?ratioDiagnostic(fullReplays.result):null,
       blockers:fullReplays.result?blockers(fullReplays.result):[],
+      quotaProjection:fullReplays.result?.issues.find(i=>
+        i.code==='det_v315_official_race_training_quota_projection_verified')
+        ?.message??null,
+      countRatioMigration:fullReplays.result?.issues.find(i=>
+        i.code==='det_native_count_ratio_migration_decision')?.message??null,
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
     expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
