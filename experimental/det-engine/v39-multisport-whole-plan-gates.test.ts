@@ -5,6 +5,7 @@
  */
 import {describe,it,expect,vi,afterEach} from 'vitest';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
+import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
@@ -66,6 +67,13 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       strength:w.sessions.filter(s=>s.sport==='strength').length,
     }))??[];
     const blockingIssues=out.issues.filter(i=>blocking(i.severity));
+    const releaseCheck=prepareGenerationContracts(f.athleteData,cfg,{rotationSeed:0});
+    const raceWeek=releaseCheck.weeklyQuotas[cfg.weeksAvailable!];
+    const eventLayout={required:raceWeek?.layout?.requiredEvents??[],
+      placed:raceWeek?.layout?.days.flatMap(day=>day.slots.filter(slot=>slot.isRaceEvent)
+        .map(slot=>({day:day.dayName,sport:slot.sport})))??[],
+      brickQuota:raceWeek?.quota?.brick,totalQuota:raceWeek?.quota?.totalSessions,
+      maxSessionsPerDay:raceWeek?.quota?.maxSessionsPerDay,weekType:raceWeek?.weekType};
     const byCode=Object.fromEntries([...new Set(blockingIssues.map(x=>x.code))].sort().map(
       code=>[code,blockingIssues.filter(i=>i.code===code).map(i=>i.week??null)]));
     const named=out.trace.filter(t=>t.id.startsWith('V3P_')||t.id.startsWith('V3B_'));
@@ -74,6 +82,7 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       status:out.status,reason:out.reason,technicallyConstructed:out.technicallyConstructed,
       constraintsSatisfied:out.constraintsSatisfied,eligibleSourceCount:report.accepted.length,
       weeksExpected:cfg.weeksAvailable,weeksConstructed:weeks.length,
+      raceEventLayout:eventLayout,
       weeks,selectedV3:named.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
       hardBlockers:byCode,searchNodes:out.nodes,
     }));
