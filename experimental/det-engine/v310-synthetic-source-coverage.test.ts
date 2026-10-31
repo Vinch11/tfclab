@@ -393,6 +393,7 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       {...contract,
         enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
         enforceConfirmedNoSameDayOverlap:true,
+        requireMeasuredDeloadSelection:true,
         improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
         filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
         preferSourceBackedMultisportBalance:'triathlon_targets',
