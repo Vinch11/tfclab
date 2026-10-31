@@ -124,6 +124,17 @@ function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
 }
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   const swimPaces=normalizedSwimPaces(settings);
+  // Alactic 25m only when the athlete's own neuromuscular pace proves
+  // an effort no longer than 20 seconds, never inferred from pool distance.
+  if(workout.id==='V3P_SWIM_083'){
+    const pace=swimPaces.neuromuscular;
+    if(typeof pace!=='number'||!Number.isFinite(pace)||pace<=0||25*pace/100>20)
+      throw Error('v3_sprint_25m_duration_over_20s_or_unmeasured');
+    const repeat=workout.blocks.find(b=>b.kind==='repeat'&&b.steps.some(step=>
+      step.kind==='distance'&&step.domain==='neuromuscular'));
+    if(!repeat||repeat.kind!=='repeat'||repeat.betweenSec<90)
+      throw Error('v3_sprint_25m_recovery_not_sufficient');
+  }
   if (settings.overrides && settings.targetDurationMin !== undefined)
     throw Error('v3_conflicting_recipe_controls');
   let overrides=settings.overrides??{};
