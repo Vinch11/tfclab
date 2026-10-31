@@ -356,7 +356,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         entry.weekType==='load'&&config.ambition!=='finisher'&&
         ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
       const isQuality=(session:ParsedSession)=>!!session.isKeySession&&
-        session.zones?.some(zone=>/z\\s*[4-7]/i.test(zone))===true;
+        session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
       const qualitySuffix=Array(order.length+1).fill(false) as boolean[];
       for(let i=order.length-1;i>=0;i--)
         qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
