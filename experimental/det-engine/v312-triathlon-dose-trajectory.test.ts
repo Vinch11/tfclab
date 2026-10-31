@@ -51,6 +51,25 @@ describe('DET V312 — advisory source-dose trajectory, no validator bypass',()=
     expect(t?.high.run).toBe(115);
     expect(t?.preferredBySlot.brick.swim).toBe(0);
   });
+  it('permits only physically meaningful in-range replay targets',()=>{
+    const domains=[
+      {id:'swim',choices:[c(30),c(60)]},
+      {id:'bike',choices:[c(0,90),c(0,160)]},
+      {id:'run',choices:[c(0,0,80),c(0,0,110)]},
+    ];
+    const normal=planTriathlonRatioTrajectory('IM',domains,
+      {swim:0,bike:0,run:0},500);
+    const tuned=planTriathlonRatioTrajectory('IM',domains,
+      {swim:0,bike:0,run:0},500,{swim:.15,bike:.55,run:.30});
+    expect(normal).not.toBeNull();
+    expect(tuned).not.toBeNull();
+    expect(tuned!.sportTargetMinutes.swim).toBeLessThan(normal!.sportTargetMinutes.swim);
+    expect(tuned!.sportTargetMinutes.bike).toBeGreaterThan(normal!.sportTargetMinutes.bike);
+    expect(planTriathlonRatioTrajectory('IM',domains,
+      {swim:0,bike:0,run:0},500,{swim:.10,bike:.60,run:.30})).toBeNull();
+    expect(planTriathlonRatioTrajectory('IM',domains,
+      {swim:0,bike:0,run:0},500,{swim:.16,bike:.54,run:.29})).toBeNull();
+  });
   it('refuses missing sources and invalid cumulative minutes',()=>{
     expect(planTriathlonRatioTrajectory('IM',[
       {id:'x',choices:[null,c(10)]},
