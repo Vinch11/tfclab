@@ -272,7 +272,7 @@ function validateSessionPrescription(w: V3Workout, errors: string[]): void {
       if(b.betweenSecBounds)expected.set(path+".betweenSec",b.betweenSecBounds);
       walk(b.steps,path);
     }else{
-      if(b.domain)domains.add(b.domain);
+      if(b.domain && w.sport!=="strength")domains.add(b.domain);
       if(b.kind==="distance"&&b.domain)distances.add(b.domain);
       if(b.kind==="reps")estimated=true;
       const k=b.kind==="time"?"seconds":b.kind==="distance"?"meters":"reps";
