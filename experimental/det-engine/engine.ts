@@ -31,6 +31,7 @@ import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {assessStrictPeriodizationEvidence} from './v316-strict-periodization-gate';
+import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-native-peak-candidate';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
@@ -302,6 +303,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         severity:'blocking',message:'Strict final ratio search requires verified V3 structured polarization and triathlon_targets; no unproved source may be counted.'});
       return refuse('v314_strict_final_ratio_prerequisites_missing');
     }
+    const lastPeakWeekNumber=report.weeks.reduce((last,w)=>
+      w.phase?.trim().toLowerCase()==='peak'?w.week:last,0);
+    let peakRaceSpecificSeen=false;
     const lastLoadWeekNumber=report.weeks.reduce((last,w)=>
       preparation.weeklyQuotas[w.week]?.weekType==='load'?w.week:last,0);
     if(strictFinalRatioRequested&&!lastLoadWeekNumber)return refuse('v314_no_load_weeks_to_certify');
@@ -406,6 +410,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             if(disallowed)taperPhaseExclusions++;
             return !disallowed;
           }).filter(session=>
+            experimentalContract?.requireStrictPeriodizationEvidence!==true ||
+            w.phase?.trim().toLowerCase()!=='peak' ||
+            !violatesNativeNormalPeak(session)
+          ).filter(session=>
             experimentalContract?.requireMeasuredDeloadSelection!==true ||
             entry.weekType!=='recovery' ||
             (typeof session.durationMin==='number'&&
@@ -592,6 +600,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
       const isQuality=(session:ParsedSession)=>!!session.isKeySession&&
         session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
+      const requiresRaceSpecificPeak=
+        experimentalContract?.requireStrictPeriodizationEvidence===true &&
+        w.phase?.trim().toLowerCase()==='peak' &&
+        w.week===lastPeakWeekNumber && !peakRaceSpecificSeen;
+      const raceSpecificSuffix=Array(order.length+1).fill(false) as boolean[];
+      for(let i=order.length-1;i>=0;i--)
+        raceSpecificSuffix[i]=raceSpecificSuffix[i+1]||
+          order[i].domain.some(hasSourceVisibleRaceSpecificity);
       const qualitySuffix=Array(order.length+1).fill(false) as boolean[];
       for(let i=order.length-1;i>=0;i--)
         qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
@@ -753,6 +769,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
+        if(requiresRaceSpecificPeak&&!chosen.some(hasSourceVisibleRaceSpecificity)&&
+           !raceSpecificSuffix[index]){
+          countPrune('v316_race_specificity_unavailable');
+          return false;
+        }
         if(requireAnyStrictZones){
           const selected=chosen.map(session=>nativeProfiles.get(session));
           if(selected.some(dose=>dose==null))return false;
@@ -849,6 +870,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }),
       });
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
+      if(w.phase?.trim().toLowerCase()==='peak'&&
+         chosen.some(hasSourceVisibleRaceSpecificity))peakRaceSpecificSeen=true;
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,sport:s.sport,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
       if(experimentalContract?.requireMeasuredDeloadSelection===true &&
