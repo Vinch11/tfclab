@@ -55,7 +55,8 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     expect(report.accepted.length).toBeGreaterThan(0);
     const out=constructDeterministicPlan(f.athleteData,cfg,
       {maxNodes:12000,maxMilliseconds:8000},{...contract,
-        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true});
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        annotateVerifiedDeloads:true});
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
