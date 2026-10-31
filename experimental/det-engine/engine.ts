@@ -30,6 +30,7 @@ import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type Confi
 import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
+import {assessStrictPeriodizationEvidence} from './v316-strict-periodization-gate';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
@@ -88,6 +89,8 @@ export interface ExperimentalAssemblyContract {
   /** V315 experimental-only: require real >=30% recovery-week time reduction
    * while selecting candidates, not after accepting a whole calendar. */
   requireMeasuredDeloadSelection?:true;
+  /** V316 opt-in: a native periodization warning cannot count as strict sporting GO. */
+  requireStrictPeriodizationEvidence?:true;
   /** V315 only: validate training frequency excluding certified official race
    * EVENTS, while preserving physical and native validation of the full plan. */
   verifyOfficialRaceQuotaProjection?:true;
@@ -111,7 +114,7 @@ export interface ExperimentalAssemblyContract {
   /** Read-only full-plan trace: verified and missing block-zone sources. */
   auditStructuredPolarizationSources?:true;
 }
-export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
+export interface ChoiceTrace { week:number; day:string; id:string; sport?:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
   status:'refused'|'candidate'; reason?:string; technicallyConstructed:boolean;
   constraintsSatisfied:boolean; sportingRelevance:'not_attested'; humanReviewRequired:true;
@@ -847,7 +850,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       });
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
-      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
+      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,sport:s.sport,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
       if(experimentalContract?.requireMeasuredDeloadSelection===true &&
          entry.weekType==='recovery'&&measuredTrainingMinutes(chosen)===null){
         result.issues.push({code:'det_v315_recovery_duration_not_verified',
@@ -1159,6 +1162,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   }
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
+  if(experimentalContract?.requireStrictPeriodizationEvidence===true){
+    const phase=assessStrictPeriodizationEvidence(result.issues);
+    result.issues.push({
+      code:phase.verdict==='blocked'?
+        'det_v316_strict_periodization_not_proven':
+        'det_v316_strict_periodization_verified',
+      severity:phase.verdict==='blocked'?'blocking':'warning',
+      message:JSON.stringify({
+        verdict:phase.verdict,findings:phase.flagged,
+        nativeValidatorPreserved:true,experimentalOnly:true,
+      }),
+    });
+  }
   result.technicallyConstructed=result.candidate!.weeks.length===config.weeksAvailable;
   result.constraintsSatisfied=!result.issues.some(i=>['error','critical','blocking'].includes(i.severity));
   result.status='candidate';
