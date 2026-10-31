@@ -49,8 +49,13 @@ export function certifyReviewedRaceSpecificPeak(
       if(!['bike','swim','run'].includes(session.sport)){
         rejected.push('wrong_sport:'+session.catalogId);continue;
       }
+      let dose:NativeZoneDose|null|undefined;
+      if(typeof session.durationMin==='number'){
+        try{dose=sourceDose(session.catalogId,session.durationMin);}
+        catch{rejected.push('source_dose_provider_error:'+session.catalogId);continue;}
+      }
       if(typeof session.durationMin!=='number'||
-         !zonesValid(sourceDose(session.catalogId,session.durationMin),session.durationMin)){
+         !zonesValid(dose,session.durationMin)){
         rejected.push('missing_exact_individual_dose:'+session.catalogId);
         continue;
       }
