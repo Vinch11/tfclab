@@ -10,6 +10,7 @@ import {
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
+import {resolveV3IntensityTargets, type V3AthleteAnchors, type V3IntensityTarget} from '../../scripts/library-v3/resolveV3Intensity';
 import {
   buildDetV3Contract, type DetV3Review, type V3SourceCard,
 } from './v31-v3-bridge';
@@ -19,6 +20,8 @@ import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-
 import type { ExperimentalAssemblyContract } from './engine';
 
 export interface V3ReviewedSettings extends DetV3Review {
+  /** Measured or explicitly verified athlete anchors: never generated or filled from population defaults. */
+  athleteAnchors?: V3AthleteAnchors;
   /** Exact V3 paths such as "0.seconds" or "1.count". */
   overrides?: Overrides;
   /** Optional exact target. Never pad spare time or round a prescription. */
@@ -84,14 +87,34 @@ function requireDoseChangeApproval(workout:V3Workout,overrides:Overrides,allowed
   inspect(workout.blocks);
 }
 
+function normalizedSwimPaces(settings:V3ReviewedSettings) {
+  const old=settings.swimPacesSecPer100m??{};
+  const supplied=settings.athleteAnchors?.swimDomainPacesSecPer100m??{};
+  for(const key of Object.keys(old) as Array<keyof typeof old>) {
+    if(supplied[key]!==undefined && old[key]!==supplied[key])
+      throw Error('v3_conflicting_swim_pace:'+key);
+  }
+  const merged={...old,...supplied};
+  if(settings.athleteAnchors?.coachConfirmsCssAsMlssProxy===true &&
+     typeof settings.athleteAnchors.cssSecPer100m==='number' && merged.mlss===undefined)
+    merged.mlss=settings.athleteAnchors.cssSecPer100m;
+  return merged;
+}
+function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
+  return targets.map(t=>t.metric==='coach_rpe_load'?
+    'Force: charge/RPE individuels confirmés par le coach':
+    [t.domain,t.min===null?'':String(t.min),t.max===null?'open':String(t.max),t.metric,
+     'source='+t.source,'confiance='+t.confidence].join(' ')).join(' ; ');
+}
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
+  const swimPaces=normalizedSwimPaces(settings);
   if (settings.overrides && settings.targetDurationMin !== undefined)
     throw Error('v3_conflicting_recipe_controls');
   let overrides=settings.overrides??{};
   if (settings.targetDurationMin !== undefined) {
     // Fitting cannot change the load-bearing work unless coach explicitly opts in.
     const fit=fitV3Duration(workout,settings.targetDurationMin,{
-      swimPaces:settings.swimPacesSecPer100m,toleranceSeconds:0,
+      swimPaces,toleranceSeconds:0,
       allowWorksetChange:settings.allowWorksetChange===true,
     });
     if(!fit.fitsSlot || fit.computed.status!=='confirmed')
@@ -103,11 +126,16 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   const configured={...workout,blocks:configureBlocks(workout.blocks,overrides,seen)};
   if(seen.size!==Object.keys(overrides).length)
     throw Error('v3_override_unknown_path');
-  const result=evaluateV3Workout(configured,{swimPaces:settings.swimPacesSecPer100m});
+  const result=evaluateV3Workout(configured,{swimPaces});
   if(result.status==='estimated')throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
   if(result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0)
     throw Error('v3_fractional_minute_not_supported');
+  // No athlete-specific physiological dose may be inferred from a slot duration.
+  const resolved=resolveV3IntensityTargets(configured,{
+    ...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:swimPaces,
+  });
+  if(resolved.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+resolved.missing.join(','));
   return configured;
 }
 
@@ -133,13 +161,19 @@ export function buildDetV3ContractFromCatalogue(
   for(const id of reviewMap.keys())if(!v3FullCatalogue.workouts.some(w=>w.id===id))
     throw Error('v3_unknown_reviewed_recipe:'+id);
   const faulty=new Map<string,string>();
+  const resolvedIntensityTexts=new Map<string,string>();
   const qualifiedReviews:DetV3Review[]=[];
   const cards:V3Workout[]=v3FullCatalogue.workouts.map(w=>{
     const settings=reviewMap.get(w.id);
     if(!settings)return w;
     try {
       const configured=configureWorkout(w,settings);
-      qualifiedReviews.push(settings);
+      const checked=resolveV3IntensityTargets(configured,{
+        ...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:normalizedSwimPaces(settings),
+      });
+      if(checked.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+checked.missing.join(','));
+      resolvedIntensityTexts.set(w.id,verifiedTargetsText(checked.targets));
+      qualifiedReviews.push({...settings,swimPacesSecPer100m:normalizedSwimPaces(settings)});
       return configured;
     }catch(e){
       faulty.set(w.id,String(e));
@@ -147,6 +181,12 @@ export function buildDetV3ContractFromCatalogue(
     }
   });
   const {contract:sourceContract,report}=buildDetV3Contract(cards as unknown as V3SourceCard[],qualifiedReviews);
+  for(const admitted of report.accepted){
+    const intensity=resolvedIntensityTexts.get(admitted.id);
+    if(!intensity)throw Error('v3_resolved_intensity_proof_missing:'+admitted.id);
+    admitted.structure+=' | CIBLES INDIVIDUALISÉES: '+intensity;
+    admitted.tags.push('v3-intensity-anchors-individually-verified');
+  }
   for(const rejection of report.rejected) {
     const why=faulty.get(rejection.id);
     if(why)rejection.reason=why;
