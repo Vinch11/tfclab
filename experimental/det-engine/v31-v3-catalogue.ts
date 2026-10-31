@@ -154,6 +154,7 @@ export function buildDetV3ContractFromCatalogue(
     lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
+    verifiedBrickCompositions:allBricks,
     adapt(preparation,config){
       sourceContract.adapt(preparation,config);
       if(!allBricks.length)return;
