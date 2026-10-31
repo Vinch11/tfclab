@@ -112,6 +112,45 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       unprovedSlots,blockingCodes:[...new Set(result.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     }));
+    // A second, explicitly SYNTHETIC coach-confirmed schedule explores
+    // the complementary proof mode. These are not real athlete appointments
+    // and can never be copied into an operational coach calendar.
+    const sportStarts:Record<string,number[]> = {
+      swim:[360,360,540,720,900,1020,480],
+      bike:[600,660,600,480,600,420,540],
+      run:[420,420,1080,1020,1080,420,420],
+      strength:[1140,1140,1140,1140,1140,1140,1140],
+      brick:[360,360,360,360,360,360,360],
+    };
+    const confirmedSlot=(slot:{week:number;dayIndex:number;sport:string})=>{
+      const minutes=sportStarts[slot.sport]?.[slot.dayIndex];
+      return minutes===undefined?null:{
+        provenance:'coach_confirmed' as const,minuteOfDay:minutes,utcOffsetMinutes:60,
+      };
+    };
+    const withClock=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:2500,maxMilliseconds:2500},{...contract,
+      enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+      improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+      filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+      preferSourceBackedMultisportBalance:'swim',
+      requireStructuredPolarizationOnLoadWeeks:true,
+      coachSlotStart:confirmedSlot,
+      coachSessionStart:session=>confirmedSlot({
+        week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+    });
+    const blockedByClock=withClock.issues.find(i=>
+      i.code==='det_structured_polarization_source_envelope_refused');
+    console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
+      fixture:fixtureId,constructedWeeks:withClock.candidate?.weeks.length??0,
+      reason:withClock.reason??null,nodes:withClock.nodes,
+      unprovedWeek:blockedByClock?.week??null,
+      blockedCodes:[...new Set(withClock.issues.filter(i=>
+        ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
+    }));
+    expect(withClock.humanReviewRequired).toBe(true);
+    expect(withClock.sportingRelevance).toBe('not_attested');
+    // There is NEVER a sporting or scientific GO without all native rules.
     expect(result.humanReviewRequired).toBe(true);
     expect(result.sportingRelevance).toBe('not_attested');
     if(result.technicallyConstructed){
@@ -119,5 +158,5 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       expect(result.candidate!.weeks.every(w=>w.sessions.filter(s=>!s.isRest)
         .reduce((n,s)=>n+(s.durationMin??0),0)<=Math.floor(cfg.weeklyHours!*60))).toBe(true);
     }else expect(result.status).toBe('refused');
-  });
+  },30000);
 });
