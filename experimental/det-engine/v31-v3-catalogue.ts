@@ -161,9 +161,14 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   if(seen.size!==Object.keys(overrides).length)
     throw Error('v3_override_unknown_path');
   const result=evaluateV3Workout(configured,{swimPaces});
-  if(result.status==='estimated')throw Error('v3_timing_is_only_estimated');
+  // For historical strength, the weekly prescription is a count of reviewed
+  // sessions, not a fabricated appointment duration. Other sports still
+  // require executable minute-level timing.
+  const strengthCountOnly=configured.sport==='strength' && result.status==='estimated';
+  if(result.status==='estimated'&&!strengthCountOnly)throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
-  if(result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0)
+  if(!strengthCountOnly &&
+     (result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0))
     throw Error('v3_fractional_minute_not_supported');
   // No athlete-specific physiological dose may be inferred from a slot duration.
   const resolved=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
