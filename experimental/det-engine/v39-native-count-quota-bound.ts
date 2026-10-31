@@ -18,6 +18,7 @@ export interface NativeCountQuotaBound {
   minimumMandatorySwimSessions:number;
   optimisticMaximumEnduranceSessions:number;
   optimisticMinimumSwimPct:number|null;
+  optimisticAllLoadWeeksSwimPct:number|null;
   strictUpperSwimPct:number;
   nativeBlockingUpperSwimPct:number;
   mathematicallyCannotMeetStrictSwimTarget:boolean|null;
@@ -38,6 +39,7 @@ export function assessNativeSwimCountQuotaBound(
     throw Error('v39_count_quota_target_invalid');
   const loadWeeks=weeks.filter(w=>w.weekType==='load');
   let swims=0, maxEndurance=0, anyBrickPossible=false;
+  const weeklyOptimisticLowerPcts:number[]=[];
   let valid=loadWeeks.length>0;
   for(const {quota:q} of loadWeeks){
     const ranges=[q.swim,q.bike,q.run,q.brick,q.strength,q.totalSessions];
@@ -57,19 +59,31 @@ export function assessNativeSwimCountQuotaBound(
     swims+=q.swim.min;
     maxEndurance+=optimisticEnduranceCount;
     anyBrickPossible ||= q.brick.max>0;
+    // Count-based native validation can exclude a nominal load week by its
+    // semantic theme. Grant each week an extra integer under its own odd
+    // brick count; this remains a lower bound for ANY included subset.
+    weeklyOptimisticLowerPcts.push(100*q.swim.min/
+      (optimisticEnduranceCount+(q.brick.max>0?1:0)));
   }
   // Native validator rounds 0.5 * GLOBAL brick-count twice; with an odd
   // brick count, one brick contributes two units to its denominator. Grant
   // that extra unit even if an odd count is not actually schedulable: a
   // deliberately optimistic upper bound can never create a false impossibility.
   if(valid&&anyBrickPossible)maxEndurance+=1;
-  const pct=valid&&maxEndurance>0?100*swims/maxEndurance:null;
+  const allWeeksPct=valid&&maxEndurance>0?100*swims/maxEndurance:null;
+  // Aggregate optimistically assumes all load weeks remain in native metrics.
+  // The minimum of each week's lower bound is ALSO valid when the native
+  // validator drops any subset of them. Only this subset-safe floor may
+  // support an inevitable-blocker verdict.
+  const pct=valid&&weeklyOptimisticLowerPcts.length?
+    Math.min(...weeklyOptimisticLowerPcts):null;
   return {
     scope:'load_weeks_only',
     loadedWeeks:loadWeeks.map(w=>w.week),
     minimumMandatorySwimSessions:valid?swims:0,
     optimisticMaximumEnduranceSessions:valid?maxEndurance:0,
     optimisticMinimumSwimPct:pct,
+    optimisticAllLoadWeeksSwimPct:allWeeksPct,
     strictUpperSwimPct,
     nativeBlockingUpperSwimPct:strictUpperSwimPct+nativeErrorTolerancePp,
     mathematicallyCannotMeetStrictSwimTarget:pct===null?null:pct>strictUpperSwimPct,
