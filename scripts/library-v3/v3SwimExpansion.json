@@ -4057,7 +4057,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -4221,7 +4225,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
@@ -10023,7 +10031,7 @@
       "version": "3.0.0-pilot",
       "sport": "swim",
       "title": "Sous-CSS 4×250 m tempo",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build",
@@ -10109,15 +10117,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Stabilité légèrement sous CSS",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -14892,7 +14898,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -15012,7 +15022,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
@@ -15055,7 +15069,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -15175,7 +15193,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
@@ -15218,7 +15240,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -15371,7 +15397,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
@@ -15414,7 +15444,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -15534,7 +15568,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
@@ -15577,7 +15615,11 @@
       ],
       "stopRule": "Stop si détérioration technique, gêne respiratoire ou douleur d'épaule; jamais apnée forcée",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+      ],
       "methodology": "Individualiser cadence, vitesse, pauses et sécurité selon nageur",
       "blocks": [
         {
@@ -15730,7 +15772,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Nage supervisée, bassin sécurisé et arrêt si gêne respiratoire ou douleur"
+          ],
           "contraindications": [
             "Épaule douloureuse ou fatigue technique",
             "Risque de nage sans surveillance appropriée",
