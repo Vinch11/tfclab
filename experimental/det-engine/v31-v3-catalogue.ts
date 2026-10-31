@@ -361,6 +361,23 @@ export function buildDetV3ContractFromCatalogue(
       const ledger=matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
       return ledger?{low:ledger.low,nonLow:ledger.mid+ledger.high,unknown:ledger.unknown}:null;
     },
+    reviewedRaceSpecificForId(id){
+      // Only sources actually admitted after individual V3 review qualify.
+      // Metadata comes from the preserved source's primary domain/intent,
+      // never from title matching or an inferred race pace.
+      const card=report.accepted.find(m=>m.id===id);
+      if(!card||!verifiedZoneDoses.has(id)||
+         !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
+         !card.tags.includes('individual-coach-approval-recorded')||
+         !card.tags.includes('v3-primary-intent:race_specific'))return null;
+      if(card.goals.includes('half')&&
+         card.tags.includes('v3-primary-domain:703_pace'))
+        return {sourceId:id,objective:'703'};
+      if(card.goals.includes('ironman')&&
+         card.tags.includes('v3-primary-domain:im_pace'))
+        return {sourceId:id,objective:'IM'};
+      return null;
+    },
     sourceRecoveryForId(id){
       const meta=report.accepted.find(m=>m.id===id)||brickById.get(id);
       if(!meta)return [];
