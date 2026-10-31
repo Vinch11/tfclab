@@ -444,12 +444,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         slots.forEach(({slot},index)=>{
           if(!['swim','bike','run','brick'].includes(slot.sport))return;
           const strictSources=experimentalContract.requireStructuredPolarizationOnLoadWeeks===true;
+          // Without the strict V3 source gate, legacy candidates might still
+          // be selected. Proving them impossible from a V3-only pool would be
+          // unsound, so the global certificate must remain UNVERIFIED.
+          if(!strictSources){
+            sourceSlotRatioDomains.push({week:w.week,sport:slot.sport,choices:[null]});
+            return;
+          }
           // The strict search itself cannot select an unverified source in a
           // load week. Its domain certificate must exclude those alternatives,
           // rather than accidentally granting unreviewed legacy cards volume.
-          const domain=options[index].filter(session=>!strictSources||
-            (!!session.catalogId&&experimentalContract.sourceStructuredZoneForId?.(
-              session.catalogId,session.durationMin)!=null));
+          const domain=options[index].filter(session=>
+            !!session.catalogId&&experimentalContract.sourceStructuredZoneForId?.(
+              session.catalogId,session.durationMin)!=null);
           const choices=domain.map((session):ExactSportMinutes|null=>{
             const duration=session.durationMin;
             if(typeof duration!=='number'||!Number.isFinite(duration)||duration<=0)return null;
