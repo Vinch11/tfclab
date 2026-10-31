@@ -96,7 +96,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_022",
@@ -192,7 +250,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_023",
@@ -288,7 +404,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_024",
@@ -361,7 +535,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "capacityFocus": "recovery_and_load_management",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_025",
@@ -457,7 +683,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "capacityFocus": "recovery_and_load_management",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_026",
@@ -530,7 +814,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "capacityFocus": "recovery_and_load_management",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_027",
@@ -603,7 +939,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_028",
@@ -676,7 +1064,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_029",
@@ -749,7 +1189,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_030",
@@ -822,7 +1314,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_031",
@@ -919,7 +1463,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_032",
@@ -1016,7 +1624,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_033",
@@ -1112,7 +1784,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_034",
@@ -1205,7 +1935,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "test",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "capacity_measurement",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_035",
@@ -1280,7 +2074,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_036",
@@ -1375,7 +2221,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_037",
@@ -1470,7 +2380,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_038",
@@ -1567,7 +2541,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_039",
@@ -1652,7 +2690,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_040",
@@ -1736,7 +2826,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_041",
@@ -1807,7 +2955,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "tempo",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_042",
@@ -1890,7 +3090,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "tempo",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_043",
@@ -1973,7 +3225,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "tempo",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_044",
@@ -2058,7 +3362,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "sub_threshold",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_045",
@@ -2143,7 +3499,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "sub_threshold",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_046",
@@ -2304,7 +3712,107 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "sub_threshold",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "4",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "5",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "6",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "7",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "8",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "9",
+              "role": "main",
+              "domain": "sub_threshold",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "10",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_047",
@@ -2389,7 +3897,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "mlss",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_048",
@@ -2474,7 +4034,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "mlss",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_049",
@@ -2613,7 +4225,95 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mlss",
+          "primaryDomain": "mlss",
+          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "4",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "5",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "6",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "7",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "8",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_050",
@@ -2695,7 +4395,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "tempo",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_051",
@@ -2780,7 +4538,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_052",
@@ -2865,7 +4675,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_053",
@@ -2950,7 +4812,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_054",
@@ -3035,7 +4949,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_055",
@@ -3196,7 +5162,107 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "5",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "6",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "7",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "8",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "9",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "10",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_056",
@@ -3304,7 +5370,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "1.0.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_057",
@@ -3412,7 +5536,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "1.0.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_058",
@@ -3508,7 +5690,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_059",
@@ -3593,7 +5833,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_060",
@@ -3732,7 +6024,95 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "vo2max",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "maximal_aerobic_power",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "5",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "6",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "7",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "8",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_061",
@@ -3817,7 +6197,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_062",
@@ -3902,7 +6334,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_063",
@@ -3987,7 +6471,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_064",
@@ -4084,7 +6620,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_065",
@@ -4180,7 +6768,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_066",
@@ -4265,7 +6911,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_067",
@@ -4347,7 +7045,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": "tempo",
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_068",
@@ -4443,7 +7193,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_069",
@@ -4528,7 +7336,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_070",
@@ -4613,7 +7473,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "neuromuscular",
+          "primaryDomain": "neuromuscular",
+          "capacityFocus": "neuromuscular_power_and_speed",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "neuromuscular",
+              "anchorKey": "run_neuromuscular_speed_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_071",
@@ -4696,7 +7608,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_072",
@@ -4779,7 +7743,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_073",
@@ -4862,7 +7878,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "mlss",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_074",
@@ -4945,7 +8013,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "mlss",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_075",
@@ -5038,7 +8158,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "mlss",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_076",
@@ -5120,7 +8304,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "semi_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "semi_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_077",
@@ -5203,7 +8445,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "semi_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "semi_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_078",
@@ -5286,7 +8580,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "semi_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "semi_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_079",
@@ -5368,7 +8714,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "semi_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "semi_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_080",
@@ -5461,7 +8865,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "semi_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "semi_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_081",
@@ -5544,7 +9012,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "marathon_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "marathon_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_082",
@@ -5638,7 +9158,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "marathon_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": "marathon_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_083",
@@ -5731,7 +9309,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "marathon_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "marathon_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "marathon_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_084",
@@ -5828,7 +9470,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_085",
@@ -5925,7 +9631,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_086",
@@ -6021,7 +9791,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_087",
@@ -6106,7 +9934,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_088",
@@ -6201,7 +10081,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": "tempo",
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_089",
@@ -6298,7 +10236,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_090",
@@ -6394,7 +10396,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_091",
@@ -6476,7 +10536,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": "tempo",
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_092",
@@ -6572,7 +10684,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "moderate_lt1",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "aerobic_endurance_and_lt1",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_093",
@@ -6645,7 +10815,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "capacityFocus": "recovery_and_load_management",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_094",
@@ -6728,7 +10950,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "marathon_pace",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "marathon_pace",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_095",
@@ -6811,7 +11085,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "race_specific",
+          "primaryDomain": "mlss",
+          "capacityFocus": "race_specific_pacing",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "mlss",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_096",
@@ -6882,7 +11208,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "test",
+          "primaryDomain": "vo2max",
+          "capacityFocus": "capacity_measurement",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "vo2max",
+              "anchorKey": "run_MLSS_and_vVO2max_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_097",
@@ -6953,7 +11331,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "test",
+          "primaryDomain": "tempo",
+          "capacityFocus": "capacity_measurement",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "tempo",
+              "anchorKey": "run_MLSS_pace_individual_reference"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_098",
@@ -7036,7 +11466,59 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "test",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "capacity_measurement",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_099",
@@ -7129,7 +11611,71 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "test",
+          "primaryDomain": "moderate_lt1",
+          "capacityFocus": "capacity_measurement",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "3",
+              "role": "main",
+              "domain": "moderate_lt1",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "4",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_RUN_100",
@@ -7225,7 +11771,65 @@
       ],
       "automaticSelection": false,
       "status": "candidate",
-      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée."
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "capacityFocus": "recovery_and_load_management",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": "recovery",
+              "anchorKey": "run_MLSS_and_LT1_individual_references"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "sum_time_seconds",
+          "requiredInputs": [],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     }
   ]
 }
