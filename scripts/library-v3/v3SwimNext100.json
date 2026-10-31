@@ -6630,11 +6630,11 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -6722,9 +6722,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -6826,11 +6826,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -6918,9 +6918,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -7023,11 +7023,11 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -7115,9 +7115,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -7220,11 +7220,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -7312,9 +7312,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -7417,11 +7417,11 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -7509,9 +7509,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -9420,9 +9420,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 90,
-            "base": 90,
-            "max": 90
+            "min": 120,
+            "base": 120,
+            "max": 120
           },
           "domain": "recovery",
           "role": "main",
@@ -9511,9 +9511,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 90,
-            "base": 90,
-            "max": 90,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -9621,9 +9621,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 90,
-            "base": 90,
-            "max": 90
+            "min": 120,
+            "base": 120,
+            "max": 120
           },
           "domain": "recovery",
           "role": "main",
@@ -9712,9 +9712,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 90,
-            "base": 90,
-            "max": 90,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -9823,9 +9823,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 90,
-            "base": 90,
-            "max": 90
+            "min": 120,
+            "base": 120,
+            "max": 120
           },
           "domain": "recovery",
           "role": "main",
@@ -9914,9 +9914,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 90,
-            "base": 90,
-            "max": 90,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -10025,9 +10025,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 90,
-            "base": 90,
-            "max": 90
+            "min": 120,
+            "base": 120,
+            "max": 120
           },
           "domain": "recovery",
           "role": "main",
@@ -10116,9 +10116,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 90,
-            "base": 90,
-            "max": 90,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -10227,9 +10227,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 90,
-            "base": 90,
-            "max": 90
+            "min": 120,
+            "base": 120,
+            "max": 120
           },
           "domain": "recovery",
           "role": "main",
@@ -10318,9 +10318,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 90,
-            "base": 90,
-            "max": 90,
+            "min": 120,
+            "base": 120,
+            "max": 120,
             "risk": "bounded_session_dose"
           },
           {
@@ -10423,11 +10423,11 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -10515,9 +10515,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -10621,11 +10621,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -10713,9 +10713,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -10820,11 +10820,11 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -10912,9 +10912,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -11019,11 +11019,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -11111,9 +11111,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -11218,11 +11218,11 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 90,
+          "betweenSec": 120,
           "betweenSecBounds": {
-            "min": 60,
-            "base": 90,
-            "max": 150
+            "min": 90,
+            "base": 120,
+            "max": 180
           },
           "steps": [
             {
@@ -11310,9 +11310,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 60,
-            "base": 90,
-            "max": 150,
+            "min": 90,
+            "base": 120,
+            "max": 180,
             "risk": "recovery_dose"
           },
           {
@@ -14525,11 +14525,11 @@
             "base": 3,
             "max": 4
           },
-          "betweenSec": 150,
+          "betweenSec": 180,
           "betweenSecBounds": {
-            "min": 120,
-            "base": 150,
-            "max": 210
+            "min": 150,
+            "base": 180,
+            "max": 240
           },
           "steps": [
             {
@@ -14617,9 +14617,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 210,
+            "min": 150,
+            "base": 180,
+            "max": 240,
             "risk": "recovery_dose"
           },
           {
@@ -14723,11 +14723,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 150,
+          "betweenSec": 180,
           "betweenSecBounds": {
-            "min": 120,
-            "base": 150,
-            "max": 210
+            "min": 150,
+            "base": 180,
+            "max": 240
           },
           "steps": [
             {
@@ -14815,9 +14815,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 210,
+            "min": 150,
+            "base": 180,
+            "max": 240,
             "risk": "recovery_dose"
           },
           {
@@ -14922,11 +14922,11 @@
             "base": 5,
             "max": 6
           },
-          "betweenSec": 150,
+          "betweenSec": 180,
           "betweenSecBounds": {
-            "min": 120,
-            "base": 150,
-            "max": 210
+            "min": 150,
+            "base": 180,
+            "max": 240
           },
           "steps": [
             {
@@ -15014,9 +15014,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 210,
+            "min": 150,
+            "base": 180,
+            "max": 240,
             "risk": "recovery_dose"
           },
           {
@@ -15121,11 +15121,11 @@
             "base": 4,
             "max": 5
           },
-          "betweenSec": 150,
+          "betweenSec": 180,
           "betweenSecBounds": {
-            "min": 120,
-            "base": 150,
-            "max": 210
+            "min": 150,
+            "base": 180,
+            "max": 240
           },
           "steps": [
             {
@@ -15213,9 +15213,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 210,
+            "min": 150,
+            "base": 180,
+            "max": 240,
             "risk": "recovery_dose"
           },
           {
@@ -15320,11 +15320,11 @@
             "base": 2,
             "max": 3
           },
-          "betweenSec": 150,
+          "betweenSec": 180,
           "betweenSecBounds": {
-            "min": 120,
-            "base": 150,
-            "max": 210
+            "min": 150,
+            "base": 180,
+            "max": 240
           },
           "steps": [
             {
@@ -15412,9 +15412,9 @@
           {
             "path": "1.betweenSec",
             "unit": "seconds",
-            "min": 120,
-            "base": 150,
-            "max": 210,
+            "min": 150,
+            "base": 180,
+            "max": 240,
             "risk": "recovery_dose"
           },
           {
