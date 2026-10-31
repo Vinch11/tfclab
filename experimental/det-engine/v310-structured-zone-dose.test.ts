@@ -2,7 +2,7 @@ import {describe,expect,it} from 'vitest';
 import type {V3Block,V3Workout} from '../../scripts/library-v3/catalogueRuntime';
 import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose} from './v310-structured-zone-dose';
 
-const time=(seconds:number,domain:V3Block extends never?never:'recovery'|'moderate_lt1'|'mlss'|'vo2max'|null):V3Block=>({
+const time=(seconds:number,domain:'recovery'|'moderate_lt1'|'mlss'|'vo2max'|null):V3Block=>({
   kind:'time',label:'Measured dose',role:'main',seconds:{min:seconds,base:seconds,max:seconds},domain,
 });
 const source=(id:string,sport:'bike'|'run'|'swim',blocks:V3Block[]):Pick<V3Workout,'id'|'sport'|'blocks'>=>({id,sport,blocks});
