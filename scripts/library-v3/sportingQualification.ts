@@ -8,6 +8,7 @@
  */
 import type {V3Block,V3Workout,V3Sport} from './catalogueRuntime';
 import {auditV31PrescriptionContract} from './prescriptionContract';
+import reviewLedger from './v32SportingReviewLedger.json';
 
 export type V32SourceStatus='source_blocked'|'source_prequalified_pending_coach_review';
 export interface V32DoseBounds {
@@ -110,6 +111,9 @@ export function screenV32Source(workout:V3Workout):V32SourceQualification {
  ];
  const addFlag=(code:string)=>{if(!sportSafetyFlags.includes(code))sportSafetyFlags.push(code);};
  const addBlocker=(code:string)=>{if(!sourceBlockers.includes(code))sourceBlockers.push(code);};
+ const reviewed=reviewLedger.records.find(r=>r.id===workout.id);
+ if(!reviewed||reviewed.sourceFingerprint!==v32SourceFingerprint(workout))
+   addBlocker('source_drift_unreviewed_recipe_change');
  for(const issue of auditV31PrescriptionContract(workout))addBlocker(issue);
  if(!workout.focus?.trim()||!workout.stopRule?.trim()||
    !workout.contraindications?.length||!workout.phase?.length)addBlocker('incomplete_sporting_context');
