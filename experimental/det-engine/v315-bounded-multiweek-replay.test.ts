@@ -1,0 +1,105 @@
+/** Fail-closed V3.15 bounded lookback: tests orchestration, not sporting approval. */
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import type {PlanAthleteData,PlanConfig} from '@/hooks/useAITrainingPlan';
+import {constructDeterministicPlanWithBoundedReplays} from './v315-bounded-multiweek-replay';
+import type {EngineResult,ExperimentalAssemblyContract} from './engine';
+
+const planner=vi.hoisted(()=>vi.fn());
+vi.mock('./engine',()=>({constructDeterministicPlan:planner}));
+
+const athlete={} as PlanAthleteData;
+const config={objective:'IM',weeksAvailable:16} as PlanConfig;
+const contract={
+  id:'synthetic-v315',
+  adapt:()=>{},
+  preferSourceBackedMultisportBalance:'triathlon_targets',
+  requireFinalTriathlonMinuteRatios:true,
+  requireStructuredPolarizationOnLoadWeeks:true,
+} satisfies ExperimentalAssemblyContract;
+const sessionSource='V3P_BIKE_002';
+function observed(
+  state:'unresolved'|'ratios_only'|'fully_valid',
+  trace:EngineResult['trace']=[],
+):EngineResult {
+  const found=state!=='unresolved';
+  return {
+    status:found?'candidate':'refused',
+    reason:found?undefined:'final_week_ratio_unresolved',
+    technicallyConstructed:found,
+    constraintsSatisfied:state==='fully_valid',
+    sportingRelevance:'not_attested',humanReviewRequired:true,
+    nodes:2,trace,limiterPriorities:[],
+    candidate:found?({weeks:Array.from({length:16},(_,index)=>({
+      weekNumber:index+1,theme:'QA',phase:'QA',sessions:[],
+    }))} as EngineResult['candidate']):undefined,
+    issues:state==='unresolved'?
+      [{code:'det_v314_final_load_ratio_search_unresolved',severity:'blocking'}]:
+      [{code:'det_v314_final_load_ratio_selected',severity:'warning'},
+       {code:'det_multisport_minute_ratio_verified',severity:'warning'},
+       ...(state==='ratios_only'?[{
+         code:'native_deload_not_met',severity:'blocking',
+       }]:[])],
+  };
+}
+const priorTrace:EngineResult['trace']=[{
+  week:2,day:'mardi',id:sessionSource,duration:90,
+  intent:'aerobic',reason:'source selected in earlier week',
+}];
+
+beforeEach(()=>planner.mockReset());
+
+describe('DET V3.15 — bounded cross-week no-good replay',()=>{
+  it('refuses invalid contract without attempting planning',()=>{
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,config,{maxNodes:100,maxMilliseconds:1000},{
+        ...contract,requireFinalTriathlonMinuteRatios:undefined,
+      });
+    expect(out.evidence.verdict).toBe('invalid_contract');
+    expect(planner).not.toHaveBeenCalled();
+  });
+
+  it('revisits a real earlier-week source and keeps all original gates active',()=>{
+    const isBanned=(c:ExperimentalAssemblyContract):boolean=>{
+      const filter=c.filterCandidate!;
+      const card={id:sessionSource} as Parameters<typeof filter>[0];
+      const context={week:2,dayIndex:1,slot:{sport:'bike'}} as
+        Parameters<typeof filter>[1];
+      return !filter(card,context);
+    };
+    planner.mockImplementation((
+      _a:PlanAthleteData,_c:PlanConfig,_b:unknown,c:ExperimentalAssemblyContract,
+    )=>isBanned(c)?observed('fully_valid'):observed('unresolved',priorTrace));
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,config,{maxNodes:160,maxMilliseconds:60000},contract);
+    expect(out.evidence.verdict).toBe('all_gates_pass');
+    expect(out.result?.constraintsSatisfied).toBe(true);
+    expect(out.evidence.attempts[0].revisedWeeks).toEqual([]);
+    expect(out.evidence.attempts.some(a=>
+      a.revisedWeeks?.includes(2)&&a.excludedSourceIds?.includes(sessionSource))).toBe(true);
+    expect(out.evidence.totalNodes).toBeLessThanOrEqual(160);
+    expect(planner.mock.calls.length).toBeGreaterThan(1);
+  });
+
+  it('does not convert exact sport ratios into a false native sporting pass',()=>{
+    planner.mockImplementation(()=>observed('ratios_only'));
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,config,{maxNodes:200,maxMilliseconds:60000},contract);
+    expect(out.evidence.verdict).toBe('ratio_feasible_native_blockers_remain');
+    expect(out.result?.constraintsSatisfied).toBe(false);
+    expect(out.result?.issues.some(i=>i.code==='native_deload_not_met')).toBe(true);
+    expect(out.result?.humanReviewRequired).toBe(true);
+  });
+
+  it('exhausts a shared node budget and refuses every incomplete prefix',()=>{
+    planner.mockImplementation(()=>observed('unresolved',priorTrace));
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,config,{maxNodes:16,maxMilliseconds:60000},contract);
+    expect(out.evidence.totalNodes).toBeLessThanOrEqual(16);
+    expect(out.evidence.verdict).toBe('bounded_search_unresolved');
+    expect(out.result?.candidate).toBeUndefined();
+    expect(out.result?.technicallyConstructed).toBe(false);
+    expect(out.result?.constraintsSatisfied).toBe(false);
+    expect(out.result?.issues.some(i=>
+      i.code==='det_v315_bounded_multiweek_replays_unresolved')).toBe(true);
+  });
+});
