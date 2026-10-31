@@ -154,8 +154,18 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    if(!family||(!mainZones.length&&card.sport!=='strength')||!sport){
      refuse('unsupported_sport_or_intent');continue;
    }
+   // V3P_RUN_083 is a ~80-minute build/peak TRAINING SIMULATION.
+   // Its historical title contains "compétition", which the shared race-day
+   // identity correctly treats as a real event. Keep that protective identity
+   // untouched: use an explicitly traceable training label for this one
+   // source in DET metadata, without modifying its audited blocks/fingerprint.
+   const simulationSourceTitle='Marathon : négative split de compétition';
+   const displayTitle=card.id==='V3P_RUN_083'?
+     (card.title===simulationSourceTitle?
+       'Simulation allure marathon — negative split en entraînement':null):card.title;
+   if(!displayTitle){refuse('v3_run_083_unreviewed_source_title_changed');continue;}
    const meta:RepairWorkoutMetadata={
-    metadataVersion:1,complete:true,id:card.id,sport,title:card.title,objective:card.focus,
+    metadataVersion:1,complete:true,id:card.id,sport,title:displayTitle,objective:card.focus,
     intentFamily:family,goals:[normalizedGoal],objectiveSpecific:true,
     phases:card.phase,durationMin:countOnlyStrength?[0,0]:[seconds/60,seconds/60],
     mainZoneMax,specialContext:null,
@@ -175,6 +185,10 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    }
    if(card.primaryIntent==='mixed_intensity')
      meta.tags.push('v3-mixed-stimulus-distinct-main-domains');
+   if(card.id==='V3P_RUN_083'){
+     meta.tags.push('v3-verified-training-not-race-event');
+     meta.structure+=' | TITRE SOURCE CONSERVÉ: '+card.title;
+   }
    if(countOnlyStrength){
      meta.tags.push('v3-strength-frequency-only-unknown-duration');
      meta.structure+=' | FRÉQUENCE UNIQUEMENT : durée non mesurée, aucune minute déduite';
