@@ -1,9 +1,12 @@
 /**
- * DET V3.15 — bounded, deterministic full-horizon replanning.
- * Each attempt builds EVERY week anew; an early-week choice is therefore
- * revisable, unlike the V3.14 last-week-only repair. This is NOT exhaustive
- * cross-week backtracking and not an independent sporting approval.
- * The shared wall-clock and node budgets are hard ceilings.
+ * DET V3.15 — bounded, deterministic full-horizon replanning with source
+ * no-good branches across earlier weeks.
+ *
+ * Every attempt invokes the unchanged full-plan builder and ALL native gates.
+ * A branch excludes one source previously chosen in a specific earlier week:
+ * this makes prior decisions revisable without altering approved session doses.
+ * This is bounded lookback, NOT exhaustive global backtracking, and NEVER
+ * a scientific or production attestation.
  */
 import type {PlanAthleteData,PlanConfig} from '@/hooks/useAITrainingPlan';
 import {normalizeRepairGoal} from '../../supabase/functions/_shared/repairSportingEquivalence';
@@ -29,6 +32,11 @@ const preset:Record<'703'|'IM',Readonly<TriMinutes>[]> = {
     {swim:.20,bike:.55,run:.25},
   ],
 };
+interface NoGood {week:number;sourceId:string}
+interface ReplayState {
+  targetIndex:number;
+  excluded:readonly NoGood[];
+}
 export interface ReplayAttempt {
   target:Readonly<TriMinutes>;
   weeksBuilt:number;
@@ -36,6 +44,9 @@ export interface ReplayAttempt {
   reason:string|null;
   strictRatiosMet:boolean;
   nativeConstraintsSatisfied:boolean;
+  /** No-good alternatives from ACTUALLY selected earlier-week sources. */
+  revisedWeeks?:number[];
+  excludedSourceIds?:string[];
   /** These are review diagnostics, not permission to prescribe. */
   blockers:string[];
 }
@@ -46,6 +57,21 @@ export interface ReplayEvidence {
   totalNodes:number;
   experimentalOnly:true;
 }
+const MAX_LOOKBACK_DEPTH=3;
+const MAX_NEW_BRANCHES=2;
+const stateKey=(s:ReplayState)=>s.targetIndex+'|'+s.excluded.map(
+  e=>e.week+':'+e.sourceId).sort().join(',');
+
+function strictlyVerifiedMinutes(result:EngineResult):boolean{
+  return result.technicallyConstructed&&
+    result.issues.some(x=>x.code==='det_v314_final_load_ratio_selected')&&
+    result.issues.some(x=>x.code==='det_multisport_minute_ratio_verified')&&
+    !result.issues.some(x=>
+      x.code==='det_multisport_minute_ratio_unverifiable'||
+      x.code==='det_multisport_minute_ratio_out_of_bounds'||
+      x.code==='det_multisport_minute_ratio_provably_out_of_bounds');
+}
+
 export function constructDeterministicPlanWithBoundedReplays(
   athlete:PlanAthleteData,
   config:PlanConfig,
@@ -54,7 +80,7 @@ export function constructDeterministicPlanWithBoundedReplays(
 ):{result:EngineResult|null;evidence:ReplayEvidence}{
   const goal=normalizeRepairGoal(config.objective??'');
   const objective=goal==='half'?'703':goal==='ironman'?'IM':null;
-  const fail=(verdict:ReplayEvidence['verdict'],rows:ReplayAttempt[],nodes:number,
+  const finish=(verdict:ReplayEvidence['verdict'],rows:ReplayAttempt[],nodes:number,
     result:EngineResult|null)=>({result,evidence:{
       verdict,attempts:rows,totalNodes:nodes,experimentalOnly:true as const}});
   if(!objective||contract.requireFinalTriathlonMinuteRatios!==true||
@@ -62,69 +88,109 @@ export function constructDeterministicPlanWithBoundedReplays(
      contract.preferSourceBackedMultisportBalance!=='triathlon_targets'||
      !Number.isSafeInteger(limits.maxNodes)||limits.maxNodes<=0||
      !Number.isFinite(limits.maxMilliseconds)||limits.maxMilliseconds<=0){
-    return fail('invalid_contract',[],0,null);
+    return finish('invalid_contract',[],0,null);
   }
   const started=performance.now();
   const rows:ReplayAttempt[]=[];
+  const queue:ReplayState[]=preset[objective].map((_,targetIndex)=>({
+    targetIndex,excluded:[],
+  }));
+  const seen=new Set(queue.map(stateKey));
+  const maxAttempts=Math.min(24,Math.max(preset[objective].length+4,
+    Math.floor(limits.maxNodes/750)));
   let totalNodes=0;
   let last:EngineResult|null=null;
-  let best:EngineResult|null=null;
-  let bestIndex=-1;
-  let bestHardIssueCount=Infinity;
-  for(let i=0;i<preset[objective].length;i++){
+  let firstRatio:{result:EngineResult;attempt:number}|null=null;
+
+  while(queue.length&&rows.length<maxAttempts){
     const remainingMillis=limits.maxMilliseconds-(performance.now()-started);
     const remainingNodes=limits.maxNodes-totalNodes;
-    // The underlying DFS increments its node counter *before* checking its
-    // limit, so reserve one node per attempt against the GLOBAL budget.
     if(remainingMillis<=0||remainingNodes<2)break;
-    const remainingAttempts=preset[objective].length-i;
-    const currentLimits:SearchLimits={
-      maxMilliseconds:remainingMillis,
-      maxNodes:Math.max(1,Math.floor(remainingNodes/remainingAttempts)-1),
-    };
-    const target=preset[objective][i];
-    const result=constructDeterministicPlan(athlete,config,currentLimits,{
+    const state=queue.shift()!;
+    // Divide remaining nodes among the queued alternatives. Reserve one
+    // because the inner DFS increments before checking maxNodes.
+    const remainingAttempts=Math.max(1,Math.min(queue.length+1,
+      maxAttempts-rows.length));
+    const perAttempt=Math.max(1,Math.floor(remainingNodes/remainingAttempts)-1);
+    const exclusions=state.excluded;
+    const target=preset[objective][state.targetIndex];
+    const candidateFilter=contract.filterCandidate;
+    const result=constructDeterministicPlan(athlete,config,{
+      maxMilliseconds:remainingMillis,maxNodes:perAttempt,
+    },{
       ...contract,ratioTargetPreference:target,
+      filterCandidate:(card,context)=>
+        candidateFilter?.(card,context)!==false &&
+        !exclusions.some(x=>x.week===context.week&&
+          x.sourceId===card.id&&
+          ['swim','bike','run','brick'].includes(context.slot.sport)),
     });
+    // A failing inner search can use at most perAttempt + 1 nodes.
     last=result;totalNodes+=result.nodes;
-    const strictRatiosMet=result.technicallyConstructed&&
-      result.issues.some(x=>x.code==='det_v314_final_load_ratio_selected')&&
-      result.issues.some(x=>x.code==='det_multisport_minute_ratio_verified')&&
-      !result.issues.some(x=>x.code==='det_multisport_minute_ratio_unverifiable'||
-        x.code==='det_multisport_minute_ratio_out_of_bounds'||
-        x.code==='det_multisport_minute_ratio_provably_out_of_bounds');
+    const strictRatiosMet=strictlyVerifiedMinutes(result);
     rows.push({
-      target,weeksBuilt:result.candidate?.weeks.length??0,
+      target,
+      weeksBuilt:result.candidate?.weeks.length??
+        new Set(result.trace.map(x=>x.week)).size,
       nodes:result.nodes,reason:result.reason??null,strictRatiosMet,
       nativeConstraintsSatisfied:result.constraintsSatisfied,
+      revisedWeeks:[...new Set(exclusions.map(x=>x.week))].sort((a,b)=>a-b),
+      excludedSourceIds:exclusions.map(x=>x.sourceId),
       blockers:[...new Set(result.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
     });
     if(strictRatiosMet){
-      const hardCount=result.issues.filter(issue=>
-        ['blocking','error','critical'].includes(issue.severity)).length;
-      if(hardCount<bestHardIssueCount){
-        best=result;bestIndex=i;bestHardIssueCount=hardCount;
+      if(result.constraintsSatisfied){
+        result.nodes=totalNodes;
+        result.issues.push({code:'det_v315_full_horizon_replay_ratio_found',
+          severity:'warning',message:JSON.stringify({
+            selectedReplay:rows.length,attempts:rows.length,totalNodes,
+            nativeConstraintsSatisfied:true,realSourceDosesOnly:true,
+            earlierWeekSourceChoicesRevisited:exclusions,
+            independentSportingAttestation:false,
+          })});
+        return finish('all_gates_pass',rows,totalNodes,result);
       }
-      // Stop ONLY when all independent native/sporting gates pass. A first
-      // ratio-compliant but unsafe plan must not hide better alternatives.
-      if(result.constraintsSatisfied)break;
+      if(!firstRatio)firstRatio={result,attempt:rows.length};
     }
+
+    // Branch from the ACTUAL selected trace, not from invented candidate IDs.
+    // Exclude only an earlier-week source; rerun every week from the start.
+    // A source ban can make a slot impossible: the ordinary fail-closed
+    // catalogue, recovery and native validators remain authoritative.
+    if(exclusions.length>=MAX_LOOKBACK_DEPTH)continue;
+    const selected=[...new Map(result.trace.filter(t=>
+      Number.isInteger(t.week)&&t.week>=1&&
+      t.week<config.weeksAvailable!&&t.id&&
+      typeof t.duration==='number'&&t.duration>0&&
+      !exclusions.some(x=>x.week===t.week&&x.sourceId===t.id)
+    ).map(t=>[t.week+':'+t.id,t])).values()]
+      .sort((a,b)=>b.week-a.week||a.id.localeCompare(b.id));
+    const children:ReplayState[]=[];
+    for(const trace of selected){
+      if(children.length>=MAX_NEW_BRANCHES)break;
+      const child:ReplayState={targetIndex:state.targetIndex,
+        excluded:[...exclusions,{week:trace.week,sourceId:trace.id}]};
+      const key=stateKey(child);
+      if(seen.has(key))continue;
+      seen.add(key);children.push(child);
+    }
+    queue.unshift(...children);
   }
-  if(best){
-    best.nodes=totalNodes;
-    best.issues.push({code:'det_v315_full_horizon_replay_ratio_found',
+  if(firstRatio){
+    // A ratio-feasible but native-blocked plan is only diagnostic. Do not
+    // change its sporting verdict or bypass any inherited blocker.
+    const {result,attempt}=firstRatio;
+    result.nodes=totalNodes;
+    result.issues.push({code:'det_v315_full_horizon_replay_ratio_found',
       severity:'warning',message:JSON.stringify({
-        selectedReplay:bestIndex+1,attempts:rows.length,totalNodes,
-        nativeConstraintsSatisfied:best.constraintsSatisfied,
-        independentHardIssueCount:bestHardIssueCount,
-        realSourceDosesOnly:true,allPriorWeeksRebuilt:true,
+        selectedReplay:attempt,attempts:rows.length,totalNodes,
+        nativeConstraintsSatisfied:false,
+        independentSportingAttestation:false,
       })});
-    return fail(best.constraintsSatisfied?'all_gates_pass':
-      'ratio_feasible_native_blockers_remain',rows,totalNodes,best);
+    return finish('ratio_feasible_native_blockers_remain',rows,totalNodes,result);
   }
-  // The best observed prefix is NOT a valid candidate and must not escape
-  // under an exhausted multiweek search.
+  // Never return an incomplete prefix as if it were a usable plan.
   if(last){
     last.status='refused';last.technicallyConstructed=false;
     last.constraintsSatisfied=false;last.candidate=undefined;
@@ -132,9 +198,11 @@ export function constructDeterministicPlanWithBoundedReplays(
     last.nodes=totalNodes;
     last.issues.push({code:'det_v315_bounded_multiweek_replays_unresolved',
       severity:'blocking',message:JSON.stringify({
-        attempted:rows.length,totalNodes,wallClockLimitMs:limits.maxMilliseconds,
+        attempted:rows.length,totalNodes,
+        wallClockLimitMs:limits.maxMilliseconds,
+        maxLookbackDepth:MAX_LOOKBACK_DEPTH,
         noGlobalImpossibilityClaim:true,
       })});
   }
-  return fail('bounded_search_unresolved',rows,totalNodes,last);
+  return finish('bounded_search_unresolved',rows,totalNodes,last);
 }
