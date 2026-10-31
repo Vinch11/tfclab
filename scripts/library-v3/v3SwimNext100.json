@@ -12426,7 +12426,7 @@
       "version": "3.1.0-candidate",
       "sport": "swim",
       "title": "Sous seuil en échelle — maîtrise initiale",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base"
@@ -12448,10 +12448,9 @@
         "Aucune apnée forcée"
       ],
       "stopRule": "Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée",
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -12524,7 +12523,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Développer tolérance à allure intermédiaire mesurée ; variation maîtrise initiale",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -12532,8 +12531,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -12627,10 +12624,9 @@
           "phases": [
             "base"
           ],
-          "minimumRecoveryHours": 24,
+          "minimumRecoveryHours": 12,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -12650,7 +12646,7 @@
       "version": "3.1.0-candidate",
       "sport": "swim",
       "title": "Sous seuil en échelle — consolidation",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -12673,10 +12669,9 @@
         "Aucune apnée forcée"
       ],
       "stopRule": "Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée",
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -12749,7 +12744,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Développer tolérance à allure intermédiaire mesurée ; variation consolidation",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -12757,8 +12752,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -12853,10 +12846,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 24,
+          "minimumRecoveryHours": 12,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -12876,7 +12868,7 @@
       "version": "3.1.0-candidate",
       "sport": "swim",
       "title": "Sous seuil en échelle — progression contrôlée",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "base",
@@ -12899,10 +12891,9 @@
         "Aucune apnée forcée"
       ],
       "stopRule": "Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée",
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -12975,7 +12966,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Développer tolérance à allure intermédiaire mesurée ; variation progression contrôlée",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -12983,8 +12974,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -13079,10 +13068,9 @@
             "base",
             "build"
           ],
-          "minimumRecoveryHours": 24,
+          "minimumRecoveryHours": 12,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -13102,7 +13090,7 @@
       "version": "3.1.0-candidate",
       "sport": "swim",
       "title": "Sous seuil en échelle — dose extensive",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build",
@@ -13125,10 +13113,9 @@
         "Aucune apnée forcée"
       ],
       "stopRule": "Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée",
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -13201,7 +13188,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Développer tolérance à allure intermédiaire mesurée ; variation dose extensive",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -13209,8 +13196,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -13305,10 +13290,9 @@
             "build",
             "peak"
           ],
-          "minimumRecoveryHours": 24,
+          "minimumRecoveryHours": 12,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur d'épaule, gêne respiratoire ou technique dégradée",
@@ -13328,7 +13312,7 @@
       "version": "3.1.0-candidate",
       "sport": "swim",
       "title": "Sous seuil en échelle — rappel allégé",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "taper",
@@ -13351,10 +13335,9 @@
         "Aucune apnée forcée"
       ],
       "stopRule": "Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée",
-      "minimumRecoveryHours": 24,
+      "minimumRecoveryHours": 12,
       "prerequisites": [
-        "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-        "Récupération et charge récente compatibles"
+        "Niveau et charge récente vérifiés par le coach"
       ],
       "methodology": "Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
       "blocks": [
@@ -13427,7 +13410,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Développer tolérance à allure intermédiaire mesurée ; variation rappel allégé",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -13435,8 +13418,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "swim_technical_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -13531,10 +13512,9 @@
             "taper",
             "peak"
           ],
-          "minimumRecoveryHours": 24,
+          "minimumRecoveryHours": 12,
           "prerequisites": [
-            "Repères physiologiques vérifiés, séance qualitative validée par le coach",
-            "Récupération et charge récente compatibles"
+            "Niveau et charge récente vérifiés par le coach"
           ],
           "contraindications": [
             "Douleur d'épaule, gêne respiratoire ou technique dégradée",
