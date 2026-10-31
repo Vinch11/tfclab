@@ -4,6 +4,7 @@
  * Distances in the pool are NEVER silently converted to minutes.
  */
 import type { DoctrineDomainId } from "../../src/lib/zones/tfclDoctrine";
+import { auditV31PrescriptionContract, type V3PrescriptionContract } from "./prescriptionContract";
 import rawCatalogue from "./v3PilotCatalogue.json";
 import bikeExpansion from "./v3BikeExpansion.json";
 import runExpansion from "./v3RunExpansion.json";
@@ -56,6 +57,8 @@ export interface V3Workout {
   blocks: V3Block[];
   automaticSelection: false;
   status: "candidate";
+  /** V3.1 hard catalogue gate: every real source must carry this contract. */
+  prescriptionContract: V3PrescriptionContract;
 }
 export interface V3Catalogue {
   schemaVersion: string;
@@ -216,6 +219,7 @@ export function auditV3Catalogue(catalogue: V3Catalogue = v3PilotCatalogue): str
   const ids = new Set<string>();
   for (const w of catalogue.workouts) {
     if (ids.has(w.id)) errors.push(w.id + ":DUPLICATE_ID");
+    errors.push(...auditV31PrescriptionContract(w));
     ids.add(w.id);
     if (!/^V3P_(BIKE|RUN|SWIM|STRENGTH)_\d{3}$/.test(w.id)) errors.push(w.id + ":BAD_ID");
     if (!INTENTS.has(w.primaryIntent)) errors.push(w.id + ":MISSING_INTENT");
