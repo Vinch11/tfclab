@@ -1612,7 +1612,7 @@
     {
       "id": "V3P_STRENGTH_001",
       "sport": "strength",
-      "sourceFingerprint": "a21a1e97",
+      "sourceFingerprint": "7112e41e",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "4c9f21d4",
@@ -1640,7 +1640,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique squat validée"
       ],
@@ -1657,7 +1664,7 @@
     {
       "id": "V3P_STRENGTH_002",
       "sport": "strength",
-      "sourceFingerprint": "abfe95ad",
+      "sourceFingerprint": "1e7a15e4",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "354cd91c",
@@ -1685,7 +1692,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique et dos tolérants"
       ],
@@ -1701,7 +1715,7 @@
     {
       "id": "V3P_STRENGTH_003",
       "sport": "strength",
-      "sourceFingerprint": "359a7c0a",
+      "sourceFingerprint": "7b6e48d9",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "4eb23502",
@@ -1729,7 +1743,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible",
@@ -1744,7 +1765,7 @@
     {
       "id": "V3P_STRENGTH_004",
       "sport": "strength",
-      "sourceFingerprint": "9a8535c3",
+      "sourceFingerprint": "10ed280a",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5e72f72a",
@@ -1772,7 +1793,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Tendon d'Achille irrité, progression individualisée"
@@ -1786,7 +1814,7 @@
     {
       "id": "V3P_STRENGTH_005",
       "sport": "strength",
-      "sourceFingerprint": "4482a938",
+      "sourceFingerprint": "84f53b87",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "cf364ee4",
@@ -1814,7 +1842,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Préparation des ischios",
         "Aucune douleur aiguë"
@@ -1833,7 +1868,7 @@
     {
       "id": "V3P_STRENGTH_006",
       "sport": "strength",
-      "sourceFingerprint": "faeeab63",
+      "sourceFingerprint": "b46c52a2",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "ec74bb9b",
@@ -1860,7 +1895,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Tolérance préalable aux impacts"
       ],
@@ -1877,7 +1919,7 @@
     {
       "id": "V3P_STRENGTH_007",
       "sport": "strength",
-      "sourceFingerprint": "736d4ad6",
+      "sourceFingerprint": "d9695c43",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "6a495767",
@@ -1904,7 +1946,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique atterrissage maîtrisée"
       ],
@@ -1922,7 +1971,7 @@
     {
       "id": "V3P_STRENGTH_008",
       "sport": "strength",
-      "sourceFingerprint": "f0375409",
+      "sourceFingerprint": "10272f0a",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5e8056ae",
@@ -1950,7 +1999,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible",
@@ -2008,7 +2064,7 @@
     {
       "id": "V3P_STRENGTH_010",
       "sport": "strength",
-      "sourceFingerprint": "a71e82c5",
+      "sourceFingerprint": "1e850bc6",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "6623a14f",
@@ -2036,7 +2092,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible",
@@ -2051,7 +2114,7 @@
     {
       "id": "V3P_STRENGTH_011",
       "sport": "strength",
-      "sourceFingerprint": "ef8e8d7a",
+      "sourceFingerprint": "ec1d8887",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "774f7d74",
@@ -2079,7 +2142,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur d'épaule : avis clinique, ne pas forcer"
@@ -2093,7 +2163,7 @@
     {
       "id": "V3P_STRENGTH_012",
       "sport": "strength",
-      "sourceFingerprint": "a34e987c",
+      "sourceFingerprint": "ac2403a1",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "6d163ea4",
@@ -2122,7 +2192,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible",
@@ -4072,7 +4149,7 @@
     {
       "id": "V3P_STRENGTH_013",
       "sport": "strength",
-      "sourceFingerprint": "6f40e6f0",
+      "sourceFingerprint": "ffbc1187",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "0ee578e3",
@@ -4100,7 +4177,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou"
@@ -4113,7 +4197,7 @@
     {
       "id": "V3P_STRENGTH_014",
       "sport": "strength",
-      "sourceFingerprint": "8032d172",
+      "sourceFingerprint": "a84edc9c",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "aa342388",
@@ -4141,7 +4225,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur Achille"
@@ -4155,7 +4243,7 @@
     {
       "id": "V3P_STRENGTH_015",
       "sport": "strength",
-      "sourceFingerprint": "28c5bcb6",
+      "sourceFingerprint": "ef1dc921",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "79431487",
@@ -4183,7 +4271,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
@@ -4198,7 +4293,7 @@
     {
       "id": "V3P_STRENGTH_016",
       "sport": "strength",
-      "sourceFingerprint": "e26914d0",
+      "sourceFingerprint": "495e3b2b",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "48844c06",
@@ -4226,7 +4321,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pubienne aiguë",
@@ -4241,7 +4340,7 @@
     {
       "id": "V3P_STRENGTH_017",
       "sport": "strength",
-      "sourceFingerprint": "efc86f8d",
+      "sourceFingerprint": "f5d46d08",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "c186e93f",
@@ -4269,7 +4368,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule persistante"
@@ -4283,7 +4389,7 @@
     {
       "id": "V3P_STRENGTH_018",
       "sport": "strength",
-      "sourceFingerprint": "f9444479",
+      "sourceFingerprint": "a7f7125a",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "03151495",
@@ -4311,7 +4417,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
@@ -4326,7 +4439,7 @@
     {
       "id": "V3P_STRENGTH_019",
       "sport": "strength",
-      "sourceFingerprint": "950a116d",
+      "sourceFingerprint": "3d21a59a",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "1c5a02da",
@@ -4354,7 +4467,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
@@ -4369,7 +4489,7 @@
     {
       "id": "V3P_STRENGTH_020",
       "sport": "strength",
-      "sourceFingerprint": "df381b3f",
+      "sourceFingerprint": "bf777788",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "eddfe5aa",
@@ -4397,7 +4517,17 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1",
+        "strength_measured_seconds_per_rep:1.2",
+        "strength_measured_setup_transition_seconds:1.2",
+        "strength_coach_confirmed_rpe_and_load:1.2"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
@@ -14696,7 +14826,7 @@
     {
       "id": "V3P_STRENGTH_021",
       "sport": "strength",
-      "sourceFingerprint": "1faea8f6",
+      "sourceFingerprint": "a83c262f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5fe049c0",
@@ -14724,7 +14854,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -14742,7 +14879,7 @@
     {
       "id": "V3P_STRENGTH_022",
       "sport": "strength",
-      "sourceFingerprint": "bbe3d9a3",
+      "sourceFingerprint": "b50d4ae4",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "1bab4c4b",
@@ -14770,7 +14907,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -14785,7 +14929,7 @@
     {
       "id": "V3P_STRENGTH_023",
       "sport": "strength",
-      "sourceFingerprint": "22347612",
+      "sourceFingerprint": "a953edfb",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9d398419",
@@ -14813,7 +14957,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -14828,7 +14979,7 @@
     {
       "id": "V3P_STRENGTH_024",
       "sport": "strength",
-      "sourceFingerprint": "73272bb3",
+      "sourceFingerprint": "e893f73e",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "be2dc950",
@@ -14856,7 +15007,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -14871,7 +15026,7 @@
     {
       "id": "V3P_STRENGTH_025",
       "sport": "strength",
-      "sourceFingerprint": "f14a69d0",
+      "sourceFingerprint": "0bc692a1",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "84341d14",
@@ -14899,7 +15054,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -14916,7 +15078,7 @@
     {
       "id": "V3P_STRENGTH_026",
       "sport": "strength",
-      "sourceFingerprint": "9ac2a6d7",
+      "sourceFingerprint": "72848418",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "dac1ee83",
@@ -14944,7 +15106,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -14958,7 +15127,7 @@
     {
       "id": "V3P_STRENGTH_027",
       "sport": "strength",
-      "sourceFingerprint": "f962c7ec",
+      "sourceFingerprint": "10923161",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "213e4c0f",
@@ -14986,7 +15155,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -15000,7 +15176,7 @@
     {
       "id": "V3P_STRENGTH_028",
       "sport": "strength",
-      "sourceFingerprint": "9ec4242d",
+      "sourceFingerprint": "eb113c72",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "624d7920",
@@ -15028,7 +15204,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -15042,7 +15222,7 @@
     {
       "id": "V3P_STRENGTH_029",
       "sport": "strength",
-      "sourceFingerprint": "7a869588",
+      "sourceFingerprint": "b054b7d1",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "210c3643",
@@ -15070,7 +15250,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15087,7 +15274,7 @@
     {
       "id": "V3P_STRENGTH_030",
       "sport": "strength",
-      "sourceFingerprint": "44299f60",
+      "sourceFingerprint": "c096fed5",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "b5e5ab85",
@@ -15115,7 +15302,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -15129,7 +15323,7 @@
     {
       "id": "V3P_STRENGTH_031",
       "sport": "strength",
-      "sourceFingerprint": "af5cc5f7",
+      "sourceFingerprint": "bada7614",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "90c9277f",
@@ -15157,7 +15351,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -15171,7 +15372,7 @@
     {
       "id": "V3P_STRENGTH_032",
       "sport": "strength",
-      "sourceFingerprint": "38a48290",
+      "sourceFingerprint": "051a3f91",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "3a451be4",
@@ -15199,7 +15400,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -15213,7 +15418,7 @@
     {
       "id": "V3P_STRENGTH_033",
       "sport": "strength",
-      "sourceFingerprint": "1ac8e2a0",
+      "sourceFingerprint": "fa43014b",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "f688d39f",
@@ -15241,7 +15446,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15258,7 +15470,7 @@
     {
       "id": "V3P_STRENGTH_034",
       "sport": "strength",
-      "sourceFingerprint": "e5200e61",
+      "sourceFingerprint": "3cc9fc04",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "d6ba3ffa",
@@ -15286,7 +15498,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Instabilité marche",
@@ -15300,7 +15519,7 @@
     {
       "id": "V3P_STRENGTH_035",
       "sport": "strength",
-      "sourceFingerprint": "11e0c85c",
+      "sourceFingerprint": "d5c1edb7",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9c42b3ac",
@@ -15328,7 +15547,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Instabilité marche",
@@ -15342,7 +15568,7 @@
     {
       "id": "V3P_STRENGTH_036",
       "sport": "strength",
-      "sourceFingerprint": "401718c7",
+      "sourceFingerprint": "6a211e40",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "910fb27f",
@@ -15370,7 +15596,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Instabilité marche",
@@ -15384,7 +15614,7 @@
     {
       "id": "V3P_STRENGTH_037",
       "sport": "strength",
-      "sourceFingerprint": "1a521c7e",
+      "sourceFingerprint": "59f6660f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "07117022",
@@ -15412,7 +15642,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15430,7 +15667,7 @@
     {
       "id": "V3P_STRENGTH_038",
       "sport": "strength",
-      "sourceFingerprint": "072f911b",
+      "sourceFingerprint": "91b319cc",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "6ce8b749",
@@ -15458,7 +15695,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -15473,7 +15717,7 @@
     {
       "id": "V3P_STRENGTH_039",
       "sport": "strength",
-      "sourceFingerprint": "038f94f8",
+      "sourceFingerprint": "eca57d7d",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "64349fab",
@@ -15501,7 +15745,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -15516,7 +15767,7 @@
     {
       "id": "V3P_STRENGTH_040",
       "sport": "strength",
-      "sourceFingerprint": "780208ba",
+      "sourceFingerprint": "593c2795",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "df3d3e15",
@@ -15544,7 +15795,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -15559,7 +15814,7 @@
     {
       "id": "V3P_STRENGTH_041",
       "sport": "strength",
-      "sourceFingerprint": "d21df6ad",
+      "sourceFingerprint": "02a70be8",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "2f64b9ef",
@@ -15587,7 +15842,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15605,7 +15867,7 @@
     {
       "id": "V3P_STRENGTH_042",
       "sport": "strength",
-      "sourceFingerprint": "b854bd84",
+      "sourceFingerprint": "fc494727",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "2c48308a",
@@ -15633,7 +15895,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15648,7 +15917,7 @@
     {
       "id": "V3P_STRENGTH_043",
       "sport": "strength",
-      "sourceFingerprint": "563277f5",
+      "sourceFingerprint": "3de57674",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9a473592",
@@ -15676,7 +15945,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15691,7 +15967,7 @@
     {
       "id": "V3P_STRENGTH_044",
       "sport": "strength",
-      "sourceFingerprint": "81e2d6b4",
+      "sourceFingerprint": "096a375f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5f330d07",
@@ -15719,7 +15995,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15734,7 +16014,7 @@
     {
       "id": "V3P_STRENGTH_045",
       "sport": "strength",
-      "sourceFingerprint": "44566187",
+      "sourceFingerprint": "712f7d02",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "4c0a69fd",
@@ -15762,7 +16042,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15779,7 +16066,7 @@
     {
       "id": "V3P_STRENGTH_046",
       "sport": "strength",
-      "sourceFingerprint": "1f5cf620",
+      "sourceFingerprint": "3a17b9e3",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "60fee078",
@@ -15807,7 +16094,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15821,7 +16115,7 @@
     {
       "id": "V3P_STRENGTH_047",
       "sport": "strength",
-      "sourceFingerprint": "ac98d8d3",
+      "sourceFingerprint": "38a313ea",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5f3a3cb8",
@@ -15849,7 +16143,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15863,7 +16164,7 @@
     {
       "id": "V3P_STRENGTH_048",
       "sport": "strength",
-      "sourceFingerprint": "7eecaa10",
+      "sourceFingerprint": "af8e4c0b",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "b32bbd45",
@@ -15891,7 +16192,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -15905,7 +16210,7 @@
     {
       "id": "V3P_STRENGTH_049",
       "sport": "strength",
-      "sourceFingerprint": "6cf17848",
+      "sourceFingerprint": "cbf20d97",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "a8b875db",
@@ -15933,7 +16238,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -15951,7 +16263,7 @@
     {
       "id": "V3P_STRENGTH_050",
       "sport": "strength",
-      "sourceFingerprint": "a694a1ec",
+      "sourceFingerprint": "c4cf6a1f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "72fadbdd",
@@ -15979,7 +16291,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur tendon Achille",
@@ -15994,7 +16313,7 @@
     {
       "id": "V3P_STRENGTH_051",
       "sport": "strength",
-      "sourceFingerprint": "7bbcf9a9",
+      "sourceFingerprint": "d8a6ae70",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "83cb135d",
@@ -16022,7 +16341,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur tendon Achille",
@@ -16037,7 +16363,7 @@
     {
       "id": "V3P_STRENGTH_052",
       "sport": "strength",
-      "sourceFingerprint": "9f7c22a0",
+      "sourceFingerprint": "279cb957",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "8edd47e0",
@@ -16065,7 +16391,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur tendon Achille",
@@ -16080,7 +16410,7 @@
     {
       "id": "V3P_STRENGTH_053",
       "sport": "strength",
-      "sourceFingerprint": "f38e98c1",
+      "sourceFingerprint": "e50bab06",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "dba9d7de",
@@ -16108,7 +16438,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -16125,7 +16462,7 @@
     {
       "id": "V3P_STRENGTH_054",
       "sport": "strength",
-      "sourceFingerprint": "5531ae20",
+      "sourceFingerprint": "7f06da49",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "4a977bcd",
@@ -16153,7 +16490,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Déchirure ou douleur ischio",
@@ -16167,7 +16511,7 @@
     {
       "id": "V3P_STRENGTH_055",
       "sport": "strength",
-      "sourceFingerprint": "ea110d95",
+      "sourceFingerprint": "efb02926",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "60641bf9",
@@ -16195,7 +16539,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Déchirure ou douleur ischio",
@@ -16209,7 +16560,7 @@
     {
       "id": "V3P_STRENGTH_056",
       "sport": "strength",
-      "sourceFingerprint": "3630f624",
+      "sourceFingerprint": "5a724105",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "fa9561e0",
@@ -16237,7 +16588,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Déchirure ou douleur ischio",
@@ -16251,7 +16606,7 @@
     {
       "id": "V3P_STRENGTH_057",
       "sport": "strength",
-      "sourceFingerprint": "1c9b3810",
+      "sourceFingerprint": "20f50901",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "c797958a",
@@ -16279,7 +16634,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [
         "Technique de force vérifiée",
         "Charges/RPE individualisés"
@@ -16297,7 +16659,7 @@
     {
       "id": "V3P_STRENGTH_058",
       "sport": "strength",
-      "sourceFingerprint": "2eacc07f",
+      "sourceFingerprint": "c47f3f4c",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "c170098b",
@@ -16325,7 +16687,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Équilibre insuffisant",
@@ -16340,7 +16709,7 @@
     {
       "id": "V3P_STRENGTH_059",
       "sport": "strength",
-      "sourceFingerprint": "54a31696",
+      "sourceFingerprint": "5bbf42e7",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "cb5e0c65",
@@ -16368,7 +16737,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Équilibre insuffisant",
@@ -16383,7 +16759,7 @@
     {
       "id": "V3P_STRENGTH_060",
       "sport": "strength",
-      "sourceFingerprint": "13f62ac8",
+      "sourceFingerprint": "495e27d1",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "bcbcc90b",
@@ -16411,7 +16787,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Équilibre insuffisant",
@@ -16426,7 +16806,7 @@
     {
       "id": "V3P_STRENGTH_061",
       "sport": "strength",
-      "sourceFingerprint": "1a45d3d3",
+      "sourceFingerprint": "8620838c",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "f77b8f86",
@@ -16455,7 +16835,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Entorse aiguë",
@@ -16469,7 +16856,7 @@
     {
       "id": "V3P_STRENGTH_062",
       "sport": "strength",
-      "sourceFingerprint": "1b2dc327",
+      "sourceFingerprint": "44f17036",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "b04c05c6",
@@ -16497,7 +16884,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Entorse aiguë",
@@ -16511,7 +16902,7 @@
     {
       "id": "V3P_STRENGTH_063",
       "sport": "strength",
-      "sourceFingerprint": "883ce36b",
+      "sourceFingerprint": "5000a8c4",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "fd079863",
@@ -16539,7 +16930,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Entorse aiguë",
@@ -16553,7 +16951,7 @@
     {
       "id": "V3P_STRENGTH_064",
       "sport": "strength",
-      "sourceFingerprint": "94085603",
+      "sourceFingerprint": "31820766",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "a86ec09d",
@@ -16581,7 +16979,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Entorse aiguë",
@@ -16595,7 +17000,7 @@
     {
       "id": "V3P_STRENGTH_065",
       "sport": "strength",
-      "sourceFingerprint": "490b61e8",
+      "sourceFingerprint": "72e63aa5",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "d8c8d2d6",
@@ -16624,7 +17029,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pied",
@@ -16638,7 +17050,7 @@
     {
       "id": "V3P_STRENGTH_066",
       "sport": "strength",
-      "sourceFingerprint": "606e549c",
+      "sourceFingerprint": "f190e873",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "44dfd3da",
@@ -16666,7 +17078,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pied",
@@ -16680,7 +17096,7 @@
     {
       "id": "V3P_STRENGTH_067",
       "sport": "strength",
-      "sourceFingerprint": "1104a21a",
+      "sourceFingerprint": "f0835717",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "ec33c327",
@@ -16708,7 +17124,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pied",
@@ -16722,7 +17145,7 @@
     {
       "id": "V3P_STRENGTH_068",
       "sport": "strength",
-      "sourceFingerprint": "8acfe5b8",
+      "sourceFingerprint": "34830493",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "7b5e2af1",
@@ -16750,7 +17173,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pied",
@@ -16764,7 +17194,7 @@
     {
       "id": "V3P_STRENGTH_069",
       "sport": "strength",
-      "sourceFingerprint": "38267835",
+      "sourceFingerprint": "6cd6e75c",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5410cea4",
@@ -16793,7 +17223,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -16808,7 +17245,7 @@
     {
       "id": "V3P_STRENGTH_070",
       "sport": "strength",
-      "sourceFingerprint": "1e4574ae",
+      "sourceFingerprint": "a9fb086f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "e426b007",
@@ -16836,7 +17273,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -16851,7 +17292,7 @@
     {
       "id": "V3P_STRENGTH_071",
       "sport": "strength",
-      "sourceFingerprint": "9beddba6",
+      "sourceFingerprint": "98997049",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "550515b0",
@@ -16879,7 +17320,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -16894,7 +17342,7 @@
     {
       "id": "V3P_STRENGTH_072",
       "sport": "strength",
-      "sourceFingerprint": "598ecdd3",
+      "sourceFingerprint": "c9152900",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "6252a719",
@@ -16922,7 +17370,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur genou",
@@ -16937,7 +17392,7 @@
     {
       "id": "V3P_STRENGTH_073",
       "sport": "strength",
-      "sourceFingerprint": "a2960fd9",
+      "sourceFingerprint": "9622b5da",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "e544f593",
@@ -16966,7 +17421,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pubienne",
@@ -16980,7 +17442,7 @@
     {
       "id": "V3P_STRENGTH_074",
       "sport": "strength",
-      "sourceFingerprint": "15d66d49",
+      "sourceFingerprint": "41c87eb6",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "f9512937",
@@ -17008,7 +17470,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pubienne",
@@ -17022,7 +17488,7 @@
     {
       "id": "V3P_STRENGTH_075",
       "sport": "strength",
-      "sourceFingerprint": "5551e965",
+      "sourceFingerprint": "5bef5e22",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "213055c4",
@@ -17050,7 +17516,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pubienne",
@@ -17064,7 +17537,7 @@
     {
       "id": "V3P_STRENGTH_076",
       "sport": "strength",
-      "sourceFingerprint": "3aecb6ca",
+      "sourceFingerprint": "b62e9711",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "dffc7219",
@@ -17092,7 +17565,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur pubienne",
@@ -17106,7 +17586,7 @@
     {
       "id": "V3P_STRENGTH_077",
       "sport": "strength",
-      "sourceFingerprint": "a4b383a8",
+      "sourceFingerprint": "bf7ba381",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "2590cb9f",
@@ -17135,7 +17615,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche latérale",
@@ -17149,7 +17636,7 @@
     {
       "id": "V3P_STRENGTH_078",
       "sport": "strength",
-      "sourceFingerprint": "da2027a8",
+      "sourceFingerprint": "3e10eb89",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9d110e5b",
@@ -17177,7 +17664,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche latérale",
@@ -17191,7 +17682,7 @@
     {
       "id": "V3P_STRENGTH_079",
       "sport": "strength",
-      "sourceFingerprint": "6c6e235a",
+      "sourceFingerprint": "b75ee1b7",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5b2552a8",
@@ -17219,7 +17710,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche latérale",
@@ -17233,7 +17731,7 @@
     {
       "id": "V3P_STRENGTH_080",
       "sport": "strength",
-      "sourceFingerprint": "3d54c20c",
+      "sourceFingerprint": "8744d2cb",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "59d03974",
@@ -17261,7 +17759,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche latérale",
@@ -17275,7 +17780,7 @@
     {
       "id": "V3P_STRENGTH_081",
       "sport": "strength",
-      "sourceFingerprint": "27360eb8",
+      "sourceFingerprint": "2181e617",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "081aa6e6",
@@ -17304,7 +17809,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche",
@@ -17318,7 +17830,7 @@
     {
       "id": "V3P_STRENGTH_082",
       "sport": "strength",
-      "sourceFingerprint": "fafc396a",
+      "sourceFingerprint": "8226d9c9",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9308eae8",
@@ -17346,7 +17858,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche",
@@ -17360,7 +17876,7 @@
     {
       "id": "V3P_STRENGTH_083",
       "sport": "strength",
-      "sourceFingerprint": "a30848b4",
+      "sourceFingerprint": "11c587a7",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "4a403d39",
@@ -17388,7 +17904,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche",
@@ -17402,7 +17925,7 @@
     {
       "id": "V3P_STRENGTH_084",
       "sport": "strength",
-      "sourceFingerprint": "290decc3",
+      "sourceFingerprint": "763494bc",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "cee45cd2",
@@ -17430,7 +17953,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur hanche",
@@ -17444,7 +17974,7 @@
     {
       "id": "V3P_STRENGTH_085",
       "sport": "strength",
-      "sourceFingerprint": "f43d0a4c",
+      "sourceFingerprint": "2731a46d",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "916b4b31",
@@ -17473,7 +18003,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17488,7 +18025,7 @@
     {
       "id": "V3P_STRENGTH_086",
       "sport": "strength",
-      "sourceFingerprint": "e679843c",
+      "sourceFingerprint": "c93ee0a3",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "990d9d35",
@@ -17516,7 +18053,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17531,7 +18072,7 @@
     {
       "id": "V3P_STRENGTH_087",
       "sport": "strength",
-      "sourceFingerprint": "e71f92a6",
+      "sourceFingerprint": "49c34c9f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "ece48bd6",
@@ -17559,7 +18100,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17574,7 +18122,7 @@
     {
       "id": "V3P_STRENGTH_088",
       "sport": "strength",
-      "sourceFingerprint": "dc36ac9f",
+      "sourceFingerprint": "f4e7b926",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "9fa1ac3d",
@@ -17602,7 +18150,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17617,7 +18172,7 @@
     {
       "id": "V3P_STRENGTH_089",
       "sport": "strength",
-      "sourceFingerprint": "8ace65ec",
+      "sourceFingerprint": "c78d3c0d",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "05cd4938",
@@ -17646,7 +18201,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17660,7 +18222,7 @@
     {
       "id": "V3P_STRENGTH_090",
       "sport": "strength",
-      "sourceFingerprint": "070e038d",
+      "sourceFingerprint": "3346d632",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "e0804ebb",
@@ -17688,7 +18250,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17702,7 +18268,7 @@
     {
       "id": "V3P_STRENGTH_091",
       "sport": "strength",
-      "sourceFingerprint": "48c608ad",
+      "sourceFingerprint": "2a699fe2",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "ba38a950",
@@ -17730,7 +18296,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17744,7 +18317,7 @@
     {
       "id": "V3P_STRENGTH_092",
       "sport": "strength",
-      "sourceFingerprint": "f9d9db21",
+      "sourceFingerprint": "d202711c",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5adb5c4c",
@@ -17772,7 +18345,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur épaule",
@@ -17786,7 +18366,7 @@
     {
       "id": "V3P_STRENGTH_093",
       "sport": "strength",
-      "sourceFingerprint": "8f29a82e",
+      "sourceFingerprint": "05b69715",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "5932d88f",
@@ -17815,7 +18395,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur rachidienne",
@@ -17830,7 +18417,7 @@
     {
       "id": "V3P_STRENGTH_094",
       "sport": "strength",
-      "sourceFingerprint": "29b02b54",
+      "sourceFingerprint": "eaed3e2d",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "8f2b50e5",
@@ -17858,7 +18445,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur rachidienne",
@@ -17873,7 +18464,7 @@
     {
       "id": "V3P_STRENGTH_095",
       "sport": "strength",
-      "sourceFingerprint": "ca61671e",
+      "sourceFingerprint": "c1ad9745",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "32628b76",
@@ -17901,7 +18492,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur rachidienne",
@@ -17916,7 +18514,7 @@
     {
       "id": "V3P_STRENGTH_096",
       "sport": "strength",
-      "sourceFingerprint": "d258719e",
+      "sourceFingerprint": "3a64fc1f",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "bfe97eb4",
@@ -17944,7 +18542,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur rachidienne",
@@ -17959,7 +18564,7 @@
     {
       "id": "V3P_STRENGTH_097",
       "sport": "strength",
-      "sourceFingerprint": "1b30f336",
+      "sourceFingerprint": "411ac219",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "57e1df05",
@@ -17988,7 +18593,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -18002,7 +18614,7 @@
     {
       "id": "V3P_STRENGTH_098",
       "sport": "strength",
-      "sourceFingerprint": "4e44270e",
+      "sourceFingerprint": "3eb94615",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "8dda7e2d",
@@ -18030,7 +18642,11 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -18044,7 +18660,7 @@
     {
       "id": "V3P_STRENGTH_099",
       "sport": "strength",
-      "sourceFingerprint": "976ff7a8",
+      "sourceFingerprint": "f6a73cff",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "e87b0274",
@@ -18072,7 +18688,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:2.0",
+        "strength_measured_setup_transition_seconds:2.0",
+        "strength_coach_confirmed_rpe_and_load:2.0"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
@@ -18086,7 +18709,7 @@
     {
       "id": "V3P_STRENGTH_100",
       "sport": "strength",
-      "sourceFingerprint": "b008530d",
+      "sourceFingerprint": "100f4502",
       "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
       "originReviewFingerprint": "747acedb",
@@ -18114,7 +18737,14 @@
       "requiredMeasurements": [
         "coach_verified_rpe_and_load"
       ],
-      "requiredDurationInputs": [],
+      "requiredDurationInputs": [
+        "strength_measured_seconds_per_rep:1.0",
+        "strength_measured_setup_transition_seconds:1.0",
+        "strength_coach_confirmed_rpe_and_load:1.0",
+        "strength_measured_seconds_per_rep:1.1",
+        "strength_measured_setup_transition_seconds:1.1",
+        "strength_coach_confirmed_rpe_and_load:1.1"
+      ],
       "prerequisites": [],
       "contraindications": [
         "Douleur lombaire",
