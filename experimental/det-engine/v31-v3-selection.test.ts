@@ -6,6 +6,7 @@ import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
 import { constructDeterministicPlan, raceOnlySourceMatchesDay } from './engine';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const runnerIds=[
   'V3P_RUN_001', 'V3P_RUN_002', 'V3P_RUN_013', 'V3P_RUN_021',
@@ -15,6 +16,7 @@ const runnerIds=[
 const makeReview=(id:string,objective:string):V3ReviewedSettings=>({
   id,objective,athleteLevel:'light',athleteLevelSource:'manual',
   allPrerequisitesChecked:true,individualCoachApproval:true,preferReviewedV3:true,
+  athleteAnchors:syntheticV3ReviewAnchors(),
 });
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();vi.useRealTimers();});
 describe('DET V31 — actual deterministic selection, not mere catalogue visibility',()=>{
