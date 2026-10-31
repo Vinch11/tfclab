@@ -172,7 +172,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const entry=preparation.weeklyQuotas[week.week];
           return entry?.layout?[{
             week:week.week,layout:entry.layout,quota:entry.quota,
-            reviewedIds:week.eligible.map(src=>({id:src.id,sport:src.sport})),
+            reviewedIds:week.eligible.map(src=>({id:src.id,sport:src.sport,durationMin:src.durationMin})),
           }]:[];
         });
         const repair=improveCalendarRecoveryByExistingSlotSwaps(contexts,
