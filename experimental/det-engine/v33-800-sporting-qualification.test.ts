@@ -8,15 +8,14 @@ import {buildDetV3ContractFromCatalogue} from './v31-v3-catalogue';
 import {syntheticV3SportingContext,syntheticV3ReviewAnchors} from './v3-test-anchor-fixtures';
 const find=(id:string)=>v3FullCatalogue.workouts.find(w=>w.id===id)!;
 describe('V3.3 — all 800 actual source sporting qualifications',()=>{
- it('has 800 source fingerprints and 797 prequalified candidates / three explicit unsafe-source refusals',()=>{
+ it('has 800 updated source fingerprints, 800 source-screened candidates and no unfixed unsafe claims',()=>{
   expect(auditV3SportingRegistry()).toEqual([]);
   expect(v3FullCatalogue.workouts).toHaveLength(800);
   const records=v3FullCatalogue.workouts.map(w=>sourceV3SportingStatus(w.id)!);
   expect(records).toHaveLength(800);
   expect(new Set(records.map(r=>r.id)).size).toBe(800);
-  expect(records.filter(r=>r.sourceStatus==='source_prequalified_pending_individual_review')).toHaveLength(797);
-  expect(records.filter(r=>r.sourceStatus==='source_blocked').map(r=>r.id).sort())
-    .toEqual(['V3P_BIKE_024','V3P_SWIM_020','V3P_SWIM_083']);
+  expect(records.filter(r=>r.sourceStatus==='source_prequalified_pending_individual_review')).toHaveLength(800);
+  expect(records.filter(r=>r.sourceStatus==='source_blocked')).toHaveLength(0);
   expect(records.every(r=>r.humanSportingApproved===false &&
     r.scientificSessionValidated===false && r.athleteApproved===false)).toBe(true);
  });
@@ -35,19 +34,36 @@ describe('V3.3 — all 800 actual source sporting qualifications',()=>{
    expect(result.report.rejected.find(r=>r.id===w.id)?.reason).toContain('v3_sporting_gate_refused');
   }
  });
- it('does not permit a known unsafe 50m alactic claim despite complete synthetic approval',()=>{
-  const id='V3P_SWIM_083',w=find(id);
-  const ctx=syntheticV3SportingContext(id);
-  const r=qualifyV3IndividualSportingSource(w,
-    'sportingReview' in ctx ? ctx.sportingReview : undefined,
-    'expectedAthleteId' in ctx ? ctx.expectedAthleteId : undefined);
-  expect(r.allowedToSubmitToDet).toBe(false);
-  expect(r.blockingReasons.some(x=>x.startsWith('sporting_source_blocked:'))).toBe(true);
-  expect(buildDetV3ContractFromCatalogue([{
-   id,objective:'IM',athleteLevel:'trained',athleteLevelSource:'manual',
-   individualCoachApproval:true,allPrerequisitesChecked:true,
-   athleteAnchors:syntheticV3ReviewAnchors(),...ctx,
-  }]).report.accepted).toHaveLength(0);
+ it('qualifies redesigned source only after re-specified stimulus, and never accepts unmeasured or >20-second swim sprint',()=>{
+  const bike=find('V3P_BIKE_024');
+  expect(bike.primaryIntent).toBe('technique_economy');
+  expect(bike.primaryDomain).toBe('tempo');
+  const technique=find('V3P_SWIM_020');
+  expect(technique.primaryIntent).toBe('technique_economy');
+  expect(technique.primaryDomain).toBe('moderate_lt1');
+  const sprint=find('V3P_SWIM_083');
+  const ctx=syntheticV3SportingContext(sprint.id);
+  expect(sprint.primaryDomain).toBe('neuromuscular');
+  expect(sprint.blocks.some(x=>x.kind==='repeat'&&
+    x.steps.some(y=>y.kind==='distance'&&y.meters?.base===25))).toBe(true);
+  const review={id:sprint.id,objective:'IM',athleteLevel:'trained' as const,
+    athleteLevelSource:'manual' as const,individualCoachApproval:true as const,
+    allPrerequisitesChecked:true as const,...ctx};
+  const unmeasured=buildDetV3ContractFromCatalogue([{...review,athleteAnchors:{
+    ...syntheticV3ReviewAnchors(),swimDomainPacesSecPer100m:undefined,
+  }}]);
+  expect(unmeasured.report.accepted).toHaveLength(0);
+  expect(unmeasured.report.rejected.find(x=>x.id===sprint.id)?.reason)
+    .toContain('v3_sprint_25m_duration_over_20s_or_unmeasured');
+  const tooSlow=buildDetV3ContractFromCatalogue([{
+    ...review,athleteAnchors:{
+      ...syntheticV3ReviewAnchors(),
+      swimDomainPacesSecPer100m:{...syntheticV3ReviewAnchors().swimDomainPacesSecPer100m,neuromuscular:90},
+    },
+  }]);
+  expect(tooSlow.report.accepted).toHaveLength(0);
+  expect(tooSlow.report.rejected.find(x=>x.id===sprint.id)?.reason)
+    .toContain('v3_sprint_25m_duration_over_20s_or_unmeasured');
  });
  it('rejects source changes and historical source-status tampering',()=>{
   const w=find('V3P_BIKE_002');
