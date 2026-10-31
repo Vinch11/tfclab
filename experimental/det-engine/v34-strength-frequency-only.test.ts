@@ -4,6 +4,8 @@ import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts'
 import {assessPreparedGeneration} from '@/lib/plan/prevalidateTrainingPlan';
 import {buildDetV3ContractFromCatalogue} from './v31-v3-catalogue';
 import {constructDeterministicPlan} from './engine';
+import {parseSessionDurationMin} from '@/engines/plan/planValidator';
+import type {ParsedSession} from '@/lib/aiPlanParser';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 
 describe('DET V3.4 — force prescribed by weekly count, not invented duration',()=>{
@@ -26,6 +28,14 @@ describe('DET V3.4 — force prescribed by weekly count, not invented duration',
   expect(verified.report.accepted[0].durationMin).toEqual([0,0]);
   expect(verified.report.accepted[0].tags).toContain('v3-strength-frequency-only-unknown-duration');
   expect(verified.report.accepted[0].zones).toEqual([]);
+ });
+ it('does not resurrect unmeasured strength duration by parsing an exercise label',()=>{
+  const example={
+   sport:'strength',title:'Gainage 30 min (étiquette historique trompeuse)',
+   details:'FRÉQUENCE UNIQUEMENT : durée non mesurée, aucune minute déduite | 3×30s planche',
+   isRest:false,
+  } as ParsedSession;
+  expect(parseSessionDurationMin(example)).toBeNull();
  });
  it('presents a genuine count-only candidate to the prevalidation and deterministic solver',()=>{
   const fixture=preparePrevalidationFixture('B-IM');
