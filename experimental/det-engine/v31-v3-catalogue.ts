@@ -278,6 +278,9 @@ export function buildDetV3ContractFromCatalogue(
         rows.forEach((row,i)=>{rows[i]=[...row,...allBricks];});
     },
     filterCandidate(card,ctx){
+      // Slot.isKeySession is not sufficient evidence that intensity must be
+      // hard: skill, durability and aerobic-long work may be the key stimulus.
+      // Preserve eligibility and use limiter-aware ranking + full plan checks.
       const brick=brickById.get(card.id);
       if(brick){
         if(!brick.phases.includes(ctx.phase??''))return false;
