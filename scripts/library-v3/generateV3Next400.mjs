@@ -30,7 +30,7 @@ const enrich=function enrich(w) {
       knobs.push({path:path+".betweenSec",unit:"seconds",...block.betweenSecBounds,risk:"recovery_dose"});
       walk(block.steps,path);
     }else{
-      if(block.domain!==null)allDomains.add(block.domain);
+      if(w.sport!=="strength" && block.domain!==null && block.domain!==undefined)allDomains.add(block.domain);
       if(block.kind==="distance")distanceDomains.add(block.domain);
       if(block.kind==="reps")repEstimated=true;
       if(block.kind==="time" && block.role==="main")hasTimeMain=true;
