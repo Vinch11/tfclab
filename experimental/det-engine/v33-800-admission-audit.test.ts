@@ -29,6 +29,13 @@ describe('V3.3 — real 800-source DET admission capability under explicitly syn
   for(const x of result.report.rejected)counts.set(x.reason,(counts.get(x.reason)??0)+1);
   const reasons=[...counts.entries()].map(([reason,count])=>({reason,count}))
     .sort((a,b)=>b.count-a.count);
+  const blockedRecipeIdsByReason=Object.fromEntries([...counts.keys()].sort().map(reason=>[
+   reason,result.report.rejected.filter(r=>r.reason===reason).map(r=>r.id).sort(),
+  ]));
+  console.info('DET_V33_800_BLOCKER_REGISTER',JSON.stringify({
+   target:800,admitted:result.report.accepted.length,
+   blocked:result.report.rejected.length,blockedRecipeIdsByReason,
+  }));
   console.info('DET_V33_800_SOURCE_ADMISSION_AUDIT',JSON.stringify({
    admitted:result.report.accepted.length,acceptedBySport,rejected:result.report.rejected.length,
    topRejections:reasons.slice(0,25),
