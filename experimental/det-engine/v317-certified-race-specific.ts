@@ -41,6 +41,7 @@ export function certifyReviewedRaceSpecificPeak(
   // Unavailable proof providers invalidate the whole certificate, even
   // when a different session has individually verified race-pace evidence.
   let providerUnavailable=false;
+  let invalidReviewedEvidence=false;
   for(const w of peak){
     for(const session of w.sessions as ParsedSession[]){
       if(session.isRest||!session.catalogId)continue;
@@ -53,9 +54,11 @@ export function certifyReviewedRaceSpecificPeak(
       }
       if(!review)continue;
       if(review.sourceId!==session.catalogId||review.objective!==objective){
+        invalidReviewedEvidence=true;
         rejected.push('wrong_source_or_objective:'+session.catalogId);continue;
       }
       if(!['bike','swim','run'].includes(session.sport)){
+        invalidReviewedEvidence=true;
         rejected.push('wrong_sport:'+session.catalogId);continue;
       }
       let dose:NativeZoneDose|null|undefined;
@@ -69,6 +72,7 @@ export function certifyReviewedRaceSpecificPeak(
       }
       if(typeof session.durationMin!=='number'||
          !zonesValid(dose,session.durationMin)){
+        invalidReviewedEvidence=true;
         rejected.push('missing_exact_individual_dose:'+session.catalogId);
         continue;
       }
@@ -76,6 +80,9 @@ export function certifyReviewedRaceSpecificPeak(
     }
   }
   if(providerUnavailable)return refuse('race_specific_evidence_provider_unavailable',rejected);
+  // A valid source must not mask a different reviewed source with the wrong
+  // objective, sport, or non-conserved individual dose in the same peak.
+  if(invalidReviewedEvidence)return refuse('race_specific_reviewed_source_invalid',rejected);
   if(!sourceIds.size)return refuse('no_individually_approved_race_pace_source_in_peak',rejected);
   return {verdict:'verified',reason:'approved_goal_specific_source_and_exact_dose_in_peak',
     sourceIds:[...sourceIds].sort(),peakWeeks:peak.map(w=>w.weekNumber),
