@@ -2609,27 +2609,24 @@
     {
       "id": "V3P_BIKE_024",
       "sport": "bike",
-      "sourceFingerprint": "10ec8414",
-      "sourceStatus": "source_blocked",
-      "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
+      "sourceFingerprint": "7ec77821",
+      "sourceStatus": "source_prequalified_pending_individual_review",
+      "reviewOrigin": "v3_800_redesigned_60s_activation_as_technique_tempo",
       "originReviewFingerprint": "dc66ba2e",
-      "originReviewAuthority": "automated_sport_screen_only",
+      "originReviewAuthority": "automated_sport_screen_only_after_material_stimulus_revision",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "neuromuscular_burst_over_45s",
-        "neuromuscular_work_interval_over_45s_requires_reclassification"
-      ],
-      "primaryIntent": "neuromuscular",
-      "primaryDomain": "neuromuscular",
+      "sourceBlockers": [],
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "tempo",
       "limiterKeys": [
-        "neuromuscular_recruitment",
         "movement_economy",
+        "technical_efficiency",
         "cycling_power_durability"
       ],
       "mainDomainIds": [
-        "neuromuscular"
+        "tempo"
       ],
       "mainBlockCount": 1,
       "totalMainTimeSeconds": 60,
@@ -2639,11 +2636,13 @@
       ],
       "minimumRecoveryHours": 18,
       "requiredMeasurements": [
-        "bike_verified_sprint_power_range_w",
+        "bike_ftp_w",
         "bike_ftp_w"
       ],
       "requiredDurationInputs": [],
-      "prerequisites": [],
+      "prerequisites": [
+        "Repère FTP/tempo individuel vérifié et qualité de cadence confirmée"
+      ],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
         "Récupération insuffisante"
@@ -4025,27 +4024,24 @@
     {
       "id": "V3P_SWIM_020",
       "sport": "swim",
-      "sourceFingerprint": "3c512294",
-      "sourceStatus": "source_blocked",
-      "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
+      "sourceFingerprint": "5b147346",
+      "sourceStatus": "source_prequalified_pending_individual_review",
+      "reviewOrigin": "v3_800_redesigned_50m_as_sub_lt1_technique",
       "originReviewFingerprint": "a3f62dfb",
-      "originReviewAuthority": "automated_sport_screen_only",
+      "originReviewAuthority": "automated_sport_screen_only_after_material_stimulus_revision",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "swim_50m_alactic_not_proven",
-        "swim_50m_sprint_not_proven_alactic"
-      ],
-      "primaryIntent": "neuromuscular",
-      "primaryDomain": "neuromuscular",
+      "sourceBlockers": [],
+      "primaryIntent": "technique_economy",
+      "primaryDomain": "moderate_lt1",
       "limiterKeys": [
-        "neuromuscular_recruitment",
         "movement_economy",
+        "technical_efficiency",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
-        "neuromuscular"
+        "moderate_lt1"
       ],
       "mainBlockCount": 1,
       "totalMainTimeSeconds": 0,
@@ -4056,14 +4052,16 @@
       ],
       "minimumRecoveryHours": 36,
       "requiredMeasurements": [
-        "swim_domain_pace_sec_per_100m.neuromuscular",
+        "swim_domain_pace_sec_per_100m.moderate_lt1",
         "swim_domain_pace_sec_per_100m.recovery"
       ],
       "requiredDurationInputs": [
         "swim_domain_pace_sec_per_100m.recovery",
-        "swim_domain_pace_sec_per_100m.neuromuscular"
+        "swim_domain_pace_sec_per_100m.moderate_lt1"
       ],
-      "prerequisites": [],
+      "prerequisites": [
+        "Allure de nage modérée individuelle confirmée, nage sous surveillance"
+      ],
       "contraindications": [
         "Douleur ou fatigue incompatible avec la charge",
         "Récupération insuffisante"
@@ -13807,18 +13805,15 @@
     {
       "id": "V3P_SWIM_083",
       "sport": "swim",
-      "sourceFingerprint": "824e78cb",
-      "sourceStatus": "source_blocked",
-      "reviewOrigin": "pr448_400_sporting_review_imported_and_unchanged",
+      "sourceFingerprint": "6ba5d510",
+      "sourceStatus": "source_prequalified_pending_individual_review",
+      "reviewOrigin": "v3_800_redesigned_25m_alactic_with_individual_20s_gate",
       "originReviewFingerprint": "7203a40c",
-      "originReviewAuthority": "automated_sport_screen_only",
+      "originReviewAuthority": "automated_sport_screen_only_after_material_stimulus_revision",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "swim_50m_alactic_not_proven",
-        "swim_50m_sprint_not_proven_alactic"
-      ],
+      "sourceBlockers": [],
       "primaryIntent": "neuromuscular",
       "primaryDomain": "neuromuscular",
       "limiterKeys": [
@@ -13846,7 +13841,9 @@
         "swim_domain_pace_sec_per_100m.neuromuscular"
       ],
       "prerequisites": [
-        "Repère d'intensité réel et technique mature"
+        "Repère d'intensité réel et technique mature",
+        "Bassin 25m ou distance jalonnée et temps de sprint individuel 25 m ≤20 s confirmé",
+        "Récupération au moins 90 s entre efforts, arrêt en cas de baisse de vitesse"
       ],
       "contraindications": [
         "Épaule douloureuse ou fatigue technique",
