@@ -16,6 +16,7 @@ const review=(id:string,targetDurationMin?:number):V3ReviewedSettings=>({
 const sources=[
  review('V3P_BIKE_002',65),review('V3P_BIKE_017'),
  review('V3P_BIKE_090'),review('V3P_BIKE_057'),review('V3P_BIKE_085'),review('V3P_BIKE_089'),
+ review('V3P_BIKE_016',139),
  review('V3P_RUN_001'),review('V3P_RUN_041'),
 ];
 const base=[{id:V3_BASE_BRICK_ID,objective:'703',
@@ -31,18 +32,19 @@ const easy:V34SafeBrickReview[]=V34_SAFE_RUN_BRICKS.map(b=>({
 }));
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V34 — lower run-recovery burden without changing sport floors',()=>{
- it('assembles only exact source-reviewed easy-run 70.3 bricks (173/120/160)',()=>{
+ it('assembles only exact source-reviewed easy-run 70.3 bricks (173/120/160/180)',()=>{
   const p=buildDetV3ContractFromCatalogue(sources,base,specific,easy);
   expect(p.report.sourceCount).toBe(400);
   expect(p.lowRunBrickReport.rejected).toEqual([]);
   expect(p.lowRunBrickReport.accepted.map(m=>m.durationMin))
-    .toEqual([[173,173],[120,120],[160,160]]);
+    .toEqual([[173,173],[120,120],[160,160],[180,180]]);
   expect(p.lowRunBrickReport.accepted.map(m=>m.phases))
-    .toEqual([['build'],['build'],['peak']]);
+    .toEqual([['build'],['build'],['peak'],['build']]);
   const split=p.lowRunBrickReport.accepted.map(m=>splitVerifiedV3Brick(
     m.id,m.structure,m.durationMin[0],p.allBricks));
   expect(split).toEqual([{bike:132,run:35,transition:6},
-    {bike:77,run:35,transition:8},{bike:120,run:35,transition:5}]);
+    {bike:77,run:35,transition:8},{bike:120,run:35,transition:5},
+    {bike:139,run:35,transition:6}]);
   for(const m of p.lowRunBrickReport.accepted){
     expect(p.contract.sourceRecoveryForId?.(m.id).find(x=>x.sport==='run')?.hours)
       .toBe(6);
@@ -51,7 +53,7 @@ describe('V34 — lower run-recovery burden without changing sport floors',()=>{
       slot:{sport:'brick'},dayIndex:5,
     })).toBe(-2);
   }
-  expect(p.allBricks).toHaveLength(7);
+  expect(p.allBricks).toHaveLength(8);
   expect(p.lowRunBrickReport.accepted[1].mainZoneMax).toBe(2);
   expect(p.contract.filterCandidate?.(p.lowRunBrickReport.accepted[1],{
     week:6,phase:'build',weekType:'load',slot:{sport:'brick',isKeySession:true},dayIndex:5
