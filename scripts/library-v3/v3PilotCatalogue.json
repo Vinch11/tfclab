@@ -1595,8 +1595,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -1809,8 +1809,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -2024,8 +2024,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -3106,7 +3106,7 @@
             },
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -3305,7 +3305,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -3879,8 +3879,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -4077,8 +4077,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -12164,7 +12164,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "bike_verified_sprint_power_or_coach_rpe",
+              "key": "bike_verified_sprint_power_range_w",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -13490,8 +13490,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -13706,8 +13706,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -13989,8 +13989,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "bike_ftp_w",
-              "transform": "tfclDoctrine.bike_fraction_of_ftp",
+              "key": "bike_ftp_w+bike_pma_w",
+              "transform": "verified_ftp_and_pma",
               "missing": "unresolved"
             }
           ],
@@ -14238,7 +14238,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "bike_verified_sprint_power_or_coach_rpe",
+              "key": "bike_verified_sprint_power_range_w",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -14445,7 +14445,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "bike_verified_sprint_power_or_coach_rpe",
+              "key": "bike_verified_sprint_power_range_w",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -14637,7 +14637,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "bike_verified_sprint_power_or_coach_rpe",
+              "key": "bike_verified_sprint_power_range_w",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -16489,8 +16489,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
