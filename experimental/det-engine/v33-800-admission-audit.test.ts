@@ -37,9 +37,12 @@ describe('V3.3 — real 800-source DET admission capability under explicitly syn
   expect(acceptedBySport.run).toBeGreaterThanOrEqual(100);
   expect(acceptedBySport.swim).toBeGreaterThanOrEqual(100);
   expect(acceptedBySport.strength).toBeGreaterThanOrEqual(100);
-  expect(result.report.rejected.find(x=>x.id==='V3P_BIKE_024')?.reason).toContain('v3_sporting_gate_refused');
-  expect(result.report.rejected.find(x=>x.id==='V3P_SWIM_020')?.reason).toContain('v3_sporting_gate_refused');
-  expect(result.report.rejected.find(x=>x.id==='V3P_SWIM_083')?.reason).toContain('v3_sporting_gate_refused');
+  // These three formerly unsafe sources have deliberately redefined
+  // physiological stimuli. Each still needs real athlete data to become eligible.
+  expect(v3FullCatalogue.workouts.find(w=>w.id==='V3P_BIKE_024')?.primaryIntent).toBe('technique_economy');
+  expect(v3FullCatalogue.workouts.find(w=>w.id==='V3P_SWIM_020')?.primaryIntent).toBe('technique_economy');
+  expect(v3FullCatalogue.workouts.find(w=>w.id==='V3P_SWIM_083')?.blocks.some(b=>b.kind==='repeat'&&
+    b.steps.some(x=>x.kind==='distance'&&x.meters?.base===25))).toBe(true);
   expect(result.report.accepted.every(x=>x.tags.includes('v3-sporting-source-individually-reviewed-candidate'))).toBe(true);
  });
 });
