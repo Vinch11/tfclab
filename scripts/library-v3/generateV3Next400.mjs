@@ -64,7 +64,14 @@ const enrich=function enrich(w) {
     duration:{
       formula:"SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
       classification:repEstimated?"estimated_not_slot_confirmed":distanceDomains.size?"requires_individual_pace":w.sport==="strength"?"timeboxed_executable":"exact_time",
-      requiredMeasurements:[...distanceDomains].map(d=>"swim_domain_pace_sec_per_100m."+d),
+      requiredMeasurements:[
+        ...[...distanceDomains].map(d=>"swim_domain_pace_sec_per_100m."+d),
+        ...knobs.filter(k=>k.unit==="reps"&&k.path.endsWith(".reps")).flatMap(k=>[
+          "strength_measured_seconds_per_rep:"+k.path.slice(0,-5),
+          "strength_measured_setup_transition_seconds:"+k.path.slice(0,-5),
+          "strength_coach_confirmed_rpe_and_load:"+k.path.slice(0,-5),
+        ]),
+      ],
       unknownBehavior:"unresolved_not_filled_or_rounded",
       strengthRepsInterpretation:repEstimated?"estimated_movement_time_not_appointment_duration":"timeboxed_including_rest",
     },
