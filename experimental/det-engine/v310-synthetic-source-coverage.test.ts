@@ -33,6 +33,10 @@ const addedIds=[
   'V3P_SWIM_047','V3P_SWIM_048','V3P_SWIM_049','V3P_SWIM_050',
   'V3P_SWIM_101','V3P_SWIM_102','V3P_SWIM_103',
   'V3P_SWIM_132','V3P_SWIM_133',
+  // Individually approved only by the synthetic QA coach: missing early
+  // phase threshold/VO2 KEY dose families, existing structured V3 recipes.
+  'V3P_BIKE_142','V3P_BIKE_147','V3P_BIKE_152',
+  'V3P_RUN_137','V3P_RUN_142','V3P_RUN_167','V3P_RUN_172',
 ] as const;
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger blind DFS',()=>{
