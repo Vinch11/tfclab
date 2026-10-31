@@ -51,6 +51,7 @@ export interface V3IndividualSportingEvidence {
  swimmingSafetyConfirmed?:true;
  racePaceGoalConfirmed?:true;
  testProtocolConfirmed?:true;
+ cssPairedTestConfirmed?:true;
 }
 export interface V3SportingGateResult {
  status:"refused"|"individual_candidate_requires_full_plan_validation";
@@ -101,6 +102,14 @@ function recomputeSourceBlockers(w:V3Workout):string[]{
  if(w.primaryIntent==="sub_threshold"&&w.primaryDomain!=="sub_threshold")add("sub_threshold_intent_domain_mismatch");
  if(w.primaryIntent==="mixed_intensity"&&domains.size<2)add("mixed_stimulus_requires_two_main_domains");
  if(w.primaryIntent==="neuromuscular"&&w.sport!=="strength"){
+  // New timeboxed sprint candidates require at least five times as much easy recovery.
+  if(Number(w.id.slice(-3))>100){
+   const recovered=w.blocks.some(b=>b.kind==="repeat"&&
+     b.steps.some(step=>step.kind==="time"&&step.domain==="neuromuscular"&&
+       b.steps.some(rest=>rest.kind==="time"&&rest.domain==="recovery"&&
+         rest.seconds!.base>=5*step.seconds!.base)));
+   if(!recovered)add("short_sprint_recovery_less_than_five_to_one");
+  }
   if(main.some(m=>m.kind==="time"&&m.domain==="neuromuscular"&&m.seconds!.base>45))
    add("neuromuscular_burst_over_45s");
   if(main.some(m=>m.kind==="distance"&&m.domain==="neuromuscular"&&m.meters!.base>=50))
@@ -189,6 +198,9 @@ export function qualifyV3IndividualSportingSource(
   deny("race_pace_goal_not_verified");
  if(w.primaryIntent==="test"&&evidence?.testProtocolConfirmed!==true)
   deny("test_protocol_not_individually_confirmed");
+ if(["V3P_SWIM_091","V3P_SWIM_092"].includes(w.id)&&
+    evidence?.cssPairedTestConfirmed!==true)
+  deny("css_400_and_200_pair_must_be_verified_together");
  const accepted=reasons.length===0;
  return {status:accepted?"individual_candidate_requires_full_plan_validation":"refused",
   sourceStatus:record?.sourceStatus??"source_blocked",allowedToSubmitToDet:accepted,
