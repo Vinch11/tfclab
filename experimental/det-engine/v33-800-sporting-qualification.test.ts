@@ -108,7 +108,7 @@ describe('V3.3 — all 800 actual source sporting qualifications',()=>{
   const mixed=find('V3P_BIKE_009');
   const mctx=syntheticV3SportingContext(mixed.id);
   const refused=buildDetV3ContractFromCatalogue([{
-   id:mixed.id,objective:'IM',athleteLevel:'trained',athleteLevelSource:'manual',
+   id:mixed.id,objective:'IM',athleteLevel:'highly_trained',athleteLevelSource:'manual',
    individualCoachApproval:true,allPrerequisitesChecked:true,
    athleteAnchors:syntheticV3ReviewAnchors(),...mctx,
   }]);
