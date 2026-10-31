@@ -305,9 +305,9 @@ export function buildDetV3ContractFromCatalogue(
         const appropriateDose=ctx.slot.isLongSession || card.mainZoneMax>=3 ||
           card.sport==='strength';
         if(matches&&appropriateDose)return -3;
-        // When limiters were actually declared, a nonmatching source must not
-        // receive the V3-preference boost in a KEY slot.
-        if(planLimiters.size>0)return 0;
+        // Complementary sessions remain eligible with the ordinary coach
+        // preference. A limiter match strengthens ranking, never enforces
+        // that EVERY training session targets the primary limiter.
       }
       return sourceContract.rankCandidate?.(card,ctx)??0;
     },
