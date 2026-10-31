@@ -18,6 +18,7 @@ import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution,splitVerifiedV3Brick} from './v31-time-ratio';
 import {assessGlobalSourceRatioEnvelope,type RatioSlotDomain,type ExactSportMinutes} from './v311-global-ratio-domain-bounds';
+import {planTriathlonRatioTrajectory,triathlonCandidateDoseDistance,type TriContribution} from './v312-triathlon-dose-trajectory';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
@@ -69,7 +70,7 @@ export interface ExperimentalAssemblyContract {
   applyReviewedMinuteSportRatio?:true;
   /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
    * keeping original source doses and key-limiter ranking intact. */
-  preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim'|'triathlon';
+  preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim'|'triathlon'|'triathlon_targets';
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -257,6 +258,26 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     let exhausted=false;
     let previousLoad:number|undefined;
     const sourceSlotRatioDomains:RatioSlotDomain[]=[];
+    const sourceLoadLedger={swim:0,bike:0,run:0};
+    let sourceLoadLedgerVerified=true;
+    const exactTriContribution=(session:ParsedSession):TriContribution|null=>{
+      if(!session.catalogId||!['swim','bike','run','brick'].includes(session.sport)||
+         typeof session.durationMin!=='number'||!Number.isFinite(session.durationMin)||
+         session.durationMin<=0||
+         !experimentalContract?.sourceStructuredZoneForId?.(session.catalogId,session.durationMin))
+        return null;
+      const minutes=session.durationMin;
+      if(session.sport==='brick'){
+        try {
+          const split=splitVerifiedV3Brick(session.catalogId,session.details,
+            minutes,experimentalContract.verifiedBrickCompositions??[]);
+          return split?{swim:0,bike:split.bike,run:split.run,transition:split.transition}:null;
+        }catch{return null;}
+      }
+      return {swim:session.sport==='swim'?minutes:0,
+        bike:session.sport==='bike'?minutes:0,
+        run:session.sport==='run'?minutes:0,transition:0};
+    };
     for(const w of report.weeks) {
       const entry=preparation.weeklyQuotas[w.week];
       const layout=entry.layout!;
@@ -531,6 +552,28 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       // Pair the candidate with its zone profile so all later suffix bounds
       // keep the identical index/source association.
       if(requireStructuredZones){
+        const targetRatioMode=experimentalContract?.preferSourceBackedMultisportBalance===
+          'triathlon_targets'&&sourceLoadLedgerVerified&&
+          ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+        const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+        const ratioSlotKeys=order.map(({slot},index)=>
+          [w.week,slot.dayIndex,slot.slot.sport,index].join(':'));
+        const trajectory=targetRatioMode?planTriathlonRatioTrajectory(
+          objectiveKey,order.filter(x=>['swim','bike','run','brick'].includes(x.slot.slot.sport))
+            .map(({domain,slot})=>{
+              const index=order.findIndex(x=>x.slot===slot);
+              return {id:ratioSlotKeys[index],
+                choices:domain.map(session=>exactTriContribution(session))};
+            }),sourceLoadLedger,ceiling):null;
+        if(targetRatioMode)result.issues.push({code:'det_v312_source_ratio_trajectory',
+          week:w.week,severity:'warning',message:JSON.stringify({
+            available:!!trajectory,
+            desired:trajectory?.sportTargetMinutes??null,
+            min:trajectory?.low??null,max:trajectory?.high??null,
+            referenceMinutes:trajectory?.referenceWeekMinutes??null,
+            sourceLedger:{...sourceLoadLedger},
+            interpretation:'advisory_ranking_never_a_sporting_pass',
+          })});
         for(let slotIndex=0;slotIndex<order.length;slotIndex++){
           const {domain,slot}=order[slotIndex];
           const candidates=domain.map((session,index)=>({
@@ -550,11 +593,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               (b.durationMin??0)-(a.durationMin??0):
               slot.slot.sport==='swim'||slot.slot.sport==='run'?
                 (a.durationMin??Infinity)-(b.durationMin??Infinity):0;
+          const preferred=trajectory?.preferredBySlot[ratioSlotKeys[slotIndex]];
+          const targetDistance=(session:ParsedSession)=>
+            triathlonCandidateDoseDistance(exactTriContribution(session),preferred);
           candidates.sort((a,b)=>
             Number(a.dose===null)-Number(b.dose===null)||
             (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
             (qualityRequired&&slot.slot.isKeySession?
               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
+            (trajectory?targetDistance(a.session)-targetDistance(b.session):0)||
             triathlonDuration(a.session,b.session)||
             score(b.dose)-score(a.dose)||
             a.originalIndex-b.originalIndex);
@@ -661,6 +708,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
       plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
+      if(entry.weekType==='load'&&
+         experimentalContract?.preferSourceBackedMultisportBalance==='triathlon_targets'){
+        for(const session of chosen.filter(s=>
+          !s.isRest&&['swim','bike','run','brick'].includes(s.sport))){
+          const amounts=exactTriContribution(session);
+          if(!amounts){sourceLoadLedgerVerified=false;continue;}
+          sourceLoadLedger.swim+=amounts.swim;
+          sourceLoadLedger.bike+=amounts.bike;
+          sourceLoadLedger.run+=amounts.run;
+        }
+      }
       const countOnly=chosen.filter(session=>session.catalogId&&
         catalog.some(m=>m.id===session.catalogId&&isCountOnlyStrength(m))).length;
       if(countOnly){
