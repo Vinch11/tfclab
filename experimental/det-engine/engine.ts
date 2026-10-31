@@ -320,8 +320,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const requirements=experimentalContract.sourceRecoveryForId(session.catalogId);
             let viable=calendarOnlyRecoverySafe(here,requirements,scheduledSports);
             if(!viable&&experimentalContract.coachSlotStart&&experimentalContract.coachSessionStart){
-              const actual=experimentalContract.coachSessionStart(session);
-              const designated=experimentalContract.coachSlotStart(here);
+              let actual:CoachSessionStart|null|undefined;
+              let designated:CoachSessionStart|null|undefined;
+              try {
+                actual=experimentalContract.coachSessionStart(session);
+                designated=experimentalContract.coachSlotStart(here);
+              }catch{actual=null;designated=null;}
               // A clock associated with a trial source may NOT contradict
               // the independently declared slot clock (no fabricated times).
               const consistent=actual?.provenance==='coach_confirmed'&&
