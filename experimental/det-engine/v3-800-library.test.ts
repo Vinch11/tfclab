@@ -93,6 +93,37 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
     const legacy=card("V3P_STRENGTH_021");
     expect(evaluateV3Workout(legacy).status).toBe("estimated");
   });
+  it("refuses missing athlete FTP, vVO2 and swim-domain paces even after apparent coach approval",()=>{
+    const reviewed=(id:string)=>({id,athleteLevel:"trained" as const,
+      athleteLevelSource:"manual" as const,objective:"IM",
+      allPrerequisitesChecked:true as const,individualCoachApproval:true as const});
+    const noFtp=buildDetV3ContractFromCatalogue([reviewed("V3P_BIKE_106")]);
+    expect(noFtp.report.accepted).toHaveLength(0);
+    expect(noFtp.report.rejected.find(x=>x.id==="V3P_BIKE_106")?.reason)
+      .toContain("v3_intensity_anchor_missing:bike_ftp_w");
+    const noPma=buildDetV3ContractFromCatalogue([{
+      ...reviewed("V3P_BIKE_151"),athleteAnchors:{bikeFtpWatts:300},
+    }]);
+    expect(noPma.report.accepted).toHaveLength(0);
+    expect(noPma.report.rejected.find(x=>x.id==="V3P_BIKE_151")?.reason)
+      .toContain("bike_pma_w_validated_above_vo2_floor");
+    const noSwimPaces=buildDetV3ContractFromCatalogue([{
+      ...reviewed("V3P_SWIM_131"),athleteAnchors:{cssSecPer100m:95,coachConfirmsCssAsMlssProxy:true as const},
+    }]);
+    expect(noSwimPaces.report.accepted).toHaveLength(0);
+    expect(noSwimPaces.report.rejected.find(x=>x.id==="V3P_SWIM_131")?.reason)
+      .toContain("v3_intensity_anchor_missing");
+  });
+  it("retains individualized numeric targets and their source on admitted V3",()=>{
+    const r=buildDetV3ContractFromCatalogue([{
+      id:"V3P_BIKE_106",objective:"IM",athleteLevel:"trained",
+      athleteLevelSource:"manual",allPrerequisitesChecked:true,individualCoachApproval:true,
+      athleteAnchors:{bikeFtpWatts:300},
+    }]);
+    expect(r.report.accepted).toHaveLength(1);
+    expect(r.report.accepted[0].structure).toContain("moderate_lt1 165 225 watts");
+    expect(r.report.accepted[0].tags).toContain("v3-intensity-anchors-individually-verified");
+  });
   it("actually ingests NEW, individually reviewed bike/run/swim candidates but never mislabels strength",()=>{
     const shared={athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
       athleteAnchors:syntheticV3ReviewAnchors(),
