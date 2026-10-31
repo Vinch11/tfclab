@@ -6,10 +6,12 @@ import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { constructDeterministicPlan } from './engine';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const rev=(id:string,targetDurationMin?:number):V3ReviewedSettings=>({
  id,objective:'703',athleteLevel:'trained',athleteLevelSource:'manual',
  allPrerequisitesChecked:true,individualCoachApproval:true,
+ athleteAnchors:syntheticV3ReviewAnchors(),
  ...(targetDurationMin===undefined?{}:{targetDurationMin}),
 });
 const sourceReviews:V3ReviewedSettings[]=[
