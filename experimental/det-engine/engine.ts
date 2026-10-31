@@ -30,6 +30,7 @@ import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type Confi
 import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
+import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
@@ -85,6 +86,9 @@ export interface ExperimentalAssemblyContract {
   /** V315 experimental-only: require real >=30% recovery-week time reduction
    * while selecting candidates, not after accepting a whole calendar. */
   requireMeasuredDeloadSelection?:true;
+  /** V315 only: validate training frequency excluding certified official race
+   * EVENTS, while preserving physical and native validation of the full plan. */
+  verifyOfficialRaceQuotaProjection?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -1007,7 +1011,45 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }));
     }
     const merged:MergedPlan={...plan,weeks:plan.weeks.map(w=>({...w,sessions:w.sessions.map(s=>({...s,isKeySession:!!s.isKeySession,catalogId:s.catalogId??null,custom:!!s.custom,durationMin:s.durationMin??0,zones:s.zones??[]}))}))};
-    result.issues.push(...validateWeeklyQuotas(merged,preparation.weeklyQuotas).map(i=>({code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason})));
+    const nativeQuotaIssues=validateWeeklyQuotas(merged,preparation.weeklyQuotas);
+    let checkedQuotaIssues=nativeQuotaIssues;
+    if(experimentalContract?.verifyOfficialRaceQuotaProjection===true){
+      const projection=projectCertifiedRaceEventsForTrainingQuotas(
+        merged,preparation.weeklyQuotas);
+      if(projection.verdict==='verified'&&projection.projected){
+        const trainingOnly=validateWeeklyQuotas(
+          projection.projected,preparation.weeklyQuotas);
+        // Preserve all original floor, daily capacity, rest, coach-load and
+        // layout checks. Recompute ONLY quota-range frequency with the
+        // independently certified official event excluded from workouts.
+        checkedQuotaIssues=[
+          ...nativeQuotaIssues.filter(i=>i.code!=='quota_range_drift'),
+          ...trainingOnly.filter(i=>i.code==='quota_range_drift'),
+        ];
+        result.issues.push({
+          code:'det_v315_official_race_training_quota_projection_verified',
+          severity:'warning',message:JSON.stringify({
+            excludedOfficialEvents:projection.excludedEvents,
+            originalRangeDrifts:nativeQuotaIssues
+              .filter(i=>i.code==='quota_range_drift')
+              .map(i=>({week:i.weekNumber,reason:i.reason})),
+            remainingTrainingRangeDrifts:trainingOnly
+              .filter(i=>i.code==='quota_range_drift')
+              .map(i=>({week:i.weekNumber,reason:i.reason})),
+            originalFloorDailyRestAndCoachLoadChecksPreserved:true,
+            scope:'experimental_quota_range_count_only',
+          }),
+        });
+      }else if(projection.verdict==='refused'){
+        result.issues.push({
+          code:'det_v315_race_quota_projection_unverified',
+          severity:'blocking',message:projection.reason,
+        });
+      }
+    }
+    result.issues.push(...checkedQuotaIssues.map(i=>({
+      code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason,
+    })));
   }
   const validation=validatePlan(result.candidate!,config.objective,config.prohibitions,undefined,
     config.identifiedLimitersRaw,undefined,athlete,undefined,{sessionsPerWeek:config.sessionsPerWeek,maxSessionsPerDay:config.maxSessionsPerDay,maxDoubleDaysPerWeek:config.maxDoubleDaysPerWeek},config.injuryRisk,config.ambition,
