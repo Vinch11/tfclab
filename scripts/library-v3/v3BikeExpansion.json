@@ -4117,7 +4117,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil 2 blocs longs",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4201,15 +4201,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Temps de travail sous MLSS sans dérive",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -4310,7 +4308,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil pyramide à repos croissant",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4465,15 +4463,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Contrôle sous-seuil à durée variée",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -4622,7 +4618,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil alterné avec LT1",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4717,7 +4713,7 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Retour aérobie au sein de séries de sous-seuil",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "moderate_lt1",
@@ -4725,8 +4721,6 @@
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -4841,7 +4835,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil fractionné HT",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4925,15 +4919,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Soutien sous-seuil à cadence stable en intérieur",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
