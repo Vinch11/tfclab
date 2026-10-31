@@ -238,6 +238,18 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       reason:strictStructured.reason??null,nodes:strictStructured.nodes,
       blockers:strictStructured.issues.filter(i=>blocking(i.severity)),
     }));
+    const uncovered=strictStructured.issues.find(i=>
+      i.code==='det_structured_polarization_source_envelope_refused');
+    if(uncovered){
+      const detail=JSON.parse(uncovered.message!) as {
+        unprovedSourceDomain:boolean;
+        unprovedSlots:Array<{day:string;sport:string;key:boolean;admittedCandidates:number}>};
+      expect(detail.unprovedSourceDomain).toBe(true);
+      expect(detail.unprovedSlots.length).toBeGreaterThan(0);
+      console.info('DET_V310_MISSING_CERTIFIED_SLOTS',JSON.stringify({
+        fixture:fixtureId,slots:detail.unprovedSlots,
+      }));
+    }
     expect(strictStructured.sportingRelevance).toBe('not_attested');
     expect(strictStructured.humanReviewRequired).toBe(true);
     if(strictStructured.technicallyConstructed){
