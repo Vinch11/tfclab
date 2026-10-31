@@ -20,6 +20,7 @@ import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
 import {assessStrictNativePolarizationTarget,assessStrictStructuredZoneTarget,optimisticNativeLowShareUpperBound,nativeZoneDoseForCandidate,type NativeZoneDose} from './v39-strict-native-polarization-target';
+import {assessStructuredZoneNecessaryBounds,type BoundedZoneChoice} from './v310-structured-polarization-bounds';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe,calendarOrConfirmedClockRecoverySafe,type ConfirmedSlotStart} from './v39-calendar-safe-recovery';
@@ -456,6 +457,26 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         nativeProfiles.set(session,dose);
         return dose;
       })):[];
+      const structuredDomains=requireStructuredZones?
+        order.map(({domain},slotIndex)=>domain.map((session,candidateIndex)=>{
+          const dose=zoneDomains[slotIndex][candidateIndex];
+          return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
+        })):[];
+      const initialNecessaryBounds=requireStructuredZones?
+        assessStructuredZoneNecessaryBounds([],structuredDomains,qualityRequired):null;
+      if(initialNecessaryBounds&&initialNecessaryBounds.reason!=='not_refuted'){
+        result.issues.push({
+          code:'det_v310_structured_zone_necessary_bound_refused',
+          week:w.week,severity:'blocking',
+          message:JSON.stringify({...initialNecessaryBounds,
+            proof:'exact_independent_slot_upper_and_lower_bounds',
+            qualityRequired,
+            noSourceHoursOrDosesInvented:true,
+            interpretation:'necessary_condition_for_current_domains_only',
+          }),
+        });
+        return refuse('v310_structured_zone_necessary_bound_refused_week_'+w.week);
+      }
       const rootZoneEnvelope=requireAnyStrictZones?
         optimisticNativeLowShareUpperBound([],zoneDomains):null;
       if(rootZoneEnvelope?.unmeasuredDomain || rootZoneEnvelope?.provablyBelow75){
@@ -480,6 +501,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return refuse(`${proofKind}_polarization_source_envelope_refused_week_${w.week}`);
       }
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
+      const strictPrunes:Record<string,number>={};
+      const countPrune=(reason:string)=>{strictPrunes[reason]=(strictPrunes[reason]??0)+1;};
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
@@ -490,6 +513,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const upper=optimisticNativeLowShareUpperBound(
             selected as NativeZoneDose[],zoneDomains.slice(index));
           if(upper.unmeasuredDomain||upper.provablyBelow75)return false;
+          if(requireStructuredZones){
+            const proposed=selected as NativeZoneDose[];
+            const exact=assessStructuredZoneNecessaryBounds(
+              proposed.map((dose,i)=>({dose,isKeyQuality:isQuality(chosen[i])})),
+              structuredDomains.slice(index),qualityRequired);
+            if(exact.reason!=='not_refuted'){
+              countPrune(exact.reason);
+              return false;
+            }
+          }
         }
         if(index===slots.length){
           if(qualityRequired&&!chosen.some(isQuality))return false;
@@ -527,7 +560,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               targetLowPct:75,maxUnknownPct:30,
               proofKind:requireStructuredZones?'structured_v3_blocks':'native_text_estimate',
               reason:exhausted?'bounded_search_exhausted':'no_assignment_found',
-              inspectedNodes:result.nodes,scientificAttestation:false,
+              inspectedNodes:result.nodes,
+              structuredBoundPrunes:requireStructuredZones?strictPrunes:undefined,
+              scientificAttestation:false,
             })});
         }
         return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
