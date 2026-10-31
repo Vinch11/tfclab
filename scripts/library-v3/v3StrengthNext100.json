@@ -95,6 +95,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -298,6 +302,10 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -504,6 +512,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -708,6 +720,10 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -914,6 +930,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -1118,6 +1138,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères ou barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -1321,6 +1344,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "haltères ou barre"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -1527,6 +1553,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères ou barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -1731,6 +1760,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "haltères ou barre"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -1937,6 +1969,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères ou barre"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -2141,6 +2176,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou support stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -2344,6 +2382,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou support stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -2550,6 +2591,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou support stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -2754,6 +2798,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou support stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -2960,6 +3007,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou support stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -3164,6 +3214,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable",
+        "haltères si charge"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -3367,6 +3421,10 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step stable",
+        "haltères si charge"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -3573,6 +3631,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable",
+        "haltères si charge"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -3777,6 +3839,10 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step stable",
+        "haltères si charge"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -3983,6 +4049,10 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable",
+        "haltères si charge"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -4187,6 +4257,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step ou surface stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -4390,6 +4463,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step ou surface stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -4596,6 +4672,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step ou surface stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -4800,6 +4879,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step ou surface stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -5006,6 +5088,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step ou surface stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -5210,6 +5295,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -5413,6 +5501,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -5619,6 +5710,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -5823,6 +5917,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "step stable"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -6029,6 +6126,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "step stable"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -6233,6 +6333,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -6436,6 +6539,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -6642,6 +6748,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -6846,6 +6955,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -7052,6 +7164,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -7256,6 +7371,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "banc Nordic et partenaire ou assistance"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -7459,6 +7577,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "banc Nordic et partenaire ou assistance"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -7665,6 +7786,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "banc Nordic et partenaire ou assistance"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -7869,6 +7993,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "banc Nordic et partenaire ou assistance"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -8075,6 +8202,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "banc Nordic et partenaire ou assistance"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -8279,6 +8409,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -8482,6 +8615,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -8688,6 +8824,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -8892,6 +9031,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX ou élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -9098,6 +9240,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX ou élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -9302,6 +9447,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -9505,6 +9653,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "haltères"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -9711,6 +9862,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -9915,6 +10069,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "haltères"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -10121,6 +10278,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "haltères"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -10325,6 +10485,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -10528,6 +10691,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -10734,6 +10900,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -10938,6 +11107,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -11144,6 +11316,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -11348,6 +11523,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -11551,6 +11729,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -11757,6 +11938,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -11961,6 +12145,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -12167,6 +12354,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -12371,6 +12561,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -12574,6 +12767,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -12780,6 +12976,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -12984,6 +13183,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -13190,6 +13392,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -13394,6 +13599,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante et step bas"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -13597,6 +13805,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "surface amortissante et step bas"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -13803,6 +14014,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante et step bas"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -14007,6 +14221,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "surface amortissante et step bas"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -14213,6 +14430,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante et step bas"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -14417,6 +14637,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis amortissant"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -14623,6 +14846,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis amortissant"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -14831,6 +15057,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis amortissant"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -15037,6 +15266,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis amortissant"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -15245,6 +15477,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis amortissant"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -15450,6 +15685,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -15653,6 +15891,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "surface amortissante"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -15859,6 +16100,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -16063,6 +16307,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "surface amortissante"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -16269,6 +16516,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "surface amortissante"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -16473,6 +16723,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique léger"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -16676,6 +16929,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique léger"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -16882,6 +17138,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique léger"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -17086,6 +17345,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "élastique léger"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -17292,6 +17554,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "élastique léger"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -17496,6 +17761,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -17699,6 +17967,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -17905,6 +18176,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -18109,6 +18383,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -18315,6 +18592,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -18519,6 +18799,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -18722,6 +19005,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -18928,6 +19214,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -19132,6 +19421,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -19338,6 +19630,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -19542,6 +19837,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX, haltères et tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -19745,6 +20043,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX, haltères et tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
@@ -19951,6 +20252,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX, haltères et tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -20156,6 +20460,9 @@
           "label": "Retour au calme et vérification des sensations"
         }
       ],
+      "equipment": [
+        "TRX, haltères et tapis"
+      ],
       "automaticSelection": false,
       "status": "candidate",
       "adaptationPolicy": "Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
@@ -20360,6 +20667,9 @@
           "role": "cooldown",
           "label": "Retour au calme et vérification des sensations"
         }
+      ],
+      "equipment": [
+        "TRX, haltères et tapis"
       ],
       "automaticSelection": false,
       "status": "candidate",
