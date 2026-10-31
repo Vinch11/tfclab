@@ -2,6 +2,7 @@ import {describe,expect,it} from "vitest";
 import {auditV3Catalogue,evaluateV3Workout,v3FullCatalogue,v3PilotCatalogue} from "../../scripts/library-v3/catalogueRuntime";
 import {resolveV3IntensityTargets} from "../../scripts/library-v3/resolveV3Intensity";
 import {buildDetV3ContractFromCatalogue} from "./v31-v3-catalogue";
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const card=(id:string)=>{const w=v3FullCatalogue.workouts.find(x=>x.id===id);if(!w)throw Error(id);return w;};
 describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
@@ -94,6 +95,7 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
   });
   it("actually ingests NEW, individually reviewed bike/run/swim candidates but never mislabels strength",()=>{
     const shared={athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
+      athleteAnchors:syntheticV3ReviewAnchors(),
       objective:"IM",allPrerequisitesChecked:true as const,individualCoachApproval:true as const};
     const reviews=["V3P_BIKE_106","V3P_RUN_111","V3P_SWIM_131","V3P_STRENGTH_101"].map(id=>({...shared,id}));
     const result=buildDetV3ContractFromCatalogue(reviews);
@@ -109,6 +111,7 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
   it("allows only coach-approved, in-range recovery and target repetition edits",()=>{
     const id="V3P_BIKE_146";
     const base={id,athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
+      athleteAnchors:syntheticV3ReviewAnchors(),
       objective:"IM",allPrerequisitesChecked:true as const,individualCoachApproval:true as const};
     const denied=buildDetV3ContractFromCatalogue([{...base,overrides:{"1.betweenSec":240}}]);
     expect(denied.report.rejected.find(x=>x.id===id)?.reason).toContain("v3_rest_change_requires_coach_permission");
