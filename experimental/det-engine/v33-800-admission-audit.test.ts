@@ -25,8 +25,9 @@ describe('V3.3 — real 800-source DET admission capability under explicitly syn
   const acceptedBySport=Object.fromEntries(['bike','run','swim','strength'].map(s=>[
    s,result.report.accepted.filter(x=>x.sport===s).length,
   ]));
-  const reasons=Object.entries(Object.groupBy(result.report.rejected,x=>x.reason))
-    .map(([reason,rows])=>({reason,count:rows?.length??0}))
+  const counts=new Map<string,number>();
+  for(const x of result.report.rejected)counts.set(x.reason,(counts.get(x.reason)??0)+1);
+  const reasons=[...counts.entries()].map(([reason,count])=>({reason,count}))
     .sort((a,b)=>b.count-a.count);
   console.info('DET_V33_800_SOURCE_ADMISSION_AUDIT',JSON.stringify({
    admitted:result.report.accepted.length,acceptedBySport,rejected:result.report.rejected.length,
