@@ -147,6 +147,7 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       preferSourceBackedMultisportBalance:'swim',
       requireStructuredPolarizationOnLoadWeeks:true,
       auditVerifiedMultisportMinutes:true,
+      auditGlobalSourceSportRatioBounds:true,
       applyReviewedMinuteSportRatio:true,
       auditStructuredPolarizationSources:true,
       coachSlotStart:confirmedSlot,
@@ -195,6 +196,7 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       preferSourceBackedMultisportBalance:'triathlon',
       requireStructuredPolarizationOnLoadWeeks:true,
       auditVerifiedMultisportMinutes:true,
+      auditGlobalSourceSportRatioBounds:true,
       applyReviewedMinuteSportRatio:true,
       auditStructuredPolarizationSources:true,
       coachSlotStart:confirmedSlot,
@@ -215,6 +217,12 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
     };
     const blockers=(out:typeof triathlon)=>[...new Set(out.issues.filter(i=>
       ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))];
+    const domains=withClock.issues.find(issue=>issue.code.startsWith(
+      'det_v311_global_ratio_'));
+    console.info('DET_V311_GLOBAL_SOURCE_RATIO_ENVELOPE',JSON.stringify({
+      fixture:fixtureId,diagnostic:domains?.code??null,
+      certificate:domains?.message?JSON.parse(domains.message):null,
+    }));
     console.info('DET_V311_TARGET_AWARE_COMPARE',JSON.stringify({
       fixture:fixtureId,objective,
       baseline:{weeks:withClock.candidate?.weeks.length??0,nodes:withClock.nodes,
