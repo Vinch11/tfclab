@@ -132,6 +132,8 @@ jobs:
 
           echo "Erreurs eslint — base: $BASE_ERRORS, après ce diff: $HEAD_ERRORS"
           if [ "$HEAD_ERRORS" -gt "$BASE_ERRORS" ]; then
+            # Render individual problems: previous JSON-only output hid actionable errors.
+            echo "$HEAD_JSON" | jq -r '.[] | select(.errorCount > 0) | .filePath as $f | .messages[] | select(.severity == 2) | "\($f):\(.line):\(.column): \(.ruleId): \(.message)"'
             echo "::error::Ce diff introduit $((HEAD_ERRORS - BASE_ERRORS)) nouvelle(s) erreur(s) eslint (dette préexistante tolérée, régression non)."
             exit 1
           fi
