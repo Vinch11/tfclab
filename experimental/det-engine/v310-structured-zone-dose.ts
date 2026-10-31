@@ -48,9 +48,11 @@ function exactBlockSeconds(block:V3Block,paces:Paces):Seconds|null {
   // A counted strengthening repetition does not prove session minutes.
   if(block.kind==='reps')return null;
   let seconds:number;
-  if(block.kind==='time')seconds=block.seconds.base;
-  else {
-    if(!block.domain)return null;
+  if(block.kind==='time'){
+    if(!block.seconds)return null;
+    seconds=block.seconds.base;
+  }else{
+    if(!block.domain||!block.meters)return null;
     const pace=paces[block.domain];
     if(typeof pace!=='number'||!Number.isFinite(pace)||pace<=0)return null;
     seconds=block.meters.base*pace/100;
