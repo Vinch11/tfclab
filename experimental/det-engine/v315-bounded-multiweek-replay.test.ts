@@ -59,8 +59,9 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
   });
 
   it('revisits a real earlier-week source and keeps all original gates active',()=>{
-    const isBanned=(c:ExperimentalAssemblyContract):boolean=>{
-      const filter=c.filterCandidate!;
+    const isBanned=(c:ExperimentalAssemblyContract|undefined):boolean=>{
+      const filter=c?.filterCandidate;
+      if(!filter)return false;
       const card={id:sessionSource} as Parameters<typeof filter>[0];
       const context={week:2,dayIndex:1,slot:{sport:'bike'}} as
         Parameters<typeof filter>[1];
