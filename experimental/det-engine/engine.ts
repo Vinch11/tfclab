@@ -9,7 +9,7 @@ import { computeFinalValidationIssues } from '@/lib/plan/qa/finalValidation';
 import { validatePlan } from '@/engines/plan/planValidator';
 import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionCatalogueContract';
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
-import { normalizeRepairSport, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
+import { normalizeRepairSport, normalizeRepairGoal, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
@@ -198,7 +198,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
-    if(experimentalContract?.verifiedBrickCompositions && /^(703|70\\.3)$/.test(config.objective??'')){
+    if(experimentalContract?.verifiedBrickCompositions && normalizeRepairGoal(config.objective??'')==='half'){
       // Strictly diagnostic: a mathematically possible bike addition has NOT
       // passed dose, source, load-ramp, fatigue or recovery checks.
       const feasibility=auditV35BikeOnlyFeasibility(plan,preparation.weeklyQuotas,
