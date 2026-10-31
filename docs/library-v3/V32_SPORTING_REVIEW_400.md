@@ -70,6 +70,20 @@ vérifie, pour chaque recette soumise :
 6. secondes d'exécution vérifiées; pas de CSS, tempo répétition, FTP ou durée
    supposés et pas d'arrondi silencieux en minutes pour l'ancien moteur.
 
+La revue doit aussi être liée à **un identifiant d'athlète fourni indépendamment**
+de la fiche de revue et à l'**empreinte exacte de la recette**. Une approbation
+d'un autre athlète, d'une source modifiée, ou sans identifiant est refusée.
+L'empreinte est une défense contre les erreurs de version, pas une signature
+cryptographique ni une preuve que le coach a réellement effectué la revue.
+
+L'ancien pilote `buildV3CoachPilotPool` ne peut plus admettre de fiche au
+seul motif que son ID est dans `coachReviewedIds` : il requiert désormais les
+entrées de qualification V3.2 correspondantes. Une absence de preuve donne
+`INDIVIDUAL_QUALIFICATION_FAILED`. Les tests d'intégration couvrent aussi
+`buildWorkoutCatalog` et `prepareGenerationContracts` sur une fixture
+70.3 synthétique. Le moteur DET expérimental de la PR #445 est une **autre
+branche** : son raccordement à cette qualification reste un gate séparé.
+
 Le résultat éventuellement positif est **`individual_candidate_requires_full_plan_validation`** :
 il autorise seulement le passage au moteur de calendrier, pas un export.
 La sortie indique **`publishable=false` dans tous les cas**.
