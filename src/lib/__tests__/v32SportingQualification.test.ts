@@ -12,7 +12,8 @@ import {
 const byId=new Map(v3FullCatalogue.workouts.map(w=>[w.id,w]));
 function context(w:V3Workout):V32IndividualInputs {
  const review:V32CoachIndividualReview={
-  sourceId:w.id,athleteScoped:true,coachApproved:true,
+  sourceId:w.id,athleteId:'synthetic-athlete-A',
+  sourceFingerprint:v32SourceFingerprint(w),athleteScoped:true,coachApproved:true,
   trainingLevel:'highly_trained',trainingLevelSource:'manual',
   currentPhase:w.phase[0],objective:'IRONMAN 70.3',
   recentLoad:'moderate',fatigue:'ready',
@@ -25,7 +26,7 @@ function context(w:V3Workout):V32IndividualInputs {
   highStimulusHistoryConfirmed:true,runningImpactToleranceConfirmed:true,
   swimSupervisionConfirmed:true,sportLimitersReviewed:true,
  };
- return {review,calibration:{
+ return {athleteId:'synthetic-athlete-A',review,calibration:{
    bikeFTPWatts:290,bikeLT1Watts:200,bikePMAWatts:380,bikeSprintReferenceWatts:800,
    runMLSSPaceSecondsPerKm:250,runLT1PaceSecondsPerKm:300,
    runVVO2PaceSecondsPerKm:205,runSprintPaceSecondsPerKm:140,
@@ -104,6 +105,32 @@ describe('V3.2 sporting source qualification — complete 400 audit',()=>{
   expect(result.calendarValidationRequired).toBe(true);
   expect(result.publishable).toBe(false);
   expect(result.requiredPlanGates).toContain('prior_and_next_session_exact_recovery_hours');
+ });
+ it('refuses a coach approval replayed for a different athlete',()=>{
+  const w=byId.get('V3P_BIKE_002')!;
+  const inputs=context(w);
+  inputs.athleteId='synthetic-athlete-B';
+  const out=qualifyV32ForAthlete(w,inputs);
+  expect(out.eligibleToSubmitToDet).toBe(false);
+  expect(out.blockingReasons).toContain('individual_coach_review_athlete_id_mismatch');
+  expect(out.publishable).toBe(false);
+ });
+ it('refuses approval bound to an earlier source revision',()=>{
+  const w=byId.get('V3P_BIKE_002')!;
+  const inputs=context(w);
+  inputs.review={...inputs.review,sourceFingerprint:'old-source-version'};
+  const out=qualifyV32ForAthlete(w,inputs);
+  expect(out.eligibleToSubmitToDet).toBe(false);
+  expect(out.blockingReasons).toContain('individual_coach_review_stale_source_fingerprint');
+  expect(out.publishable).toBe(false);
+ });
+ it('refuses a coach approval that is missing a concrete athlete identity',()=>{
+  const w=byId.get('V3P_BIKE_002')!;
+  const inputs=context(w);
+  inputs.review={...inputs.review,athleteId:''};
+  const out=qualifyV32ForAthlete(w,inputs);
+  expect(out.eligibleToSubmitToDet).toBe(false);
+  expect(out.blockingReasons).toContain('individual_coach_review_athlete_id_mismatch');
  });
  it('refuses source mismatch even with valid-looking synthetic athlete evidence',()=>{
   const w=byId.get('V3P_SWIM_083')!;
