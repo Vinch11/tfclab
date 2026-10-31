@@ -42,7 +42,7 @@ function observed(
   };
 }
 const priorTrace:EngineResult['trace']=[{
-  week:2,day:'mardi',id:sessionSource,duration:90,
+  week:2,day:'mardi',id:sessionSource,sport:'bike',duration:90,
   intent:'aerobic',reason:'source selected in earlier week',
 }];
 
@@ -79,6 +79,9 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
       a.revisedWeeks?.includes(2)&&a.excludedSourceIds?.includes(sessionSource))).toBe(true);
     expect(out.evidence.totalNodes).toBeLessThanOrEqual(160);
     expect(planner.mock.calls.length).toBeGreaterThan(1);
+    expect(planner.mock.calls.every(call=>
+      (call[3] as ExperimentalAssemblyContract).requireStrictPeriodizationEvidence===true))
+      .toBe(true);
   });
 
   it('does not convert exact sport ratios into a false native sporting pass',()=>{
