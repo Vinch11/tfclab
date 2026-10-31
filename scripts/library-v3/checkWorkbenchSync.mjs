@@ -26,7 +26,7 @@ for(const w of embedded.workouts){
 }
 if(expected.size!==0)throw Error('V31_MISSING_WORKBENCH_IDS:'+expected.size);
 const ledger=JSON.parse(readFileSync(root+'v32SportingReviewLedger.json','utf8'));
-const qualification=/<script type="application\\/json" id="v32QualificationData">([\\s\\S]*?)<\\/script>/.exec(html);
+const qualification=/<script type="application\/json" id="v32QualificationData">([\s\S]*?)<\/script>/.exec(html);
 if(!qualification)throw Error('V32_WORKBENCH_SPORTING_DATA_MISSING');
 const embeddedQualifications=JSON.parse(qualification[1]);
 if(ledger.records.length!==400||embeddedQualifications.length!==400)
