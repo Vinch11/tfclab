@@ -78,6 +78,11 @@ describe('DET V39 — fail-closed reviewed-minute replacement of defective count
     expect(call({quotaIssues:[{code:'quota_floor_violation',severity:'critical'}]}).verdict).toBe('refused');
     expect(call({quotaIssues:[{code:'quota_range_drift',severity:'warning'}]}).verdict).toBe('refused');
     expect(call({coachConstraintsText:'pas de natation'}).verdict).toBe('refused');
+    expect(call({coachConstraintsText:'natation interdite en eau froide'}).verdict).toBe('refused');
+    // A sprint-only prohibition does not alter volume targets; its native
+    // prohibition validator remains mandatory and independent.
+    expect(call({coachConstraintsText:'Sprint Ban'}).verdict)
+      .toBe('replaced_count_only_with_proven_minutes');
   });
   it('refuses missing exact endurance duration, no loading weeks and missing phase type',()=>{
     const bad={...session('bike',50),durationMin:undefined};
