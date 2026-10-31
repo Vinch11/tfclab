@@ -37,6 +37,10 @@ const addedIds=[
   // phase threshold/VO2 KEY dose families, existing structured V3 recipes.
   'V3P_BIKE_142','V3P_BIKE_147','V3P_BIKE_152',
   'V3P_RUN_137','V3P_RUN_142','V3P_RUN_167','V3P_RUN_172',
+  // S9 70.3: existing peak-phase QUALITATIVE key doses, plus long easy
+  // sources for the >75% weekly endurance-minute condition.
+  'V3P_BIKE_149','V3P_BIKE_154','V3P_RUN_139','V3P_RUN_169',
+  'V3P_BIKE_114','V3P_BIKE_199','V3P_RUN_119',
 ] as const;
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger blind DFS',()=>{
