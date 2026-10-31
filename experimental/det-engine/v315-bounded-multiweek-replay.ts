@@ -119,6 +119,8 @@ export function constructDeterministicPlanWithBoundedReplays(
       maxMilliseconds:remainingMillis,maxNodes:perAttempt,
     },{
       ...contract,ratioTargetPreference:target,
+      // The strict multiweek wrapper cannot silently accept native phase warnings.
+      requireStrictPeriodizationEvidence:true,
       filterCandidate:(card,context)=>
         candidateFilter?.(card,context)!==false &&
         !exclusions.some(x=>x.week===context.week&&
@@ -161,6 +163,7 @@ export function constructDeterministicPlanWithBoundedReplays(
     if(exclusions.length>=MAX_LOOKBACK_DEPTH)continue;
     const selected=[...new Map(result.trace.filter(t=>
       Number.isInteger(t.week)&&t.week>=1&&
+      ['swim','bike','run','brick'].includes(t.sport??'')&&
       t.week<config.weeksAvailable!&&t.id&&
       typeof t.duration==='number'&&t.duration>0&&
       !exclusions.some(x=>x.week===t.week&&x.sourceId===t.id)
