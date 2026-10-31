@@ -66,7 +66,7 @@ export interface ExperimentalAssemblyContract {
   applyReviewedMinuteSportRatio?:true;
   /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
    * keeping original source doses and key-limiter ranking intact. */
-  preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim';
+  preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim'|'triathlon';
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -361,13 +361,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const balanceMode=experimentalContract?.preferSourceBackedMultisportBalance;
             const balance=!!balanceMode &&
               ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
-            // Only compare the ACTUAL approved source-backed chosen dose.
-            // No duration fitting, no extra sports, no imaginary workout.
-            // Real key limiter matching always keeps highest priority.
-            const dosePriority=balance && (balanceMode==='all'||balanceMode==='swim') &&
+            // Experimental triathlon: vary ALREADY APPROVED source doses to
+            // reduce excessive swim/run and make room for bike. No dose is
+            // lengthened, shortened, substituted, or inferred here.
+            // Only selection ORDER changes; all other guards stay mandatory.
+            const triathlon=balance&&balanceMode==='triathlon';
+            const dosePriority=balance && (balanceMode==='all'||balanceMode==='swim'||triathlon) &&
               slot.sport==='swim'?
               (a.durationMin??Infinity)-(b.durationMin??Infinity):
-              balance && (balanceMode==='all'||balanceMode===slot.sport) &&
+              triathlon&&slot.sport==='run'?
+              (a.durationMin??Infinity)-(b.durationMin??Infinity):
+              balance && (balanceMode==='all'||balanceMode===slot.sport||triathlon) &&
                 (slot.sport==='bike'||slot.sport==='run')?
                 (b.durationMin??0)-(a.durationMin??0):0;
             return (slot.isKeySession?rank(a)-rank(b):0)||
@@ -495,11 +499,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           };
           const score=(dose:NativeZoneDose|null)=>
             dose===null?-Infinity:dose.low-3*dose.nonLow-0.01*dose.unknown;
+          const triathlonOrder=experimentalContract?.preferSourceBackedMultisportBalance===
+            'triathlon'&&['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+          const triathlonDuration=(a:ParsedSession,b:ParsedSession)=>
+            !triathlonOrder?0:slot.slot.sport==='bike'?
+              (b.durationMin??0)-(a.durationMin??0):
+              slot.slot.sport==='swim'||slot.slot.sport==='run'?
+                (a.durationMin??Infinity)-(b.durationMin??Infinity):0;
           candidates.sort((a,b)=>
             Number(a.dose===null)-Number(b.dose===null)||
             (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
             (qualityRequired&&slot.slot.isKeySession?
               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
+            triathlonDuration(a.session,b.session)||
             score(b.dose)-score(a.dose)||
             a.originalIndex-b.originalIndex);
           order[slotIndex].domain=candidates.map(c=>c.session);
