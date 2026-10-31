@@ -512,6 +512,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           severity:unproved||deviations.length||provablyOutOfRange.length?'blocking':'warning',
           message:JSON.stringify({objective:objectiveKey,knownOnlyRatio:ratio,targets,
             unresolvedBrickMinutes:audit.unresolvedBrickMinutes,
+            unresolvedBricks:audit.unresolvedBricks,
             conservativeBounds:audit.conservativeBounds,knownMinutes:audit.knownMinutes,
             verifiedTransitionMinutes:audit.verifiedTransitionMinutes,
             provablyOutOfRange,deviations,scope:audit.scope,
