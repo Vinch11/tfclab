@@ -116,7 +116,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_022",
@@ -229,7 +292,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_023",
@@ -342,7 +468,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_024",
@@ -452,7 +641,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_025",
@@ -567,7 +818,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_026",
@@ -679,7 +993,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_027",
@@ -791,7 +1168,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_028",
@@ -900,7 +1340,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_029",
@@ -1015,7 +1517,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_030",
@@ -1127,7 +1692,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_031",
@@ -1239,7 +1867,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_032",
@@ -1348,7 +2039,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_033",
@@ -1463,7 +2216,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_034",
@@ -1575,7 +2391,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_035",
@@ -1687,7 +2566,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_036",
@@ -1796,7 +2738,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_037",
@@ -1912,7 +2916,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_038",
@@ -2025,7 +3092,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_039",
@@ -2138,7 +3268,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_040",
@@ -2248,7 +3441,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_041",
@@ -2364,7 +3619,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_042",
@@ -2477,7 +3795,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_043",
@@ -2590,7 +3971,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_044",
@@ -2700,7 +4144,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_045",
@@ -2815,7 +4321,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_046",
@@ -2927,7 +4496,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_047",
@@ -3039,7 +4671,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_048",
@@ -3148,7 +4843,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_049",
@@ -3264,7 +5021,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_050",
@@ -3377,7 +5197,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_051",
@@ -3490,7 +5373,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_052",
@@ -3600,7 +5546,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_053",
@@ -3715,7 +5723,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_054",
@@ -3827,7 +5898,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_055",
@@ -3939,7 +6073,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_056",
@@ -4048,7 +6245,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_057",
@@ -4164,7 +6423,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "max_strength",
+          "primaryDomain": null,
+          "capacityFocus": "maximal_strength",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 48,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_058",
@@ -4277,7 +6599,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 36,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_059",
@@ -4390,7 +6775,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_060",
@@ -4500,7 +6948,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "strength_endurance",
+          "primaryDomain": null,
+          "capacityFocus": "local_muscular_endurance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 24,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_061",
@@ -4613,7 +7123,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_062",
@@ -4722,7 +7295,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_063",
@@ -4834,7 +7469,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_064",
@@ -4945,7 +7643,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_065",
@@ -5058,7 +7825,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_066",
@@ -5167,7 +7997,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_067",
@@ -5279,7 +8171,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_068",
@@ -5390,7 +8345,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_069",
@@ -5504,7 +8528,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_070",
@@ -5614,7 +8701,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_071",
@@ -5727,7 +8876,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_072",
@@ -5839,7 +9051,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_073",
@@ -5952,7 +9233,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_074",
@@ -6061,7 +9405,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_075",
@@ -6173,7 +9579,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_076",
@@ -6284,7 +9753,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_077",
@@ -6397,7 +9935,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_078",
@@ -6506,7 +10107,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_079",
@@ -6618,7 +10281,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_080",
@@ -6729,7 +10455,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_081",
@@ -6842,7 +10637,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_082",
@@ -6951,7 +10809,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_083",
@@ -7063,7 +10983,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_084",
@@ -7174,7 +11157,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_085",
@@ -7288,7 +11340,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_086",
@@ -7398,7 +11513,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_087",
@@ -7511,7 +11688,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_088",
@@ -7623,7 +11863,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_089",
@@ -7736,7 +12045,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_090",
@@ -7845,7 +12217,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_091",
@@ -7957,7 +12391,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_092",
@@ -8068,7 +12565,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_093",
@@ -8182,7 +12748,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_094",
@@ -8292,7 +12921,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_095",
@@ -8405,7 +13096,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_096",
@@ -8517,7 +13271,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_097",
@@ -8630,7 +13453,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_098",
@@ -8739,7 +13625,69 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_099",
@@ -8851,7 +13799,70 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "technique_economy",
+          "primaryDomain": null,
+          "capacityFocus": "movement_technique_or_economy",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "3",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:2.0"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 12,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     },
     {
       "id": "V3P_STRENGTH_100",
@@ -8962,7 +13973,76 @@
         }
       ],
       "automaticSelection": false,
-      "status": "candidate"
+      "status": "candidate",
+      "prescriptionContract": {
+        "schemaVersion": "3.1.0",
+        "physiology": {
+          "primaryIntent": "mobility_prevention",
+          "primaryDomain": null,
+          "capacityFocus": "movement_control_and_tolerance",
+          "individualCalibrationRequired": true,
+          "limiterInterpretation": "training_target_not_diagnosed_limiter"
+        },
+        "intensity": {
+          "mapping": "tfcl_doctrine_individual_thresholds_or_coach_load",
+          "segments": [
+            {
+              "path": "0",
+              "role": "warmup",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.0",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.1",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "1.2",
+              "role": "main",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            },
+            {
+              "path": "2",
+              "role": "cooldown",
+              "domain": null,
+              "anchorKey": "coach_confirmed_exercise_load_or_RPE"
+            }
+          ],
+          "athleteValues": "required_at_selection_time"
+        },
+        "duration": {
+          "method": "strength_measured_execution_dependent",
+          "requiredInputs": [
+            "coach_confirmed_setup_transition_seconds",
+            "coach_confirmed_strength_load_or_RPE",
+            "coach_measured_execution_seconds_per_repetition:1.0",
+            "coach_measured_execution_seconds_per_repetition:1.1"
+          ],
+          "rounding": "none",
+          "unknownValues": "block_not_estimate"
+        },
+        "safety": {
+          "minimumRecoveryHours": 18,
+          "prerequisitesMustBeVerified": true,
+          "contraindicationsMustBeReviewed": true,
+          "stopRuleMustBeReviewed": true,
+          "coachApprovalForAthleteRequired": true
+        },
+        "eligibility": {
+          "state": "candidate",
+          "automaticSelection": false,
+          "scientificValidation": "not_session_specifically_validated"
+        }
+      }
     }
   ]
 }
