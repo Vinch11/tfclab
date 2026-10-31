@@ -17,6 +17,7 @@ import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
+import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
 import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
@@ -49,6 +50,10 @@ export interface ExperimentalAssemblyContract {
   improveV3RecoveryLayout?:true;
   /** Opt-in independent minute-based triathlon sport ratio audit, without suppressing native validators. */
   auditVerifiedMultisportMinutes?:true;
+  /** Experimental ONLY: migrate the erroneous COUNT sport ratio to strict
+   * source-certified minutes, conditioned on full brick and frequency proof.
+   * Native validation remains the default when this flag is absent. */
+  applyReviewedMinuteSportRatio?:true;
   /** Opt-in ONLY: favor verified candidate durations by chosen discipline,
    * keeping original source doses and key-limiter ranking intact. */
   preferSourceBackedMultisportBalance?:'all'|'bike'|'run'|'swim';
@@ -540,7 +545,46 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     config.constraints,config.raceGoals?.some(g=>g.raceFormat==='lcw_3day'),config.deloadCadenceWeeks,
     config.ambitionMeta?{trainingLevel:config.ambitionMeta.trainingLevel,trainingLevelSource:config.ambitionMeta.trainingLevelSource}:undefined,
     config.raceGoals,config.planStartDate,{maxAvailableWeeklyHours:config.weeklyHours},undefined,config.strengthSessionsPerWeek);
-  result.issues.push(...validation.issues.map(i=>({code:i.rule,week:i.week,severity:i.severity,message:i.message})));
+  const nativeIssues=validation.issues.map(i=>({
+    code:i.rule,week:i.week,severity:i.severity,message:i.message,
+  }));
+  if(experimentalContract?.applyReviewedMinuteSportRatio===true &&
+     experimentalContract.auditVerifiedMultisportMinutes===true &&
+     ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'') &&
+     result.issues.some(i=>i.code==='det_multisport_minute_ratio_verified')){
+    // This path is unavailable to the released application. Never reclassify
+    // an unknown brick, incompatible frequency, or non-strict minute ratio.
+    // It retains the original native count issue as a diagnostic warning and
+    // leaves all OTHER blocking rules untouched.
+    const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+    const quotaTypes=Object.fromEntries(Object.entries(result.candidate!.weeklyQuotas??{})
+      .map(([week,entry])=>[Number(week),entry.weekType]));
+    const reconciliation=reconcileNativeTriathlonCountRatio({
+      plan:result.candidate!,weekTypes:quotaTypes,objective:objectiveKey,
+      verifiedCompositions:experimentalContract.verifiedBrickCompositions??[],
+      nativeIssues,
+      quotaIssues:result.issues.filter(i=>['quota_floor_violation','quota_range_drift'].includes(i.code)),
+      coachConstraintsText:config.constraints,
+    });
+    result.issues.push(...reconciliation.issues);
+    result.issues.push({
+      code:'det_native_count_ratio_migration_decision',severity:'warning',
+      message:JSON.stringify({verdict:reconciliation.verdict,reason:reconciliation.reason,
+        nativeCountIssueCount:reconciliation.nativeCountIssueCount,
+        ratios:reconciliation.ratios}),
+    });
+    if(reconciliation.verdict==='replaced_count_only_with_proven_minutes'){
+      // The independent proof that old COUNT targets cannot fit these quotas
+      // must remain on record, but it cannot invalidate a FULLY VERIFIED
+      // strict MINUTE distribution. Frequency audits remain mandatory.
+      for(const issue of result.issues){
+        if(issue.code==='det_native_count_swim_ratio_provably_incompatible_with_quotas'){
+          issue.severity='warning';
+          issue.code='det_native_count_swim_ratio_legacy_conflict_documented';
+        }
+      }
+    }
+  } else result.issues.push(...nativeIssues);
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
   result.technicallyConstructed=result.candidate!.weeks.length===config.weeksAvailable;
