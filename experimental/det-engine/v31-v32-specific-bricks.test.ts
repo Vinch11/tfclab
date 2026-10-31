@@ -24,9 +24,9 @@ const qualityReviews:V32SpecificBrickReview[]=V32_703_BRICK_BLUEPRINTS.map(x=>({
 }));
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
- it('creates three exact candidate-only source-bound build/peak bricks, preserving the 400 originals',()=>{
+ it('creates three exact candidate-only source-bound build/peak bricks, preserving the 400 historical sources alongside 400 candidates',()=>{
   const p=buildDetV3ContractFromCatalogue(sourceReviews,[baseReview],qualityReviews);
-  expect(p.report.sourceCount).toBe(400);
+  expect(p.report.sourceCount).toBe(800);
   expect(p.report.accepted).toHaveLength(6);
   expect(p.specificBrickReport.rejected).toEqual([]);
   expect(p.specificBrickReport.accepted).toHaveLength(3);
