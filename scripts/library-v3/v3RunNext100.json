@@ -5524,7 +5524,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -5739,7 +5739,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -5955,7 +5955,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -6171,7 +6171,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -6387,7 +6387,7 @@
           "anchors": [
             {
               "domain": "neuromuscular",
-              "key": "run_verified_sprint_speed_or_coach_rpe",
+              "key": "run_verified_sprint_speed_range_mps",
               "transform": "no_assumed_numeric_sprint",
               "missing": "unresolved"
             },
@@ -12290,8 +12290,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -12486,8 +12486,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -12683,8 +12683,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -12880,8 +12880,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -13077,8 +13077,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -13273,8 +13273,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -13469,8 +13469,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -13666,8 +13666,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -13863,8 +13863,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -14060,8 +14060,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -14267,8 +14267,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -14482,8 +14482,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -14698,8 +14698,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -14914,8 +14914,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -15130,8 +15130,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -15334,8 +15334,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -15530,8 +15530,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -15727,8 +15727,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -15924,8 +15924,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
@@ -16121,8 +16121,8 @@
             },
             {
               "domain": "vo2max",
-              "key": "run_threshold_pace_sec_per_km",
-              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "key": "run_threshold_pace_sec_per_km+run_vvo2_speed_mps",
+              "transform": "verified_threshold_and_vvo2",
               "missing": "unresolved"
             }
           ],
