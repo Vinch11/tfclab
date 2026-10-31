@@ -11,6 +11,7 @@ import {
   type Paces, type V3Workout, type V3Block, type Overrides,
 } from "../../scripts/library-v3/catalogueRuntime";
 import { screenV32Source } from "../../scripts/library-v3/sportingQualification";
+import { qualifyV32ForAthlete, type V32IndividualInputs } from "../../scripts/library-v3/qualifyForAthlete";
 
 const V3_GOALS: Record<V3Workout["sport"], WorkoutGoal[]> = {
   bike: ["ironman", "half", "sprint", "olympic"],
@@ -19,9 +20,12 @@ const V3_GOALS: Record<V3Workout["sport"], WorkoutGoal[]> = {
   strength: ["ironman", "half", "sprint", "olympic", "5k", "10k", "semi", "marathon", "trail_short", "trail_long"],
 };
 export type V3EngineRefusal = "NOT_REVIEWED_BY_COACH" | "UNKNOWN_ID" |
-  "MISSING_SWIM_PACES" | "STRENGTH_DURATION_UNVERIFIED" | "UNSAFE_DATA";
+  "MISSING_SWIM_PACES" | "STRENGTH_DURATION_UNVERIFIED" | "UNSAFE_DATA" |
+  "INDIVIDUAL_QUALIFICATION_FAILED";
 export interface V3CoachPilotContext {
   coachReviewedIds: ReadonlySet<string>;
+  /** Mandatory in practice: an athlete+source-bound V3.2 decision for every selected card. */
+  individualInputsById?: ReadonlyMap<string,V32IndividualInputs>;
   acknowledgedExperimentalRisk: true;
   swimPaces?: Paces;
   sports?: readonly V3Workout["sport"][];
@@ -144,6 +148,13 @@ export function buildV3CoachPilotPool(ctx: V3CoachPilotContext): V3AdapterResult
     if (ctx.sports && !ctx.sports.includes(recipe.sport)) continue;
     if (!ctx.coachReviewedIds.has(recipe.id)) {
       rejected.push({ id: recipe.id, code: "NOT_REVIEWED_BY_COACH" });
+      continue;
+    }
+    // Legacy pilot cannot bypass V3.2 by supplying a bare set of reviewed IDs.
+    // Missing individual inputs stay rejected; default pipeline behavior is unchanged.
+    const individual = ctx.individualInputsById?.get(recipe.id);
+    if (!individual || !qualifyV32ForAthlete(recipe, individual).eligibleToSubmitToDet) {
+      rejected.push({ id: recipe.id, code: "INDIVIDUAL_QUALIFICATION_FAILED" });
       continue;
     }
     const out = materializeV3ForPlanEngine(recipe, { swimPaces: ctx.swimPaces });
