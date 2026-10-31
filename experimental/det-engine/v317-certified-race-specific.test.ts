@@ -50,6 +50,46 @@ describe('DET V317 — real reviewed race-pace evidence, no regex promotion',()=
         throw Error('source review database unavailable');
       },dose).verdict).toBe('refused');
   });
+  it('refuses certification if a second peak source review provider fails, despite a valid first session',()=>{
+    const base=plan('V3P_BIKE_089');
+    base.weeks[0].sessions.push(plan('V3P_SWIM_194','swim',50).weeks[0].sessions[0]);
+    const result=certifyReviewedRaceSpecificPeak(base,'703',id=>{
+      if(id==='V3P_SWIM_194')throw Error('review store offline');
+      return good(id);
+    },dose);
+    expect(result.verdict).toBe('refused');
+    expect(result.reason).toBe('race_specific_evidence_provider_unavailable');
+    expect(result.sourceIds).toEqual([]);
+    expect(result.rejected).toContain('source_review_provider_error:V3P_SWIM_194');
+  });
+  it('refuses certification if a second peak dose provider fails, despite a valid first session',()=>{
+    const base=plan('V3P_BIKE_089');
+    base.weeks[0].sessions.push(plan('V3P_SWIM_194','swim',50).weeks[0].sessions[0]);
+    const result=certifyReviewedRaceSpecificPeak(base,'703',
+      id=>({sourceId:id,objective:'703'}),
+      (id,minutes)=>{
+        if(id==='V3P_SWIM_194')throw Error('dose ledger offline');
+        return dose(id,minutes);
+      });
+    expect(result.verdict).toBe('refused');
+    expect(result.reason).toBe('race_specific_evidence_provider_unavailable');
+    expect(result.sourceIds).toEqual([]);
+    expect(result.rejected).toContain('source_dose_provider_error:V3P_SWIM_194');
+  });
+  it.each([undefined,null,NaN,Infinity,0,-3])(
+    'refuses a missing or invalid individualized duration %s',minutes=>{
+      const base=plan('V3P_BIKE_089');
+      base.weeks[0].sessions[0].durationMin=minutes as number;
+      const result=certifyReviewedRaceSpecificPeak(base,'703',good,dose);
+      expect(result.verdict).toBe('refused');
+      expect(result.sourceIds).toEqual([]);
+    });
+  it('refuses an approval object with mismatched source identity',()=>{
+    const result=certifyReviewedRaceSpecificPeak(plan('V3P_BIKE_089'),'703',
+      ()=>({sourceId:'V3P_BIKE_038',objective:'703'}),dose);
+    expect(result.verdict).toBe('refused');
+    expect(result.rejected).toContain('wrong_source_or_objective:V3P_BIKE_089');
+  });
   it('refuses a source dose provider that throws',()=>{
     expect(certifyReviewedRaceSpecificPeak(
       plan('V3P_BIKE_089'),'703',good,()=>{
