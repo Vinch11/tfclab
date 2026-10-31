@@ -10,6 +10,7 @@ import {
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
+import {configureMeasuredStrengthTiming,type VerifiedStrengthTiming} from '../../scripts/library-v3/strengthTimingV3';
 import {
   auditV3SportingRegistry,qualifyV3IndividualSportingSource,
   type V3IndividualSportingEvidence,
@@ -28,6 +29,8 @@ export interface V3ReviewedSettings extends DetV3Review {
   expectedAthleteId?:string;
   /** Explicit source-and-athlete sporting qualification evidence. */
   sportingReview?:V3IndividualSportingEvidence;
+  /** Original repetitions require individually measured movement + setup time. */
+  verifiedStrengthTiming?:VerifiedStrengthTiming;
   /** Measured or explicitly verified athlete anchors: never generated or filled from population defaults. */
   athleteAnchors?: V3AthleteAnchors;
   /** Exact V3 paths such as "0.seconds" or "1.count". */
@@ -124,6 +127,10 @@ function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
 }
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   const swimPaces=normalizedSwimPaces(settings);
+  if(settings.verifiedStrengthTiming&&settings.overrides&&Object.keys(settings.overrides).length)
+    throw Error('v3_strength_repetitions_changed_without_remeasurement');
+  const dosing= settings.verifiedStrengthTiming?
+    configureMeasuredStrengthTiming(workout,settings.verifiedStrengthTiming).workout:workout;
   // Alactic 25m only when the athlete's own neuromuscular pace proves
   // an effort no longer than 20 seconds, never inferred from pool distance.
   if(workout.id==='V3P_SWIM_083'){
@@ -140,7 +147,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   let overrides=settings.overrides??{};
   if (settings.targetDurationMin !== undefined) {
     // Fitting cannot change the load-bearing work unless coach explicitly opts in.
-    const fit=fitV3Duration(workout,settings.targetDurationMin,{
+    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
       swimPaces,toleranceSeconds:0,
       allowWorksetChange:settings.allowWorksetChange===true,
     });
@@ -148,9 +155,9 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
       throw Error('v3_target_duration_unreachable:'+fit.code);
     overrides=fit.overrides;
   }
-  requireDoseChangeApproval(workout,overrides,settings.allowWorksetChange===true);
+  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
   const seen=new Set<string>();
-  const configured={...workout,blocks:configureBlocks(workout.blocks,overrides,seen)};
+  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
   if(seen.size!==Object.keys(overrides).length)
     throw Error('v3_override_unknown_path');
   const result=evaluateV3Workout(configured,{swimPaces});
