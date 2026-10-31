@@ -225,7 +225,7 @@ const makeExpansion=function makeExpansion(sport) {
       blocks.push({kind:"time",seconds:q(cool,cool,cool),domain:sport==="strength"?null:"recovery",role:"cooldown",label:"Retour au calme et vérification des sensations"});
       const high=["mlss","vo2max","neuromuscular"].includes(intent)||domain==="mlss"||domain==="vo2max"||domain==="neuromuscular";
       const reg={bike:high?36:18,run:high?48:24,swim:high?24:12,strength:high?48:36}[sport];
-      const phases=phase==="taper"?["taper","peak"]:phase==="peak"?["build","peak"]:phase==="base"?["base"]:["base","build"];
+      const applicablePhases=phase==="taper"?["taper","peak"]:phase==="peak"?["build","peak"]:phase==="base"?["base"]:["base","build"];
       const contra={
         bike:["Douleur ou fatigue inappropriée","Terrain, matériel ou hydratation non sûrs"],
         run:["Douleur locomotrice ou reprise de blessure non validée","Augmentation des impacts incompatible avec charge récente"],
@@ -235,7 +235,7 @@ const makeExpansion=function makeExpansion(sport) {
       const prerequisites=high?["Repères physiologiques vérifiés, séance qualitative validée par le coach","Récupération et charge récente compatibles"]:["Niveau et charge récente vérifiés par le coach"];
       if(sport==="strength")prerequisites.push("Charge et RPE choisis par le coach selon exécution, sans 1RM inventé");
       const w={id,version:"3.1.0-candidate",sport,title:title+" — "+variant,
-        primaryIntent:intent,primaryDomain:domain,phase:phases,minimumLevel:level,focus:focus+" ; variation "+variant,
+        primaryIntent:intent,primaryDomain:domain,phase:applicablePhases,minimumLevel:level,focus:focus+" ; variation "+variant,
         origin:"Recette originale TFCLab. Principes de la littérature seulement, sans validation individuelle de la séance",
         evidence:{referenceIds:sport==="bike"?["TID2024","BIKE2025"]:sport==="run"?["TID2024","TID2025"]:sport==="swim"?["SWIM2021","SWIM2026"]:["STR2024","STR2025"],
           evidenceLevel:"principle_support_only",sessionSpecificValidation:false},
