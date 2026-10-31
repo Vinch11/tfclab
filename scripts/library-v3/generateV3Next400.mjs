@@ -210,7 +210,7 @@ const makeExpansion=function makeExpansion(sport) {
           steps:[makeMain(work,title+" fraction prioritaire"),bt(Math.max(60,Math.round((work/2)/60)*60),low,"main","Fraction basse sans surdose")]});
       }else if(shape==="micro60"||shape==="micro30"||shape==="micro40"||shape==="sprint"){
         const hard=shape==="micro60"?60:shape==="micro30"?30:shape==="micro40"?40:15;
-        const easy=shape==="micro60"?120:shape==="micro30"?30:shape==="micro40"?20:45;
+        const easy=shape==="micro60"?120:shape==="micro30"?30:shape==="micro40"?20:105; // Sprint 15s + 105s easy = 1:7, not VO2 15/45
         count=shape==="micro30"?[8,12,16,12,8][v]:shape==="sprint"?[4,8,8,12,4][v]:shape==="micro60"?[3,4,5,4,2][v]:[6,8,10,8,4][v];
         blocks.push({kind:"repeat",label:title+" — "+variant,count:q(count,Math.max(1,count-(shape==="micro30"?4:1)),count+(shape==="micro30"?4:1)),
           betweenSec:0,betweenSecBounds:q(0,0,0),
@@ -233,7 +233,17 @@ const makeExpansion=function makeExpansion(sport) {
         strength:["Douleur, instabilité ou technique non maîtrisée","Charge externe non individualisée, fatigue résiduelle élevée"],
       }[sport];
       const prerequisites=high?["Repères physiologiques vérifiés, séance qualitative validée par le coach","Récupération et charge récente compatibles"]:["Niveau et charge récente vérifiés par le coach"];
+      if(shape==="sprint")prerequisites.push("Exécution nerveuse courte, récupération 1:7 et arrêt si vitesse ou technique chutent");
       if(sport==="strength")prerequisites.push("Charge et RPE choisis par le coach selon exécution, sans 1RM inventé");
+      const strengthEquipment=[
+        ["barre ou haltères","rack si barre"],["haltères ou barre"],["TRX ou support stable"],
+        ["step stable","haltères si charge"],["step ou surface stable"],["step stable"],
+        ["TRX ou élastique"],["banc Nordic et partenaire ou assistance"],
+        ["TRX ou élastique"],["haltères"],["élastique"],["tapis"],
+        ["élastique"],["surface amortissante et step bas"],["tapis amortissant"],
+        ["surface amortissante"],["élastique léger"],["tapis"],
+        ["tapis"],["TRX, haltères et tapis"]
+      ];
       const w={id,version:"3.1.0-candidate",sport,title:title+" — "+variant,
         primaryIntent:intent,primaryDomain:domain,phase:applicablePhases,minimumLevel:level,focus:focus+" ; variation "+variant,
         origin:"Recette originale TFCLab. Principes de la littérature seulement, sans validation individuelle de la séance",
@@ -241,7 +251,7 @@ const makeExpansion=function makeExpansion(sport) {
           evidenceLevel:"principle_support_only",sessionSpecificValidation:false},
         contraindications:contra,stopRule:sport==="swim"?"Arrêter en cas de douleur, essoufflement anormal ou perte de technique; jamais d'apnée forcée":sport==="strength"?"Arrêter si douleur, RPE hors cible ou contrôle gestuel dégradé":"Arrêter si douleur, dérive anormale, fatigue excessive ou intensité non maîtrisée",
         minimumRecoveryHours:reg,prerequisites,methodology:"Individualisation par repères athlète réels, domaine tfclDoctrine et volume de la semaine; adaptation uniquement dans les bornes déclarées",
-        blocks,automaticSelection:false,status:"candidate",
+        blocks,equipment:sport==="strength"?strengthEquipment[c]:[],automaticSelection:false,status:"candidate",
         adaptationPolicy:"Aucune intensité chiffrée inventée; toute variation qualitative requiert validation coach. Charge hebdomadaire à vérifier.",
       };
       workouts.push(enrich(w));
