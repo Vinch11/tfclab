@@ -1,5 +1,5 @@
 /**
- * Read-only, fail-closed ingestion of the COMPLETE 400-recipe V3 candidate
+ * Read-only, fail-closed ingestion of the COMPLETE 800-recipe V3 candidate
  * catalogue into the experimental deterministic engine. No production import.
  *
  * Reviews and parameter overrides are scoped to one candidate and athlete
@@ -103,7 +103,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
 }
 
 /**
- * Makes all 400 source candidates visible to DET-ENGINE for evaluation.
+ * Makes all 800 source candidates visible to DET-ENGINE for evaluation.
  * With no athlete-specific reviews, it MUST admit exactly zero sessions.
  */
 export function buildDetV3ContractFromCatalogue(
@@ -113,9 +113,9 @@ export function buildDetV3ContractFromCatalogue(
 ) {
   const auditErrors=auditV3Catalogue(v3FullCatalogue);
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
-  if(v3FullCatalogue.workouts.length!==400 ||
-      ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==100))
-    throw Error('v3_catalogue_400_distribution_invalid');
+  if(v3FullCatalogue.workouts.length!==800 ||
+      ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
+    throw Error('v3_catalogue_800_distribution_invalid');
   const reviewMap=new Map<string,V3ReviewedSettings>();
   for(const review of reviews) {
     if(reviewMap.has(review.id))throw Error('v3_duplicate_review_id');
