@@ -2500,7 +2500,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -2655,7 +2659,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+          ],
           "contraindications": [
             "Douleur locomotrice ou reprise blessure non autorisée",
             "Fatigue ou accumulation de chocs incompatible",
@@ -4387,7 +4395,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil 3×12 min",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4474,15 +4482,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Soutien juste sous MLSS",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -4585,7 +4591,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil 6×5 min",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4672,15 +4678,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Fractionnement dense mais sous MLSS",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -4783,7 +4787,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Sous-seuil pyramidal 6–9–12–9–6",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -4941,15 +4945,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Gestion de l'effort sous seuil sur intervalles variés",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -15335,7 +15337,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -15452,7 +15458,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+          ],
           "contraindications": [
             "Douleur locomotrice ou reprise blessure non autorisée",
             "Fatigue ou accumulation de chocs incompatible",
@@ -15496,7 +15506,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -15613,7 +15627,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+          ],
           "contraindications": [
             "Douleur locomotrice ou reprise blessure non autorisée",
             "Fatigue ou accumulation de chocs incompatible",
@@ -15657,7 +15675,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -15807,7 +15829,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+          ],
           "contraindications": [
             "Douleur locomotrice ou reprise blessure non autorisée",
             "Fatigue ou accumulation de chocs incompatible",
@@ -15851,7 +15877,11 @@
       ],
       "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
       "minimumRecoveryHours": 24,
-      "prerequisites": [],
+      "prerequisites": [
+        "Protocole et objectif du test explicitement validés par le coach",
+        "Conditions de réalisation standardisées et chronométrage fiable",
+        "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+      ],
       "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
       "blocks": [
         {
@@ -16006,7 +16036,11 @@
             "build"
           ],
           "minimumRecoveryHours": 24,
-          "prerequisites": [],
+          "prerequisites": [
+            "Protocole et objectif du test explicitement validés par le coach",
+            "Conditions de réalisation standardisées et chronométrage fiable",
+            "Terrain de test sécurisé, absence de douleur locomotrice et aptitude à l'effort"
+          ],
           "contraindications": [
             "Douleur locomotrice ou reprise blessure non autorisée",
             "Fatigue ou accumulation de chocs incompatible",
