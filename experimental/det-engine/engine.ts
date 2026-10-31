@@ -45,7 +45,7 @@ export interface EngineResult {
 }
 /** A frequency-only marker never represents a performed zero-minute workout. */
 function isCountOnlyStrength(card:RepairWorkoutMetadata):boolean {
-  return normalizeRepairSport(card.sport)==='strength'&&card.intentFamily==='force'&&
+  return normalizeRepairSport(card.sport)==='strength'&&
     card.durationMin[0]===0&&card.durationMin[1]===0&&card.mainZoneMax===0&&
     card.zones.length===0&&card.tags.includes('v3-strength-frequency-only-unknown-duration');
 }
