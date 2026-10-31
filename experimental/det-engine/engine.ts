@@ -200,10 +200,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const unverified=checked.unknown.filter(code=>
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
-          }).sort((a,b)=>(usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
-            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===a.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)-
-            (experimentalContract?.rankCandidate?.(catalog.find(m=>m.id===b.catalogId)!,{...context,week:w.week,slot,dayIndex})??0)||
-            w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||a.catalogId!.localeCompare(b.catalogId!));
+          }).sort((a,b)=>{
+            // Sport-specific eligibility, dose and safety are already checked
+            // above. On a KEY slot, the declared limiter is the first real
+            // preference; otherwise historical catalogue rotation can hide
+            // the limiter even when both source doses are admissible.
+            // This changes ordering only: it NEVER bypasses the DFS, recovery,
+            // weekly frequency or final plan validators.
+            const rank=(s:ParsedSession)=>experimentalContract?.rankCandidate?.(
+              catalog.find(m=>m.id===s.catalogId)!,{...context,week:w.week,slot,dayIndex})??0;
+            return (slot.isKeySession?rank(a)-rank(b):0)||
+              (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
+              (!slot.isKeySession?rank(a)-rank(b):0)||
+              w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||
+              a.catalogId!.localeCompare(b.catalogId!);
+          });
       });
       const emptyIndex=options.findIndex(domain=>domain.length===0);
       if(emptyIndex>=0){
@@ -274,7 +285,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(!search(0,0))return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
-      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; départage par usage puis ordre du catalogue préparé.'});}
+      for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis répartition d'usage et ordre du catalogue préparé.'});}
       plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
       const countOnly=chosen.filter(session=>session.catalogId&&
         catalog.some(m=>m.id===session.catalogId&&isCountOnlyStrength(m))).length;
