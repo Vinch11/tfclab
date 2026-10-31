@@ -2,6 +2,9 @@ import {describe,expect,it} from "vitest";
 import {auditV3Catalogue,evaluateV3Workout,v3FullCatalogue,v3PilotCatalogue} from "../../scripts/library-v3/catalogueRuntime";
 import {resolveV3IntensityTargets} from "../../scripts/library-v3/resolveV3Intensity";
 import {buildDetV3ContractFromCatalogue} from "./v31-v3-catalogue";
+import {preparePrevalidationFixture} from "@/qa/sports-plan-lab/prevalidationFixtures";
+import {prepareGenerationContracts} from "@/lib/plan/prepareGenerationContracts";
+import {assessPreparedGeneration} from "@/lib/plan/prevalidateTrainingPlan";
 import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const card=(id:string)=>{const w=v3FullCatalogue.workouts.find(x=>x.id===id);if(!w)throw Error(id);return w;};
@@ -124,7 +127,7 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
     expect(r.report.accepted[0].structure).toContain("moderate_lt1 165 225 watts");
     expect(r.report.accepted[0].tags).toContain("v3-intensity-anchors-individually-verified");
   });
-  it("actually ingests NEW, individually reviewed bike/run/swim candidates but never mislabels strength",()=>{
+  it("actually ingests NEW, individually reviewed bike/run/swim/strength without inventing a strength zone",()=>{
     const shared={athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
       athleteAnchors:syntheticV3ReviewAnchors(),
       objective:"IM",allPrerequisitesChecked:true as const,individualCoachApproval:true as const};
@@ -132,12 +135,41 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
     const result=buildDetV3ContractFromCatalogue(reviews);
     expect(result.report.sourceCount).toBe(800);
     const admitted=new Set(result.report.accepted.map(x=>x.id));
-    for(const id of ["V3P_BIKE_106","V3P_RUN_111","V3P_SWIM_131"])
+    for(const id of ["V3P_BIKE_106","V3P_RUN_111","V3P_SWIM_131","V3P_STRENGTH_101"])
       expect(admitted.has(id),id).toBe(true);
-    expect(admitted.has("V3P_STRENGTH_101")).toBe(false);
-    expect(result.report.rejected.find(x=>x.id==="V3P_STRENGTH_101")?.reason)
-      .toBe("unsupported_sport_or_intent");
+    const strength=result.report.accepted.find(x=>x.id==="V3P_STRENGTH_101")!;
+    expect(strength.sport).toBe("strength");
+    expect(strength.intentFamily).toBe("force");
+    expect(strength.zones).toEqual([]);
+    expect(strength.mainZoneMax).toBe(0);
+    expect(strength.tags).toContain("v3-strength-timebox-no-fabricated-aerobic-zone");
+    expect(strength.structure).toContain("répétitions cibles");
     expect(result.report.accepted.every(x=>x.durationMin[0]===x.durationMin[1])).toBe(true);
+  });
+  it("places a reviewed, timed strength source in real DET prevalidation without making up Z1",()=>{
+    const fixture=preparePrevalidationFixture("B-IM");
+    const config={...fixture.planConfig,_outputFormat:"json" as const};
+    const {contract,report}=buildDetV3ContractFromCatalogue([{
+      id:"V3P_STRENGTH_101",athleteLevel:"trained",athleteLevelSource:"manual",
+      objective:"IM",allPrerequisitesChecked:true,individualCoachApproval:true,
+      athleteAnchors:syntheticV3ReviewAnchors(),
+    }]);
+    expect(report.accepted.map(x=>x.id)).toEqual(["V3P_STRENGTH_101"]);
+    const prep=prepareGenerationContracts(fixture.athleteData,config,{rotationSeed:0});
+    contract.adapt(prep,config);
+    const reportPre=assessPreparedGeneration(config,prep);
+    expect(reportPre.weeks.some(week=>week.eligible.some(x=>x.id==="V3P_STRENGTH_101"))).toBe(true);
+    expect(report.accepted[0].zones).toEqual([]);
+  });
+  it("refuses strength when RPE/load evidence is missing even with all other reviews marked complete",()=>{
+    const bad=buildDetV3ContractFromCatalogue([{
+      id:"V3P_STRENGTH_101",athleteLevel:"trained",athleteLevelSource:"manual",
+      objective:"IM",allPrerequisitesChecked:true,individualCoachApproval:true,
+      athleteAnchors:{},
+    }]);
+    expect(bad.report.accepted).toHaveLength(0);
+    expect(bad.report.rejected.find(x=>x.id==="V3P_STRENGTH_101")?.reason)
+      .toContain("v3_intensity_anchor_missing:coach_verified_rpe_and_load");
   });
   it("allows only coach-approved, in-range recovery and target repetition edits",()=>{
     const id="V3P_BIKE_146";
