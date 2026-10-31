@@ -9,7 +9,7 @@ function quota(swim:[number,number],bike:[number,number],run:[number,number],
     brick:{min:brick[0],max:brick[1]},strength:{min:strength[0],max:strength[1]},
     totalSessions:{min:swim[0]+bike[0]+run[0]+brick[0]+strength[0],max:maxSessions},
     maxSessionsPerDay:3,minFullRestDays:0,
-    source:{tier:'expert',ref:'V39 synthetic frequency-only bound'},
+    source:{tier:'elite_practice',ref:'V39 synthetic frequency-only bound'},
   } as WeeklyQuota;
 }
 describe('DET V39 — optimistic mathematical bound against native count-only sport ratio',()=>{
