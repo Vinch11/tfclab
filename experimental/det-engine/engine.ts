@@ -10,7 +10,7 @@ import { validatePlan } from '@/engines/plan/planValidator';
 import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionCatalogueContract';
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
 import { normalizeRepairSport, normalizeRepairGoal, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
-import type {LayoutSport} from '@/engines/plan/weeklySlotLayout';
+import {buildWeeklySlotLayout,type LayoutSport} from '@/engines/plan/weeklySlotLayout';
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
@@ -95,6 +95,31 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     // after removing demonstrably unsatisfiable OPTIONAL slots.
     let report=assessPreparedGeneration(config,preparation);
     if(experimentalContract){
+      // An official race is not an extra training brick. Keep the native
+      // builder's previous semantics UNCHANGED for control replays and
+      // production. Rebuild only a rejected, formally declared race-week
+      // reservation in this explicitly experimental DET path.
+      let eventRebuilt=false;
+      for(const week of report.weeks){
+        const entry=preparation.weeklyQuotas[week.week];
+        const required=entry?.layout?.requiredEvents??[];
+        if(entry?.weekType!=='race'||!required.length)continue;
+        const missing=required.some(event=>!entry.layout?.days.some(day=>
+          day.dayName===event.dayName&&day.slots.some(slot=>
+            slot.isRaceEvent&&slot.sport===event.sport)));
+        if(!missing||!required.some(event=>entry.quota[event.sport].max===0))continue;
+        const availableSports=new Set(week.eligible.map(card=>card.sport as LayoutSport));
+        const revised=buildWeeklySlotLayout(entry.quota,entry.floors,entry.weekType,{
+          availableSports,raceEvents:required,dayBans:preparation.dayBans,
+          officialRaceOutsideTrainingQuota:true,
+        });
+        entry.layout=revised;
+        eventRebuilt=true;
+        result.issues.push({code:'det_official_race_outside_training_brick_quota',
+          week:week.week,severity:'warning',
+          message:'Official race reserved separately from workouts; unchanged training quotas and native safety gates revalidated.'});
+      }
+      if(eventRebuilt)report=assessPreparedGeneration(config,preparation);
       let changed=false;
       for(const week of report.weeks){
         const entry=preparation.weeklyQuotas[week.week];
