@@ -3,7 +3,8 @@ on:
   pull_request:
     branches: [experiment/det-engine]
     paths:
-      - "experimental/det-engine/v31-*"
+      - "experimental/det-engine/v3*"
+      - "experimental/det-engine/engine.ts"
       - "experimental/det-engine/vitest.v31.config.ts"
       - "scripts/library-v3/**"
       - ".github/workflows/det-v31-bridge.yml"
