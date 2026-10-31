@@ -14,6 +14,16 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
     expect(v3FullCatalogue.workouts.every(x=>x.status==="candidate"&&x.automaticSelection===false&&
       x.evidence.sessionSpecificValidation===false&&x.prescription.admissibility.requiresIndividualCoachReview===true)).toBe(true);
   });
+  it("makes all 400 new base durations executable whole-minute timeboxes without fake swimming paces",()=>{
+    const fresh=v3FullCatalogue.workouts.filter(w=>Number(w.id.slice(-3))>=101);
+    expect(fresh).toHaveLength(400);
+    for(const w of fresh){
+      const result=evaluateV3Workout(w);
+      expect(result.status,w.id).toBe("confirmed");
+      expect(Number.isSafeInteger(result.seconds),w.id).toBe(true);
+      expect((result.seconds??0)%60,w.id).toBe(0);
+    }
+  });
   it("documents all five requirements for EVERY historical and new source with no empty limiter or missing knob",()=>{
     for(const w of v3FullCatalogue.workouts){
       const p=w.prescription;
