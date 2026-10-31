@@ -45,6 +45,17 @@ describe('DET V39 — optimistic mathematical bound against native count-only sp
     expect(r.optimisticMinimumSwimPct).toBe(null);
     expect(r.mathematicallyCannotAvoidNativeSwimBlocker).toBe(null);
   });
+  it('does not falsely claim inevitability if native drops a high-swim themed load week',()=>{
+    const heavySwim=quota([4,4],[3,3],[3,3],[0,0],[0,0],10);
+    const lowerSwim=quota([2,2],[3,3],[3,3],[0,0],[0,0],8);
+    const r=assessNativeSwimCountQuotaBound([
+      {week:1,weekType:'load',quota:heavySwim},
+      {week:2,weekType:'load',quota:lowerSwim},
+    ],20);
+    expect(r.optimisticAllLoadWeeksSwimPct).toBeCloseTo(100/3);
+    expect(r.optimisticMinimumSwimPct).toBe(25);
+    expect(r.mathematicallyCannotAvoidNativeSwimBlocker).toBe(false);
+  });
   it('does not manufacture proof with zero eligible loading weeks',()=>{
     const q=quota([0,0],[0,0],[0,0],[0,0],[0,0],1);
     const r=assessNativeSwimCountQuotaBound([{week:1,weekType:'recovery',quota:q}],20);
