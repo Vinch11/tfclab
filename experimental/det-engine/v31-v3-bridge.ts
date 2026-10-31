@@ -101,7 +101,9 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    // source has no individually measured execution/transition times.
    // The metadata [0,0] below is ONLY a count-mode protocol marker; it
    // must never be interpreted as a zero-minute performed workout.
-   const countOnlyStrength=card.sport==='strength'&&steps.some(b=>b.estimated);
+   const hasTimedStrengthProtocol=card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(
+     step=>step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange));
+   const countOnlyStrength=card.sport==='strength'&&!hasTimedStrengthProtocol;
    if(!steps.length||(steps.some(b=>b.estimated)&&!countOnlyStrength)){
      refuse('exercise_time_estimated');continue;
    }
@@ -129,8 +131,8 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    }
    const strengthMain=card.sport==='strength' && card.primaryDomain===null &&
      card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(step=>
-       (step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange) ||
-       (countOnlyStrength&&step.kind==='reps'&&!!step.reps)));
+       step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange ||
+       countOnlyStrength&&step.role==='main'&&['time','reps'].includes(step.kind)));
    if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
      refuse('strength_timebox_or_coach_load_verification_missing');continue;
    }
