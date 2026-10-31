@@ -333,7 +333,7 @@ export function auditV3Catalogue(catalogue: V3Catalogue = v3FullCatalogue): stri
     validateSessionPrescription(w,errors);
     try {
       const result = evaluateV3Workout(w);
-      if (w.sport === "swim" && result.status !== "unresolved") errors.push(w.id + ":INVENTED_SWIM_PACE");
+      if (w.sport === "swim" && w.blocks.some(b => b.kind === "distance" || (b.kind === "repeat" && JSON.stringify(b.steps).includes('"distance"'))) && result.status !== "unresolved") errors.push(w.id + ":INVENTED_SWIM_PACE");
       if (w.sport === "strength" && result.status === "confirmed" &&
           w.blocks.some(b => b.kind === "reps")) errors.push(w.id + ":FALSE_STRENGTH_PRECISION");
     } catch (err) { errors.push(w.id + ":CANNOT_COMPUTE:" + String(err)); }
