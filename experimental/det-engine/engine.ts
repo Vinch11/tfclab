@@ -202,7 +202,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const entry=preparation.weeklyQuotas[week.week];
           return entry?.layout?[{
             week:week.week,layout:entry.layout,quota:entry.quota,
-            reviewedIds:week.eligible.map(src=>({id:src.id,sport:src.sport,durationMin:src.durationMin})),
+            // In V310 strict structured mode, a legacy source without
+            // individually certified zone blocks cannot satisfy a V3
+            // recovery-repair domain. The old heuristic would count such
+            // legacy entries as safe because they had zero V3 recovery data.
+            // Preserve historical inputs outside the strict experiment.
+            reviewedIds:week.eligible.filter(src=>
+              experimentalContract.requireStructuredPolarizationOnLoadWeeks!==true ||
+              experimentalContract.sourceStructuredZoneForId?.(src.id,src.durationMin[0])!=null
+            ).map(src=>({id:src.id,sport:src.sport,durationMin:src.durationMin})),
           }]:[];
         });
         const repair=improveCalendarRecoveryByExistingSlotSwaps(contexts,
