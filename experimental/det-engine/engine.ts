@@ -443,7 +443,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
          ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
         slots.forEach(({slot},index)=>{
           if(!['swim','bike','run','brick'].includes(slot.sport))return;
-          const choices=options[index].map((session):ExactSportMinutes|null=>{
+          const strictSources=experimentalContract.requireStructuredPolarizationOnLoadWeeks===true;
+          // The strict search itself cannot select an unverified source in a
+          // load week. Its domain certificate must exclude those alternatives,
+          // rather than accidentally granting unreviewed legacy cards volume.
+          const domain=options[index].filter(session=>!strictSources||
+            (!!session.catalogId&&experimentalContract.sourceStructuredZoneForId?.(
+              session.catalogId,session.durationMin)!=null));
+          const choices=domain.map((session):ExactSportMinutes|null=>{
             const duration=session.durationMin;
             if(typeof duration!=='number'||!Number.isFinite(duration)||duration<=0)return null;
             if(session.sport==='brick'){
