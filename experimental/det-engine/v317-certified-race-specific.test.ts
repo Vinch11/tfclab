@@ -44,6 +44,12 @@ describe('DET V317 — real reviewed race-pace evidence, no regex promotion',()=
     expect(certifyReviewedRaceSpecificPeak(base,'703',good,dose).verdict)
       .toBe('refused');
   });
+  it('refuses an approved-source provider that throws',()=>{
+    expect(certifyReviewedRaceSpecificPeak(
+      plan('V3P_BIKE_089'),'703',()=>{
+        throw Error('source review database unavailable');
+      },dose).verdict).toBe('refused');
+  });
   it('refuses a source dose provider that throws',()=>{
     expect(certifyReviewedRaceSpecificPeak(
       plan('V3P_BIKE_089'),'703',good,()=>{
