@@ -45,7 +45,7 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
     vi.useFakeTimers({toFake:['Date']});
     vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
     const spec=planningCases().find(c=>c.objective==='10K'&&c.level==='trained'&&
-      c.ambition==='competitor'&&c.load==='unknown');
+      c.ambition==='finisher'&&c.load==='unknown');
     expect(spec).toBeDefined();
     const {prepared}=preparePlanningCaseContext({
       ...spec!,constraints:'unrestricted',intermediate:false,
