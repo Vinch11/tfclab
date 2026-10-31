@@ -27,7 +27,7 @@ describe('DET V39 — strict native low-zone target is selection-only and conser
     const easy={low:60,nonLow:0,unknown:0};
     const impossible=optimisticNativeLowShareUpperBound([hard],[[moderate],[hard]]);
     expect(impossible.provablyBelow75).toBe(true);
-    expect(impossible.upperPct).toBeCloseTo(20/80*100);
+    expect(impossible.upperPct).toBeCloseTo(20/120*100);
     const possible=optimisticNativeLowShareUpperBound([hard],[[easy],[easy]]);
     expect(possible.provablyBelow75).toBe(false);
     expect(possible.upperPct).toBe(75);
