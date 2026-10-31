@@ -61,6 +61,27 @@ Dernier SHA de code vérifié `4dd9fc5fa` : **138 tests V3 réussis / 7 ignorés
 
 **Prochain facteur limitant prioritaire : allocation réelle des minutes natation/vélo/course à partir des sources vérifiées (brick compris), en respectant périodisation, fatigue, zone et plafond d'heures.** Ne jamais réduire les cibles officielles pour obtenir une CI verte ; une nouvelle affectation doit réussir tous les contrôles ensemble. **Preuve 1 PASS technique ; preuve 2 NON OBTENUE ; NO-GO production.**
 
+## V3.9.4 — dette minimale de réallocation, deux validations de ratio distinctes
+
+Audit du dernier calendrier exécuté avant le certificat (SHA `6322efa`, CI spécialisée **138 réussis / 7 ignorés**). Ce ne sont pas des semaines supplémentaires attestées : le 70.3 construit **12/12**, plafonnées à **600 min**, et l'IM construit **16/16**, plafonnées à **840 min**, sans refus `v3_recovery_hours_unverified` ; les deux plans échouent toujours à la validation finale.
+
+| Contrôle réel | 70.3 | Ironman |
+|---|---:|---:|
+| Sessions, validation native (répartition en **nombre**) | natation **42%**, vélo **22%** | natation **40%**, vélo **30%** |
+| Minutes, audit V31 sur semaines de charge | natation au moins **23,13%** même avec 750 min de bricks supposées 100% hors nage | natation **24,00%** avec zéro brick non décomposable |
+| Cible natation inchangée | **15–20%** | **15–20%** |
+| Déficit minimal pour entrer sous 20% **en minutes** | **514 min** hors natation additionnelles | **1 184 min** hors natation additionnelles |
+
+**Démonstration du déficit, pas de faisabilité :** 70.3 : 760 min natation / (760 + 758 + 1 018 + 750 min bricks non décomposées) = au mieux 23,13% ; pour atteindre 20%, total d'endurance requis 3 800 min, contre 3 286 min dans l'hypothèse la plus favorable, soit **514 min supplémentaires**. Ironman : 1 420 min natation / 5 916 min attribuées = 24,00% ; total requis 7 100 min, soit **1 184 min** supplémentaires. Une transition ou une autre restriction peut rendre ces besoins encore plus élevés ; ne jamais allouer les 750 min de bricks 70.3 à une discipline réelle sans sa composition attestée.
+
+Code expérimental ajouté aux commits `56a7fc6`, `ff09b07` et `68c6fe7` : le nouveau `v39-ratio-capacity-certificate.ts` est relié au véritable audit complet et testé sur déficit, marge horaire théorique, durée inconnue et excès de plafond. Il expose `minimumAdditionalNonSwimMinutes`, `capOnlyAdditionalMinutesMaximum`, et `provablyImpossibleUnderWeeklyCaps`. Si la marge horaire n'est pas prouvable, résultat **null** ; si elle est suffisante mathématiquement, résultat **non bloquant sans jamais déclarer qu'une séance source/une récupération/une polarisation existe**. L'état CI final doit être vérifié sur le SHA, non déduit de ce texte.
+
+**Autre contradiction structurante** : le validateur historique `validateSportRatio` mesure la proportion en **nombre de séances** (brick partagé approximativement entre vélo et CAP), tandis que V31 mesure les **minutes effectivement attribuées** sans partage inventé. Une réallocation de minutes ne corrigera pas le défaut *historique de fréquence* : il faut une allocation du nombre de séances qui respecte déjà la matrice de quotas et les règles de bricks, puis un choix de doses approuvées satisfaisant la cible **en minutes**. Ces deux validations restent obligatoires ; aucune plage cible n'est abaissée.
+
+**Autres refus conservés** : semaine de décharge S4 du 70.3 à **24,1%** de réduction contre **30%** exigés (315 contre 415 min) ; polarisation 70.3 S5/S6/S7/S9, Ironman S6/S7/S9/S10/S11 (ex. 70.3 S6 : **34%** Z1–Z2 contre **≥75%**). Prochaine modification sportive : reconstruire l'allocation *quotas + phases + sports + doses* avant de chercher à satisfaire le solveur ; ne pas maquiller ces échecs avec le calcul de déficit.
+
+**Preuve physiologique 1 : PASS observé sur le 10 km. Preuve sportive multisport 2 : NO-GO. Production : NO-GO.**
+
 ## Critères de décision indépendants et non négociables
 1. **Différenciation physiologique** : deux plans pour le même athlète où seule la priorité de limiteur change, deux séances clés réellement sélectionnées au même créneau avec leurs stimuli distincts, objectifs/phase/sécurité vérifiés. Échec si seuls les scores de classement changent.
 2. **70.3** : date/jour J placés, 12 semaines complètes, chaque budget coach ≤600 min, vraie décharge, ratios sportifs sur minutes attribuées, récupération à partir d'horaires coach authentifiés (ou refus), polarisation et séances clés conformes, toutes les validations natives sans blocage.
