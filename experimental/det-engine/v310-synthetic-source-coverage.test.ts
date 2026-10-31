@@ -184,6 +184,58 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
         peakS9:objective==='703'?loadRows.find(row=>row.week===9)??null:null,
       }));
     }
+    // V3.11 comparative trial: same athlete, slots, approved V3 sources,
+    // exact doses and confirmed synthetic starts. Change ONLY candidate
+    // order; this is not a native validator waiver or release permission.
+    const triathlon=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:2500,maxMilliseconds:2500},{...contract,
+      enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+      improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+      filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+      preferSourceBackedMultisportBalance:'triathlon',
+      requireStructuredPolarizationOnLoadWeeks:true,
+      auditVerifiedMultisportMinutes:true,
+      applyReviewedMinuteSportRatio:true,
+      auditStructuredPolarizationSources:true,
+      coachSlotStart:confirmedSlot,
+      coachSessionStart:session=>confirmedSlot({
+        week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+    });
+    const ratioDiagnostic=(out:typeof triathlon)=>{
+      const report=out.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+      if(!report?.message)return null;
+      try {
+        const parsed=JSON.parse(report.message) as {
+          knownOnlyRatio:Record<string,number>;unresolvedBrickMinutes:number;
+          provablyOutOfRange:string[];deviations:string[];
+        };
+        return {ratios:parsed.knownOnlyRatio,unresolvedBrickMinutes:parsed.unresolvedBrickMinutes,
+          provablyOutOfRange:parsed.provablyOutOfRange,deviations:parsed.deviations};
+      }catch{return null;}
+    };
+    const blockers=(out:typeof triathlon)=>[...new Set(out.issues.filter(i=>
+      ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))];
+    console.info('DET_V311_TARGET_AWARE_COMPARE',JSON.stringify({
+      fixture:fixtureId,objective,
+      baseline:{weeks:withClock.candidate?.weeks.length??0,nodes:withClock.nodes,
+        ratio:ratioDiagnostic(withClock),blockers:blockers(withClock)},
+      triathlon:{weeks:triathlon.candidate?.weeks.length??0,nodes:triathlon.nodes,
+        ratio:ratioDiagnostic(triathlon),blockers:blockers(triathlon),
+        allConstraintsSatisfied:triathlon.constraintsSatisfied},
+    }));
+    expect(triathlon.humanReviewRequired).toBe(true);
+    expect(triathlon.sportingRelevance).toBe('not_attested');
+    if(triathlon.technicallyConstructed){
+      expect(triathlon.candidate?.weeks.length).toBe(cfg.weeksAvailable);
+      expect(triathlon.candidate!.weeks.every(week=>
+        week.sessions.filter(s=>!s.isRest).reduce((sum,s)=>sum+(s.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+      expect(triathlon.issues.filter(i=>i.code==='v3_recovery_hours_unverified'&&
+        ['blocking','critical','error'].includes(i.severity))).toEqual([]);
+      // No success claim from a mere preference: native/strict validation
+      // remains the authority on complete-plan admissibility.
+      expect(triathlon.constraintsSatisfied).toBe(blockers(triathlon).length===0);
+    }
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
@@ -220,5 +272,5 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       expect(result.candidate!.weeks.every(w=>w.sessions.filter(s=>!s.isRest)
         .reduce((n,s)=>n+(s.durationMin??0),0)<=Math.floor(cfg.weeklyHours!*60))).toBe(true);
     }else expect(result.status).toBe('refused');
-  },30000);
+  },60000);
 });
