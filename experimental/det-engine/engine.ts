@@ -426,6 +426,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           week:w.week,severity:'blocking',message:JSON.stringify({
             upperBoundLowPct:rootZoneEnvelope.upperPct,
             unprovedSourceDomain:rootZoneEnvelope.unmeasuredDomain,
+            unprovedSlots:requireStructuredZones?order.flatMap(({domain,slot},index)=>
+              zoneDomains[index].some(dose=>dose!==null)?[]:[{
+                day:slot.dayName,sport:slot.slot.sport,
+                key:!!slot.slot.isKeySession,long:!!slot.slot.isLongSession,
+                admittedCandidates:domain.length,
+                exampleSourceIds:domain.slice(0,4).map(s=>s.catalogId??s.title),
+              }]):[],
             provablyBelow75:rootZoneEnvelope.provablyBelow75,
             proofKind,scope:'current_reviewed_slot_domains_only',
             interpretation:'necessary_condition_not_an_approved_plan',
