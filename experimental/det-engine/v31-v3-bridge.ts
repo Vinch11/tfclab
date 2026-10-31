@@ -183,8 +183,10 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
      meta.structure+=' | DURÉE CALCULÉE : '+String(seconds)+' secondes exactes (sans arrondi)';
      if(seconds%60!==0)meta.tags.push('v3-subminute-duration-no-rounding');
    }
-   if(card.primaryIntent==='mixed_intensity')
+   if(card.primaryIntent==='mixed_intensity'){
      meta.tags.push('v3-mixed-stimulus-distinct-main-domains');
+     meta.structure+=' | V3_MIXED_STIMULUS : domaines principaux distincts conservés';
+   }
    if(card.id==='V3P_RUN_083'){
      meta.tags.push('v3-verified-training-not-race-event');
      meta.structure+=' | TITRE SOURCE CONSERVÉ: '+card.title;
