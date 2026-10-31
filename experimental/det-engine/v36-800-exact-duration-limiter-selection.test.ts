@@ -5,6 +5,7 @@ import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anc
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
 import {evaluateRepairSportingEquivalence} from '../../supabase/functions/_shared/repairSportingEquivalence';
+import {classifyIntentEvidence} from '../../supabase/functions/_shared/intentEvidence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 const anchors=()=>syntheticV3ReviewAnchors();
 function review(id:string,preferReviewedV3=true) {
@@ -57,6 +58,8 @@ describe('V3.6 — precise individual admission and physiologically honest DET s
    expect(mixed.intentFamily).toBe('mixed_intensity');
    expect(mixed.tags).toContain('v3-mixed-stimulus-distinct-main-domains');
    expect(mixed.zones.length).toBeGreaterThanOrEqual(2);
+   expect(classifyIntentEvidence(mixed.title+' '+mixed.structure,mixed.mainZoneMax).family)
+    .toBe('mixed_intensity');
    expect(evaluateRepairSportingEquivalence(null,mixed,{
      objective:'IM',phase:'build',weekType:'load',operation:'insertion',
    }).compatible).toBe(true);
