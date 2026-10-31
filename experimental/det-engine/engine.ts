@@ -18,7 +18,7 @@ import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution,splitVerifiedV3Brick} from './v31-time-ratio';
 import {assessGlobalSourceRatioEnvelope,type RatioSlotDomain,type ExactSportMinutes} from './v311-global-ratio-domain-bounds';
-import {planTriathlonRatioTrajectory,triathlonCandidateDoseDistance,type TriContribution} from './v312-triathlon-dose-trajectory';
+import {planTriathlonRatioTrajectory,triathlonCandidateDoseDistance,type TriContribution,type TriMinutes} from './v312-triathlon-dose-trajectory';
 import {assessCumulativeTriathlonRatioPotential,hasExactStrictTriathlonRatio} from './v314-cumulative-ratio-search';
 import {reconcileNativeTriathlonCountRatio} from './v39-reviewed-minute-ratio-reconciliation';
 import {diagnoseNativePolarizationWeeks} from './v39-polarization-provenance';
@@ -78,6 +78,12 @@ export interface ExperimentalAssemblyContract {
   /** V314 opt-in: on the FINAL load week, search until ALL cumulative exact
    * 70.3/IM sport-minute targets pass. Never relax native validators. */
   requireFinalTriathlonMinuteRatios?:true;
+  /** V315 isolated replay: STRICTLY in-range target for ranking certified
+   * source alternatives. It cannot change the final ratio gates. */
+  ratioTargetPreference?:Readonly<TriMinutes>;
+  /** V315 experimental-only: require real >=30% recovery-week time reduction
+   * while selecting candidates, not after accepting a whole calendar. */
+  requireMeasuredDeloadSelection?:true;
   /** Opt-in: exclude sprint/pmax/neuromuscular candidates under an explicit coach Sprint Ban. */
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
@@ -614,7 +620,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               return {id:ratioSlotKeys[index],
                 choices:domain.map(session=>exactTriContribution(session))
                   .filter((dose):dose is TriContribution=>dose!==null)};
-            }),sourceLoadLedger,ceiling):null;
+            }),sourceLoadLedger,ceiling,experimentalContract?.ratioTargetPreference):null;
         if(targetRatioMode)result.issues.push({code:'det_v312_source_ratio_trajectory',
           week:w.week,severity:'warning',message:JSON.stringify({
             available:!!trajectory,
