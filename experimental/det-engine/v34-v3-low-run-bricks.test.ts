@@ -1,5 +1,6 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import {describe,it,expect,vi,afterEach} from 'vitest';
-import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
+import { type V3ReviewedSettings } from './v31-v3-catalogue';
 import {V34_SAFE_RUN_BRICKS,type V34SafeBrickReview} from './v34-v3-low-run-bricks';
 import {V32_703_BRICK_BLUEPRINTS,type V32SpecificBrickReview} from './v32-v3-specific-bricks';
 import {V3_BASE_BRICK_ID} from './v31-v3-brick';
@@ -7,10 +8,12 @@ import {splitVerifiedV3Brick,auditPlannedMinuteDistribution} from './v31-time-ra
 import {constructDeterministicPlan} from './engine';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const review=(id:string,targetDurationMin?:number):V3ReviewedSettings=>({
   id,objective:'703',athleteLevel:'trained',athleteLevelSource:'manual',
   allPrerequisitesChecked:true,individualCoachApproval:true,
+  athleteAnchors:syntheticV3ReviewAnchors(),
   ...(targetDurationMin===undefined?{}:{targetDurationMin}),
 });
 const sources=[
@@ -34,7 +37,7 @@ afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V34 — lower run-recovery burden without changing sport floors',()=>{
  it('assembles only exact source-reviewed easy-run 70.3 bricks (173/120/160/180)',()=>{
   const p=buildDetV3ContractFromCatalogue(sources,base,specific,easy);
-  expect(p.report.sourceCount).toBe(400);
+  expect(p.report.sourceCount).toBe(800);
   expect(p.lowRunBrickReport.rejected).toEqual([]);
   expect(p.lowRunBrickReport.accepted.map(m=>m.durationMin))
     .toEqual([[173,173],[120,120],[160,160],[180,180]]);

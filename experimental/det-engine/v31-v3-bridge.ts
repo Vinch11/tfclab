@@ -12,7 +12,7 @@ import { getDoctrineDomain, type DoctrineDomainId } from '../../src/lib/zones/tf
 
 type Bound={min:number;base:number;max:number};
 type V3Block =
- | {kind:'time';seconds:Bound;domain:DoctrineDomainId|null;label:string;role:string}
+ | {kind:'time';seconds:Bound;domain:DoctrineDomainId|null;label:string;role:string;repsTarget?:Bound;rpeRange?:{min:number;max:number}}
  | {kind:'distance';meters:Bound;domain:DoctrineDomainId|null;label:string;role:string}
  | {kind:'reps';reps:Bound;secPerRep:number;sides:number;domain:null;label:string;role:string}
  | {kind:'repeat';count:Bound;betweenSec:number;label:string;steps:V3Block[]};
@@ -32,11 +32,13 @@ export interface DetV3Review {
  individualCoachApproval:true;
  /** Distinct from permission to use: explicit preference in otherwise tied choices. */
  preferReviewedV3?:true;
+ /** Strength timebox requires explicit coach-verified load/RPE, never an inferred aerobic zone. */
+ verifiedStrengthLoadAndRpe?:true;
  swimPacesSecPer100m?:Partial<Record<DoctrineDomainId,number>>;
 }
 const LEVELS=['untrained','light','trained','highly_trained'];
 const FAMILIES:Record<string,RepairWorkoutMetadata['intentFamily']>={
- recovery:'recuperation',moderate_lt1:'endurance_fondamentale',mlss:'seuil',vo2max:'vo2',
+ recovery:'recuperation',moderate_lt1:'endurance_fondamentale',sub_threshold:'seuil',mlss:'seuil',vo2max:'vo2',
  neuromuscular:'sprint',max_strength:'force',strength_endurance:'force',
  technique_economy:'technique',mobility_prevention:'technique',
  race_specific:'race_pace',mixed_specific:'brick',fatmax:'fatmax',test:'test',
@@ -59,7 +61,19 @@ function evaluate(block:V3Block,review:DetV3Review):{seconds:number|null;zones:s
  const bound=block.kind==='time'?block.seconds:block.kind==='distance'?block.meters:block.reps;
  if(!validBound(bound)||!block.label)throw Error('v3_invalid_work_block');
  const zone=block.domain?[getDoctrineDomain(block.domain).zone]:[];
- if(block.kind==='time')return{seconds:block.seconds.base,zones:zone,text:block.seconds.base+'s '+block.label,estimated:false};
+ if(block.kind==='time') {
+   const t=block;
+   if(t.repsTarget && (!validBound(t.repsTarget) || ![t.repsTarget.min,t.repsTarget.base,t.repsTarget.max].every(Number.isInteger)))
+     throw Error('v3_invalid_timebox_rep_range');
+   if(t.rpeRange && (!Number.isFinite(t.rpeRange.min)||!Number.isFinite(t.rpeRange.max)||
+       t.rpeRange.min<1||t.rpeRange.max>10||t.rpeRange.min>t.rpeRange.max))
+     throw Error('v3_invalid_timebox_rpe');
+   const instruction=t.repsTarget? ' ; répétitions cibles '+t.repsTarget.base+
+     ' ['+t.repsTarget.min+'..'+t.repsTarget.max+'] ; RPE '+
+     (t.rpeRange?t.rpeRange.min+'..'+t.rpeRange.max:'à vérifier'):'';
+   return{seconds:t.seconds.base,zones:zone,
+     text:t.seconds.base+'s '+t.label+instruction,estimated:false};
+ }
  if(block.kind==='reps')return{seconds:null,zones:[],text:block.reps.base+' répétitions '+block.label+' (durée inconnue)',estimated:true};
  if(!block.domain)throw Error('v3_distance_missing_domain');
  const pace=review.swimPacesSecPer100m?.[block.domain];
@@ -104,7 +118,20 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
        (card.primaryDomain==='semi_pace' && normalizedGoal!=='semi'))){
     refuse('race_specific_anchor_incompatible_with_objective');continue;
    }
-   if(!family||!mainZones.length||!sport||card.sport==='strength'){refuse('unsupported_sport_or_intent');continue;}
+   const strengthMain=card.sport==='strength' && card.primaryDomain===null &&
+     card.blocks.some(b=>b.kind==='repeat'&&b.steps.some(step=>step.kind==='time'&&
+       !!step.repsTarget&&!!step.rpeRange));
+   if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
+     refuse('strength_timebox_or_coach_load_verification_missing');continue;
+   }
+   // Intent mixed_intensity has no safe precise equivalent in the legacy
+   // repair-metadata schema. Fail closed rather than miscast it as MLSS/VO2.
+   if(card.primaryIntent==='mixed_intensity'){
+     refuse('mixed_intensity_requires_distinct_det_intent_family');continue;
+   }
+   if(!family||(!mainZones.length&&card.sport!=='strength')||!sport){
+     refuse('unsupported_sport_or_intent');continue;
+   }
    const meta:RepairWorkoutMetadata={
     metadataVersion:1,complete:true,id:card.id,sport,title:card.title,objective:card.focus,
     intentFamily:family,goals:[normalizedGoal],objectiveSpecific:true,
@@ -114,6 +141,10 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
     structure:steps.map((step,i)=>i+': '+step.text).join(' | '),zones,variants:{},
    };
    if(!isCompleteRepairWorkoutMetadata(meta)){refuse('invalid_repair_metadata');continue;}
+   meta.tags.push('v3-primary-intent:'+card.primaryIntent);
+   meta.tags.push('v3-primary-domain:'+(card.primaryDomain??'nonmetabolic'));
+   if(card.primaryIntent==='sub_threshold')meta.tags.push('v3-subthreshold-not-equivalent-to-mlss');
+   if(card.sport==='strength')meta.tags.push('v3-strength-timebox-no-fabricated-aerobic-zone');
    accepted.push(meta);
   } catch(e){refuse('invalid_structure_or_domain:'+String(e));}
  }

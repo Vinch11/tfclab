@@ -1,7 +1,9 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import { describe,it,expect,vi,afterEach } from 'vitest';
 import { auditPlannedMinuteDistribution, splitExactV3BaseBrick } from './v31-time-ratio';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
-import { buildDetV3ContractFromCatalogue } from './v31-v3-catalogue';
+
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { constructDeterministicPlan } from './engine';
@@ -43,9 +45,10 @@ describe('V31 planned-minute diagnostic, no legacy ratio waiver',()=>{
   const {contract,allBricks}=buildDetV3ContractFromCatalogue([
     {id:'V3P_BIKE_002',athleteLevel:'light',athleteLevelSource:'manual',
       objective:'703',allPrerequisitesChecked:true,individualCoachApproval:true,
-      targetDurationMin:65},
+      athleteAnchors:syntheticV3ReviewAnchors(),targetDurationMin:65},
     {id:'V3P_RUN_001',athleteLevel:'light',athleteLevelSource:'manual',
-      objective:'703',allPrerequisitesChecked:true,individualCoachApproval:true},
+      objective:'703',allPrerequisitesChecked:true,individualCoachApproval:true,
+      athleteAnchors:syntheticV3ReviewAnchors()},
   ],[{id:V3_BASE_BRICK_ID,objective:'703',individualCoachApproval:true,
     transitionSeconds:300,preferReviewedV3:true}]);
   const out=constructDeterministicPlan(fixture.athleteData,cfg,

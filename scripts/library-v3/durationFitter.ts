@@ -41,6 +41,9 @@ function collect(blocks: V3Block[], prefix = "", allowWorksetChange = false): Kn
   return blocks.flatMap((block, i): Knob[] => {
     const path = prefix ? prefix + "." + i : String(i);
     if (block.kind === "repeat") return [
+      ...(allowWorksetChange && block.betweenSecBounds && block.betweenSecBounds.max > block.betweenSecBounds.min ?
+        [{ path: path + ".betweenSec", kind: "seconds" as const, priority: 2,
+          values: discrete(block.betweenSecBounds.min,block.betweenSecBounds.base,block.betweenSecBounds.max,15) }] : []),
       ...(allowWorksetChange && block.count.max > block.count.min ? [{ path: path + ".count", kind: "count" as const,
         priority: -1, values: discrete(block.count.min, block.count.base, block.count.max, 1) }] : []),
       ...collect(block.steps, path, allowWorksetChange),

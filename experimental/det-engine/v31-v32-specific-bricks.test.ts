@@ -1,15 +1,18 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import { describe,it,expect,vi,afterEach } from 'vitest';
-import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
+import { type V3ReviewedSettings } from './v31-v3-catalogue';
 import { V32_703_BRICK_BLUEPRINTS, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import { auditPlannedMinuteDistribution,splitVerifiedV3Brick } from './v31-time-ratio';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { constructDeterministicPlan } from './engine';
+import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
 
 const rev=(id:string,targetDurationMin?:number):V3ReviewedSettings=>({
  id,objective:'703',athleteLevel:'trained',athleteLevelSource:'manual',
  allPrerequisitesChecked:true,individualCoachApproval:true,
+ athleteAnchors:syntheticV3ReviewAnchors(),
  ...(targetDurationMin===undefined?{}:{targetDurationMin}),
 });
 const sourceReviews:V3ReviewedSettings[]=[
@@ -24,9 +27,9 @@ const qualityReviews:V32SpecificBrickReview[]=V32_703_BRICK_BLUEPRINTS.map(x=>({
 }));
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('V32 — no invented conversion of historical 70.3 bricks',()=>{
- it('creates three exact candidate-only source-bound build/peak bricks, preserving the 400 originals',()=>{
+ it('creates three exact candidate-only source-bound build/peak bricks, preserving the 400 historical sources alongside 400 candidates',()=>{
   const p=buildDetV3ContractFromCatalogue(sourceReviews,[baseReview],qualityReviews);
-  expect(p.report.sourceCount).toBe(400);
+  expect(p.report.sourceCount).toBe(800);
   expect(p.report.accepted).toHaveLength(6);
   expect(p.specificBrickReport.rejected).toEqual([]);
   expect(p.specificBrickReport.accepted).toHaveLength(3);

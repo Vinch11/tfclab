@@ -216,3 +216,17 @@ jobs:
               echo "::endgroup::"
             fi
           done
+
+  det-v3-800:
+    name: DET V3 — 800 fiches & non-régression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: TypeScript — moteur expérimental complet
+        run: bunx tsc --noEmit -p experimental/det-engine/tsconfig.json
+      - name: Vitest — catalogue V3 et solveur déterministe
+        run: bunx vitest run --config experimental/det-engine/vitest.v31.config.ts
