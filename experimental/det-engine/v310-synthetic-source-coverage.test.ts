@@ -244,6 +244,51 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       // remains the authority on complete-plan admissibility.
       expect(triathlon.constraintsSatisfied).toBe(blockers(triathlon).length===0);
     }
+    // V3.12 closed comparison: same approved V3 sources, same coach-proved
+    // synthetic starts, same strict safety checks. Only dose-search priority
+    // changes according to target ratios and verified previous load weeks.
+    const targeted=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:6000,maxMilliseconds:6000},{...contract,
+      enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+      improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+      filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
+      preferSourceBackedMultisportBalance:'triathlon_targets',
+      requireStructuredPolarizationOnLoadWeeks:true,
+      auditVerifiedMultisportMinutes:true,
+      auditGlobalSourceSportRatioBounds:true,
+      applyReviewedMinuteSportRatio:true,
+      auditStructuredPolarizationSources:true,
+      coachSlotStart:confirmedSlot,
+      coachSessionStart:session=>confirmedSlot({
+        week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+    });
+    const ratioTrajectory=targeted.issues.filter(i=>
+      i.code==='det_v312_source_ratio_trajectory').map(i=>({
+        week:i.week,detail:i.message?JSON.parse(i.message):null,
+      }));
+    console.info('DET_V312_SOURCE_TARGET_COMPARE',JSON.stringify({
+      fixture:fixtureId,objective,
+      baseline:{weeks:withClock.candidate?.weeks.length??0,nodes:withClock.nodes,
+        ratio:ratioDiagnostic(withClock),blockers:blockers(withClock)},
+      v311:{weeks:triathlon.candidate?.weeks.length??0,nodes:triathlon.nodes,
+        ratio:ratioDiagnostic(triathlon),blockers:blockers(triathlon)},
+      v312:{weeks:targeted.candidate?.weeks.length??0,nodes:targeted.nodes,
+        reason:targeted.reason??null,ratio:ratioDiagnostic(targeted),
+        blockers:blockers(targeted),trajectory:ratioTrajectory,
+        constraintsSatisfied:targeted.constraintsSatisfied},
+    }));
+    expect(targeted.humanReviewRequired).toBe(true);
+    expect(targeted.sportingRelevance).toBe('not_attested');
+    if(targeted.technicallyConstructed){
+      expect(targeted.candidate?.weeks.length).toBe(cfg.weeksAvailable);
+      expect(targeted.candidate!.weeks.every(week=>
+        week.sessions.filter(s=>!s.isRest)
+          .reduce((sum,s)=>sum+(s.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+      expect(targeted.issues.filter(i=>i.code==='v3_recovery_hours_unverified'&&
+        ['blocking','critical','error'].includes(i.severity))).toEqual([]);
+      expect(targeted.constraintsSatisfied).toBe(blockers(targeted).length===0);
+    }
     const blockedByClock=withClock.issues.find(i=>
       i.code==='det_structured_polarization_source_envelope_refused');
     console.info('DET_V310_SYNTHETIC_CONFIRMED_CLOCK_EXPERIMENT',JSON.stringify({
