@@ -220,7 +220,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       let calendarRecoveryExclusions=0;
       let sprintBanExclusions=0;
       const sprintBanned=experimentalContract?.filterDeclaredSprintBanCandidates===true &&
-        config.prohibitions?.some(text=>/sprint\\s*ban/i.test(text))===true;
+        config.prohibitions?.some(text=>/sprint\s*ban/i.test(text))===true;
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
       // Without a coach volume ramp, the historical solver used Infinity.
       // This opt-in never expands a pre-existing stricter bound. No inferred
