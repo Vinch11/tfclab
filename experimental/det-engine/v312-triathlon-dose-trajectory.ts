@@ -36,6 +36,7 @@ export function planTriathlonRatioTrajectory(
   domains:readonly TriSlotDomain[],
   prior:Readonly<TriMinutes>,
   weeklyCap:number,
+  coachScopedTarget?:Readonly<TriMinutes>,
 ):TriRatioTrajectory|null {
   if(!domains.length||sports.some(s=>!Number.isFinite(prior[s])||prior[s]<0))return null;
   const each=domains.map(({id,choices})=>{
@@ -60,7 +61,20 @@ export function planTriathlonRatioTrajectory(
     Number.isFinite(weeklyCap)&&weeklyCap>0?weeklyCap:medianWeek);
   if(referenceWeekMinutes<=0)return null;
   const priorTotal=sports.reduce((sum,s)=>sum+prior[s],0);
-  const ratios=target(objective);
+  // A bounded, explicitly requested synthetic replay can explore another
+  // point INSIDE the unchanged strict ranges. This is a sorting preference,
+  // never a mutation of target criteria or of admissible source doses.
+  const native=target(objective);
+  const caps=objective==='703'?
+    {swim:[.15,.20],bike:[.40,.50],run:[.30,.40]}:
+    {swim:[.15,.20],bike:[.45,.55],run:[.25,.35]};
+  const supplied=coachScopedTarget;
+  if(supplied && (
+    sports.some(s=>!Number.isFinite(supplied[s])||
+      supplied[s]<caps[s][0]-1e-9||supplied[s]>caps[s][1]+1e-9)||
+    Math.abs(sports.reduce((n,s)=>n+supplied[s],0)-1)>1e-8
+  ))return null;
+  const ratios=supplied??native;
   const sportTargetMinutes=Object.fromEntries(sports.map(s=>
     [s,clamp((priorTotal+referenceWeekMinutes)*ratios[s]-prior[s],
       totalLow[s],totalHigh[s])])) as TriMinutes;
