@@ -210,6 +210,34 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       expect(minuteReconciled.issues.some(i=>i.code==='det_strict_minute_sport_ratio_verified'))
         .toBe(false);
     }
+    // Bounded experimental search for 75% of CLASSIFIABLE minutes Z1/Z2
+    // using the existing native estimator, not assumed easy volume.
+    // Failure proves only a bounded search refusal, NOT impossibility.
+    const strictPolarization=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:18000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'swim',
+        requireNativePolarizationOnLoadWeeks:true});
+    console.info('DET_V39_STRICT_NATIVE_POLARIZATION_SEARCH',JSON.stringify({
+      fixture:fixtureId,objective,constructed:strictPolarization.technicallyConstructed,
+      candidateWeeks:strictPolarization.candidate?.weeks.length??0,
+      reason:strictPolarization.reason??null,nodes:strictPolarization.nodes,
+      blockers:[...new Set(strictPolarization.issues.filter(i=>blocking(i.severity)).map(i=>i.code))],
+      refusal:strictPolarization.issues.find(i=>
+        i.code==='det_native_polarization_target_search_unresolved')??null,
+    }));
+    if(strictPolarization.technicallyConstructed){
+      expect(strictPolarization.issues.filter(i=>
+        i.code==='polarization'&&blocking(i.severity))).toEqual([]);
+      expect(strictPolarization.candidate!.weeks.every(week=>
+        week.sessions.filter(x=>!x.isRest).reduce((n,x)=>n+(x.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+    }
+    expect(strictPolarization.humanReviewRequired).toBe(true);
+    expect(strictPolarization.sportingRelevance).toBe('not_attested');
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
