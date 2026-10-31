@@ -7088,9 +7088,7 @@
           "statement": "Force dominante genou",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -7101,12 +7099,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -7339,9 +7331,7 @@
           "statement": "Force chaîne postérieure",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -7352,12 +7342,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -7588,9 +7572,7 @@
           "statement": "Force unilatérale et stabilité frontal",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -7601,12 +7583,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -7834,9 +7810,7 @@
           "statement": "Force fléchisseurs plantaires",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -7847,12 +7821,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -8083,9 +8051,7 @@
           "statement": "Force excentrique chaîne postérieure",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -8096,12 +8062,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -8334,9 +8294,7 @@
           "statement": "Qualité contacts, pas fatigue métabolique",
           "primaryIntent": "neuromuscular",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "neuromuscular_recruitment",
             "movement_economy",
@@ -8347,12 +8305,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -8583,9 +8535,7 @@
           "statement": "Expression de vitesse et qualité",
           "primaryIntent": "neuromuscular",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "neuromuscular_recruitment",
             "movement_economy",
@@ -8596,12 +8546,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -8831,9 +8775,7 @@
           "statement": "Contrôle transverse et rotation",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -8844,12 +8786,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -9094,9 +9030,7 @@
           "statement": "Contrôle latéral bassin/tronc",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -9107,12 +9041,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -9357,9 +9285,7 @@
           "statement": "Stabilité hanche/pied et proprioception",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -9370,12 +9296,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -9603,9 +9523,7 @@
           "statement": "Contrôle scapulaire et coiffe",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -9616,12 +9534,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -9850,9 +9762,7 @@
           "statement": "Amplitude active et récupération sans charge importante",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -9863,12 +9773,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -18990,9 +18894,7 @@
           "statement": "Tolérance force excentrique du genou",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -19003,12 +18905,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -19243,9 +19139,7 @@
           "statement": "Endurance pied-cheville en appui unipodal",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -19256,12 +19150,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -19497,9 +19385,7 @@
           "statement": "Contrôle hanche frontal et adducteurs",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -19510,12 +19396,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -19752,9 +19632,7 @@
           "statement": "Force adducteurs et stabilité bassin",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -19765,12 +19643,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -20006,9 +19878,7 @@
           "statement": "Contrôle épaule et protraction",
           "primaryIntent": "mobility_prevention",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "movement_control",
             "tissue_load_tolerance",
@@ -20019,12 +19889,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -20252,9 +20116,7 @@
           "statement": "Force de tirage sans compensation lombaire",
           "primaryIntent": "max_strength",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "maximal_force",
             "force_reserve",
@@ -20265,12 +20127,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -20499,9 +20355,7 @@
           "statement": "Force de poussée et contrôle rotatoire",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -20512,12 +20366,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
@@ -20754,9 +20602,7 @@
           "statement": "Capacité de travail générale sans épuisement",
           "primaryIntent": "strength_endurance",
           "primaryDomain": null,
-          "domainIds": [
-            "recovery"
-          ],
+          "domainIds": [],
           "limiterKeys": [
             "local_muscular_endurance",
             "fatigue_resistance",
@@ -20767,12 +20613,6 @@
         },
         "individualization": {
           "anchors": [
-            {
-              "domain": "recovery",
-              "key": "swim_domain_pace_sec_per_100m.recovery",
-              "transform": "measured_domain_pace_only",
-              "missing": "unresolved"
-            },
             {
               "domain": null,
               "key": "coach_verified_rpe_and_load",
