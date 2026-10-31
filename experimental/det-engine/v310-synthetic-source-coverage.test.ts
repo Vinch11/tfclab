@@ -421,6 +421,12 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
       polarizationMigration:fullReplays.result?.issues.find(i=>
         i.code==='det_v315_native_text_polarization_reconciliation_decision')
         ?.message??null,
+      taperPhaseErrors:fullReplays.result?.issues.filter(i=>i.code==='phase_coherence')
+        .map(i=>({week:i.week??null,message:i.message??null}))??[],
+      actualTaperSessions:fullReplays.result?.candidate?.weeks.filter(w=>w.phase==='taper')
+        .map(w=>({week:w.weekNumber,sessions:w.sessions.filter(x=>!x.isRest)
+          .map(x=>({id:x.catalogId??null,sport:x.sport,day:x.dayName,title:x.title,
+            details:x.details.slice(0,120)}))}))??[],
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
     expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
