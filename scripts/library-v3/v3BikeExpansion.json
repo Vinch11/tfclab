@@ -3039,7 +3039,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil 2 blocs longs",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3118,9 +3118,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -3173,7 +3173,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil pyramide à repos croissant",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3328,9 +3328,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -3431,7 +3431,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil alterné avec LT1",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3521,9 +3521,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
@@ -3582,7 +3582,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil fractionné HT",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3661,9 +3661,9 @@
       "prescriptionContract": {
         "schemaVersion": "3.1.0",
         "physiology": {
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
-          "capacityFocus": "threshold_sustainable_power_or_speed",
+          "capacityFocus": "sustainable_work_below_mlss_not_threshold",
           "individualCalibrationRequired": true,
           "limiterInterpretation": "training_target_not_diagnosed_limiter"
         },
