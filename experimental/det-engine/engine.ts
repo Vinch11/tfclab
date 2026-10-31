@@ -31,6 +31,7 @@ import {confirmedNoSameDayOverlap} from './v313-confirmed-no-overlap';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {assessStrictPeriodizationEvidence} from './v316-strict-periodization-gate';
+import {certifyReviewedRaceSpecificPeak,type ProvenRaceSource} from './v317-certified-race-specific';
 import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-native-peak-candidate';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
@@ -92,6 +93,9 @@ export interface ExperimentalAssemblyContract {
   requireMeasuredDeloadSelection?:true;
   /** V316 opt-in: a native periodization warning cannot count as strict sporting GO. */
   requireStrictPeriodizationEvidence?:true;
+  /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
+  reviewedRaceSpecificForId?:(id:string)=>ProvenRaceSource|null|undefined;
+  requireReviewedRaceSpecificPeak?:true;
   /** V315 only: validate training frequency excluding certified official race
    * EVENTS, while preserving physical and native validation of the full plan. */
   verifyOfficialRaceQuotaProjection?:true;
@@ -1200,6 +1204,26 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   }
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
+  if(experimentalContract?.requireReviewedRaceSpecificPeak===true){
+    const objective=normalizeRepairGoal(config.objective??'')==='half'?'703':
+      normalizeRepairGoal(config.objective??'')==='ironman'?'IM':null;
+    const candidate=result.candidate!;
+    const proof=objective&&experimentalContract.reviewedRaceSpecificForId&&
+      experimentalContract.sourceStructuredZoneForId?
+      certifyReviewedRaceSpecificPeak(candidate,objective,
+        experimentalContract.reviewedRaceSpecificForId,
+        experimentalContract.sourceStructuredZoneForId):null;
+    result.issues.push({
+      code:proof?.verdict==='verified'?
+        'det_v317_individually_reviewed_peak_specificity_verified':
+        'det_v317_individually_reviewed_peak_specificity_unverified',
+      severity:proof?.verdict==='verified'?'warning':'blocking',
+      message:JSON.stringify(proof??{
+        reason:'source_proof_callback_or_triathlon_objective_missing',
+        scientificAttestation:false,
+      }),
+    });
+  }
   if(experimentalContract?.requireStrictPeriodizationEvidence===true){
     const phase=assessStrictPeriodizationEvidence(result.issues);
     result.issues.push({
