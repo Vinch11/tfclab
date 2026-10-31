@@ -43,8 +43,8 @@ const enrich=function enrich(w) {
   walk(w.blocks);
   const domains=[...allDomains].sort();
   const anchors=domains.map(domain=>{
-    if(w.sport==="bike") return {domain,key:domain==="neuromuscular"?"bike_verified_sprint_power_or_coach_rpe":"bike_ftp_w",transform:domain==="neuromuscular"?"no_assumed_numeric_sprint":"tfclDoctrine.bike_fraction_of_ftp",missing:"unresolved"};
-    if(w.sport==="run") return {domain,key:domain==="neuromuscular"?"run_verified_sprint_speed_or_coach_rpe":"run_threshold_pace_sec_per_km",transform:domain==="neuromuscular"?"no_assumed_numeric_sprint":"tfclDoctrine.run_speed_fraction_of_threshold",missing:"unresolved"};
+    if(w.sport==="bike") return {domain,key:domain==="neuromuscular"?"bike_verified_sprint_power_range_w":domain==="vo2max"?"bike_ftp_w+bike_pma_w":"bike_ftp_w",transform:domain==="neuromuscular"?"no_assumed_numeric_sprint":domain==="vo2max"?"verified_ftp_and_pma":"tfclDoctrine.bike_fraction_of_ftp",missing:"unresolved"};
+    if(w.sport==="run") return {domain,key:domain==="neuromuscular"?"run_verified_sprint_speed_range_mps":domain==="vo2max"?"run_threshold_pace_sec_per_km+run_vvo2_speed_mps":"run_threshold_pace_sec_per_km",transform:domain==="neuromuscular"?"no_assumed_numeric_sprint":domain==="vo2max"?"verified_threshold_and_vvo2":"tfclDoctrine.run_speed_fraction_of_threshold",missing:"unresolved"};
     return {domain,key:"swim_domain_pace_sec_per_100m."+domain,transform:domain==="mlss"?"measured_domain_pace_or_coach_confirmed_css_proxy":"measured_domain_pace_only",missing:"unresolved"};
   });
   if(w.sport==="strength")anchors.push({domain:null,key:"coach_verified_rpe_and_load",transform:"individualized_load_not_assumed_percent_1rm",missing:"unresolved"});
@@ -180,18 +180,18 @@ const makeExpansion=function makeExpansion(sport) {
     if(intent==="minimal")intent="technique_economy";
     for(let v=0;v<5;v++){
       const id="V3P_"+sport.toUpperCase()+"_"+String(101+c*5+v).padStart(3,"0"), variant=names[v], phase=phases[v];
-      let work=Math.round(Number(w0)*mult[v]/60)*60,rest=Number(r0),count=reps[v], blocks=[];
+      let work=Math.round(Number(w0)*mult[v]/60)*60,rest=Math.ceil(Number(r0)/60)*60,count=reps[v], blocks=[];
       const warm=sport==="strength"?600:sport==="swim"?480:600, cool=sport==="strength"?300:sport==="swim"?360:480;
       blocks.push({kind:"time",seconds:q(warm,warm,warm),domain:sport==="strength"?null:"recovery",role:"warmup",label:"Échauffement progressif, contrôle de disponibilité"});
       const makeMain=(seconds,label)=>bt(seconds,domain,"main",label,
         sport==="strength"?{repsTarget:q(c===7||c===14||c===15?4:8,c===7||c===14||c===15?2:5,c===7||c===14||c===15?6:12),rpeRange:{min:(intent==="max_strength"?6:4),max:(intent==="max_strength"?8:7)}}:{});
       if(sport==="strength"){
         // Exact appointment duration: each 30/45/60 s slot is timeboxed, repetitions are a target, not a time estimate.
-        const main=Number(w0),target=(v===0?Math.max(30,main-15):v===3?main+15:main);
+        const target=v===3?120:60; // Complete reserved sets, not continuous repetitions
         blocks.push({kind:"repeat",label:title+" — "+variant,count:q(count,Math.max(1,count-1),count+1),
           betweenSec:rest,betweenSecBounds:q(rest,Math.max(0,rest-15),rest+30),
           steps:[{kind:"time",seconds:q(target,target,target),domain:null,role:"main",
-            label:title+" ; stop si qualité dégradée avant la fin du créneau",
+            label:title+" ; créneau avec micro-pauses et répétitions plafonnées, stop dès perte de qualité",
             repsTarget:q(c===7||c===14||c===15?4:8,c===7||c===14||c===15?2:5,c===7||c===14||c===15?6:12),
             rpeRange:{min:intent==="max_strength"?6:4,max:intent==="max_strength"?8:7}}]});
       }else if(shape==="steady"){
