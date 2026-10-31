@@ -423,20 +423,32 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ])) as Record<'swim'|'bike'|'run',number|null>;
         const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
         const targets=SPORT_RATIO_TARGETS[objectiveKey];
-        const deviations=(['swim','bike','run'] as const).filter(sport=>{
+        const sports=['swim','bike','run'] as const;
+        const deviations=sports.filter(sport=>{
           const v=ratio[sport],target=targets?.[sport];
           return target&&v!==null&&(v<target[0]||v>target[1]);
+        });
+        // Even with an unresolved brick, some failures are provable:
+        // conservative min/max already grant ALL of its unknown minutes to
+        // whichever discipline benefits the target most. If the ranges
+        // still cannot overlap, no speculative 50/50 brick split can fix it.
+        const provablyOutOfRange=sports.filter(sport=>{
+          const range=targets?.[sport],b=audit.conservativeBounds[sport];
+          return !!range&&(b.minPct>range[1]||b.maxPct<range[0]);
         });
         const unproved=!total||audit.unresolvedBrickMinutes>0||
           Object.values(ratio).some(x=>x===null);
         result.issues.push({
-          code:unproved?'det_multisport_minute_ratio_unverifiable':
+          code:!total?'det_multisport_minute_ratio_unverifiable':
+            provablyOutOfRange.length?'det_multisport_minute_ratio_provably_out_of_bounds':
+            unproved?'det_multisport_minute_ratio_unverifiable':
             deviations.length?'det_multisport_minute_ratio_out_of_bounds':'det_multisport_minute_ratio_verified',
-          severity:unproved||deviations.length?'blocking':'warning',
-          message:JSON.stringify({objective:objectiveKey,ratio,targets,
-            unresolvedBrickMinutes:audit.unresolvedBrickMinutes,knownMinutes:audit.knownMinutes,
+          severity:unproved||deviations.length||provablyOutOfRange.length?'blocking':'warning',
+          message:JSON.stringify({objective:objectiveKey,knownOnlyRatio:ratio,targets,
+            unresolvedBrickMinutes:audit.unresolvedBrickMinutes,
+            conservativeBounds:audit.conservativeBounds,knownMinutes:audit.knownMinutes,
             verifiedTransitionMinutes:audit.verifiedTransitionMinutes,
-            deviations,scope:audit.scope}),
+            provablyOutOfRange,deviations,scope:audit.scope}),
         });
       }catch(error){
         result.issues.push({code:'det_multisport_minute_ratio_unverifiable',
