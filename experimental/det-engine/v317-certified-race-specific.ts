@@ -41,7 +41,12 @@ export function certifyReviewedRaceSpecificPeak(
   for(const w of peak){
     for(const session of w.sessions as ParsedSession[]){
       if(session.isRest||!session.catalogId)continue;
-      const review=approved(session.catalogId);
+      let review:ProvenRaceSource|null|undefined;
+      try{review=approved(session.catalogId);}
+      catch{
+        rejected.push('source_review_provider_error:'+session.catalogId);
+        continue;
+      }
       if(!review)continue;
       if(review.sourceId!==session.catalogId||review.objective!==objective){
         rejected.push('wrong_source_or_objective:'+session.catalogId);continue;
