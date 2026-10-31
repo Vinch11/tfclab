@@ -164,6 +164,17 @@ export function qualifyV32ForAthlete(
    reject('running_impact_tolerance_not_confirmed');
  if(workout.sport==='swim'&&r?.swimSupervisionConfirmed!==true)
    reject('swimming_safety_supervision_not_confirmed');
+ // Swimming time and intensity must come from the SAME confirmed athlete paces.
+ // Two independent maps with conflicting numbers could otherwise pass separately.
+ if(workout.sport==='swim'){
+   for(const segment of workout.prescriptionContract.intensity.segments){
+     if(!segment.domain)continue;
+     const intensityPace=inputs.calibration.swimPacesSecondsPer100m?.[segment.domain];
+     const durationPace=inputs.duration.swimPacesSecondsPer100m?.[segment.domain];
+     if(intensityPace!==undefined&&durationPace!==undefined&&intensityPace!==durationPace)
+       reject('swim_calibration_duration_pace_mismatch:'+segment.domain);
+   }
+ }
  let intensitySegments=0,durationSeconds:number|null=null;
  if(workout.primaryIntent==='test'){
    // A controlled field test may be needed precisely BECAUSE the athlete's
