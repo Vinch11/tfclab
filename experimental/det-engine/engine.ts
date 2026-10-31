@@ -18,6 +18,7 @@ import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {certifySwimRatioCapacity} from './v39-ratio-capacity-certificate';
+import {assessNativeSwimCountQuotaBound} from './v39-native-count-quota-bound';
 import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
 import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
@@ -435,6 +436,25 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ])) as Record<'swim'|'bike'|'run',number|null>;
         const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
         const targets=SPORT_RATIO_TARGETS[objectiveKey];
+        // Independent frequency quota proof. The native validator currently
+        // counts whole sessions for a ratio intended to represent volume.
+        // Never suppress that validator: show when its swim count target is
+        // mathematically unreachable, even with maximal bike/run frequency.
+        const countRatioCertificate=targets?.swim?assessNativeSwimCountQuotaBound(
+          Object.entries(preparation.weeklyQuotas).map(([week,entry])=>({
+            week:Number(week),weekType:entry.weekType,quota:entry.quota,
+          })),targets.swim[1],
+        ):null;
+        if(countRatioCertificate){
+          result.issues.push({
+            code:countRatioCertificate.mathematicallyCannotAvoidNativeSwimBlocker===
+              true?'det_native_count_swim_ratio_provably_incompatible_with_quotas':
+              'det_native_count_swim_ratio_compatibility_unproven',
+            severity:countRatioCertificate.mathematicallyCannotAvoidNativeSwimBlocker===
+              true?'blocking':'warning',
+            message:JSON.stringify(countRatioCertificate),
+          });
+        }
         // This bounds the required actual reallocation before optimizing
         // sources. Unresolved brick minutes are all optimistically assigned
         // to non-swim endurance; free weekly minutes are theoretical only.
