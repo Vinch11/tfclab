@@ -105,7 +105,7 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    if(!steps.length||(steps.some(b=>b.estimated)&&!countOnlyStrength)){
      refuse('exercise_time_estimated');continue;
    }
-   if(steps.some(b=>b.seconds===null)){refuse('individual_duration_unknown');continue;}
+   if(steps.some(b=>b.seconds===null)&&!countOnlyStrength){refuse('individual_duration_unknown');continue;}
    const seconds=steps.reduce((s,b)=>s+(b.seconds??0),0);
    if(!countOnlyStrength&&(seconds<=0||!Number.isSafeInteger(seconds)||seconds%60!==0)){
      refuse('non_integer_minute_execution');continue;
