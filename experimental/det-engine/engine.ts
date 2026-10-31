@@ -13,6 +13,7 @@ import { normalizeRepairSport, evaluateRepairSportingEquivalence } from '../../s
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
+import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -26,6 +27,8 @@ export interface ExperimentalAssemblyContract {
   consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
   /** Read-only source recovery floors. Without training start times, proof may be impossible. */
   sourceRecoveryForId?:(id:string)=>readonly {sourceId:string;sport:string;hours:number}[];
+  /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
+  coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number; intent:string; reason:string; }
 export interface EngineResult {
@@ -183,39 +186,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     }
     result.candidate=plan;
     if(experimentalContract?.sourceRecoveryForId){
-      // Calendar-only proof: if sessions are separated by n calendar days,
-      // the MINIMUM possible gap is (n-1)*24h. Do not assume start times.
-      const chronology=plan.weeks.flatMap(week=>week.sessions
-        .filter(s=>!s.isRest)
-        .map(s=>({s,week:week.weekNumber,day:(week.weekNumber-1)*7+s.dayIndex})))
-        .sort((a,b)=>a.day-b.day);
-      const serves=(sport:string,sessionSport:string)=>
-        sessionSport===sport||(sessionSport==='brick'&&['bike','run'].includes(sport));
-      for(let i=0;i<chronology.length;i++){
-        const current=chronology[i];
-        if(!current.s.catalogId)continue;
-        const requirements=experimentalContract.sourceRecoveryForId(current.s.catalogId);
-        for(const req of requirements){
-          if(!Number.isFinite(req.hours)||req.hours<0){
-            result.issues.push({code:'v3_recovery_source_contract_invalid',week:current.week,
-              severity:'blocking',message:'Invalid source-specific recovery evidence'});
-            continue;
-          }
-          if(req.hours===0)continue;
-          const next=chronology.slice(i+1).find(other=>serves(req.sport,other.s.sport));
-          if(!next)continue;
-          const guaranteedGap=Math.max(0,(next.day-current.day-1)*24);
-          if(guaranteedGap<req.hours){
-            result.issues.push({code:'v3_recovery_hours_unverified',week:current.week,
-              severity:'blocking',
-              message:'Source '+req.sourceId+' requires '+req.hours+
-                'h after '+current.s.dayName+' S'+current.week+
-                ', next '+req.sport+' on '+next.s.dayName+' S'+next.week+
-                ', calendar-only guaranteed gap '+guaranteedGap+
-                'h. Start times absent: coach must verify or reschedule.'});
-          }
-        }
-      }
+      result.issues.push(...auditSourceRecoveryTiming({
+        plan, sourcesForId:experimentalContract.sourceRecoveryForId,
+        startForSession:experimentalContract.coachSessionStart,
+      }));
     }
     const merged:MergedPlan={...plan,weeks:plan.weeks.map(w=>({...w,sessions:w.sessions.map(s=>({...s,isKeySession:!!s.isKeySession,catalogId:s.catalogId??null,custom:!!s.custom,durationMin:s.durationMin??0,zones:s.zones??[]}))}))};
     result.issues.push(...validateWeeklyQuotas(merged,preparation.weeklyQuotas).map(i=>({code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason})));
