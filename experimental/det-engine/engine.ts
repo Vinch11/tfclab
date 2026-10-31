@@ -10,6 +10,7 @@ import { validatePlan } from '@/engines/plan/planValidator';
 import { checkSessionCatalogue } from '../../supabase/functions/_shared/sessionCatalogueContract';
 import { catalogueWeeklyUsageCapacity } from '../../supabase/functions/_shared/catalogueWeeklyFrequency';
 import { normalizeRepairSport, normalizeRepairGoal, evaluateRepairSportingEquivalence } from '../../supabase/functions/_shared/repairSportingEquivalence';
+import type {LayoutSport} from '@/engines/plan/weeklySlotLayout';
 import { buildStartToRunTemplatePlan } from '@/lib/startToRunTemplate';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
@@ -86,8 +87,42 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   } else {
     const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
     experimentalContract?.adapt(preparation,config);
-    const report=assessPreparedGeneration(config,preparation);
-    result.issues=report.issues.map(i=>({...i}));
+    // The current prepared weekly layout can contain OPTIONAL cross-training
+    // slots even if the final athlete/phase-specific catalogue contains zero
+    // admissible cards of that sport (e.g. an optional bike in a 10K-only plan).
+    // Never remove a mandatory frequency, a race event or a safety check.
+    // Only in the isolated DET experimental bridge, recompute prevalidation
+    // after removing demonstrably unsatisfiable OPTIONAL slots.
+    let report=assessPreparedGeneration(config,preparation);
+    if(experimentalContract){
+      let changed=false;
+      for(const week of report.weeks){
+        const entry=preparation.weeklyQuotas[week.week];
+        if(!entry?.layout)continue;
+        const eligibleSports=new Set(week.eligible.map(c=>normalizeRepairSport(c.sport)));
+        const optionalMissing=new Set<LayoutSport>();
+        for(const day of entry.layout.days)for(const slot of day.slots){
+          if(!slot.isRaceEvent && entry.quota[slot.sport].min===0 &&
+             !eligibleSports.has(slot.sport)) optionalMissing.add(slot.sport);
+        }
+        if(!optionalMissing.size)continue;
+        const days=entry.layout.days.map(day=>{
+          const slots=day.slots.filter(slot=>slot.isRaceEvent||
+            !optionalMissing.has(slot.sport));
+          return {...day,slots,isRest:day.isRest||slots.length===0};
+        });
+        const targetsBySport={...entry.layout.targetsBySport};
+        for(const sport of optionalMissing)targetsBySport[sport]=0;
+        entry.layout={...entry.layout,days,targetsBySport};
+        changed=true;
+        result.issues.push({code:'det_optional_slot_missing_catalogue_pruned',
+          week:week.week,severity:'warning',
+          message:[...optionalMissing].join(',')+
+            ': optional sport with zero actually eligible sources; weekly minima revalidated'});
+      }
+      if(changed)report=assessPreparedGeneration(config,preparation);
+    }
+    result.issues.push(...report.issues.map(i=>({...i})));
     if(experimentalContract)result.issues.push({code:'experimental_contract_requires_review',severity:'warning'});
     if(report.status==='blocked')return refuse('existing_prevalidation_blocked');
     if(report.weeks.some(w=>!preparation.weeklyQuotas[w.week]?.layout))return refuse('dedicated_route_without_deterministic_quota');
