@@ -81,3 +81,23 @@ export function assessStrictNativePolarizationTarget(
     lowPctOfClassifiable:lowPct,unknownPctOfTotal:unknownPct,
     low,mid,high,nonLow:mid+high,unknown};
 }
+
+/**
+ * V310 stricter experimental selector: solely certified source BLOCK dose
+ * inputs (not descriptions or native zone inference). Unproven domains are
+ * refused by the caller before this function runs. Native final validation
+ * remains separately required, so this is never a release certificate.
+ */
+export function assessStrictStructuredZoneTarget(
+  doses:readonly NativeZoneDose[],
+):{admissible:boolean;lowPct:number|null;unknownPct:number|null} {
+  const low=doses.reduce((n,d)=>n+d.low,0);
+  const other=doses.reduce((n,d)=>n+d.nonLow,0);
+  const unknown=doses.reduce((n,d)=>n+d.unknown,0);
+  const known=low+other,grand=known+unknown;
+  const lowPct=known>0?100*low/known:null;
+  const unknownPct=grand>0?100*unknown/grand:null;
+  return {admissible:lowPct!==null&&lowPct>=75-1e-9&&
+    unknownPct!==null&&unknownPct<=30+1e-9,
+    lowPct,unknownPct};
+}
