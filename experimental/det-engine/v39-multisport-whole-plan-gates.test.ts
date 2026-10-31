@@ -129,6 +129,32 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
     }
     expect(bikeOnly.humanReviewRequired).toBe(true);
     expect(bikeOnly.sportingRelevance).toBe('not_attested');
+    const swimOnly=constructDeterministicPlan(f.athleteData,cfg,
+      {maxNodes:12000,maxMilliseconds:8000},{...contract,
+        enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,
+        improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
+        auditVerifiedMultisportMinutes:true,filterDeclaredSprintBanCandidates:true,
+        requireRealQualityOnLoadWeeks:true,
+        preferSourceBackedMultisportBalance:'swim'});
+    const swimRatio=swimOnly.issues.find(i=>i.code.startsWith('det_multisport_minute_ratio_'));
+    console.info('DET_V39_SWIM_ONLY_RATIO_COMPARISON',JSON.stringify({
+      fixture:fixtureId,objective,technicallyConstructed:swimOnly.technicallyConstructed,
+      original:readRatio(baseRatio?.message),
+      allSports:readRatio(balancedRatio?.message),
+      bikeOnly:readRatio(bikeRatio?.message),
+      swimOnly:readRatio(swimRatio?.message),
+      blockerCodes:[...new Set(swimOnly.issues.filter(i=>blocking(i.severity)).map(i=>i.code))],
+      selectedV3:swimOnly.trace.filter(t=>t.id.startsWith('V3P_')||t.id.startsWith('V3B_')).length,
+      reason:swimOnly.reason??null,
+    }));
+    if(swimOnly.technicallyConstructed){
+      expect(swimOnly.candidate!.weeks.every(week=>
+        week.sessions.filter(x=>!x.isRest).reduce((n,x)=>n+(x.durationMin??0),0)
+          <=Math.floor(cfg.weeklyHours!*60))).toBe(true);
+      expect(swimOnly.issues.filter(i=>i.code==='v3_recovery_hours_unverified')).toEqual([]);
+    }
+    expect(swimOnly.humanReviewRequired).toBe(true);
+    expect(swimOnly.sportingRelevance).toBe('not_attested');
     const capMin=Math.floor(cfg.weeklyHours!*60);
     const weeks=out.candidate?.weeks.map(w=>({
       week:w.weekNumber,phase:w.phase,
