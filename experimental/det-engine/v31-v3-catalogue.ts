@@ -252,7 +252,6 @@ export function buildDetV3ContractFromCatalogue(
   // Tie-breaks use only explicit canonical limiter keys from the athlete's
   // plan and the 800 source records. Never guess a synonym or silently claim
   // a physiological match merely because the sport/phase fits.
-  const reviewedSourceById=new Map(report.accepted.map(card=>[card.id,card] as const));
   const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
     card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)
       ?.prescription.physiologicalIntent.limiterKeys??[],
@@ -279,15 +278,9 @@ export function buildDetV3ContractFromCatalogue(
         rows.forEach((row,i)=>{rows[i]=[...row,...allBricks];});
     },
     filterCandidate(card,ctx){
-      const source=reviewedSourceById.get(card.id);
-      // A low-zone recovery/easy-endurance recipe must NOT fill a short KEY
-      // intensity slot merely because its sport and duration happen to fit.
-      // Long easy volume and purpose-built technical/strength key slots are
-      // different stimuli and retain their own independent validations.
-      if(source && ctx.slot.isKeySession && !ctx.slot.isLongSession &&
-         source.mainZoneMax<3 &&
-         ['recuperation','endurance_fondamentale'].includes(source.intentFamily))
-        return false;
+      // Slot.isKeySession is not sufficient evidence that intensity must be
+      // hard: skill, durability and aerobic-long work may be the key stimulus.
+      // Preserve eligibility and use limiter-aware ranking + full plan checks.
       const brick=brickById.get(card.id);
       if(brick){
         if(!brick.phases.includes(ctx.phase??''))return false;
