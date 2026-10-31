@@ -51,6 +51,7 @@ export function syntheticV3SportingContext(id:string):
    swimmingSafetyConfirmed:true as const,
    racePaceGoalConfirmed:true as const,
    testProtocolConfirmed:true as const,
+   cssPairedTestConfirmed:true as const,
   },
  };
 }
