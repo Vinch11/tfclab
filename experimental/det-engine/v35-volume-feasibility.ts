@@ -43,6 +43,8 @@ export interface V35BikeVolumeFeasibility {
   weeks:V35WeekHeadroom[];
   verdict:V35FeasibilityVerdict;
   interpretation:'necessary_condition_only_not_a_training_prescription';
+  /** Explicit reason when an input is not certifiable. */
+  reason?:string;
 }
 
 /** This is only a generous necessary condition, NEVER a sufficient one. */
@@ -55,11 +57,25 @@ export function auditV35BikeOnlyFeasibility(
   if(!Number.isFinite(targetMaxSwimPct)||targetMaxSwimPct<=0||targetMaxSwimPct>=100)
     throw Error('v35_invalid_swim_ceiling');
   const types=Object.fromEntries(Object.entries(quotas).map(([week,q])=>[Number(week),q.weekType]));
-  const distribution=auditPlannedMinuteDistribution(plan,types,approvedBricks);
+  let distribution:ReturnType<typeof auditPlannedMinuteDistribution>;
+  try{distribution=auditPlannedMinuteDistribution(plan,types,approvedBricks);}
+  catch(e){
+    // A malformed or unknown endurance dose must remain a visible refusal,
+    // not a thrown exception that prevents the DET result being reported.
+    return {scope:'load_weeks_only',verifiedBrickMinutesUnresolved:0,
+      knownMinutes:{swim:0,bike:0,run:0},targetMaxSwimPct,
+      baselineSwimPct:null,requiredAdditionalBikeMinutes:null,
+      optimisticCombinedHeadroomMinutes:null,weeks:[],
+      verdict:'baseline_duration_invalid',reason:String(e),
+      interpretation:'necessary_condition_only_not_a_training_prescription'};
+  }
   const total=distribution.knownTotalMinutes;
   const baselineSwimPct=total>0?100*distribution.knownMinutes.swim/total:null;
   // Ceil with a small numeric guard: meeting the threshold, not rounding it.
-  const needed=total>0?Math.max(0,Math.ceil(distribution.knownMinutes.swim*100/targetMaxSwimPct-total-1e-9)):null;
+  // Keep exact (possibly fractional) minutes. Ceil() would overstate the
+  // necessary dose and could falsely declare a feasible cap impossible.
+  const needed=total>0?Math.max(0,
+    distribution.knownMinutes.swim*100/targetMaxSwimPct-total):null;
   const weeks:V35WeekHeadroom[]=[];
   let baselineInvalid=false,missingCap=false,nonCoachCap=false,exceedsCap=false,headroom=0;
   for(const week of plan.weeks){
@@ -68,7 +84,12 @@ export function auditV35BikeOnlyFeasibility(
     for(const session of week.sessions){
       if(session.isRest || session.sport==='rest')continue;
       const minutes=session.durationMin;
-      if(typeof minutes!=='number'||!Number.isSafeInteger(minutes)||minutes<0){
+      if(session.sport==='strength'&&minutes===undefined)continue;
+      // A frequency-only strength session is NOT a zero-minute performed
+      // workout. Its unknown duration cannot be used as available bike hours.
+      // Omitting that unverified strength time only overstates headroom,
+      // which is safe for this NON-SUFFICIENT impossibility certificate.
+      if(typeof minutes!=='number'||!Number.isFinite(minutes)||minutes<0||minutes>1440){
         baselineInvalid=true;
       } else planned+=minutes;
     }
