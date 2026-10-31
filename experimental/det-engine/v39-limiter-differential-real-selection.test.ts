@@ -4,7 +4,7 @@
  * No production athlete, no inferred anchors, no publication.
  */
 import {afterEach,describe,expect,it,vi} from 'vitest';
-import {planningCases,preparePlanningCaseContext} from '@/qa/sports-plan-lab/planningMatrix';
+import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
@@ -44,11 +44,11 @@ describe('V39 — same athlete, opposed physiological limiter, genuine DET key-s
   it('records the complete cohort outcome and requires a changed real-world key-slot choice',()=>{
     vi.useFakeTimers({toFake:['Date']});
     vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
-    const spec=planningCases().find(c=>c.objective==='10K'&&c.level==='trained'&&
-      c.ambition==='finisher'&&c.load==='unknown');
-    expect(spec).toBeDefined();
-    const {prepared}=preparePlanningCaseContext({
-      ...spec!,constraints:'unrestricted',intermediate:false,
+    const prepared=preparePrevalidationFixture('B-10K',{
+      objective:'10K',trainingLevel:'trained',ambition:'competitor',
+      planStartDate:'2026-10-26',raceDate:'2027-01-03',
+      raceGoals:[{objective:'10K',raceDate:'2027-01-03',priority:'A'}],
+      weeklyHours:6,sessionsPerWeek:5,maxSessionsPerDay:1,
     });
     const outcomes=[];
     for(const scenario of limiterScenarios){
