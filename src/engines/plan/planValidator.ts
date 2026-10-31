@@ -552,7 +552,7 @@ function clauseTier(clause: string, zoneFallback: SessionTier | null = null): Se
   return "low";
 }
 
-interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: number }
+export interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: number }
 
 /**
  * Estime la répartition low/mid/high(/unknown) EN MINUTES d'une séance, en
@@ -570,7 +570,7 @@ interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: 
  * explicitement plutôt que de présumer une conformité sur du temps non
  * classifiable).
  */
-function estimateSessionZoneMinutes(
+export function estimateSessionZoneMinutes(
   session: ParsedSession,
   totalDurationMin: number | null,
 ): SessionZoneMinutes {
