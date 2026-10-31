@@ -15,7 +15,7 @@ import swimExpansion from "./v3SwimExpansion.json";
 import strengthExpansion from "./v3StrengthExpansion.json";
 
 export type V3Sport = "bike" | "run" | "swim" | "strength";
-export type V3Intent = "recovery" | "moderate_lt1" | "mlss" | "vo2max" | "neuromuscular"
+export type V3Intent = "recovery" | "moderate_lt1" | "sub_threshold" | "mixed_intensity" | "mlss" | "vo2max" | "neuromuscular"
   | "max_strength" | "strength_endurance" | "technique_economy" | "mobility_prevention"
   | "mixed_specific" | "race_specific" | "fatmax" | "test";
 export type Bounds = { min: number; base: number; max: number };
@@ -220,7 +220,7 @@ const DOMAINS = new Set<DoctrineDomainId>([
   "sub_threshold", "semi_pace", "mlss", "vo2max", "neuromuscular",
 ]);
 const INTENTS = new Set<V3Intent>([
-  "recovery", "moderate_lt1", "mlss", "vo2max", "neuromuscular", "max_strength",
+  "recovery", "moderate_lt1", "sub_threshold", "mixed_intensity", "mlss", "vo2max", "neuromuscular", "max_strength",
   "strength_endurance", "technique_economy", "mobility_prevention",
   "mixed_specific", "race_specific", "fatmax", "test",
 ]);
