@@ -11,6 +11,7 @@ import type {ParsedPlan} from '@/lib/aiPlanParser';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import {auditPlannedMinuteDistribution} from './v31-time-ratio';
 import {SPORT_RATIO_TARGETS} from '@/engines/plan/planValidator';
+import {parseAthleteConstraints} from '@/lib/plan/constraintRules';
 
 export type RatioIssue={code:string;week?:number;severity:string;message?:string};
 export interface MinuteRatioReconciliation {
@@ -40,9 +41,15 @@ export function reconcileNativeTriathlonCountRatio(input:{
     verdict:'not_needed',reason:'no_native_count_ratio_issue',
     ratios:null,issues:[...nativeIssues],nativeCountIssueCount,
   };
-  // Target redistribution for banned disciplines belongs to the native
-  // constraint parser. Until a typed equivalent is available, fail closed.
-  if(coachConstraintsText?.trim())return fail('coach_constraints_not_supported_by_minute_migration');
+  // The exact SAME native constraint parser determines whether any sport
+  // was excluded. A sprint prohibition or day-only scheduling restriction
+  // does not itself redistribute swim/bike/run volume targets, and all its
+  // independent prohibition and calendar validators still run.
+  // A full/ambiguous sport restriction must NOT be migrated: its targets may
+  // have been legitimately redistributed by the native sport-ratio rule.
+  const parsedConstraints=parseAthleteConstraints(coachConstraintsText??'');
+  if(parsedConstraints.bannedSports.length||parsedConstraints.ambiguousRestrictions.length)
+    return fail('banned_or_ambiguous_sport_target_redistribution_unverified');
   if(quotaIssues.some(x=>['quota_floor_violation','quota_range_drift'].includes(x.code)||
     ['critical','error','blocking'].includes(x.severity)))
     return fail('frequency_or_structural_quota_not_verified');
