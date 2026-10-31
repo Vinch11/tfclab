@@ -38,7 +38,7 @@ export interface DetV3Review {
 }
 const LEVELS=['untrained','light','trained','highly_trained'];
 const FAMILIES:Record<string,RepairWorkoutMetadata['intentFamily']>={
- recovery:'recuperation',moderate_lt1:'endurance_fondamentale',mlss:'seuil',vo2max:'vo2',
+ recovery:'recuperation',moderate_lt1:'endurance_fondamentale',sub_threshold:'seuil',mlss:'seuil',vo2max:'vo2',
  neuromuscular:'sprint',max_strength:'force',strength_endurance:'force',
  technique_economy:'technique',mobility_prevention:'technique',
  race_specific:'race_pace',mixed_specific:'brick',fatmax:'fatmax',test:'test',
@@ -124,6 +124,11 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
    if(card.sport==='strength' && (!strengthMain||approval.verifiedStrengthLoadAndRpe!==true)){
      refuse('strength_timebox_or_coach_load_verification_missing');continue;
    }
+   // Intent mixed_intensity has no safe precise equivalent in the legacy
+   // repair-metadata schema. Fail closed rather than miscast it as MLSS/VO2.
+   if(card.primaryIntent==='mixed_intensity'){
+     refuse('mixed_intensity_requires_distinct_det_intent_family');continue;
+   }
    if(!family||(!mainZones.length&&card.sport!=='strength')||!sport){
      refuse('unsupported_sport_or_intent');continue;
    }
@@ -136,6 +141,9 @@ export function ingestV3ForDeterministicEngine(cards:readonly V3SourceCard[],rev
     structure:steps.map((step,i)=>i+': '+step.text).join(' | '),zones,variants:{},
    };
    if(!isCompleteRepairWorkoutMetadata(meta)){refuse('invalid_repair_metadata');continue;}
+   meta.tags.push('v3-primary-intent:'+card.primaryIntent);
+   meta.tags.push('v3-primary-domain:'+(card.primaryDomain??'nonmetabolic'));
+   if(card.primaryIntent==='sub_threshold')meta.tags.push('v3-subthreshold-not-equivalent-to-mlss');
    if(card.sport==='strength')meta.tags.push('v3-strength-timebox-no-fabricated-aerobic-zone');
    accepted.push(meta);
   } catch(e){refuse('invalid_structure_or_domain:'+String(e));}
