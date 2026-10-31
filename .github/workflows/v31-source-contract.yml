@@ -24,5 +24,7 @@ jobs:
         run: bunx eslint scripts/library-v3/catalogueRuntime.ts scripts/library-v3/prescriptionContract.ts scripts/library-v3/resolvePrescription.ts src/lib/__tests__/v31PrescriptionContract.test.ts src/lib/__tests__/v31PrescriptionResolution.test.ts
       - name: TypeScript — complete application
         run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Verify all 400 offline workbench source records
+        run: node scripts/library-v3/checkWorkbenchSync.mjs
       - name: Run all 400 V3.1 contract and resolution tests
         run: bunx vitest run src/lib/__tests__/v31PrescriptionContract.test.ts src/lib/__tests__/v31PrescriptionResolution.test.ts
