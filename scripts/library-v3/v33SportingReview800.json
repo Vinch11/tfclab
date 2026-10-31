@@ -30168,22 +30168,18 @@
     {
       "id": "V3P_SWIM_166",
       "sport": "swim",
-      "sourceFingerprint": "04796598",
-      "sourceStatus": "source_blocked",
+      "sourceFingerprint": "0f556b65",
+      "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "v3_800_individual_automated_source_screen",
       "originReviewFingerprint": null,
       "originReviewAuthority": "automated_sport_screen_only",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "mlss_intent_domain_mismatch"
-      ],
-      "primaryIntent": "mlss",
+      "sourceBlockers": [],
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "limiterKeys": [
-        "fractional_utilization",
-        "threshold_tolerance",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
@@ -30218,22 +30214,18 @@
     {
       "id": "V3P_SWIM_167",
       "sport": "swim",
-      "sourceFingerprint": "134d1147",
-      "sourceStatus": "source_blocked",
+      "sourceFingerprint": "37c138ac",
+      "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "v3_800_individual_automated_source_screen",
       "originReviewFingerprint": null,
       "originReviewAuthority": "automated_sport_screen_only",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "mlss_intent_domain_mismatch"
-      ],
-      "primaryIntent": "mlss",
+      "sourceBlockers": [],
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "limiterKeys": [
-        "fractional_utilization",
-        "threshold_tolerance",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
@@ -30269,22 +30261,18 @@
     {
       "id": "V3P_SWIM_168",
       "sport": "swim",
-      "sourceFingerprint": "fb49d285",
-      "sourceStatus": "source_blocked",
+      "sourceFingerprint": "162aab88",
+      "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "v3_800_individual_automated_source_screen",
       "originReviewFingerprint": null,
       "originReviewAuthority": "automated_sport_screen_only",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "mlss_intent_domain_mismatch"
-      ],
-      "primaryIntent": "mlss",
+      "sourceBlockers": [],
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "limiterKeys": [
-        "fractional_utilization",
-        "threshold_tolerance",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
@@ -30320,22 +30308,18 @@
     {
       "id": "V3P_SWIM_169",
       "sport": "swim",
-      "sourceFingerprint": "44a37503",
-      "sourceStatus": "source_blocked",
+      "sourceFingerprint": "c2c76aa6",
+      "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "v3_800_individual_automated_source_screen",
       "originReviewFingerprint": null,
       "originReviewAuthority": "automated_sport_screen_only",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "mlss_intent_domain_mismatch"
-      ],
-      "primaryIntent": "mlss",
+      "sourceBlockers": [],
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "limiterKeys": [
-        "fractional_utilization",
-        "threshold_tolerance",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
@@ -30371,22 +30355,18 @@
     {
       "id": "V3P_SWIM_170",
       "sport": "swim",
-      "sourceFingerprint": "cd0c7bdd",
-      "sourceStatus": "source_blocked",
+      "sourceFingerprint": "6c9f17a6",
+      "sourceStatus": "source_prequalified_pending_individual_review",
       "reviewOrigin": "v3_800_individual_automated_source_screen",
       "originReviewFingerprint": null,
       "originReviewAuthority": "automated_sport_screen_only",
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false,
-      "sourceBlockers": [
-        "mlss_intent_domain_mismatch"
-      ],
-      "primaryIntent": "mlss",
+      "sourceBlockers": [],
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "limiterKeys": [
-        "fractional_utilization",
-        "threshold_tolerance",
         "swim_technical_durability"
       ],
       "mainDomainIds": [
