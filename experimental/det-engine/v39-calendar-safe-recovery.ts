@@ -67,7 +67,8 @@ export function calendarOrConfirmedClockRecoverySafe(
   if(!Number.isSafeInteger(here.week)||here.week<1||
      !Number.isSafeInteger(here.dayIndex)||here.dayIndex<0||here.dayIndex>6)return false;
   const thisDay=absolute(here);
-  const current=confirmedStart(here);
+  let current:CoachSessionStart|null|undefined;
+  try {current=confirmedStart(here);}catch{return false;}
   if(!validStart(current))return false;
   const clockMinutes=(slot:ScheduledSport,clock:CoachSessionStart)=>
     absolute(slot)*1440+clock.minuteOfDay-clock.utcOffsetMinutes;
@@ -84,7 +85,8 @@ export function calendarOrConfirmedClockRecoverySafe(
     if(!next)continue;
     const calendarGuaranteed=Math.max(0,(absolute(next)-thisDay-1)*1440);
     if(calendarGuaranteed>=req.hours*60)continue;
-    const nextClock=confirmedStart(next);
+    let nextClock:CoachSessionStart|null|undefined;
+    try{nextClock=confirmedStart(next);}catch{return false;}
     if(!validStart(nextClock))return false;
     const actualGap=clockMinutes(next,nextClock)-clockMinutes(here,current)-sourceDurationMin;
     if(!Number.isFinite(actualGap)||actualGap<req.hours*60)return false;
