@@ -92,6 +92,20 @@ describe("V3 800-candidate catalogue — verifiable source contracts",()=>{
     const legacy=card("V3P_STRENGTH_021");
     expect(evaluateV3Workout(legacy).status).toBe("estimated");
   });
+  it("actually ingests NEW, individually reviewed bike/run/swim candidates but never mislabels strength",()=>{
+    const shared={athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
+      objective:"IM",allPrerequisitesChecked:true as const,individualCoachApproval:true as const};
+    const reviews=["V3P_BIKE_106","V3P_RUN_111","V3P_SWIM_131","V3P_STRENGTH_101"].map(id=>({...shared,id}));
+    const result=buildDetV3ContractFromCatalogue(reviews);
+    expect(result.report.sourceCount).toBe(800);
+    const admitted=new Set(result.report.accepted.map(x=>x.id));
+    for(const id of ["V3P_BIKE_106","V3P_RUN_111","V3P_SWIM_131"])
+      expect(admitted.has(id),id).toBe(true);
+    expect(admitted.has("V3P_STRENGTH_101")).toBe(false);
+    expect(result.report.rejected.find(x=>x.id==="V3P_STRENGTH_101")?.reason)
+      .toBe("unsupported_sport_or_intent");
+    expect(result.report.accepted.every(x=>x.durationMin[0]===x.durationMin[1])).toBe(true);
+  });
   it("allows only coach-approved, in-range recovery and target repetition edits",()=>{
     const id="V3P_BIKE_146";
     const base={id,athleteLevel:"trained" as const,athleteLevelSource:"manual" as const,
