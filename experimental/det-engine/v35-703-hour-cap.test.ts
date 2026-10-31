@@ -45,6 +45,8 @@ describe('DET V35 — coach availability is a hard construction cap when opted i
       .reduce((n,s)=>n+(s.durationMin??0),0),
   }))??[];
   const oldWeeks=weekly(current),newWeeks=weekly(capped);
+  const minuteIssue=capped.issues.find(i=>i.code==='v35_bike_only_volume_feasibility');
+  const minuteReport=minuteIssue?.message?JSON.parse(minuteIssue.message):null;
   console.info('DET_V35_703_HARD_WEEKLY_HOURS',JSON.stringify({
     configuredHours:cfg.weeklyHours,originalConstructed:current.technicallyConstructed,
     originalOverCap:oldWeeks.filter(w=>w.minutes>600),
@@ -52,11 +54,13 @@ describe('DET V35 — coach availability is a hard construction cap when opted i
     cappedOverCap:newWeeks.filter(w=>w.minutes>600),
     cappedBricks:capped.trace.filter(t=>t.id.startsWith('V3B_703_'))
       .map(t=>({week:t.week,id:t.id,duration:t.duration})),
-    cappedWeeks:newWeeks,blocking:capped.issues.filter(i=>
+    cappedWeeks:newWeeks,volumeFeasibility:minuteReport,
+    blocking:capped.issues.filter(i=>
       ['blocking','critical','error'].includes(i.severity)).slice(0,16).map(i=>i.code),
   }));
   // The gate is allowed to reject an impossible calendar; never to exceed 10h.
   expect(newWeeks.every(w=>w.minutes<=600)).toBe(true);
+  expect(minuteReport?.interpretation).toBe('necessary_condition_only_not_a_training_prescription');
   expect(capped.status==='refused'||capped.status==='candidate').toBe(true);
   expect(capped.humanReviewRequired).toBe(true);
   expect(capped.sportingRelevance).toBe('not_attested');
