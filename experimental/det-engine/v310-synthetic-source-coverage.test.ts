@@ -431,6 +431,18 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
     expect(fullReplays.evidence.totalNodes).toBeLessThanOrEqual(200000);
+    // V316: a full plan and exact ratios are NOT sufficient when the native
+    // phase validator still reports a peak mismatch or no race specificity.
+    const unprovedPeriodization=fullReplays.result?.issues.filter(i=>
+      i.code==='phase_coherence'&&
+      ['warning','error','critical','blocking'].includes(i.severity))??[];
+    if(unprovedPeriodization.length){
+      expect(fullReplays.evidence.verdict).not.toBe('all_gates_pass');
+      expect(fullReplays.result?.issues.some(i=>
+        i.code==='det_v316_strict_periodization_not_proven'&&
+        i.severity==='blocking')).toBe(true);
+      expect(fullReplays.result?.constraintsSatisfied).toBe(false);
+    }
     if(fullReplays.evidence.verdict==='bounded_search_unresolved'){
       expect(fullReplays.result?.status).toBe('refused');
       expect(fullReplays.result?.technicallyConstructed).toBe(false);
