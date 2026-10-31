@@ -1075,7 +1075,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil extensif 4 blocs",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -1155,15 +1155,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Temps contrôlé sous MLSS",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -1453,8 +1451,8 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Over-under sans confusion du seuil",
-      "primaryIntent": "mlss",
-      "primaryDomain": "mlss",
+      "primaryIntent": "mixed_intensity",
+      "primaryDomain": "tempo",
       "phase": [
         "build"
       ],
@@ -1564,16 +1562,14 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Oscillations autour du seuil et contrôle du dosage",
-          "primaryIntent": "mlss",
-          "primaryDomain": "mlss",
+          "primaryIntent": "mixed_intensity",
+          "primaryDomain": "tempo",
           "domainIds": [
             "recovery",
             "tempo",
             "vo2max"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -3397,7 +3393,7 @@
       "version": "3.0.0-pilot",
       "sport": "run",
       "title": "Cruise intervals au sous-seuil",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -3477,15 +3473,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Volume de travail proche sous-seuil, non maximal",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "running_impact_tolerance"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -7204,7 +7198,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "barre ou haltères",
+        "rack si barre"
+      ]
     },
     {
       "id": "V3P_STRENGTH_002",
@@ -7447,7 +7445,10 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "barre ou haltères"
+      ]
     },
     {
       "id": "V3P_STRENGTH_003",
@@ -7686,7 +7687,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "step ou marche stable",
+        "charge adaptée si prescrite"
+      ]
     },
     {
       "id": "V3P_STRENGTH_004",
@@ -7923,7 +7928,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "marche stable",
+        "haltères ou charge ajustable"
+      ]
     },
     {
       "id": "V3P_STRENGTH_005",
@@ -8168,7 +8177,12 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "support ou partenaire pour ancrer les jambes",
+        "élastique d'assistance si besoin",
+        "tapis"
+      ]
     },
     {
       "id": "V3P_STRENGTH_006",
@@ -8409,7 +8423,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "surface stable amortissante",
+        "espace dégagé"
+      ]
     },
     {
       "id": "V3P_STRENGTH_007",
@@ -8650,7 +8668,12 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "box stable",
+        "médecine ball",
+        "surface amortissante"
+      ]
     },
     {
       "id": "V3P_STRENGTH_008",
@@ -8889,7 +8912,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "élastique",
+        "tapis"
+      ]
     },
     {
       "id": "V3P_STRENGTH_009",
@@ -9160,7 +9187,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "tapis",
+        "haltère ou kettlebell"
+      ]
     },
     {
       "id": "V3P_STRENGTH_010",
@@ -9399,7 +9430,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "support stable",
+        "tapis"
+      ]
     },
     {
       "id": "V3P_STRENGTH_011",
@@ -9636,7 +9671,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "élastique",
+        "haltère léger"
+      ]
     },
     {
       "id": "V3P_STRENGTH_012",
@@ -9877,7 +9916,10 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "tapis"
+      ]
     },
     {
       "id": "V3P_BIKE_013",
@@ -13101,7 +13143,7 @@
       "version": "3.0.0-pilot",
       "sport": "bike",
       "title": "Sous-seuil progressif 4×10",
-      "primaryIntent": "mlss",
+      "primaryIntent": "sub_threshold",
       "primaryDomain": "sub_threshold",
       "phase": [
         "build"
@@ -13182,15 +13224,13 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Accumulation moins coûteuse sous le MLSS",
-          "primaryIntent": "mlss",
+          "primaryIntent": "sub_threshold",
           "primaryDomain": "sub_threshold",
           "domainIds": [
             "recovery",
             "sub_threshold"
           ],
           "limiterKeys": [
-            "fractional_utilization",
-            "threshold_tolerance",
             "cycling_power_durability"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -14085,9 +14125,9 @@
                 {
                   "kind": "time",
                   "seconds": {
-                    "min": 19.99998,
-                    "base": 19.99998,
-                    "max": 19.99998
+                    "min": 20,
+                    "base": 20,
+                    "max": 20
                   },
                   "domain": "neuromuscular",
                   "label": "Effort 20 s, vélo stable",
@@ -14202,9 +14242,9 @@
           {
             "path": "1.0.0.seconds",
             "unit": "seconds",
-            "min": 19.99998,
-            "base": 19.99998,
-            "max": 19.99998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -14299,9 +14339,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 10.000020000000001,
-                "base": 10.000020000000001,
-                "max": 10.000020000000001
+                "min": 10,
+                "base": 10,
+                "max": 10
               },
               "domain": "neuromuscular",
               "label": "Sprint 10 s contrôlé",
@@ -14393,9 +14433,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 10.000020000000001,
-            "base": 10.000020000000001,
-            "max": 10.000020000000001,
+            "min": 10,
+            "base": 10,
+            "max": 10,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -14491,9 +14531,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 19.99998,
-                "base": 19.99998,
-                "max": 19.99998
+                "min": 20,
+                "base": 20,
+                "max": 20
               },
               "domain": "neuromuscular",
               "label": "Relance propre sans surbalancement",
@@ -14585,9 +14625,9 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 19.99998,
-            "base": 19.99998,
-            "max": 19.99998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "coach_approval_quality_dose"
           },
           {
@@ -18322,9 +18362,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998
+            "min": 20,
+            "base": 20,
+            "max": 20
           },
           "domain": "recovery",
           "label": "Pause 20s",
@@ -18344,9 +18384,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998
+            "min": 20,
+            "base": 20,
+            "max": 20
           },
           "domain": "recovery",
           "label": "Pause 20s",
@@ -18366,9 +18406,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998
+            "min": 20,
+            "base": 20,
+            "max": 20
           },
           "domain": "recovery",
           "label": "Pause 20s",
@@ -18388,9 +18428,9 @@
         {
           "kind": "time",
           "seconds": {
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998
+            "min": 20,
+            "base": 20,
+            "max": 20
           },
           "domain": "recovery",
           "label": "Pause 20s",
@@ -18478,9 +18518,9 @@
           {
             "path": "2.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
@@ -18494,9 +18534,9 @@
           {
             "path": "4.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
@@ -18510,9 +18550,9 @@
           {
             "path": "6.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
@@ -18526,9 +18566,9 @@
           {
             "path": "8.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
@@ -19007,7 +19047,10 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "step stable"
+      ]
     },
     {
       "id": "V3P_STRENGTH_014",
@@ -19260,7 +19303,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "step stable",
+        "appui stable"
+      ]
     },
     {
       "id": "V3P_STRENGTH_015",
@@ -19499,14 +19546,18 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "espace latéral dégagé",
+        "élastique facultatif"
+      ]
     },
     {
       "id": "V3P_STRENGTH_016",
       "version": "3.0.0-pilot",
       "sport": "strength",
       "title": "Adducteurs Copenhagen progressif",
-      "primaryIntent": "max_strength",
+      "primaryIntent": "strength_endurance",
       "primaryDomain": null,
       "phase": [
         "base",
@@ -19556,9 +19607,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 19.997999999999998,
-                "base": 19.997999999999998,
-                "max": 19.997999999999998
+                "min": 20,
+                "base": 20,
+                "max": 20
               },
               "domain": null,
               "label": "Tenue droite",
@@ -19567,9 +19618,9 @@
             {
               "kind": "time",
               "seconds": {
-                "min": 19.997999999999998,
-                "base": 19.997999999999998,
-                "max": 19.997999999999998
+                "min": 20,
+                "base": 20,
+                "max": 20
               },
               "domain": null,
               "label": "Tenue gauche",
@@ -19630,12 +19681,12 @@
       "prescription": {
         "physiologicalIntent": {
           "statement": "Force adducteurs et stabilité bassin",
-          "primaryIntent": "max_strength",
+          "primaryIntent": "strength_endurance",
           "primaryDomain": null,
           "domainIds": [],
           "limiterKeys": [
-            "maximal_force",
-            "force_reserve",
+            "local_muscular_endurance",
+            "fatigue_resistance",
             "strength_mechanics"
           ],
           "goal": "targeted_adaptation_not_guaranteed",
@@ -19683,17 +19734,17 @@
           {
             "path": "1.0.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
             "path": "1.1.seconds",
             "unit": "seconds",
-            "min": 19.997999999999998,
-            "base": 19.997999999999998,
-            "max": 19.997999999999998,
+            "min": 20,
+            "base": 20,
+            "max": 20,
             "risk": "bounded_session_dose"
           },
           {
@@ -19754,7 +19805,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "banc ou support stable",
+        "tapis"
+      ]
     },
     {
       "id": "V3P_STRENGTH_017",
@@ -19991,7 +20046,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "mur",
+        "tapis"
+      ]
     },
     {
       "id": "V3P_STRENGTH_018",
@@ -20230,7 +20289,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "haltères",
+        "TRX"
+      ]
     },
     {
       "id": "V3P_STRENGTH_019",
@@ -20469,7 +20532,11 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "charge adaptée",
+        "élastique pour Pallof"
+      ]
     },
     {
       "id": "V3P_STRENGTH_020",
@@ -20716,7 +20783,12 @@
           "requiresWeeklySportingValidation": true,
           "notAutoApproved": true
         }
-      }
+      },
+      "equipment": [
+        "haltère ou kettlebell",
+        "TRX",
+        "tapis"
+      ]
     }
   ],
   "parameterPolicy": "Only bounded repetition counts, exercise reps and designated timed blocks are adjustable. No cross-domain substitution, no arbitrary intensity increase and no automatic prescription."
