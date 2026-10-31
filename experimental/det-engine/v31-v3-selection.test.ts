@@ -1,9 +1,10 @@
+import {buildSyntheticDetV3ContractFromCatalogue as buildDetV3ContractFromCatalogue} from "./v3-test-anchor-fixtures";
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { preparePlanningCaseContext, planningCases } from '@/qa/sports-plan-lab/planningMatrix';
 import { preparePrevalidationFixture } from '@/qa/sports-plan-lab/prevalidationFixtures';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { assessPreparedGeneration } from '@/lib/plan/prevalidateTrainingPlan';
-import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
+import { type V3ReviewedSettings } from './v31-v3-catalogue';
 import { constructDeterministicPlan, raceOnlySourceMatchesDay } from './engine';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 import {syntheticV3ReviewAnchors} from "./v3-test-anchor-fixtures";
