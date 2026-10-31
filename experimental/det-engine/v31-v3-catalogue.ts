@@ -169,9 +169,13 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
   const strengthCountOnly=configured.sport==='strength'&&!hasTimedStrengthProtocol;
   if(result.status==='estimated'&&!strengthCountOnly)throw Error('v3_timing_is_only_estimated');
   if(result.status==='unresolved')throw Error('v3_timing_unresolved');
+  // Preserve the individually calculated seconds, including sub-minute
+  // doses and swim fractional seconds. A time estimate cannot be rounded
+  // upward just to satisfy the historical whole-minute catalogue restriction.
   if(!strengthCountOnly &&
-     (result.seconds===null||!Number.isSafeInteger(result.seconds)||result.seconds<=0||result.seconds%60!==0))
-    throw Error('v3_fractional_minute_not_supported');
+     (result.seconds===null||!Number.isFinite(result.seconds)||result.seconds<=0||
+      result.seconds>24*60*60))
+    throw Error('v3_exact_duration_invalid_or_above_day_limit');
   // No athlete-specific physiological dose may be inferred from a slot duration.
   const resolved=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
   if(resolved.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+resolved.missing.join(','));
