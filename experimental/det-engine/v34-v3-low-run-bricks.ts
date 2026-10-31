@@ -17,6 +17,8 @@ export const V34_SAFE_RUN_BRICKS=[
     phase:'build',bikeMin:77,runMin:35,transitionSeconds:480,totalMin:120},
   {id:'V3B_703_PEAK_EASY_160',bikeId:'V3P_BIKE_089',runId:'V3P_RUN_001',
     phase:'peak',bikeMin:120,runMin:35,transitionSeconds:300,totalMin:160},
+  {id:'V3B_703_BUILD_EASY_180',bikeId:'V3P_BIKE_016',runId:'V3P_RUN_001',
+    phase:'build',bikeMin:139,runMin:35,transitionSeconds:360,totalMin:180},
 ] as const;
 export type V34SafeBrickId=typeof V34_SAFE_RUN_BRICKS[number]['id'];
 export interface V34SafeBrickReview {
