@@ -67,8 +67,12 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       strength:w.sessions.filter(s=>s.sport==='strength').length,
     }))??[];
     const blockingIssues=out.issues.filter(i=>blocking(i.severity));
-    const releaseCheck=prepareGenerationContracts(f.athleteData,cfg,{rotationSeed:0});
-    const raceWeek=releaseCheck.weeklyQuotas[cfg.weeksAvailable!];
+    const nativeCheck=prepareGenerationContracts(f.athleteData,cfg,{rotationSeed:0});
+    const nativeRaceWeek=nativeCheck.weeklyQuotas[cfg.weeksAvailable!];
+    // Inspect the ACTUAL week used in the returned DET candidate. The
+    // untouched native preparation deliberately does not enable V39's
+    // isolated official-race reservation, and would give a false negative.
+    const raceWeek=out.candidate?.weeklyQuotas?.[cfg.weeksAvailable!]??nativeRaceWeek;
     const eventLayout={required:raceWeek?.layout?.requiredEvents??[],
       placed:raceWeek?.layout?.days.flatMap(day=>day.slots.filter(slot=>slot.isRaceEvent)
         .map(slot=>({day:day.dayName,sport:slot.sport})))??[],
@@ -83,6 +87,7 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       constraintsSatisfied:out.constraintsSatisfied,eligibleSourceCount:report.accepted.length,
       weeksExpected:cfg.weeksAvailable,weeksConstructed:weeks.length,
       raceEventLayout:eventLayout,
+      nativeRaceEventPlaced:nativeRaceWeek?.layout?.days.some(d=>d.slots.some(s=>s.isRaceEvent))??false,
       weeks,selectedV3:named.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
       hardBlockers:byCode,searchNodes:out.nodes,
     }));
