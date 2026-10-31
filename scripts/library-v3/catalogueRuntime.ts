@@ -293,9 +293,18 @@ function validateSessionPrescription(w: V3Workout, errors: string[]): void {
       p.individualization.coachMustConfirmMeasurements!==true)
     errors.push(w.id+":UNRESOLVED_INTENSITY_CONTRACT");
   const expectedDuration=estimated?"estimated_not_slot_confirmed":distances.size?"requires_individual_pace":w.sport==="strength"?"timeboxed_executable":"exact_time";
+  const requiredMeasurements=[
+    ...[...distances].map(x=>"swim_domain_pace_sec_per_100m."+x),
+    ...[...expected.keys()].filter(path=>path.endsWith(".reps")).flatMap(path=>{
+      const base=path.slice(0,-5);
+      return ["strength_measured_seconds_per_rep:"+base,
+        "strength_measured_setup_transition_seconds:"+base,
+        "strength_coach_confirmed_rpe_and_load:"+base];
+    }),
+  ];
   if(p.duration.classification!==expectedDuration || !p.duration.formula?.includes("SUM(") ||
      p.duration.unknownBehavior!=="unresolved_not_filled_or_rounded" ||
-     JSON.stringify([...distances].sort().map(x=>"swim_domain_pace_sec_per_100m."+x))!==
+     JSON.stringify([...requiredMeasurements].sort())!==
        JSON.stringify([...p.duration.requiredMeasurements].sort()))
     errors.push(w.id+":DURATION_CONTRACT_MISMATCH");
   if(p.parameters.length!==expected.size || new Set(p.parameters.map(k=>k.path)).size!==expected.size ||
