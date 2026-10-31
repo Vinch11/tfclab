@@ -16,6 +16,7 @@ import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repai
 import type {DaySlot} from '@/engines/plan/weeklySlotLayout';
 import {auditSourceRecoveryTiming, type CoachSessionStart} from './v33-recovery-timing';
 import {auditV35BikeOnlyFeasibility} from './v35-volume-feasibility';
+import {calendarOnlyRecoverySafe} from './v39-calendar-safe-recovery';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -35,6 +36,8 @@ export interface ExperimentalAssemblyContract {
   enforceWeeklyHoursCap?:true;
   /** An OPTIONAL clock given explicitly by a coach, never inferred from the calendar. */
   coachSessionStart?:(session:ParsedSession)=>CoachSessionStart|null|undefined;
+  /** Opt-in: discard V3 source doses without a provable calendar-only recovery window. */
+  enforceCalendarSafeV3Recovery?:true;
 }
 export interface ChoiceTrace { week:number; day:string; id:string; duration:number|null; intent:string; reason:string; }
 export interface EngineResult {
@@ -161,6 +164,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     if(experimentalContract)result.issues.push({code:'experimental_contract_requires_review',severity:'warning'});
     if(report.status==='blocked')return refuse('existing_prevalidation_blocked');
     if(report.weeks.some(w=>!preparation.weeklyQuotas[w.week]?.layout))return refuse('dedicated_route_without_deterministic_quota');
+    const scheduledSports=report.weeks.flatMap(week=>preparation.weeklyQuotas[week.week]?.layout?.days
+      .flatMap((d,dayIndex)=>d.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport})))??[]);
     const plan:ParsedPlan={title:`Plan TFCL™ — ${config.objective} ${athlete.nom??"Profil synthétique"} — ${config.weeksAvailable} semaines`,phases:[],weeks:[],totalWeeks:config.weeksAvailable,weeklyQuotas:preparation.weeklyQuotas};
     const usage=new Map<string,number>();
     const started=performance.now();
@@ -178,6 +183,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const weeklyUsage=new Map<string,number>();
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
+      let calendarRecoveryExclusions=0;
       let ceiling=entry.volumeBudget?.maxMinutes??Infinity;
       // Without a coach volume ramp, the historical solver used Infinity.
       // This opt-in never expands a pre-existing stricter bound. No inferred
@@ -225,6 +231,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const unverified=checked.unknown.filter(code=>
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
+          }).filter(session=>{
+            if(!experimentalContract?.enforceCalendarSafeV3Recovery||!session.catalogId||
+               !experimentalContract.sourceRecoveryForId)return true;
+            const viable=calendarOnlyRecoverySafe({week:w.week,dayIndex,sport:slot.sport},
+              experimentalContract.sourceRecoveryForId(session.catalogId),scheduledSports);
+            if(!viable)calendarRecoveryExclusions++;
+            return viable;
           }).sort((a,b)=>{
             // Sport-specific eligibility, dose and safety are already checked
             // above. On a KEY slot, the declared limiter is the first real
@@ -240,6 +253,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               w.eligible.findIndex(m=>m.id===a.catalogId)-w.eligible.findIndex(m=>m.id===b.catalogId)||
               a.catalogId!.localeCompare(b.catalogId!);
           });
+      });
+      if(calendarRecoveryExclusions)result.issues.push({
+        code:'det_v3_calendar_recovery_candidates_excluded',week:w.week,severity:'warning',
+        message:calendarRecoveryExclusions+' source-slot prescriptions excluded: full recovery hours cannot be proven from day-only layout',
       });
       const emptyIndex=options.findIndex(domain=>domain.length===0);
       if(emptyIndex>=0){
@@ -270,6 +287,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           };
           return {id:m.id,checks:checkSessionCatalogue(session,{...context,catalog})};
         });
+        if(calendarRecoveryExclusions)result.issues.push({code:'det_v3_recovery_safe_slot_unfillable',
+          week:w.week,severity:'blocking',message:'At least one slot is unfillable after clock-free V3 recovery screening; coach must change the schedule or supply genuine clock evidence.'});
         result.issues.push({code:'det_empty_catalogue_slot',week:w.week,severity:'blocking',
           message:JSON.stringify({day:dayName,sport:slot.sport,phase:w.phase,weekType:w.weekType,
             minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
