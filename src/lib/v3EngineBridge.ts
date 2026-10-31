@@ -10,6 +10,7 @@ import {
   v3FullCatalogue, evaluateV3Workout,
   type Paces, type V3Workout, type V3Block, type Overrides,
 } from "../../scripts/library-v3/catalogueRuntime";
+import { screenV32Source } from "../../scripts/library-v3/sportingQualification";
 
 const V3_GOALS: Record<V3Workout["sport"], WorkoutGoal[]> = {
   bike: ["ironman", "half", "sprint", "olympic"],
@@ -68,6 +69,9 @@ export function materializeV3ForPlanEngine(
   recipe: V3Workout,
   options: { swimPaces?: Paces; overrides?: Overrides } = {},
 ): { workout: LibraryWorkout | null; code?: V3EngineRefusal } {
+  if (screenV32Source(recipe).sourceStatus === "source_blocked") {
+    return { workout: null, code: "UNSAFE_DATA" };
+  }
   if (recipe.status !== "candidate" || recipe.automaticSelection !== false) {
     return { workout: null, code: "UNSAFE_DATA" };
   }
@@ -97,7 +101,12 @@ export function materializeV3ForPlanEngine(
       text: desc(b),
       zones: zonesOf(b),
     }));
-    const minutes = Math.ceil(d.minutes * 10) / 10;
+    // The historical engine carries integer minutes, not arbitrary fractions.
+    // Refuse instead of making an unapproved dose by rounding a V3 source.
+    if (d.seconds === null || !Number.isSafeInteger(d.seconds) || d.seconds % 60 !== 0) {
+      return { workout: null, code: "UNSAFE_DATA" };
+    }
+    const minutes = d.seconds / 60;
     const workout: LibraryWorkout = {
       id: recipe.id, cat: cat(recipe.primaryIntent), sport,
       objectif: recipe.title + " — " + recipe.focus,
