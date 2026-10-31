@@ -17,6 +17,12 @@ const candidates=[
   'V3P_RUN_023','V3P_RUN_024','V3P_RUN_025','V3P_RUN_026',
   'V3P_RUN_027','V3P_RUN_028','V3P_RUN_029',
   'V3P_RUN_008','V3P_RUN_009',
+  // Preserve the two mandatory strength slots; no fabricated zero-minute sessions.
+  'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
+  'V3P_STRENGTH_104','V3P_STRENGTH_105','V3P_STRENGTH_106',
+  'V3P_STRENGTH_107','V3P_STRENGTH_108','V3P_STRENGTH_109',
+  'V3P_STRENGTH_110','V3P_STRENGTH_111','V3P_STRENGTH_112',
+  'V3P_STRENGTH_113','V3P_STRENGTH_114','V3P_STRENGTH_115',
 ] as const;
 const sourceMap=new Map(v3FullCatalogue.workouts.map(w=>[w.id,w]));
 const targeted=['V3P_RUN_008','V3P_RUN_009'] as const;
