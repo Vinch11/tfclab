@@ -253,8 +253,8 @@ export function buildDetV3ContractFromCatalogue(
   // plan and the 800 source records. Never guess a synonym or silently claim
   // a physiological match merely because the sport/phase fits.
   const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
-    card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)?
-      .prescription.physiologicalIntent.limiterKeys??[],
+    card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)
+      ?.prescription.physiologicalIntent.limiterKeys??[],
   ] as const));
   const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
     r.preferReviewedV3===true&&reviewedSourceLimiters.has(r.id)).map(r=>r.id));
