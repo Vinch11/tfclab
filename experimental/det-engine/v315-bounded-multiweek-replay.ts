@@ -178,7 +178,15 @@ export function constructDeterministicPlanWithBoundedReplays(
       if(seen.has(key))continue;
       seen.add(key);children.push(child);
     }
-    queue.unshift(...children);
+    // If this target already failed to assign a whole week, trying another
+    // independently admissible RATIO TARGET is more useful than recursively
+    // excluding unrelated earlier-week workouts. The IM budget-exhaustion
+    // case still retries an actual earlier choice first: preserves the
+    // previously observed cross-week recovery without wasting target sweeps.
+    const exhaustedAtPriorChoice=result.reason==='search_budget_exhausted'||
+      result.reason?.includes('budget_exhausted')===true;
+    if(exhaustedAtPriorChoice)queue.unshift(...children);
+    else queue.push(...children);
   }
   if(firstRatio){
     // A ratio-feasible but native-blocked plan is only diagnostic. Do not
