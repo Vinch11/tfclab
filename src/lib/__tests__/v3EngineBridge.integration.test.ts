@@ -2,12 +2,21 @@ import { describe, expect, it } from "vitest";
 import { buildWorkoutCatalog, serializeCatalogForPrompt } from "../workoutCatalogBuilder";
 import { buildV3CoachPilotPool, lookupV3Recipe, materializeV3ForPlanEngine, planContainsV3Candidate } from "../v3EngineBridge";
 import { validateSessionCataloguePlan } from "../plan/sessionCatalogueValidation";
+import { syntheticV32BikeInputs } from "./v32SyntheticPilotFixture";
 
-const REVIEWED = { coachReviewedIds: new Set(["V3P_BIKE_008"]), acknowledgedExperimentalRisk: true as const };
+const REVIEWED = {
+  coachReviewedIds: new Set(["V3P_BIKE_008"]),
+  individualInputsById: new Map([["V3P_BIKE_008",syntheticV32BikeInputs("V3P_BIKE_008")]]),
+  acknowledgedExperimentalRisk: true as const,
+};
 const noHistoric = [/^(?!V3P_)/];
 const makeCatalog = (ids: Set<string>) =>
   buildWorkoutCatalog("half", 3, 4, 12, {
-    v3CoachPilot: { coachReviewedIds: ids, acknowledgedExperimentalRisk: true },
+    v3CoachPilot: {
+      coachReviewedIds: ids,
+      individualInputsById: new Map([...ids].map(id=>[id,syntheticV32BikeInputs(id)])),
+      acknowledgedExperimentalRisk: true,
+    },
     sportFilter: ["cyclisme"],
     phaseOverride: ["build"],
     strictPhaseFilter: true,
@@ -25,6 +34,24 @@ describe("V3 -> REAL TFCLab workoutCatalogBuilder (isolated coach pilot)", () =>
     expect(pool.accepted).toHaveLength(0);
     expect(pool.rejected).toHaveLength(400);
     expect(pool.rejected.every(x => x.code === "NOT_REVIEWED_BY_COACH")).toBe(true);
+  });
+
+  it("rejects the old bare coach-reviewed ID, even with the pilot flag", () => {
+    const pool=buildV3CoachPilotPool({coachReviewedIds:new Set(["V3P_BIKE_008"]),acknowledgedExperimentalRisk:true});
+    expect(pool.accepted).toHaveLength(0);
+    expect(pool.rejected).toContainEqual({id:"V3P_BIKE_008",code:"INDIVIDUAL_QUALIFICATION_FAILED"});
+  });
+
+  it("rejects a source-bound review replayed on another athlete", () => {
+    const inputs=syntheticV32BikeInputs("V3P_BIKE_008");
+    inputs.athleteId="synthetic-athlete-B";
+    const pool=buildV3CoachPilotPool({
+      coachReviewedIds:new Set(["V3P_BIKE_008"]),
+      individualInputsById:new Map([["V3P_BIKE_008",inputs]]),
+      acknowledgedExperimentalRisk:true,
+    });
+    expect(pool.accepted).toHaveLength(0);
+    expect(pool.rejected).toContainEqual({id:"V3P_BIKE_008",code:"INDIVIDUAL_QUALIFICATION_FAILED"});
   });
 
   it("allows the real plan engine to score an explicit reviewed bike recipe", () => {
@@ -71,8 +98,7 @@ describe("V3 -> REAL TFCLab workoutCatalogBuilder (isolated coach pilot)", () =>
       coachReviewedIds: new Set([swim.id, strength.id]), acknowledgedExperimentalRisk: true,
     });
     expect(pool.accepted).toHaveLength(0);
-    expect(pool.rejected.map(r => r.code)).toContain("MISSING_SWIM_PACES");
-    expect(pool.rejected.map(r => r.code)).toContain("STRENGTH_DURATION_UNVERIFIED");
+    expect(pool.rejected.map(r => r.code)).toContain("INDIVIDUAL_QUALIFICATION_FAILED");
   });
 
   it("blocks V3 saving and Nolio for an experimental session even when ID appears in details", () => {
