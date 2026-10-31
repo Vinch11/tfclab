@@ -37,7 +37,7 @@ export function assessNativeSwimCountQuotaBound(
      !Number.isFinite(nativeErrorTolerancePp)||nativeErrorTolerancePp<0)
     throw Error('v39_count_quota_target_invalid');
   const loadWeeks=weeks.filter(w=>w.weekType==='load');
-  let swims=0, maxEndurance=0;
+  let swims=0, maxEndurance=0, anyBrickPossible=false;
   let valid=loadWeeks.length>0;
   for(const {quota:q} of loadWeeks){
     const ranges=[q.swim,q.bike,q.run,q.brick,q.strength,q.totalSessions];
@@ -56,7 +56,13 @@ export function assessNativeSwimCountQuotaBound(
     }
     swims+=q.swim.min;
     maxEndurance+=optimisticEnduranceCount;
+    anyBrickPossible ||= q.brick.max>0;
   }
+  // Native validator rounds 0.5 * GLOBAL brick-count twice; with an odd
+  // brick count, one brick contributes two units to its denominator. Grant
+  // that extra unit even if an odd count is not actually schedulable: a
+  // deliberately optimistic upper bound can never create a false impossibility.
+  if(valid&&anyBrickPossible)maxEndurance+=1;
   const pct=valid&&maxEndurance>0?100*swims/maxEndurance:null;
   return {
     scope:'load_weeks_only',
