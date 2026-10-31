@@ -93,7 +93,9 @@ export function composeReviewedBrickZoneDose(
   bike:StructuredZoneDose|null,run:StructuredZoneDose|null,
   transitionSeconds:number,declaredDurationMin:number,
 ):StructuredZoneDose|null {
-  if(!bike||!run||bike.sourceIds.length!==1||run.sourceIds.length!==1||
+  if(!bike||!run||!matchingStructuredDose(bike,bike.durationMin)||
+     !matchingStructuredDose(run,run.durationMin)||
+     bike.sourceIds.length!==1||run.sourceIds.length!==1||
      !/^V3P_BIKE_/.test(bike.sourceIds[0])||
      !/^V3P_RUN_/.test(run.sourceIds[0])||
      !Number.isSafeInteger(transitionSeconds)||transitionSeconds<0||
@@ -114,5 +116,13 @@ export function matchingStructuredDose(
   if(!ledger||typeof chosenDurationMin!=='number'||
      !Number.isFinite(chosenDurationMin)||
      Math.abs(chosenDurationMin-ledger.durationMin)>1e-7)return null;
+  // A duration match ALONE is insufficient: a corrupted or externally
+  // injected zone ledger must never certify more easy/quality minutes than
+  // the session actually contains. Preserve fractional swimming durations.
+  const components=[ledger.low,ledger.mid,ledger.high,ledger.unknown];
+  if(!Number.isFinite(ledger.durationMin)||ledger.durationMin<=0||
+     components.some(value=>!Number.isFinite(value)||value<0)||
+     Math.abs(components.reduce((sum,value)=>sum+value,0)-ledger.durationMin)>1e-7)
+    return null;
   return ledger;
 }
