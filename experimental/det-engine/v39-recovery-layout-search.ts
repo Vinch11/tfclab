@@ -13,7 +13,7 @@ import {calendarOnlyRecoverySafe,type ScheduledSport,type V3RecoveryRequirement}
 
 export interface RepairWeek{
   week:number;layout:WeeklySlotLayout;quota:WeeklyQuota;
-  reviewedIds:Array<{id:string;sport:string}>;
+  reviewedIds:Array<{id:string;sport:string;durationMin?:readonly [number,number]}>;
 }
 type DayBan={day:string;sport:string};
 export interface RecoveryRepairResult {swaps:Array<{week:number;from:string;to:string;beforeMissing:number;afterMissing:number}>;remainingMissing:number;}
@@ -50,13 +50,18 @@ function score(weeks:readonly RepairWeek[],sources:(id:string)=>readonly V3Recov
   for(const w of weeks)for(let dayIndex=0;dayIndex<w.layout.days.length;dayIndex++){
     for(const slot of w.layout.days[dayIndex].slots){
       if(slot.isRaceEvent)continue;
-      const approved=w.reviewedIds.filter(x=>x.sport===slot.sport);
-      const reviewed=approved.filter(x=>sources(x.id).length>0);
-      if(!reviewed.length)continue;
-      const viable=reviewed.filter(x=>calendarOnlyRecoverySafe(
+      const approved=w.reviewedIds.filter(x=>x.sport===slot.sport &&
+        (x.durationMin?.[1]??Infinity)>=(slot.minDurationMin??0) &&
+        (x.durationMin?.[0]??0)<=(slot.maxDurationMin??Infinity));
+      if(!approved.length)continue; // Other feasibility diagnostics handle missing catalogue.
+      const viable=approved.filter(x=>calendarOnlyRecoverySafe(
         {week:w.week,dayIndex,sport:slot.sport},sources(x.id),all));
+      // Mandatory slots with no available replacement matter first. A run
+      // whose reviewed V3 dose is unsafe but has a compatible legacy source
+      // is not an empty assignment domain. A mandatory long brick with only
+      // unsafe V3 compositions IS.
       if(!viable.length)missing++;
-      safe+=viable.length;
+      safe+=viable.filter(x=>sources(x.id).length>0).length;
     }
   }
   return {missing,safe};
