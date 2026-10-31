@@ -86,6 +86,15 @@ describe('DET V39 — full multisport plans must pass ALL gates simultaneously',
       weeks,selectedV3:named.map(t=>({id:t.id,week:t.week,day:t.day,duration:t.duration})),
       hardBlockers:byCode,searchNodes:out.nodes,
     }));
+    if(objective==='703'){
+      // A 70.3 is an OFFICIAL race, not one additional training brick.
+      // Its Sunday reservation is mandatory even when race-week brick max=0.
+      const raceSlots=raceWeek?.layout?.days.flatMap(day=>day.slots)??[];
+      expect(raceWeek?.quota.brick.max).toBe(0);
+      expect(raceSlots.filter(slot=>slot.sport==='brick'&&slot.isRaceEvent)).toHaveLength(1);
+      expect(raceSlots.filter(slot=>slot.sport==='brick'&&!slot.isRaceEvent)).toHaveLength(0);
+      expect(eventLayout.placed).toEqual([{day:'dimanche',sport:'brick'}]);
+    }
     // Never invent week totals if the solver returned no candidate.
     expect(weeks.every(w=>w.totalKnownMinutes<=capMin)).toBe(true);
     expect(out.constraintsSatisfied).toBe(out.technicallyConstructed&&blockingIssues.length===0);
