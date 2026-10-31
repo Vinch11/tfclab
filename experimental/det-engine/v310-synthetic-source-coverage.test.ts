@@ -463,6 +463,10 @@ describe('DET V310 — targeted synthetic V3 source coverage instead of a bigger
             details:x.details.slice(0,120)}))}))??[],
     }));
     expect(fullReplays.evidence.experimentalOnly).toBe(true);
+    // V317 is an acceptance proof, not a non-failing diagnostic.
+    // Neither fixture may become green without all sporting gates and
+    // a genuinely reviewed goal-specific V3 session in peak.
+    expect(fullReplays.evidence.verdict).toBe('all_gates_pass');
     if(fullReplays.evidence.verdict==='all_gates_pass'){
       const proof=fullReplays.result?.issues.find(i=>
         i.code==='det_v317_individually_reviewed_peak_specificity_verified');
