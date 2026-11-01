@@ -14,15 +14,17 @@ Depuis l'éditeur du projet, vérifier le panneau Cloud/Database/Supabase :
 Documentation publique (consultée le 01/11/2026) :
 - https://docs.lovable.dev/features/database — More → Database → Manage → SQL editor
 - https://docs.lovable.dev/integrations/supabase — projet Supabase externe vs backend intégré
-- https://supabase.com/kb/troubleshooting/identify-lovable-cloud-or-supabase-backend
+- https://docs.lovable.dev/features/environments — Test / Live (ancien mode, fermé aux nouveaux projets depuis le 24/03/2026)
 
 ## 2. Séparation obligatoire
 
-La recette nécessite un **autre projet avec son propre backend**, et non un draft/preview du projet existant. Les drafts Lovable partagent la base du projet.
+La recette exige une **base distincte** et un jeu de données strictement synthétique. Les aperçus/drafts Lovable ne garantissent pas, à eux seuls, l'isolement de la base.
+
+**Cas particulier documenté par Lovable :** des projets anciens peuvent disposer du mode intégré **Test / Live** avec deux bases séparées. Ce mode n'est plus activable sur de nouveaux projets depuis le **24 mars 2026**. Un environnement Test préexistant n'est admissible pour cette recette qu'après preuve qu'il est réellement séparé de Live, et qu'aucune donnée d'athlète réelle n'y sera utilisée : lors de la création historique de Test, Lovable pouvait copier une fois les données Live vers Test. Ne jamais vider la base Test par défaut ni en déduire qu'elle est anonyme. Si ce mode n'existe pas, utiliser un **projet Lovable distinct avec backend Cloud propre** ou une base Supabase externe distincte et prouvée.
 
 Conditions à prouver avant tout test :
 1. URL/identité du projet de **recette** explicitement nommée (sans secrets).
-2. Backend/base de recette **distincts** de ceux du projet publié (preuve dans la configuration Lovable, pas seulement deux URLs frontend).
+2. Backend/base de recette **distincts** de Live (preuve dans la configuration Lovable, pas seulement deux URLs frontend), que ce soit Test préexistant ou projet séparé.
 3. Aucun utilisateur, athlète, test, plan ou clé réelle recopié. Deux coachs fictifs et deux athlètes synthétiques uniquement.
 4. Schéma, politiques RLS et fonctions Edge nécessaires revus pour compatibilité ; première étape **read-only**.
 5. Plan de retour arrière et validation des opérations de nettoyage ciblé ; ne jamais effacer globalement une table.
