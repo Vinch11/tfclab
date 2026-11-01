@@ -51,7 +51,7 @@ vi.mock("sonner", () => ({
   },
 }));
 
-import { usePlanAdaptation } from "../usePlanAdaptation";
+import { usePlanAdaptation, type ApplyPatchArgs } from "../usePlanAdaptation";
 
 // This static guard documents the invariant. Behavioral tests below exercise
 // the REAL hook and asynchronous Supabase error result (no live database).
@@ -107,11 +107,11 @@ describe("adaptation persistence — fail-closed archive", () => {
       result = await hook.result.current.applyPatch({
         athleteId: "synthetic-athlete",
         coachId: "synthetic-coach",
-        currentPlan: original as any,
-        triggeredBy: "manual" as any,
+        currentPlan: original as unknown as ApplyPatchArgs["currentPlan"],
+        triggeredBy: "manual" as ApplyPatchArgs["triggeredBy"],
         kind: "deload",
-        options: {} as any,
-        planConfig: { objective: "70.3" } as any,
+        options: {} as ApplyPatchArgs["options"],
+        planConfig: { objective: "70.3" } as unknown as ApplyPatchArgs["planConfig"],
       });
     });
 
@@ -154,11 +154,11 @@ describe("adaptation persistence — fail-closed archive", () => {
       await hook.result.current.applyPatch({
         athleteId: "synthetic-athlete",
         coachId: "synthetic-coach",
-        currentPlan: original as any,
-        triggeredBy: "manual" as any,
+        currentPlan: original as unknown as ApplyPatchArgs["currentPlan"],
+        triggeredBy: "manual" as ApplyPatchArgs["triggeredBy"],
         kind: "deload",
-        options: {} as any,
-        planConfig: { objective: "70.3" } as any,
+        options: {} as ApplyPatchArgs["options"],
+        planConfig: { objective: "70.3" } as unknown as ApplyPatchArgs["planConfig"],
       });
     });
 
