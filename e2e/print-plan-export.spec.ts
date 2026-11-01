@@ -2,6 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -34,7 +36,7 @@ GlobalWorkerOptions.workerSrc = fileURLToPath(
 
 async function waitForPlanDocument(page: Page) {
   // SPA load/text length can be satisfied by scripts or the loading screen.
-  await expect(page.locator('body')).toContainText('TFC_SEANCE_S1J1');
+  await expect(page.locator('body')).toContainText('TFC_SEANCE_S1J1', { timeout: 30_000 });
   await expect(page.locator('body')).toContainText('TFC_DERNIERE_SEANCE');
   await expect(page.locator('body')).not.toContainText('Document introuvable');
   await page.evaluate(async () => {
@@ -118,4 +120,81 @@ test("ouvrir /print-preview sans document valide affiche un message clair plutô
   await page.goto("/print-preview?d=inexistant");
 
   await expect(page.getByText(/document introuvable/i)).toBeVisible();
+});
+
+/**
+ * Correctif P0 (2026-11-01) : le document est écrit dans le sessionStorage
+ * de la fenêtre ENFANT (about:blank même origine), puis lu et supprimé par
+ * /print-preview. Repli même onglet si la pop-up est bloquée.
+ */
+test("relais enfant : le document est lisible dans l'onglet d'impression puis supprimé du sessionStorage", async ({ page, context }) => {
+  await page.goto("/__e2e/print-export");
+  const [popup] = await Promise.all([
+    context.waitForEvent("page"),
+    page.getByTestId("open-print-preview-short").click(),
+  ]);
+  await expect(popup).toHaveURL(/\/print-preview\?d=/);
+  await waitForPlanDocument(popup);
+  const left = await popup.evaluate(() =>
+    Object.keys(sessionStorage).filter((k) => k.startsWith("tfc:printPreview:")).length,
+  );
+  expect(left, "aucun document de plan ne doit rester dans le sessionStorage").toBe(0);
+  const parentLeft = await page.evaluate(() =>
+    Object.keys(sessionStorage).filter((k) => k.startsWith("tfc:printPreview:")).length,
+  );
+  expect(parentLeft, "l'onglet parent ne conserve aucune copie").toBe(0);
+});
+
+test("depuis un cadre intégré sous une AUTRE origine (comme la preview de l'éditeur) : PDF non vide", async ({ page, context, baseURL }, testInfo) => {
+  test.setTimeout(90_000);
+  const appOrigin = new URL(baseURL ?? "http://localhost:8080").origin;
+  // Vrai serveur local sur une AUTRE origine (port différent, 127.0.0.1),
+  // qui intègre l'app dans un cadre — comme la preview de l'éditeur.
+  const server = createServer((_req, res) => {
+    res.writeHead(200, { "content-type": "text/html" });
+    res.end(`<html><body><iframe id="f" src="${appOrigin}/__e2e/print-export" style="width:1200px;height:900px"></iframe></body></html>`);
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
+  const port = (server.address() as AddressInfo).port;
+  try {
+  await page.goto(`http://127.0.0.1:${port}/`);
+  const frame = page.frameLocator("#f");
+  await expect(frame.getByTestId("open-print-preview-short")).toBeVisible({ timeout: 30_000 });
+  const [popup] = await Promise.all([
+    context.waitForEvent("page"),
+    frame.getByTestId("open-print-preview-short").click(),
+  ]);
+  await expect(popup).toHaveURL(/\/print-preview\?d=/);
+  await waitForPlanDocument(popup);
+  const pdfPath = testInfo.outputPath("plan-iframe.pdf");
+  await popup.pdf({ path: pdfPath, format: "A4", landscape: true, printBackground: true });
+  const { numPages, text } = await extractPdfText(pdfPath);
+  expect(numPages).toBeGreaterThan(0);
+  expect(text).toContain("TFC_DERNIERE_SEANCE");
+  } finally {
+    server.close();
+  }
+});
+
+test("pop-up bloquée : repli explicite dans le même onglet, document affiché, retour possible", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.open = () => null;
+  });
+  await page.goto("/__e2e/print-export");
+  const dialogs: string[] = [];
+  page.on("dialog", (d) => {
+    dialogs.push(d.message());
+    void d.accept();
+  });
+  await page.getByTestId("open-print-preview-short").click();
+  await expect(page).toHaveURL(/\/print-preview\?d=.*sameTab=1/);
+  await waitForPlanDocument(page);
+  expect(dialogs.some((m) => m.includes("cet onglet"))).toBe(true);
+  await expect(page.getByRole("button", { name: /Retour au plan/ })).toBeVisible();
+  const left = await page.evaluate(() =>
+    Object.keys(sessionStorage).filter((k) => k.startsWith("tfc:printPreview:")).length,
+  );
+  expect(left).toBe(0);
+  await page.getByRole("button", { name: /Retour au plan/ }).click();
+  await expect(page).toHaveURL(/\/__e2e\/print-export/);
 });
