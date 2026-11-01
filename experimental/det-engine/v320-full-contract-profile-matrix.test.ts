@@ -147,7 +147,6 @@ function run(s:Scenario){
       excludeNativeForbiddenTaperCandidates:true,
       improveV3RecoveryLayout:true,annotateVerifiedDeloads:true,
       filterDeclaredSprintBanCandidates:true,requireRealQualityOnLoadWeeks:true,
-      ...(s.id==='703-reduced-hours'?{requireRealQualityOnTaperWeeks:true as const}:{}),
       preferSourceBackedMultisportBalance:'triathlon_targets',
       requireFinalTriathlonMinuteRatios:true,
       requireStructuredPolarizationOnLoadWeeks:true,
