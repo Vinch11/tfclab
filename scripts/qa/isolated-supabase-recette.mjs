@@ -38,7 +38,8 @@ const marker = 'TFCL_RECETTE_' + randomUUID();
 // its response is lost, the cleanup still knows exactly which rows to target.
 const ids = {
   athleteA: randomUUID(), athleteB: randomUUID(), test: randomUUID(),
-  snapshot: randomUUID(), v1: randomUUID(), v2: randomUUID(),
+  snapshot: randomUUID(), snapshotB: randomUUID(),
+  v1: randomUUID(), v2: randomUUID(),
 };
 const errorsOnCleanup = [];
 let a, b, fresh, checks = 0, failure = null;
@@ -168,6 +169,10 @@ try {
     .select('id').single(), 'create profile').id;
   checked(await a.db.from('athletes').update({ active_snapshot_id: ids.snapshot })
     .eq('id', ids.athleteA).select('id').single(), 'activate profile');
+  ids.snapshotB = checked(await b.db.from('snapshots')
+    .insert({ id: ids.snapshotB, athlete_id: ids.athleteB, coach_id: b.uid,
+      source: 'manual', sport_main: 'run', field_sources: { recipe: marker } })
+    .select('id').single(), 'create B profile').id;
 
   const p1 = plan(1), p2 = plan(2);
   ids.v1 = checked(await a.db.from('plan_versions')
@@ -205,6 +210,17 @@ try {
   await hide(b.db, 'plan_versions', ids.v1);
   await hide(b.db, 'plan_versions', ids.v2);
   await hide(b.db, 'plans', ids.athleteA, 'athlete_id');
+  // A coach must not be able to point their athlete at the other coach's
+  // physiological snapshot. The bare FK is not an ownership check.
+  const foreignSnapshot = await a.db.from('athletes')
+    .update({ active_snapshot_id: ids.snapshotB })
+    .eq('id', ids.athleteA).select('id');
+  assert.ok(foreignSnapshot.error || (foreignSnapshot.data?.length || 0) === 0,
+    'Cross-coach active snapshot UPDATE accepted');
+  assert.equal((await get(a.db, 'athletes', ids.athleteA)).active_snapshot_id,
+    ids.snapshot, 'Cross-coach snapshot replaced A active profile');
+  checks++;
+
   await denyWrite(b.db, 'athletes', ids.athleteA, 'id', { goal: 'RLS_ATTACK' });
   await denyWrite(b.db, 'plan_versions', ids.v1, 'id', { objective: 'RLS_ATTACK' });
   await denyWrite(b.db, 'plans', ids.athleteA, 'athlete_id', { plan_json: { intruder: marker } });
@@ -264,6 +280,7 @@ try {
   }
   await cleanup(a?.db, 'snapshots', 'id', ids.snapshot);
   await cleanup(a?.db, 'athletes', 'id', ids.athleteA);
+  await cleanup(b?.db, 'snapshots', 'id', ids.snapshotB);
   await cleanup(b?.db, 'athletes', 'id', ids.athleteB);
   await fresh?.db.auth.signOut();
   await a?.db.auth.signOut();
