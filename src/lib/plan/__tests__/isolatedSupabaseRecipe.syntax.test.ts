@@ -37,6 +37,18 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
     expect(source).toContain("independentResidueAuditRequired: true");
   });
 
+  it("supports Lovable QA user-scoped JWT files without service-role keys", () => {
+    const source = readFileSync(recipe, "utf8");
+    for (const required of [
+      "TFCL_RECETTE_AUTH_MODE", "token-file",
+      "TFCL_RECETTE_COACH_A_TOKEN_FILE", "TFCL_RECETTE_COACH_B_TOKEN_FILE",
+      "statSync", "data.user.email", "db.auth.getUser(accessToken)",
+      "Authorization: `Bearer ${accessToken}`",
+    ]) expect(source).toContain(required);
+    expect(source).toContain("Token file is readable by other users");
+    expect(source).not.toContain("service_role:");
+  });
+
   it("requires RLS to be enabled before candidate SQL policies can be applied", () => {
     const candidate = readFileSync(resolve(process.cwd(),
       "docs/qa/DET_RLS_ATHLETE_OWNER_CANDIDATE.sql"), "utf8");
