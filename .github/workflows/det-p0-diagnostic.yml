@@ -31,17 +31,22 @@ jobs:
           test -s /tmp/det-head-matrix.json
           git worktree add --detach /tmp/det-p0-base fe84b75ca8d7399dcb2a654801e9a7b19e30791f
           ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/det-p0-base/node_modules
-          mkdir -p /tmp/det-p0-matrix-base
-          (cd /tmp/det-p0-base && TFCL_GLOBAL_QA_OUTPUT=/tmp/det-p0-matrix-base bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=dot)
+          # The historical base ALSO fails the isolated hash guard (same SHA).
+          # Capture its exact invariants before that assertion; the worktree is ephemeral.
+          python3 - <<'PY'
+          p='/tmp/det-p0-base/src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts'
+          s=open(p).read()
+          marker="  expect(createHash('sha256').update(JSON.stringify(invariants)).digest('hex')).toBe(countingBaseline.invariantSha256);"
+          assert s.count(marker)==1
+          s=s.replace(marker,"  writeFileSync('/tmp/det-base-matrix.json', JSON.stringify({rows, invariants}));\\n".replace('\\n','\n')+marker)
+          open(p,'w').write(s)
+          PY
+          (cd /tmp/det-p0-base && bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=dot) || true
+          test -s /tmp/det-base-matrix.json
           python3 - <<'PY'
           import json
           head = json.load(open('/tmp/det-head-matrix.json'))
-          rows = json.load(open('/tmp/det-p0-matrix-base/matrix.json'))['rows']
-          def normalize(row):
-              return {**{k:v for k,v in row.items() if k not in ('preparationIssues', 'weekly', 'residuals')},
-                'preparationIssues': {k:v for k,v in row['preparationIssues'].items() if not k.startswith('catalogue_week_')},
-                'weekly': [{k:v for k,v in w.items() if k!='missingSports'} for w in row['weekly']]}
-          base = [normalize(x) for x in rows]
+          base = json.load(open('/tmp/det-base-matrix.json'))['invariants']
           assert len(base)==len(head['invariants'])
           drifts = []
           for current,previous in zip(head['invariants'],base):
