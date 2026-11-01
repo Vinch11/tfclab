@@ -1,0 +1,38 @@
+name: DET P0 diagnostic (experimental, non-release)
+on:
+  pull_request:
+    paths:
+      - .github/workflows/det-p0-diagnostic.yml
+      - experimental/det-engine/**
+      - src/engines/plan/**
+      - supabase/functions/_shared/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prove-causes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Matrix alone (independent of other tests)
+        id: matrix
+        continue-on-error: true
+        run: bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=verbose
+      - name: Generated declaration candidate (DIAGNOSTIC ONLY, never committed or attested)
+        run: |
+          node scripts/preproduction/plan-release-source.mjs --write
+          echo 'Generated manifest versus checked-in manifest:'
+          git diff -- supabase/functions/_shared/planReleaseManifest.ts
+          echo 'No declaration published or attested.'
+      - name: Release contract after ephemeral recomputation
+        run: bunx vitest run src/lib/plan/__tests__/lovableBuild.test.ts
+      - name: Refuse to treat diagnostics as a release
+        run: |
+          echo "Independent matrix outcome: ${{ steps.matrix.outcome }}"
+          echo "This workflow does not update the source declaration in git."
