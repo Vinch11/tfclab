@@ -53,6 +53,10 @@ export interface ExperimentalAssemblyContract {
   /** V310: EXACT personally configured V3 blocks and separately approved brick
    * transitions; null means no source/time-zone proof and MUST fail closed. */
   sourceStructuredZoneForId?:(id:string,chosenDurationMin:number|undefined)=>NativeZoneDose|null;
+  /** V321 opt-in: refuse any mismatch between source-specific measured anchors
+   * and the athlete metrics actually supplied to the real planner. */
+  requireReviewedAthleteContext?:true;
+  validateReviewedAthleteContext?:(athlete:PlanAthleteData)=>readonly string[];
   /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
   verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
   /** V35 safety experiment: enforce the stated availability even without a volume ramp. */
@@ -162,6 +166,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   const refuse=(reason:string)=>({...result,reason});
   if(!Number.isInteger(limits.maxNodes)||limits.maxNodes<=0||!Number.isFinite(limits.maxMilliseconds)||limits.maxMilliseconds<=0)return refuse('invalid_search_budget');
   if(!Number.isInteger(config.weeksAvailable)||!config.weeksAvailable||config.weeksAvailable>104)return refuse('unsupported_horizon');
+  if(experimentalContract?.requireReviewedAthleteContext===true){
+    // No provider, stale review data, or any athlete/source mismatch: refuse
+    // BEFORE selecting a single session. Never infer a substitute FTP or pace.
+    let problems:readonly string[]=[];
+    try{
+      problems=experimentalContract.validateReviewedAthleteContext?.(athlete)??['reviewed_athlete_context_provider_missing'];
+    }catch{
+      problems=['reviewed_athlete_context_provider_unavailable'];
+    }
+    if(problems.length){
+      result.issues.push({code:'det_v321_reviewed_athlete_context_refused',
+        severity:'blocking',message:JSON.stringify({problems})});
+      return refuse('reviewed_athlete_context_refused');
+    }
+  }
   // Existing dedicated template: preserve its dose and progression, never invent cards.
   if(config.objective==='StartToRun') {
     if(config.weeksAvailable!==12 || config.constraints || config.raceGoals?.length)return refuse('static_template_configuration_requires_review');
