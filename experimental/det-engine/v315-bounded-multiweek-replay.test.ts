@@ -135,6 +135,66 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
       expect(first.evidence.totalNodes).toBeLessThanOrEqual(160);
     },
   );
+  it('sweeps all constrained 70.3 ratio targets before any speculative ban',()=>{
+    const early:EngineResult['trace']=Array.from({length:10},(_,i)=>({
+      week:i+1,day:'mardi',id:i===9?sessionSource:'V3P_BIKE_017',
+      sport:'bike',duration:65,intent:'aerobic',
+      reason:'selected reviewed source in a real earlier week',
+    }));
+    const hasWeekTenBan=(c:ExperimentalAssemblyContract):boolean=>{
+      const filter=c.filterCandidate;
+      if(!filter)return false;
+      return !filter({id:sessionSource} as Parameters<typeof filter>[0],{
+        week:10,dayIndex:1,slot:{sport:'bike'},
+      } as Parameters<typeof filter>[1]);
+    };
+    planner.mockImplementation((
+      _a:PlanAthleteData,_c:PlanConfig,_b:unknown,c:ExperimentalAssemblyContract,
+    )=>{
+      if(hasWeekTenBan(c))return observed('fully_valid');
+      const unresolved=observed('unresolved',early);
+      unresolved.reason='no_catalogue_assignment_week_11';
+      return unresolved;
+    });
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,{...config,objective:'703'},
+      {maxNodes:300,maxMilliseconds:60000},{
+        ...contract,requireLorangQualityBeforeFinalValidation:true,
+      });
+    expect(out.evidence.verdict).toBe('all_gates_pass');
+    expect(out.evidence.attempts.slice(0,4).map(a=>a.target.swim))
+      .toEqual([.175,.16,.18,.17]);
+    expect(out.evidence.attempts.slice(0,4)
+      .every(a=>a.revisedWeeks?.length===0)).toBe(true);
+    expect(out.evidence.attempts[4].revisedWeeks).toEqual([10]);
+    expect(out.evidence.attempts[4].excludedSourceIds).toEqual([sessionSource]);
+    expect(planner.mock.calls.every(call=>
+      (call[3] as ExperimentalAssemblyContract).requireStrictPeriodizationEvidence===true))
+      .toBe(true);
+    expect(out.result?.constraintsSatisfied).toBe(true);
+  });
+
+  it('does not broaden constrained 70.3 bans to unrelated early weeks',()=>{
+    const trace:EngineResult['trace']=Array.from({length:10},(_,i)=>({
+      week:i+1,day:'mardi',id:'V3P_BIKE_'+String(i+1).padStart(3,'0'),
+      sport:'bike',duration:65,intent:'aerobic',reason:'reviewed',
+    }));
+    planner.mockImplementation(()=>({
+      ...observed('unresolved',trace),reason:'no_catalogue_assignment_week_11',
+    }));
+    const out=constructDeterministicPlanWithBoundedReplays(
+      athlete,{...config,objective:'703'},
+      {maxNodes:160,maxMilliseconds:60000},{
+        ...contract,requireLorangQualityBeforeFinalValidation:true,
+      });
+    expect(out.evidence.verdict).toBe('bounded_search_unresolved');
+    for(const row of out.evidence.attempts){
+      expect(row.revisedWeeks?.every(week=>week>=8)).toBe(true);
+    }
+    expect(out.result?.constraintsSatisfied).toBe(false);
+    expect(out.result?.candidate).toBeUndefined();
+  });
+
   it('does not convert exact sport ratios into a false native sporting pass',()=>{
     planner.mockImplementation(()=>observed('ratios_only'));
     const out=constructDeterministicPlanWithBoundedReplays(
