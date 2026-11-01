@@ -9,6 +9,9 @@ import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFix
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
+import {V3_BASE_BRICK_ID} from './v31-v3-brick';
+import {V32_703_BRICK_BLUEPRINTS} from './v32-v3-specific-bricks';
+import {V34_SAFE_RUN_BRICKS} from './v34-v3-low-run-bricks';
 
 type Goal='703'|'IM';
 type Fixture='B-70.3'|'B-IM';
@@ -86,7 +89,23 @@ function runProfile(s:Scenario){
     weeklyHours:s.weeklyHours,maxSessionsPerDay:s.maxSessionsPerDay,
     _outputFormat:'json' as const,
   };
-  const {contract,report}=buildDetV3ContractFromCatalogue(reviewsFor(s));
+  // Same independently confirmed synthetic brick compositions as the V39
+  // whole-plan control. An empty training-brick domain is not an athlete effect.
+  const bricks=s.objective==='703'?[{
+    id:V3_BASE_BRICK_ID,objective:s.objective,individualCoachApproval:true as const,
+    transitionSeconds:300,preferReviewedV3:true as const,
+  }]:[];
+  const specific=s.objective==='703'?V32_703_BRICK_BLUEPRINTS.map(b=>({
+    id:b.id,objective:s.objective,individualCoachApproval:true as const,
+    transitionSeconds:b.transitionSeconds,preferReviewedV3:true as const,
+  })):[];
+  const easy=s.objective==='703'?V34_SAFE_RUN_BRICKS.map(b=>({
+    id:b.id,objective:s.objective,individualCoachApproval:true as const,
+    transitionSeconds:b.transitionSeconds,preferReviewedV3:true as const,
+  })):[];
+  const {contract,report}=buildDetV3ContractFromCatalogue(
+    reviewsFor(s),bricks,specific,easy,
+  );
   const approved=new Map(report.accepted.map(card=>[card.id,card]));
   // This source must be independently reviewed and its FTP-specific dose resolved.
   expect(approved.has('V3P_BIKE_002')).toBe(true);
@@ -132,6 +151,9 @@ function runProfile(s:Scenario){
     weeks:out.candidate?.weeks.length??0,
     nodes:out.nodes,reason:out.reason??null,
     blockingCodes:[...new Set(hard.map(issue=>issue.code))],
+    blockerExamples:hard.slice(0,4).map(issue=>({
+      code:issue.code,week:issue.week??null,message:issue.message?.slice(0,360)??null,
+    })),
     selectedV3:selected.map(t=>t.id),
   }));
   return {s,approved,out};
