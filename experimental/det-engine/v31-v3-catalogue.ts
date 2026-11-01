@@ -308,14 +308,14 @@ export function buildDetV3ContractFromCatalogue(
         const card=acceptedById.get(r.id);
         if(!card)continue;
         if(card.sport==='bike'){
-          const sourceFtp=r.athleteAnchors?.bikeFtpWatts;
+          const sourceFtp=reviewMap.get(r.id)?.athleteAnchors?.bikeFtpWatts;
           if(typeof sourceFtp!=='number'||!Number.isFinite(sourceFtp)||sourceFtp<=0 ||
              typeof athlete.ftp!=='number'||!Number.isFinite(athlete.ftp)||
              Math.abs(athlete.ftp-sourceFtp)>1e-6)
             problems.push('reviewed_bike_ftp_mismatch:'+r.id);
         }
         if(card.sport==='run'){
-          const sourcePace=r.athleteAnchors?.runThresholdPaceSecPerKm;
+          const sourcePace=reviewMap.get(r.id)?.athleteAnchors?.runThresholdPaceSecPerKm;
           if(typeof sourcePace!=='number'||!Number.isFinite(sourcePace)||sourcePace<=0 ||
              typeof athlete.paceThresholdSecPerKm!=='number'||
              !Number.isFinite(athlete.paceThresholdSecPerKm)||
