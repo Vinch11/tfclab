@@ -206,7 +206,7 @@ export function buildDetV3ContractFromCatalogue(
     throw Error('v3_unknown_reviewed_recipe:'+id);
   const faulty=new Map<string,string>();
   const resolvedIntensityTexts=new Map<string,string>();
-  const qualifiedReviews:DetV3Review[]=[];
+  const qualifiedReviews:V3ReviewedSettings[]=[];
   const cards:V3Workout[]=v3FullCatalogue.workouts.map(w=>{
     const settings=reviewMap.get(w.id);
     if(!settings)return w;
