@@ -4,8 +4,9 @@
 -- Never use production to discover whether these predicates work.
 --
 -- QA clone observed a missing plan_versions FK. The candidate adds one.
--- It does not protect athletes.active_snapshot_id from cross-coach linkage;
--- that separate invariant MUST be tested and resolved before any GO.
+-- Include a composite FK candidate for active_snapshot_id ownership.
+-- It must be tested on the clone for interactions with the existing FK and
+-- its ON DELETE SET NULL action before any production proposal.
 -- Observed source policies verify coach_id = auth.uid(), but do not require
 -- the athlete_id to reference an athlete owned by the same coach.
 -- This restrictive policy is combined (AND) with existing permissive RLS.
@@ -26,6 +27,15 @@ BEGIN
     WHERE c.oid IS NULL OR NOT c.relrowsecurity
   ) THEN
     RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_RLS_DISABLED_OR_TABLE_MISSING';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.athletes a
+    LEFT JOIN public.snapshots s ON s.id = a.active_snapshot_id
+    WHERE a.active_snapshot_id IS NOT NULL
+      AND (s.id IS NULL OR s.athlete_id IS DISTINCT FROM a.id
+           OR s.coach_id IS DISTINCT FROM a.coach_id)
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_ACTIVE_SNAPSHOT_OWNER_MISMATCH';
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.plan_versions p LEFT JOIN public.athletes a ON a.id=p.athlete_id
@@ -75,6 +85,38 @@ ALTER TABLE public.plan_versions
   ADD CONSTRAINT plan_versions_athlete_id_fkey
   FOREIGN KEY (athlete_id) REFERENCES public.athletes(id)
   ON DELETE CASCADE;
+
+-- Prevent a coach from pointing their own athlete to another coach's
+-- snapshot through athletes.active_snapshot_id. This is a relational integrity
+-- guarantee, not an RLS subquery (which could recurse through snapshots).
+-- Both names are new candidate constraints. An existing same-name object
+-- requires manual review; never drop/replace a constraint automatically.
+DO $active_snapshot_fk_preflight$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE (conrelid='public.snapshots'::regclass
+      AND conname='tfcl_p0_snapshot_owner_unique')
+       OR (conrelid='public.athletes'::regclass
+      AND conname='tfcl_p0_active_snapshot_owned')
+  ) THEN
+    RAISE EXCEPTION 'TFCL_ACTIVE_SNAPSHOT_EXISTING_CONSTRAINT_REVIEW_REQUIRED';
+  END IF;
+END
+$active_snapshot_fk_preflight$;
+
+ALTER TABLE public.snapshots
+  ADD CONSTRAINT tfcl_p0_snapshot_owner_unique
+  UNIQUE (id, athlete_id, coach_id);
+
+-- DEFERRABLE avoids ordering conflicts with the existing single-column FK
+-- (ON DELETE SET NULL) when a referenced snapshot is deleted.
+-- MUST be exercised for update, deletion, and cleanup in isolated QA.
+ALTER TABLE public.athletes
+  ADD CONSTRAINT tfcl_p0_active_snapshot_owned
+  FOREIGN KEY (active_snapshot_id, id, coach_id)
+  REFERENCES public.snapshots (id, athlete_id, coach_id)
+  DEFERRABLE INITIALLY DEFERRED;
 
 DROP POLICY IF EXISTS tfcl_p0_plan_versions_athlete_owner_guard ON public.plan_versions;
 CREATE POLICY tfcl_p0_plan_versions_athlete_owner_guard
