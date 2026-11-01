@@ -11,6 +11,19 @@ BEGIN;
 
 DO $ownership_preflight$
 BEGIN
+  -- A CREATE POLICY can succeed even if RLS is disabled. Fail closed if
+  -- any protected table (including the ownership source) lacks active RLS.
+  IF EXISTS (
+    SELECT 1 FROM (VALUES
+      ('athletes'), ('plan_versions'), ('plans'), ('tests'), ('snapshots')
+    ) AS required(table_name)
+    LEFT JOIN pg_class c
+      ON c.relname = required.table_name
+     AND c.relnamespace = 'public'::regnamespace
+    WHERE c.oid IS NULL OR NOT c.relrowsecurity
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_RLS_DISABLED_OR_TABLE_MISSING';
+  END IF;
   IF EXISTS (
     SELECT 1 FROM public.plan_versions p LEFT JOIN public.athletes a ON a.id=p.athlete_id
     WHERE a.id IS NULL OR a.coach_id IS DISTINCT FROM p.coach_id
