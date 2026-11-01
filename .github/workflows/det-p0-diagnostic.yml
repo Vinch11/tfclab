@@ -57,7 +57,7 @@ jobs:
           print('NATIVE_MATRIX_DRIFT_COUNT',len(drifts),'OF',len(base))
           for entry in drifts[:20]:
               print('NATIVE_MATRIX_DRIFT',json.dumps(entry,ensure_ascii=False))
-          assert drifts, 'No difference found despite fingerprint mismatch; examine JSON ordering'
+          assert not drifts, 'Actual native matrix rows changed compared with the V3.8 base'
           PY
       - name: Generated declaration candidate (DIAGNOSTIC ONLY, never committed or attested)
         run: |
