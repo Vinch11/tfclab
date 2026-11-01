@@ -17,7 +17,7 @@
 Le script scripts/qa/isolated-supabase-recette.mjs doit être exécuté MANUELLEMENT depuis la racine du dépôt, après installation des dépendances. Il refuse de démarrer sans :
 
 - Projet Supabase isolé, distinct du projet de production, avec schéma et RLS attendus.
-- Deux vrais comptes Auth coach SYNTHÉTIQUES A et B habilités selon les politiques du produit ; aucun privilège admin ni service_role.
+- Deux vrais comptes Auth coach SYNTHÉTIQUES A et B habilités selon les politiques du produit ; aucun privilège admin ni service_role. **Pour Lovable Cloud :** créer les deux comptes dans le Remix QA via le parcours `More → Users → Add user → Create new user`, sous des emails .invalid, seulement après vérification que ces comptes peuvent être supprimés proprement ; ne pas utiliser « invitation » ni une adresse réelle.
 - Aucun athlète réel, aucun mot de passe dans GitHub, les logs ou les conversations.
 
 Variables d'environnement obligatoires (injectées localement ou par un gestionnaire de secrets, jamais commitées) :
@@ -28,11 +28,17 @@ Variables d'environnement obligatoires (injectées localement ou par un gestionn
 | TFCL_RECETTE_APPROVED_URL | URL de recette approuvée séparément ; doit correspondre |
 | TFCL_PRODUCTION_SUPABASE_URL | URL de production ; doit être différente |
 | TFCL_RECETTE_ANON_KEY | Clé publique du projet isolé |
-| TFCL_RECETTE_COACH_A_EMAIL et TFCL_RECETTE_COACH_A_PASSWORD | Compte test A |
-| TFCL_RECETTE_COACH_B_EMAIL et TFCL_RECETTE_COACH_B_PASSWORD | Compte test B |
+| TFCL_RECETTE_COACH_A_EMAIL / TFCL_RECETTE_COACH_B_EMAIL | Identités fictives attendues, sous le domaine réservé `.invalid` |
+| TFCL_RECETTE_AUTH_MODE | `token-file` (recommandé pour Lovable Cloud), ou `password` (ancien mode) |
+| TFCL_RECETTE_COACH_A_TOKEN_FILE / TFCL_RECETTE_COACH_B_TOKEN_FILE | **Uniquement en mode `token-file`** : deux fichiers de session Auth utilisateur distincts, accès restreint ; chacun comporte un champ `access_token`, `session.access_token` ou `token` |
+| TFCL_RECETTE_COACH_A_PASSWORD / TFCL_RECETTE_COACH_B_PASSWORD | **Uniquement en mode `password`**, jamais dans Git, les chats ou les logs |
 | TFCL_RECETTE_WRITE_ACK | I_AUTHORIZE_SYNTHETIC_ISOLATED_WRITES |
 
 Commande : node scripts/qa/isolated-supabase-recette.mjs
+
+En mode `token-file`, le script lit chaque jeton **depuis un fichier local privé**, fait vérifier son identité/email par Supabase Auth et emploie le JWT utilisateur pour les appels PostgREST. Sur Linux/macOS, les fichiers doivent être illisibles par groupe et autres utilisateurs (permissions 0600). Ne jamais mettre ces fichiers dans le dépôt, les messages, une sortie console ni des artefacts CI. Le harnais n'obtient ni ne crée lui-même ces sessions : elles doivent être fournies par le parcours Auth QA autorisé et limité au bon projet. Les sessions doivent rester valides pendant la recette, et supprimées à sa fin.
+
+**Ne pas lancer** le script simplement parce qu'un remix est vide : les comptes synthétiques doivent réellement exister, l'endpoint/clé publique doivent être ceux du **Remix QA**, le parcours de suppression Auth doit être prouvé et l'autorisation d'exécuter des écritures de recette doit être explicite.
 
 Le script effectue de vraies opérations PostgREST sous les identités coach : création de deux athlètes synthétiques ; ajout test et profil actif A ; sauvegarde version 1 dans plan_versions et plans ; nouveau client authentifié A et comparaison JSON ; version 2 sans écrasement de la première ; essais de lecture et de modification par B sur les données A ; refus d'une écriture invalide ; nettoyage limité aux ID créés. Tout échec ou résidu de nettoyage est signalé.
 
