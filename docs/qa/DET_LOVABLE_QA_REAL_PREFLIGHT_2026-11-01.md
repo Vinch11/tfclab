@@ -30,6 +30,14 @@
 
 Le Remix possède le code des fonctions Nolio : l'absence de données et de cron ne démontre pas l'absence de fonctions capables d'appeler Nolio ou des URLs figées de l'ancien projet. **Ne jamais appeler de fonction Nolio pour tester le blocage.** Avant un test navigateur, contrôler et bloquer les appels réseau externes Nolio et vérifier les éventuelles références au backend Live, y compris au niveau serveur.
 
+## P0 suite — sources préparées, sans aucune écriture DB (01/11)
+
+- Le harnais `scripts/qa/isolated-supabase-recette.mjs` sur la PR #455 accepte désormais le mode `TFCL_RECETTE_AUTH_MODE=token-file`. Les deux fichiers de JWT utilisateur doivent provenir de sessions **déjà autorisées** pour les vrais comptes synthétiques A/B de la QA, sans password ni service_role. Chaque token est vérifié auprès de Supabase Auth et son email doit correspondre à l'identité QA attendue. Aucun jeton n'est fourni ici.
+- Les tests incluent explicitement la tentative de rattacher l'`active_snapshot_id` de l'athlète A au snapshot de B. **Ce test est susceptible d'échouer avec les contraintes actuellement observées**, car la FK simple ne vérifie pas l'appartenance.
+- Le SQL candidat `docs/qa/DET_RLS_ATHLETE_OWNER_CANDIDATE.sql`, toujours **non appliqué**, propose une FK de `plan_versions.athlete_id` et une FK composite différable `athletes(active_snapshot_id,id,coach_id) -> snapshots(id,athlete_id,coach_id)`, après vérification d'intégrité et de non-conflit de contraintes. Le comportement de suppression et les mises à jour partielles restent à exercer sur la QA avant toute migration productible.
+- Les comptes Auth synthétiques n'ont pas été créés. Le parcours de création et de **suppression** de deux comptes via `More → Users` doit encore être vérifié, puis explicitement approuvé.
+- Le Remix QA ne contient pas encore le DET V3.23 de la branche GitHub #454 ; la recette de persistance n'est pas une recette DET complète.
+
 ## Suite indispensable
 
 1. Vérifier les réglages Auth et **le parcours de suppression des deux comptes synthétiques**, sans créer d'utilisateur avant de pouvoir confirmer le nettoyage.
