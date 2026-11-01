@@ -39,7 +39,12 @@ describe("suspended non-atomic replacements", () => {
       render(<PlanHistory />);
       fireEvent.click(screen.getByRole("button", { name: /Historique des plans/ }));
     } else render(<PlanLibraryPage />);
-    const restore = await screen.findByTitle(/Restauration calendrier suspendue/);
+    // CI executes a very large suite: Supabase-mocked async history loading
+    // can exceed Testing Library's 1s default even when no write occurs.
+    // Wait for the actual disabled control; do not weaken the safety assertions.
+    const restore = await screen.findByTitle(
+      /Restauration calendrier suspendue/, undefined, { timeout: 10000 },
+    );
     expect(restore).toBeDisabled();
     fireEvent.click(restore);
     expect(screen.getByText(/Le chargement d’une version/)).toBeInTheDocument();
