@@ -24,7 +24,7 @@ import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
-import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
+import { exportAIPlanToPDF, isQaNonPrescriptivePlan, QA_NON_PRESCRIPTIVE_BANNER } from "@/lib/aiPlanPDFExport";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
 import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
@@ -718,6 +718,8 @@ function WeekQualityBadge({ week }: { week: ParsedWeek }) {
 }
 
 interface WeekViewProps {
+  /** Fixture QA non prescriptive : pas de score numérique. */
+  hideQualityScore?: boolean;
   week: ParsedWeek;
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
@@ -728,7 +730,7 @@ interface WeekViewProps {
   raceGoals?: RaceGoal[];
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals, hideQualityScore = false }: WeekViewProps) {
 
 
 
@@ -812,7 +814,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
                 🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
               </Badge>
             ))}
-            <WeekQualityBadge week={week} />
+            {!hideQualityScore && <WeekQualityBadge week={week} />}
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
@@ -1461,8 +1463,12 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
   // Corrige une distance hallucinée dans le titre IA + applique le nouveau format canonique
   // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
+  const isQaFixture = isQaNonPrescriptivePlan(plan);
+  // Fixture QA : jamais de projections ni de titre dérivé du contexte coach.
+  const effectiveProjections = isQaFixture ? undefined : adaptationProjections;
   const correctedTitle = useMemo(() => {
     const t = plan.title || "";
+    if (isQaNonPrescriptivePlan(plan)) return t;
     if (/Plan TFCL™\s*—\s*70\.3\s*LCW\s*—\s*\d+\s*semaines?/i.test(t)) return t;
     const primary = (raceGoals || []).find((g) => g.priority === "A" && typeof g.distanceKm === "number" && (g.distanceKm as number) > 0)
       || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
@@ -1493,7 +1499,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
     if (kmRegex.test(t)) return t.replace(kmRegex, `(${km}km)`);
     return t.replace(/—\s*([^—]+?)(\s+—|$)/, (_m, name, tail) => `— ${name.trim()} (${km}km)${tail}`);
-  }, [plan.title, raceGoals, gapContext]);
+  }, [plan, raceGoals, gapContext]);
 
   // Étend gapContext avec le CP/W' athlète — même donnée que la vue
   // interactive (WbalAthleteRefsProvider), pour que le PDF affiche aussi un
@@ -1504,13 +1510,13 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   );
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "landscape", "full", gapContextWithWbal);
   };
   const handleExportPDFPortrait = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "portrait", "full", gapContextWithWbal);
   };
   const handleExportPDFCompact = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "portrait", "compact", gapContextWithWbal);
   };
 
 
@@ -1838,6 +1844,11 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
+              {isQaFixture && (
+                <div role="alert" data-testid="qa-non-prescriptive-banner" className="mb-2 rounded-md border-2 border-destructive bg-destructive/10 px-3 py-2 text-sm font-bold text-destructive">
+                  ⚠️ {QA_NON_PRESCRIPTIVE_BANNER} — NE PAS PRESCRIRE
+                </div>
+              )}
               <h3 className="font-bold text-base">{correctedTitle}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {headerPhasesCount} blocs</p>
               {loadedFromCacheAt && (
@@ -2091,12 +2102,12 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
           ))}
 
         </div>
@@ -2274,4 +2285,3 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     </TargetTableProvider>
   );
 }
-
