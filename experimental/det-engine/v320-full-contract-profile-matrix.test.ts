@@ -188,6 +188,11 @@ function run(s:Scenario){
       nodes:a.nodes,weeks:a.weeksBuilt,reason:a.reason??null,
       blockers:a.blockers,target:a.target,
     })),
+    firstFourDomainDiagnostics:out.evidence.attempts.slice(0,4).map(a=>({
+      target:a.target,frontierWeeks:a.weeksBuilt,
+      diagnostic:a.constrainedWeekDiagnostic?
+        JSON.parse(a.constrainedWeekDiagnostic):null,
+    })),
     ratios,certifiedRaceSourceIds:proof?.message??null,
     blockingCodes:[...new Set(blockers.map(i=>i.code))],
     blockingDetails:blockers.map(i=>({week:i.week??null,code:i.code,message:i.message??null})),
@@ -198,6 +203,24 @@ function run(s:Scenario){
     s.id==='703-reduced-hours'?40000:200000);
   expect(result?.humanReviewRequired).toBe(true);
   expect(result?.sportingRelevance).toBe('not_attested');
+
+  // A failed constrained week must be diagnosable without making a false
+  // sporting impossibility claim. This log is evidence of actual slot domains.
+  if(s.objective==='703'&&s.weeklyHours<10){
+    const unassigned=out.evidence.attempts.filter(a=>
+      a.reason?.startsWith('no_catalogue_assignment_week_'));
+    expect(unassigned.length).toBeGreaterThan(0);
+    for(const attempt of unassigned){
+      expect(attempt.constrainedWeekDiagnostic).toBeTruthy();
+      const diagnostic=JSON.parse(attempt.constrainedWeekDiagnostic!) as {
+        week:number;slotDomains:Array<{sport:string;candidates:number}>;
+        noGlobalImpossibilityClaim:boolean;
+      };
+      expect(Number.isInteger(diagnostic.week)).toBe(true);
+      expect(diagnostic.slotDomains.length).toBeGreaterThan(0);
+      expect(diagnostic.noGlobalImpossibilityClaim).toBe(true);
+    }
+  }
 
   // V3.23 — independent regression lock for the FIVE full-contract baselines
   // observed as all_gates_pass on CI #1495 (SHA 944eb669). A future refusal
