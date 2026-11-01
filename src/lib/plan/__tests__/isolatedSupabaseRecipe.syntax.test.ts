@@ -24,7 +24,11 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
       "TFCL_RECETTE_COACH_A_EMAIL",
       "TFCL_RECETTE_COACH_B_EMAIL",
     ]) expect(source).toContain(key);
-    expect(source).not.toMatch(/createClient\([^)]*service_role/i);
+    // Check the credential source rather than an unbounded regex that can
+    // accidentally match later comments mentioning service_role.
+    expect(source).toContain("const key = env('TFCL_RECETTE_ANON_KEY')");
+    expect(source).not.toMatch(/\benv\(\s*['"][^'"]*(?:service_role|serviceRole|SERVICE_ROLE)[^'"]*['"]\s*\)/i);
+    expect(source).not.toMatch(/process\.env\.[A-Z_]*SERVICE_ROLE/i);
   });
 
   it("preallocates synthetic IDs and probes cross-coach upsert without production", () => {
