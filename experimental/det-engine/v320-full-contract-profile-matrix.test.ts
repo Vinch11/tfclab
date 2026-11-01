@@ -198,6 +198,19 @@ function run(s:Scenario){
     s.id==='703-reduced-hours'?40000:200000);
   expect(result?.humanReviewRequired).toBe(true);
   expect(result?.sportingRelevance).toBe('not_attested');
+
+  // V3.23 — independent regression lock for the FIVE full-contract baselines
+  // observed as all_gates_pass on CI #1495 (SHA 944eb669). A future refusal
+  // on these specific inputs is a regression, even when correctly fail-closed.
+  // The 70.3 9 h and 9.5 h contexts are NOT frozen as failures: a genuinely
+  // valid solution may be admitted later, but must pass every gate below.
+  const certifiedRegressionBaselines = new Set([
+    '703-consistent-anchors','703-lower-physiology',
+    'IM-consistent-anchors','IM-lower-physiology','IM-reduced-hours',
+  ]);
+  if(certifiedRegressionBaselines.has(s.id)){
+    expect(out.evidence.verdict).toBe('all_gates_pass');
+  }
   if(out.evidence.verdict==='all_gates_pass'){
     expect(result?.technicallyConstructed).toBe(true);
     expect(result?.constraintsSatisfied).toBe(true);
@@ -205,6 +218,26 @@ function run(s:Scenario){
     expect(blockers).toHaveLength(0);
     expect(ratios).not.toBeNull();
     expect(proof).toBeDefined();
+
+    // Independent numeric cross-check, not merely a reliance on a PASS flag.
+    // Require 100% accounted tri-sport minutes and no unverified brick split.
+    if(!ratios)throw Error('det_v323_missing_ratio_evidence');
+    const ratioProof=JSON.parse(ratios) as {
+      knownOnlyRatio:Record<'swim'|'bike'|'run',number>;
+      targets:Record<'swim'|'bike'|'run',[number,number]>;
+      unresolvedBrickMinutes:number;
+    };
+    expect(ratioProof.unresolvedBrickMinutes).toBe(0);
+    let sum=0;
+    for(const sport of ['swim','bike','run'] as const){
+      const share=ratioProof.knownOnlyRatio[sport];
+      const [low,high]=ratioProof.targets[sport];
+      expect(Number.isFinite(share)).toBe(true);
+      expect(share).toBeGreaterThanOrEqual(low-1e-6);
+      expect(share).toBeLessThanOrEqual(high+1e-6);
+      sum+=share;
+    }
+    expect(Math.abs(sum-100)).toBeLessThan(1e-5);
   }else{
     expect(result?.constraintsSatisfied).not.toBe(true);
   }
