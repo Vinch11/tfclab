@@ -298,6 +298,33 @@ export function buildDetV3ContractFromCatalogue(
   const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\s-]+/g,'_');
   const contract:ExperimentalAssemblyContract={
     ...sourceContract,
+    validateReviewedAthleteContext(athlete){
+      // FTP and threshold pace are directly comparable measured fields. Swim
+      // domain paces are deliberately NOT equated with CSS without an
+      // independently confirmed CSS-as-MLSS proxy.
+      const acceptedById=new Map(report.accepted.map(card=>[card.id,card]));
+      const problems:string[]=[];
+      for(const r of qualifiedReviews){
+        const card=acceptedById.get(r.id);
+        if(!card)continue;
+        if(card.sport==='bike'){
+          const sourceFtp=r.athleteAnchors?.bikeFtpWatts;
+          if(typeof sourceFtp!=='number'||!Number.isFinite(sourceFtp)||sourceFtp<=0 ||
+             typeof athlete.ftp!=='number'||!Number.isFinite(athlete.ftp)||
+             Math.abs(athlete.ftp-sourceFtp)>1e-6)
+            problems.push('reviewed_bike_ftp_mismatch:'+r.id);
+        }
+        if(card.sport==='run'){
+          const sourcePace=r.athleteAnchors?.runThresholdPaceSecPerKm;
+          if(typeof sourcePace!=='number'||!Number.isFinite(sourcePace)||sourcePace<=0 ||
+             typeof athlete.paceThresholdSecPerKm!=='number'||
+             !Number.isFinite(athlete.paceThresholdSecPerKm)||
+             Math.abs(athlete.paceThresholdSecPerKm-sourcePace)>1e-6)
+            problems.push('reviewed_run_threshold_pace_mismatch:'+r.id);
+        }
+      }
+      return problems;
+    },
     verifiedBrickCompositions:allBricks,
     adapt(preparation,config){
       planLimiters=new Set((config.identifiedLimitersRaw??[])
