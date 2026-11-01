@@ -1,5 +1,7 @@
 # TFCLab — Recette P0 DET-ENGINE : Supabase, RLS et exploitation (01/11/2026)
 
+**Backend géré par Lovable :** avant d'essayer la recette via un endpoint Supabase, suivre `docs/qa/DET_LOVABLE_MANAGED_BACKEND_RECIPE_2026-11-01.md`. Ne jamais prendre un draft ou un preview pour une base indépendante ; ne pas chercher à utiliser une clé Supabase directement si l'application est sur Lovable Cloud. Les essais doivent se faire dans un **projet distinct avec base réellement isolée**.
+
 **Statut : NO-GO production.** Cette PR contient une recette optionnelle sans changer DET-ENGINE, ses règles sportives, les fonctions Edge ou les déploiements.
 
 ## Diagnostic GitHub confirmé
