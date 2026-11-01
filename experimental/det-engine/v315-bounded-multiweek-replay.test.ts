@@ -141,8 +141,8 @@ describe('DET V3.15 — bounded cross-week no-good replay',()=>{
       sport:'bike',duration:65,intent:'aerobic',
       reason:'selected reviewed source in a real earlier week',
     }));
-    const hasWeekTenBan=(c:ExperimentalAssemblyContract):boolean=>{
-      const filter=c.filterCandidate;
+    const hasWeekTenBan=(c:ExperimentalAssemblyContract|undefined):boolean=>{
+      const filter=c?.filterCandidate;
       if(!filter)return false;
       return !filter({id:sessionSource} as Parameters<typeof filter>[0],{
         week:10,dayIndex:1,slot:{sport:'bike'},
