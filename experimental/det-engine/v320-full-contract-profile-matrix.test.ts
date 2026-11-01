@@ -133,7 +133,8 @@ function run(s:Scenario){
   expect(raceSources.length).toBeGreaterThan(0);
   const out=constructDeterministicPlanWithBoundedReplays(
     athlete,cfg,{maxNodes:200000,maxMilliseconds:16000},{
-      ...contract,requireReviewedRaceSpecificPeak:true,
+      ...contract,requireReviewedAthleteContext:true,
+      requireReviewedRaceSpecificPeak:true,
       rankCandidate:(card,context)=>{
         const proven=contract.reviewedRaceSpecificForId?.(card.id);
         if(context.phase==='peak'&&context.slot.isKeySession&&
