@@ -49,6 +49,8 @@ export interface ReplayAttempt {
   excludedSourceIds?:string[];
   /** These are review diagnostics, not permission to prescribe. */
   blockers:string[];
+  /** Synthetic structural failure evidence from the actual failed week. */
+  constrainedWeekDiagnostic?:string|null;
 }
 export interface ReplayEvidence {
   verdict:'ratio_feasible_native_blockers_remain'|'all_gates_pass'|
@@ -147,6 +149,8 @@ export function constructDeterministicPlanWithBoundedReplays(
       excludedSourceIds:exclusions.map(x=>x.sourceId),
       blockers:[...new Set(result.issues.filter(i=>
         ['blocking','error','critical'].includes(i.severity)).map(i=>i.code))],
+      constrainedWeekDiagnostic:result.issues.find(i=>
+        i.code==='det_v325_constrained_week_domain_diagnostic')?.message??null,
     });
     if(strictRatiosMet){
       if(result.constraintsSatisfied){
