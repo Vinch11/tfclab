@@ -168,11 +168,22 @@ try {
   assert.deepEqual((await get(fresh.db, 'plans', ids.athleteA, 'athlete_id')).plan_json, p2);
   checks += 3;
 
-  const invalid = await fresh.db.from('plan_versions')
-    .insert({ athlete_id: 'not-a-uuid', coach_id: a.uid, plan_json: { marker } });
-  assert.ok(invalid.error, 'invalid insertion should fail');
-  assert.deepEqual((await get(fresh.db, 'plan_versions', ids.v2)).plan_json, p2);
-  checks++;
+  // An invalid type is not a useful integrity proof: UUID parsing would
+  // reject it before any ownership constraint runs. Use a valid, non-existent
+  // athlete UUID and prove the server refuses to create an orphaned version.
+  const orphanAttemptId = randomUUID();
+  try {
+    const invalid = await fresh.db.from('plan_versions')
+      .insert({ id: orphanAttemptId, athlete_id: randomUUID(),
+        coach_id: a.uid, plan_json: { _recipeId: marker } }).select('id');
+    assert.ok(invalid.error, 'orphan plan version INSERT accepted');
+    assert.equal(await getOptional(fresh.db, 'plan_versions', orphanAttemptId),
+      null, 'orphan plan version survived a refusal');
+    assert.deepEqual((await get(fresh.db, 'plan_versions', ids.v2)).plan_json, p2);
+    checks++;
+  } finally {
+    await cleanup(fresh.db, 'plan_versions', 'id', orphanAttemptId);
+  }
 } catch (e) {
   failure = e?.message || String(e);
 } finally {
