@@ -5,6 +5,7 @@
  */
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { readFileSync, statSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
 
 function env(k) {
@@ -18,8 +19,19 @@ assert.notEqual(new URL(url).origin, new URL(env('TFCL_PRODUCTION_SUPABASE_URL')
 assert.equal(env('TFCL_RECETTE_WRITE_ACK'), 'I_AUTHORIZE_SYNTHETIC_ISOLATED_WRITES');
 assert.ok(new URL(url).hostname.endsWith('.supabase.co') || ['localhost', '127.0.0.1'].includes(new URL(url).hostname));
 const key = env('TFCL_RECETTE_ANON_KEY');
-const ca = { email: env('TFCL_RECETTE_COACH_A_EMAIL'), password: env('TFCL_RECETTE_COACH_A_PASSWORD') };
-const cb = { email: env('TFCL_RECETTE_COACH_B_EMAIL'), password: env('TFCL_RECETTE_COACH_B_PASSWORD') };
+const mode = process.env.TFCL_RECETTE_AUTH_MODE?.trim() || 'password';
+assert.ok(mode === 'password' || mode === 'token-file',
+  'Unsupported synthetic Auth mode');
+const ca = { email: env('TFCL_RECETTE_COACH_A_EMAIL') };
+const cb = { email: env('TFCL_RECETTE_COACH_B_EMAIL') };
+if (mode === 'password') {
+  ca.password = env('TFCL_RECETTE_COACH_A_PASSWORD');
+  cb.password = env('TFCL_RECETTE_COACH_B_PASSWORD');
+} else {
+  ca.tokenFile = env('TFCL_RECETTE_COACH_A_TOKEN_FILE');
+  cb.tokenFile = env('TFCL_RECETTE_COACH_B_TOKEN_FILE');
+  assert.notEqual(ca.tokenFile, cb.tokenFile, 'Identical token files forbidden');
+}
 assert.notEqual(ca.email.toLowerCase(), cb.email.toLowerCase());
 const marker = 'TFCL_RECETTE_' + randomUUID();
 // Reserve synthetic IDs BEFORE writes. If an INSERT reaches the database but
@@ -31,11 +43,46 @@ const ids = {
 const errorsOnCleanup = [];
 let a, b, fresh, checks = 0, failure = null;
 
-const makeClient = () => createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+const authOptions = {
+  persistSession: false, autoRefreshToken: false, detectSessionInUrl: false,
+};
+const makeClient = (accessToken) => createClient(url, key, {
+  auth: authOptions,
+  // A separately approved user-scoped access token, NOT a service_role key.
+  ...(accessToken ? { global: { headers: { Authorization: `Bearer ${accessToken}` } } } : {}),
+});
+function readSyntheticToken(path) {
+  // Token file must be created by the approved QA identity workflow,
+  // preferably under a protected temp directory and NEVER checked into Git.
+  const info = statSync(path);
+  assert.ok(info.isFile(), 'Synthetic token source must be a regular file');
+  if (process.platform !== 'win32') {
+    assert.equal(info.mode & 0o077, 0, 'Token file is readable by other users');
+  }
+  const parsed = JSON.parse(readFileSync(path, 'utf8'));
+  const token = parsed.access_token ?? parsed.session?.access_token ?? parsed.token;
+  assert.ok(typeof token === 'string' && token.length > 20,
+    'Token file must contain a user access_token');
+  return token;
+}
 async function login(credentials) {
+  if (mode === 'token-file') {
+    const accessToken = readSyntheticToken(credentials.tokenFile);
+    const db = makeClient(accessToken);
+    // Ask Auth itself for the user. Do not rely on unverified JWT claims.
+    const { data, error } = await db.auth.getUser(accessToken);
+    if (error || !data?.user?.id) {
+      throw new Error('Synthetic token rejected by Auth');
+    }
+    assert.equal(data.user.email?.toLowerCase(), credentials.email.toLowerCase(),
+      'Token identity does not match expected synthetic email');
+    return { db, uid: data.user.id };
+  }
   const db = makeClient();
   const { data, error } = await db.auth.signInWithPassword(credentials);
   if (error || !data?.user?.id) throw new Error('Synthetic login failed: ' + (error?.message || 'missing identity'));
+  assert.equal(data.user.email?.toLowerCase(), credentials.email.toLowerCase(),
+    'Wrong synthetic login identity');
   return { db, uid: data.user.id };
 }
 function checked(res, label) {
