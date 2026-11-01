@@ -58,5 +58,12 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
     expect(candidate).toContain("TFCL_RLS_PREFLIGHT_RLS_DISABLED_OR_TABLE_MISSING");
     expect(candidate).toContain("ADD CONSTRAINT plan_versions_athlete_id_fkey");
     expect(candidate).toContain("ON DELETE CASCADE");
+    expect(candidate).toContain("tfcl_p0_snapshot_owner_unique");
+    expect(candidate).toContain("tfcl_p0_active_snapshot_owned");
+    expect(candidate).toContain("TFCL_RLS_PREFLIGHT_ACTIVE_SNAPSHOT_OWNER_MISMATCH");
+    expect(candidate).toContain("DEFERRABLE INITIALLY DEFERRED");
+    for (const tag of ["ownership_preflight", "plan_version_fk_preflight", "active_snapshot_fk_preflight"]) {
+      expect(candidate).toContain(`END;\n${tag}$;`);
+    }
   });
 });
