@@ -181,6 +181,7 @@ function run(s:Scenario){
     })),
     ratios,certifiedRaceSourceIds:proof?.message??null,
     blockingCodes:[...new Set(blockers.map(i=>i.code))],
+    blockingDetails:blockers.map(i=>({week:i.week??null,code:i.code,message:i.message??null})),
     reason:result?.reason??null,
   }));
   expect(out.evidence.experimentalOnly).toBe(true);
