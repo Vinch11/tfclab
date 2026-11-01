@@ -61,7 +61,7 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_SNAPSHOTS_OWNER_MISMATCH';
   END IF;
-END
+END;
 $ownership_preflight$;
 
 -- Required in the isolated QA clone: `plan_versions` currently has no
@@ -78,7 +78,7 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'TFCL_FK_EXISTING_CONSTRAINT_REVIEW_REQUIRED';
   END IF;
-END
+END;
 $plan_version_fk_preflight$;
 
 ALTER TABLE public.plan_versions
@@ -102,7 +102,7 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'TFCL_ACTIVE_SNAPSHOT_EXISTING_CONSTRAINT_REVIEW_REQUIRED';
   END IF;
-END
+END;
 $active_snapshot_fk_preflight$;
 
 ALTER TABLE public.snapshots
