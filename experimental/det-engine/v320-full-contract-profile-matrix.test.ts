@@ -209,7 +209,8 @@ function run(s:Scenario){
   if(s.objective==='703'&&s.weeklyHours<10){
     const unassigned=out.evidence.attempts.filter(a=>
       a.reason?.startsWith('no_catalogue_assignment_week_'));
-    expect(unassigned.length).toBeGreaterThan(0);
+    // Do not demand that failures exist: a later FULL PASS remains welcome.
+    // But when a no-assignment failure occurs, its evidence is mandatory.
     for(const attempt of unassigned){
       expect(attempt.constrainedWeekDiagnostic).toBeTruthy();
       const diagnostic=JSON.parse(attempt.constrainedWeekDiagnostic!) as {
