@@ -26,4 +26,14 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
     ]) expect(source).toContain(key);
     expect(source).not.toMatch(/createClient\([^)]*service_role/i);
   });
+
+  it("preallocates synthetic IDs and probes cross-coach upsert without production", () => {
+    const source = readFileSync(recipe, "utf8");
+    for (const name of ["athleteA", "athleteB", "test", "snapshot", "v1", "v2"]) {
+      expect(source).toContain(`${name}: randomUUID()`);
+    }
+    expect(source).toContain("Cross-coach plan UPSERT accepted");
+    expect(source).toContain("Cross-coach upsert modified coach A plan");
+    expect(source).toContain("independentResidueAuditRequired: true");
+  });
 });
