@@ -63,7 +63,7 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
     expect(candidate).toContain("TFCL_RLS_PREFLIGHT_ACTIVE_SNAPSHOT_OWNER_MISMATCH");
     expect(candidate).toContain("DEFERRABLE INITIALLY DEFERRED");
     for (const tag of ["ownership_preflight", "plan_version_fk_preflight", "active_snapshot_fk_preflight"]) {
-      expect(candidate).toContain(`END;\n${tag}$;`);
+      expect(candidate).toContain(`END;\n$${tag}$;`);
     }
   });
 });
