@@ -134,6 +134,11 @@ function run(s:Scenario){
   const out=constructDeterministicPlanWithBoundedReplays(
     athlete,cfg,{maxNodes:200000,maxMilliseconds:16000},{
       ...contract,requireReviewedAthleteContext:true,
+      // V322: opt-in candidate-quality gate ONLY for the previously blocked
+      // 70.3/9 h cohort. Keep the prior five baselines untouched as controls.
+      ...(s.id==='703-reduced-hours'?{
+        requireLorangQualityBeforeFinalValidation:true as const,
+      }:{}),
       requireReviewedRaceSpecificPeak:true,
       rankCandidate:(card,context)=>{
         const proven=contract.reviewedRaceSpecificForId?.(card.id);
