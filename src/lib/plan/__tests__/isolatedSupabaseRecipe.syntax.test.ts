@@ -36,4 +36,11 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
     expect(source).toContain("Cross-coach upsert modified coach A plan");
     expect(source).toContain("independentResidueAuditRequired: true");
   });
+
+  it("requires RLS to be enabled before candidate SQL policies can be applied", () => {
+    const candidate = readFileSync(resolve(process.cwd(),
+      "docs/qa/DET_RLS_ATHLETE_OWNER_CANDIDATE.sql"), "utf8");
+    expect(candidate).toContain("relrowsecurity");
+    expect(candidate).toContain("TFCL_RLS_PREFLIGHT_RLS_DISABLED_OR_TABLE_MISSING");
+  });
 });
