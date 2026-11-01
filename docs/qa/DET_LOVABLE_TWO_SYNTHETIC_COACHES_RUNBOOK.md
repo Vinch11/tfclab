@@ -14,23 +14,20 @@
 
 1. Vérifier visuellement le nom `TFCLab DET QA isolé — 2026-11-01`, pas le projet publié `TFCLab v2.1`.
 2. Dans `More → Users`, choisir **Add user → Create new user** (jamais Send invitation).
-3. Créer deux utilisateurs *fictifs* avec des adresses distinctes sous `example.invalid` (ex. `tfcl-det-a-20261101@example.invalid` et `tfcl-det-b-20261101@example.invalid`), si le validateur Lovable accepte ce domaine réservé.
-4. Générer pour chacun un mot de passe fort **dans l'interface Lovable seulement**. Ne pas le copier dans Git, ChatGPT, une issue, une capture ou un log.
-5. Vérifier que les deux comptes apparaissent dans **CE projet QA** ; ne modifier aucun rôle pour contourner la sécurité (pas de `service_role`, pas de promotion STAFF_COACH).
-6. Si la création refuse le domaine fictif, **s'arrêter**, ne pas mettre d'adresses réelles et demander un autre parcours de provisionnement sécurisé.
+3. **Résultat observé** : Lovable a rejeté `tfcl-det-a-20261101@example.invalid` avec `Email address not allowed`. Ne pas réessayer avec `.invalid`, `.test`, `example.com`, ni inventer le domaine d'un tiers.
+4. Employer deux adresses **réellement valides, privées et exclusivement contrôlées par le propriétaire du projet**, idéalement deux alias de test d'une même boîte détenue par lui. Si son fournisseur prend en charge les sous-adresses `+`, utiliser par exemple la forme `boite+tfcl-det-a@domaine-que-vous-controlez.tld` et `boite+tfcl-det-b@domaine-que-vous-controlez.tld` (exemples de format uniquement, pas de vraies adresses). Autre possibilité : deux alias distincts d'un domaine administré par le propriétaire. Vérifier que la réception fonctionne si une confirmation ou un reset est requis. Ne jamais utiliser d'adresse appartenant à un tiers.
+5. Dans `More → Users`, choisir **Create new user** (pas invitation). Mot de passe unique et fort pour A et B, saisi **dans Lovable uniquement**. Ne jamais communiquer l'email complet, le mot de passe ou le JWT au chat, à GitHub ou aux logs de recette.
+6. Vérifier que seuls ces deux comptes sont créés dans **CE projet QA**. Ne modifier aucun rôle pour contourner les politiques (pas de `service_role`, pas de promotion STAFF_COACH).
 7. **Ne pas encore utiliser le login/preview, générer de plans, envoyer Nolio ou supprimer les utilisateurs** : la prochaine étape est l'inspection read-only des lignes Auth et des profils créés.
+8. Si Lovable refuse aussi les alias contrôlés, arrêter les créations et documenter seulement le code erreur, sans chercher à contourner la validation.
 
 ## Contrôle indépendant via l'intégration Lovable
 
 Avec `mcp__Lovable__query_database`, sur le seul projet QA, en SQL lecture seule :
 
 ```sql
-SELECT
-  count(*) AS total_auth_users,
-  count(*) FILTER (WHERE lower(email) IN (
-    'tfcl-det-a-20261101@example.invalid',
-    'tfcl-det-b-20261101@example.invalid'
-  )) AS matched_synthetic_users
+SELECT count(*) AS total_auth_users,
+       count(DISTINCT lower(email)) AS distinct_auth_emails
 FROM auth.users;
 
 SELECT count(*) AS profiles_count FROM public.profiles;
@@ -39,7 +36,7 @@ SELECT count(*) AS plans_count FROM public.plans;
 SELECT count(*) AS version_count FROM public.plan_versions;
 ```
 
-**Avant d'aller plus loin :** exactement 2 utilisateurs synthétiques, pas de comptes inattendus, aucune ligne athlète/plan. Relever en interne leurs UUID (pas de mots de passe/JWT) pour générer des sessions A/B avec une approbation explicite. Le verdict ne peut être `GO exécution des tests` sans session Auth réelle, protections RLS et audit SQL.
+**Avant d'aller plus loin :** exactement 2 utilisateurs synthétiques avec deux emails distincts et contrôlés par le propriétaire, pas de comptes inattendus, aucune ligne athlète/plan. Ne pas afficher ni exporter les valeurs email, seulement le résultat des compteurs. Relever en interne leurs UUID (pas de mots de passe/JWT) pour générer des sessions A/B avec une approbation explicite. Le verdict ne peut être `GO exécution des tests` sans session Auth réelle, protections RLS et audit SQL.
 
 ## Revenir à zéro
 
