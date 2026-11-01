@@ -56,6 +56,20 @@ async function denyWrite(db, table, id, column, update) {
   assert.ok(res.error || (res.data?.length || 0) === 0, 'RLS foreign update in ' + table);
   checks++;
 }
+async function denyCrossCoachInsert(db, table, payload) {
+  const attemptId = randomUUID();
+  try {
+    // Error is mandatory. An HTTP success without returned rows is NOT proof
+    // that the foreign-athlete row was rejected.
+    const res = await db.from(table).insert({ id: attemptId, ...payload }).select('id');
+    assert.ok(res.error, 'Cross-coach INSERT accepted in ' + table);
+    checks++;
+  } finally {
+    // This row is synthetic and belongs solely to the attempt. Clean even
+    // when a misconfigured RLS policy unexpectedly permitted the insertion.
+    await cleanup(db, table, 'id', attemptId);
+  }
+}
 async function cleanup(db, table, column, id) {
   if (!db || !id) return;
   const res = await db.from(table).delete().eq(column, id);
@@ -138,6 +152,17 @@ try {
   await denyWrite(b.db, 'athletes', ids.athleteA, 'id', { goal: 'RLS_ATTACK' });
   await denyWrite(b.db, 'plan_versions', ids.v1, 'id', { objective: 'RLS_ATTACK' });
   await denyWrite(b.db, 'plans', ids.athleteA, 'athlete_id', { plan_json: { intruder: marker } });
+  await denyCrossCoachInsert(b.db, 'plan_versions', {
+    athlete_id: ids.athleteA, coach_id: b.uid, plan_json: { _recipeId: marker }
+  });
+  await denyCrossCoachInsert(b.db, 'tests', {
+    athlete_id: ids.athleteA, coach_id: b.uid,
+    name: marker + '_foreign', type: 'field', raw: { recipe: marker }
+  });
+  await denyCrossCoachInsert(b.db, 'snapshots', {
+    athlete_id: ids.athleteA, coach_id: b.uid,
+    source: 'manual', sport_main: 'run', field_sources: { recipe: marker }
+  });
   assert.equal((await get(fresh.db, 'athletes', ids.athleteA)).goal, '70.3');
   assert.deepEqual((await get(fresh.db, 'plan_versions', ids.v1)).plan_json, p1);
   assert.deepEqual((await get(fresh.db, 'plans', ids.athleteA, 'athlete_id')).plan_json, p2);
