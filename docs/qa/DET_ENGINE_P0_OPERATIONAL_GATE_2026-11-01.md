@@ -34,7 +34,11 @@ Commande : node scripts/qa/isolated-supabase-recette.mjs
 
 Le script effectue de vraies opérations PostgREST sous les identités coach : création de deux athlètes synthétiques ; ajout test et profil actif A ; sauvegarde version 1 dans plan_versions et plans ; nouveau client authentifié A et comparaison JSON ; version 2 sans écrasement de la première ; essais de lecture et de modification par B sur les données A ; refus d'une écriture invalide ; nettoyage limité aux ID créés. Tout échec ou résidu de nettoyage est signalé.
 
-Un PASS ne valide QUE la conservation des JSON et les RLS couvertes par la recette. Il ne certifie ni le parcours UI, ni la panne réseau, ni la génération DET, ni la revue sportive, ni un PDF, ni Nolio, ni la production.
+Le script réserve désormais tous ses UUID avant la première écriture, tente également un upsert adversarial du plan du coach A depuis B et imprime les identifiants synthétiques en sortie pour permettre une inspection après toute réponse réseau perdue. Le test d'un refus SQL n'est PAS une preuve qu'aucune ligne cachée n'a été insérée.
+
+**Contrôle indépendant obligatoire après chaque exécution :** exécuter `docs/qa/DET_RLS_INDEPENDENT_POSTRUN_AUDIT.sql` depuis l'éditeur SQL du **projet isolé approuvé**, avec visibilité de toutes les lignes. Les deux séries de compteurs (résidus synthétiques et propriété des athlètes) doivent être à zéro. Inspecter aussi les UUID `syntheticIds` du résultat si un refus est suspect ; un simple `SELECT` avec le JWT d'un coach ne permet pas de prouver l'absence de lignes cachées par RLS. Si cet audit SQL n'est pas possible ou si un compteur est non nul : **NO-GO**. Ne jamais exécuter cet audit sur la production.
+
+Un PASS du script, même suivi d'un audit SQL vide, ne valide QUE la conservation des JSON et les RLS couvertes par la recette. Il ne certifie ni le parcours UI, ni la panne réseau, ni la génération DET, ni la revue sportive, ni un PDF, ni Nolio, ni la production.
 
 ## Recette UI indispensable, même environnement et SHA figé
 
@@ -56,6 +60,6 @@ Un PASS ne valide QUE la conservation des JSON et les RLS couvertes par la recet
 
 ## Critères décisionnels
 
-**GO pilote coach supervisé** seulement si la recette distante A/B a réellement réussi, le cycle graphique complet a été testé, toutes les CI sont vertes au SHA candidat, les artefacts déployés et le rollback sont attestés, et une revue sportive indépendante confirme les profils utilisés. Aucun envoi Nolio sans revue et validation.
+**GO pilote coach supervisé** seulement si la recette distante A/B et l'audit SQL indépendant sans résidus ont réellement réussi, le cycle graphique complet a été testé, toutes les CI sont vertes au SHA candidat, les artefacts déployés et le rollback sont attestés, et une revue sportive indépendante confirme les profils utilisés. Aucun envoi Nolio sans revue et validation.
 
 **NO-GO** si l'un de ces critères manque. L'ajout du script et du protocole ne réalise pas ces vérifications distantes et ne change pas le statut du moteur.
