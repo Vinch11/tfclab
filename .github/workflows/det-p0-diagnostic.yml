@@ -23,7 +23,35 @@ jobs:
       - name: Matrix alone (independent of other tests)
         id: matrix
         continue-on-error: true
-        run: bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=verbose
+        run: TFCL_MATRIX_DEBUG_OUTPUT=/tmp/det-head-matrix.json bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=verbose
+      - name: Compare real native matrix against its passing base commit
+        run: |
+          test -s /tmp/det-head-matrix.json
+          git worktree add --detach /tmp/det-p0-base fe84b75ca8d7399dcb2a654801e9a7b19e30791f
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/det-p0-base/node_modules
+          mkdir -p /tmp/det-p0-matrix-base
+          (cd /tmp/det-p0-base && TFCL_GLOBAL_QA_OUTPUT=/tmp/det-p0-matrix-base bunx vitest run src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts --reporter=dot)
+          python3 - <<'PY'
+          import json
+          head = json.load(open('/tmp/det-head-matrix.json'))
+          rows = json.load(open('/tmp/det-p0-matrix-base/matrix.json'))['rows']
+          def normalize(row):
+              return {**{k:v for k,v in row.items() if k not in ('preparationIssues', 'weekly', 'residuals')},
+                'preparationIssues': {k:v for k,v in row['preparationIssues'].items() if not k.startswith('catalogue_week_')},
+                'weekly': [{k:v for k,v in w.items() if k!='missingSports'} for w in row['weekly']]}
+          base = [normalize(x) for x in rows]
+          assert len(base)==len(head['invariants'])
+          drifts = []
+          for current,previous in zip(head['invariants'],base):
+              assert current['id']==previous['id'], (current['id'],previous['id'])
+              fields=[k for k in set(current)|set(previous) if current.get(k)!=previous.get(k)]
+              if fields:
+                  drifts.append((current['id'],fields,[(k,str(previous.get(k))[:220],str(current.get(k))[:220]) for k in fields[:5]]))
+          print('NATIVE_MATRIX_DRIFT_COUNT',len(drifts),'OF',len(base))
+          for entry in drifts[:20]:
+              print('NATIVE_MATRIX_DRIFT',json.dumps(entry,ensure_ascii=False))
+          assert drifts, 'No difference found despite fingerprint mismatch; examine JSON ordering'
+          PY
       - name: Generated declaration candidate (DIAGNOSTIC ONLY, never committed or attested)
         run: |
           node scripts/preproduction/plan-release-source.mjs --write
