@@ -22,7 +22,12 @@ const ca = { email: env('TFCL_RECETTE_COACH_A_EMAIL'), password: env('TFCL_RECET
 const cb = { email: env('TFCL_RECETTE_COACH_B_EMAIL'), password: env('TFCL_RECETTE_COACH_B_PASSWORD') };
 assert.notEqual(ca.email.toLowerCase(), cb.email.toLowerCase());
 const marker = 'TFCL_RECETTE_' + randomUUID();
-const ids = { athleteA: null, athleteB: null, test: null, snapshot: null, v1: null, v2: null };
+// Reserve synthetic IDs BEFORE writes. If an INSERT reaches the database but
+// its response is lost, the cleanup still knows exactly which rows to target.
+const ids = {
+  athleteA: randomUUID(), athleteB: randomUUID(), test: randomUUID(),
+  snapshot: randomUUID(), v1: randomUUID(), v2: randomUUID(),
+};
 const errorsOnCleanup = [];
 let a, b, fresh, checks = 0, failure = null;
 
@@ -63,6 +68,10 @@ async function denyCrossCoachInsert(db, table, payload) {
     // that the foreign-athlete row was rejected.
     const res = await db.from(table).insert({ id: attemptId, ...payload }).select('id');
     assert.ok(res.error, 'Cross-coach INSERT accepted in ' + table);
+    // Inspect the attempted ID before cleanup. A response error by itself
+    // cannot certify that the write was rolled back.
+    assert.equal(await getOptional(db, table, attemptId), null,
+      'Cross-coach INSERT persisted despite error in ' + table);
     checks++;
   } finally {
     // This row is synthetic and belongs solely to the attempt. Clean even
@@ -97,17 +106,17 @@ try {
   assert.notEqual(a.uid, b.uid); checks++;
 
   ids.athleteA = checked(await a.db.from('athletes')
-    .insert({ coach_id: a.uid, name: marker + '_A', goal: '70.3', refs: { recipe: marker } })
+    .insert({ id: ids.athleteA, coach_id: a.uid, name: marker + '_A', goal: '70.3', refs: { recipe: marker } })
     .select('id').single(), 'create athlete A').id;
   ids.athleteB = checked(await b.db.from('athletes')
-    .insert({ coach_id: b.uid, name: marker + '_B', goal: '70.3', refs: { recipe: marker } })
+    .insert({ id: ids.athleteB, coach_id: b.uid, name: marker + '_B', goal: '70.3', refs: { recipe: marker } })
     .select('id').single(), 'create athlete B').id;
   ids.test = checked(await a.db.from('tests')
-    .insert({ athlete_id: ids.athleteA, coach_id: a.uid, name: marker, type: 'field',
+    .insert({ id: ids.test, athlete_id: ids.athleteA, coach_id: a.uid, name: marker, type: 'field',
       sport: 'course', raw: { recipe: marker }, reliability: 0.8 })
     .select('id').single(), 'create test').id;
   ids.snapshot = checked(await a.db.from('snapshots')
-    .insert({ athlete_id: ids.athleteA, coach_id: a.uid, source: 'manual',
+    .insert({ id: ids.snapshot, athlete_id: ids.athleteA, coach_id: a.uid, source: 'manual',
       sport_main: 'run', vma: 15.2, field_sources: { recipe: marker } })
     .select('id').single(), 'create profile').id;
   checked(await a.db.from('athletes').update({ active_snapshot_id: ids.snapshot })
@@ -115,7 +124,7 @@ try {
 
   const p1 = plan(1), p2 = plan(2);
   ids.v1 = checked(await a.db.from('plan_versions')
-    .insert({ athlete_id: ids.athleteA, coach_id: a.uid, plan_json: p1,
+    .insert({ id: ids.v1, athlete_id: ids.athleteA, coach_id: a.uid, plan_json: p1,
       objective: 'STORAGE_ONLY', weeks_count: 1, sessions_count: 1 })
     .select('id').single(), 'archive v1').id;
   checked(await a.db.from('plans')
@@ -132,7 +141,7 @@ try {
   checks += 4;
 
   ids.v2 = checked(await fresh.db.from('plan_versions')
-    .insert({ athlete_id: ids.athleteA, coach_id: a.uid, plan_json: p2,
+    .insert({ id: ids.v2, athlete_id: ids.athleteA, coach_id: a.uid, plan_json: p2,
       objective: 'STORAGE_ONLY', weeks_count: 1, sessions_count: 1 })
     .select('id').single(), 'archive v2').id;
   checked(await fresh.db.from('plans')
@@ -155,6 +164,17 @@ try {
   await denyCrossCoachInsert(b.db, 'plan_versions', {
     athlete_id: ids.athleteA, coach_id: b.uid, plan_json: { _recipeId: marker }
   });
+  // A competing upsert must never overwrite coach A's existing plan.
+  const foreignPlanUpsert = await b.db.from('plans')
+    .upsert({ athlete_id: ids.athleteA, coach_id: b.uid,
+      plan_json: { intruder: marker } }, { onConflict: 'athlete_id' })
+    .select('athlete_id');
+  assert.ok(foreignPlanUpsert.error || (foreignPlanUpsert.data?.length || 0) === 0,
+    'Cross-coach plan UPSERT accepted');
+  assert.deepEqual((await get(fresh.db, 'plans', ids.athleteA, 'athlete_id')).plan_json, p2,
+    'Cross-coach upsert modified coach A plan');
+  checks++;
+
   await denyCrossCoachInsert(b.db, 'tests', {
     athlete_id: ids.athleteA, coach_id: b.uid,
     name: marker + '_foreign', type: 'field', raw: { recipe: marker }
@@ -204,6 +224,9 @@ try {
 }
 if (errorsOnCleanup.length) failure = [failure, ...errorsOnCleanup].filter(Boolean).join('; ');
 console.log(JSON.stringify({ status: failure ? 'FAIL' : 'PASS', checks, marker,
+  // Synthetic UUIDs are safe to report; use them for an independent SQL
+  // residue check in the isolated project's SQL editor after this run.
+  syntheticIds: ids, independentResidueAuditRequired: true,
   scope: 'isolated-storage-rls', uiPdfAttested: false, sportsAttested: false,
   productionAttested: false, ...(failure ? { reason: failure } : {}) }));
 if (failure) process.exitCode = 1;
