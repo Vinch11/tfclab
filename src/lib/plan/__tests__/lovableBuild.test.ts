@@ -15,10 +15,6 @@ afterAll(() => rmSync(temp, { recursive: true, force: true }));
 describe("Lovable build fingerprints its actual checkout, without Git or preparation script", () => {
   it("recomputes the committed declaration from the catalogue and all three source components", async () => {
     expect(existsSync(join(temp, ".git"))).toBe(false);
-    // TEMPORARY DIAGNOSTIC for the DRAFT branch only. A source declaration is
-    // not deployment attestation. This is removed after fingerprint review.
-    const untrustedCandidate = await calculatePlanRelease(temp);
-    console.log("TFCL_QA_RELEASE_CANDIDATE_JSON=" + JSON.stringify(untrustedCandidate.info));
     const computed = await checkedPlanRelease(temp);
     expect(computed.info).toEqual(readDeclaration(root));
     expect(computed.catalogueEntries).toBe(920);
