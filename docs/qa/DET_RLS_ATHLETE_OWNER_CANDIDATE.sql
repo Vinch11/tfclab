@@ -1,0 +1,94 @@
+-- TFCLab / DET P0 : CANDIDATE ONLY, NOT AN APPLIED MIGRATION.
+-- Run on an explicitly approved isolated Supabase clone after backup/rollback
+-- and a review of actual policies, roles and current row ownership.
+-- Never use production to discover whether these predicates work.
+--
+-- Observed source policies verify coach_id = auth.uid(), but do not require
+-- the athlete_id to reference an athlete owned by the same coach.
+-- This restrictive policy is combined (AND) with existing permissive RLS.
+-- It cannot establish which policies or triggers are actually deployed.
+BEGIN;
+
+DO $ownership_preflight$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM public.plan_versions p LEFT JOIN public.athletes a ON a.id=p.athlete_id
+    WHERE a.id IS NULL OR a.coach_id IS DISTINCT FROM p.coach_id
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_PLAN_VERSIONS_OWNER_MISMATCH';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.plans p LEFT JOIN public.athletes a ON a.id=p.athlete_id
+    WHERE a.id IS NULL OR a.coach_id IS DISTINCT FROM p.coach_id
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_PLANS_OWNER_MISMATCH';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.tests t LEFT JOIN public.athletes a ON a.id=t.athlete_id
+    WHERE a.id IS NULL OR a.coach_id IS DISTINCT FROM t.coach_id
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_TESTS_OWNER_MISMATCH';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.snapshots s LEFT JOIN public.athletes a ON a.id=s.athlete_id
+    WHERE a.id IS NULL OR a.coach_id IS DISTINCT FROM s.coach_id
+  ) THEN
+    RAISE EXCEPTION 'TFCL_RLS_PREFLIGHT_SNAPSHOTS_OWNER_MISMATCH';
+  END IF;
+END
+$ownership_preflight$;
+
+DROP POLICY IF EXISTS tfcl_p0_plan_versions_athlete_owner_guard ON public.plan_versions;
+CREATE POLICY tfcl_p0_plan_versions_athlete_owner_guard
+  ON public.plan_versions AS RESTRICTIVE FOR ALL TO authenticated
+  USING (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ))
+  WITH CHECK (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ));
+
+DROP POLICY IF EXISTS tfcl_p0_plans_athlete_owner_guard ON public.plans;
+CREATE POLICY tfcl_p0_plans_athlete_owner_guard
+  ON public.plans AS RESTRICTIVE FOR ALL TO authenticated
+  USING (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ))
+  WITH CHECK (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ));
+
+DROP POLICY IF EXISTS tfcl_p0_tests_athlete_owner_guard ON public.tests;
+CREATE POLICY tfcl_p0_tests_athlete_owner_guard
+  ON public.tests AS RESTRICTIVE FOR ALL TO authenticated
+  USING (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ))
+  WITH CHECK (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ));
+
+DROP POLICY IF EXISTS tfcl_p0_snapshots_athlete_owner_guard ON public.snapshots;
+CREATE POLICY tfcl_p0_snapshots_athlete_owner_guard
+  ON public.snapshots AS RESTRICTIVE FOR ALL TO authenticated
+  USING (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ))
+  WITH CHECK (coach_id = auth.uid() AND EXISTS (
+    SELECT 1 FROM public.athletes a
+    WHERE a.id = athlete_id AND a.coach_id = auth.uid()
+  ));
+
+COMMIT;
+
+-- AFTER applying to an ISOLATED project only: run the complete
+-- scripts/qa/isolated-supabase-recette.mjs two-coach exercise and verify
+-- no orphaned or cross-coach rows, including failure/cleanup paths.
+-- No publication, no migrations in production, no Nolio or athlete data.
