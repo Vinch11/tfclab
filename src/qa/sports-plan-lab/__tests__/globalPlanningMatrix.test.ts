@@ -35,6 +35,9 @@ describe("offline scope inventory and combinatorial planning contracts",()=>{
   const invariants=rows.map(({preparationIssues,weekly,residuals:_residuals,...identity})=>({...identity,
     preparationIssues:Object.fromEntries(Object.entries(preparationIssues).filter(([key])=>!key.startsWith('catalogue_week_'))),
     weekly:weekly.map(({missingSports:_missingSports,...week})=>week)}));
+  if (process.env.TFCL_MATRIX_DEBUG_OUTPUT) {
+    writeFileSync(process.env.TFCL_MATRIX_DEBUG_OUTPUT, JSON.stringify({ rows, invariants }));
+  }
   expect(createHash('sha256').update(JSON.stringify(invariants)).digest('hex')).toBe(countingBaseline.invariantSha256);
   expect(rows.filter(r=>Object.keys(r.preparationIssues).some(k=>k.startsWith('preflight_'))).map(r=>r.id)).toEqual(countingBaseline.blockedIds);
   expect(rows.reduce((sum,r)=>sum+(r.preparationIssues.catalogue_week_sport_shortfall??0),0)).toBe(0);
