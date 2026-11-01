@@ -3,6 +3,9 @@
 -- and a review of actual policies, roles and current row ownership.
 -- Never use production to discover whether these predicates work.
 --
+-- QA clone observed a missing plan_versions FK. The candidate adds one.
+-- It does not protect athletes.active_snapshot_id from cross-coach linkage;
+-- that separate invariant MUST be tested and resolved before any GO.
 -- Observed source policies verify coach_id = auth.uid(), but do not require
 -- the athlete_id to reference an athlete owned by the same coach.
 -- This restrictive policy is combined (AND) with existing permissive RLS.
@@ -50,6 +53,28 @@ BEGIN
   END IF;
 END
 $ownership_preflight$;
+
+-- Required in the isolated QA clone: `plan_versions` currently has no
+-- athlete foreign key. RLS alone is not referential integrity.
+-- Historical version deletion follows the already-deployed plans/tests/snapshots
+-- ON DELETE CASCADE model; confirm coach product semantics before any production
+-- migration. A conflicting same-named FK requires manual review, not overwrite.
+DO $plan_version_fk_preflight$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.plan_versions'::regclass
+      AND conname = 'plan_versions_athlete_id_fkey'
+  ) THEN
+    RAISE EXCEPTION 'TFCL_FK_EXISTING_CONSTRAINT_REVIEW_REQUIRED';
+  END IF;
+END
+$plan_version_fk_preflight$;
+
+ALTER TABLE public.plan_versions
+  ADD CONSTRAINT plan_versions_athlete_id_fkey
+  FOREIGN KEY (athlete_id) REFERENCES public.athletes(id)
+  ON DELETE CASCADE;
 
 DROP POLICY IF EXISTS tfcl_p0_plan_versions_athlete_owner_guard ON public.plan_versions;
 CREATE POLICY tfcl_p0_plan_versions_athlete_owner_guard
