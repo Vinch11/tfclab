@@ -113,7 +113,7 @@ export function usePlanAdaptation() {
   /** Archive le plan courant dans plan_versions avant écrasement. */
   const archive = useCallback(
     async (athleteId: string, coachId: string, plan: ParsedPlan, reason: string) => {
-      await supabase.from("plan_versions").insert([
+      const { error } = await supabase.from("plan_versions").insert([
         {
           athlete_id: athleteId,
           coach_id: coachId,
@@ -123,6 +123,9 @@ export function usePlanAdaptation() {
           sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),
         },
       ]);
+      // Archive before overwriting the current plan. If the archive failed,
+      // fail closed: do not continue to persistPlan and silently lose history.
+      if (error) throw error;
     },
     []
   );
