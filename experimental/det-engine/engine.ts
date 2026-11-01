@@ -114,6 +114,10 @@ export interface ExperimentalAssemblyContract {
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
   requireRealQualityOnLoadWeeks?:true;
+  /** V322 isolated: enforce native non-deload/non-race A/B category presence
+   * in candidate selection even during the peak/taper phase, not just LOAD.
+   * Requires genuine Z4+ source on an existing key slot; no invented dose. */
+  requireLorangQualityBeforeFinalValidation?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
    * unknown intensity minutes on load weeks; no physiological attestation. */
   requireNativePolarizationOnLoadWeeks?:true;
@@ -618,9 +622,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
-      const qualityRequired=experimentalContract?.requireRealQualityOnLoadWeeks===true &&
-        entry.weekType==='load'&&config.ambition!=='finisher'&&
-        ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+      const triGoal=['half','ironman'].includes(
+        normalizeRepairGoal(config.objective??'')??'');
+      const sourceQualityOnLoad=experimentalContract?.requireRealQualityOnLoadWeeks===true &&
+        entry.weekType==='load';
+      const nativeLorangWeekQuality=experimentalContract?.requireLorangQualityBeforeFinalValidation===true &&
+        entry.weekType!=='recovery'&&entry.weekType!=='race'&&
+        !layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent)) &&
+        !/d[eé]charge|recovery|r[eé]cup[eé]ration/i.test(w.phase??'');
+      const qualityRequired=(sourceQualityOnLoad||nativeLorangWeekQuality) &&
+        config.ambition!=='finisher'&&triGoal;
       const isQuality=(session:ParsedSession)=>!!session.isKeySession&&
         session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
       const requiresRaceSpecificPeak=
