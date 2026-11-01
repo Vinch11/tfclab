@@ -884,6 +884,33 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
+        // V3.25 experiment — explain *which exact already-admitted slot
+        // domains* failed around S9/S11 in low-hour 70.3. This emits only
+        // candidate counts and structural bounds, not workouts, athlete data
+        // or a claim that every conceivable schedule is impossible.
+        if(experimentalContract?.requireLorangQualityBeforeFinalValidation===true &&
+           normalizeRepairGoal(config.objective??'')==='half'){
+          result.issues.push({
+            code:'det_v325_constrained_week_domain_diagnostic',
+            week:w.week,severity:'warning',message:JSON.stringify({
+              week:w.week,phase:w.phase??null,weekType:entry.weekType,
+              qualityRequired,qualityDomainAvailable:qualitySuffix[0],
+              minimumDomainMinutes:minimumSuffix[0],weeklyCapMinutes:ceiling,
+              slotDomains:order.map(({slot,domain})=>({
+                dayIndex:slot.dayIndex,sport:slot.slot.sport,
+                key:!!slot.slot.isKeySession,long:!!slot.slot.isLongSession,
+                candidates:domain.length,
+                highQualityCandidates:domain.filter(isQuality).length,
+                minMinutes:Math.min(...domain.map(s=>s.durationMin??0)),
+                maxMinutes:Math.max(...domain.map(s=>s.durationMin??0)),
+              })),
+              structuredPrunes:requireStructuredZones?strictPrunes:undefined,
+              budgetExhausted:exhausted,checkedNodes:result.nodes,
+              noGlobalImpossibilityClaim:true,
+              remedy:'review week-specific approved options and actual coach availability',
+            }),
+          });
+        }
         if(finalRatioGate)result.issues.push({
           code:'det_v314_final_load_ratio_search_unresolved',
           week:w.week,severity:'blocking',message:JSON.stringify({
