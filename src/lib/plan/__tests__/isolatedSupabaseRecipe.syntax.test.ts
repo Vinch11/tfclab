@@ -29,11 +29,13 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
 
   it("preallocates synthetic IDs and probes cross-coach upsert without production", () => {
     const source = readFileSync(recipe, "utf8");
-    for (const name of ["athleteA", "athleteB", "test", "snapshot", "v1", "v2"]) {
+    for (const name of ["athleteA", "athleteB", "test", "snapshot", "snapshotB", "v1", "v2"]) {
       expect(source).toContain(`${name}: randomUUID()`);
     }
     expect(source).toContain("Cross-coach plan UPSERT accepted");
     expect(source).toContain("Cross-coach upsert modified coach A plan");
+    expect(source).toContain("Cross-coach active snapshot UPDATE accepted");
+    expect(source).toContain("Cross-coach snapshot replaced A active profile");
     expect(source).toContain("independentResidueAuditRequired: true");
   });
 
@@ -54,5 +56,7 @@ describe("isolated Supabase two-coach recipe — offline integrity", () => {
       "docs/qa/DET_RLS_ATHLETE_OWNER_CANDIDATE.sql"), "utf8");
     expect(candidate).toContain("relrowsecurity");
     expect(candidate).toContain("TFCL_RLS_PREFLIGHT_RLS_DISABLED_OR_TABLE_MISSING");
+    expect(candidate).toContain("ADD CONSTRAINT plan_versions_athlete_id_fkey");
+    expect(candidate).toContain("ON DELETE CASCADE");
   });
 });
