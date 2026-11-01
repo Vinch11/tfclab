@@ -90,6 +90,13 @@ export function constructDeterministicPlanWithBoundedReplays(
      !Number.isFinite(limits.maxMilliseconds)||limits.maxMilliseconds<=0){
     return finish('invalid_contract',[],0,null);
   }
+  // V3.24 — experimental 70.3 constrained-capacity exploration only.
+  // Inspect every ratio target before speculative earlier-week source bans.
+  // Without this, a bounded 9 h search can consume its whole budget inside
+  // one target's descendants, and never test other admissible ratio targets.
+  // All candidates still pass unchanged source, load, recovery and native gates.
+  const breadthFirstLimited703=objective==='703' &&
+    contract.requireLorangQualityBeforeFinalValidation===true;
   const started=performance.now();
   const rows:ReplayAttempt[]=[];
   const queue:ReplayState[]=preset[objective].map((_,targetIndex)=>({
@@ -161,8 +168,12 @@ export function constructDeterministicPlanWithBoundedReplays(
     // A source ban can make a slot impossible: the ordinary fail-closed
     // catalogue, recovery and native validators remain authoritative.
     if(exclusions.length>=MAX_LOOKBACK_DEPTH)continue;
+    const frontier=rows[rows.length-1].weeksBuilt;
     const selected=[...new Map(result.trace.filter(t=>
       Number.isInteger(t.week)&&t.week>=1&&
+      // In constrained 70.3, do not ban a distant foundational source
+      // when a failure arose around S9/S11; it can only worsen early weeks.
+      (!breadthFirstLimited703||t.week>=Math.max(1,frontier-2))&&
       ['swim','bike','run','brick'].includes(t.sport??'')&&
       t.week<config.weeksAvailable!&&t.id&&
       typeof t.duration==='number'&&t.duration>0&&
@@ -185,7 +196,11 @@ export function constructDeterministicPlanWithBoundedReplays(
     // previously observed cross-week recovery without wasting target sweeps.
     const exhaustedAtPriorChoice=result.reason==='search_budget_exhausted'||
       result.reason?.includes('budget_exhausted')===true;
-    if(exhaustedAtPriorChoice)queue.unshift(...children);
+    if(breadthFirstLimited703){
+      // All initial target states remain ahead of children. Branches still
+      // revisit real selected sources, but cannot starve the target sweep.
+      queue.push(...children);
+    }else if(exhaustedAtPriorChoice)queue.unshift(...children);
     else queue.push(...children);
   }
   if(firstRatio){
