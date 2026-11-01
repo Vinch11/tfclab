@@ -24,6 +24,8 @@ const scenarios:readonly Scenario[]=[
     css:100,vma:16.5,weeklyHours:10},
   {id:'703-reduced-hours',objective:'703',ftp:300,thresholdPace:240,
     css:95,vma:18,weeklyHours:9},
+  {id:'703-intermediate-hours',objective:'703',ftp:300,thresholdPace:240,
+    css:95,vma:18,weeklyHours:9.5},
   {id:'IM-consistent-anchors',objective:'IM',ftp:300,thresholdPace:240,
     css:95,vma:18,weeklyHours:14},
   {id:'IM-lower-physiology',objective:'IM',ftp:260,thresholdPace:255,
@@ -132,11 +134,12 @@ function run(s:Scenario){
     contract.reviewedRaceSpecificForId?.(card.id)?.objective===s.objective);
   expect(raceSources.length).toBeGreaterThan(0);
   const out=constructDeterministicPlanWithBoundedReplays(
-    athlete,cfg,{maxNodes:200000,maxMilliseconds:16000},{
+    athlete,cfg,{maxNodes:s.id==='703-reduced-hours'?40000:200000,
+      maxMilliseconds:16000},{
       ...contract,requireReviewedAthleteContext:true,
       // V322: opt-in candidate-quality gate ONLY for the previously blocked
       // 70.3/9 h cohort. Keep the prior five baselines untouched as controls.
-      ...(s.id==='703-reduced-hours'?{
+      ...(s.objective==='703'&&s.weeklyHours<10?{
         requireLorangQualityBeforeFinalValidation:true as const,
       }:{}),
       requireReviewedRaceSpecificPeak:true,
@@ -191,7 +194,8 @@ function run(s:Scenario){
     reason:result?.reason??null,
   }));
   expect(out.evidence.experimentalOnly).toBe(true);
-  expect(out.evidence.totalNodes).toBeLessThanOrEqual(200000);
+  expect(out.evidence.totalNodes).toBeLessThanOrEqual(
+    s.id==='703-reduced-hours'?40000:200000);
   expect(result?.humanReviewRequired).toBe(true);
   expect(result?.sportingRelevance).toBe('not_attested');
   if(out.evidence.verdict==='all_gates_pass'){
