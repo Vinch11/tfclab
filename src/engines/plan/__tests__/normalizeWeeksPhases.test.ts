@@ -201,3 +201,47 @@ describe("normalizeWeeksAndPhases", () => {
     });
   });
 });
+
+describe("normalizeWeeksAndPhases — plans courts (1-3 sem.) et semaine unique", () => {
+  const mk = (n: number, phases?: PhaseNormalizable["phases"]): PhaseNormalizable => ({
+    weeks: Array.from({ length: n }, (_, i) => makeWeek(i + 1, "?")), phases, totalWeeks: n,
+  });
+
+  it.each(["1", "S1", "Semaine 1"])("récap V4 {name:'base',weeks:'%s'} → exactement 1 phase 'base' S1-S1", (weeks) => {
+    const plan = mk(1, [{ name: "base", weeks }]);
+    const stats = normalizeWeeksAndPhases(plan, { weeksAvailable: 1 });
+    expect(plan.phases).toEqual([{ name: "base", weeks: "S1-S1", objective: undefined, volume: undefined }]);
+    expect(plan.weeks[0].phase).toBe("base");
+    expect(stats.incompletePhaseWeeks).toEqual([]);
+  });
+
+  it("S1-S6 reste parsé comme plage", () => {
+    const plan = mk(6, [{ name: "Bloc", weeks: "S1-S6" }]);
+    normalizeWeeksAndPhases(plan, { weeksAvailable: 6 });
+    expect(plan.phases?.map(p => p.weeks)).toEqual(["S1-S6"]);
+  });
+
+  it.each([
+    [1, ["S1-S1"]],
+    [2, ["S1-S1", "S2-S2"]],
+    [3, ["S1-S1", "S2-S2", "S3-S3"]],
+  ])("sans récap, %i sem. : aucune phase hors [1,N]", (n, expected) => {
+    const plan = mk(n as number);
+    normalizeWeeksAndPhases(plan, { weeksAvailable: n as number });
+    expect(plan.phases?.map(p => p.weeks)).toEqual(expected);
+  });
+
+  it("sans récap, 40 sem. : découpage Lorang inchangé", () => {
+    const plan = mk(40);
+    normalizeWeeksAndPhases(plan, { weeksAvailable: 40 });
+    expect(plan.phases?.map(p => `${p.name} ${p.weeks}`)).toEqual([
+      "Fondation S1-S10", "Build S11-S24", "Spécifique S25-S36", "Affûtage S37-S40",
+    ]);
+  });
+
+  it("sans récap, 12 sem. : découpage Lorang inchangé", () => {
+    const plan = mk(12);
+    normalizeWeeksAndPhases(plan, { weeksAvailable: 12 });
+    expect(plan.phases?.map(p => p.weeks)).toEqual(["S1-S3", "S4-S7", "S8-S11", "S12-S12"]);
+  });
+});
