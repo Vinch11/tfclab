@@ -27,7 +27,16 @@ SELECT 'plans', COUNT(*) FROM public.plans
 WHERE plan_json->>'_recipeId' LIKE 'TFCL_RECETTE_%'
    OR plan_json->>'intruder' LIKE 'TFCL_RECETTE_%';
 
--- 2. Global owner/foreign-key consistency in the isolated QA project.
+-- 2. Confirm RLS is actually enabled on all five relevant tables.
+-- A CREATE POLICY is insufficient when relrowsecurity=false.
+SELECT COUNT(*) AS rls_disabled_or_missing
+FROM (VALUES ('athletes'), ('plan_versions'), ('plans'), ('tests'), ('snapshots')) AS required(table_name)
+LEFT JOIN pg_class c
+  ON c.relname = required.table_name
+ AND c.relnamespace = 'public'::regnamespace
+WHERE c.oid IS NULL OR NOT c.relrowsecurity;
+
+-- 3. Global owner/foreign-key consistency in the isolated QA project.
 -- Includes synthetic rows invisible to either coach under RLS.
 SELECT 'plan_versions' AS source, COUNT(*) AS ownership_mismatches
 FROM public.plan_versions p LEFT JOIN public.athletes a ON a.id = p.athlete_id
