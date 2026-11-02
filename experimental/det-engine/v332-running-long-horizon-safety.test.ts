@@ -13,13 +13,24 @@ import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 
 type RunningGoal='Semi'|'Marathon';
-type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number};
+type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
+  declaredTwoSlotsPerDay?:true;declaredClock?:true;unrestrictedSports?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
   {id:'marathon-native-16w',fixture:'B-MARATHON',goal:'Marathon',weeks:16,weeklyHours:9},
   {id:'marathon-30w',fixture:'B-MARATHON',goal:'Marathon',weeks:30,weeklyHours:9},
   {id:'marathon-40w',fixture:'B-MARATHON',goal:'Marathon',weeks:40,weeklyHours:9},
+  // These are genuinely DIFFERENT synthetic coach declarations, not a repair
+  // of the preceding infeasible athlete's availability or forbidden sports.
+  {id:'semi-8w-declared-clock',fixture:'B-SEMI',goal:'Semi',weeks:8,
+    weeklyHours:6,declaredClock:true},
+  {id:'semi-30w-declared-clock',fixture:'B-SEMI',goal:'Semi',weeks:30,
+    weeklyHours:6,declaredClock:true},
+  {id:'marathon-16w-two-slots',fixture:'B-MARATHON',goal:'Marathon',weeks:16,
+    weeklyHours:9,declaredTwoSlotsPerDay:true,unrestrictedSports:true},
+  {id:'marathon-40w-two-slots',fixture:'B-MARATHON',goal:'Marathon',weeks:40,
+    weeklyHours:9,declaredTwoSlotsPerDay:true,unrestrictedSports:true},
 ];
 
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
@@ -39,6 +50,16 @@ const runSourceIds=[
   'V3P_RUN_157','V3P_RUN_158','V3P_RUN_159','V3P_RUN_160',
   'V3P_RUN_167','V3P_RUN_169','V3P_RUN_172',
 ];
+const crossTrainingIds=[
+  'V3P_BIKE_001','V3P_BIKE_002','V3P_BIKE_017',
+  'V3P_BIKE_057','V3P_BIKE_085','V3P_BIKE_090',
+];
+/** Appointments deliberately declared by the SYNTHETIC coach, not inferred. */
+const declaredClock=(slot:{week:number;dayIndex:number;sport:string})=>({
+  provenance:'coach_confirmed' as const,
+  minuteOfDay:[1080,1020,1080,1020,1080,420,1140][slot.dayIndex],
+  utcOffsetMinutes:60,
+});
 const strengthSourceIds=[
   'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
   'V3P_STRENGTH_104','V3P_STRENGTH_105','V3P_STRENGTH_106',
@@ -58,10 +79,13 @@ function runScenario(s:Case){
   const raceDate=eventDate(s.weeks);
   const config={...fixture.planConfig,objective:s.goal,
     weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
+    ...(s.declaredTwoSlotsPerDay?{maxSessionsPerDay:2}:{}),
+    ...(s.unrestrictedSports?{constraints:undefined}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
     _outputFormat:'json' as const};
-  const reviews=[...runSourceIds,...strengthSourceIds].map(id=>{
+  const reviews=[...runSourceIds,...strengthSourceIds,
+    ...(s.unrestrictedSports?crossTrainingIds:[])].map(id=>{
     const context=syntheticV3SportingContext(id);
     if(!('sportingReview' in context))throw Error('missing_existing_v3_source:'+id);
     return {
@@ -92,6 +116,12 @@ function runScenario(s:Case){
         (baseFilter?.(card,ctx)??true),
       enforceWeeklyHoursCap:true,
       enforceCalendarSafeV3Recovery:true,
+      ...(s.declaredClock?{
+        coachSlotStart:declaredClock,
+        coachSessionStart:(session:{weekNumber:number;dayIndex:number;sport:string})=>
+          declaredClock({week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+      }:{}),
+      improveV3RecoveryLayout:true,
       requireRealQualityOnLoadWeeks:true,
       filterDeclaredSprintBanCandidates:true,
       excludeNativeForbiddenTaperCandidates:true,
@@ -142,7 +172,12 @@ function runScenario(s:Case){
   }
   console.info('DET_V332_RUNNING_REAL_SOLVER',JSON.stringify({
     scenario:s.id,objective:s.goal,weeksRequested:s.weeks,
-    raceDate,weeklyHours:s.weeklyHours,admittedRunSources:report.accepted
+    raceDate,weeklyHours:s.weeklyHours,
+    declaredTwoSlotsPerDay:s.declaredTwoSlotsPerDay===true,
+    syntheticCoachClock:s.declaredClock===true,
+    unrestrictedSports:s.unrestrictedSports===true,
+    admittedCrossTrainingSources:report.accepted.filter(card=>card.sport==='bike').length,
+    admittedRunSources:report.accepted
       .filter(card=>card.sport==='run').length,
     admittedStrengthSources:report.accepted.filter(card=>card.sport==='strength').length,
     technicallyConstructed:out.technicallyConstructed,
