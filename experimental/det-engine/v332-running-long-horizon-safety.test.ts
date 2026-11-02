@@ -22,6 +22,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   distinctSportClock?:true;
   coachDeclaredRunOnly?:true;
   measuredRecoveryProof?:true;
+  runningQualityProof?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -165,6 +166,20 @@ const matrix:readonly Case[]=[
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     shortEasyTaperApproved:true,distinctSportClock:true,
     measuredRecoveryProof:true},
+  // V343: independent, opt-in source-backed QUALITY witnesses on the exact
+  // V342 synthetic athlete/approved doses/clocks. Historical cases unchanged.
+  {id:'marathon-16w-reviewed-running-quality',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true},
+  {id:'marathon-40w-reviewed-running-quality',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,largerSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -344,6 +359,7 @@ function runScenario(s:Case){
           }),
       }:{}),
       ...(s.distinctSportClock?{enforceConfirmedNoSameDayOverlap:true as const}:{}),
+      ...(s.runningQualityProof?{requireReviewedRunningKeyQualityOnLoadWeeks:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -388,6 +404,19 @@ function runScenario(s:Case){
       expect(knownMinutes).toBeLessThanOrEqual(s.weeklyHours*60+1e-7);
     }
   }
+  if(s.runningQualityProof&&out.candidate){
+    for(const week of out.candidate.weeks.filter(w=>
+      out.candidate!.weeklyQuotas?.[w.weekNumber]?.weekType==='load')){
+      const verified=week.sessions.filter(s=>{
+        if(!s.isKeySession||s.sport!=='run'||!s.catalogId||
+           typeof s.durationMin!=='number')return false;
+        const dose=contract.sourceFullStructuredDoseForId?.(s.catalogId,s.durationMin);
+        return !!dose&&dose.provenance==='v3_individually_configured_blocks_only'&&
+          dose.sourceIds.length===1&&dose.sourceIds[0]===s.catalogId&&dose.high>0;
+      });
+      expect(verified.length).toBeGreaterThan(0);
+    }
+  }
   if(out.constraintsSatisfied){
     expect(out.candidate?.weeks).toHaveLength(s.weeks);
     const last=out.candidate!.weeks.find(week=>week.weekNumber===s.weeks);
@@ -415,6 +444,10 @@ function runScenario(s:Case){
     distinctSportClock:s.distinctSportClock===true,
     coachDeclaredRunOnly:s.coachDeclaredRunOnly===true,
     measuredRecoveryProof:s.measuredRecoveryProof===true,
+    runningQualityProof:s.runningQualityProof===true,
+    runningQualityIssues:s.runningQualityProof?
+      out.issues.filter(i=>i.code.startsWith('det_v343_'))
+        .map(i=>({week:i.week??null,code:i.code,message:i.message??null})):undefined,
     measuredRecoveryIssues:s.measuredRecoveryProof?
       out.issues.filter(i=>[
         'det_measured_deload_verified','det_scheduled_deload_not_proven',
