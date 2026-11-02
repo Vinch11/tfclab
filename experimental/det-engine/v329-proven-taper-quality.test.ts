@@ -38,6 +38,8 @@ describe('DET V329 — reviewed taper key must have true BLOCK-level Z4+ minutes
   });
   it('is source-provenance-based, not a text-name loophole',()=>{
     expect(prove(session({title:'Seuil contrôlé'}))).toEqual(prove());
+    expect(prove(session({zones:[]}))).toEqual(prove());
+    expect(prove(session({zones:['Z2']}))).toEqual(prove());
     // The separate native phase validator must still run and may forbid
     // this title. This helper cannot waive it.
   });
