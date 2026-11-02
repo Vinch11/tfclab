@@ -52,7 +52,7 @@ describe('V3.51 marathon horizon — no manufactured sport GO',()=>{
   });
   it('fails closed when the threshold dose or domain is unproved',()=>{
     const result=auditMarathonHorizon(planWith(16),{
-      ...source,dose:id=>id===thresholdId?null:marathon,
+      ...source,dose:(id:string)=>id===thresholdId?null:marathon,
     });
     expect(result.tte.verified).toBe(false);
     expect(result.tte.unknownKeySessions).toBeGreaterThan(0);
@@ -69,7 +69,7 @@ describe('V3.51 marathon horizon — no manufactured sport GO',()=>{
   });
   it('does not credit 28min marathon pace as threshold TTE',()=>{
     const result=auditMarathonHorizon(planWith(16),{
-      ...source,limiterKeys:id=>id===marathonId?['tte','threshold_tolerance']:[],
+      ...source,limiterKeys:(id:string)=>id===marathonId?['tte','threshold_tolerance']:[],
     });
     expect(result.tte.verifiedMatches).toBe(0);
     expect(result.tte.verified).toBe(false);
