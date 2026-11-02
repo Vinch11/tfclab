@@ -40,6 +40,7 @@ import {hasDistinctSourceAssignment} from './v334-distinct-source-feasibility';
 import {assessQualityAnchoredSourceMatching} from './v345-quality-source-matching';
 import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conflict';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
+import {auditMarathonHorizon} from './v351-marathon-horizon-evidence';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
@@ -162,6 +163,10 @@ export interface ExperimentalAssemblyContract {
   /** V335 opt-in: source-certified semi/marathon peak; native checks retained. */
   enableV335SourceRunningPeak?:true;
   reviewedRunningSpecificForId?:(id:string)=>ReviewedRunningSpecificSource|null|undefined;
+  /** V351: exact, athlete-reviewed V3 limiter keys for independent marathon audit. */
+  reviewedSourceLimiterKeysForId?:(id:string)=>readonly string[]|null|undefined;
+  /** V351: strict 16/40-week audit; cannot suppress any native validator. */
+  auditMarathonHorizonEvidence?:true;
   /** V333 opt-in: necessary forward checking, never a sporting exemption. */
   enableV333ForwardCheck?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
@@ -1681,6 +1686,28 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       message:JSON.stringify(proof??{
         reason:'source_proof_callback_or_triathlon_objective_missing',
         scientificAttestation:false,
+      }),
+    });
+  }
+  if(experimentalContract?.auditMarathonHorizonEvidence===true&&
+     normalizeRepairGoal(config.objective??'')==='marathon'){
+    const provider=experimentalContract;
+    const report=provider.sourceFullStructuredDoseForId&&
+      provider.reviewedRunningSpecificForId&&
+      provider.reviewedSourceLimiterKeysForId?
+      auditMarathonHorizon(result.candidate!,{
+        dose:provider.sourceFullStructuredDoseForId,
+        runningSpecific:provider.reviewedRunningSpecificForId,
+        limiterKeys:provider.reviewedSourceLimiterKeysForId,
+      }):null;
+    result.issues.push({
+      code:report?.verified?
+        'det_v351_marathon_exact_source_horizon_evidence_verified':
+        'det_v351_marathon_exact_source_horizon_evidence_unverified',
+      severity:report?.verified?'warning':'blocking',
+      message:JSON.stringify(report??{
+        refusals:['athlete_approved_source_evidence_provider_missing'],
+        nativeValidatorsPreserved:true,scientificAttestation:false,
       }),
     });
   }
