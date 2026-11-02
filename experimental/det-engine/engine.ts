@@ -640,14 +640,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const qualityRequired=(sourceQualityOnLoad||nativeLorangWeekQuality) &&
         config.ambition!=='finisher'&&triGoal;
       const isQuality=(session:ParsedSession)=>{
-        const labelled=!!session.isKeySession&&
+        // V330: reviewed V3 BLOCKS, never a Z4 label, decide taper quality.
+        // This does not waive the separate native phase validator.
+        if(experimentalContract?.requireSourceVerifiedTaperQuality===true&&
+           entry.weekType==='taper'){
+          const card=catalog.find(m=>m.id===session.catalogId);
+          return verifyReviewedTaperKeyStimulus(session,card,
+            experimentalContract.sourceFullStructuredDoseForId).verified;
+        }
+        return !!session.isKeySession&&
           session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
-        if(!labelled)return false;
-        if(experimentalContract?.requireSourceVerifiedTaperQuality!==true ||
-           entry.weekType!=='taper')return true;
-        const card=catalog.find(m=>m.id===session.catalogId);
-        return verifyReviewedTaperKeyStimulus(session,card,
-          experimentalContract.sourceFullStructuredDoseForId).verified;
       };
       const requiresRaceSpecificPeak=
         experimentalContract?.requireStrictPeriodizationEvidence===true &&
