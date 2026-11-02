@@ -28,6 +28,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningCandidatePriority?:true;
   runningEasyMarginPriority?:true;
   extendedStrictSearchBudget?:true;
+  runningQualitySlotMargin?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -275,6 +276,26 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     extendedStrictSearchBudget:true},
+  // V350: same V349 25k strict witnesses; ONLY the first certified quality
+  // SLOT is prioritized by exact Z1/Z2 vs Z3–Z6 dose margin.
+  {id:'marathon-16w-quality-slot-margin-25k',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true},
+  {id:'marathon-40w-quality-slot-margin-25k',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -360,7 +381,8 @@ function runScenario(s:Case){
   // misreport as evidence of source-backed Z4–Z6 sessions.
   if(s.id.includes('quality-candidate-first')||
      s.id.includes('quality-easy-margin-first')||
-     s.id.includes('strict-search-25k')){
+     s.id.includes('strict-search-25k')||
+     s.id.includes('quality-slot-margin-25k')){
     expect(s.runningQualityProof).toBe(true);
     expect(s.measuredRecoveryProof).toBe(true);
     expect(s.runningCandidatePriority).toBe(true);
@@ -472,6 +494,7 @@ function runScenario(s:Case){
       ...(s.runningMatchingAudit?{auditRunningQualitySourceMatching:true as const}:{}),
       ...(s.runningCandidatePriority?{prioritizeVerifiedRunningQualityCandidate:true as const}:{}),
       ...(s.runningEasyMarginPriority?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
+      ...(s.runningQualitySlotMargin?{prioritizeRunningQualitySlotByMargin:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -561,6 +584,10 @@ function runScenario(s:Case){
     runningMatchingAudit:s.runningMatchingAudit===true,
     runningCandidatePriority:s.runningCandidatePriority===true,
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
+    runningQualitySlotMargin:s.runningQualitySlotMargin===true,
+    qualitySlotMarginEvidence:s.runningQualitySlotMargin?
+      out.issues.filter(i=>i.code==='det_v350_running_key_slot_margin_order')
+        .slice(0,2).map(i=>({week:i.week??null,message:i.message??null})):undefined,
     runningCandidateAudit:s.runningCandidatePriority?
       out.issues.filter(i=>i.code==='det_v346_quality_candidate_sort_verified')
         .map(i=>({week:i.week??null,message:i.message??null})):undefined,
