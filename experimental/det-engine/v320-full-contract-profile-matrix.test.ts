@@ -214,7 +214,7 @@ function run(s:Scenario){
     for(const attempt of unassigned){
       expect(attempt.constrainedWeekDiagnostic).toBeTruthy();
       const diagnostic=JSON.parse(attempt.constrainedWeekDiagnostic!) as {
-        week:number;slotDomains:Array<{sport:string;candidates:number}>;
+        week:number;weekType?:string;slotDomains:Array<{sport:string;candidates:number}>;
         noGlobalImpossibilityClaim:boolean;
       };
       expect(Number.isInteger(diagnostic.week)).toBe(true);
