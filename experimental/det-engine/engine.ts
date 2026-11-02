@@ -36,6 +36,8 @@ import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-n
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
+import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
+import type {StructuredZoneDose} from './v310-structured-zone-dose';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
@@ -53,6 +55,8 @@ export interface ExperimentalAssemblyContract {
   /** V310: EXACT personally configured V3 blocks and separately approved brick
    * transitions; null means no source/time-zone proof and MUST fail closed. */
   sourceStructuredZoneForId?:(id:string,chosenDurationMin:number|undefined)=>NativeZoneDose|null;
+  /** Exact source V3 blocks, preserving Z4–Z6 separate from Z3 and unknown. */
+  sourceFullStructuredDoseForId?:(id:string,chosenDurationMin:number|undefined)=>StructuredZoneDose|null;
   /** V321 opt-in: refuse any mismatch between source-specific measured anchors
    * and the athlete metrics actually supplied to the real planner. */
   requireReviewedAthleteContext?:true;
@@ -118,6 +122,9 @@ export interface ExperimentalAssemblyContract {
    * in candidate selection even during the peak/taper phase, not just LOAD.
    * Requires genuine Z4+ source on an existing key slot; no invented dose. */
   requireLorangQualityBeforeFinalValidation?:true;
+  /** V329: taper quality requires verified high-zone BLOCK minutes on an
+   * individually approved source; names, labels and empty durations do not count. */
+  requireSourceVerifiedTaperQuality?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
    * unknown intensity minutes on load weeks; no physiological attestation. */
   requireNativePolarizationOnLoadWeeks?:true;
@@ -632,8 +639,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         !/d[eé]charge|recovery|r[eé]cup[eé]ration/i.test(w.phase??'');
       const qualityRequired=(sourceQualityOnLoad||nativeLorangWeekQuality) &&
         config.ambition!=='finisher'&&triGoal;
-      const isQuality=(session:ParsedSession)=>!!session.isKeySession&&
-        session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
+      const isQuality=(session:ParsedSession)=>{
+        const labelled=!!session.isKeySession&&
+          session.zones?.some(zone=>/z\\s*[4-7]/i.test(zone))===true;
+        if(!labelled)return false;
+        if(experimentalContract?.requireSourceVerifiedTaperQuality!==true ||
+           entry.weekType!=='taper')return true;
+        const card=catalog.find(m=>m.id===session.catalogId);
+        return verifyReviewedTaperKeyStimulus(session,card,
+          experimentalContract.sourceFullStructuredDoseForId).verified;
+      };
       const requiresRaceSpecificPeak=
         experimentalContract?.requireStrictPeriodizationEvidence===true &&
         w.phase?.trim().toLowerCase()==='peak' &&
@@ -972,6 +987,24 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(w.phase?.trim().toLowerCase()==='peak'&&
          chosen.some(hasSourceVisibleRaceSpecificity))peakRaceSpecificSeen=true;
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
+      if(experimentalContract?.requireSourceVerifiedTaperQuality===true &&
+         entry.weekType==='taper'){
+        const proof=chosen.flatMap(s=>{
+          const card=catalog.find(m=>m.id===s.catalogId);
+          const verified=verifyReviewedTaperKeyStimulus(s,card,
+            experimentalContract.sourceFullStructuredDoseForId);
+          return verified.verified?[verified.evidence]:[];
+        });
+        result.issues.push({
+          code:'det_v329_taper_source_quality_proven',
+          week:w.week,severity:'warning',message:JSON.stringify({
+            sourceBackedReminders:proof,
+            noUnmeasuredQualityCounted:true,
+            nativePhaseValidatorUnchanged:true,
+            scientificAttestation:false,
+          }),
+        });
+      }
       for(const s of chosen)if(s.catalogId){usage.set(s.catalogId,(usage.get(s.catalogId)??0)+1);result.trace.push({week:w.week,day:s.dayName,id:s.catalogId,sport:s.sport,duration:s.durationMin??null,intent:catalog.find(m=>m.id===s.catalogId)!.intentFamily,reason:'Contrat objectif/phase/niveau, durée du catalogue, budget et fréquence respectés ; priorité physiologique sur créneau clé, puis repartition par utilisation et ordre du catalogue préparé.'});}
       if(experimentalContract?.requireMeasuredDeloadSelection===true &&
          entry.weekType==='recovery'&&measuredTrainingMinutes(chosen)===null){
