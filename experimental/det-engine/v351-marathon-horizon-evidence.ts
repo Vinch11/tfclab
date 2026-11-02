@@ -6,6 +6,7 @@
 import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
 import {matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
+import {proposeMeasuredMarathonMesocycles} from './v353-measured-marathon-mesocycles';
 
 export interface MarathonHorizonEvidence {
   verified:boolean;
@@ -13,6 +14,7 @@ export interface MarathonHorizonEvidence {
   buildStreaks:readonly {first:number;last:number;weeks:number}[];
   excessiveBuildStreaks:readonly {first:number;last:number;weeks:number}[];
   peakRaceSpecificSources:readonly {week:number;sourceId:string;minutes:number}[];
+  buildMesocycleEvidence:{verified:boolean;segments:number;measuredRecoveryBoundaries:number};
   tte:{verifiedMatches:number;allKeySessions:number;unknownKeySessions:number;
     percentage:number|null;minimumPercentage:30;verified:boolean};
   refusals:readonly string[];
@@ -30,7 +32,7 @@ function isKey(session:ParsedSession):boolean {
 const canonical=(key:string)=>key.trim().toLowerCase().replace(/[\s-]+/g,'_');
 /** The caller may pass only already athlete-reviewed source callbacks. */
 export function auditMarathonHorizon(
-  plan:Pick<ParsedPlan,'weeks'>,proof:MarathonSourceProof,
+  plan:Pick<ParsedPlan,'weeks'|'phases'|'weeklyQuotas'>,proof:MarathonSourceProof,
 ):MarathonHorizonEvidence {
   const weeks=[...plan.weeks].sort((a,b)=>a.weekNumber-b.weekNumber);
   const refusals:string[]=[];
@@ -48,7 +50,15 @@ export function auditMarathonHorizon(
   }
   flush();
   const excessiveBuildStreaks=streaks.filter(s=>s.weeks>6);
-  if(excessiveBuildStreaks.length)refusals.push('build_mesocycle_exceeds_six_weeks');
+  // The original 29-week Build streak may be decomposed ONLY when the
+  // calendar itself proves exact >=30% recovery boundaries. The projected
+  // phase blocks must match what the final native validator actually sees.
+  const partition=excessiveBuildStreaks.length?
+    proposeMeasuredMarathonMesocycles(plan):null;
+  const projected=!!partition?.verified&&
+    JSON.stringify(plan.phases)===JSON.stringify(partition.projectedPhases);
+  if(excessiveBuildStreaks.length&&!projected)
+    refusals.push('build_mesocycle_exceeds_six_weeks');
   // Peak certificates are about THE dose of the workout assigned to THIS
   // athlete, never the name or the mere presence of an approved source ID.
   const peakRaceSpecificSources:{week:number;sourceId:string;minutes:number}[]=[];
@@ -90,6 +100,10 @@ export function auditMarathonHorizon(
     refusals.push('marathon_peak_specific_dose_unproven');
   return {verified:refusals.length===0,horizon:weeks.length,
     buildStreaks:streaks,excessiveBuildStreaks,peakRaceSpecificSources,
+    buildMesocycleEvidence:{verified:projected,
+      segments:partition?.mesocycles.length??0,
+      measuredRecoveryBoundaries:partition?.mesocycles.filter(m=>
+        m.recoveryWeek!==null).length??0},
     tte:{verifiedMatches,allKeySessions,unknownKeySessions,percentage,
       minimumPercentage:30,verified:tteVerified},
     refusals,nativeValidatorsPreserved:true,scientificAttestation:false};
