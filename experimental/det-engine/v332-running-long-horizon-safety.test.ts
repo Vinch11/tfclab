@@ -26,6 +26,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningQualityPriority?:true;
   runningMatchingAudit?:true;
   runningCandidatePriority?:true;
+  runningEasyMarginPriority?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -233,6 +234,25 @@ const matrix:readonly Case[]=[
     measuredRecoveryProof:true,runningQualityPriority:true,
     runningMatchingAudit:true,runningCandidatePriority:true,
     largerSearchBudget:true},
+  // V347 paired A/B: first source-certified quality key, then rank by exact
+  // V3 low-vs-nonlow minutes to find safe polarization sooner (ordering only).
+  {id:'marathon-16w-quality-easy-margin-first',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true},
+  {id:'marathon-40w-quality-easy-margin-first',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    largerSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -416,6 +436,7 @@ function runScenario(s:Case){
       ...(s.runningQualityPriority?{prioritizeVerifiedRunningQualitySlot:true as const}:{}),
       ...(s.runningMatchingAudit?{auditRunningQualitySourceMatching:true as const}:{}),
       ...(s.runningCandidatePriority?{prioritizeVerifiedRunningQualityCandidate:true as const}:{}),
+      ...(s.runningEasyMarginPriority?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -504,6 +525,7 @@ function runScenario(s:Case){
     runningQualityPriority:s.runningQualityPriority===true,
     runningMatchingAudit:s.runningMatchingAudit===true,
     runningCandidatePriority:s.runningCandidatePriority===true,
+    runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningCandidateAudit:s.runningCandidatePriority?
       out.issues.filter(i=>i.code==='det_v346_quality_candidate_sort_verified')
         .map(i=>({week:i.week??null,message:i.message??null})):undefined,
