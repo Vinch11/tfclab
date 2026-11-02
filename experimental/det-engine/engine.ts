@@ -277,8 +277,27 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         // assignment below. The prevalidation source list can contain IDs
         // not present in these assembled pools; those cannot fill a slot.
         const allowedIds=new Set(week.eligible.map(c=>c.id));
-        const eligibleSports=new Set(catalog.filter(m=>allowedIds.has(m.id))
-          .map(m=>normalizeRepairSport(m.sport)));
+        // V338: a native eligible card that the athlete's reviewed V3
+        // contract excludes is NOT an executable source. Check actual slot
+        // reviews before deciding whether an optional sport is available.
+        // Mandatory minima and official races remain untouchable.
+        const eligibleSports=new Set<LayoutSport>();
+        for(const [dayIndex,day] of entry.layout.days.entries()){
+          for(const slot of day.slots){
+            if(slot.isRaceEvent)continue;
+            const candidates=catalogBySport.get(normalizeRepairSport(slot.sport))??[];
+            const available=candidates.some(m=>{
+              if(!allowedIds.has(m.id))return false;
+              try{
+                return experimentalContract.filterCandidate?.(m,{
+                  week:week.week,phase:week.phase,weekType:week.weekType,
+                  slot,dayIndex,
+                })??true;
+              }catch{return false;}
+            });
+            if(available)eligibleSports.add(slot.sport);
+          }
+        }
         const optionalMissing=new Set<LayoutSport>();
         for(const day of entry.layout.days)for(const slot of day.slots){
           if(!slot.isRaceEvent && entry.quota[slot.sport].min===0 &&
