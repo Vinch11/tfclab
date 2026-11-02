@@ -25,6 +25,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningQualityProof?:true;
   runningQualityPriority?:true;
   runningMatchingAudit?:true;
+  runningCandidatePriority?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -214,6 +215,24 @@ const matrix:readonly Case[]=[
     measuredRecoveryProof:true,runningQualityProof:true,
     runningQualityPriority:true,runningMatchingAudit:true,
     largerSearchBudget:true},
+  // V346 A/B: same athlete, clocks, reviewed doses, budgets and ALL sporting
+  // constraints as V345. Fix the key-quality candidate sort precedence only.
+  {id:'marathon-16w-quality-candidate-first',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true},
+  {id:'marathon-40w-quality-candidate-first',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityPriority:true,
+    runningMatchingAudit:true,runningCandidatePriority:true,
+    largerSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -396,6 +415,7 @@ function runScenario(s:Case){
       ...(s.runningQualityProof?{requireReviewedRunningKeyQualityOnLoadWeeks:true as const}:{}),
       ...(s.runningQualityPriority?{prioritizeVerifiedRunningQualitySlot:true as const}:{}),
       ...(s.runningMatchingAudit?{auditRunningQualitySourceMatching:true as const}:{}),
+      ...(s.runningCandidatePriority?{prioritizeVerifiedRunningQualityCandidate:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -483,6 +503,13 @@ function runScenario(s:Case){
     runningQualityProof:s.runningQualityProof===true,
     runningQualityPriority:s.runningQualityPriority===true,
     runningMatchingAudit:s.runningMatchingAudit===true,
+    runningCandidatePriority:s.runningCandidatePriority===true,
+    runningCandidateAudit:s.runningCandidatePriority?
+      out.issues.filter(i=>i.code==='det_v346_quality_candidate_sort_verified')
+        .map(i=>({week:i.week??null,message:i.message??null})):undefined,
+    runningMatchingEvidence:s.runningMatchingAudit?
+      out.issues.filter(i=>i.code.startsWith('det_v345_'))
+        .map(i=>({week:i.week??null,code:i.code,message:i.message??null})):undefined,
     runningQualityIssues:s.runningQualityProof?
       out.issues.filter(i=>i.code.startsWith('det_v343_'))
         .map(i=>({week:i.week??null,code:i.code,message:i.message??null})):undefined,
