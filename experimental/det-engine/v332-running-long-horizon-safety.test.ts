@@ -14,7 +14,8 @@ import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anc
 
 type RunningGoal='Semi'|'Marathon';
 type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
-  declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;unrestrictedSports?:true;};
+  declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
+  unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
@@ -43,6 +44,20 @@ const matrix:readonly Case[]=[
   {id:'marathon-40w-two-slots-wide-clock',fixture:'B-MARATHON',goal:'Marathon',
     weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true},
+  // Coaches who actually declared a COMPATIBLE ambition, load and schedule:
+  // no auto-downgrade of the original world-class/9-hour witness.
+  {id:'marathon-16w-declared-competitor',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,declaredCompetitor:true},
+  {id:'marathon-40w-declared-competitor',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,declaredCompetitor:true},
+  {id:'marathon-16w-declared-worldclass-load',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:14,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,declaredWorldClassCapacity:true},
+  {id:'marathon-40w-declared-worldclass-load',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:14,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,declaredWorldClassCapacity:true},
 ];
 
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
@@ -105,6 +120,10 @@ function runScenario(s:Case){
     weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
     ...(s.declaredTwoSlotsPerDay?{maxSessionsPerDay:2}:{}),
     ...(s.unrestrictedSports?{constraints:undefined}:{}),
+    ...(s.declaredCompetitor?{ambition:'competitor' as const,
+      sessionsPerWeek:7,strengthSessionsPerWeek:2}:{}),
+    ...(s.declaredWorldClassCapacity?{sessionsPerWeek:10,
+      strengthSessionsPerWeek:2}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
     _outputFormat:'json' as const};
@@ -204,6 +223,8 @@ function runScenario(s:Case){
     syntheticCoachClock:s.declaredClock===true,
     syntheticWideRecoveryClock:s.wideRecoveryClock===true,
     unrestrictedSports:s.unrestrictedSports===true,
+    declaredCompetitor:s.declaredCompetitor===true,
+    declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     admittedCrossTrainingSources:report.accepted.filter(card=>card.sport==='bike').length,
     admittedRunSources:report.accepted
       .filter(card=>card.sport==='run').length,
