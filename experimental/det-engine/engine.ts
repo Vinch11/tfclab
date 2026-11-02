@@ -850,6 +850,44 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
         if(total+minimumSuffix[index]>ceiling)return false;
+        // V333: necessary conditions only. Never bypass an existing guard.
+        if(experimentalContract?.enableV333ForwardCheck===true){
+          let minimum=total;
+          let possibleQuality=chosen.some(isQuality);
+          let possibleSpecificity=chosen.some(hasSourceVisibleRaceSpecificity);
+          for(let j=index;j<order.length;j++){
+            let slotMinimum=Infinity;
+            for(const session of order[j].domain){
+              const id=session.catalogId;
+              if(id&&(weeklyUsage.get(id)??0)>=1)continue;
+              const card=id?catalogById.get(id):undefined;
+              if(card){
+                const keys=experimentalContract.consumedSourceIds?.(card)??[];
+                if(keys.some(k=>(weeklyUsage.get('v3-source:'+k)??0)>=1))continue;
+                if(card.mainZoneMax>=3&&chosen.some(s=>
+                    s.sport===session.sport&&
+                    Math.abs(s.dayIndex-session.dayIndex)<2&&
+                    (catalogById.get(s.catalogId??'')?.mainZoneMax??0)>=3))continue;
+              }
+              slotMinimum=Math.min(slotMinimum,session.durationMin??0);
+              if(isQuality(session))possibleQuality=true;
+              if(hasSourceVisibleRaceSpecificity(session))possibleSpecificity=true;
+            }
+            if(!Number.isFinite(slotMinimum)){
+              countPrune('v333_remaining_slot_has_no_usable_source');return false;
+            }
+            minimum+=slotMinimum;
+            if(minimum>ceiling){
+              countPrune('v333_unavoidable_minimum_exceeds_week_cap');return false;
+            }
+          }
+          if(qualityRequired&&!possibleQuality){
+            countPrune('v333_remaining_quality_unavailable');return false;
+          }
+          if(requiresRaceSpecificPeak&&!possibleSpecificity){
+            countPrune('v333_remaining_specificity_unavailable');return false;
+          }
+        }
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
         if(requiresRaceSpecificPeak&&!chosen.some(hasSourceVisibleRaceSpecificity)&&
            !raceSpecificSuffix[index]){
