@@ -21,3 +21,24 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Behavioral hook tests and exact receipt contract
         run: bunx vitest run src/hooks/__tests__/usePlanAdaptation.archiveFailClosed.test.ts src/lib/plan/__tests__/planWriteReceipt.test.ts
+
+      - name: Full frontend regressions with compact failure diagnostics
+        shell: bash
+        run: |
+          set +e
+          bun run vitest run > frontend-receipt-regression.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          text = re.sub(r"\x1b\[[0-9;]*m", "", Path("frontend-receipt-regression.log").read_text())
+          lines = text.splitlines()
+          print("\n".join(lines[-140:]))
+          PY
+          exit "$TEST_STATUS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-receipt-regression-log
+          path: frontend-receipt-regression.log
+          retention-days: 14
