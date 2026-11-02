@@ -646,6 +646,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         result.issues.push({code:'det_empty_catalogue_slot',week:w.week,severity:'blocking',
           message:JSON.stringify({day:dayName,sport:slot.sport,phase:w.phase,weekType:w.weekType,
             minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
+            quotaMin:entry.quota[slot.sport].min,quotaMax:entry.quota[slot.sport].max,
+            optionalSportByQuota:entry.quota[slot.sport].min===0,
             allInCatalog:catalog.filter(m=>normalizeRepairSport(m.sport)===slot.sport).length,
             eligibleSportMatches:sportMatches.length,afterRaceDayContext:afterRaceDayContext.length,
             equivalent:equivalent.length,
