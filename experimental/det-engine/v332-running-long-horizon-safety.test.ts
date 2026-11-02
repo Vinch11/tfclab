@@ -29,6 +29,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningEasyMarginPriority?:true;
   extendedStrictSearchBudget?:true;
   runningQualitySlotMargin?:true;
+  marathonHorizonEvidence?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -286,7 +287,8 @@ const matrix:readonly Case[]=[
     measuredRecoveryProof:true,runningQualityProof:true,
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
-    extendedStrictSearchBudget:true,runningQualitySlotMargin:true},
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
+    marathonHorizonEvidence:true},
   {id:'marathon-40w-quality-slot-margin-25k',fixture:'B-MARATHON',
     goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
@@ -295,7 +297,8 @@ const matrix:readonly Case[]=[
     measuredRecoveryProof:true,runningQualityProof:true,
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
-    extendedStrictSearchBudget:true,runningQualitySlotMargin:true},
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
+    marathonHorizonEvidence:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -495,6 +498,7 @@ function runScenario(s:Case){
       ...(s.runningCandidatePriority?{prioritizeVerifiedRunningQualityCandidate:true as const}:{}),
       ...(s.runningEasyMarginPriority?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
       ...(s.runningQualitySlotMargin?{prioritizeRunningQualitySlotByMargin:true as const}:{}),
+      ...(s.marathonHorizonEvidence?{auditMarathonHorizonEvidence:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -537,6 +541,13 @@ function runScenario(s:Case){
         if(typeof session.durationMin==='number')knownMinutes+=session.durationMin;
       }
       expect(knownMinutes).toBeLessThanOrEqual(s.weeklyHours*60+1e-7);
+    }
+  }
+  if(s.marathonHorizonEvidence){
+    const evidence=out.issues.find(i=>i.code.startsWith('det_v351_marathon_'));
+    if(out.technicallyConstructed){
+      expect(evidence).toBeDefined();
+      expect(JSON.parse(evidence!.message??'{}').nativeValidatorsPreserved).toBe(true);
     }
   }
   if(s.runningQualityProof&&out.candidate){
@@ -585,6 +596,9 @@ function runScenario(s:Case){
     runningCandidatePriority:s.runningCandidatePriority===true,
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningQualitySlotMargin:s.runningQualitySlotMargin===true,
+    marathonExactSourceAudit:s.marathonHorizonEvidence?
+      out.issues.filter(i=>i.code.startsWith('det_v351_marathon_'))
+        .map(i=>({code:i.code,verdict:JSON.parse(i.message??'{}')})):undefined,
     qualitySlotMarginEvidence:s.runningQualitySlotMargin?
       out.issues.filter(i=>i.code==='det_v350_running_key_slot_margin_order')
         .slice(0,2).map(i=>({week:i.week??null,message:i.message??null})):undefined,
