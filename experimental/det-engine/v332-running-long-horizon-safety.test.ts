@@ -44,7 +44,9 @@ const runSourceIds=[
   'V3P_RUN_050','V3P_RUN_076','V3P_RUN_077','V3P_RUN_078',
   'V3P_RUN_079','V3P_RUN_080','V3P_RUN_081','V3P_RUN_082',
   'V3P_RUN_083','V3P_RUN_084','V3P_RUN_085',
-  'V3P_RUN_119','V3P_RUN_137','V3P_RUN_139','V3P_RUN_142',
+  // Existing 24-minute, entirely easy/tactical 20–30 min activation;
+  // original V3 prescription unchanged (not a retitled threshold workout).
+  'V3P_RUN_119','V3P_RUN_130','V3P_RUN_137','V3P_RUN_139','V3P_RUN_142',
   'V3P_RUN_140','V3P_RUN_145','V3P_RUN_151','V3P_RUN_152',
   'V3P_RUN_153','V3P_RUN_154','V3P_RUN_155','V3P_RUN_156',
   'V3P_RUN_157','V3P_RUN_158','V3P_RUN_159','V3P_RUN_160',
@@ -104,6 +106,7 @@ function runScenario(s:Case){
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
+  expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
   expect(report.accepted.some(card=>card.sport==='strength')).toBe(true);
   expect(contract.validateReviewedAthleteContext?.(athlete)).toEqual([]);
   const accepted=new Set(report.accepted.map(card=>card.id));
