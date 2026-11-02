@@ -220,6 +220,18 @@ function run(s:Scenario){
       expect(Number.isInteger(diagnostic.week)).toBe(true);
       expect(diagnostic.slotDomains.length).toBeGreaterThan(0);
       expect(diagnostic.noGlobalImpossibilityClaim).toBe(true);
+      // V3.26 — a required but impossible taper quality stimulus must
+      // identify missing approved source coverage explicitly. It cannot
+      // be reported solely as solver-budget exhaustion or silently waived.
+      if(diagnostic.weekType==='taper'&&
+         (diagnostic as typeof diagnostic & {
+           qualityRequired?:boolean;qualityDomainAvailable?:boolean;
+         }).qualityRequired===true &&
+         (diagnostic as typeof diagnostic & {
+           qualityDomainAvailable?:boolean;
+         }).qualityDomainAvailable===false){
+        expect(attempt.blockers).toContain('det_v326_required_taper_quality_domain_empty');
+      }
     }
   }
 
