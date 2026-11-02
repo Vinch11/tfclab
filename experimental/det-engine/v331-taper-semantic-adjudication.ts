@@ -80,7 +80,7 @@ export function reconcileReviewedTaperSemantics(args:{
         refuse(session,'native_forbidden_non_threshold_taper_content');continue;
       }
       const proof=verifyReviewedTaperKeyStimulus(session,card,args.source);
-      if(!proof.verified){refuse(session,'source_proof_'+proof.reason);continue;}
+      if(proof.verified===false){refuse(session,'source_proof_'+proof.reason);continue;}
       let review:ExplicitTaperCoachReview|null|undefined;
       try{review=args.explicitReviewFor(session);}catch{review=null;}
       if(!review||review.individuallyApproved!==true||
