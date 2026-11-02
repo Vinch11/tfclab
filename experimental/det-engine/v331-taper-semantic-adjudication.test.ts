@@ -114,6 +114,23 @@ describe('DET V331 — exact-source taper semantic parity (experimental only)',(
     expect(check([session()],{cards:[card({tags:[]})]}).verdict).toBe('blocked');
     expect(check([session()],{dose:dose({low:3,high:15})}).verdict).toBe('blocked');
   });
+  it('refuses a taper source missing under a harmless CSS/Z2 display',()=>{
+    const disguised=session({title:'CSS technique facile',details:'20 min Z2',
+      catalogId:undefined,zones:['Z2']});
+    const out=check([disguised],{cards:[]});
+    expect(out.verdict).toBe('blocked');
+    expect(out.decisions[0].reason).toBe('taper_workout_source_not_identified');
+  });
+  it('checks the actual blocks even if both card and display understate intensity',()=>{
+    const disguised=session({title:'Technique douce',zones:['Z2']});
+    const out=check([disguised],{cards:[card({mainZoneMax:2})]});
+    expect(out.verdict).toBe('blocked');
+    expect(out.decisions[0].reason).toBe('source_proof_no_source_z4_plus_domain');
+    const lowCard=card({mainZoneMax:2});
+    const trulyEasy=dose({low:18,high:0});
+    expect(check([disguised],{cards:[lowCard],dose:trulyEasy}).verdict).toBe('verified');
+    expect(check([disguised],{cards:[lowCard],dose:null}).verdict).toBe('blocked');
+  });
   it('leaves unrelated native warning/mandatory error untouched',()=>{
     const unrelated={code:'recovery',severity:'error',message:'48h missing'};
     const out=check([session()],{native:[unrelated]});
