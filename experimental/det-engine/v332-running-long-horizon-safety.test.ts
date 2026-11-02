@@ -19,6 +19,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   approvedTaperDose?:true;forwardCheck?:true;expandedTaperSources?:true;
   sourceCertifiedPeak?:true;
   shortEasyTaperApproved?:true;
+  distinctSportClock?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -125,6 +126,19 @@ const matrix:readonly Case[]=[
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     shortEasyTaperApproved:true},
+  // V341: exact same dose/athlete/sports as the V337 witnesses, but a
+  // separately DECLARED non-overlapping per-sport appointment calendar.
+  // Never silently edits a coach's original appointments.
+  {id:'marathon-16w-source-fit-distinct-clock',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true},
+  {id:'marathon-40w-source-fit-distinct-clock',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -180,6 +194,19 @@ const wideRecoveryClock=(slot:{week:number;dayIndex:number;sport:string})=>({
   utcOffsetMinutes:Date.UTC(2026,9,26+(slot.week-1)*7+slot.dayIndex)>=
     Date.UTC(2027,2,28)?120:60,
 });
+/** V341: distinct SYNTHETIC coach-confirmed appointments by sport. The
+ * running clock and all original fixture calendars are unchanged. A second
+ * sport on the same day is NOT placed at the run's start time by default.
+ * These are explicit test-only declarations, never inferred athlete times. */
+const distinctConfirmedSportClock=(slot:{week:number;dayIndex:number;sport:string})=>{
+  const base=wideRecoveryClock(slot);
+  const minutesBySport:Record<string,readonly number[]>={
+    bike:[660,660,840,1020,720,780,900],
+    strength:[900,900,1080,1200,540,600,720],
+    swim:[1200,1200,360,480,600,480,540],
+  };
+  return {...base,minuteOfDay:minutesBySport[slot.sport]?.[slot.dayIndex]??base.minuteOfDay};
+};
 const strengthSourceIds=[
   'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
   'V3P_STRENGTH_104','V3P_STRENGTH_105','V3P_STRENGTH_106',
@@ -290,13 +317,16 @@ function runScenario(s:Case){
         (baseFilter?.(card,ctx)??true),
       enforceWeeklyHoursCap:true,
       enforceCalendarSafeV3Recovery:true,
-      ...(s.declaredClock||s.wideRecoveryClock?{
-        coachSlotStart:s.wideRecoveryClock?wideRecoveryClock:declaredClock,
+      ...(s.declaredClock||s.wideRecoveryClock||s.distinctSportClock?{
+        coachSlotStart:s.distinctSportClock?distinctConfirmedSportClock:
+          s.wideRecoveryClock?wideRecoveryClock:declaredClock,
         coachSessionStart:(session:{weekNumber:number;dayIndex:number;sport:string})=>
-          (s.wideRecoveryClock?wideRecoveryClock:declaredClock)({
+          (s.distinctSportClock?distinctConfirmedSportClock:
+            s.wideRecoveryClock?wideRecoveryClock:declaredClock)({
             week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport,
           }),
       }:{}),
+      ...(s.distinctSportClock?{enforceConfirmedNoSameDayOverlap:true as const}:{}),
       improveV3RecoveryLayout:true,
       ...(s.forwardCheck?{enableV333ForwardCheck:true as const}:{}),
       ...(s.sourceCertifiedPeak?{enableV335SourceRunningPeak:true as const}:{}),
@@ -361,6 +391,7 @@ function runScenario(s:Case){
     forwardCheck:s.forwardCheck===true,
     sourceCertifiedPeak:s.sourceCertifiedPeak===true,
     shortEasyTaperApproved:s.shortEasyTaperApproved===true,
+    distinctSportClock:s.distinctSportClock===true,
     expandedTaperSources:s.expandedTaperSources===true,
     searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
@@ -376,6 +407,13 @@ function runScenario(s:Case){
     weeksConstructed:out.candidate?.weeks.length??0,nodes:out.nodes,
     reason:out.reason??null,selectedApprovedSources:chosen.length,
     blockingCodes:[...new Set(blockers.map(issue=>issue.code))],
+    nativeGateEvidence:blockers.filter(issue=>[
+      'v3_coach_session_overlap','load_pattern','limiter_coherence',
+      'lorang_categories','det_v316_strict_periodization_not_proven',
+    ].includes(issue.code)).slice(0,14).map(issue=>({
+      week:issue.week??null,code:issue.code,
+      message:issue.message?.slice(0,350)??null,
+    })),
     blockingExamples:blockers.slice(0,4).map(issue=>({
       week:issue.week??null,code:issue.code,message:issue.message?.slice(0,320)??null,
     })),
