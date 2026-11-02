@@ -1251,7 +1251,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     }));
   if(experimentalContract?.requireExplicitTaperSemanticReview===true){
     const adjudication=reconcileReviewedTaperSemantics({
-      plan:result.candidate!,nativeIssues,cards:catalog,
+      plan:result.candidate!,nativeIssues,
+      cards:[...new Map([
+        ...Object.values(preparation.phaseRepairCatalogs).flat(),
+        ...preparation.chunkRepairCatalogs.flat(),
+        ...preparation.chunkRegenRepairCatalogs.flat(),
+      ].map(card=>[card.id,card])).values()],
       source:experimentalContract.sourceFullStructuredDoseForId,
       athleteContextId:experimentalContract.taperSemanticAthleteContextId??'',
       explicitReviewFor:experimentalContract.explicitTaperReviewForSession??
