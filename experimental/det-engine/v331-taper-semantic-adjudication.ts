@@ -98,6 +98,13 @@ export function reconcileReviewedTaperSemantics(args:{
       }
       const proof=verifyReviewedTaperKeyStimulus(session,card,args.source);
       if(proof.verified===false){refuse(session,'source_proof_'+proof.reason);continue;}
+      // The Z4–Z6 aggregate does NOT by itself prove a controlled MLSS
+      // reminder. A Z5/VO2 or Z6 source must never be authorized using a
+      // review whose specific intent is brief MLSS in taper.
+      if(card.mainZoneMax!==4||
+         session.zones?.some(zone=>/z\\s*[5-7]/i.test(zone))){
+        refuse(session,'taper_mlss_intent_must_match_z4_source_domain');continue;
+      }
       let review:ExplicitTaperCoachReview|null|undefined;
       try{review=args.explicitReviewFor(session);}catch{review=null;}
       if(!review||review.individuallyApproved!==true||
