@@ -46,7 +46,7 @@ describe('DET V335 — evidence of actual semi/marathon specific running dose',(
     const approve=()=>reviewed(id);
     expect(verifyReviewedRunningRaceSpecific(s(id,{sport:'bike'}),'semi',
       approve,()=>d(id)).verified).toBe(false);
-    expect(verifyReviewedRunningRaceSpecific(s(id,{catalogId:null}),'semi',
+    expect(verifyReviewedRunningRaceSpecific(s(id,{catalogId:undefined}),'semi',
       approve,()=>d(id)).verified).toBe(false);
     expect(verifyReviewedRunningRaceSpecific(s(id,{durationMin:0}),'semi',
       approve,()=>d(id)).verified).toBe(false);
