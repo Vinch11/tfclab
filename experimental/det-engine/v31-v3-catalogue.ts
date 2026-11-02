@@ -394,6 +394,11 @@ export function buildDetV3ContractFromCatalogue(
       if(!report.accepted.some(source=>source.id===id))return null;
       return matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
     },
+    reviewedSourceLimiterKeysForId(id){
+      // Only the individually admitted V3 registry may supply limiter intent.
+      // No inference from session title, free text or unreviewed library IDs.
+      return reviewedSourceLimiters.get(id)??null;
+    },
     reviewedRunningSpecificForId(id){
       const card=report.accepted.find(m=>m.id===id);
       const source=configuredById.get(id);
