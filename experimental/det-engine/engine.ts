@@ -103,6 +103,10 @@ export interface ExperimentalAssemblyContract {
   /** V315 experimental-only: require real >=30% recovery-week time reduction
    * while selecting candidates, not after accepting a whole calendar. */
   requireMeasuredDeloadSelection?:true;
+  /** V343 experimental: demand an exact, individually reviewed Z4–Z6 V3
+   * stimulus on a RUN key slot of every non-race LOAD week. This does not
+   * replace Lorang, limiter coherence or the native periodization validator. */
+  requireReviewedRunningKeyQualityOnLoadWeeks?:true;
   /** V316 opt-in: a native periodization warning cannot count as strict sporting GO. */
   requireStrictPeriodizationEvidence?:true;
   /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
@@ -705,9 +709,29 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         entry.weekType!=='recovery'&&entry.weekType!=='race'&&
         !layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent)) &&
         !/d[eé]charge|recovery|r[eé]cup[eé]ration/i.test(w.phase??'');
-      const qualityRequired=(sourceQualityOnLoad||nativeLorangWeekQuality) &&
-        config.ambition!=='finisher'&&triGoal;
+      const runningQualityRequired=
+        experimentalContract?.requireReviewedRunningKeyQualityOnLoadWeeks===true&&
+        (runningGoal==='semi'||runningGoal==='marathon')&&
+        entry.weekType==='load'&&!layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent));
+      const qualityRequired=((sourceQualityOnLoad||nativeLorangWeekQuality) &&
+        config.ambition!=='finisher'&&triGoal)||runningQualityRequired;
+      const runningQualityCache=new WeakMap<ParsedSession,boolean>();
       const isQuality=(session:ParsedSession)=>{
+        if(runningQualityRequired){
+          const cached=runningQualityCache.get(session);
+          if(cached!==undefined)return cached;
+          let proven=false;
+          if(session.isKeySession&&session.sport==='run'&&session.catalogId&&
+             typeof session.durationMin==='number'){
+            const dose=experimentalContract?.sourceFullStructuredDoseForId?.(
+              session.catalogId,session.durationMin);
+            proven=!!dose&&dose.provenance==='v3_individually_configured_blocks_only'&&
+              dose.sourceIds.length===1&&dose.sourceIds[0]===session.catalogId&&
+              dose.high>0;
+          }
+          runningQualityCache.set(session,proven);
+          return proven;
+        }
         // V330: reviewed V3 BLOCKS, never a Z4 label, decide taper quality.
         // This does not waive the separate native phase validator.
         if(experimentalContract?.requireSourceVerifiedTaperQuality===true&&
@@ -719,6 +743,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return !!session.isKeySession&&
           session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
       };
+      // V343: prioritize truly verified intensity on existing key slots.
+      // Source, dose, frequency, clocks and every validator remain unchanged.
+      if(runningQualityRequired)for(const item of order){
+        if(item.slot.slot.isKeySession)item.domain.sort((a,b)=>
+          Number(isQuality(b))-Number(isQuality(a)));
+      }
       const requiresRaceSpecificPeak=
         experimentalContract?.requireStrictPeriodizationEvidence===true &&
         w.phase?.trim().toLowerCase()==='peak' &&
@@ -730,6 +760,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const qualitySuffix=Array(order.length+1).fill(false) as boolean[];
       for(let i=order.length-1;i>=0;i--)
         qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
+      if(runningQualityRequired&&!qualitySuffix[0]){
+        result.issues.push({code:'det_v343_running_quality_domain_unavailable',
+          week:w.week,severity:'blocking',message:JSON.stringify({
+            week:w.week,sourceBackedKeyQualityCandidates:0,
+            proof:'no_individually_reviewed_v3_z4_z6_source_in_existing_key_slots',
+            scope:'this_athlete_week_approved_source_domains_only',
+            noNewWorkoutOrClockInvented:true,notGlobalImpossibility:true,
+          })});
+        return refuse('v343_running_quality_domain_unavailable_week_'+w.week);
+      }
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
       for(let i=order.length-1;i>=0;i--)minimumSuffix[i]=minimumSuffix[i+1]+Math.min(...order[i].domain.map(s=>s.durationMin??0));
       const requireStrictNativeZones=
@@ -1092,6 +1132,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             }),
           });
         }
+        if(runningQualityRequired)result.issues.push({
+          code:'det_v343_running_quality_search_unresolved',
+          week:w.week,severity:'blocking',message:JSON.stringify({
+            verifiedCandidateDomainPresent:qualitySuffix[0],
+            searchBudgetExhausted:exhausted,scope:'current_reviewed_week_domains',
+            noSportsOrDosesInvented:true,
+          }),
+        });
         if(finalRatioGate)result.issues.push({
           code:'det_v314_final_load_ratio_search_unresolved',
           week:w.week,severity:'blocking',message:JSON.stringify({
@@ -1148,6 +1196,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
       }
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
+      if(runningQualityRequired)result.issues.push({
+        code:'det_v343_running_source_quality_verified',
+        week:w.week,severity:'warning',message:JSON.stringify({
+          week:w.week,sourceDoses:chosen.filter(isQuality).map(s=>({
+            sourceId:s.catalogId,durationMin:s.durationMin,
+            highMin:experimentalContract?.sourceFullStructuredDoseForId?.(
+              s.catalogId!,s.durationMin)?.high??null,
+          })),
+          provenance:'individual_v3_blocks_exact_dose',
+          nativeQualityAndPeriodizationValidationPreserved:true,
+          scientificAttestation:false,
+        }),
+      });
       if(experimentalContract?.requireSourceVerifiedTaperQuality===true &&
          entry.weekType==='taper'){
         const proof=chosen.flatMap(s=>{
