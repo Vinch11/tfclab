@@ -19,7 +19,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p nolio-v2-contract
-          curl --fail --silent --show-error --location --proto '=https' --max-time 90 --retry 2 \
+          curl --fail --silent --show-error --location --compressed --proto '=https' --max-time 90 --retry 2 \
+            --header 'Accept: application/vnd.oai.openapi+json' \
             --dump-header nolio-v2-contract/openapi.headers \
             https://www.nolio.io/api/v2/openapi.json \
             --output nolio-v2-contract/openapi.json
