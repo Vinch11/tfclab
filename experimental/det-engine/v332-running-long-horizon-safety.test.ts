@@ -31,6 +31,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningQualitySlotMargin?:true;
   marathonHorizonEvidence?:true;
   marathonSpecificityReconciliation?:true;
+  measuredMarathonMesocycles?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -289,7 +290,8 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
-    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true},
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
+    measuredMarathonMesocycles:true},
   {id:'marathon-40w-quality-slot-margin-25k',fixture:'B-MARATHON',
     goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
@@ -299,7 +301,8 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
-    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true},
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
+    measuredMarathonMesocycles:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -500,6 +503,7 @@ function runScenario(s:Case){
       ...(s.runningEasyMarginPriority?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
       ...(s.runningQualitySlotMargin?{prioritizeRunningQualitySlotByMargin:true as const}:{}),
       ...(s.marathonHorizonEvidence?{auditMarathonHorizonEvidence:true as const}:{}),
+      ...(s.measuredMarathonMesocycles?{enableVerifiedMarathonMesocycles:true as const}:{}),
       ...(s.marathonSpecificityReconciliation?{reconcileReviewedMarathonSpecificityLexicalWarning:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
@@ -544,6 +548,13 @@ function runScenario(s:Case){
       }
       expect(knownMinutes).toBeLessThanOrEqual(s.weeklyHours*60+1e-7);
     }
+  }
+  if(s.measuredMarathonMesocycles&&out.technicallyConstructed){
+    const meso=out.issues.find(i=>i.code.startsWith('det_v353_'));
+    // A full length alone must never count; exact measured deload boundaries
+    // are mandatory on this opt-in real-solver witness.
+    expect(meso?.code).toBe('det_v353_measured_marathon_mesocycles_verified');
+    expect(out.candidate?.phases.some(p=>p.name.startsWith('build - mesocycle'))).toBe(true);
   }
   if(s.marathonHorizonEvidence){
     const evidence=out.issues.find(i=>i.code.startsWith('det_v351_marathon_'));
@@ -598,6 +609,9 @@ function runScenario(s:Case){
     runningCandidatePriority:s.runningCandidatePriority===true,
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningQualitySlotMargin:s.runningQualitySlotMargin===true,
+    measuredMarathonMesocycles:s.measuredMarathonMesocycles?
+      out.issues.filter(i=>i.code.startsWith('det_v353_'))
+        .map(i=>({code:i.code,evidence:JSON.parse(i.message??'{}')})):undefined,
     marathonSpecificityReconciliation:s.marathonSpecificityReconciliation?
       out.issues.filter(i=>i.code.startsWith('det_v352_'))
         .map(i=>({code:i.code,evidence:JSON.parse(i.message??'{}')})):undefined,
