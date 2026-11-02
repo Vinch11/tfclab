@@ -641,7 +641,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         config.ambition!=='finisher'&&triGoal;
       const isQuality=(session:ParsedSession)=>{
         const labelled=!!session.isKeySession&&
-          session.zones?.some(zone=>/z\\s*[4-7]/i.test(zone))===true;
+          session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
         if(!labelled)return false;
         if(experimentalContract?.requireSourceVerifiedTaperQuality!==true ||
            entry.weekType!=='taper')return true;
