@@ -98,18 +98,18 @@ const matrix:readonly Case[]=[
   // It does not rename a workout or waive the native phase validator.
   {id:'semi-8w-certified-peak',fixture:'B-SEMI',goal:'Semi',weeks:8,
     weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
-    expandedTaperSources:true,sourceCertifiedPeak:true},
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true},
   {id:'semi-30w-certified-peak',fixture:'B-SEMI',goal:'Semi',weeks:30,
     weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
-    expandedTaperSources:true,sourceCertifiedPeak:true},
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true},
   {id:'marathon-16w-certified-peak',fixture:'B-MARATHON',goal:'Marathon',
     weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
-    expandedTaperSources:true,sourceCertifiedPeak:true},
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true},
   {id:'marathon-40w-certified-peak',fixture:'B-MARATHON',goal:'Marathon',
     weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
-    expandedTaperSources:true,sourceCertifiedPeak:true},
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
