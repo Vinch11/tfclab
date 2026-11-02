@@ -133,6 +133,8 @@ export interface ExperimentalAssemblyContract {
   taperSemanticAthleteContextId?:string;
   explicitTaperReviewForSession?:(session:ParsedSession)=>
     ExplicitTaperCoachReview|null|undefined;
+  /** V333 opt-in: necessary forward checking, never a sporting exemption. */
+  enableV333ForwardCheck?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
    * unknown intensity minutes on load weeks; no physiological attestation. */
   requireNativePolarizationOnLoadWeeks?:true;
@@ -377,6 +379,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const layout=entry.layout!;
       const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
       finalizedSourceMetadata=catalog;
+      const catalogById=new Map(catalog.map(m=>[m.id,m]));
+      const weekNodesAtStart=result.nodes;
       const allowedIds=new Set(w.eligible.map(m=>m.id));
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
       const eventDay=layout.days.findIndex(d=>d.slots.some(s=>s.isRaceEvent));
@@ -896,13 +900,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
         for(const session of order[index].domain) {
           const id=session.catalogId;
-          const m=id?catalog.find(m=>m.id===id):undefined;
+          const m=id?catalogById.get(id):undefined;
           if(m&&(weeklyUsage.get(id!)??0)>=Math.min(1,catalogueWeeklyUsageCapacity(m)))continue; // B13 forbids intra-week duplicate IDs.
           const sourceKeys=m?(experimentalContract?.consumedSourceIds?.(m)??[]).map(src=>'v3-source:'+src):[];
           if(sourceKeys.some(key=>(weeklyUsage.get(key)??0)>=1))continue;
           // Preserve the existing layout's 48h separation for quality of the same sport.
           const quality=m&&m.mainZoneMax>=3;
-          if(quality&&chosen.some(s=>s.sport===session.sport&&Math.abs(s.dayIndex-session.dayIndex)<2&&(catalog.find(m=>m.id===s.catalogId)?.mainZoneMax??0)>=3))continue;
+          if(quality&&chosen.some(s=>s.sport===session.sport&&Math.abs(s.dayIndex-session.dayIndex)<2&&(catalogById.get(s.catalogId??'')?.mainZoneMax??0)>=3))continue;
           chosen.push(session);if(id)weeklyUsage.set(id,(weeklyUsage.get(id)??0)+1);
           for(const key of sourceKeys)weeklyUsage.set(key,(weeklyUsage.get(key)??0)+1);
           if(search(index+1,total+(session.durationMin??0)))return true;
