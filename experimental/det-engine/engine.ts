@@ -867,7 +867,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             eligibleSlots:order.length,
             provenRaceSpecificSourceCandidates:0,
             previousPeakSourceSeen:peakRaceSpecificSeen,
-            nativePatternMirrored:true,
+            nativePatternMirrored:!sourceSpecificEnabled,
+            proofKind:sourceSpecificEnabled?'athlete_reviewed_v3_blocks':'native_text',
             remedy:'coach review of appropriate source coverage or phase layout',
             noArtificialIntensityOrWorkoutInserted:true,
           }),
@@ -1095,8 +1096,19 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }),
       });
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
-      if(w.phase?.trim().toLowerCase()==='peak'&&
-         chosen.some(hasProvenRaceSpecificity))peakRaceSpecificSeen=true;
+      if(w.phase?.trim().toLowerCase()==='peak'){
+        const proven=chosen.filter(hasProvenRaceSpecificity);
+        if(proven.length)peakRaceSpecificSeen=true;
+        if(sourceSpecificEnabled&&proven.length){
+          result.issues.push({code:'det_v335_source_certified_peak_selected',
+            week:w.week,severity:'warning',message:JSON.stringify({
+              approvedSourceDoses:proven.map(s=>({id:s.catalogId,
+                durationMin:s.durationMin})),
+              sourceProofRequired:true,doesNotOverrideNativeValidator:true,
+              scientificAttestation:false,
+            })});
+        }
+      }
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       if(experimentalContract?.requireSourceVerifiedTaperQuality===true &&
          entry.weekType==='taper'){
