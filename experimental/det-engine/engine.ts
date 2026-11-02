@@ -41,6 +41,7 @@ import {assessQualityAnchoredSourceMatching} from './v345-quality-source-matchin
 import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conflict';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {auditMarathonHorizon} from './v351-marathon-horizon-evidence';
+import {proposeMeasuredMarathonMesocycles} from './v353-measured-marathon-mesocycles';
 import {reconcileReviewedMarathonSpecificity} from './v352-reviewed-marathon-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
@@ -168,6 +169,9 @@ export interface ExperimentalAssemblyContract {
   reviewedSourceLimiterKeysForId?:(id:string)=>readonly string[]|null|undefined;
   /** V351: strict 16/40-week audit; cannot suppress any native validator. */
   auditMarathonHorizonEvidence?:true;
+  /** V353: split long marathon Build only at REAL >=30% measured deloads.
+   * Does not change the workout selection, phase source eligibility or quotas. */
+  enableVerifiedMarathonMesocycles?:true;
   /** V352: replace only a source-proven false-negative native text warning. */
   reconcileReviewedMarathonSpecificityLexicalWarning?:true;
   /** V333 opt-in: necessary forward checking, never a sporting exemption. */
@@ -1374,6 +1378,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.enableVerifiedMarathonMesocycles===true&&
+       normalizeRepairGoal(config.objective??'')==='marathon'){
+      const proof=proposeMeasuredMarathonMesocycles(plan);
+      if(proof.verified)plan.phases=proof.projectedPhases;
+      result.issues.push({
+        code:proof.verified?'det_v353_measured_marathon_mesocycles_verified':
+          'det_v353_measured_marathon_mesocycles_unverified',
+        severity:proof.verified?'warning':'blocking',
+        message:JSON.stringify({mesocycles:proof.mesocycles,
+          originallyLongBuildStreaks:proof.originallyLongBuildStreaks,
+          projectedPhases:proof.verified?proof.projectedPhases:[],
+          refusals:proof.refusals,workoutsAndQuotasUnchanged:true,
+          nativeValidatorsPreserved:true,scientificAttestation:false}),
+      });
+    }
     if(experimentalContract?.auditGlobalSourceSportRatioBounds===true&&
        ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
       const objective=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
