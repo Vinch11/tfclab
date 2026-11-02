@@ -112,7 +112,15 @@ Avant ouverture : consigner version QA acceptée, version UI/moteur, backend, je
 
 Retour arrière : désactiver l'entrée DET et restaurer la version applicative préalablement épinglée ; conserver IA disponible et l'historique des versions ; ne supprimer aucune version et ne relâcher aucune politique RLS. Une restauration d'un ancien plan suit la voie normale avec une nouvelle confirmation. Aucun retour arrière de données n'est exécuté automatiquement.
 
-## État courant — reprise puis blocage de crédits Lovable
+## Reprise en cours — 2 novembre 2026
+
+Après la demande de reprise de Vincent, le nouveau message Lovable a été accepté (`umsg_01m6ert0fvetfaf603p7ny5dbp`). La recette avec la session B existante a redémarré ; la finalisation du correctif V2 est en file ensuite. Il n'y a pas encore de rapport final de ces lots : la réparation du build et les écritures JWT ne sont pas déclarées réussies à ce stade.
+
+Contrôle indépendant avant recette, par SELECT administrateur en lecture seule : A conserve quatre versions et un plan courant, avec empreintes **exactement identiques** aux références (`543e381a32500dfcf59bc1e384d3e752`, `34230fb711707b19d9766814105f0a33`). B n'a encore aucune version ni plan courant ; zéro revue et zéro opération Nolio. Ce contrôle prouve l'intégrité de départ, pas l'exécution d'une écriture sous JWT.
+
+Les travaux demandés restent : compilation rétablie ; réservation V2 atomique réellement implémentée et éprouvée ; réconciliation conservatrice ; validation runtime ; client HTTP/Edge commun ; créneaux persistés ; contrôles lint/WebKit/PDF ; recette B avec pertes de réponse, sans contourner l'accès A indisponible. Les preuves finales doivent distinguer ces points et conserver le pilote désactivé.
+
+## Dernier arrêt documenté — crédits Lovable
 
 Vincent a validé l'invite dans Lovable : la première pause a été levée et deux lots supplémentaires ont terminé. Le dernier lot de réparation est resté partiel, puis une tentative explicite de finalisation a été refusée par le connecteur : **« Your workspace is out of credits, so Lovable can't send this message. »** Il n'existe aucune nouvelle carte d'approbation en attente. La demande de réparation n'a pas été acceptée. Aucun achat ni changement d'abonnement n'est effectué.
 
