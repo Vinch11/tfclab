@@ -16,7 +16,7 @@ type RunningGoal='Semi'|'Marathon';
 type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
   declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
   unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
-  approvedTaperDose?:true;};
+  approvedTaperDose?:true;forwardCheck?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
@@ -45,6 +45,18 @@ const matrix:readonly Case[]=[
   {id:'marathon-40w-two-slots-wide-clock',fixture:'B-MARATHON',goal:'Marathon',
     weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true},
+  // V333 paired A/B experiments: SAME reviewed sources, athlete and clock.
+  // Only the necessary forward-check mode changes. Historical cases stay.
+  {id:'semi-8w-wide-clock-forward',fixture:'B-SEMI',goal:'Semi',weeks:8,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true},
+  {id:'semi-30w-wide-clock-forward',fixture:'B-SEMI',goal:'Semi',weeks:30,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true},
+  {id:'marathon-16w-two-slots-wide-clock-forward',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true},
+  {id:'marathon-40w-two-slots-wide-clock-forward',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true},
   // Coaches who actually declared a COMPATIBLE ambition, load and schedule:
   // no auto-downgrade of the original world-class/9-hour witness.
   {id:'marathon-16w-declared-competitor',fixture:'B-MARATHON',goal:'Marathon',
@@ -192,6 +204,7 @@ function runScenario(s:Case){
           }),
       }:{}),
       improveV3RecoveryLayout:true,
+      ...(s.forwardCheck?{enableV333ForwardCheck:true as const}:{}),
       requireRealQualityOnLoadWeeks:true,
       filterDeclaredSprintBanCandidates:true,
       excludeNativeForbiddenTaperCandidates:true,
@@ -250,6 +263,11 @@ function runScenario(s:Case){
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     approvedTaperDose:s.approvedTaperDose===true,
+    forwardCheck:s.forwardCheck===true,
+    v333WeekNodeDiagnostics:out.issues.filter(i=>
+      i.code==='det_v333_week_search_diagnostic').map(i=>({
+        week:i.week,...JSON.parse(i.message??'{}') as Record<string,unknown>,
+      })),
     admittedCrossTrainingSources:report.accepted.filter(card=>card.sport==='bike').length,
     admittedRunSources:report.accepted
       .filter(card=>card.sport==='run').length,
