@@ -23,6 +23,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   coachDeclaredRunOnly?:true;
   measuredRecoveryProof?:true;
   runningQualityProof?:true;
+  runningQualityPriority?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -180,6 +181,21 @@ const matrix:readonly Case[]=[
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     shortEasyTaperApproved:true,distinctSportClock:true,
     measuredRecoveryProof:true,runningQualityProof:true,largerSearchBudget:true},
+  // V344 paired A/B against V343: same athlete, approvals, clocks, strict
+  // quality and deload gates, and search budgets. Change ORDER only.
+  {id:'marathon-16w-quality-key-first',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,runningQualityPriority:true},
+  {id:'marathon-40w-quality-key-first',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,runningQualityPriority:true,
+    largerSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -360,6 +376,7 @@ function runScenario(s:Case){
       }:{}),
       ...(s.distinctSportClock?{enforceConfirmedNoSameDayOverlap:true as const}:{}),
       ...(s.runningQualityProof?{requireReviewedRunningKeyQualityOnLoadWeeks:true as const}:{}),
+      ...(s.runningQualityPriority?{prioritizeVerifiedRunningQualitySlot:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -445,6 +462,7 @@ function runScenario(s:Case){
     coachDeclaredRunOnly:s.coachDeclaredRunOnly===true,
     measuredRecoveryProof:s.measuredRecoveryProof===true,
     runningQualityProof:s.runningQualityProof===true,
+    runningQualityPriority:s.runningQualityPriority===true,
     runningQualityIssues:s.runningQualityProof?
       out.issues.filter(i=>i.code.startsWith('det_v343_'))
         .map(i=>({week:i.week??null,code:i.code,message:i.message??null})):undefined,
