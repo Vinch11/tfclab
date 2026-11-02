@@ -61,16 +61,18 @@ export function auditMarathonHorizon(
       typeof minutes==='number'&&Number.isFinite(minutes)&&minutes>0;
     if(isKey(session)){
       allKeySessions++;
-      if(!runSource){unknownKeySessions++;continue;}
-      let dose:StructuredZoneDose|null|undefined,keys:readonly string[]|null|undefined;
-      try{dose=proof.dose(id,minutes);keys=proof.limiterKeys(id);}
-      catch{unknownKeySessions++;continue;}
-      if(!matchingStructuredDose(dose??null,minutes)||dose!.sourceIds.length!==1||
-        dose!.sourceIds[0]!==id||dose!.provenance!=='v3_individually_configured_blocks_only'||
-        !Array.isArray(keys)){
-        unknownKeySessions++;continue;
+      if(!runSource||typeof id!=='string'||typeof minutes!=='number'){
+        unknownKeySessions++;
+      }else{
+        let dose:StructuredZoneDose|null|undefined,keys:readonly string[]|null|undefined;
+        try{dose=proof.dose(id,minutes);keys=proof.limiterKeys(id);}
+        catch{dose=null;keys=null;}
+        if(!matchingStructuredDose(dose??null,minutes)||dose!.sourceIds.length!==1||
+          dose!.sourceIds[0]!==id||dose!.provenance!=='v3_individually_configured_blocks_only'||
+          !Array.isArray(keys)){
+          unknownKeySessions++;
+        }else if(keys!.some(key=>canonical(key)==='tte'))verifiedMatches++;
       }
-      if(keys!.some(key=>canonical(key)==='tte'))verifiedMatches++;
     }
     if(week.phase?.trim().toLowerCase()==='peak'&&runSource){
       const decision=verifyReviewedRunningRaceSpecific(session,'marathon',
