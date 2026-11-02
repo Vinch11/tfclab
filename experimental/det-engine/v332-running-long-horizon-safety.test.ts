@@ -635,6 +635,9 @@ function runScenario(s:Case){
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningQualitySlotMargin:s.runningQualitySlotMargin===true,
     tteSourcePreferred:s.tteSourcePreferred===true,
+    tteSourceCandidateDomains:s.tteSourcePreferred?
+      out.issues.filter(i=>i.code==='det_v355_tte_candidate_domain_audit')
+        .map(i=>({week:i.week??null,evidence:JSON.parse(i.message??'{}')})):undefined,
     selectedVerifiedTteSources:s.tteSourcePreferred?
       out.issues.filter(i=>i.code==='det_v355_exact_tte_candidate_preference_audit')
         .flatMap(i=>JSON.parse(i.message??'{}').chosenVerifiedTteKeySources??[])
