@@ -27,6 +27,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   runningMatchingAudit?:true;
   runningCandidatePriority?:true;
   runningEasyMarginPriority?:true;
+  extendedStrictSearchBudget?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -253,6 +254,27 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     largerSearchBudget:true},
+  // V349: SAME fixed approved sources, athlete, all strict sporting gates;
+  // only bound the search at 25k/15s rather than 3k/2s or 7k/4.5s.
+  // These witnesses are NOT approvals even if they construct more weeks.
+  {id:'marathon-16w-strict-search-25k',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true},
+  {id:'marathon-40w-strict-search-25k',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -337,7 +359,8 @@ function runScenario(s:Case){
   // V346 exposed a 40/40 technical build that was otherwise easy to
   // misreport as evidence of source-backed Z4–Z6 sessions.
   if(s.id.includes('quality-candidate-first')||
-     s.id.includes('quality-easy-margin-first')){
+     s.id.includes('quality-easy-margin-first')||
+     s.id.includes('strict-search-25k')){
     expect(s.runningQualityProof).toBe(true);
     expect(s.measuredRecoveryProof).toBe(true);
     expect(s.runningCandidatePriority).toBe(true);
@@ -423,9 +446,12 @@ function runScenario(s:Case){
   const accepted=new Set(report.accepted.map(card=>card.id));
   const baseFilter=contract.filterCandidate;
   // A "valid" plan must never quietly fall back to an unreviewed native card.
-  const budgetNodes=s.largerSearchBudget?7000:3000;
+  const budgetNodes=s.extendedStrictSearchBudget?25000:
+    s.largerSearchBudget?7000:3000;
+  const budgetMilliseconds=s.extendedStrictSearchBudget?15000:
+    s.largerSearchBudget?4500:2000;
   const out=constructDeterministicPlan(athlete,config,
-    {maxNodes:budgetNodes,maxMilliseconds:s.largerSearchBudget?4500:2000},{
+    {maxNodes:budgetNodes,maxMilliseconds:budgetMilliseconds},{
       ...contract,requireReviewedAthleteContext:true,
       filterCandidate:(card,ctx)=>accepted.has(card.id)&&
         (baseFilter?.(card,ctx)??true),
@@ -568,7 +594,7 @@ function runScenario(s:Case){
           theme:week.theme};
       }):undefined,
     expandedTaperSources:s.expandedTaperSources===true,
-    searchBudgetNodes:budgetNodes,
+    searchBudgetNodes:budgetNodes,searchBudgetMilliseconds:budgetMilliseconds,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
       i.code==='det_v333_week_search_diagnostic').map(i=>({
         week:i.week,...JSON.parse(i.message??'{}') as Record<string,unknown>,
