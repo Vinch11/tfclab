@@ -1,0 +1,64 @@
+name: DET marathon focused evidence
+
+on:
+  pull_request:
+    paths:
+      - 'experimental/det-engine/**'
+      - 'scripts/library-v3/**'
+      - '.github/workflows/det-marathon-evidence.yml'
+
+jobs:
+  marathon-evidence:
+    name: Marathon 16w / 40w exact TTE evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Real solver and compact source evidence
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v332-running-long-horizon-safety.test.ts -t 'tte-source-preferred' > marathon-evidence.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+          rows = []
+          for line in Path("marathon-evidence.log").read_text().splitlines():
+              line = re.sub(r"\x1b\[[0-9;]*m", "", line)
+              marker = "DET_V332_RUNNING_REAL_SOLVER "
+              if marker not in line:
+                  continue
+              row = json.loads(line.split(marker, 1)[1])
+              domains = row.get("tteSourceCandidateDomains", [])
+              summary = {k: row.get(k) for k in (
+                  "scenario", "weeksRequested", "weeksConstructed",
+                  "technicallyConstructed", "nativeConstraintsSatisfied",
+                  "nodes", "reason", "blockingCodes", "blockingExamples",
+                  "nativeGateEvidence", "marathonExactSourceAudit",
+                  "measuredMarathonMesocycles", "marathonSpecificityReconciliation")}
+              summary["tteCandidateWeeks"] = domains
+              summary["selectedVerifiedTteSources"] = row.get("selectedVerifiedTteSources")
+              rows.append(summary)
+              print("MARATHON_EXACT_EVIDENCE " + json.dumps(summary, ensure_ascii=False))
+          Path("marathon-evidence.json").write_text(json.dumps(rows, indent=2))
+          if len(rows) != 2:
+              print(Path("marathon-evidence.log").read_text()[-12000:])
+              raise SystemExit("Expected both real-solver marathon witnesses")
+          PY
+          SUMMARY_STATUS=$?
+          if [ "$TEST_STATUS" -ne 0 ]; then tail -n 70 marathon-evidence.log; fi
+          if [ "$SUMMARY_STATUS" -ne 0 ]; then exit "$SUMMARY_STATUS"; fi
+          exit "$TEST_STATUS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: marathon-source-evidence
+          path: |
+            marathon-evidence.json
+            marathon-evidence.log
+          retention-days: 14
