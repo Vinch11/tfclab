@@ -399,6 +399,11 @@ export function buildDetV3ContractFromCatalogue(
       // No inference from session title, free text or unreviewed library IDs.
       return reviewedSourceLimiters.get(id)??null;
     },
+    reviewedSourcePrimaryDomainForId(id){
+      // Exact athlete-approved V3 source, not a domain guessed from prose.
+      if(!report.accepted.some(card=>card.id===id))return null;
+      return configuredById.get(id)?.primaryDomain??null;
+    },
     reviewedRunningSpecificForId(id){
       const card=report.accepted.find(m=>m.id===id);
       const source=configuredById.get(id);
