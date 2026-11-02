@@ -107,6 +107,9 @@ export interface ExperimentalAssemblyContract {
    * stimulus on a RUN key slot of every non-race LOAD week. This does not
    * replace Lorang, limiter coherence or the native periodization validator. */
   requireReviewedRunningKeyQualityOnLoadWeeks?:true;
+  /** V344 opt-in: prioritize an already-admissible source-backed quality KEY
+   * slot during DFS, not only a candidate within that slot. Ordering ONLY. */
+  prioritizeVerifiedRunningQualitySlot?:true;
   /** V316 opt-in: a native periodization warning cannot count as strict sporting GO. */
   requireStrictPeriodizationEvidence?:true;
   /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
@@ -748,6 +751,26 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(runningQualityRequired)for(const item of order){
         if(item.slot.slot.isKeySession)item.domain.sort((a,b)=>
           Number(isQuality(b))-Number(isQuality(a)));
+      }
+      if(runningQualityRequired&&
+         experimentalContract?.prioritizeVerifiedRunningQualitySlot===true){
+        // Most-constrained-first is otherwise overwhelmed by easy sessions
+        // before it ever visits the genuinely required quality key slot.
+        // All slot domains are untouched: reordering cannot make any
+        // physiologically forbidden choice eligible or bypass a native check.
+        const certifiedKey=(item:typeof order[number])=>
+          item.slot.slot.isKeySession&&item.domain.some(isQuality);
+        order.sort((a,b)=>Number(certifiedKey(b))-Number(certifiedKey(a))||
+          a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
+        result.issues.push({code:'det_v344_running_quality_slot_priority',
+          week:w.week,severity:'warning',message:JSON.stringify({
+            sourceVerifiedKeySlotCount:order.filter(certifiedKey).length,
+            firstSlot:{sport:order[0]?.slot.slot.sport??null,
+              dayIndex:order[0]?.slot.dayIndex??null,
+              hasSourceVerifiedKeyQuality:order[0]?certifiedKey(order[0]):false},
+            unchangedDomainsAndSportingGates:true,
+            thisIsSearchOrderNotSportingAttestation:true,
+          })});
       }
       const requiresRaceSpecificPeak=
         experimentalContract?.requireStrictPeriodizationEvidence===true &&
