@@ -17,6 +17,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
   unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
   approvedTaperDose?:true;forwardCheck?:true;expandedTaperSources?:true;
+  sourceCertifiedPeak?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -93,6 +94,22 @@ const matrix:readonly Case[]=[
     weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,largerSearchBudget:true},
+  // V335: same V334 approved source pool but source/dose-derived peak proof.
+  // It does not rename a workout or waive the native phase validator.
+  {id:'semi-8w-certified-peak',fixture:'B-SEMI',goal:'Semi',weeks:8,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,sourceCertifiedPeak:true},
+  {id:'semi-30w-certified-peak',fixture:'B-SEMI',goal:'Semi',weeks:30,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,sourceCertifiedPeak:true},
+  {id:'marathon-16w-certified-peak',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,sourceCertifiedPeak:true},
+  {id:'marathon-40w-certified-peak',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,sourceCertifiedPeak:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -243,6 +260,7 @@ function runScenario(s:Case){
       }:{}),
       improveV3RecoveryLayout:true,
       ...(s.forwardCheck?{enableV333ForwardCheck:true as const}:{}),
+      ...(s.sourceCertifiedPeak?{enableV335SourceRunningPeak:true as const}:{}),
       requireRealQualityOnLoadWeeks:true,
       filterDeclaredSprintBanCandidates:true,
       excludeNativeForbiddenTaperCandidates:true,
@@ -302,6 +320,7 @@ function runScenario(s:Case){
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
+    sourceCertifiedPeak:s.sourceCertifiedPeak===true,
     expandedTaperSources:s.expandedTaperSources===true,
     searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
