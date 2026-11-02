@@ -955,6 +955,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
+        if(experimentalContract?.enableV333ForwardCheck===true)
+          result.issues.push({code:'det_v333_week_search_diagnostic',week:w.week,
+            severity:'warning',message:JSON.stringify({
+              weekNodes:result.nodes-weekNodesAtStart,totalNodes:result.nodes,
+              budgetRemaining:Math.max(0,limits.maxNodes-result.nodes),
+              necessaryPrunes:strictPrunes,exhausted,notSportingAttestation:true,
+            })});
         // V3.26 — a missing genuine Z4+ key stimulus is a CERTIFIED
         // contradiction in these currently approved WEEK-SPECIFIC domains,
         // not a solver-budget failure and not a global impossibility proof.
@@ -1029,6 +1036,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
         return refuse(exhausted?'search_budget_exhausted':`no_catalogue_assignment_week_${w.week}`);
       }
+      if(experimentalContract?.enableV333ForwardCheck===true)
+        result.issues.push({code:'det_v333_week_search_diagnostic',week:w.week,
+          severity:'warning',message:JSON.stringify({
+            weekNodes:result.nodes-weekNodesAtStart,totalNodes:result.nodes,
+            budgetRemaining:Math.max(0,limits.maxNodes-result.nodes),
+            necessaryPrunes:strictPrunes,exhausted:false,notSportingAttestation:true,
+          })});
       if(finalRatioGate)result.issues.push({
         code:'det_v314_final_load_ratio_selected',week:w.week,severity:'warning',
         message:JSON.stringify({objective:objectiveForRatio,
