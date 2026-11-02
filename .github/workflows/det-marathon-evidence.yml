@@ -28,6 +28,7 @@ jobs:
           import json, re
           from pathlib import Path
           rows = []
+          calendars = []
           for line in Path("marathon-evidence.log").read_text().splitlines():
               line = re.sub(r"\x1b\[[0-9;]*m", "", line)
               marker = "DET_V332_RUNNING_REAL_SOLVER "
@@ -46,11 +47,19 @@ jobs:
               summary["tteCandidateOccurrences"] = sum(x["evidence"]["sourceVerifiedTteCandidates"] for x in domains)
               summary["selectedVerifiedTteSources"] = row.get("selectedVerifiedTteSources")
               rows.append(summary)
+              if row.get("reviewCalendar"):
+                  calendars.append({"scenario": row["scenario"], **row["reviewCalendar"]})
               print("MARATHON_EXACT_EVIDENCE " + json.dumps(summary, ensure_ascii=False))
           Path("marathon-evidence.json").write_text(json.dumps(rows, indent=2))
-          if len(rows) != 6:
+          Path("marathon-review-calendars.json").write_text(json.dumps(calendars, indent=2, ensure_ascii=False))
+          expected = {f"marathon-{w}w{suffix}-tte-source-preferred" for w in (16, 40) for suffix in ("", "-age_group", "-competitor")}
+          if len(rows) != 6 or {r["scenario"] for r in rows} != expected:
               print(Path("marathon-evidence.log").read_text()[-12000:])
-              raise SystemExit("Expected both real-solver marathon witnesses")
+              raise SystemExit("Expected six distinct real-solver marathon witnesses")
+          accepted = {r["scenario"] for r in rows if r["nativeConstraintsSatisfied"]}
+          required = {f"marathon-{w}w-age_group-tte-source-preferred" for w in (16, 40)}
+          if accepted != required or len(calendars) != 2:
+              raise SystemExit("Two strict sporting successes and four safety refusals are required")
           PY
           SUMMARY_STATUS=$?
           if [ "$TEST_STATUS" -ne 0 ]; then tail -n 70 marathon-evidence.log; fi
@@ -63,4 +72,5 @@ jobs:
           path: |
             marathon-evidence.json
             marathon-evidence.log
+            marathon-review-calendars.json
           retention-days: 14

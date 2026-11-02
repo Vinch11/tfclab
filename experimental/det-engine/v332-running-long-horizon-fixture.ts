@@ -433,6 +433,20 @@ export function runScenario(s:Case){
     blockingExamples:blockers.slice(0,4).map(issue=>({
       week:issue.week??null,code:issue.code,message:issue.message?.slice(0,320)??null,
     })),
+    reviewCalendar:s.declaredAmbition&&out.constraintsSatisfied?
+      {syntheticOnly:true,prescriptionAllowed:false,
+        weeks:out.candidate?.weeks.map(week=>({
+          week:week.weekNumber,phase:week.phase,theme:week.theme,
+          weekType:out.candidate?.weeklyQuotas?.[week.weekNumber]?.weekType,
+          sessions:week.sessions.map(session=>({
+            day:session.dayName,sport:session.sport,sourceId:session.catalogId??null,
+            durationMin:session.durationMin??null,isKeySession:!!session.isKeySession,
+            isRest:!!session.isRest,title:session.title,details:session.details,
+            exactDose:session.catalogId&&typeof session.durationMin==='number'?
+              contract.sourceFullStructuredDoseForId?.(
+                session.catalogId,session.durationMin)??null:null,
+          })),
+        }))}:undefined,
     clinicalAttestation:false,backendPersistenceTested:false,
   }));
   return out;
