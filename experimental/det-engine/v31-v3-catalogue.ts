@@ -388,6 +388,12 @@ export function buildDetV3ContractFromCatalogue(
       const ledger=matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
       return ledger?{low:ledger.low,nonLow:ledger.mid+ledger.high,unknown:ledger.unknown}:null;
     },
+    sourceFullStructuredDoseForId(id,chosenDurationMin){
+      // Source integrity, athlete approval and exact duration are already
+      // gated during ingestion; preserve actual Z4–Z6 minutes (not Z3+).
+      if(!report.accepted.some(source=>source.id===id))return null;
+      return matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
+    },
     reviewedRaceSpecificForId(id){
       // Only sources actually admitted after individual V3 review qualify.
       // Metadata comes from the preserved source's primary domain/intent,
