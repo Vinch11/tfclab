@@ -9,6 +9,7 @@ import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
 import type {RepairWorkoutMetadata} from '../../supabase/functions/_shared/repairSportingEquivalence';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {verifyReviewedTaperKeyStimulus,type ProvenTaperStimulus,type TaperSourceEvidence} from './v329-proven-taper-quality';
+import {matchingStructuredDose} from './v310-structured-zone-dose';
 
 export interface ExplicitTaperCoachReview {
   athleteContextId:string;sourceId:string;weekNumber:number;
@@ -71,9 +72,24 @@ export function reconcileReviewedTaperSemantics(args:{
          session.durationMin===0&&session.title.startsWith('COURSE :')&&
          session.details.startsWith('Épreuve déclarée ; durée à confirmer'))continue;
       const card=args.cards.find(c=>c.id===session.catalogId);
+      if(!card){refuse(session,'taper_workout_source_not_identified');continue;}
+      const endurance=['swim','bike','run','brick'].includes(session.sport);
+      // A harmless-looking title or Z2 label must not hide a real Z4 block.
+      // Check ALL taper endurance sources, not only labelled key sessions.
+      let ledger:ReturnType<NonNullable<TaperSourceEvidence>>|null=null;
+      if(endurance){
+        try{ledger=args.source?.(card.id,session.durationMin)??null;}
+        catch{ledger=null;}
+        if(!matchingStructuredDose(ledger??null,session.durationMin)||
+           ledger?.provenance!=='v3_individually_configured_blocks_only'||
+           ledger.sourceIds.length!==1||ledger.sourceIds[0]!==card.id){
+          refuse(session,'taper_training_source_dose_unverified');continue;
+        }
+      }
       const nativeForbidden=candidateViolatesNativeTaperPhase(session);
-      if(!nativeForbidden&&!(card&&card.mainZoneMax>=4)&&
-         !session.zones?.some(z=>highZone.test(z)))continue;
+      if(!nativeForbidden&&card.mainZoneMax<4&&
+         !session.zones?.some(z=>highZone.test(z))&&
+         (ledger?.high??0)===0)continue;
       const text=session.title+' '+session.details;
       if(nativeForbidden &&
          (!thresholdWord.test(text)||dangerousContent.test(text))){
