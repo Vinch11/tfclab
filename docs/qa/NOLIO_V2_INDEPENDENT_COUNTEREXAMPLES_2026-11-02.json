@@ -63,10 +63,20 @@
           "resolved": "2027-10-31 02:00"
         }
       ],
-      "expected": "Resolve actual session instant with round-trip verification; reject nonexistent/ambiguous times unless explicitly disambiguated."
+      "expected": "Resolve actual session instant with round-trip verification; reject nonexistent/ambiguous times unless explicitly disambiguated.",
+      "correction": "Independently verified fixed at fe3dbb80, including nonexistent/ambiguous 02:30 cases"
+    },
+    {
+      "case": "objective_wildcard_still_overbroad",
+      "sourceMetadataSha": "fe3dbb80c4316d24d3016ba01de505f544af6b81",
+      "observed": "coachObjectiveKey('Marathon de trail') returns marathon",
+      "expected": "Qualified route objective must not be inferred from a free event name; explicit unsupported goal refusal.",
+      "status": "correction instructed"
     }
   ],
-  "correctionStatus": "queued_after_coach_input_finalization",
+  "correctionStatus": "partial_unverified_build_broken; continuation blocked by workspace out of credits",
   "pilot": "not_activated",
-  "production": "NO-GO"
+  "production": "NO-GO",
+  "currentQaSha": "6c45fd912a1310b7184d071a7a558440167488a5",
+  "lastCompilingQaSha": "fe3dbb80c4316d24d3016ba01de505f544af6b81"
 }
