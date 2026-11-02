@@ -213,6 +213,23 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   } else {
     const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
     experimentalContract?.adapt(preparation,config);
+    // V334: adaptation is the ONLY writer of the source pools. Freeze one
+    // identical, ID-deduplicated catalogue for prevalidation and every week.
+    // This removes redundant 30–40-week catalogue joins and sport scans,
+    // without changing card order, eligibility, quotas, doses or safety gates.
+    const catalog=[...new Map([
+      ...Object.values(preparation.phaseRepairCatalogs).flat(),
+      ...preparation.chunkRepairCatalogs.flat(),
+      ...preparation.chunkRegenRepairCatalogs.flat(),
+    ].map(m=>[m.id,m])).values()];
+    const catalogById=new Map(catalog.map(m=>[m.id,m]));
+    const catalogBySport=new Map<ReturnType<typeof normalizeRepairSport>,typeof catalog>();
+    for(const card of catalog){
+      const sport=normalizeRepairSport(card.sport);
+      const existing=catalogBySport.get(sport);
+      if(existing)existing.push(card);
+      else catalogBySport.set(sport,[card]);
+    }
     // The current prepared weekly layout can contain OPTIONAL cross-training
     // slots even if the final athlete/phase-specific catalogue contains zero
     // admissible cards of that sport (e.g. an optional bike in a 10K-only plan).
@@ -253,13 +270,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         // Use EXACTLY the same physical catalogue as the deterministic
         // assignment below. The prevalidation source list can contain IDs
         // not present in these assembled pools; those cannot fill a slot.
-        const actualCatalog=[...new Map([
-          ...Object.values(preparation.phaseRepairCatalogs).flat(),
-          ...preparation.chunkRepairCatalogs.flat(),
-          ...preparation.chunkRegenRepairCatalogs.flat(),
-        ].map(m=>[m.id,m])).values()];
         const allowedIds=new Set(week.eligible.map(c=>c.id));
-        const eligibleSports=new Set(actualCatalog.filter(m=>allowedIds.has(m.id))
+        const eligibleSports=new Set(catalog.filter(m=>allowedIds.has(m.id))
           .map(m=>normalizeRepairSport(m.sport)));
         const optionalMissing=new Set<LayoutSport>();
         for(const day of entry.layout.days)for(const slot of day.slots){
@@ -377,9 +389,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     for(const w of report.weeks) {
       const entry=preparation.weeklyQuotas[w.week];
       const layout=entry.layout!;
-      const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
       finalizedSourceMetadata=catalog;
-      const catalogById=new Map(catalog.map(m=>[m.id,m]));
       const weekNodesAtStart=result.nodes;
       const allowedIds=new Set(w.eligible.map(m=>m.id));
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
@@ -418,7 +428,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
-        return catalog.filter(m=>allowedIds.has(m.id)&&normalizeRepairSport(m.sport)===slot.sport)
+        return (catalogBySport.get(slot.sport)??[]).filter(m=>allowedIds.has(m.id))
           .filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex))
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
           .filter(m=>!experimentalContract?.filterCandidate||experimentalContract.filterCandidate(m,{...context,week:w.week,slot,dayIndex}))
