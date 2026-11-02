@@ -262,6 +262,24 @@ function run(s:Scenario){
     expect(blockers).toHaveLength(0);
     expect(ratios).not.toBeNull();
     expect(proof).toBeDefined();
+    // V3.28: the recovered constrained S11 must use an EXISTING, individually
+    // reviewed source with exact structural taper dose; a Z4 label alone is
+    // not evidence of the stimulus or of safety.
+    if(s.objective==='703'&&s.weeklyHours<10){
+      const taper=result?.candidate?.weeks.find(w=>w.weekNumber===11);
+      const reviewedReminder=taper?.sessions.find(session=>
+        session.catalogId==='V3P_SWIM_160'&&session.isKeySession);
+      expect(reviewedReminder).toBeDefined();
+      expect(reviewedReminder?.durationMin).toBe(20);
+      const structured=contract.sourceStructuredZoneForId?.(
+        'V3P_SWIM_160',reviewedReminder?.durationMin);
+      expect(structured).toEqual({low:14,nonLow:4,unknown:2});
+      console.info('DET_V328_TAPER_SOURCE_PROOF',JSON.stringify({
+        profile:s.id,week:11,sourceId:reviewedReminder?.catalogId,
+        minutes:reviewedReminder?.durationMin,structured,
+        coachApproval:'synthetic_test_only',scientificAttestation:false,
+      }));
+    }
 
     // Independent numeric cross-check, not merely a reliance on a PASS flag.
     // Require 100% accounted tri-sport minutes and no unverified brick split.
