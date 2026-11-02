@@ -37,6 +37,7 @@ import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {hasDistinctSourceAssignment} from './v334-distinct-source-feasibility';
+import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conflict';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
@@ -877,6 +878,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
       if(minimumSuffix[0]>ceiling)return refuse(`minimum_catalogue_dose_exceeds_budget_week_${w.week}`);
       const strictPrunes:Record<string,number>={};
+      let rootSourceConflict:HallConflictWitness|null=null;
       const countPrune=(reason:string)=>{strictPrunes[reason]=(strictPrunes[reason]??0)+1;};
       function search(index:number,total:number):boolean {
         if(++result.nodes>limits.maxNodes||performance.now()-started>limits.maxMilliseconds){exhausted=true;return false;}
@@ -921,6 +923,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           // V334: a proof of impossible distinct-card allocation is a
           // safe necessary prune; an available matching is NEVER a pass.
           if(!hasDistinctSourceAssignment(remainingSourceDomains)){
+            if(index===0)rootSourceConflict=findHallConflictWitness(remainingSourceDomains);
             countPrune('v334_no_distinct_approved_source_matching');return false;
           }
           if(qualityRequired&&!possibleQuality){
@@ -997,6 +1000,20 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
+        if(rootSourceConflict){
+          result.issues.push({code:'det_v336_root_source_matching_conflict',
+            week:w.week,severity:'blocking',message:JSON.stringify({
+              ...rootSourceConflict,
+              conflictingSlots:rootSourceConflict.slotIndices.map(i=>({
+                dayIndex:order[i].slot.dayIndex,
+                day:order[i].slot.dayName,sport:order[i].slot.slot.sport,
+                isKeySession:!!order[i].slot.slot.isKeySession,
+              })),
+              scope:'this_athlete_week_approved_source_domains_only',
+              noGlobalAthleteImpossibilityClaim:true,
+              noNewSourceOrSessionInvented:true,
+            })});
+        }
         if(experimentalContract?.enableV333ForwardCheck===true)
           result.issues.push({code:'det_v333_week_search_diagnostic',week:w.week,
             severity:'warning',message:JSON.stringify({
