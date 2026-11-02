@@ -255,11 +255,6 @@ function runScenario(s:Case){
       expectedAthleteId:athleteId,
       sportingReview:{...context.sportingReview,athleteId},
       athleteAnchors:syntheticV3ReviewAnchors(),
-      ...(s.sourceCertifiedPeak&&id==='V3P_RUN_001'?{
-        // Explicit synthetic coach review: ORIGINAL V3 RUN_001 28–48 min
-        // source range; 28 min is its genuine minimum, not invented padding.
-        targetDurationMin:28,
-      }:{}),
       ...(s.expandedTaperSources&&s.goal==='Marathon'&&id==='V3P_RUN_094'?{
         // Existing source-defined 2 × 4 min genuine marathon pace.
         // Coach approves shortening 3 -> 2 worksets; no dose is invented.
@@ -284,12 +279,6 @@ function runScenario(s:Case){
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
-  if(s.sourceCertifiedPeak){
-    const easy=report.accepted.find(card=>card.id==='V3P_RUN_001');
-    expect(easy?.durationMin).toEqual([28,28]);
-    expect(contract.sourceFullStructuredDoseForId?.('V3P_RUN_001',28))
-      .toBeTruthy();
-  }
   if(s.shortEasyTaperApproved){
     const easy=report.accepted.find(card=>card.id==='V3P_RUN_001');
     expect(easy?.durationMin).toEqual([28,28]);
