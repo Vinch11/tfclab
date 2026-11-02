@@ -231,7 +231,7 @@ const matrix:readonly Case[]=[
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     shortEasyTaperApproved:true,distinctSportClock:true,
-    measuredRecoveryProof:true,runningQualityPriority:true,
+    measuredRecoveryProof:true,runningQualityProof:true,runningQualityPriority:true,
     runningMatchingAudit:true,runningCandidatePriority:true,
     largerSearchBudget:true},
   // V347 paired A/B: first source-certified quality key, then rank by exact
@@ -333,6 +333,15 @@ const eventDate=(weeks:number):string=>
   new Date(Date.UTC(2026,9,26+weeks*7-1)).toISOString().slice(0,10);
 
 function runScenario(s:Case){
+  // A long-horizon quality witness without its actual hard gate is INVALID.
+  // V346 exposed a 40/40 technical build that was otherwise easy to
+  // misreport as evidence of source-backed Z4–Z6 sessions.
+  if(s.id.includes('quality-candidate-first')||
+     s.id.includes('quality-easy-margin-first')){
+    expect(s.runningQualityProof).toBe(true);
+    expect(s.measuredRecoveryProof).toBe(true);
+    expect(s.runningCandidatePriority).toBe(true);
+  }
   const fixture=preparePrevalidationFixture(s.fixture);
   const athleteId='synthetic-v332-'+s.id;
   const athlete={...fixture.athleteData,nom:'synthetic DET V332 '+s.id,
