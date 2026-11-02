@@ -6,6 +6,7 @@
 import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
 import {matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
+import {verifyReviewedTteThresholdDose} from './v353-reviewed-tte-dose';
 import {proposeMeasuredMarathonMesocycles} from './v353-measured-marathon-mesocycles';
 
 export interface MarathonHorizonEvidence {
@@ -16,7 +17,8 @@ export interface MarathonHorizonEvidence {
   peakRaceSpecificSources:readonly {week:number;sourceId:string;minutes:number}[];
   buildMesocycleEvidence:{verified:boolean;segments:number;measuredRecoveryBoundaries:number};
   tte:{verifiedMatches:number;allKeySessions:number;unknownKeySessions:number;
-    percentage:number|null;minimumPercentage:30;verified:boolean};
+    nonRunKeySessions:number;percentage:number|null;minimumPercentage:30;verified:boolean;
+    mapping:'v3_mlss_threshold_tolerance_exact_work_20min';};
   refusals:readonly string[];
   nativeValidatorsPreserved:true;
   scientificAttestation:false;
@@ -25,11 +27,11 @@ interface MarathonSourceProof {
   dose:(id:string,minutes:number)=>StructuredZoneDose|null|undefined;
   runningSpecific:(id:string)=>ReviewedRunningSpecificSource|null|undefined;
   limiterKeys:(id:string)=>readonly string[]|null|undefined;
+  primaryDomain:(id:string)=>string|null|undefined;
 }
 function isKey(session:ParsedSession):boolean {
   return session.isKeySession===true;
 }
-const canonical=(key:string)=>key.trim().toLowerCase().replace(/[\s-]+/g,'_');
 /** The caller may pass only already athlete-reviewed source callbacks. */
 export function auditMarathonHorizon(
   plan:Pick<ParsedPlan,'weeks'|'phases'|'weeklyQuotas'>,proof:MarathonSourceProof,
@@ -62,7 +64,7 @@ export function auditMarathonHorizon(
   // Peak certificates are about THE dose of the workout assigned to THIS
   // athlete, never the name or the mere presence of an approved source ID.
   const peakRaceSpecificSources:{week:number;sourceId:string;minutes:number}[]=[];
-  let allKeySessions=0,unknownKeySessions=0,verifiedMatches=0;
+  let allKeySessions=0,unknownKeySessions=0,nonRunKeySessions=0,verifiedMatches=0;
   for(const week of weeks)for(const session of week.sessions){
     if(session.isRest||session.title.startsWith('COURSE : '))continue;
     const id=session.catalogId,minutes=session.durationMin;
@@ -71,17 +73,30 @@ export function auditMarathonHorizon(
       typeof minutes==='number'&&Number.isFinite(minutes)&&minutes>0;
     if(isKey(session)){
       allKeySessions++;
-      if(!runSource||typeof id!=='string'||typeof minutes!=='number'){
+      // Other sports remain in the denominator but are not erroneously
+      // marked UNKNOWN for lack of a RUN/threshold source dose.
+      if(session.sport!=='run')nonRunKeySessions++;
+      else if(!runSource||typeof id!=='string'||typeof minutes!=='number')
         unknownKeySessions++;
-      }else{
-        let dose:StructuredZoneDose|null|undefined,keys:readonly string[]|null|undefined;
-        try{dose=proof.dose(id,minutes);keys=proof.limiterKeys(id);}
-        catch{dose=null;keys=null;}
-        if(!matchingStructuredDose(dose??null,minutes)||dose!.sourceIds.length!==1||
-          dose!.sourceIds[0]!==id||dose!.provenance!=='v3_individually_configured_blocks_only'||
-          !Array.isArray(keys)){
+      else{
+        let dose:StructuredZoneDose|null|undefined,
+          keys:readonly string[]|null|undefined,
+          domain:string|null|undefined;
+        try{
+          dose=proof.dose(id,minutes);
+          keys=proof.limiterKeys(id);
+          domain=proof.primaryDomain(id);
+        }catch{dose=null;keys=null;domain=null;}
+        if(!matchingStructuredDose(dose??null,minutes)||!Array.isArray(keys)||
+          typeof domain!=='string'){
           unknownKeySessions++;
-        }else if(keys!.some(key=>canonical(key)==='tte'))verifiedMatches++;
+        }else{
+          const decision=verifyReviewedTteThresholdDose({
+            sourceId:id,durationMin:minutes,dose,
+            sourceLimiterKeys:keys,sourcePrimaryDomain:domain,
+          });
+          if(decision.verified)verifiedMatches++;
+        }
       }
     }
     if(week.phase?.trim().toLowerCase()==='peak'&&runSource){
@@ -104,7 +119,8 @@ export function auditMarathonHorizon(
       segments:partition?.mesocycles.length??0,
       measuredRecoveryBoundaries:partition?.mesocycles.filter(m=>
         m.recoveryWeek!==null).length??0},
-    tte:{verifiedMatches,allKeySessions,unknownKeySessions,percentage,
-      minimumPercentage:30,verified:tteVerified},
+    tte:{verifiedMatches,allKeySessions,unknownKeySessions,nonRunKeySessions,
+      percentage,minimumPercentage:30,verified:tteVerified,
+      mapping:'v3_mlss_threshold_tolerance_exact_work_20min'},
     refusals,nativeValidatorsPreserved:true,scientificAttestation:false};
 }
