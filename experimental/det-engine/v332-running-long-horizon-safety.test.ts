@@ -14,7 +14,7 @@ import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anc
 
 type RunningGoal='Semi'|'Marathon';
 type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
-  declaredTwoSlotsPerDay?:true;declaredClock?:true;unrestrictedSports?:true;};
+  declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;unrestrictedSports?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
@@ -31,6 +31,18 @@ const matrix:readonly Case[]=[
     weeklyHours:9,declaredTwoSlotsPerDay:true,unrestrictedSports:true},
   {id:'marathon-40w-two-slots',fixture:'B-MARATHON',goal:'Marathon',weeks:40,
     weeklyHours:9,declaredTwoSlotsPerDay:true,unrestrictedSports:true},
+  // Separately declared *synthetic* appointments with increasing daily gaps;
+  // these are comparisons, NOT a retrospective alteration of the baseline.
+  {id:'semi-8w-wide-clock',fixture:'B-SEMI',goal:'Semi',weeks:8,
+    weeklyHours:6,wideRecoveryClock:true},
+  {id:'semi-30w-wide-clock',fixture:'B-SEMI',goal:'Semi',weeks:30,
+    weeklyHours:6,wideRecoveryClock:true},
+  {id:'marathon-16w-two-slots-wide-clock',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true},
+  {id:'marathon-40w-two-slots-wide-clock',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true},
 ];
 
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
@@ -61,6 +73,16 @@ const declaredClock=(slot:{week:number;dayIndex:number;sport:string})=>({
   provenance:'coach_confirmed' as const,
   minuteOfDay:[1080,1020,1080,1020,1080,420,1140][slot.dayIndex],
   utcOffsetMinutes:60,
+});
+const wideRecoveryClock=(slot:{week:number;dayIndex:number;sport:string})=>({
+  provenance:'coach_confirmed' as const,
+  // Synthetic coach's declared slots: Tue 06:00, Wed 09:00, Thu 12:00,
+  // Fri 15:00, Sat 17:00, Sun 19:00. No implication of a real appointment.
+  minuteOfDay:[1080,360,540,720,900,1020,1140][slot.dayIndex],
+  // Europe/Brussels: DST transition on 28 March 2027. Calendar-based,
+  // never a constant zone offset silently carried across 30–40 weeks.
+  utcOffsetMinutes:Date.UTC(2026,9,26+(slot.week-1)*7+slot.dayIndex)>=
+    Date.UTC(2027,2,28)?120:60,
 });
 const strengthSourceIds=[
   'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
@@ -119,10 +141,12 @@ function runScenario(s:Case){
         (baseFilter?.(card,ctx)??true),
       enforceWeeklyHoursCap:true,
       enforceCalendarSafeV3Recovery:true,
-      ...(s.declaredClock?{
-        coachSlotStart:declaredClock,
+      ...(s.declaredClock||s.wideRecoveryClock?{
+        coachSlotStart:s.wideRecoveryClock?wideRecoveryClock:declaredClock,
         coachSessionStart:(session:{weekNumber:number;dayIndex:number;sport:string})=>
-          declaredClock({week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+          (s.wideRecoveryClock?wideRecoveryClock:declaredClock)({
+            week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport,
+          }),
       }:{}),
       improveV3RecoveryLayout:true,
       requireRealQualityOnLoadWeeks:true,
@@ -178,6 +202,7 @@ function runScenario(s:Case){
     raceDate,weeklyHours:s.weeklyHours,
     declaredTwoSlotsPerDay:s.declaredTwoSlotsPerDay===true,
     syntheticCoachClock:s.declaredClock===true,
+    syntheticWideRecoveryClock:s.wideRecoveryClock===true,
     unrestrictedSports:s.unrestrictedSports===true,
     admittedCrossTrainingSources:report.accepted.filter(card=>card.sport==='bike').length,
     admittedRunSources:report.accepted
