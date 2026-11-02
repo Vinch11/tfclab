@@ -118,7 +118,7 @@ export function runScenario(s:Case){
   }
   const fixture=preparePrevalidationFixture(s.fixture,s.declaredAmbition?{
     ambition:s.declaredAmbition,weeklyHours:s.weeklyHours,
-    sessionsPerWeek:s.declaredAmbition==='age_group'?6:8,
+    sessionsPerWeek:s.declaredAmbition==='age_group'?5:6,
     strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2,
     maxSessionsPerDay:2,constraints:undefined,
   }:{});
@@ -137,7 +137,7 @@ export function runScenario(s:Case){
     ...(s.declaredWorldClassCapacity?{sessionsPerWeek:10,
       strengthSessionsPerWeek:2}:{}),
     ...(s.declaredAmbition?{ambition:s.declaredAmbition,
-      sessionsPerWeek:s.declaredAmbition==='age_group'?6:8,
+      sessionsPerWeek:s.declaredAmbition==='age_group'?5:6,
       strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
@@ -328,6 +328,7 @@ export function runScenario(s:Case){
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     declaredAmbition:s.declaredAmbition??null,
+    declaredCardioSessionsPerWeek:config.sessionsPerWeek??null,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
     sourceCertifiedPeak:s.sourceCertifiedPeak===true,
