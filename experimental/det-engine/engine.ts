@@ -672,6 +672,30 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         severity:'warning',message:confirmedOverlapExclusions+
           ' candidate source-slot doses refused: coach-confirmed same-day appointment overlap or absent/ambiguous proof',
       });
+      // V355: explain a zero-effect priority BEFORE search. Distinguish
+      // missing primary limiter, absent key slots, reviewed source proof
+      // failure, and constraints pruning the eligible source domains.
+      // Read-only: never invent an admissible choice or override a refusal.
+      if(experimentalContract?.prioritizeSourceVerifiedTteOnKeySlots===true&&
+         w.weekType==='load'){
+        const eligible=options.flatMap((domain,index)=>domain.filter(
+          isCertifiedTteKey).map(session=>({
+            dayIndex:slots[index].dayIndex,
+            sourceId:session.catalogId,durationMin:session.durationMin,
+          })));
+        result.issues.push({code:'det_v355_tte_candidate_domain_audit',
+          week:w.week,severity:'warning',message:JSON.stringify({
+            declaredPrimaryLimiter:config.identifiedLimitersRaw?.[0]??null,
+            primaryTteEnabled:ttePreferenceEnabled,
+            keyRunSlots:slots.filter(s=>s.slot.sport==='run'&&
+              s.slot.isKeySession).length,
+            sourceVerifiedTteCandidates:eligible.length,
+            distinctSourceIds:[...new Set(eligible.map(s=>s.sourceId))],
+            candidateSamples:eligible.slice(0,4),
+            reviewAndSourceDoseRequired:true,
+            candidateEligibilityUnchanged:true,
+          })});
+      }
       const emptyIndex=options.findIndex(domain=>domain.length===0);
       if(emptyIndex>=0){
         // Preserve the refusal; expose where each candidate disappears.
