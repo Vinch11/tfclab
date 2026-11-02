@@ -102,7 +102,7 @@ export function reconcileReviewedTaperSemantics(args:{
       // reminder. A Z5/VO2 or Z6 source must never be authorized using a
       // review whose specific intent is brief MLSS in taper.
       if(card.mainZoneMax!==4||
-         session.zones?.some(zone=>/z\\s*[5-7]/i.test(zone))){
+         session.zones?.some(zone=>/z\s*[5-7]/i.test(zone))){
         refuse(session,'taper_mlss_intent_must_match_z4_source_domain');continue;
       }
       let review:ExplicitTaperCoachReview|null|undefined;
