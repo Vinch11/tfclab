@@ -1,0 +1,76 @@
+name: Nolio V2 official contract snapshot
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/nolio-v2-contract-snapshot.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  official-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch public official documentation without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nolio-v2-contract
+          curl --fail --silent --show-error --location --proto '=https' --max-time 90 --retry 2 \
+            --dump-header nolio-v2-contract/openapi.headers \
+            https://www.nolio.io/api/v2/openapi.json \
+            --output nolio-v2-contract/openapi.json
+          curl --fail --silent --show-error --location --proto '=https' --max-time 90 --retry 2 \
+            --dump-header nolio-v2-contract/migration.headers \
+            https://media.cdn.nolio.io/api/migration-v1-to-v2.md \
+            --output nolio-v2-contract/migration-v1-to-v2.md
+          python3 - <<'PY'
+          import datetime
+          import hashlib
+          import json
+          from pathlib import Path
+          root = Path('nolio-v2-contract')
+          schema = json.loads((root / 'openapi.json').read_text())
+          assert schema.get('openapi') and isinstance(schema.get('paths'), dict)
+          assert schema['paths'], 'Official OpenAPI has no paths'
+          guide = (root / 'migration-v1-to-v2.md').read_text()
+          assert len(guide) > 1000 and 'workout' in guide and 'dry_run' in guide
+          sources = [
+              ('openapi.json', 'https://www.nolio.io/api/v2/openapi.json'),
+              ('migration-v1-to-v2.md', 'https://media.cdn.nolio.io/api/migration-v1-to-v2.md'),
+          ]
+          manifest = {
+              'retrievedAt': datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              'authenticatedRequests': False,
+              'nolioAccountAccessed': False,
+              'nolioWrites': 0,
+              'openapiVersion': schema['openapi'],
+              'info': schema.get('info', {}),
+              'servers': schema.get('servers', []),
+              'sources': [dict(file=f, url=u, bytes=(root/f).stat().st_size,
+                               sha256=hashlib.sha256((root/f).read_bytes()).hexdigest())
+                          for f, u in sources],
+          }
+          (root/'source-manifest.json').write_text(json.dumps(manifest, indent=2))
+          operations = [{
+              'path': path,
+              'method': method.upper(),
+              'operationId': operation.get('operationId'),
+              'summary': operation.get('summary'),
+              'security': operation.get('security', schema.get('security')),
+          } for path, item in schema['paths'].items()
+            for method, operation in item.items()
+            if method in ('get', 'post', 'patch', 'put', 'delete')]
+          (root/'operations.json').write_text(json.dumps(operations, indent=2))
+          print(json.dumps({'paths':len(schema['paths']), 'operations':len(operations),
+                            'sources':manifest['sources'], 'nolioWrites':0}))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nolio-v2-official-contract
+          path: nolio-v2-contract/
+          retention-days: 14
