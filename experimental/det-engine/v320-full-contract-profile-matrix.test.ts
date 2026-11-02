@@ -117,7 +117,7 @@ function admitted(s:Scenario){
   })):[];
   return buildDetV3ContractFromCatalogue(reviews,bricks,specific,easy);
 }
-function run(s:Scenario,dropTaperBlockProof=false){
+function run(s:Scenario,dropTaperBlockProof=false,requireExplicitTaperReview=false){
   const f=preparePrevalidationFixture(s.objective==='703'?'B-70.3':'B-IM');
   const athlete={
     ...f.athleteData,nom:'synthetic V320 '+s.id,
@@ -145,6 +145,14 @@ function run(s:Scenario,dropTaperBlockProof=false){
     athlete,cfg,{maxNodes:s.id==='703-reduced-hours'?40000:200000,
       maxMilliseconds:16000},{
       ...contract,requireReviewedAthleteContext:true,
+      // V331 E2E refusal: DO NOT fabricate an athlete/season-specific
+      // taper authorization from an already reviewed source. Unconfirmed
+      // clinical intent has a distinct, mandatory opt-in and fails closed.
+      ...(requireExplicitTaperReview?{
+        requireExplicitTaperSemanticReview:true as const,
+        taperSemanticAthleteContextId:'synthetic-v320-'+s.id,
+        explicitTaperReviewForSession:()=>null,
+      }:{}),
       // V330 deliberate end-to-end sabotage: approved sources/athlete/slots
       // unchanged, but the exact structured taper dose provider disappears.
       // The true solver must refuse a quality-dependent low-hour calendar.
@@ -343,6 +351,20 @@ describe('DET V320 — V318 full certified contract on genuine synthetic variant
   it.each(scenarios)('$id: complete evidence or conservative refusal',s=>{
     vi.stubGlobal('fetch',()=>{throw Error('DET_V320_NETWORK_FORBIDDEN');});
     run(s);
+  });
+  it('V331 E2E: 70.3 9h cannot pass without a separate coach taper decision',()=>{
+    vi.stubGlobal('fetch',()=>{throw Error('DET_V331_NETWORK_FORBIDDEN');});
+    const s=scenarios.find(s=>s.id==='703-reduced-hours')!;
+    const {out}=run(s,false,true);
+    expect(out.evidence.verdict).not.toBe('all_gates_pass');
+    expect(out.result?.constraintsSatisfied).not.toBe(true);
+    expect(out.evidence.attempts.some(a=>a.blockers.includes(
+      'det_v331_taper_semantics_review_refused'))).toBe(true);
+    console.info('DET_V331_TAPER_NO_COACH_REVIEW_REFUSED',JSON.stringify({
+      scenario:s.id,verdict:out.evidence.verdict,
+      noInventedTaperCoachApproval:true,
+      nonWaivedBlockers:[...new Set(out.evidence.attempts.flatMap(a=>a.blockers))],
+    }));
   });
   it.each(scenarios.filter(s=>s.objective==='703'&&s.weeklyHours<10))(
     'V330 fail-closed: $id cannot pass when reviewed taper dose proof is removed',s=>{
