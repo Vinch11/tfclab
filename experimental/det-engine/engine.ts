@@ -884,6 +884,29 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return false;
       }
       if(!search(0,0)){
+        // V3.26 — a missing genuine Z4+ key stimulus is a CERTIFIED
+        // contradiction in these currently approved WEEK-SPECIFIC domains,
+        // not a solver-budget failure and not a global impossibility proof.
+        // Keep the existing fail-closed search and sporting rules unchanged.
+        if(qualityRequired&&!qualitySuffix[0] &&
+           experimentalContract?.requireLorangQualityBeforeFinalValidation===true &&
+           normalizeRepairGoal(config.objective??'')==='half'){
+          result.issues.push({
+            code:'det_v326_required_taper_quality_domain_empty',
+            week:w.week,severity:'blocking',
+            message:JSON.stringify({
+              week:w.week,phase:w.phase??null,weekType:entry.weekType,
+              reviewedSlotCount:order.length,
+              reviewedCandidateCount:order.reduce((sum,slot)=>sum+slot.domain.length,0),
+              reviewedKeyQualityCandidates:0,
+              proof:'none_of_current_admitted_key_slots_has_genuine_z4_to_z7_dose',
+              scope:'current_athlete_week_phase_reviewed_domains_only',
+              noGlobalImpossibilityClaim:true,
+              noSyntheticOrUnapprovedSessionInserted:true,
+              remedy:'review or individually approve a physiologically appropriate taper quality source; do not relax phase/recovery/dose gates',
+            }),
+          });
+        }
         // V3.25 experiment — explain *which exact already-admitted slot
         // domains* failed around S9/S11 in low-hour 70.3. This emits only
         // candidate counts and structural bounds, not workouts, athlete data
