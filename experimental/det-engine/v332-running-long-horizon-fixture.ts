@@ -11,6 +11,7 @@ import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFix
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
+import {slotPlacementSnapshot} from './v357-coach-reviewed-slot-placement';
 
 type RunningGoal='Semi'|'Marathon';
 export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
@@ -35,6 +36,7 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks
   tteSourcePreferred?:true;
   declaredAmbition?:'age_group'|'competitor';
   approvedBaseTteDose?:true;
+  reviewedCompetitorPlacement?:true;
   largerSearchBudget?:true;};
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
 const runSourceIds=[
@@ -93,6 +95,19 @@ const distinctConfirmedSportClock=(slot:{week:number;dayIndex:number;sport:strin
     swim:[1200,1200,360,480,600,480,540],
   };
   return {...base,minuteOfDay:minutesBySport[slot.sport]?.[slot.dayIndex]??base.minuteOfDay};
+};
+/**
+ * V357 separate SYNTHETIC coach declaration, not a change to historical clocks.
+ * Run windows Mon18/Tue06/Thu12/Fri06/Sun12; strength Mon21/Thu15.
+ * The placement approval below also declares Wednesday/Saturday full rest.
+ */
+const reviewedCompetitorClock=(slot:{week:number;dayIndex:number;sport:string})=>{
+  const base=distinctConfirmedSportClock(slot);
+  const clocks:Record<string,readonly number[]>={
+    run:[1080,360,540,720,360,1020,720],
+    strength:[1260,900,1080,900,540,600,720],
+  };
+  return {...base,minuteOfDay:clocks[slot.sport]?.[slot.dayIndex]??base.minuteOfDay};
 };
 const strengthSourceIds=[
   'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
@@ -222,6 +237,9 @@ export function runScenario(s:Case){
     s.largerSearchBudget?7000:3000;
   const budgetMilliseconds=s.extendedStrictSearchBudget?15000:
     s.largerSearchBudget?4500:2000;
+  const confirmedClock=s.reviewedCompetitorPlacement?reviewedCompetitorClock:
+    s.distinctSportClock?distinctConfirmedSportClock:
+      s.wideRecoveryClock?wideRecoveryClock:declaredClock;
   const out=constructDeterministicPlan(athlete,config,
     {maxNodes:budgetNodes,maxMilliseconds:budgetMilliseconds},{
       ...contract,requireReviewedAthleteContext:true,
@@ -230,15 +248,30 @@ export function runScenario(s:Case){
       enforceWeeklyHoursCap:true,
       enforceCalendarSafeV3Recovery:true,
       ...(s.declaredClock||s.wideRecoveryClock||s.distinctSportClock?{
-        coachSlotStart:s.distinctSportClock?distinctConfirmedSportClock:
-          s.wideRecoveryClock?wideRecoveryClock:declaredClock,
+        coachSlotStart:confirmedClock,
         coachSessionStart:(session:{weekNumber:number;dayIndex:number;sport:string})=>
-          (s.distinctSportClock?distinctConfirmedSportClock:
-            s.wideRecoveryClock?wideRecoveryClock:declaredClock)({
+          confirmedClock({
             week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport,
           }),
       }:{}),
       ...(s.distinctSportClock?{enforceConfirmedNoSameDayOverlap:true as const}:{}),
+      ...(s.reviewedCompetitorPlacement?{
+        reviewedSlotPlacementAthleteContextId:athleteId,
+        coachReviewedSlotPlacementForWeek:({week,layout})=>{
+          let strengthPosition=0;
+          return {provenance:'coach_confirmed_slot_placement' as const,
+            athleteContextId:athleteId,week,
+            originalLayoutSnapshot:slotPlacementSnapshot(layout),
+            fullRestDayIndices:[2,5],
+            assignments:layout.days.flatMap((day,fromDayIndex)=>
+              day.slots.map((slot,fromSlotIndex)=>({fromDayIndex,fromSlotIndex,
+                toDayIndex:slot.sport==='strength'?[0,3][strengthPosition++]:
+                  slot.sport==='run'&&!slot.isLongSession&&!slot.isRaceEvent&&
+                  fromDayIndex===2?0:fromDayIndex,
+              }))),
+          };
+        },
+      }:{}),
       ...(s.runningQualityProof?{requireReviewedRunningKeyQualityOnLoadWeeks:true as const}:{}),
       ...(s.runningQualityPriority?{prioritizeVerifiedRunningQualitySlot:true as const}:{}),
       ...(s.runningMatchingAudit?{auditRunningQualitySourceMatching:true as const}:{}),
@@ -342,6 +375,11 @@ export function runScenario(s:Case){
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     declaredAmbition:s.declaredAmbition??null,
     approvedBaseTteDose:s.approvedBaseTteDose===true,
+    reviewedCompetitorPlacement:s.reviewedCompetitorPlacement===true,
+    reviewedSlotPlacementEvidence:s.reviewedCompetitorPlacement?
+      out.issues.filter(i=>i.code.startsWith('det_v357_')).map(i=>({
+        week:i.week??null,code:i.code,evidence:JSON.parse(i.message??'{}'),
+      })):undefined,
     declaredCardioSessionsPerWeek:config.sessionsPerWeek??null,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
@@ -442,6 +480,11 @@ export function runScenario(s:Case){
             day:session.dayName,sport:session.sport,sourceId:session.catalogId??null,
             durationMin:session.durationMin??null,isKeySession:!!session.isKeySession,
             isRest:!!session.isRest,title:session.title,details:session.details,
+            confirmedStart:session.isRest?null:confirmedClock({
+              week:week.weekNumber,dayIndex:session.dayIndex,sport:session.sport,
+            }),
+            sourceRecoveryRequirements:session.catalogId?
+              contract.sourceRecoveryForId?.(session.catalogId)??[]:[],
             exactDose:session.catalogId&&typeof session.durationMin==='number'?
               contract.sourceFullStructuredDoseForId?.(
                 session.catalogId,session.durationMin)??null:null,
@@ -451,4 +494,3 @@ export function runScenario(s:Case){
   }));
   return out;
 }
-

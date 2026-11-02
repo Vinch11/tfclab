@@ -48,6 +48,8 @@ import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
+import {projectCoachReviewedSlotPlacement,type CoachReviewedSlotPlacement} from './v357-coach-reviewed-slot-placement';
+import type {WeeklySlotLayout} from '@/engines/plan/weeklySlotLayout';
 
 export interface SearchLimits { maxNodes: number; maxMilliseconds: number; }
 export interface ExperimentalAssemblyContract {
@@ -80,6 +82,12 @@ export interface ExperimentalAssemblyContract {
    * adjacent-day source recovery. Must agree with coachSessionStart for the
    * actual selected session; absent/inconsistent evidence fails closed. */
   coachSlotStart?:ConfirmedSlotStart;
+  /** V357: a separate athlete/week/snapshot-bound placement approval is
+   * required before moving a clock-confirmed appointment. Existing slots,
+   * key flags, long/race anchors, doses, frequencies and validators remain. */
+  reviewedSlotPlacementAthleteContextId?:string;
+  coachReviewedSlotPlacementForWeek?:(args:{week:number;layout:WeeklySlotLayout})=>
+    CoachReviewedSlotPlacement|null|undefined;
   /** Opt-in: discard V3 source doses without a provable calendar-only recovery window. */
   enforceCalendarSafeV3Recovery?:true;
   /** Opt-in V313: reject source doses that cross an authentic coach-confirmed same-day start. */
@@ -359,6 +367,46 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             ': optional sport with zero actually eligible sources; weekly minima revalidated'});
       }
       if(changed)report=assessPreparedGeneration(config,preparation);
+      if(experimentalContract.coachReviewedSlotPlacementForWeek){
+        if(experimentalContract.requireReviewedAthleteContext!==true||
+           experimentalContract.enforceCalendarSafeV3Recovery!==true||
+           experimentalContract.enforceConfirmedNoSameDayOverlap!==true||
+           !experimentalContract.coachSlotStart||!experimentalContract.coachSessionStart||
+           !experimentalContract.reviewedSlotPlacementAthleteContextId?.trim()){
+          result.issues.push({code:'det_v357_reviewed_placement_prerequisites_missing',
+            severity:'blocking'});
+          return refuse('v357_reviewed_placement_prerequisites_missing');
+        }
+        const projections:{week:number;layout:WeeklySlotLayout}[]=[];
+        for(const week of report.weeks){
+          const entry=preparation.weeklyQuotas[week.week];
+          if(!entry?.layout)return refuse('v357_original_layout_missing_week_'+week.week);
+          let review:CoachReviewedSlotPlacement|null|undefined;
+          try{review=experimentalContract.coachReviewedSlotPlacementForWeek({
+            week:week.week,layout:structuredClone(entry.layout),
+          });}catch{review=null;}
+          const proof=projectCoachReviewedSlotPlacement({
+            layout:entry.layout,quota:entry.quota,week:week.week,
+            expectedAthleteContextId:experimentalContract.reviewedSlotPlacementAthleteContextId,
+            review,dayBans:preparation.dayBans,
+          });
+          result.issues.push({
+            code:proof.verified?'det_v357_coach_reviewed_placement_mechanics_verified':
+              'det_v357_coach_reviewed_placement_unverified',
+            week:week.week,severity:proof.verified?'warning':'blocking',
+            message:JSON.stringify({movedSlots:proof.movedSlots,
+              originalSlotCount:proof.originalSlotCount,
+              keySlotsPreserved:proof.keySlotsPreserved,refusals:proof.refusals,
+              exactCoachClocksAndSourceRecoveryStillRequired:true,
+              nativeSportingValidatorsPreserved:true,scientificAttestation:false}),
+          });
+          if(!proof.verified||!proof.layout)
+            return refuse('v357_coach_reviewed_placement_unverified_week_'+week.week);
+          projections.push({week:week.week,layout:proof.layout});
+        }
+        for(const item of projections)preparation.weeklyQuotas[item.week].layout=item.layout;
+        report=assessPreparedGeneration(config,preparation);
+      }
       // A coach-confirmed, sport-specific appointment schedule MUST NOT be
       // silently rewritten by a day-only recovery optimization. Keep the
       // declared slots fixed and verify their actual recovery gaps later.

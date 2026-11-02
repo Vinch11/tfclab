@@ -5,6 +5,7 @@ on:
     paths:
       - 'experimental/det-engine/**'
       - 'scripts/library-v3/**'
+      - 'scripts/det-engine/verify_marathon_review_calendars.py'
       - '.github/workflows/det-marathon-evidence.yml'
 
 jobs:
@@ -22,7 +23,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v332-running-long-horizon-safety.test.ts experimental/det-engine/v356-marathon-tte-capacity.test.ts -t 'tte-source-preferred|declared TTE' > marathon-evidence.log 2>&1
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v332-running-long-horizon-safety.test.ts experimental/det-engine/v356-marathon-tte-capacity.test.ts experimental/det-engine/v357-competitor-reviewed-placement.test.ts experimental/det-engine/v357-coach-reviewed-slot-placement.test.ts -t 'tte-source-preferred|declared TTE|reviewed competitor|V357 placement' > marathon-evidence.log 2>&1
           TEST_STATUS=$?
           python3 - <<'PY'
           import json, re
@@ -38,10 +39,11 @@ jobs:
               domains = row.get("tteSourceCandidateDomains", [])
               summary = {k: row.get(k) for k in (
                   "scenario", "declaredAmbition", "weeklyHours", "weeksRequested", "weeksConstructed",
-                  "technicallyConstructed", "nativeConstraintsSatisfied",
+                  "technicallyConstructed", "nativeConstraintsSatisfied", "reviewedCompetitorPlacement",
                   "nodes", "reason", "blockingCodes", "blockingExamples",
                   "nativeGateEvidence", "marathonExactSourceAudit",
                   "measuredMarathonMesocycles")}
+              summary["reviewedPlacementWeeks"] = len(row.get("reviewedSlotPlacementEvidence") or [])
               summary["tteCandidateWeeks"] = domains[:4]
               summary["tteCandidateWeekCount"] = len(domains)
               summary["tteCandidateOccurrences"] = sum(x["evidence"]["sourceVerifiedTteCandidates"] for x in domains)
@@ -52,19 +54,21 @@ jobs:
               print("MARATHON_EXACT_EVIDENCE " + json.dumps(summary, ensure_ascii=False))
           Path("marathon-evidence.json").write_text(json.dumps(rows, indent=2))
           Path("marathon-review-calendars.json").write_text(json.dumps(calendars, indent=2, ensure_ascii=False))
-          expected = {f"marathon-{w}w{suffix}-tte-source-preferred" for w in (16, 40) for suffix in ("", "-age_group", "-competitor")}
-          if len(rows) != 6 or {r["scenario"] for r in rows} != expected:
+          expected = {f"marathon-{w}w{suffix}-tte-source-preferred" for w in (16, 40) for suffix in ("", "-age_group", "-competitor", "-competitor-reviewed-placement")}
+          if len(rows) != 8 or {r["scenario"] for r in rows} != expected:
               print(Path("marathon-evidence.log").read_text()[-12000:])
-              raise SystemExit("Expected six distinct real-solver marathon witnesses")
+              raise SystemExit("Expected eight distinct real-solver marathon witnesses")
           accepted = {r["scenario"] for r in rows if r["nativeConstraintsSatisfied"]}
-          required = {f"marathon-{w}w-age_group-tte-source-preferred" for w in (16, 40)}
-          if accepted != required or len(calendars) != 2:
-              raise SystemExit("Two strict sporting successes and four safety refusals are required")
+          required = {f"marathon-{w}w{suffix}-tte-source-preferred" for w in (16, 40) for suffix in ("-age_group", "-competitor-reviewed-placement")}
+          if accepted != required or len(calendars) != 4:
+              raise SystemExit("Four strict sporting successes and four unchanged safety refusals are required")
           PY
           SUMMARY_STATUS=$?
           if [ "$TEST_STATUS" -ne 0 ]; then tail -n 70 marathon-evidence.log; fi
           if [ "$SUMMARY_STATUS" -ne 0 ]; then exit "$SUMMARY_STATUS"; fi
           exit "$TEST_STATUS"
+      - name: Independent calendar arithmetic and original-source recovery audit
+        run: python3 scripts/det-engine/verify_marathon_review_calendars.py marathon-review-calendars.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
