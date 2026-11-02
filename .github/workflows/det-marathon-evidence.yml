@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v332-running-long-horizon-safety.test.ts -t 'tte-source-preferred' > marathon-evidence.log 2>&1
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v332-running-long-horizon-safety.test.ts experimental/det-engine/v356-marathon-tte-capacity.test.ts -t 'tte-source-preferred|declared TTE' > marathon-evidence.log 2>&1
           TEST_STATUS=$?
           python3 - <<'PY'
           import json, re

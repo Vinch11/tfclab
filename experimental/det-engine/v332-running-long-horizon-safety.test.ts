@@ -328,52 +328,6 @@ const matrix:readonly Case[]=[
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
     marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
     measuredMarathonMesocycles:true,tteSourcePreferred:true},
-  // Separately declared synthetic capacities: never downgrade the historical
-  // world-class witnesses. All original source, dose and safety gates apply.
-  {id:'marathon-16w-age_group-tte-source-preferred',fixture:'B-MARATHON',
-    goal:'Marathon',weeks:16,weeklyHours:7,declaredAmbition:'age_group',
-    declaredTwoSlotsPerDay:true,unrestrictedSports:true,
-    wideRecoveryClock:true,forwardCheck:true,expandedTaperSources:true,
-    approvedTaperDose:true,sourceCertifiedPeak:true,shortEasyTaperApproved:true,
-    distinctSportClock:true,measuredRecoveryProof:true,runningQualityProof:true,
-    runningQualityPriority:true,runningMatchingAudit:true,runningCandidatePriority:true,
-    runningEasyMarginPriority:true,extendedStrictSearchBudget:true,
-    runningQualitySlotMargin:true,marathonHorizonEvidence:true,
-    marathonSpecificityReconciliation:true,measuredMarathonMesocycles:true,
-    tteSourcePreferred:true},
-  {id:'marathon-16w-competitor-tte-source-preferred',fixture:'B-MARATHON',
-    goal:'Marathon',weeks:16,weeklyHours:9,declaredAmbition:'competitor',
-    declaredTwoSlotsPerDay:true,unrestrictedSports:true,
-    wideRecoveryClock:true,forwardCheck:true,expandedTaperSources:true,
-    approvedTaperDose:true,sourceCertifiedPeak:true,shortEasyTaperApproved:true,
-    distinctSportClock:true,measuredRecoveryProof:true,runningQualityProof:true,
-    runningQualityPriority:true,runningMatchingAudit:true,runningCandidatePriority:true,
-    runningEasyMarginPriority:true,extendedStrictSearchBudget:true,
-    runningQualitySlotMargin:true,marathonHorizonEvidence:true,
-    marathonSpecificityReconciliation:true,measuredMarathonMesocycles:true,
-    tteSourcePreferred:true},
-  {id:'marathon-40w-age_group-tte-source-preferred',fixture:'B-MARATHON',
-    goal:'Marathon',weeks:40,weeklyHours:7,declaredAmbition:'age_group',
-    declaredTwoSlotsPerDay:true,unrestrictedSports:true,
-    wideRecoveryClock:true,forwardCheck:true,expandedTaperSources:true,
-    approvedTaperDose:true,sourceCertifiedPeak:true,shortEasyTaperApproved:true,
-    distinctSportClock:true,measuredRecoveryProof:true,runningQualityProof:true,
-    runningQualityPriority:true,runningMatchingAudit:true,runningCandidatePriority:true,
-    runningEasyMarginPriority:true,extendedStrictSearchBudget:true,
-    runningQualitySlotMargin:true,marathonHorizonEvidence:true,
-    marathonSpecificityReconciliation:true,measuredMarathonMesocycles:true,
-    tteSourcePreferred:true},
-  {id:'marathon-40w-competitor-tte-source-preferred',fixture:'B-MARATHON',
-    goal:'Marathon',weeks:40,weeklyHours:9,declaredAmbition:'competitor',
-    declaredTwoSlotsPerDay:true,unrestrictedSports:true,
-    wideRecoveryClock:true,forwardCheck:true,expandedTaperSources:true,
-    approvedTaperDose:true,sourceCertifiedPeak:true,shortEasyTaperApproved:true,
-    distinctSportClock:true,measuredRecoveryProof:true,runningQualityProof:true,
-    runningQualityPriority:true,runningMatchingAudit:true,runningCandidatePriority:true,
-    runningEasyMarginPriority:true,extendedStrictSearchBudget:true,
-    runningQualitySlotMargin:true,marathonHorizonEvidence:true,
-    marathonSpecificityReconciliation:true,measuredMarathonMesocycles:true,
-    tteSourcePreferred:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -453,7 +407,7 @@ const hard=(severity:string)=>['critical','blocking','error'].includes(severity)
 const eventDate=(weeks:number):string=>
   new Date(Date.UTC(2026,9,26+weeks*7-1)).toISOString().slice(0,10);
 
-function runScenario(s:Case){
+export function runScenario(s:Case){
   // A long-horizon quality witness without its actual hard gate is INVALID.
   // V346 exposed a 40/40 technical build that was otherwise easy to
   // misreport as evidence of source-backed Z4–Z6 sessions.
@@ -764,6 +718,7 @@ function runScenario(s:Case){
     })),
     clinicalAttestation:false,backendPersistenceTested:false,
   }));
+  return out;
 }
 
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
