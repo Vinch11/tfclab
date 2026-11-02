@@ -76,13 +76,14 @@ export function reconcileReviewedTaperSemantics(args:{
       const endurance=['swim','bike','run','brick'].includes(session.sport);
       // A harmless-looking title or Z2 label must not hide a real Z4 block.
       // Check ALL taper endurance sources, not only labelled key sessions.
-      let ledger:ReturnType<NonNullable<TaperSourceEvidence>>|null=null;
+      let ledger:ReturnType<TaperSourceEvidence>|null=null;
       if(endurance){
         try{ledger=args.source?.(card.id,session.durationMin)??null;}
         catch{ledger=null;}
-        if(!matchingStructuredDose(ledger??null,session.durationMin)||
-           ledger?.provenance!=='v3_individually_configured_blocks_only'||
-           ledger.sourceIds.length!==1||ledger.sourceIds[0]!==card.id){
+        const checked=matchingStructuredDose(ledger??null,session.durationMin);
+        if(!checked||
+           checked.provenance!=='v3_individually_configured_blocks_only'||
+           checked.sourceIds.length!==1||checked.sourceIds[0]!==card.id){
           refuse(session,'taper_training_source_dose_unverified');continue;
         }
       }
