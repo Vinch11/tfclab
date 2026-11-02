@@ -167,6 +167,7 @@ export interface ExperimentalAssemblyContract {
   reviewedRunningSpecificForId?:(id:string)=>ReviewedRunningSpecificSource|null|undefined;
   /** V351: exact, athlete-reviewed V3 limiter keys for independent marathon audit. */
   reviewedSourceLimiterKeysForId?:(id:string)=>readonly string[]|null|undefined;
+  reviewedSourcePrimaryDomainForId?:(id:string)=>string|null|undefined;
   /** V351: strict 16/40-week audit; cannot suppress any native validator. */
   auditMarathonHorizonEvidence?:true;
   /** V353: split long marathon Build only at REAL >=30% measured deloads.
@@ -1742,11 +1743,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const provider=experimentalContract;
     const report=provider.sourceFullStructuredDoseForId&&
       provider.reviewedRunningSpecificForId&&
-      provider.reviewedSourceLimiterKeysForId?
+      provider.reviewedSourceLimiterKeysForId&&
+      provider.reviewedSourcePrimaryDomainForId?
       auditMarathonHorizon(result.candidate!,{
         dose:provider.sourceFullStructuredDoseForId,
         runningSpecific:provider.reviewedRunningSpecificForId,
         limiterKeys:provider.reviewedSourceLimiterKeysForId,
+        primaryDomain:provider.reviewedSourcePrimaryDomainForId,
       }):null;
     result.issues.push({
       code:report?.verified?
