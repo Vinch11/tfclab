@@ -70,9 +70,10 @@ export function proposeMeasuredMarathonMesocycles(
   // Boundary search uses verified reduction weeks, NOT equally sized labels.
   const segment=(first:number,last:number):MeasuredMarathonMesocycle[]|null=>{
     const len=last-first+1;
-    if(len>=2&&len<=6)return [{
-      first,last,weeks:len,recoveryWeek:null,reductionPct:null,
-    }];
+    // Prefer an AUTHENTIC measured deload that creates two valid cycles,
+    // even when the unsplit tail would still fit under six weeks.
+    // This preserves the 3:1 pattern instead of swallowing S32 recovery
+    // into one undifferentiated S29-S34 block.
     for(let cut=first+1;cut<=Math.min(first+5,last-2);cut++){
       const drop=recovery(cut);
       if(drop===null)continue;
@@ -81,6 +82,9 @@ export function proposeMeasuredMarathonMesocycles(
         first,last:cut,weeks:cut-first+1,recoveryWeek:cut,reductionPct:drop,
       },...rest];
     }
+    if(len>=2&&len<=6)return [{
+      first,last,weeks:len,recoveryWeek:null,reductionPct:null,
+    }];
     return null;
   };
   for(const span of spans){
