@@ -42,6 +42,7 @@ import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conf
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {auditMarathonHorizon} from './v351-marathon-horizon-evidence';
 import {proposeMeasuredMarathonMesocycles} from './v353-measured-marathon-mesocycles';
+import {isVerifiedTtePriorityCandidate} from './v355-reviewed-tte-candidate-priority';
 import {reconcileReviewedMarathonSpecificity} from './v352-reviewed-marathon-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
@@ -173,6 +174,9 @@ export interface ExperimentalAssemblyContract {
   /** V353: split long marathon Build only at REAL >=30% measured deloads.
    * Does not change the workout selection, phase source eligibility or quotas. */
   enableVerifiedMarathonMesocycles?:true;
+  /** V355 isolated A/B: preferential search order for exact athlete-reviewed
+   * >=20min MLSS key dose when the FIRST declared limiter is TTE. */
+  prioritizeSourceVerifiedTteOnKeySlots?:true;
   /** V352: replace only a source-proven false-negative native text warning. */
   reconcileReviewedMarathonSpecificityLexicalWarning?:true;
   /** V333 opt-in: necessary forward checking, never a sporting exemption. */
@@ -461,6 +465,24 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       const runningGoal=normalizeRepairGoal(config.objective??'');
+      const ttePreferenceEnabled=
+        experimentalContract?.prioritizeSourceVerifiedTteOnKeySlots===true&&
+        (config.identifiedLimitersRaw?.[0]??'').trim().toLowerCase()==='tte';
+      const tteSourceCache=new WeakMap<ParsedSession,boolean>();
+      const isCertifiedTteKey=(s:ParsedSession):boolean=>{
+        if(!ttePreferenceEnabled||w.weekType!=='load')return false;
+        const cached=tteSourceCache.get(s);
+        if(cached!==undefined)return cached;
+        const dose=experimentalContract?.sourceFullStructuredDoseForId;
+        const keys=experimentalContract?.reviewedSourceLimiterKeysForId;
+        const domain=experimentalContract?.reviewedSourcePrimaryDomainForId;
+        const proven=!!dose&&!!keys&&!!domain&&
+          isVerifiedTtePriorityCandidate(s,{
+            enabled:true,primaryLimiterIsTte:true,weekType:w.weekType,
+          },{exactDose:dose,limiterKeys:keys,primaryDomain:domain});
+        tteSourceCache.set(s,proven);
+        return proven;
+      };
       const sourceSpecificEnabled=experimentalContract?.enableV335SourceRunningPeak===true&&
         (runningGoal==='semi'||runningGoal==='marathon');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
@@ -622,7 +644,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               balance && (balanceMode==='all'||balanceMode===slot.sport||triathlon) &&
                 (slot.sport==='bike'||slot.sport==='run')?
                 (b.durationMin??0)-(a.durationMin??0):0;
-            return (slot.isKeySession?rank(a)-rank(b):0)||
+            return (ttePreferenceEnabled&&slot.isKeySession?
+               Number(isCertifiedTteKey(b))-Number(isCertifiedTteKey(a)):0)||
+              (slot.isKeySession?rank(a)-rank(b):0)||
               dosePriority||
               (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
               (!slot.isKeySession?rank(a)-rank(b):0)||
@@ -969,6 +993,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             triathlonCandidateDoseDistance(exactTriContribution(session),preferred);
           candidates.sort((a,b)=>
             Number(a.dose===null)-Number(b.dose===null)||
+            (ttePreferenceEnabled&&slot.slot.isKeySession?
+              Number(isCertifiedTteKey(b.session))-Number(isCertifiedTteKey(a.session)):0)||
             (runningQualityRequired&&slot.slot.isKeySession&&
              experimentalContract?.prioritizeVerifiedRunningQualityCandidate===true?
                Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
@@ -1308,6 +1334,18 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         }
       }
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
+      if(ttePreferenceEnabled&&w.weekType==='load')
+        result.issues.push({code:'det_v355_exact_tte_candidate_preference_audit',
+          week:w.week,severity:'warning',message:JSON.stringify({
+            chosenVerifiedTteKeySources:chosen.filter(isCertifiedTteKey).map(s=>({
+              id:s.catalogId,durationMin:s.durationMin,
+              exactHighMinutes:s.catalogId?
+                experimentalContract?.sourceFullStructuredDoseForId?.(
+                  s.catalogId,s.durationMin)?.high??null:null,
+            })),
+            selectionOrderOnly:true,unchangedSafetyGates:true,
+            independentFinalTteCoverageStillRequired:true,scientificAttestation:false,
+          })});
       if(runningQualityRequired)result.issues.push({
         code:'det_v343_running_source_quality_verified',
         week:w.week,severity:'warning',message:JSON.stringify({
