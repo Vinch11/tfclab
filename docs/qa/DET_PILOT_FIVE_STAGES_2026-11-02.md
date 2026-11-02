@@ -1,6 +1,6 @@
 # TFCLab — recette QA et préparation du pilote
 
-État initial du 2 novembre 2026. Ce document distingue les preuves existantes des vérifications encore nécessaires. Il n'accorde aucun GO de prescription ni de production.
+Suivi du 2 novembre 2026. Ce document distingue les preuves existantes des vérifications encore nécessaires. Il n'accorde aucun GO de prescription ni de production.
 
 ## Décision produit confirmée par Vincent le 2 novembre 2026
 
@@ -32,15 +32,27 @@ Les modifications append-only déjà présentes dans QA sont conservées. Les fi
 
 ## Les cinq étapes et leurs preuves attendues
 
-| Étape | Travail concret | Condition d'acceptation | État initial |
+| Étape | Travail concret | Condition d'acceptation | État vérifié / travail restant |
 |---|---|---|---|
-| 1. Candidate QA commune | Réunir le vrai DET, les reçus exacts, les protections append-only et les correctifs PDF ; raccorder les données coach | SHA QA identifié, provenance des fichiers, compilation et contrôles ciblés verts, manifeste recalculé sans attestation | Assemblage lancé ; pas encore accepté |
+| 1. Candidate QA commune | Réunir le vrai DET, les reçus exacts, les protections append-only et les correctifs PDF ; raccorder les données coach | SHA QA identifié, provenance des fichiers, compilation et contrôles ciblés verts, manifeste recalculé sans attestation | Moteur et reçus importés, compilation et tests ciblés verts ; interface et écarts de suite élargie encore à traiter |
 | 2. Persistance réelle | Générer, sauvegarder, modifier, fermer, reconnecter, rouvrir et restaurer ; provoquer des réponses perdues et des refus | JWT réels A/B, relecture exacte, aucun faux succès, aucune lecture inter-coachs, versions antérieures intactes, comportement des doublons vérifié après fermeture | SELECT réel A/B prouvé ; écritures et chaîne complète à faire |
 | 3. Revue sportive | Examiner les quatre calendriers complets ; borner les objectifs/profils du pilote ; identifier les estimations | Décision humaine signée pour la version examinée ; réserves et exclusions conservées | Calendriers CI disponibles ; aucune revue humaine attestée |
 | 4. Sorties fidèles | Comparer plan courant, version restaurée, PDF et payload Nolio ; traiter les relances | Dates, durées, répétitions, récupérations, cibles et provenance conservées ; absence de doublons ; recette réelle Nolio sur environnement de test autorisé | Correctifs PDF QA existants ; chaîne DET et Nolio à prouver |
 | 5. Pilote limité | Définir utilisateurs volontaires, version candidate, suivi et retour arrière | Étapes précédentes acceptées ; périmètre explicite ; désactivation du parcours DET possible ; données et historique préservés | Préparation seulement, non activé |
 
 ## Preuves déjà acquises
+
+### Assemblage QA vérifié au SHA `c7a30dde5873f8774e8bd1ca03357007f7efbefa`
+
+Le moteur est présent dans le projet QA. Une comparaison directe de `experimental/det-engine/engine.ts` avec le fichier épinglé de PR454 confirme leur identité exacte. La page du plan et le module append-only sont identiques à la version QA de départ : les protections existantes ont été conservées.
+
+Résultats rapportés par l'environnement QA : compilation TypeScript moteur et application, build aperçu, 178 tests ciblés sauvegarde/reçus/PDF/phases/RLS et 368 tests serveur `ai-training-plan` réussis. La suite DET élargie conserve des échecs : deux fixtures historiques absentes et la baseline protégée `v320 IM-reduced-hours`, également reproduite sur la source PR454 intacte. Ces écarts ne sont pas déclarés acceptables du seul fait qu'ils précèdent l'assemblage.
+
+L'import initial a nécessité une fusion sur la vraie base commune `3a2ba77`, et non le remplacement de fichiers de main par ceux d'une branche expérimentale plus ancienne. Trois fichiers serveur `_shared` ont changé ; leur déploiement QA n'est pas encore confirmé. Aucune génération DET n'est encore raccordée à l'interface à ce SHA. L'étape 1 reste donc ouverte.
+
+Il est autorisé de reprendre uniquement les deux petites familles de données de test manquantes, à leurs chemins exacts, sans importer l'ensemble des rapports historiques. La baseline IM doit être diagnostiquée sans supprimer son assertion positive. Le raccordement UI doit également étendre le périmètre de la déclaration de source aux modules moteur et catalogues V3 réellement embarqués : le calcul antérieur ne couvrait que `src`, `_shared` et le catalogue historique IA.
+
+### Preuves antérieures conservées
 
 - DET : quatre scénarios synthétiques acceptés par les contrôles stricts, et quatre scénarios historiques incompatibles toujours refusés. Tous restent `syntheticOnly:true`, `prescriptionAllowed:false` et sans attestation sportive.
 - Couverture TTE stricte : age group 16 semaines `19/49` (38,78 %), age group 40 semaines `53/135` (39,26 %), compétiteur avec placement revu 16 semaines `19/62` (30,65 %), compétiteur 40 semaines `53/171` (30,99 %).
