@@ -37,6 +37,7 @@ import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {hasDistinctSourceAssignment} from './v334-distinct-source-feasibility';
+import {assessQualityAnchoredSourceMatching} from './v345-quality-source-matching';
 import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conflict';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
@@ -110,6 +111,9 @@ export interface ExperimentalAssemblyContract {
   /** V344 opt-in: prioritize an already-admissible source-backed quality KEY
    * slot during DFS, not only a candidate within that slot. Ordering ONLY. */
   prioritizeVerifiedRunningQualitySlot?:true;
+  /** V345 opt-in: certify the NECESSARY presence of one genuine source-backed
+   * RUN quality option in a B13-distinct matching of current slot domains. */
+  auditRunningQualitySourceMatching?:true;
   /** V316 opt-in: a native periodization warning cannot count as strict sporting GO. */
   requireStrictPeriodizationEvidence?:true;
   /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
@@ -792,6 +796,24 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             noNewWorkoutOrClockInvented:true,notGlobalImpossibility:true,
           })});
         return refuse('v343_running_quality_domain_unavailable_week_'+w.week);
+      }
+      if(runningQualityRequired&&
+         experimentalContract?.auditRunningQualitySourceMatching===true){
+        const proof=assessQualityAnchoredSourceMatching(order.map(({domain})=>
+          domain.map(s=>({sourceId:s.catalogId??null,
+            verifiedKeyQuality:isQuality(s)}))));
+        result.issues.push({
+          code:proof.verdict==='provably_unreachable_in_current_domains'?
+            'det_v345_running_quality_source_matching_impossible':
+            'det_v345_running_quality_source_matching_not_refuted',
+          week:w.week,
+          severity:proof.verdict==='provably_unreachable_in_current_domains'?
+            'blocking':'warning',message:JSON.stringify(proof),
+        });
+        // Necessary condition failed in the exact approved slot domains.
+        // A positive matching never bypasses other gates or implies sport GO.
+        if(proof.verdict==='provably_unreachable_in_current_domains')
+          return refuse('v345_running_quality_source_matching_impossible_week_'+w.week);
       }
       const minimumSuffix=Array(order.length+1).fill(0) as number[];
       for(let i=order.length-1;i>=0;i--)minimumSuffix[i]=minimumSuffix[i+1]+Math.min(...order[i].domain.map(s=>s.durationMin??0));
