@@ -19,7 +19,9 @@
         ],
         "ledgerRows": 1
       },
-      "expected": "Durable atomic reservation allows at most one POST; other call stops without resend. A process-local lock is insufficient."
+      "expected": "Durable atomic reservation allows at most one POST; other call stops without resend. A process-local lock is insufficient.",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed: real Postgres claim concurrency proved; no Nolio POST executed"
     },
     {
       "case": "wrong_event_confirmed",
@@ -28,7 +30,9 @@
         "status": "DONE",
         "remoteId": "ptrn_SYNTHOTHER"
       },
-      "expected": "Content/identity mismatch must not confirm ownership or permit overwrite/resend; conservative ambiguity."
+      "expected": "Content/identity mismatch must not confirm ownership or permit overwrite/resend; conservative ambiguity.",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed in QA; independent replay or recorded test evidence"
     },
     {
       "case": "invalid_input_accepted",
@@ -39,7 +43,9 @@
         "mappedSeconds": -1,
         "metersDropped": true
       },
-      "expected": "Refusal before HTTP; true calendar validation, finite positive numbers, exact input union and output schema semantics."
+      "expected": "Refusal before HTTP; true calendar validation, finite positive numbers, exact input union and output schema semantics.",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed in QA; independent replay or recorded test evidence"
     },
     {
       "case": "confirmed_time_not_supported",
@@ -47,7 +53,9 @@
       "observed": {
         "outputTime": null
       },
-      "expected": "Extend adapter/input to preserve source confirmed local date/time and timezone semantics, or refuse when fidelity cannot be established."
+      "expected": "Extend adapter/input to preserve source confirmed local date/time and timezone semantics, or refuse when fidelity cannot be established.",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed in QA; independent replay or recorded test evidence"
     },
     {
       "case": "dst_offset_at_noon",
@@ -64,14 +72,18 @@
         }
       ],
       "expected": "Resolve actual session instant with round-trip verification; reject nonexistent/ambiguous times unless explicitly disambiguated.",
-      "correction": "Independently verified fixed at fe3dbb80, including nonexistent/ambiguous 02:30 cases"
+      "correction": "Independently verified fixed at fe3dbb80, including nonexistent/ambiguous 02:30 cases",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed in QA; independent replay or recorded test evidence"
     },
     {
       "case": "objective_wildcard_still_overbroad",
       "sourceMetadataSha": "fe3dbb80c4316d24d3016ba01de505f544af6b81",
       "observed": "coachObjectiveKey('Marathon de trail') returns marathon",
       "expected": "Qualified route objective must not be inferred from a free event name; explicit unsupported goal refusal.",
-      "status": "correction instructed"
+      "status": "correction instructed",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed in QA; independent replay or recorded test evidence"
     },
     {
       "case": "local_dry_run_block_false_success",
@@ -84,12 +96,14 @@
       },
       "cause": "Local response status0 accepted by status<300 test",
       "expected": "Only valid 2xx server validation can succeed; local block remains blocked/rejected",
-      "status": "correction queued"
+      "status": "correction queued",
+      "finalQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "correctionStatus": "fixed: independent actual modules return DRY_RUN_NOT_VALIDATED with zero fetch"
     }
   ],
-  "correctionStatus": "Durable V2 code tested; real GET/RPC concurrency/store and adaptation/dry-run residuals in progress",
+  "correctionStatus": "Listed technical counterexamples closed in QA; actual Nolio authorization and sporting review still absent",
   "pilot": "not_activated",
   "production": "NO-GO",
-  "currentQaSha": "6b56927c364a5d1b406d1835605466a7c1e3c6b9",
+  "currentQaSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
   "lastCompilingQaSha": "fe3dbb80c4316d24d3016ba01de505f544af6b81"
 }

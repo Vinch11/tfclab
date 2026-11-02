@@ -112,30 +112,52 @@ Avant ouverture : consigner version QA acceptée, version UI/moteur, backend, je
 
 Retour arrière : désactiver l'entrée DET et restaurer la version applicative préalablement épinglée ; conserver IA disponible et l'historique des versions ; ne supprimer aucune version et ne relâcher aucune politique RLS. Une restauration d'un ancien plan suit la voie normale avec une nouvelle confirmation. Aucun retour arrière de données n'est exécuté automatiquement.
 
-## État après édition, courant et saisie coach réels — 2 novembre 2026
+## Candidate QA vérifiée — 2 novembre 2026
 
-Candidate QA terminée `6b56927c364a5d1b406d1835605466a7c1e3c6b9` : types/build/lint ciblé et152fichiers de tests passent, manifeste `182f26e7a43407e1a8fe4f88027d5c4661cde3b8e28e077fca8596b18e37c11d` non attesté. Trois fonctions QA réalignées.
+Source éditeur finale : `de454207973d8a3e3592e76a8f623a60622b4f48`, projet QA `c3941303-40d2-447e-9b87-867d82727fd1`, backend `lkjesdacgpolrwfxulbo`, non publié. Release `3e3ae35670fa41daf1a8ce85c7c98dfbdafc7be65182bf1f13b69d76e3ae2175`, recalculée et fonctions QA réalignées, **attested:false / deploymentAttested:false**. Il ne s'agit pas d'un GO production.
 
-- Avec le vrai JWT B : archivage, réponses perdues, absence de relecture, double clic, nouveaux contextes et historique exercés. Identité corrigée pour ignorer uniquement generatedAt ; dose/horaire/ordre/moteur restent discriminants. Les anciens doublons sont conservés.
-- Renommer crée une nouvelle version via le saver, sans UPDATE de la source ni de sa provenance. L'actualisation textuelle est refusée sur un plan à cibles DET structurées.
-- Restaurer comme courant archive l'ancien, puis upsert plans avec reçu/relecture. Les pannes avant archive, après archive, après commit courant et à la relecture sont distinguées ; aucun faux succès. La reprise d'un courant déjà identique n'écrit pas à nouveau.
-- Le vrai parcours navigateur d'entrées coach est exercé : profil SYNTHÉTIQUE220s/km/TTEseul,87sources qualifiées par clics de recette, revue enregistrée et75séances générées/sauvegardées avec créneaux. Changer l'entrée ou le mode d'ordre périme la revue. Aucun réordonnancement de plusieurs limiteurs n'est revendiqué en navigateur.
-- Profil Chromium persistant fermé puis rouvert sans réinjection ; getUser reconnaît B. C'est la même session, pas un nouveau login. Version coach rouverte et restaurée comme courant ; le toast n'est pas capturé, l'égalité en base est confirmée.
-- PATCH B→A valide, même athlete_id :200/0ligne ; empreintes A inchangées.
+### Parcours réellement exercé avec Coach B
 
-Preuves : [archive/réseau](DET_COACH_B_REAL_JWT_RECIPE_2026-11-02.json), [édition/courant/entrées coach](DET_COACH_B_EDIT_RESTORE_COACH_INPUTS_2026-11-02.json), [audit indépendant](DET_COACH_B_INDEPENDENT_AUDIT_2026-11-02.json).
+Génération depuis des entrées coach SYNTHÉTIQUES,87 sources qualifiées par clics de recette, revue enregistrée,75 séances sauvegardées avec créneaux. Changer une entrée ou le mode d'ordre périme la revue. Historique rouvert, profil Chromium fermé puis relancé sans réinjection, version coach restaurée comme courant. C'est une continuité de la même session, **pas un nouveau login**. Aucun réordonnancement de plusieurs limiteurs n'est revendiqué dans le navigateur : le cas n'en détecte qu'un.
 
-Audit indépendant20:20UTC : A4archives et1courant gardent les empreintes `543e381a32500dfcf59bc1e384d3e752`/`34230fb711707b19d9766814105f0a33`. B10versions et1courant,1revue, aucune incohérence de propriété. Courant B exactement égal à la version coach042b, hash `e46b4b279c0ca2b1f4f4ddda257be5c9`, provenance DET/non-prescriptif conservée. Les6premières versions B ont été contre-vérifiées intactes ; deux paires d'anciennes identités restent non réconciliées.
+Les sauvegardes/retours réseau utilisent le vrai HTTP/JWT B. Pannes avant commit, ACK perdu, absence de relecture, double clic, reprise et nouveaux contextes ont été exercés. Le renommage ajoute une version sans modifier la source. La restauration archive l'ancien courant puis écrit/revérifie le nouveau ; les états confirmé, partiel et incertain sont distingués sans faux succès. PATCH B→A valide :200/0ligne, aucune mutation A.
 
-Le lot Nolio `a471d7e68eac29fa2ee011a3140797f87f2b4e3d` fournit RPC claim/CAS, adaptateur et Edge vérifiant getClaims/propriété avant service-role. B→sonplan est BLOCKED sans connexion, B→A refusé.59tests Nolio,33tests coach,130fichiers plan/impression passent. WebKit vérifie l'aperçu ; un PDF Chromium75séances/17pages est contrôlé par séance sans écart. [Preuve](NOLIO_V2_DURABLE_SENDER_PROOF_2026-11-02.json). Inspection humaine et autres modes/scénarios sur les sources finales restent distincts.
+L'archivage de `usePlanAdaptation` utilise désormais le même saver déterministe. UNKNOWN/BLOCKED/nonconfirmé bloque le courant ; échec du courant après archive produit « état partiel ». L'essai B de ce module a fait un insert HTTP réel avec ACK perdu simulé après commit, puis une nouvelle instance a retrouvé une seule archive et le premier generatedAt. L'échec du courant de ce sous-test était simulé sans requête ; le parcours UI d'adaptation IA n'a pas été exercé. Les adaptations DET non recalculées depuis les sources sont explicitement refusées avant mutation/IA/archive. La voie IA est conservée.
 
-La vraie concurrence Postgres n'est pas encore prouvée : les appels SQL indépendants ont été sérialisés par l'outil malgré Promise.all. Claimtrue puisfalse et CAS périméfalse sont vérifiés ; une ligne technique rejetée est conservée sans Nolio. [Résultat exact](NOLIO_V2_ROOT_DATABASE_PROBE_2026-11-02.json). Les probes de recette ne sont pas des envois.
+L'identité ignore uniquement `_provenance.generatedAt` ; dose, horaire, ordre, moteur et raison restent discriminants. Les anciennes identités/archives aléatoires ne sont ni réconciliées ni supprimées. L'actualisation textuelle ne peut plus modifier silencieusement un plan DET à cibles structurées.
 
-Les GET existent dans le schéma officiel complet ; l'ancien extrait les omettait. [Contrat complet de lecture](nolio-v2/READ_CONTRACT_2026-11-02.md) ajouté. La suite doit fermer l'adaptateur GET, la vraie concurrence côté serveur et le magasin V2 sécurisé, sans créer de connexion.
+Preuves : [archive/réseau](DET_COACH_B_REAL_JWT_RECIPE_2026-11-02.json), [édition/courant/entrées coach](DET_COACH_B_EDIT_RESTORE_COACH_INPUTS_2026-11-02.json), [adaptation et dry-run](ADAPTATION_ARCHIVE_DRYRUN_PROOF_2026-11-02.json).
 
-Résidus demandés : archives de usePlanAdaptation encore à IDaléatoire ; faux dry-run local positif (HTTP0 classé dry_run_ok malgré zérofetch) reproduit sura471. Ils sont en correction, pas déclarés réussis.
+### Nolio V2 : code raccordé, aucun compte connecté
 
-Seule la voie marathon16sem./age_group/TTEseul est prouvée acceptée depuis les entrées coach ; le profil initial240s/km reste refusé Lorang. Nouveau login, accès A en écriture, connexion/validation Nolio réelle et revue sportive humaine restent ouverts. **Pilote NON ACTIVÉ**, aucune production/publication. Choix futur **DET Engine ou IA** conservé.
+Le vrai adaptateur GET utilise le [contrat complet de lecture](nolio-v2/READ_CONTRACT_2026-11-02.md) : pagination puis détail, erreurs/JSON invalide/timeout refusés sans inventer une liste vide. Les tests HTTP sont simulés, pas des lectures Nolio réelles.
+
+La concurrence est prouvée contre la vraie RPC Postgres depuis deux requêtes serveur : PIDs156545/156546, les deux voient0initialement ; leurs transactions se chevauchent et une seule réserve. La seconde attend puis renvoie nonréservée. La ligne de test est fermée enrejected. Le premier probe administrateur sérialisé reste distinct et ne sert pas de preuve concurrente. Les deux lignes techniques restent conservées, sans remoteid et sans envoi Nolio.
+
+Le magasin V2 est séparé de V1, vide, inaccessible àanon/authenticated ; le chargeur lie coach/athlète vérifiés, scopes/expiration/consentement/références. L'Edge vérifie getClaims et la propriété avant service-role. B→sonplan reste BLOCKED sans connexion ; B→A est refusé. Aucun jeton ou connexion n'a été créé, aucune configuration OAuth effectuée.
+
+Le faux dry-run positif local est corrigé. Une contre-vérification indépendante sur les modules finaux donne **DRY_RUN_NOT_VALIDATED**,0fetch pour le refus HTTP0 ; elle ne vaut pas une validation serveur Nolio. Dates impossibles, doses négatives/multi-axes, métrique inconnue et durée incohérente sont refusées ; une séance distante de même nom/date mais autre contenu n'est pas déclarée exacte. Une heure confirmée09:00 reste09:00.
+
+Preuves : [code durable](NOLIO_V2_DURABLE_SENDER_PROOF_2026-11-02.json), [GET/concurrence/magasin](NOLIO_V2_READS_CONCURRENCY_STORE_PROOF_2026-11-02.json), [audit indépendant final](DET_FINAL_INDEPENDENT_AUDIT_2026-11-02.json). La sonde QA est encore déployée et doit être exclue/retirée avant production.
+
+### Vérifications et intégrité finales
+
+Types/lint ciblé passent. Le lot rapporte plus de3400 tests frontend réussis, puis deux erreurs du nouveau test dry-run corrigées et8 tests ciblés relancés avec succès ; aucun second passage complet n'est revendiqué ici. Tests hook24/24 et modulearchive6/6. Les suites Nolio99, coach33, plan/impression130 fichiers et édition152 fichiers ont été exécutées dans leurs lots respectifs.
+
+Le Deno du bac à sable ayant planté, les9 fichiers serveur finaux ont été copiés à l'identique avec leurs empreintes sur une branche CI isolée. **[Deno check final réussi](https://github.com/Vinch11/tfclab/actions/runs/41521748335)**, snapshot de la source finale, sans exécution de module, déploiement ni Nolio. Ce contrôle est distinct de la suite frontend et d'une attestation des octets servis.
+
+WebKit a vérifié l'aperçu d'impression. Un PDF Chromium75 séances/17pages a été contrôlé par séance sans écart ;16 PDF des quatre scénarios avaient été rendus dans un lot antérieur. Aucun contrôle visuel humain page par page ni recontrôle de tous les modes sur la dernière source n'est revendiqué.
+
+Audit SQL indépendant à20:43UTC : A4 archives conserve `543e381a32500dfcf59bc1e384d3e752`, courantA `34230fb711707b19d9766814105f0a33`. B11 versions,1 courant,1 revue ; courant B et version coach042b sont exactement égaux (`e46b4b279c0ca2b1f4f4ddda257be5c9`). Les6 premières archives B conservent `ba7680aa1111f9966c9ead97df3f6749`.75 créneaux coach sont présents, aucune incohérence de propriété. JournalNolio :2 lignes techniques rejetées ;0 connexion V2.
+
+### Conditions encore ouvertes
+
+- Accès/écritures Coach A et nouveau login réel : l'outil de session A a refusé l'action faute d'approbation disponible dans ce contexte. Aucun contournement n'a été fait. Une connexion manuelle reste nécessaire pour terminer cette partie.
+- Connexion V2/OAuth et essais Nolio réels sur un compte/athlète de test explicitement autorisés ; aucun dry-run réel n'a eu lieu.
+- Revue sportive humaine des plans et décisions de périmètre, puis identification/attestation/promotion de la version du pilote et retour arrière. Les confirmations de recette ne sont pas cette revue.
+- Seul marathon 16 sem./age_group/TTE seul est prouvé accepté depuis les entrées coach. Le profil240s/km reste refusé Lorang ; les autres profils/objectifs ne sont pas validés par ce cas.
+
+**Pilote NON ACTIVÉ / NO-GO production.** Aucune fusion dansmain ni publication de production. Le choix futur **DET Engine ou IA**, sans repli silencieux, reste requis.
 
 ## Dernier arrêt documenté — crédits Lovable
 
