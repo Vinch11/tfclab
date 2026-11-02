@@ -115,6 +115,10 @@ export interface ExperimentalAssemblyContract {
    * ordered key domain, even when ordinary limiter/rotation scores differ.
    * Candidate eligibility and every final sporting gate remain unchanged. */
   prioritizeVerifiedRunningQualityCandidate?:true;
+  /** V347 optional search order only: maximize the actually proven V3
+   * Z1/Z2 versus non-easy margin, after authentic source-backed quality.
+   * No cap, intensity, limiter rule, or certificate is modified. */
+  prioritizeRunningStructuredEasyMargin?:true;
   /** V345 opt-in: certify the NECESSARY presence of one genuine source-backed
    * RUN quality option in a B13-distinct matching of current slot domains. */
   auditRunningQualitySourceMatching?:true;
@@ -927,6 +931,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             (runningQualityRequired&&slot.slot.isKeySession&&
              experimentalContract?.prioritizeVerifiedRunningQualityCandidate===true?
                Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
+            (runningQualityRequired&&
+             experimentalContract?.prioritizeRunningStructuredEasyMargin===true?
+               score(b.dose)-score(a.dose):0)||
             (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
             (qualityRequired&&slot.slot.isKeySession?
               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
