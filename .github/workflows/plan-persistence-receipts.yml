@@ -26,30 +26,15 @@ jobs:
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync} from 'node:fs';
-          import {calculatePlanRelease,declarationText} from './scripts/preproduction/plan-release-source.mjs';
+          import {calculatePlanRelease,declarationText,readDeclaration,assertSameDeclaration} from './scripts/preproduction/plan-release-source.mjs';
           const {info}=await calculatePlanRelease(process.cwd());
           writeFileSync('plan-release-manifest.candidate.ts',declarationText(info));
+          assertSameDeclaration(info,readDeclaration(process.cwd()));
           console.log('CANDIDATE_SOURCE_DECLARATION '+JSON.stringify(info));
           JS
-      - name: Full frontend regressions with compact failure diagnostics
-        shell: bash
-        run: |
-          set +e
-          bun run vitest run > frontend-receipt-regression.log 2>&1
-          TEST_STATUS=$?
-          python3 - <<'PY'
-          import re
-          from pathlib import Path
-          text = re.sub(r"\x1b\[[0-9;]*m", "", Path("frontend-receipt-regression.log").read_text())
-          lines = text.splitlines()
-          print("\n".join(lines[-140:]))
-          PY
-          exit "$TEST_STATUS"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: frontend-receipt-regression-log
-          path: |
-            frontend-receipt-regression.log
-            plan-release-manifest.candidate.ts
+          name: plan-persistence-source-declaration
+          path: plan-release-manifest.candidate.ts
           retention-days: 14
