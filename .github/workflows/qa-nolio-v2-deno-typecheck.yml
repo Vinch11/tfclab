@@ -1,0 +1,31 @@
+name: QA Nolio V2 Deno typecheck
+on:
+  push:
+    branches: [qa/nolio-v2-deno-check-20261102]
+permissions:
+  contents: read
+jobs:
+  deno-static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno version
+        run: deno --version | tee qa/nolio-v2-deno-snapshot/deno-version.txt
+      - name: Check exact QA Nolio source snapshot
+        shell: bash
+        working-directory: qa/nolio-v2-deno-snapshot/supabase/functions
+        run: |
+          set -o pipefail
+          deno check --node-modules-dir=none nolio-v2-send-plan/index.ts qa-nolio-v2-concurrency-probe/index.ts _shared/nolioV2/*.ts 2>&1 | tee ../../deno-check.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-nolio-v2-deno-typecheck
+          path: |
+            qa/nolio-v2-deno-snapshot/provenance.json
+            qa/nolio-v2-deno-snapshot/deno-version.txt
+            qa/nolio-v2-deno-snapshot/deno-check.log
+          retention-days: 14

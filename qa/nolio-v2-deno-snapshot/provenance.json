@@ -1,0 +1,17 @@
+{
+  "schema": "tfcl.qa.nolio-deno-snapshot.v1",
+  "qaProject": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "qaSourceSha": "664ad76e3f2ab1a9e8ff9201a8178ffca0b943e4",
+  "files": [
+    "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+    "supabase/functions/_shared/nolioV2/plannedClient.ts",
+    "supabase/functions/_shared/nolioV2/localTime.ts",
+    "supabase/functions/_shared/nolioV2/planSessions.ts",
+    "supabase/functions/_shared/nolioV2/httpFetch.ts",
+    "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+    "supabase/functions/_shared/nolioV2/connectionStore.ts",
+    "supabase/functions/nolio-v2-send-plan/index.ts",
+    "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts"
+  ],
+  "method": "Exact read_file snapshot at immutable QA ref, typecheck only; no module execution, no Nolio request, no deployment"
+}

@@ -1,0 +1,293 @@
+/**
+ * Expéditeur Nolio V2 (planned) — utilise EXACTEMENT les opérations produites
+ * par `mapPlanToNolioV2`. Séparé de V1 : connexion, jetons, ids opaques propres.
+ *
+ * Nolio V2 ne déduplique pas les créations et n'a plus d'id_partner. Chaque
+ * opération passe par un journal durable :
+ *   claim atomique "sending" (AVANT le POST) → confirmed (id distant retourné)
+ *   réponse perdue / 5xx ⇒ sent_unconfirmed. Une opération déjà réservée n'est
+ *   JAMAIS renvoyée automatiquement : seule une réconciliation EXACTE (lecture
+ *   paginée complète + détail, structure/durée/heure/audience/description+
+ *   marqueur identiques, candidat unique) la confirme ; partiel/édité ⇒
+ *   ambiguous ; absent ⇒ reste incertain (arrêt, aucun 2e POST). 429 seul
+ *   permet un nouvel essai par compare-and-set. 400/404/409/422 ⇒ rejected.
+ * L'id de plan_versions ne rend PAS un POST Nolio idempotent.
+ *
+ * Sans connexion V2 autorisée ⇒ BLOCKED avant tout appel réseau.
+ */
+import { canonicalJson, type NolioV2Refs, type V2Operation } from "./plannedMapper.ts";
+
+export type LedgerState = "sending" | "sent_unconfirmed" | "confirmed" | "ambiguous" | "rejected" | "rate_limited";
+export type LedgerEntry = {
+  opKey: string; planVersionId: string; sessionKey: string; path: string; athleteRef: string;
+  payloadSha256: string; apiVersion: "v2"; state: LedgerState; remoteId: string | null; detail: string | null;
+};
+/**
+ * Journal durable ATOMIQUE. `claim` = INSERT … ON CONFLICT DO NOTHING (réservation
+ * unique par opKey, état "sending" écrit AVANT tout POST) ; `transition` =
+ * compare-and-set (UPDATE … WHERE state = from). Aucune dépendance à un verrou
+ * de processus JS : deux exécutions concurrentes ne peuvent pas toutes deux
+ * réserver la même opération. Toute erreur ⇒ exception ⇒ arrêt sans POST.
+ */
+export interface NolioV2Ledger {
+  claim(e: LedgerEntry): Promise<{ claimed: true } | { claimed: false; existing: LedgerEntry }>;
+  transition(opKey: string, from: LedgerState, to: LedgerState, patch: { remoteId?: string | null; detail?: string | null }): Promise<boolean>;
+}
+export type HttpResult = { kind: "response"; status: number; json: unknown } | { kind: "lost"; detail: string };
+export type ListPage = { ok: true; items: Array<Record<string, unknown>>; hasMore: boolean } | { ok: false; detail: string };
+export interface NolioV2Http {
+  post(path: string, body: unknown): Promise<HttpResult>;
+  /** Une page du calendrier planifié de l'athlète (keyset : starting_after + has_more). */
+  listPage(path: string, athleteRef: string, date: string, startingAfter: string | null): Promise<ListPage>;
+  /** Détail (seul le détail sert `workout`). */
+  getDetail(path: string, id: string, athleteRef: string): Promise<{ ok: true; item: Record<string, unknown> } | { ok: false; detail: string }>;
+}
+export type NolioV2Connection = {
+  apiVersion: "v2";
+  /** "real" : refs synthétiques refusées. "test-mock" : transport simulé de test uniquement. */
+  mode: "real" | "test-mock";
+  grantedScopes: string[];
+};
+export type SendStatus = "BLOCKED" | "DONE" | "STOPPED_UNCONFIRMED" | "STOPPED_AMBIGUOUS" | "STOPPED_IN_FLIGHT" | "STOPPED_RATE_LIMITED" | "STOPPED_AUTH" | "STOPPED_LEDGER_UNAVAILABLE";
+export type SendReport = {
+  status: SendStatus;
+  reason: string | null;
+  results: Array<{ sessionKey: string; state: LedgerState | "skipped_confirmed" | "dry_run_ok" | "dry_run_rejected"; remoteId: string | null }>;
+};
+
+export const NOLIO_V2_REQUIRED_SCOPES = ["planned:write", "planned:read"] as const;
+export const RECONCILE_MAX_PAGES = 50;
+
+async function sha256Hex(s: string): Promise<string> {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** Marqueur d'origine TFCLab inscrit dans la description. Indice, PAS preuve absolue d'origine. */
+export async function originMarker(planVersionId: string, op: V2Operation): Promise<string> {
+  return `[TFCLab-QA ${(await sha256Hex(`nolio-v2-origin-1|${planVersionId}|${op.sessionKey}|${op.path}`)).slice(0, 24)}]`;
+}
+/** Corps réellement envoyé : corps du mapper + marqueur d'origine en fin de description. */
+export async function bodyToSend(planVersionId: string, op: V2Operation): Promise<Record<string, unknown>> {
+  const m = await originMarker(planVersionId, op);
+  const d = typeof op.body.description === "string" && op.body.description ? `${op.body.description}\n\n${m}` : m;
+  return { ...op.body, description: d };
+}
+
+export async function operationKey(planVersionId: string, op: V2Operation): Promise<{ opKey: string; payloadSha256: string }> {
+  const payloadSha256 = await sha256Hex(canonicalJson(await bodyToSend(planVersionId, op)));
+  const opKey = await sha256Hex(canonicalJson({ v: "nolio-v2-op-1", planVersionId, sessionKey: op.sessionKey, path: op.path, payloadSha256 }));
+  return { opKey, payloadSha256 };
+}
+
+// ---- Réconciliation EXACTE ----
+const READ_ONLY = new Set(["id", "revision", "summary", "load", "time_in_zones", "has_structured_workout"]);
+const UNIT = { s: 1, min: 60, h: 3600, m: 1, km: 1000, mi: 1609.344 } as Record<string, number>;
+function normalize(v: unknown, top = false): unknown {
+  if (Array.isArray(v)) return v.map((x) => normalize(x));
+  if (!v || typeof v !== "object") return v;
+  const o = v as Record<string, unknown>;
+  const keys = Object.keys(o);
+  if (keys.length === 2 && typeof o.value === "number" && typeof o.unit === "string" && o.unit in UNIT) {
+    const dim = ["s", "min", "h"].includes(o.unit) ? "s" : "m";
+    return { value: o.value * UNIT[o.unit], unit: dim };
+  }
+  const out: Record<string, unknown> = {};
+  for (const k of keys.sort()) {
+    // `id` de nœud (lecture, jamais à la création) et `resolved` (enrichissement
+    // readOnly des cibles, « accepted and ignored on write ») : champs de lecture.
+    if (k === "id" || k === "resolved" || (top && READ_ONLY.has(k))) continue;
+    if (o[k] === null || o[k] === undefined) continue; // null = non défini (contrat)
+    out[k] = normalize(o[k]);
+  }
+  return out;
+}
+function deepEqualTol(a: unknown, b: unknown): boolean {
+  if (typeof a === "number" && typeof b === "number") return Math.abs(a - b) <= 1e-6 * Math.max(1, Math.abs(a), Math.abs(b));
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((x, i) => deepEqualTol(x, b[i]));
+  if (a && b && typeof a === "object" && typeof b === "object") {
+    const ka = Object.keys(a), kb = Object.keys(b);
+    return ka.length === kb.length && ka.every((k) => k in (b as object) && deepEqualTol((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  }
+  return a === b;
+}
+/**
+ * Lecture servie avec des valeurs « non défini » que la création n'a pas
+ * envoyées : retirées SEULEMENT quand le corps envoyé n'a pas la clé.
+ * - `workout: []` : « null and [] mean not set » (contrat).
+ * - `tags: []` : aucune étiquette.
+ * - `show_rpe: false` sans `rpe` envoyé : visibilité d'un RPE absent.
+ * - `duration`/`distance` de l'événement absents de l'envoi alors qu'un
+ *   `workout` non vide a été envoyé : total dérivé du workout (« an unchanged
+ *   total stays derived from the workout ») ; le workout reste comparé en entier.
+ * Toute autre clé ou valeur différente ⇒ pas de correspondance (prudent).
+ */
+export function stripReadDefaults(remote: Record<string, unknown>, sent: Record<string, unknown>): Record<string, unknown> {
+  const r = { ...remote };
+  const absent = (k: string) => !(k in sent) || sent[k] === undefined;
+  if (absent("workout") && Array.isArray(r.workout) && r.workout.length === 0) delete r.workout;
+  if (absent("tags") && Array.isArray(r.tags) && r.tags.length === 0) delete r.tags;
+  if (absent("show_rpe") && absent("rpe") && r.show_rpe === false) delete r.show_rpe;
+  const sentWorkout = Array.isArray(sent.workout) && sent.workout.length > 0;
+  if (sentWorkout) for (const k of ["duration", "distance"]) if (absent(k)) delete r[k];
+  return r;
+}
+/** Égalité exacte des champs significatifs (nom, date, heure, sport, audience, durée, description+marqueur, structure complète). */
+export function exactRemoteMatch(remote: Record<string, unknown>, sent: Record<string, unknown>): boolean {
+  return deepEqualTol(normalize(stripReadDefaults(remote, sent), true), normalize(sent, true));
+}
+const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>, marker: string) =>
+  (typeof it.description === "string" && it.description.includes(marker)) ||
+  (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
+
+type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string } | { kind: "read_failed"; detail: string };
+async function reconcile(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string): Promise<Reconcile> {
+  const candidates: Array<Record<string, unknown>> = [];
+  let after: string | null = null;
+  for (let page = 0; ; page++) {
+    if (page >= RECONCILE_MAX_PAGES) return { kind: "read_failed", detail: "pagination_limit_reached" };
+    const r = await http.listPage(op.path, athlete, String(sent.date_start), after);
+    if (!r.ok) return { kind: "read_failed", detail: (r as { detail: string }).detail };
+    candidates.push(...r.items.filter((it) => looselySame(it, sent, marker)));
+    if (!r.hasMore) break;
+    const last = r.items.at(-1)?.id;
+    if (typeof last !== "string" || last === after) return { kind: "read_failed", detail: "pagination_cursor_missing" };
+    after = last;
+  }
+  if (!candidates.length) return { kind: "absent" };
+  const exact: string[] = [];
+  for (const c of candidates) {
+    if (typeof c.id !== "string") return { kind: "ambiguous", detail: "candidate_without_id" };
+    const d = await http.getDetail(op.path, c.id, athlete);
+    if (!d.ok) return { kind: "read_failed", detail: `detail:${(d as { detail: string }).detail}` };
+    if (d.item.id !== c.id) return { kind: "ambiguous", detail: "detail_id_mismatch" };
+    if (exactRemoteMatch(d.item, sent)) exact.push(c.id);
+  }
+  if (exact.length === 1 && candidates.length === 1) return { kind: "exact", id: exact[0] };
+  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)` };
+}
+
+const REMOTE_ID = { "/api/v2/planned/trainings/": /^ptrn_[A-Za-z0-9]+$/, "/api/v2/planned/competitions/": /^pcmp_[A-Za-z0-9]+$/ } as Record<string, RegExp>;
+
+export async function sendPlannedV2(input: {
+  connection: NolioV2Connection | null;
+  refs: NolioV2Refs;
+  planVersionId: string;
+  operations: V2Operation[];
+  ledger: NolioV2Ledger;
+  http: NolioV2Http | null;
+  dryRun?: boolean;
+}): Promise<SendReport> {
+  const blocked = (reason: string): SendReport => ({ status: "BLOCKED", reason, results: [] });
+  const c = input.connection;
+  if (!c || !input.http) return blocked("no_authorized_v2_connection");
+  if (c.apiVersion !== "v2") return blocked("connection_not_v2");
+  if (c.mode === "real" && input.refs.synthetic) return blocked("synthetic_references_refused_for_real_send");
+  const missing = NOLIO_V2_REQUIRED_SCOPES.filter((s) => !c.grantedScopes.includes(s));
+  if (missing.length) return blocked(`scopes_missing:${missing.join(",")}`);
+  if (!/^[0-9a-f-]{36}$/i.test(input.planVersionId)) return blocked("plan_version_id_invalid");
+  const http = input.http, ledger = input.ledger;
+  const results: SendReport["results"] = [];
+  const stop = (status: SendStatus, reason: string, extra?: SendReport["results"][number]): SendReport => ({ status, reason, results: extra ? [...results, extra] : results });
+
+  for (const op of input.operations) {
+    if ((op.body.athletes as string[] | undefined)?.length !== 1 || (op.body.athletes as string[])[0] !== input.refs.athleteId)
+      return stop("BLOCKED", `athlete_mismatch:${op.sessionKey}`);
+    const sent = await bodyToSend(input.planVersionId, op);
+    if (input.dryRun) {
+      const r = await http.post(op.path, { ...sent, dry_run: true });
+      results.push({ sessionKey: op.sessionKey, state: r.kind === "response" && r.status < 300 ? "dry_run_ok" : "dry_run_rejected", remoteId: null });
+      continue;
+    }
+    const marker = await originMarker(input.planVersionId, op);
+    const { opKey, payloadSha256 } = await operationKey(input.planVersionId, op);
+    const entry: LedgerEntry = { opKey, planVersionId: input.planVersionId, sessionKey: op.sessionKey, path: op.path,
+      athleteRef: input.refs.athleteId, payloadSha256, apiVersion: "v2", state: "sending", remoteId: null, detail: null };
+    let claim: Awaited<ReturnType<NolioV2Ledger["claim"]>>;
+    try { claim = await ledger.claim(entry); } catch { return stop("STOPPED_LEDGER_UNAVAILABLE", `claim_failed:${op.sessionKey}`); }
+
+    if (!claim.claimed) {
+      const prev = (claim as { existing: LedgerEntry }).existing;
+      if (prev.payloadSha256 !== payloadSha256 || prev.athleteRef !== entry.athleteRef || prev.path !== op.path) return stop("BLOCKED", `ledger_divergence:${op.sessionKey}`);
+      if (prev.state === "confirmed") { results.push({ sessionKey: op.sessionKey, state: "skipped_confirmed", remoteId: prev.remoteId }); continue; }
+      if (prev.state === "rejected") { results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null }); continue; }
+      if (prev.state === "ambiguous") return stop("STOPPED_AMBIGUOUS", `ambiguous:${op.sessionKey}`);
+      if (prev.state === "rate_limited") {
+        // 429 = non traité de façon certaine : seule exception où un nouvel essai est permis, via CAS.
+        let won = false;
+        try { won = await ledger.transition(opKey, "rate_limited", "sending", { detail: "retry_after_429" }); } catch { return stop("STOPPED_LEDGER_UNAVAILABLE", `cas_failed:${op.sessionKey}`); }
+        if (!won) return stop("STOPPED_IN_FLIGHT", `concurrent_retry:${op.sessionKey}`);
+      } else {
+        // "sending" (POST possiblement en vol ou interrompu) ou "sent_unconfirmed" : JAMAIS de renvoi automatique.
+        const rc = await reconcile(http, op, input.refs.athleteId, sent, marker);
+        if (rc.kind === "exact") {
+          let ok = false;
+          try { ok = await ledger.transition(opKey, prev.state, "confirmed", { remoteId: rc.id, detail: "réconcilié: correspondance exacte unique + marqueur (indice d'origine, pas preuve absolue)" }); } catch { ok = false; }
+          if (!ok) return stop("STOPPED_UNCONFIRMED", `reconcile_cas_failed:${op.sessionKey}`);
+          results.push({ sessionKey: op.sessionKey, state: "confirmed", remoteId: rc.id });
+          continue;
+        }
+        if (rc.kind === "ambiguous") {
+          try { await ledger.transition(opKey, prev.state, "ambiguous", { detail: rc.detail }); } catch { /* reste incertain */ }
+          return stop("STOPPED_AMBIGUOUS", `ambiguous:${op.sessionKey}`);
+        }
+        if (rc.kind === "read_failed") return stop("STOPPED_UNCONFIRMED", `reconcile_read_failed:${op.sessionKey}`);
+        // Absent à la lecture : première requête peut-être encore en vol ou visibilité retardée ⇒ aucun 2e POST.
+        return stop(prev.state === "sending" ? "STOPPED_IN_FLIGHT" : "STOPPED_UNCONFIRMED", `absent_at_read_no_auto_resend:${op.sessionKey}`, { sessionKey: op.sessionKey, state: prev.state, remoteId: null });
+      }
+    }
+
+    // Réservation acquise (état "sending" durable) ⇒ un seul POST.
+    const r = await http.post(op.path, sent);
+    const cas = async (to: LedgerState, patch: { remoteId?: string | null; detail?: string | null }) => {
+      try { return await ledger.transition(opKey, "sending", to, patch); } catch { return false; }
+    };
+    if (r.kind === "lost") {
+      await cas("sent_unconfirmed", { detail: `lost:${r.detail}` });
+      return stop("STOPPED_UNCONFIRMED", `response_lost:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "sent_unconfirmed", remoteId: null });
+    }
+    if (r.status === 429) {
+      await cas("rate_limited", { detail: "HTTP 429" });
+      return stop("STOPPED_RATE_LIMITED", `rate_limited:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "rate_limited", remoteId: null });
+    }
+    if (r.status === 401 || r.status === 403) {
+      await cas("rejected", { detail: `HTTP ${r.status}` });
+      return stop("STOPPED_AUTH", `http_${r.status}:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "rejected", remoteId: null });
+    }
+    if (r.status === 400 || r.status === 404 || r.status === 409 || r.status === 422) {
+      await cas("rejected", { detail: `HTTP ${r.status}` });
+      results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null });
+      continue;
+    }
+    const id = (r.json as { id?: unknown } | null)?.id;
+    if (r.status < 200 || r.status >= 300 || typeof id !== "string" || !REMOTE_ID[op.path]?.test(id)) {
+      await cas("sent_unconfirmed", { detail: `unconfirmed_response:HTTP ${r.status}` });
+      return stop("STOPPED_UNCONFIRMED", `unconfirmed_response:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "sent_unconfirmed", remoteId: null });
+    }
+    if (!(await cas("confirmed", { remoteId: id, detail: "id retourné par la création" })))
+      return stop("STOPPED_UNCONFIRMED", `confirm_cas_failed:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "sent_unconfirmed", remoteId: id });
+    results.push({ sessionKey: op.sessionKey, state: "confirmed", remoteId: id });
+  }
+  return { status: "DONE", reason: null, results };
+}
+
+/**
+ * Configuration OAuth V2 QA : séparée de V1. Refuse tout callback de
+ * production ou le callback V1 codé en dur. Aucun secret retourné.
+ */
+export const V1_PRODUCTION_CALLBACK_HOST = "wtwjkmawntybyehatkjo.supabase.co";
+export function checkV2OAuthConfig(cfg: { clientId?: string | null; redirectUri?: string | null; expectedQaHost: string; appType?: string | null }): string[] {
+  const p: string[] = [];
+  if (!cfg.clientId) p.push("client_id_v2_absent");
+  if (cfg.appType !== "partner" && cfg.appType !== "team") p.push("app_type_must_be_partner_or_team");
+  let u: URL | null = null;
+  try { u = cfg.redirectUri ? new URL(cfg.redirectUri) : null; } catch { u = null; }
+  if (!u) p.push("redirect_uri_absent_or_invalid");
+  else {
+    if (u.protocol !== "https:") p.push("redirect_uri_not_https");
+    if (u.host === V1_PRODUCTION_CALLBACK_HOST) p.push("redirect_uri_is_v1_production_callback");
+    if (u.host !== cfg.expectedQaHost) p.push("redirect_uri_not_qa_host");
+    if (/nolio-oauth\/callback$/.test(u.pathname)) p.push("redirect_uri_reuses_v1_callback_path");
+  }
+  return p;
+}
