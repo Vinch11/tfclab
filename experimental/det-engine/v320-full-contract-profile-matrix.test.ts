@@ -149,6 +149,7 @@ function run(s:Scenario){
       // 70.3/9 h cohort. Keep the prior five baselines untouched as controls.
       ...(s.objective==='703'&&s.weeklyHours<10?{
         requireLorangQualityBeforeFinalValidation:true as const,
+        requireSourceVerifiedTaperQuality:true as const,
       }:{}),
       requireReviewedRaceSpecificPeak:true,
       rankCandidate:(card,context)=>{
@@ -274,6 +275,25 @@ function run(s:Scenario){
       const structured=contract.sourceStructuredZoneForId?.(
         'V3P_SWIM_160',reviewedReminder?.durationMin);
       expect(structured).toEqual({low:14,nonLow:4,unknown:2});
+      const verifiedTaper=result?.issues.find(issue=>
+        issue.code==='det_v329_taper_source_quality_proven'&&issue.week===11);
+      expect(verifiedTaper).toBeDefined();
+      const audit=JSON.parse(verifiedTaper!.message!) as {
+        sourceBackedReminders:Array<{
+          sourceId:string;durationMin:number;
+          lowMin:number;midMin:number;highMin:number;unknownMin:number;
+          scientificAttestation:boolean;
+        }>;
+        noUnmeasuredQualityCounted:boolean;
+        nativePhaseValidatorUnchanged:boolean;
+      };
+      expect(audit.sourceBackedReminders).toContainEqual({
+        sourceId:'V3P_SWIM_160',durationMin:20,
+        lowMin:14,midMin:0,highMin:4,unknownMin:2,
+        reviewedSource:true,scientificAttestation:false,
+      });
+      expect(audit.noUnmeasuredQualityCounted).toBe(true);
+      expect(audit.nativePhaseValidatorUnchanged).toBe(true);
       console.info('DET_V328_TAPER_SOURCE_PROOF',JSON.stringify({
         profile:s.id,week:11,sourceId:reviewedReminder?.catalogId,
         minutes:reviewedReminder?.durationMin,structured,
