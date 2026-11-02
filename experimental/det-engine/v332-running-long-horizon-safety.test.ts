@@ -18,6 +18,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
   approvedTaperDose?:true;forwardCheck?:true;expandedTaperSources?:true;
   sourceCertifiedPeak?:true;
+  shortEasyTaperApproved?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -110,6 +111,20 @@ const matrix:readonly Case[]=[
     weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true},
+  // V337: isolate ONE genuinely source-bounded 28-minute easy workout.
+  // Same athlete, original clock, original race, original source pool and
+  // safety gates as the certified-peak witnesses above. Only the synthetic
+  // coach's V3P_RUN_001 duration approval changes; baseline is preserved.
+  {id:'marathon-16w-source-fit-28',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true},
+  {id:'marathon-40w-source-fit-28',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -219,6 +234,11 @@ function runScenario(s:Case){
         targetDurationMin:28,
         allowWorksetChange:true as const,
       }:{}),
+      ...(s.shortEasyTaperApproved&&id==='V3P_RUN_001'?{
+        // Original V3 bounded easy/recovery blocks support exactly 28 min.
+        // Synthetic coach's distinct approval; never a production default.
+        targetDurationMin:28,
+      }:{}),
       ...(s.approvedTaperDose&&(
         (s.goal==='Semi'&&id==='V3P_RUN_160')||
         (s.goal==='Marathon'&&id==='V3P_RUN_155'))?{
@@ -232,6 +252,12 @@ function runScenario(s:Case){
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
+  if(s.shortEasyTaperApproved){
+    const easy=report.accepted.find(card=>card.id==='V3P_RUN_001');
+    expect(easy?.durationMin).toEqual([28,28]);
+    expect(contract.sourceFullStructuredDoseForId?.('V3P_RUN_001',28))
+      .toBeTruthy();
+  }
   if(s.approvedTaperDose){
     const id=s.goal==='Semi'?'V3P_RUN_160':'V3P_RUN_155';
     const intendedMinutes=s.goal==='Semi'?25:28;
@@ -323,6 +349,7 @@ function runScenario(s:Case){
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
     sourceCertifiedPeak:s.sourceCertifiedPeak===true,
+    shortEasyTaperApproved:s.shortEasyTaperApproved===true,
     expandedTaperSources:s.expandedTaperSources===true,
     searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
