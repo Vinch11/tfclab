@@ -89,6 +89,21 @@ Reproduction du 2 novembre sur le module QA `a5fefaa9` : deux instances de `Appe
 
 Disponibilité Nolio vérifiée en lecture seule dans QA le 2 novembre : zéro connexion, zéro `nolio_records`, zéro journal de synchronisation et zéro structure générée. Un contrôle de payload hors ligne est possible ; un envoi réel ne peut pas être déclaré validé sans un compte de test raccordé au QA.
 
+### Correction candidate et contre-vérifications au SHA `911f727e26b45e5d80c4caa4ab496c9786ec8f09`
+
+Le module append-only dérive désormais un UUID v8 du SHA-256 du payload canonique complet. Le stockage d'onglet et le TTL ne déterminent plus cette identité. Les 23 tests de durabilité et les contrôles ciblés de l'environnement QA passent ; une contre-vérification indépendante avec le module exact confirme une seule ligne pour deux nouvelles instances sur un même payload ordinaire, et un refus de NaN avant envoi. Les anciennes lignes à UUID aléatoire ne sont pas réconciliées.
+
+Deux contre-exemples supplémentaires restent ouverts dans cette candidate et ont été transmis pour correction avant la recette réelle :
+
+- Deux valeurs différentes sous une clé JSON `__proto__` donnent le même identifiant et une comparaison positive, car la canonicalisation construit un objet avec le prototype normal. Toutes les clés JSON doivent être conservées.
+- Le premier contrôle d'export cherche les doses dans le document entier. Échanger dates, durées et instructions entre deux séances lui fait encore rendre zéro anomalie. La preuve PDF doit relier et comparer chaque bloc à sa séance source, avec contrôle de cardinalité ; la présence globale de tous les chiffres ne suffit pas.
+
+Le contrôle hors ligne a également repéré des chaînes absentes du PDF compact et l'absence de structure exploitable dans une sortie DET 10 km non acceptée par le moteur. Ce cas ne valide pas l'export des quatre marathons. Aucun contrôle HTML n'est présenté comme une impression PDF effectivement vérifiée.
+
+### Nouvelle référence Nolio V2 fournie par Vincent
+
+Le [contrat V2 courant et les écarts avec le guide](nolio-v2/CONTRACT_REVIEW_2026-11-02.md) ont été examinés et versionnés. Le schéma officiel récupéré le 2 novembre décrit désormais les structures de force et RPE, contrairement au guide du 9 octobre qui les disait non détaillées. Le raccord en préparation doit utiliser ce schéma courant, le calendrier planifié, de nouvelles autorisations V2 et une protection propre aux envois Nolio contre les doublons. Le futur choix coach **DET Engine ou IA** est conservé. Aucune migration applicative V2, validation serveur `dry_run` ni création Nolio n'est encore attestée.
+
 ## Préparation du pilote et retour arrière
 
 Périmètre proposé pour la première revue : marathon course à pied uniquement, profils correspondant aux quatre scénarios, sous contrôle du coach. Cette proposition n'est pas une validation sportive. Les autres objectifs restent hors de ce premier périmètre tant que leur propre recette n'est pas terminée.
