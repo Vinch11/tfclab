@@ -200,6 +200,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       return refuse('reviewed_athlete_context_refused');
     }
   }
+  // Source metadata is captured during the genuine week assembly and reused
+  // for an optional independent final taper adjudication (no new catalogue).
+  let finalizedSourceMetadata:RepairWorkoutMetadata[]=[];
   // Existing dedicated template: preserve its dose and progression, never invent cards.
   if(config.objective==='StartToRun') {
     if(config.weeksAvailable!==12 || config.constraints || config.raceGoals?.length)return refuse('static_template_configuration_requires_review');
@@ -373,6 +376,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const entry=preparation.weeklyQuotas[w.week];
       const layout=entry.layout!;
       const catalog=[...new Map([...Object.values(preparation.phaseRepairCatalogs).flat(),...preparation.chunkRepairCatalogs.flat(),...preparation.chunkRegenRepairCatalogs.flat()].map(m=>[m.id,m])).values()];
+      finalizedSourceMetadata=catalog;
       const allowedIds=new Set(w.eligible.map(m=>m.id));
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
       const eventDay=layout.days.findIndex(d=>d.slots.some(s=>s.isRaceEvent));
@@ -1252,11 +1256,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   if(experimentalContract?.requireExplicitTaperSemanticReview===true){
     const adjudication=reconcileReviewedTaperSemantics({
       plan:result.candidate!,nativeIssues,
-      cards:[...new Map([
-        ...Object.values(preparation.phaseRepairCatalogs).flat(),
-        ...preparation.chunkRepairCatalogs.flat(),
-        ...preparation.chunkRegenRepairCatalogs.flat(),
-      ].map(card=>[card.id,card])).values()],
+      cards:finalizedSourceMetadata,
       source:experimentalContract.sourceFullStructuredDoseForId,
       athleteContextId:experimentalContract.taperSemanticAthleteContextId??'',
       explicitReviewFor:experimentalContract.explicitTaperReviewForSession??
