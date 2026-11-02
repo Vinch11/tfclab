@@ -12,6 +12,7 @@ import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 import {slotPlacementSnapshot} from './v357-coach-reviewed-slot-placement';
+import {inferWeekType} from '@/engines/plan/sessionSizingMatrix';
 
 type RunningGoal='Semi'|'Marathon';
 export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
@@ -98,16 +99,21 @@ const distinctConfirmedSportClock=(slot:{week:number;dayIndex:number;sport:strin
 };
 /**
  * V357 separate SYNTHETIC coach declaration, not a change to historical clocks.
- * Run windows Mon18/Tue06/Thu12/Fri06/Sun12; strength Mon21/Thu15.
+ * Load run windows Mon18/Tue06/Thu12/Fri06/Sun12; strength Mon21/Thu15.
+ * Separately declared taper/race Tue21/Fri21 windows give short source
+ * activations their original recovery, without reusing the same source ID.
  * The placement approval below also declares Wednesday/Saturday full rest.
  */
-const reviewedCompetitorClock=(slot:{week:number;dayIndex:number;sport:string})=>{
+const reviewedCompetitorClock=(slot:{week:number;dayIndex:number;sport:string},
+  taperOrRace=false)=>{
   const base=distinctConfirmedSportClock(slot);
   const clocks:Record<string,readonly number[]>={
     run:[1080,360,540,720,360,1020,720],
     strength:[1260,900,1080,900,540,600,720],
   };
-  return {...base,minuteOfDay:clocks[slot.sport]?.[slot.dayIndex]??base.minuteOfDay};
+  return {...base,minuteOfDay:taperOrRace&&slot.sport==='run'&&
+    (slot.dayIndex===1||slot.dayIndex===4)?1260:
+      clocks[slot.sport]?.[slot.dayIndex]??base.minuteOfDay};
 };
 const strengthSourceIds=[
   'V3P_STRENGTH_101','V3P_STRENGTH_102','V3P_STRENGTH_103',
@@ -237,7 +243,10 @@ export function runScenario(s:Case){
     s.largerSearchBudget?7000:3000;
   const budgetMilliseconds=s.extendedStrictSearchBudget?15000:
     s.largerSearchBudget?4500:2000;
-  const confirmedClock=s.reviewedCompetitorPlacement?reviewedCompetitorClock:
+  const confirmedClock=s.reviewedCompetitorPlacement?
+    (slot:{week:number;dayIndex:number;sport:string})=>reviewedCompetitorClock(slot,
+      ['taper','race'].includes(inferWeekType(slot.week,s.weeks,s.goal,
+        athlete.age,config.deloadCadenceWeeks))):
     s.distinctSportClock?distinctConfirmedSportClock:
       s.wideRecoveryClock?wideRecoveryClock:declaredClock;
   const out=constructDeterministicPlan(athlete,config,
