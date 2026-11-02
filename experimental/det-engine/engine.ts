@@ -37,6 +37,7 @@ import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
+import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
 import {improveCalendarRecoveryByExistingSlotSwaps} from './v39-recovery-layout-search';
 
@@ -125,6 +126,13 @@ export interface ExperimentalAssemblyContract {
   /** V329: taper quality requires verified high-zone BLOCK minutes on an
    * individually approved source; names, labels and empty durations do not count. */
   requireSourceVerifiedTaperQuality?:true;
+  /** V331 experimental-only policy: no CSS-vs-seuil lexical bypass. Only
+   * explicit context/week/source/DOSE-specific coach review may reconcile ONE
+   * native threshold text error. All native findings remain in the audit. */
+  requireExplicitTaperSemanticReview?:true;
+  taperSemanticAthleteContextId?:string;
+  explicitTaperReviewForSession?:(session:ParsedSession)=>
+    ExplicitTaperCoachReview|null|undefined;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
    * unknown intensity minutes on load weeks; no physiological attestation. */
   requireNativePolarizationOnLoadWeeks?:true;
@@ -1241,6 +1249,31 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     validation.issues.map(i=>({
       code:i.rule,week:i.week,severity:i.severity,message:i.message,
     }));
+  if(experimentalContract?.requireExplicitTaperSemanticReview===true){
+    const adjudication=reconcileReviewedTaperSemantics({
+      plan:result.candidate!,nativeIssues,cards:catalog,
+      source:experimentalContract.sourceFullStructuredDoseForId,
+      athleteContextId:experimentalContract.taperSemanticAthleteContextId??'',
+      explicitReviewFor:experimentalContract.explicitTaperReviewForSession??
+        (()=>null),
+    });
+    result.issues.push({
+      code:adjudication.verdict==='verified'?
+        'det_v331_taper_semantics_reviewed':
+        'det_v331_taper_semantics_review_refused',
+      severity:adjudication.verdict==='verified'?'warning':'blocking',
+      message:JSON.stringify({
+        verdict:adjudication.verdict,
+        decisions:adjudication.decisions,
+        originalNativeIssues:adjudication.originalNativeIssues
+          .filter(i=>i.code==='phase_coherence'),
+        nativeIssuesPreservedInAudit:true,scientificAttestation:false,
+        experimentalOnly:true,
+      }),
+    });
+    // Never replace native errors when ANY adjudication is unproven.
+    if(adjudication.verdict==='verified')nativeIssues=adjudication.issues;
+  }
   if(experimentalContract?.reconcileReviewedSourcePolarization===true){
     if(experimentalContract.requireStructuredPolarizationOnLoadWeeks!==true||
        !experimentalContract.sourceStructuredZoneForId){
