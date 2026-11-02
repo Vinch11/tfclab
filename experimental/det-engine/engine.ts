@@ -41,6 +41,7 @@ import {assessQualityAnchoredSourceMatching} from './v345-quality-source-matchin
 import {findHallConflictWitness,type HallConflictWitness} from './v336-hall-conflict';
 import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {auditMarathonHorizon} from './v351-marathon-horizon-evidence';
+import {reconcileReviewedMarathonSpecificity} from './v352-reviewed-marathon-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
@@ -167,6 +168,8 @@ export interface ExperimentalAssemblyContract {
   reviewedSourceLimiterKeysForId?:(id:string)=>readonly string[]|null|undefined;
   /** V351: strict 16/40-week audit; cannot suppress any native validator. */
   auditMarathonHorizonEvidence?:true;
+  /** V352: replace only a source-proven false-negative native text warning. */
+  reconcileReviewedMarathonSpecificityLexicalWarning?:true;
   /** V333 opt-in: necessary forward checking, never a sporting exemption. */
   enableV333ForwardCheck?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
@@ -1619,6 +1622,32 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(migration.verdict==='replaced_native_text_with_proven_blocks')
         nativeIssues=migration.issues;
     }
+  }
+  if(experimentalContract?.reconcileReviewedMarathonSpecificityLexicalWarning===true&&
+      normalizeRepairGoal(config.objective??'')==='marathon'&&
+      nativeIssues.some(i=>i.code==='phase_coherence'&&
+        i.message?.startsWith('Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée'))){
+    const reviewed=experimentalContract.reviewedRunningSpecificForId;
+    const dose=experimentalContract.sourceFullStructuredDoseForId;
+    const reconciliation=reviewed&&dose?
+      reconcileReviewedMarathonSpecificity(result.candidate!,nativeIssues,reviewed,dose):null;
+    result.issues.push({
+      code:reconciliation?.verified?
+        'det_v352_reviewed_marathon_specificity_native_text_reconciled':
+        'det_v352_reviewed_marathon_specificity_source_unproven',
+      severity:reconciliation?.verified?'warning':'blocking',
+      message:JSON.stringify(reconciliation?{
+        sourceEvidence:reconciliation.sourceEvidence,
+        originalNativeIssues:reconciliation.originalNativeIssues,
+        reconciledNativeFindings:reconciliation.reconciledNativeFindings,
+        otherNativeGatesUnchanged:true,nativeIssuesPreservedInAudit:true,
+        scientificAttestation:false,
+      }:{
+        reason:'reviewed_marathon_specificity_proof_missing',
+        nativeIssuesPreservedInAudit:true,scientificAttestation:false,
+      }),
+    });
+    if(reconciliation?.verified)nativeIssues=reconciliation.issues;
   }
   if(experimentalContract?.applyReviewedMinuteSportRatio===true &&
      experimentalContract.auditVerifiedMultisportMinutes===true &&
