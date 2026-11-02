@@ -394,6 +394,23 @@ export function buildDetV3ContractFromCatalogue(
       if(!report.accepted.some(source=>source.id===id))return null;
       return matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
     },
+    reviewedRunningSpecificForId(id){
+      const card=report.accepted.find(m=>m.id===id);
+      const source=configuredById.get(id);
+      // Never infer a marathon/semi anchor from a title or a generic Z4.
+      if(!card||!source||card.sport!=='run'||
+         source.primaryIntent!=='race_specific'||
+         !verifiedZoneDoses.has(id)||
+         !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
+         !card.tags.includes('individual-coach-approval-recorded')||
+         !card.tags.includes('v3-intensity-anchors-individually-verified'))
+        return null;
+      if(source.primaryDomain==='semi_pace'&&card.goals.includes('semi'))
+        return {sourceId:id,objective:'semi'};
+      if(source.primaryDomain==='marathon_pace'&&card.goals.includes('marathon'))
+        return {sourceId:id,objective:'marathon'};
+      return null;
+    },
     reviewedRaceSpecificForId(id){
       // Only sources actually admitted after individual V3 review qualify.
       // Metadata comes from the preserved source's primary domain/intent,
