@@ -22,6 +22,15 @@ jobs:
       - name: Behavioral hook tests and exact receipt contract
         run: bunx vitest run src/hooks/__tests__/usePlanAdaptation.archiveFailClosed.test.ts src/lib/plan/__tests__/planWriteReceipt.test.ts
 
+      - name: Calculate candidate source declaration without replacing checked-in manifest
+        run: |
+          node --input-type=module <<'JS'
+          import {writeFileSync} from 'node:fs';
+          import {calculatePlanRelease,declarationText} from './scripts/preproduction/plan-release-source.mjs';
+          const {info}=await calculatePlanRelease(process.cwd());
+          writeFileSync('plan-release-manifest.candidate.ts',declarationText(info));
+          console.log('CANDIDATE_SOURCE_DECLARATION '+JSON.stringify(info));
+          JS
       - name: Full frontend regressions with compact failure diagnostics
         shell: bash
         run: |
@@ -40,5 +49,7 @@ jobs:
         if: always()
         with:
           name: frontend-receipt-regression-log
-          path: frontend-receipt-regression.log
+          path: |
+            frontend-receipt-regression.log
+            plan-release-manifest.candidate.ts
           retention-days: 14
