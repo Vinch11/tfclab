@@ -20,6 +20,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   sourceCertifiedPeak?:true;
   shortEasyTaperApproved?:true;
   distinctSportClock?:true;
+  coachDeclaredRunOnly?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -139,6 +140,16 @@ const matrix:readonly Case[]=[
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     shortEasyTaperApproved:true,distinctSportClock:true},
+  // V342: separate synthetic coach restriction, genuinely run-only.
+  // Original semi fixtures unchanged; no auto-removal of a required bike.
+  {id:'semi-8w-declared-run-only',fixture:'B-SEMI',goal:'Semi',weeks:8,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    coachDeclaredRunOnly:true},
+  {id:'semi-30w-declared-run-only',fixture:'B-SEMI',goal:'Semi',weeks:30,
+    weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    coachDeclaredRunOnly:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -228,6 +239,8 @@ function runScenario(s:Case){
     weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
     ...(s.declaredTwoSlotsPerDay?{maxSessionsPerDay:2}:{}),
     ...(s.unrestrictedSports?{constraints:undefined}:{}),
+    ...(s.coachDeclaredRunOnly?{constraints:
+      'Déclaration du coach synthétique : vélo interdit et natation interdite ; uniquement course à pied.'}:{}),
     ...(s.declaredCompetitor?{ambition:'competitor' as const,
       sessionsPerWeek:7,strengthSessionsPerWeek:2}:{}),
     ...(s.declaredWorldClassCapacity?{sessionsPerWeek:10,
@@ -381,6 +394,7 @@ function runScenario(s:Case){
     sourceCertifiedPeak:s.sourceCertifiedPeak===true,
     shortEasyTaperApproved:s.shortEasyTaperApproved===true,
     distinctSportClock:s.distinctSportClock===true,
+    coachDeclaredRunOnly:s.coachDeclaredRunOnly===true,
     expandedTaperSources:s.expandedTaperSources===true,
     searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
