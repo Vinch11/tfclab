@@ -25,11 +25,18 @@ const matrix:readonly Case[]=[
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
 const runSourceIds=[
   'V3P_RUN_001','V3P_RUN_003','V3P_RUN_008','V3P_RUN_009',
-  'V3P_RUN_013','V3P_RUN_021','V3P_RUN_023','V3P_RUN_024',
+  'V3P_RUN_011','V3P_RUN_012','V3P_RUN_013','V3P_RUN_020',
+  'V3P_RUN_021','V3P_RUN_023','V3P_RUN_024',
   'V3P_RUN_025','V3P_RUN_026','V3P_RUN_027','V3P_RUN_028',
   'V3P_RUN_029','V3P_RUN_031','V3P_RUN_032','V3P_RUN_037',
-  'V3P_RUN_038','V3P_RUN_041','V3P_RUN_084','V3P_RUN_085',
+  'V3P_RUN_038','V3P_RUN_041','V3P_RUN_044','V3P_RUN_047',
+  'V3P_RUN_050','V3P_RUN_076','V3P_RUN_077','V3P_RUN_078',
+  'V3P_RUN_079','V3P_RUN_080','V3P_RUN_081','V3P_RUN_082',
+  'V3P_RUN_083','V3P_RUN_084','V3P_RUN_085',
   'V3P_RUN_119','V3P_RUN_137','V3P_RUN_139','V3P_RUN_142',
+  'V3P_RUN_140','V3P_RUN_145','V3P_RUN_151','V3P_RUN_152',
+  'V3P_RUN_153','V3P_RUN_154','V3P_RUN_155','V3P_RUN_156',
+  'V3P_RUN_157','V3P_RUN_158','V3P_RUN_159','V3P_RUN_160',
   'V3P_RUN_167','V3P_RUN_169','V3P_RUN_172',
 ];
 const strengthSourceIds=[
@@ -62,6 +69,9 @@ function runScenario(s:Case){
       athleteLevelSource:'manual' as const,
       allPrerequisitesChecked:true as const,
       individualCoachApproval:true as const,preferReviewedV3:true as const,
+      ...(id.startsWith('V3P_STRENGTH_')?{
+        verifiedStrengthLoadAndRpe:true as const,
+      }:{}),
       expectedAthleteId:athleteId,
       sportingReview:{...context.sportingReview,athleteId},
       athleteAnchors:syntheticV3ReviewAnchors(),
@@ -70,6 +80,7 @@ function runScenario(s:Case){
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
+  expect(report.accepted.some(card=>card.sport==='strength')).toBe(true);
   expect(contract.validateReviewedAthleteContext?.(athlete)).toEqual([]);
   const accepted=new Set(report.accepted.map(card=>card.id));
   const baseFilter=contract.filterCandidate;
@@ -111,7 +122,7 @@ function runScenario(s:Case){
             session.catalogId!,session.durationMin);
           // A measured duration without matching V3 blocks is NOT an
           // attested session even if the native validator missed that fact.
-          if(out.constraintsSatisfied)expect(dose).not.toBeNull();
+          if(out.constraintsSatisfied)expect(dose).toBeTruthy();
         }
         if(typeof session.durationMin==='number')knownMinutes+=session.durationMin;
       }
