@@ -73,6 +73,10 @@ La preuve doit utiliser des sessions Supabase Auth réelles sur le seul backend 
 
 Tester au moins : réponse perdue après écriture, panne avant écriture, relecture impossible, double clic, rechargement, fermeture réelle de l'onglet, changement d'athlète, changement de compte et réessai du même contenu. Relever les identifiants et empreintes, jamais de jeton ni de contenu sensible dans les logs. L'absence de reçu ne vaut ni échec certain ni succès. La protection sessionStorage actuelle est limitée au même onglet pendant 24 h ; la fermeture ou un autre appareil demande encore une preuve et éventuellement une garantie durable supplémentaire.
 
+Reproduction du 2 novembre sur le module QA `a5fefaa9` : deux instances de `AppendOnlyPlanVersionSaver`, deux stockages d'onglet distincts et exactement le même payload synthétique donnent deux identifiants, deux lignes et deux statuts `CONFIRMED`. Le transport était exclusivement en mémoire ; aucune écriture cloud. Le défaut après fermeture est donc reproduit et reste à corriger, même si les tests de rechargement du même onglet passent.
+
+Disponibilité Nolio vérifiée en lecture seule dans QA le 2 novembre : zéro connexion, zéro `nolio_records`, zéro journal de synchronisation et zéro structure générée. Un contrôle de payload hors ligne est possible ; un envoi réel ne peut pas être déclaré validé sans un compte de test raccordé au QA.
+
 ## Préparation du pilote et retour arrière
 
 Périmètre proposé pour la première revue : marathon course à pied uniquement, profils correspondant aux quatre scénarios, sous contrôle du coach. Cette proposition n'est pas une validation sportive. Les autres objectifs restent hors de ce premier périmètre tant que leur propre recette n'est pas terminée.
