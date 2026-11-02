@@ -117,7 +117,7 @@ function admitted(s:Scenario){
   })):[];
   return buildDetV3ContractFromCatalogue(reviews,bricks,specific,easy);
 }
-function run(s:Scenario){
+function run(s:Scenario,dropTaperBlockProof=false){
   const f=preparePrevalidationFixture(s.objective==='703'?'B-70.3':'B-IM');
   const athlete={
     ...f.athleteData,nom:'synthetic V320 '+s.id,
@@ -145,6 +145,12 @@ function run(s:Scenario){
     athlete,cfg,{maxNodes:s.id==='703-reduced-hours'?40000:200000,
       maxMilliseconds:16000},{
       ...contract,requireReviewedAthleteContext:true,
+      // V330 deliberate end-to-end sabotage: approved sources/athlete/slots
+      // unchanged, but the exact structured taper dose provider disappears.
+      // The true solver must refuse a quality-dependent low-hour calendar.
+      ...(dropTaperBlockProof?{
+        sourceFullStructuredDoseForId:()=>null,
+      }:{}),
       // V322: opt-in candidate-quality gate ONLY for the previously blocked
       // 70.3/9 h cohort. Keep the prior five baselines untouched as controls.
       ...(s.objective==='703'&&s.weeklyHours<10?{
@@ -338,4 +344,20 @@ describe('DET V320 — V318 full certified contract on genuine synthetic variant
     vi.stubGlobal('fetch',()=>{throw Error('DET_V320_NETWORK_FORBIDDEN');});
     run(s);
   });
+  it.each(scenarios.filter(s=>s.objective==='703'&&s.weeklyHours<10))(
+    'V330 fail-closed: $id cannot pass when reviewed taper dose proof is removed',s=>{
+      vi.stubGlobal('fetch',()=>{throw Error('DET_V330_NETWORK_FORBIDDEN');});
+      const {out}=run(s,true);
+      expect(out.evidence.verdict).not.toBe('all_gates_pass');
+      expect(out.result?.constraintsSatisfied).not.toBe(true);
+      expect(out.evidence.attempts.some(attempt=>
+        attempt.blockers.includes('det_v326_required_taper_quality_domain_empty')))
+        .toBe(true);
+      console.info('DET_V330_TAPER_PROOF_REMOVAL_REFUSED',JSON.stringify({
+        scenario:s.id,verdict:out.evidence.verdict,
+        blockers:[...new Set(out.evidence.attempts.flatMap(a=>a.blockers))],
+        sourceProofProvider:'deliberately_unavailable',
+        noFakeCoachApprovals:true,
+      }));
+    });
 });
