@@ -32,6 +32,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   marathonHorizonEvidence?:true;
   marathonSpecificityReconciliation?:true;
   measuredMarathonMesocycles?:true;
+  tteSourcePreferred?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -303,6 +304,29 @@ const matrix:readonly Case[]=[
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
     marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
     measuredMarathonMesocycles:true},
+  // V355 isolated A/B: ONLY source-verified TTE preference differs from V353
+  {id:'marathon-16w-tte-source-preferred',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
+    measuredMarathonMesocycles:true,tteSourcePreferred:true},
+  {id:'marathon-40w-tte-source-preferred',fixture:'B-MARATHON',
+    goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true,runningQualityProof:true,
+    runningQualityPriority:true,runningMatchingAudit:true,
+    runningCandidatePriority:true,runningEasyMarginPriority:true,
+    extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
+    measuredMarathonMesocycles:true,tteSourcePreferred:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -504,6 +528,7 @@ function runScenario(s:Case){
       ...(s.runningQualitySlotMargin?{prioritizeRunningQualitySlotByMargin:true as const}:{}),
       ...(s.marathonHorizonEvidence?{auditMarathonHorizonEvidence:true as const}:{}),
       ...(s.measuredMarathonMesocycles?{enableVerifiedMarathonMesocycles:true as const}:{}),
+      ...(s.tteSourcePreferred?{prioritizeSourceVerifiedTteOnKeySlots:true as const}:{}),
       ...(s.marathonSpecificityReconciliation?{reconcileReviewedMarathonSpecificityLexicalWarning:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
@@ -609,6 +634,11 @@ function runScenario(s:Case){
     runningCandidatePriority:s.runningCandidatePriority===true,
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningQualitySlotMargin:s.runningQualitySlotMargin===true,
+    tteSourcePreferred:s.tteSourcePreferred===true,
+    selectedVerifiedTteSources:s.tteSourcePreferred?
+      out.issues.filter(i=>i.code==='det_v355_exact_tte_candidate_preference_audit')
+        .flatMap(i=>JSON.parse(i.message??'{}').chosenVerifiedTteKeySources??[])
+        .map((x:{id:string;durationMin:number;exactHighMinutes:number})=>x):undefined,
     measuredMarathonMesocycles:s.measuredMarathonMesocycles?
       out.issues.filter(i=>i.code.startsWith('det_v353_'))
         .map(i=>({code:i.code,evidence:JSON.parse(i.message??'{}')})):undefined,
