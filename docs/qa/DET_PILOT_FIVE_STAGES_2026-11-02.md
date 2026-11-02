@@ -112,4 +112,14 @@ Avant ouverture : consigner version QA acceptée, version UI/moteur, backend, je
 
 Retour arrière : désactiver l'entrée DET et restaurer la version applicative préalablement épinglée ; conserver IA disponible et l'historique des versions ; ne supprimer aucune version et ne relâcher aucune politique RLS. Une restauration d'un ancien plan suit la voie normale avec une nouvelle confirmation. Aucun retour arrière de données n'est exécuté automatiquement.
 
+## État à la pause de l'éditeur Lovable
+
+Le lot ciblé au SHA `cde5b1a6143ce8691b322f745af49f19adb7cd47` corrige les deux contre-exemples de sauvegarde et d'export. Une contre-vérification indépendante confirme la conservation de `__proto__`, des identifiants distincts pour des contenus distincts et un blocage sur relecture divergente. Les contrôles PDF par séance passent sur les quatre marathons dans les quatre formats HTML, sans preuve d'impression réelle. La structure `detStructuredWorkout` provient désormais des blocs V3 configurés ; la course sans source V3 reste un événement distinct. Les tests ciblés de ce lot passent (405 tests source/UI et 129 tests moteur), sans constituer une validation générale ni sportive de l'app.
+
+La candidate suivante `22dd0c090e418c31ad3340db73069949985a7c1a` ajoute le parcours d'entrées/qualifications coach, l'audit RLS à nombres variables et le stockage `det_coach_review_contexts`. Les politiques SQL autorisent uniquement la lecture propriétaire et l'insertion par un coach sur son athlète ; la table est vide et RLS activée. Les quatre versions et le plan courant gardent leurs empreintes initiales. Aucune écriture de recette par un vrai JWT n'a été faite.
+
+Cette candidate reste **en cours de vérification** : le dernier passage a relevé des échecs de tests de déclaration/build à corriger, et il n'y a pas de rapport final vert. Le 2 novembre, l'API Lovable renvoie `response.status=awaiting_input` pour le lot « entrées coach », avec `cost_credits=20`, sans métadonnées de carte d'approbation exposées. Le lot suivant (mapper Nolio V2, fidélité du lecteur et vérifications générales) est en file, `queue_paused=true`, `queue_pause_reason=hitl_tool`. Répondre à l'invite dans l'éditeur QA est nécessaire pour reprendre ; ne pas contourner cette pause par une nouvelle demande de génération.
+
+Restent ouverts : finalisation des entrées coach et des contrôles, mapper/expéditeur V2 partagé et protection des envois, réécriture vélo encore présente dans le lecteur, recette réelle A/B de sauvegarde/réouverture/restauration, rendu PDF réel, connexion V2 de test et revue sportive humaine. Le choix futur **DET Engine ou IA** est conservé. Production et main n'ont pas été modifiés.
+
 Statut de lancement : **NON ACTIVÉ**. Les preuves manquantes restent ouvertes ; ce document ne les remplace pas.
