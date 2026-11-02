@@ -131,6 +131,16 @@ describe('DET V331 — exact-source taper semantic parity (experimental only)',(
     expect(check([disguised],{cards:[lowCard],dose:trulyEasy}).verdict).toBe('verified');
     expect(check([disguised],{cards:[lowCard],dose:null}).verdict).toBe('blocked');
   });
+  it('rejects VO2/Z5 source or Z5 display under a narrow MLSS coach intent',()=>{
+    const unsafe=check([session()],{cards:[card({mainZoneMax:5})]});
+    expect(unsafe.verdict).toBe('blocked');
+    expect(unsafe.decisions[0].reason)
+      .toBe('taper_mlss_intent_must_match_z4_source_domain');
+    const mislabeled=check([session({zones:['Z5']})]);
+    expect(mislabeled.verdict).toBe('blocked');
+    expect(mislabeled.decisions[0].reason)
+      .toBe('taper_mlss_intent_must_match_z4_source_domain');
+  });
   it('leaves unrelated native warning/mandatory error untouched',()=>{
     const unrelated={code:'recovery',severity:'error',message:'48h missing'};
     const out=check([session()],{native:[unrelated]});
