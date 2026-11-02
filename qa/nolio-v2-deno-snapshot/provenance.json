@@ -1,17 +1,44 @@
 {
   "schema": "tfcl.qa.nolio-deno-snapshot.v1",
   "qaProject": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "qaSourceSha": "664ad76e3f2ab1a9e8ff9201a8178ffca0b943e4",
+  "qaSourceSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
   "files": [
-    "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-    "supabase/functions/_shared/nolioV2/plannedClient.ts",
-    "supabase/functions/_shared/nolioV2/localTime.ts",
-    "supabase/functions/_shared/nolioV2/planSessions.ts",
-    "supabase/functions/_shared/nolioV2/httpFetch.ts",
-    "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
-    "supabase/functions/_shared/nolioV2/connectionStore.ts",
-    "supabase/functions/nolio-v2-send-plan/index.ts",
-    "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts"
+    {
+      "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+      "sha256": "5a4280cba73fa1d8918d2e63cf93aa27ca38ff5c6926567df72db2bcf1367bbe"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+      "sha256": "a18c99e786091818eae8aa662f0e534c54078c7ee6622ddcfdad5be2b583ee27"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+      "sha256": "22d9fc5e51039f13f998f463773768b29fe3852fdee7e35dc60c8d3c09302f5c"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+      "sha256": "eca4eaf6466253ac97928bdfd2d44ea26116b594322bbff9e6a18416cd6c8974"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+      "sha256": "8db0456df417eb3e16eed4243ac3c27c38d259681d4d5b63e32587df2d14b8dc"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+      "sha256": "0b5f945f63a5af95811de2bada7523f2c33b370b4860e0eaf543e9c6e1c9dd5e"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+      "sha256": "4b6f55a0dfee3cb6f5c1f44373918de5517c7483e28e3f4845c436437c6654fc"
+    },
+    {
+      "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+      "sha256": "48900464969e6c02c01eba7af8fcea0393748353bfdc45ff6bdc8bc1754d58f8"
+    },
+    {
+      "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+      "sha256": "7ac64395e2fd86e643f7462c4ad2a9f9d19d96eaed857e619015ca6911b20622"
+    }
   ],
-  "method": "Exact read_file snapshot at immutable QA ref, typecheck only; no module execution, no Nolio request, no deployment"
+  "method": "Exact QA snapshot: unchanged modules from664ad76e plus final plannedClient fromde454207; typecheck only, no module execution/deployment/Nolio calls"
 }

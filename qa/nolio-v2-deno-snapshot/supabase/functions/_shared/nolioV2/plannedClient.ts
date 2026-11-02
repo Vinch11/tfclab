@@ -48,7 +48,7 @@ export type NolioV2Connection = {
   mode: "real" | "test-mock";
   grantedScopes: string[];
 };
-export type SendStatus = "BLOCKED" | "DONE" | "STOPPED_UNCONFIRMED" | "STOPPED_AMBIGUOUS" | "STOPPED_IN_FLIGHT" | "STOPPED_RATE_LIMITED" | "STOPPED_AUTH" | "STOPPED_LEDGER_UNAVAILABLE";
+export type SendStatus = "BLOCKED" | "DONE" | "STOPPED_UNCONFIRMED" | "STOPPED_AMBIGUOUS" | "STOPPED_IN_FLIGHT" | "STOPPED_RATE_LIMITED" | "STOPPED_AUTH" | "STOPPED_LEDGER_UNAVAILABLE" | "DRY_RUN_NOT_VALIDATED";
 export type SendReport = {
   status: SendStatus;
   reason: string | null;
@@ -196,7 +196,11 @@ export async function sendPlannedV2(input: {
     const sent = await bodyToSend(input.planVersionId, op);
     if (input.dryRun) {
       const r = await http.post(op.path, { ...sent, dry_run: true });
-      results.push({ sessionKey: op.sessionKey, state: r.kind === "response" && r.status < 300 ? "dry_run_ok" : "dry_run_rejected", remoteId: null });
+      // Validation serveur UNIQUEMENT : 200 ≤ status < 300 avec corps objet JSON.
+      // Blocage local (status 0), chemin refusé, timeout, corps illisible ⇒ jamais validé.
+      const serverOk = r.kind === "response" && r.status >= 200 && r.status < 300 && !!r.json && typeof r.json === "object" && !Array.isArray(r.json);
+      results.push({ sessionKey: op.sessionKey, state: serverOk ? "dry_run_ok" : "dry_run_rejected", remoteId: null });
+      if (!serverOk) return stop("DRY_RUN_NOT_VALIDATED", `dry_run_not_server_validated:${op.sessionKey}:${r.kind === "response" ? `status_${r.status}` : r.detail}`);
       continue;
     }
     const marker = await originMarker(input.planVersionId, op);
