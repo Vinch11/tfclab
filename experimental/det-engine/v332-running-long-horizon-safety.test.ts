@@ -30,6 +30,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   extendedStrictSearchBudget?:true;
   runningQualitySlotMargin?:true;
   marathonHorizonEvidence?:true;
+  marathonSpecificityReconciliation?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -288,7 +289,7 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
-    marathonHorizonEvidence:true},
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true},
   {id:'marathon-40w-quality-slot-margin-25k',fixture:'B-MARATHON',
     goal:'Marathon',weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
@@ -298,7 +299,7 @@ const matrix:readonly Case[]=[
     runningQualityPriority:true,runningMatchingAudit:true,
     runningCandidatePriority:true,runningEasyMarginPriority:true,
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
-    marathonHorizonEvidence:true},
+    marathonHorizonEvidence:true,marathonSpecificityReconciliation:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -499,6 +500,7 @@ function runScenario(s:Case){
       ...(s.runningEasyMarginPriority?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
       ...(s.runningQualitySlotMargin?{prioritizeRunningQualitySlotByMargin:true as const}:{}),
       ...(s.marathonHorizonEvidence?{auditMarathonHorizonEvidence:true as const}:{}),
+      ...(s.marathonSpecificityReconciliation?{reconcileReviewedMarathonSpecificityLexicalWarning:true as const}:{}),
       ...(s.measuredRecoveryProof?{
         requireMeasuredDeloadSelection:true as const,
         annotateVerifiedDeloads:true as const,
@@ -596,6 +598,9 @@ function runScenario(s:Case){
     runningCandidatePriority:s.runningCandidatePriority===true,
     runningEasyMarginPriority:s.runningEasyMarginPriority===true,
     runningQualitySlotMargin:s.runningQualitySlotMargin===true,
+    marathonSpecificityReconciliation:s.marathonSpecificityReconciliation?
+      out.issues.filter(i=>i.code.startsWith('det_v352_'))
+        .map(i=>({code:i.code,evidence:JSON.parse(i.message??'{}')})):undefined,
     marathonExactSourceAudit:s.marathonHorizonEvidence?
       out.issues.filter(i=>i.code.startsWith('det_v351_marathon_'))
         .map(i=>({code:i.code,verdict:JSON.parse(i.message??'{}')})):undefined,
