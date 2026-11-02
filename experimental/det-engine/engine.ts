@@ -111,6 +111,10 @@ export interface ExperimentalAssemblyContract {
   /** V344 opt-in: prioritize an already-admissible source-backed quality KEY
    * slot during DFS, not only a candidate within that slot. Ordering ONLY. */
   prioritizeVerifiedRunningQualitySlot?:true;
+  /** V346 opt-in: source-verified quality must be searched first INSIDE the
+   * ordered key domain, even when ordinary limiter/rotation scores differ.
+   * Candidate eligibility and every final sporting gate remain unchanged. */
+  prioritizeVerifiedRunningQualityCandidate?:true;
   /** V345 opt-in: certify the NECESSARY presence of one genuine source-backed
    * RUN quality option in a B13-distinct matching of current slot domains. */
   auditRunningQualitySourceMatching?:true;
@@ -920,6 +924,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             triathlonCandidateDoseDistance(exactTriContribution(session),preferred);
           candidates.sort((a,b)=>
             Number(a.dose===null)-Number(b.dose===null)||
+            (runningQualityRequired&&slot.slot.isKeySession&&
+             experimentalContract?.prioritizeVerifiedRunningQualityCandidate===true?
+               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
             (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
             (qualityRequired&&slot.slot.isKeySession?
               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
@@ -935,6 +942,18 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const dose=zoneDomains[slotIndex][candidateIndex];
           return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
         }));
+        if(runningQualityRequired&&
+           experimentalContract?.prioritizeVerifiedRunningQualityCandidate===true)
+          result.issues.push({code:'det_v346_quality_candidate_sort_verified',
+            week:w.week,severity:'warning',message:JSON.stringify({
+              keyDomains:order.filter(x=>x.slot.slot.isKeySession).map(x=>({
+                sport:x.slot.slot.sport,dayIndex:x.slot.dayIndex,
+                firstSourceId:x.domain[0]?.catalogId??null,
+                firstQuality:!!x.domain[0]&&isQuality(x.domain[0]),
+                qualityCandidateCount:x.domain.filter(isQuality).length,
+              })),
+              sameSourcesAndDoseRanges:true,validatorsUnchanged:true,
+            })});
       }
       // Search on the last loading week against the ACTUAL cumulative
       // V3-certified endurance ledger; transitions are excluded. Independent
