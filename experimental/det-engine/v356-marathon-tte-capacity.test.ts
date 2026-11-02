@@ -18,6 +18,7 @@ const common={
   runningQualitySlotMargin:true as const,marathonHorizonEvidence:true as const,
   marathonSpecificityReconciliation:true as const,
   measuredMarathonMesocycles:true as const,tteSourcePreferred:true as const,
+  approvedBaseTteDose:true as const,
 };
 it('declared TTE age-group 16w real solver',()=>{
   runScenario({...common,id:'marathon-16w-age_group-tte-source-preferred',

@@ -34,6 +34,7 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks
   measuredMarathonMesocycles?:true;
   tteSourcePreferred?:true;
   declaredAmbition?:'age_group'|'competitor';
+  approvedBaseTteDose?:true;
   largerSearchBudget?:true;};
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
 const runSourceIds=[
@@ -118,7 +119,7 @@ export function runScenario(s:Case){
   }
   const fixture=preparePrevalidationFixture(s.fixture,s.declaredAmbition?{
     ambition:s.declaredAmbition,weeklyHours:s.weeklyHours,
-    sessionsPerWeek:s.declaredAmbition==='age_group'?5:6,
+    sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
     strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2,
     maxSessionsPerDay:2,constraints:undefined,
   }:{});
@@ -137,7 +138,7 @@ export function runScenario(s:Case){
     ...(s.declaredWorldClassCapacity?{sessionsPerWeek:10,
       strengthSessionsPerWeek:2}:{}),
     ...(s.declaredAmbition?{ambition:s.declaredAmbition,
-      sessionsPerWeek:s.declaredAmbition==='age_group'?5:6,
+      sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
       strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
@@ -146,6 +147,7 @@ export function runScenario(s:Case){
   // This is fixture de-duplication, not an athlete approval bypass.
   const reviews=[...new Set([...runSourceIds,
     ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
+    ...(s.approvedBaseTteDose?['V3P_RUN_136']:[]),
     ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
     ...strengthSourceIds,
     ...(s.unrestrictedSports?crossTrainingIds:[])])].map(id=>{
@@ -156,6 +158,11 @@ export function runScenario(s:Case){
       athleteLevelSource:'manual' as const,
       allPrerequisitesChecked:true as const,
       individualCoachApproval:true as const,preferReviewedV3:true as const,
+      ...(s.approvedBaseTteDose&&id==='V3P_RUN_136'?{
+        // Separate synthetic approval: 4 x 6min MLSS, within source bounds.
+        // Original 10min warmup + 3 x 3min gaps + 8min cooldown = 51min.
+        targetDurationMin:51,allowWorksetChange:true as const,
+      }:{}),
       ...(id.startsWith('V3P_STRENGTH_')?{
         verifiedStrengthLoadAndRpe:true as const,
       }:{}),
@@ -186,6 +193,12 @@ export function runScenario(s:Case){
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
+  if(s.approvedBaseTteDose){
+    const base=report.accepted.find(card=>card.id==='V3P_RUN_136');
+    expect(base?.durationMin).toEqual([51,51]);
+    expect(contract.sourceFullStructuredDoseForId?.('V3P_RUN_136',51)?.high)
+      .toBeGreaterThanOrEqual(20);
+  }
   if(s.shortEasyTaperApproved){
     const easy=report.accepted.find(card=>card.id==='V3P_RUN_001');
     expect(easy?.durationMin).toEqual([28,28]);
@@ -328,6 +341,7 @@ export function runScenario(s:Case){
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     declaredAmbition:s.declaredAmbition??null,
+    approvedBaseTteDose:s.approvedBaseTteDose===true,
     declaredCardioSessionsPerWeek:config.sessionsPerWeek??null,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
