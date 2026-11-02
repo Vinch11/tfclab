@@ -21,6 +21,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   shortEasyTaperApproved?:true;
   distinctSportClock?:true;
   coachDeclaredRunOnly?:true;
+  measuredRecoveryProof?:true;
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -150,6 +151,20 @@ const matrix:readonly Case[]=[
     weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
     expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
     coachDeclaredRunOnly:true},
+  // V342: exact same athlete, clocks and V3 sources as V341, but require
+  // REAL measured recovery. A merely labelled recovery is never approved.
+  {id:'marathon-16w-measured-recovery-proof',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true},
+  {id:'marathon-40w-measured-recovery-proof',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,approvedTaperDose:true,sourceCertifiedPeak:true,
+    shortEasyTaperApproved:true,distinctSportClock:true,
+    measuredRecoveryProof:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -329,6 +344,10 @@ function runScenario(s:Case){
           }),
       }:{}),
       ...(s.distinctSportClock?{enforceConfirmedNoSameDayOverlap:true as const}:{}),
+      ...(s.measuredRecoveryProof?{
+        requireMeasuredDeloadSelection:true as const,
+        annotateVerifiedDeloads:true as const,
+      }:{}),
       improveV3RecoveryLayout:true,
       ...(s.forwardCheck?{enableV333ForwardCheck:true as const}:{}),
       ...(s.sourceCertifiedPeak?{enableV335SourceRunningPeak:true as const}:{}),
@@ -395,6 +414,30 @@ function runScenario(s:Case){
     shortEasyTaperApproved:s.shortEasyTaperApproved===true,
     distinctSportClock:s.distinctSportClock===true,
     coachDeclaredRunOnly:s.coachDeclaredRunOnly===true,
+    measuredRecoveryProof:s.measuredRecoveryProof===true,
+    measuredRecoveryIssues:s.measuredRecoveryProof?
+      out.issues.filter(i=>[
+        'det_measured_deload_verified','det_scheduled_deload_not_proven',
+        'det_v315_recovery_duration_not_verified',
+      ].includes(i.code)).map(i=>({week:i.week??null,code:i.code,
+        evidence:i.message??null})):undefined,
+    measuredRecoveryWeeks:s.measuredRecoveryProof?
+      out.candidate?.weeks.map((week,index)=>{
+        const active=week.sessions.filter(x=>!x.isRest);
+        const known=active.length>0&&active.every(x=>
+          typeof x.durationMin==='number'&&Number.isFinite(x.durationMin));
+        const minutes=known?active.reduce((sum,x)=>sum+(x.durationMin??0),0):null;
+        const prior=index>0?out.candidate!.weeks[index-1].sessions
+          .filter(x=>!x.isRest):[];
+        const knownPrior=prior.length>0&&prior.every(x=>
+          typeof x.durationMin==='number'&&Number.isFinite(x.durationMin));
+        const priorMinutes=knownPrior?prior.reduce((sum,x)=>sum+(x.durationMin??0),0):null;
+        return {week:week.weekNumber,
+          weekType:out.candidate?.weeklyQuotas?.[week.weekNumber]?.weekType??null,
+          minutes,reductionPct:minutes!==null&&priorMinutes!==null&&priorMinutes>0?
+            Math.round((priorMinutes-minutes)/priorMinutes*1000)/10:null,
+          theme:week.theme};
+      }):undefined,
     expandedTaperSources:s.expandedTaperSources===true,
     searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
