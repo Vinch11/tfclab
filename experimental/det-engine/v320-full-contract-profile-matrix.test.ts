@@ -48,6 +48,9 @@ const addedIds=[
   'V3P_SWIM_047','V3P_SWIM_048','V3P_SWIM_049','V3P_SWIM_050',
   'V3P_SWIM_101','V3P_SWIM_102','V3P_SWIM_103',
   'V3P_SWIM_132','V3P_SWIM_133',
+  // V3.27: existing source with brief MLSS reminders explicitly marked taper.
+  // Approvals remain athlete-specific SYNTHETIC test evidence, never production.
+  'V3P_SWIM_160',
   'V3P_BIKE_142','V3P_BIKE_147','V3P_BIKE_152',
   'V3P_RUN_137','V3P_RUN_142','V3P_RUN_167','V3P_RUN_172',
   'V3P_BIKE_149','V3P_BIKE_154','V3P_RUN_139','V3P_RUN_169',
@@ -130,6 +133,11 @@ function run(s:Scenario){
   const {contract,report}=admitted(s);
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.length).toBeGreaterThan(45);
+  // A genuinely admitted taper Z4 stimulus, not a fabricated quality flag.
+  expect(report.accepted.some(card=>card.id==='V3P_SWIM_160'&&
+    card.phases.includes('taper')&&card.mainZoneMax>=4&&
+    card.tags.includes('v3-sporting-source-individually-reviewed-candidate')))
+    .toBe(true);
   const raceSources=report.accepted.filter(card=>
     contract.reviewedRaceSpecificForId?.(card.id)?.objective===s.objective);
   expect(raceSources.length).toBeGreaterThan(0);
