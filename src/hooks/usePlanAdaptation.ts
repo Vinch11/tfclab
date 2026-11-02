@@ -11,6 +11,7 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {requirePlanWriteReceipt,planWriteErrorMessage} from "@/lib/plan/planWriteReceipt";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { parseAIPlan } from "@/lib/aiPlanParser";
 import {
@@ -78,6 +79,10 @@ export function usePlanAdaptation() {
     setIsApplying(true);
     try {
       return await fn();
+    } catch (err) {
+      console.error("[usePlanAdaptation] confirmPendingSave error:",err);
+      toast.error(planWriteErrorMessage(err,"Échec de l’adaptation du plan"));
+      return null;
     } finally {
       setIsApplying(false);
     }
@@ -92,20 +97,20 @@ export function usePlanAdaptation() {
   /** Persiste un ParsedPlan dans `plans.plan_json`. */
   const persistPlan = useCallback(
     async (athleteId: string, coachId: string, plan: ParsedPlan) => {
-      const { error } = await supabase
+      await requirePlanWriteReceipt(supabase
         .from("plans")
         .upsert(
-          [
-            {
-              athlete_id: athleteId,
-              coach_id: coachId,
-              plan_json: plan as any,
-              updated_at: new Date().toISOString(),
-            },
-          ],
+          [{
+            athlete_id: athleteId,
+            coach_id: coachId,
+            plan_json: plan as any,
+            updated_at: new Date().toISOString(),
+          }],
           { onConflict: "athlete_id" }
-        );
-      if (error) throw error;
+        )
+        .select("athlete_id,coach_id,plan_json,updated_at")
+        .single(),{operation:"current",athleteId,coachId,planJson:plan});
+
     },
     []
   );
@@ -113,19 +118,19 @@ export function usePlanAdaptation() {
   /** Archive le plan courant dans plan_versions avant écrasement. */
   const archive = useCallback(
     async (athleteId: string, coachId: string, plan: ParsedPlan, reason: string) => {
-      const { error } = await supabase.from("plan_versions").insert([
-        {
-          athlete_id: athleteId,
-          coach_id: coachId,
-          plan_json: plan as any,
-          objective: `[ADAPTATION] ${reason}`,
-          weeks_count: plan.totalWeeks,
-          sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),
-        },
-      ]);
-      // Archive before overwriting the current plan. If the archive failed,
-      // fail closed: do not continue to persistPlan and silently lose history.
-      if (error) throw error;
+      // Known before sending: an uncertain response can be reconciled by UUID.
+      const archiveId=crypto.randomUUID();
+      await requirePlanWriteReceipt(supabase.from("plan_versions").insert([{
+        id:archiveId,
+        athlete_id:athleteId,
+        coach_id:coachId,
+        plan_json:plan as any,
+        objective:`[ADAPTATION] ${reason}`,
+        weeks_count:plan.totalWeeks,
+        sessions_count:plan.weeks.reduce((sum,w)=>sum+w.sessions.length,0),
+      }]).select("id,athlete_id,coach_id,plan_json").single(),
+      {operation:"archive",athleteId,coachId,planJson:plan,archiveId});
+
     },
     []
   );
@@ -234,7 +239,7 @@ export function usePlanAdaptation() {
         return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] applyPatch error:", err);
-        toast.error("Échec de l'adaptation du plan");
+        toast.error(planWriteErrorMessage(err,"Échec de l'adaptation du plan"));
         return null;
       } finally {
         setIsApplying(false);
@@ -351,7 +356,7 @@ export function usePlanAdaptation() {
         return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] regenerateWindow error:", err);
-        toast.error("Échec de la régénération partielle");
+        toast.error(planWriteErrorMessage(err,"Échec de la régénération partielle"));
         return null;
       } finally {
         setIsApplying(false);

@@ -1,0 +1,23 @@
+name: Plan persistence receipts
+
+on:
+  pull_request:
+    paths:
+      - 'src/hooks/usePlanAdaptation.ts'
+      - 'src/hooks/__tests__/usePlanAdaptation.archiveFailClosed.test.ts'
+      - 'src/lib/plan/planWriteReceipt.ts'
+      - 'src/lib/plan/__tests__/planWriteReceipt.test.ts'
+      - '.github/workflows/plan-persistence-receipts.yml'
+
+jobs:
+  exact-write-receipts:
+    name: Exact archive/current receipts — both adaptation routes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Behavioral hook tests and exact receipt contract
+        run: bunx vitest run src/hooks/__tests__/usePlanAdaptation.archiveFailClosed.test.ts src/lib/plan/__tests__/planWriteReceipt.test.ts
