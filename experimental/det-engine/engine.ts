@@ -119,6 +119,10 @@ export interface ExperimentalAssemblyContract {
    * Z1/Z2 versus non-easy margin, after authentic source-backed quality.
    * No cap, intensity, limiter rule, or certificate is modified. */
   prioritizeRunningStructuredEasyMargin?:true;
+  /** V350 opt-in: choose the FIRST quality-anchoring key SLOT by the
+   * best achievable certified easy/polarization margin (not just smallest
+   * source domain). Ranking only: no dose/source/slot becomes admissible. */
+  prioritizeRunningQualitySlotByMargin?:true;
   /** V345 opt-in: certify the NECESSARY presence of one genuine source-backed
    * RUN quality option in a B13-distinct matching of current slot domains. */
   auditRunningQualitySourceMatching?:true;
@@ -772,8 +776,32 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         // physiologically forbidden choice eligible or bypass a native check.
         const certifiedKey=(item:typeof order[number])=>
           item.slot.slot.isKeySession&&item.domain.some(isQuality);
+        const qualityMargin=(item:typeof order[number]):number=>{
+          if(!certifiedKey(item))return -Infinity;
+          const margins=item.domain.filter(isQuality).flatMap(session=>{
+            const dose=session.catalogId?
+              experimentalContract?.sourceFullStructuredDoseForId?.(
+                session.catalogId,session.durationMin):null;
+            return dose?[dose.low-3*(dose.mid+dose.high)-0.01*dose.unknown]:[];
+          });
+          return margins.length?Math.max(...margins):-Infinity;
+        };
+        const preferMargin=experimentalContract?.prioritizeRunningQualitySlotByMargin===true;
         order.sort((a,b)=>Number(certifiedKey(b))-Number(certifiedKey(a))||
+          (preferMargin?qualityMargin(b)-qualityMargin(a):0)||
           a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
+        if(preferMargin)result.issues.push({
+          code:'det_v350_running_key_slot_margin_order',week:w.week,
+          severity:'warning',message:JSON.stringify({
+            firstKeySourceMargin:qualityMargin(order[0]),
+            keySlots:order.filter(certifiedKey).map(item=>({
+              dayIndex:item.slot.dayIndex,sport:item.slot.slot.sport,
+              bestCertifiedEasyMargin:qualityMargin(item),
+              sourceCandidates:item.domain.filter(isQuality).length,
+            })),
+            noChangedEligibilityOrDose:true,scientificAttestation:false,
+          }),
+        });
         result.issues.push({code:'det_v344_running_quality_slot_priority',
           week:w.week,severity:'warning',message:JSON.stringify({
             sourceVerifiedKeySlotCount:order.filter(certifiedKey).length,
