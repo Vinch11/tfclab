@@ -193,11 +193,13 @@ function runScenario(s:Case){
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
     _outputFormat:'json' as const};
-  const reviews=[...runSourceIds,
+  // Distinct source IDs only: the expanded approved set may overlap the base.
+  // This is fixture de-duplication, not an athlete approval bypass.
+  const reviews=[...new Set([...runSourceIds,
     ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
     ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
     ...strengthSourceIds,
-    ...(s.unrestrictedSports?crossTrainingIds:[])].map(id=>{
+    ...(s.unrestrictedSports?crossTrainingIds:[])])].map(id=>{
     const context=syntheticV3SportingContext(id);
     if(!('sportingReview' in context))throw Error('missing_existing_v3_source:'+id);
     return {
