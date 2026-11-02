@@ -1,0 +1,70 @@
+{
+  "schema": "tfcl.qa.coach-b-independent-audit.v1",
+  "date": "2026-11-02",
+  "qaSourceSha": "d4e6678cf32692ef4e7c14c2db05c6f0b38e35aa",
+  "methods": {
+    "integrity": "Read-only admin SQL; not JWT proof",
+    "identity": "Exact QA module run with Node24 stripTypeScriptTypes and explicitly in-memory transport; not browser/JWT proof",
+    "browserProof": "Separate environment evidence in DET_COACH_B_REAL_JWT_RECIPE_2026-11-02.json"
+  },
+  "database": {
+    "a_current": 1,
+    "a_current_fp": "34230fb711707b19d9766814105f0a33",
+    "a_versions": 4,
+    "a_versions_fp": "543e381a32500dfcf59bc1e384d3e752",
+    "b_current": 0,
+    "b_versions": 6,
+    "nolio_operations": 0,
+    "reviews": 0
+  },
+  "ownership": {
+    "current_owner_mismatches": 0,
+    "version_owner_mismatches": 0
+  },
+  "earlierSchemeNormalizedDuplicateGroups": [
+    {
+      "copies": 2,
+      "version_ids": [
+        "cb23f5f6-b359-8d16-93b3-2e77c8d4dd8a",
+        "1e2d1b05-025e-8b01-9067-edeee234575a"
+      ]
+    },
+    {
+      "copies": 2,
+      "version_ids": [
+        "70bc6365-d989-835b-9108-5683d7971c0e",
+        "91c7c0ac-7195-8ec9-a829-7d45f668c0b6"
+      ]
+    }
+  ],
+  "identityChecks": {
+    "samePayloadExceptGeneratedAt": "one row, one POST across new saver instances; original generatedAt stored",
+    "distinctOn": [
+      "dose",
+      "clock",
+      "limiter order",
+      "engine version"
+    ],
+    "nonFiniteRejected": true,
+    "reservedJsonKeyPreserved": true,
+    "legacy": "not reconciled; no retroactive uniqueness claim"
+  },
+  "open": [
+    "real B edit/restore/current and two-write failure recipe",
+    "browser coach-input path",
+    "new login",
+    "valid PATCH negative B→A",
+    "full V2 hardening",
+    "sporting human review"
+  ],
+  "editCounterexample": {
+    "module": "src/lib/plan/refreshPlanValues.ts",
+    "syntheticOnly": true,
+    "before": "DET Z3 (250W), physioRefs FTP300, structured target250W",
+    "afterRefresh": "details Z3, physioRefs FTP350, structured target250W retained, provenance unchanged",
+    "status": "correction instructed in queued edit suite"
+  },
+  "pilot": "not_activated",
+  "production": "NO-GO",
+  "nolioAuthenticatedRequests": 0
+}
