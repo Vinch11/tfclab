@@ -37,6 +37,7 @@ import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
 import {hasDistinctSourceAssignment} from './v334-distinct-source-feasibility';
+import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} from './v335-reviewed-run-specificity';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
@@ -134,6 +135,9 @@ export interface ExperimentalAssemblyContract {
   taperSemanticAthleteContextId?:string;
   explicitTaperReviewForSession?:(session:ParsedSession)=>
     ExplicitTaperCoachReview|null|undefined;
+  /** V335 opt-in: source-certified semi/marathon peak; native checks retained. */
+  enableV335SourceRunningPeak?:true;
+  reviewedRunningSpecificForId?:(id:string)=>ReviewedRunningSpecificSource|null|undefined;
   /** V333 opt-in: necessary forward checking, never a sporting exemption. */
   enableV333ForwardCheck?:true;
   /** Exploratory ONLY: require >=75% native-estimated Z1/Z2 and <=30%
@@ -400,6 +404,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const weeklyUsage=new Map<string,number>();
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
+      const runningGoal=normalizeRepairGoal(config.objective??'');
+      const sourceSpecificEnabled=experimentalContract?.enableV335SourceRunningPeak===true&&
+        (runningGoal==='semi'||runningGoal==='marathon');
+      const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
+      const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
+        if(!sourceSpecificEnabled)return hasSourceVisibleRaceSpecificity(session);
+        const cached=sourceSpecificCache.get(session);
+        if(cached!==undefined)return cached;
+        const verified=verifyReviewedRunningRaceSpecific(session,
+          runningGoal as 'semi'|'marathon',
+          experimentalContract?.reviewedRunningSpecificForId,
+          experimentalContract?.sourceFullStructuredDoseForId).verified;
+        sourceSpecificCache.set(session,verified);
+        return verified;
+      };
       let calendarRecoveryExclusions=0;
       let confirmedOverlapExclusions=0;
       let sprintBanExclusions=0;
@@ -685,7 +704,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const raceSpecificSuffix=Array(order.length+1).fill(false) as boolean[];
       for(let i=order.length-1;i>=0;i--)
         raceSpecificSuffix[i]=raceSpecificSuffix[i+1]||
-          order[i].domain.some(hasSourceVisibleRaceSpecificity);
+          order[i].domain.some(hasProvenRaceSpecificity);
       const qualitySuffix=Array(order.length+1).fill(false) as boolean[];
       for(let i=order.length-1;i>=0;i--)
         qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(isQuality);
@@ -865,7 +884,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         if(experimentalContract?.enableV333ForwardCheck===true){
           let minimum=total;
           let possibleQuality=chosen.some(isQuality);
-          let possibleSpecificity=chosen.some(hasSourceVisibleRaceSpecificity);
+          let possibleSpecificity=chosen.some(hasProvenRaceSpecificity);
           const remainingSourceDomains:string[][]=[];
           for(let j=index;j<order.length;j++){
             let slotMinimum=Infinity;
@@ -887,7 +906,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               // Every real source ID is subject to B13's weekly uniqueness.
               feasibleIds.push(id??'__official_event_slot_'+j);
               if(isQuality(session))possibleQuality=true;
-              if(hasSourceVisibleRaceSpecificity(session))possibleSpecificity=true;
+              if(hasProvenRaceSpecificity(session))possibleSpecificity=true;
             }
             if(!Number.isFinite(slotMinimum)){
               countPrune('v333_remaining_slot_has_no_usable_source');return false;
@@ -911,7 +930,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           }
         }
         if(qualityRequired&&!chosen.some(isQuality)&&!qualitySuffix[index])return false;
-        if(requiresRaceSpecificPeak&&!chosen.some(hasSourceVisibleRaceSpecificity)&&
+        if(requiresRaceSpecificPeak&&!chosen.some(hasProvenRaceSpecificity)&&
            !raceSpecificSuffix[index]){
           countPrune('v316_race_specificity_unavailable');
           return false;
@@ -1077,7 +1096,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       });
       for(const day of layout.days)if(!day.slots.length)chosen.push({weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayName:day.dayName,dayIndex:layout.days.indexOf(day),sport:'rest',title:'Repos',details:'Repos complet du contrat hebdomadaire.',isRest:true,durationMin:0});
       if(w.phase?.trim().toLowerCase()==='peak'&&
-         chosen.some(hasSourceVisibleRaceSpecificity))peakRaceSpecificSeen=true;
+         chosen.some(hasProvenRaceSpecificity))peakRaceSpecificSeen=true;
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       if(experimentalContract?.requireSourceVerifiedTaperQuality===true &&
          entry.weekType==='taper'){
