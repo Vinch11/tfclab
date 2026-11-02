@@ -15,7 +15,8 @@ import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anc
 type RunningGoal='Semi'|'Marathon';
 type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
   declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
-  unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;};
+  unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
+  approvedTaperDose?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
@@ -58,6 +59,14 @@ const matrix:readonly Case[]=[
   {id:'marathon-40w-declared-worldclass-load',fixture:'B-MARATHON',goal:'Marathon',
     weeks:40,weeklyHours:14,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,declaredWorldClassCapacity:true},
+  // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
+  // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
+  {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
+    weeks:8,weeklyHours:6,wideRecoveryClock:true,approvedTaperDose:true},
+  {id:'marathon-16w-reviewed-taper-dose',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:14,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,
+    declaredWorldClassCapacity:true,approvedTaperDose:true},
 ];
 
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
@@ -142,12 +151,27 @@ function runScenario(s:Case){
       expectedAthleteId:athleteId,
       sportingReview:{...context.sportingReview,athleteId},
       athleteAnchors:syntheticV3ReviewAnchors(),
+      ...(s.approvedTaperDose&&(
+        (s.goal==='Semi'&&id==='V3P_RUN_160')||
+        (s.goal==='Marathon'&&id==='V3P_RUN_155'))?{
+        targetDurationMin:s.goal==='Semi'?25:28,
+        // Source-defined 2 -> 1 workset, NOT a different effort domain.
+        allowWorksetChange:true as const,
+      }:{}),
     } satisfies V3ReviewedSettings;
   });
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
   expect(report.sourceCount).toBe(800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
+  if(s.approvedTaperDose){
+    const id=s.goal==='Semi'?'V3P_RUN_160':'V3P_RUN_155';
+    const intendedMinutes=s.goal==='Semi'?25:28;
+    const reviewed=report.accepted.find(card=>card.id===id);
+    expect(reviewed?.durationMin).toEqual([intendedMinutes,intendedMinutes]);
+    expect(contract.sourceFullStructuredDoseForId?.(id,intendedMinutes))
+      .toBeTruthy();
+  }
   expect(report.accepted.some(card=>card.sport==='strength')).toBe(true);
   expect(contract.validateReviewedAthleteContext?.(athlete)).toEqual([]);
   const accepted=new Set(report.accepted.map(card=>card.id));
@@ -225,6 +249,7 @@ function runScenario(s:Case){
     unrestrictedSports:s.unrestrictedSports===true,
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
+    approvedTaperDose:s.approvedTaperDose===true,
     admittedCrossTrainingSources:report.accepted.filter(card=>card.sport==='bike').length,
     admittedRunSources:report.accepted
       .filter(card=>card.sport==='run').length,
