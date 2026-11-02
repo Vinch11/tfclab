@@ -2,8 +2,8 @@
  * Distinct synthetic coach capacities. Historical world-class fixtures remain
  * unchanged; no athlete or source approval is silently downgraded.
  */
-import {it} from 'vitest';
-import {runScenario} from './v332-running-long-horizon-safety.test';
+import {afterEach,beforeEach,it,vi} from 'vitest';
+import {runScenario} from './v332-running-long-horizon-fixture';
 
 const common={
   fixture:'B-MARATHON' as const,goal:'Marathon' as const,
@@ -35,3 +35,6 @@ it('declared TTE competitor 40w real solver',()=>{
   runScenario({...common,id:'marathon-40w-competitor-tte-source-preferred',
     weeks:40,weeklyHours:9,declaredAmbition:'competitor'});
 },45000);
+
+beforeEach(()=>{vi.stubGlobal('fetch',()=>{throw Error('DET_V356_NETWORK_FORBIDDEN');});});
+afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
