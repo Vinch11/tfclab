@@ -498,6 +498,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return verified;
       };
       let calendarRecoveryExclusions=0;
+      const tteBeforeRecovery:{sourceId:string;dayIndex:number;durationMin:number}[]=[];
+      const tteRecoveryRejected:{sourceId:string;dayIndex:number;durationMin:number;
+        requirements:readonly {sourceId:string;sport:string;hours:number}[]}[]=[];
       let confirmedOverlapExclusions=0;
       let sprintBanExclusions=0;
       let taperPhaseExclusions=0;
@@ -585,6 +588,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             if(forbidden)sprintBanExclusions++;
             return !forbidden;
           }).filter(session=>{
+            if(isCertifiedTteKey(session))tteBeforeRecovery.push({
+              sourceId:session.catalogId!,dayIndex,durationMin:session.durationMin!,
+            });
             if(!experimentalContract?.enforceCalendarSafeV3Recovery||!session.catalogId||
                !experimentalContract.sourceRecoveryForId)return true;
             const here={week:w.week,dayIndex,sport:slot.sport};
@@ -607,7 +613,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
                 here,session.durationMin,requirements,scheduledSports,
                 experimentalContract.coachSlotStart);
             }
-            if(!viable)calendarRecoveryExclusions++;
+            if(!viable){
+              calendarRecoveryExclusions++;
+              if(isCertifiedTteKey(session))tteRecoveryRejected.push({
+                sourceId:session.catalogId!,dayIndex,durationMin:session.durationMin!,
+                requirements,
+              });
+            }
             return viable;
           }).filter(session=>{
             if(experimentalContract?.enforceConfirmedNoSameDayOverlap!==true)return true;
@@ -689,6 +701,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             primaryTteEnabled:ttePreferenceEnabled,
             keyRunSlots:slots.filter(s=>s.slot.sport==='run'&&
               s.slot.isKeySession).length,
+            sourceVerifiedTteBeforeRecovery:tteBeforeRecovery.length,
+            sourceVerifiedTteRecoveryRejected:tteRecoveryRejected.length,
+            recoveryRejectionExamples:tteRecoveryRejected.slice(0,3),
             sourceVerifiedTteCandidates:eligible.length,
             distinctSourceIds:[...new Set(eligible.map(s=>s.sourceId))],
             candidateSamples:eligible.slice(0,4),

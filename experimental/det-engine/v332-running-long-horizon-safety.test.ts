@@ -33,6 +33,7 @@ type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number
   marathonSpecificityReconciliation?:true;
   measuredMarathonMesocycles?:true;
   tteSourcePreferred?:true;
+  declaredAmbition?:'age_group'|'competitor';
   largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
@@ -327,6 +328,25 @@ const matrix:readonly Case[]=[
     extendedStrictSearchBudget:true,runningQualitySlotMargin:true,
     marathonHorizonEvidence:true,marathonSpecificityReconciliation:true,
     measuredMarathonMesocycles:true,tteSourcePreferred:true},
+  // Separately declared synthetic capacities: never downgrade the historical
+  // world-class witnesses. All original source, dose and safety gates apply.
+  ...([16,40] as const).flatMap(weeks=>(['age_group','competitor'] as const).map(
+    declaredAmbition=>({
+      id:`marathon-${weeks}w-${declaredAmbition}-tte-source-preferred`,
+      fixture:'B-MARATHON' as const,goal:'Marathon' as const,weeks,
+      weeklyHours:declaredAmbition==='age_group'?7:9,declaredAmbition,
+      declaredTwoSlotsPerDay:true as const,unrestrictedSports:true as const,
+      wideRecoveryClock:true as const,forwardCheck:true as const,
+      expandedTaperSources:true as const,approvedTaperDose:true as const,
+      sourceCertifiedPeak:true as const,shortEasyTaperApproved:true as const,
+      distinctSportClock:true as const,measuredRecoveryProof:true as const,
+      runningQualityProof:true as const,runningQualityPriority:true as const,
+      runningMatchingAudit:true as const,runningCandidatePriority:true as const,
+      runningEasyMarginPriority:true as const,extendedStrictSearchBudget:true as const,
+      runningQualitySlotMargin:true as const,marathonHorizonEvidence:true as const,
+      marathonSpecificityReconciliation:true as const,
+      measuredMarathonMesocycles:true as const,tteSourcePreferred:true as const,
+    }))),
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -433,6 +453,9 @@ function runScenario(s:Case){
       sessionsPerWeek:7,strengthSessionsPerWeek:2}:{}),
     ...(s.declaredWorldClassCapacity?{sessionsPerWeek:10,
       strengthSessionsPerWeek:2}:{}),
+    ...(s.declaredAmbition?{ambition:s.declaredAmbition,
+      sessionsPerWeek:s.declaredAmbition==='age_group'?6:8,
+      strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
     _outputFormat:'json' as const};
@@ -621,6 +644,7 @@ function runScenario(s:Case){
     unrestrictedSports:s.unrestrictedSports===true,
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
+    declaredAmbition:s.declaredAmbition??null,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
     sourceCertifiedPeak:s.sourceCertifiedPeak===true,

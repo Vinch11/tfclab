@@ -36,17 +36,19 @@ jobs:
               row = json.loads(line.split(marker, 1)[1])
               domains = row.get("tteSourceCandidateDomains", [])
               summary = {k: row.get(k) for k in (
-                  "scenario", "weeksRequested", "weeksConstructed",
+                  "scenario", "declaredAmbition", "weeklyHours", "weeksRequested", "weeksConstructed",
                   "technicallyConstructed", "nativeConstraintsSatisfied",
                   "nodes", "reason", "blockingCodes", "blockingExamples",
                   "nativeGateEvidence", "marathonExactSourceAudit",
-                  "measuredMarathonMesocycles", "marathonSpecificityReconciliation")}
-              summary["tteCandidateWeeks"] = domains
+                  "measuredMarathonMesocycles")}
+              summary["tteCandidateWeeks"] = domains[:4]
+              summary["tteCandidateWeekCount"] = len(domains)
+              summary["tteCandidateOccurrences"] = sum(x["evidence"]["sourceVerifiedTteCandidates"] for x in domains)
               summary["selectedVerifiedTteSources"] = row.get("selectedVerifiedTteSources")
               rows.append(summary)
               print("MARATHON_EXACT_EVIDENCE " + json.dumps(summary, ensure_ascii=False))
           Path("marathon-evidence.json").write_text(json.dumps(rows, indent=2))
-          if len(rows) != 2:
+          if len(rows) != 6:
               print(Path("marathon-evidence.log").read_text()[-12000:])
               raise SystemExit("Expected both real-solver marathon witnesses")
           PY
