@@ -36,6 +36,7 @@ import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-n
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
+import {hasDistinctSourceAssignment} from './v334-distinct-source-feasibility';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
@@ -865,8 +866,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           let minimum=total;
           let possibleQuality=chosen.some(isQuality);
           let possibleSpecificity=chosen.some(hasSourceVisibleRaceSpecificity);
+          const remainingSourceDomains:string[][]=[];
           for(let j=index;j<order.length;j++){
             let slotMinimum=Infinity;
+            const feasibleIds:string[]=[];
             for(const session of order[j].domain){
               const id=session.catalogId;
               if(id&&(weeklyUsage.get(id)??0)>=1)continue;
@@ -880,16 +883,25 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
                     (catalogById.get(s.catalogId??'')?.mainZoneMax??0)>=3))continue;
               }
               slotMinimum=Math.min(slotMinimum,session.durationMin??0);
+              // Independent official race slots have no training-source ID.
+              // Every real source ID is subject to B13's weekly uniqueness.
+              feasibleIds.push(id??'__official_event_slot_'+j);
               if(isQuality(session))possibleQuality=true;
               if(hasSourceVisibleRaceSpecificity(session))possibleSpecificity=true;
             }
             if(!Number.isFinite(slotMinimum)){
               countPrune('v333_remaining_slot_has_no_usable_source');return false;
             }
+            remainingSourceDomains.push(feasibleIds);
             minimum+=slotMinimum;
             if(minimum>ceiling){
               countPrune('v333_unavoidable_minimum_exceeds_week_cap');return false;
             }
+          }
+          // V334: a proof of impossible distinct-card allocation is a
+          // safe necessary prune; an available matching is NEVER a pass.
+          if(!hasDistinctSourceAssignment(remainingSourceDomains)){
+            countPrune('v334_no_distinct_approved_source_matching');return false;
           }
           if(qualityRequired&&!possibleQuality){
             countPrune('v333_remaining_quality_unavailable');return false;
