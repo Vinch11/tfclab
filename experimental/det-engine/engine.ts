@@ -888,7 +888,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         // contradiction in these currently approved WEEK-SPECIFIC domains,
         // not a solver-budget failure and not a global impossibility proof.
         // Keep the existing fail-closed search and sporting rules unchanged.
-        if(qualityRequired&&!qualitySuffix[0] &&
+        if(qualityRequired&&!qualitySuffix[0] &&entry.weekType==='taper' &&
            experimentalContract?.requireLorangQualityBeforeFinalValidation===true &&
            normalizeRepairGoal(config.objective??'')==='half'){
           result.issues.push({
