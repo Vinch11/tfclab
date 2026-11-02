@@ -50,11 +50,10 @@
     "legacy": "not reconciled; no retroactive uniqueness claim"
   },
   "open": [
-    "real B edit/restore/current and two-write failure recipe",
-    "browser coach-input path",
     "new login",
-    "valid PATCH negative B→A",
-    "full V2 hardening",
+    "Coach A write access",
+    "GET transport, genuine Postgres concurrency and connection-store finalization",
+    "adaptation archive identity and false local dry-run success",
     "sporting human review"
   ],
   "editCounterexample": {
@@ -62,9 +61,32 @@
     "syntheticOnly": true,
     "before": "DET Z3 (250W), physioRefs FTP300, structured target250W",
     "afterRefresh": "details Z3, physioRefs FTP350, structured target250W retained, provenance unchanged",
-    "status": "correction instructed in queued edit suite"
+    "status": "QA source11 reports explicit refusal for structured DET refresh; preserve actual targets until requalification"
   },
   "pilot": "not_activated",
   "production": "NO-GO",
-  "nolioAuthenticatedRequests": 0
+  "nolioAuthenticatedRequests": 0,
+  "postEditRestore": {
+    "qaSourceSha": "6b56927c364a5d1b406d1835605466a7c1e3c6b9",
+    "at": "2026-11-02T20:20:01Z",
+    "readOnlyAdminSql": true,
+    "database": {
+      "a_current_fp": "34230fb711707b19d9766814105f0a33",
+      "a_versions": 4,
+      "a_versions_fp": "543e381a32500dfcf59bc1e384d3e752",
+      "b_coach_version_fp": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+      "b_current": 1,
+      "b_current_fp": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+      "b_engine": "det",
+      "b_nonprescriptive": "true",
+      "b_versions": 10,
+      "current_owner_mismatches": 0,
+      "ledger_rows": 2,
+      "reviews": 1,
+      "version_owner_mismatches": 0
+    },
+    "currentEqualsStoredCoachVersion": true,
+    "firstSixBHashesRechecked": true,
+    "notNewLogin": true
+  }
 }

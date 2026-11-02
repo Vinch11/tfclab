@@ -72,11 +72,24 @@
       "observed": "coachObjectiveKey('Marathon de trail') returns marathon",
       "expected": "Qualified route objective must not be inferred from a free event name; explicit unsupported goal refusal.",
       "status": "correction instructed"
+    },
+    {
+      "case": "local_dry_run_block_false_success",
+      "sourceMetadataSha": "a471d7e68eac29fa2ee011a3140797f87f2b4e3d",
+      "method": "Actual sender+httpFetch modules; synthetic operations/route constants, no mapper invocation or network",
+      "observed": {
+        "fetches": 0,
+        "status": "DONE",
+        "state": "dry_run_ok"
+      },
+      "cause": "Local response status0 accepted by status<300 test",
+      "expected": "Only valid 2xx server validation can succeed; local block remains blocked/rejected",
+      "status": "correction queued"
     }
   ],
-  "correctionStatus": "partial_unverified_build_broken; continuation blocked by workspace out of credits",
+  "correctionStatus": "Durable V2 code tested; real GET/RPC concurrency/store and adaptation/dry-run residuals in progress",
   "pilot": "not_activated",
   "production": "NO-GO",
-  "currentQaSha": "6c45fd912a1310b7184d071a7a558440167488a5",
+  "currentQaSha": "6b56927c364a5d1b406d1835605466a7c1e3c6b9",
   "lastCompilingQaSha": "fe3dbb80c4316d24d3016ba01de505f544af6b81"
 }
