@@ -16,7 +16,8 @@ type RunningGoal='Semi'|'Marathon';
 type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
   declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
   unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
-  approvedTaperDose?:true;forwardCheck?:true;};
+  approvedTaperDose?:true;forwardCheck?:true;expandedTaperSources?:true;
+  largerSearchBudget?:true;};
 const matrix:readonly Case[]=[
   {id:'semi-native-8w',fixture:'B-SEMI',goal:'Semi',weeks:8,weeklyHours:6},
   {id:'semi-30w',fixture:'B-SEMI',goal:'Semi',weeks:30,weeklyHours:6},
@@ -71,6 +72,27 @@ const matrix:readonly Case[]=[
   {id:'marathon-40w-declared-worldclass-load',fixture:'B-MARATHON',goal:'Marathon',
     weeks:40,weeklyHours:14,declaredTwoSlotsPerDay:true,
     unrestrictedSports:true,wideRecoveryClock:true,declaredWorldClassCapacity:true},
+  // V334: controlled source coverage and solver budget experiments.
+  // Same REAL existing V3 workouts, all individually approved in this
+  // test-only synthetic fixture. Baselines above are never retrofitted.
+  {id:'semi-8w-expanded-approved-sources',fixture:'B-SEMI',goal:'Semi',
+    weeks:8,weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true},
+  {id:'semi-30w-expanded-approved-sources',fixture:'B-SEMI',goal:'Semi',
+    weeks:30,weeklyHours:6,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true},
+  {id:'marathon-16w-expanded-approved-sources',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:16,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true},
+  {id:'marathon-40w-expanded-3k',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true},
+  {id:'marathon-40w-expanded-7k',fixture:'B-MARATHON',goal:'Marathon',
+    weeks:40,weeklyHours:9,declaredTwoSlotsPerDay:true,
+    unrestrictedSports:true,wideRecoveryClock:true,forwardCheck:true,
+    expandedTaperSources:true,largerSearchBudget:true},
   // EXPLICIT, synthetic coach-approved reduction of the existing marathon/
   // semi race-pace workset within ORIGINAL V3 bounds; not an automatic trim.
   {id:'semi-8w-reviewed-taper-dose',fixture:'B-SEMI',goal:'Semi',
@@ -99,6 +121,12 @@ const runSourceIds=[
   'V3P_RUN_153','V3P_RUN_154','V3P_RUN_155','V3P_RUN_156',
   'V3P_RUN_157','V3P_RUN_158','V3P_RUN_159','V3P_RUN_160',
   'V3P_RUN_167','V3P_RUN_169','V3P_RUN_172',
+];
+/** Original V3 catalogue, not fabricated taper sessions. */
+const expandedTaperSourceIds=[
+  'V3P_RUN_020','V3P_RUN_105','V3P_RUN_110','V3P_RUN_115',
+  'V3P_RUN_120','V3P_RUN_125','V3P_RUN_135','V3P_RUN_150',
+  'V3P_RUN_190','V3P_RUN_195','V3P_RUN_200',
 ];
 const crossTrainingIds=[
   'V3P_BIKE_001','V3P_BIKE_002','V3P_BIKE_017',
@@ -148,7 +176,10 @@ function runScenario(s:Case){
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
     _outputFormat:'json' as const};
-  const reviews=[...runSourceIds,...strengthSourceIds,
+  const reviews=[...runSourceIds,
+    ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
+    ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
+    ...strengthSourceIds,
     ...(s.unrestrictedSports?crossTrainingIds:[])].map(id=>{
     const context=syntheticV3SportingContext(id);
     if(!('sportingReview' in context))throw Error('missing_existing_v3_source:'+id);
@@ -163,6 +194,12 @@ function runScenario(s:Case){
       expectedAthleteId:athleteId,
       sportingReview:{...context.sportingReview,athleteId},
       athleteAnchors:syntheticV3ReviewAnchors(),
+      ...(s.expandedTaperSources&&s.goal==='Marathon'&&id==='V3P_RUN_094'?{
+        // Existing source-defined 2 × 4 min genuine marathon pace.
+        // Coach approves shortening 3 -> 2 worksets; no dose is invented.
+        targetDurationMin:28,
+        allowWorksetChange:true as const,
+      }:{}),
       ...(s.approvedTaperDose&&(
         (s.goal==='Semi'&&id==='V3P_RUN_160')||
         (s.goal==='Marathon'&&id==='V3P_RUN_155'))?{
@@ -189,8 +226,9 @@ function runScenario(s:Case){
   const accepted=new Set(report.accepted.map(card=>card.id));
   const baseFilter=contract.filterCandidate;
   // A "valid" plan must never quietly fall back to an unreviewed native card.
+  const budgetNodes=s.largerSearchBudget?7000:3000;
   const out=constructDeterministicPlan(athlete,config,
-    {maxNodes:3000,maxMilliseconds:2000},{
+    {maxNodes:budgetNodes,maxMilliseconds:s.largerSearchBudget?4500:2000},{
       ...contract,requireReviewedAthleteContext:true,
       filterCandidate:(card,ctx)=>accepted.has(card.id)&&
         (baseFilter?.(card,ctx)??true),
@@ -217,7 +255,7 @@ function runScenario(s:Case){
   expect(chosen.every(row=>accepted.has(row.id))).toBe(true);
   expect(out.humanReviewRequired).toBe(true);
   expect(out.sportingRelevance).toBe('not_attested');
-  expect(out.nodes).toBeLessThanOrEqual(3001);
+  expect(out.nodes).toBeLessThanOrEqual(budgetNodes+1);
   expect(out.constraintsSatisfied).toBe(out.technicallyConstructed&&blockers.length===0);
   if(out.candidate){
     expect(out.candidate.weeks.length).toBeLessThanOrEqual(s.weeks);
@@ -264,6 +302,8 @@ function runScenario(s:Case){
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     approvedTaperDose:s.approvedTaperDose===true,
     forwardCheck:s.forwardCheck===true,
+    expandedTaperSources:s.expandedTaperSources===true,
+    searchBudgetNodes:budgetNodes,
     v333WeekNodeDiagnostics:out.issues.filter(i=>
       i.code==='det_v333_week_search_diagnostic').map(i=>({
         week:i.week,...JSON.parse(i.message??'{}') as Record<string,unknown>,
