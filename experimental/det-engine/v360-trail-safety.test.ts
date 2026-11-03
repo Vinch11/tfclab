@@ -54,7 +54,7 @@ describe('V360 refuses manufactured trail evidence',()=>{
  });
  it('a trail event requires its real sport, exact date and a separate explicit time estimate',()=>{
   const raceGoals=[{objective:'TrailUltra',priority:'A' as const,raceDate:'2027-03-14',targetTimeMinutes:1200}];
-  const config={planStartDate:'2026-10-26',raceGoals};
+  const config={objective:'TrailUltra',planStartDate:'2026-10-26',raceGoals};
   expect(resolveDeclaredEvent(config,20,6,'run').targetTimeMinutes).toBe(1200);
   expect(()=>resolveDeclaredEvent(config,20,6,'brick')).toThrow();
   expect(()=>resolveDeclaredEvent(config,20,5,'run')).toThrow();
