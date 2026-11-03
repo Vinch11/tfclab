@@ -1,0 +1,117 @@
+{
+  "version": "DET V3.59",
+  "families": 15,
+  "referenceCalendars": 28,
+  "totalWeeks": 420,
+  "scope": "synthetic_reference_acceptance_only",
+  "scientificAttestation": false,
+  "prescriptionAllowed": false,
+  "productionAllowed": false,
+  "matrix": [
+    {
+      "family": 1,
+      "scenario": "Marathon",
+      "horizons": "16 semaines",
+      "references": 2,
+      "conditions": "age_group 7 h ; competitor 9 h"
+    },
+    {
+      "family": 2,
+      "scenario": "Marathon long",
+      "horizons": "40 semaines",
+      "references": 2,
+      "conditions": "age_group 7 h ; competitor 9 h"
+    },
+    {
+      "family": 3,
+      "scenario": "Semi-marathon",
+      "horizons": "8 semaines",
+      "references": 2,
+      "conditions": "age_group 7 h ; competitor 9 h ; TTE"
+    },
+    {
+      "family": 4,
+      "scenario": "Semi-marathon long",
+      "horizons": "30 semaines",
+      "references": 2,
+      "conditions": "age_group 7 h ; competitor 9 h ; TTE"
+    },
+    {
+      "family": 5,
+      "scenario": "10 km",
+      "horizons": "8, 10 et 12 semaines",
+      "references": 6,
+      "conditions": "Deux ambitions à chaque horizon ; TTE ; RUN_201 pour le compétiteur 10 semaines"
+    },
+    {
+      "family": 6,
+      "scenario": "Ironman 70.3",
+      "horizons": "12 semaines",
+      "references": 2,
+      "conditions": "10 h ; deux profils physiologiques"
+    },
+    {
+      "family": 7,
+      "scenario": "Ironman 70.3 — 9 h",
+      "horizons": "12 semaines",
+      "references": 1,
+      "conditions": "9 h déclarées"
+    },
+    {
+      "family": 8,
+      "scenario": "Ironman 70.3 — 9,5 h",
+      "horizons": "12 semaines",
+      "references": 1,
+      "conditions": "9,5 h déclarées"
+    },
+    {
+      "family": 9,
+      "scenario": "Ironman",
+      "horizons": "16 semaines",
+      "references": 3,
+      "conditions": "14 h, deux profils ; 13 h"
+    },
+    {
+      "family": 10,
+      "scenario": "Triathlon sprint / olympique",
+      "horizons": "8 / 12 semaines",
+      "references": 2,
+      "conditions": "Sprint 8 h, VO2 ; olympique 10 h, TTE"
+    },
+    {
+      "family": 11,
+      "scenario": "Cyclisme FTP",
+      "horizons": "8 semaines",
+      "references": 1,
+      "conditions": "7 h ; 4 vélos + 1 renforcement ; priorité FTP"
+    },
+    {
+      "family": 12,
+      "scenario": "Natation CSS / endurance",
+      "horizons": "8 semaines",
+      "references": 1,
+      "conditions": "4 h ; 4 nages + 1 renforcement ; mercredi et samedi indisponibles ; priorité TTE/CSS ; repère 1500 m"
+    },
+    {
+      "family": 13,
+      "scenario": "Multi-objectifs",
+      "horizons": "16 semaines",
+      "references": 1,
+      "conditions": "10 km B S8 samedi ; semi A S16 dimanche ; 8 h ; TTE"
+    },
+    {
+      "family": 14,
+      "scenario": "Disponibilités réduites",
+      "horizons": "12 semaines",
+      "references": 1,
+      "conditions": "10 km ; 6 h 30 ; lundi, jeudi, samedi indisponibles"
+    },
+    {
+      "family": 15,
+      "scenario": "Récupération individualisée",
+      "horizons": "12 semaines",
+      "references": 1,
+      "conditions": "10 km ; 7 h ; cadence 2:1 ; Sprint Ban"
+    }
+  ]
+}
