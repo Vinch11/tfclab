@@ -1,139 +1,110 @@
 {
-  "date": "2026-11-03",
+  "sourceCommit": "27d8a1ae2c79447b5617d151770c9890729bc50d",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "afae8577199f89f3a3f931446ada80d7cc705d07",
-  "status": "INCOMPLETE_AWAITING_LOVABLE_EDITOR_INPUT",
-  "sourceRead": "All exact server contents independently read at immutable saved source",
   "files": [
     {
       "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
-      "size": 9062,
-      "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895"
+      "characters": 9022
     },
     {
       "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
-      "size": 6654,
-      "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069"
+      "characters": 6624
     },
     {
       "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
-      "size": 3070,
-      "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb"
+      "characters": 3042
     },
     {
       "path": "supabase/functions/_shared/nolioV2/localTime.ts",
-      "size": 3736,
-      "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05"
+      "characters": 3706
     },
     {
       "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
-      "size": 2447,
-      "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2"
+      "characters": 2429
     },
     {
       "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
-      "size": 19186,
-      "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f"
+      "characters": 19053
     },
     {
       "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-      "size": 29368,
-      "gitBlobSha": "9e3e7c11b891d911dca21363c5f54b3b5272df68"
+      "characters": 29179
     },
     {
       "path": "supabase/functions/_shared/nolioV2/oauth.ts",
-      "size": 29823,
-      "gitBlobSha": "e6f781f7553f4b4b348a72b1578363d021a401a6"
+      "characters": 29731
     },
     {
       "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
-      "size": 4582,
-      "gitBlobSha": "27fba87f2a6c9397418880cdd96e120cb289cf84"
+      "characters": 4571
     },
     {
       "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
-      "size": 8143,
-      "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4"
+      "characters": 8067
     },
     {
       "path": "supabase/functions/_shared/nolioV2/refs.ts",
-      "size": 12944,
-      "gitBlobSha": "5ac78771dc028e8e5fbc250e06bd4b46f37e108b"
+      "characters": 13022
     },
     {
       "path": "supabase/functions/nolio-v2-send-plan/index.ts",
-      "size": 5692,
-      "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47"
+      "characters": 5659
     },
     {
       "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
-      "size": 4433,
-      "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a"
+      "characters": 4418
     },
     {
       "path": "supabase/functions/nolio-v2-oauth/index.ts",
-      "size": 6168,
-      "gitBlobSha": "c4197be02864b61352aeb4015b5bf03260ce076a"
+      "characters": 6161
     },
     {
       "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
-      "size": 1586,
-      "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e"
+      "characters": 1580
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
-      "size": 11166,
-      "gitBlobSha": "e46f0f86c80a825c9bcfbe4d2a04d31bafba16d7"
+      "characters": 11086
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
-      "size": 3103,
-      "gitBlobSha": "dec08d9d1a97fa0902806b010d4e4b9be56eff2e"
+      "characters": 3085
     },
     {
       "path": "supabase/functions/nolio-v2-dry-run/index.ts",
-      "size": 4520,
-      "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea"
+      "characters": 4488
     },
     {
       "path": "supabase/functions/_shared/nolioV2/teamScopeContext.ts",
-      "size": 4725,
-      "gitBlobSha": "fd48accfaf442a5027d0a3e99415713ea902b453"
+      "characters": 4683
     },
     {
       "path": "supabase/functions/_shared/nolioV2/trialSession.ts",
-      "size": 18010,
-      "gitBlobSha": "0d26056887fe61e4414eee2e5e1f9949960b61df"
+      "characters": 17880
     },
     {
       "path": "supabase/functions/nolio-v2-trial-session/index.ts",
-      "size": 8122,
-      "gitBlobSha": "8e9055b1c959cdcccefa5e25af52606e3a6bebd8"
+      "characters": 8090
     },
     {
       "path": "supabase/functions/_shared/nolioV2/planDryRun.ts",
-      "size": 13086,
-      "gitBlobSha": "1cedad5dadb7ba55639b4feefa4f5d38c4872455"
+      "characters": 13015
     },
     {
       "path": "supabase/functions/nolio-v2-plan-dry-run/index.ts",
-      "size": 8416,
-      "gitBlobSha": "eb8ae64f478077fe9b3cd4e3128c9aba2635d825"
+      "characters": 8379
     }
   ],
-  "changedPreviousServerFiles": [
-    "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-    "supabase/functions/_shared/nolioV2/oauth.ts",
-    "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
-    "supabase/functions/_shared/nolioV2/refs.ts",
-    "supabase/functions/nolio-v2-oauth/index.ts",
-    "supabase/functions/_shared/nolioV2/dryRun.ts"
-  ],
-  "method": "Deno static types only; no function execution, provider requests, secrets or deployment",
-  "limits": [
-    "Lovable task umsg_01m6hcpnznffqvgske5vz88smd is awaiting_input without an approval object; editor intervention required.",
-    "Functional full-plan tests, final manifest and deployment not completed.",
-    "This static check does not prove the plan can be simulated end-to-end or exported for real.",
-    "Sports reference validation of PR454 remains acquired; not being rerun."
-  ]
+  "method": "Exact immutable source contents copied to isolated QA snapshot; Deno static types only, no execution, secrets or provider calls",
+  "functionalTests": {
+    "nolioPlanDryRun.test.ts": 26,
+    "nolioV2ActiveRefsUpdate.test.ts": 7,
+    "srcLibNolioPlusQaPilotReview": "298/298 (16 files)",
+    "releaseManifestTests": "22/22",
+    "types": "ok",
+    "eslint": "0 errors, 1 pre-existing warning",
+    "denoLint": "no new errors except pre-existing no-import-prefix",
+    "denoCheck": "shared modules ok; Edge entrypoints inconclusive locally (tool crash)"
+  },
+  "realFullPlan": "not executed"
 }

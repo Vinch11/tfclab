@@ -135,7 +135,10 @@ export type CompetitionRef = { date: string; name: string; sport: string; goalTy
 export type ConnectionRefs = { sportIds: Record<string, string>; exerciseIds: Record<string, string>; competition: CompetitionRef | null; calendarTimeZone: string | null };
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
 // Contrôles, bidi et séparateurs invisibles refusés (le nom doit être exactement celui confirmé).
+/* eslint-disable no-control-regex -- refus volontaire des caractères de contrôle */
+// deno-lint-ignore no-control-regex
 const UNSAFE_TEXT = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/;
+/* eslint-enable no-control-regex */
 const realYmd = (d: string) => { if (!YMD.test(d)) return false; const t = new Date(`${d}T00:00:00Z`); return !Number.isNaN(t.getTime()) && t.toISOString().slice(0, 10) === d; };
 
 /** Identité de compétition confirmée par le coach : date réelle, nom borné exact, sport du plan déjà associé, priorité a|b facultative. */

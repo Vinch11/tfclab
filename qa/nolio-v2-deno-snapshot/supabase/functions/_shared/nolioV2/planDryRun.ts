@@ -48,7 +48,7 @@ export type FrozenOp = ManifestEntry & { body: Record<string, unknown> };
 export type Prepared = { precheck: Precheck; ops: FrozenOp[]; planSha256: string; refsSha256: string; opsSha256: string };
 
 /** Empreinte des refs SANS jeton : athlète, sports, exercices, compétition, fuseau. */
-export async function refsDigest(r: NolioV2Refs): Promise<string> {
+export function refsDigest(r: NolioV2Refs): Promise<string> {
   return sha256Hex(canonical({ a: r.athleteId, s: r.sportIds, e: r.exerciseIds, c: r.competition, tz: r.calendarTimeZone ?? null }));
 }
 
@@ -56,7 +56,7 @@ export async function refsDigest(r: NolioV2Refs): Promise<string> {
 export function opsDigestLine(o: ManifestEntry): string {
   return `${o.opIndex}|${o.sessionKey}|${o.date}|${o.kind}|${o.path}|${o.bodySha256}`;
 }
-export async function opsDigest(m: ManifestEntry[]): Promise<string> {
+export function opsDigest(m: ManifestEntry[]): Promise<string> {
   return sha256Hex(m.map(opsDigestLine).join("\n"));
 }
 export const manifestOf = (ops: FrozenOp[]): ManifestEntry[] =>
