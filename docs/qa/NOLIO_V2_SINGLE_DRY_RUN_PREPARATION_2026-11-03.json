@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-03",
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "base": "bf97605ba24a5db68e4527122c9e28e319ce743f",
+  "observedHeadBeforeCommit": "b16b2e4e2ae55bdfde0b7060fb758b24daffdb3b",
+  "realDryRunExecutedByAgent": false,
+  "realSend": "ABSENT",
+  "contract": {
+    "openapiUrl": "https://www.nolio.io/api/v2/openapi.json",
+    "openapiSha256": "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238",
+    "migrationGuideUrl": "https://media.cdn.nolio.io/api/migration-v1-to-v2.md",
+    "migrationGuideSha256": "7dcea57aebae5da3bd1aef0aa59028d33a2ebf69e1c36656d7b2b9f5aaa7a48d",
+    "route": "POST /api/v2/planned/trainings/",
+    "dryRunPlacement": "json_body",
+    "successSchema": "WorkoutDryRun {dry_run:true, is_valid:true, summary:string} required",
+    "ambiguities": [
+      "dry_run absent from PlannedTrainingCreateRequest.properties",
+      "HTTP status of dry_run response undeclared (only 201 Created)"
+    ],
+    "strictSuccessRule": "2xx AND exact keys dry_run,is_valid,summary AND dry_run===true AND is_valid===true; any id => UNKNOWN unexpected_created_resource"
+  },
+  "unchanged": [
+    "httpFetch.ts",
+    "plannedClient.ts",
+    "nolio-v2-send-plan",
+    "nolio-v2-oauth",
+    "grant/tokens/consent/selection"
+  ],
+  "deployed": {
+    "nolio-v2-dry-run": "6a9bbb9d04d9e3dcce2671020e32b8165fd1c7b01331d4cba5e622f4a47b1556"
+  },
+  "liveCheck": {
+    "noJwt": "401 unauthorized"
+  },
+  "budgets": {
+    "serverFetchPlusBodyMs": 15000,
+    "clientLockAndDeadlineMs": 45000,
+    "retries": 0
+  },
+  "receiptAcl": {
+    "anon": "none",
+    "authenticated": [
+      "SELECT"
+    ],
+    "policies": [
+      "qa_dry_run_receipts_select_own SELECT coach_id = auth.uid()"
+    ],
+    "insert": "service_role only"
+  },
+  "tests": {
+    "targeted": "6 files / 83 passed",
+    "nolioV2Suites": "10 files / 190 passed",
+    "tsgo": "ok",
+    "eslint": "0 errors",
+    "deno": "not run locally"
+  },
+  "manifest": {
+    "releaseId": "590d2ac4170b9e0c27fa5c32e934ddcf00109a35e004a27a6a825cf2538bea71",
+    "attested": false
+  },
+  "nextStep": "Coach A clicks 'Vérifier l'état' then 'Tester la séance sans l'envoyer' once in own browser",
+  "postReview22ffbe79": {
+    "nolioCalls": 0,
+    "realReceiptsCreated": 0,
+    "serverTsChanged": false,
+    "deployed": [],
+    "ui": {
+      "calendarLine": "Envoi calendrier Nolio : ABSENT",
+      "simulationLineSource": "verified receipt readback only",
+      "legacyRemainingDryRunFiltered": true,
+      "introNoDryRunClaim": true
+    },
+    "migration": {
+      "file": "0014_qa_dry_run_receipts_harden.sql",
+      "constraint": "qa_dry_run_receipts_valid_requires_http",
+      "def": "CHECK (outcome <> 'DRY_RUN_VALID' OR http_status IS NOT NULL)",
+      "validated": true,
+      "existingRows": 0
+    },
+    "acl": {
+      "service_role": "SELECT,INSERT",
+      "authenticated": "SELECT (RLS own)",
+      "anon": "none",
+      "otherTablesUnchanged": true
+    },
+    "checks": {
+      "vitest": "216/216",
+      "tsgo": "OK",
+      "eslint": "0 errors, 1 preexisting warning",
+      "denoLint": "no-import-prefix only (shared convention)",
+      "denoCheck": "Local resolution was inconclusive; independent CI 41662179351 succeeded on 18 exact server files, byte-identical at final source."
+    }
+  },
+  "finalSourceCommit": "d304476c9b11ce85671f7b5193bde9df52084e6e",
+  "initialPreparationFileHashes": {
+    "supabase/functions/_shared/nolioV2/dryRun.ts": "34a9b10ab55b5e85c0f8df444ba6c13400d28bcc431fa41213114901b0359596",
+    "supabase/functions/_shared/nolioV2/dryRunAction.ts": "19a6ff96fdcb13560a0a28dc89f27fbb5450f0281b5d8c98410a32095f59c85f",
+    "supabase/functions/nolio-v2-dry-run/index.ts": "c9bfdd0471880d4a6b1a4f5be5cb04f66b769b981fa0da28e0a4cf4bf5bdc93b",
+    "src/qa/pilot-review/dryRunReceipt.ts": "63e7a0b7f7acb9291accba0fc8876323559a6c07cc1840d026b78d5cb93877f3",
+    "src/pages/__qa/PilotReviewPage.tsx": "cecd78e2f3d1b6f1441191c1a7922692462185941351f21c1c9a863fd0915d6d",
+    "drizzle/migrations/0013_qa_nolio_v2_dry_run_receipts.sql": "e49a42ad04cb70d2efc1b5e88d8be576279cc3f0a4c0a8685445e6053b01d4c2"
+  },
+  "independentAudit": {
+    "date": "2026-11-03",
+    "serverCI": {
+      "id": 41662179351,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41662179351",
+      "headSha": "4f87a41b82b130ca414138cb0cd5277fb62e589c",
+      "conclusion": "success",
+      "fileCount": 18,
+      "source": "22ffbe79e695eff946daaaad50e1adf2ce7bc4e8",
+      "all18ServerFilesUnchangedAtFinalSource": true,
+      "provenance": {
+        "date": "2026-11-03",
+        "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+        "sourceCommit": "22ffbe79e695eff946daaaad50e1adf2ce7bc4e8",
+        "sourceRead": "exact raw content at explicit immutable Lovable ref",
+        "files": [
+          {
+            "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+            "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895",
+            "size": 9062
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+            "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069",
+            "size": 6654
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+            "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb",
+            "size": 3070
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+            "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05",
+            "size": 3736
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+            "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
+            "size": 2447
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+            "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f",
+            "size": 19186
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+            "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb",
+            "size": 27144
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/oauth.ts",
+            "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
+            "size": 25115
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+            "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
+            "size": 3523
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+            "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4",
+            "size": 8143
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/refs.ts",
+            "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25",
+            "size": 10895
+          },
+          {
+            "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+            "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47",
+            "size": 5692
+          },
+          {
+            "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+            "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
+            "size": 4433
+          },
+          {
+            "path": "supabase/functions/nolio-v2-oauth/index.ts",
+            "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57",
+            "size": 5392
+          },
+          {
+            "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+            "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
+            "size": 1586
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
+            "gitBlobSha": "e41914c874d123534d5fba6811c83ff8d24e9d02",
+            "size": 8127
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
+            "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b",
+            "size": 2602
+          },
+          {
+            "path": "supabase/functions/nolio-v2-dry-run/index.ts",
+            "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea",
+            "size": 4520
+          }
+        ],
+        "method": "Deno check only on isolated QA branch, no execution/deploy/provider requests/secret access",
+        "change": "Three dedicated dry-run-only server files; existing 15 server files byte-identical to previous independently checked snapshot.",
+        "limits": [
+          "Static types only; no actual Nolio simulation or creation performed by agent."
+        ],
+        "previousCheck": {
+          "runId": 41650858367,
+          "conclusion": "success",
+          "snapshotCommit": "ea7d90f1aaf45da9e7f934cbe3eb80b0ca0446af"
+        }
+      }
+    },
+    "receiptAcl": [
+      {
+        "can_delete": false,
+        "can_insert": false,
+        "can_select": false,
+        "can_truncate": false,
+        "can_update": false,
+        "role_name": "anon"
+      },
+      {
+        "can_delete": false,
+        "can_insert": false,
+        "can_select": true,
+        "can_truncate": false,
+        "can_update": false,
+        "role_name": "authenticated"
+      },
+      {
+        "can_delete": false,
+        "can_insert": true,
+        "can_select": true,
+        "can_truncate": false,
+        "can_update": false,
+        "role_name": "service_role"
+      }
+    ],
+    "constraints": [
+      {
+        "conname": "qa_dry_run_receipts_valid_requires_http",
+        "definition": "CHECK (((outcome <> 'DRY_RUN_VALID'::text) OR (http_status IS NOT NULL)))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_check",
+        "definition": "CHECK (((outcome <> 'DRY_RUN_VALID'::text) OR ((code = 'dry_run_valid'::text) AND ((http_status >= 200) AND (http_status <= 299)) AND (payload_sha256 IS NOT NULL))))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_code_check",
+        "definition": "CHECK ((code ~ '^[a-z0-9_]{1,64}$'::text))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_fixture_code_check",
+        "definition": "CHECK ((fixture_code = 'QA_TECH_RUN_10MIN_NO_TARGET'::text))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_http_status_check",
+        "definition": "CHECK (((http_status IS NULL) OR ((http_status >= 100) AND (http_status <= 599))))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_outcome_check",
+        "definition": "CHECK ((outcome = ANY (ARRAY['DRY_RUN_VALID'::text, 'REFUSED'::text, 'UNKNOWN'::text])))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_payload_sha256_check",
+        "definition": "CHECK (((payload_sha256 IS NULL) OR (payload_sha256 ~ '^[0-9a-f]{64}$'::text)))"
+      },
+      {
+        "conname": "qa_nolio_v2_dry_run_receipts_real_send_check",
+        "definition": "CHECK ((real_send = 'ABSENT'::text))"
+      }
+    ],
+    "receiptGroups": [],
+    "grantMetadata": [
+      {
+        "active_connections": 1,
+        "refresh_state": "idle",
+        "status": "active",
+        "token_generation": 1
+      }
+    ],
+    "verifiedCode": [
+      "Fixed provider origin and planned trainings path; dry_run true forced after spread and checked before transport.",
+      "Provider response exact keys dry_run,is_valid,summary, booleans true required; no arbitrary 2xx success.",
+      "JWT claims, QA allowlist and caller RLS ownership checked before service-role creation.",
+      "Receipt confirmation bound to actor, athlete, fixture code, payload digest, HTTP status, outcome, code and receipt id through caller RLS readback.",
+      "Dedicated handler cannot invoke the real sender; existing normal transport remains closed to dry_run.",
+      "UI distinguishes simulation receipt result from absent calendar send."
+    ],
+    "limits": [
+      "No real provider simulation performed by agent; manual click in Coach A session remains necessary.",
+      "No actual send, refreshed token proof, full-plan export or sporting attestation.",
+      "Provider docs describe dry_run in body but request schema omits property and does not specify dry-run HTTP code; any unknown response is unconfirmed.",
+      "Receipt remains saved but its UI result is not restored automatically after page reload.",
+      "Cross-coach runtime with a new genuine Coach B JWT was not performed for this new receipt table; RLS and grants were reviewed directly and caller behavior tested in mocks."
+    ]
+  }
+}
