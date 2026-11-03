@@ -14,8 +14,8 @@ import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anc
 import {slotPlacementSnapshot} from './v357-coach-reviewed-slot-placement';
 import {inferWeekType} from '@/engines/plan/sessionSizingMatrix';
 
-type RunningGoal='Semi'|'Marathon';
-export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks:number;weeklyHours:number;
+type RunningGoal='Semi'|'Marathon'|'10K';
+export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON'|'B-10K';goal:RunningGoal;weeks:number;weeklyHours:number;
   declaredTwoSlotsPerDay?:true;declaredClock?:true;wideRecoveryClock?:true;
   unrestrictedSports?:true;declaredCompetitor?:true;declaredWorldClassCapacity?:true;
   approvedTaperDose?:true;forwardCheck?:true;expandedTaperSources?:true;
@@ -38,6 +38,9 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON';goal:RunningGoal;weeks
   declaredAmbition?:'age_group'|'competitor';
   approvedBaseTteDose?:true;
   reviewedCompetitorPlacement?:true;
+  verifiedRunningPhaseEvidence?:true;
+  declaredPrimaryLimiter?:'tte';
+  supplementalV3Dose?:true;
   largerSearchBudget?:true;};
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
 const runSourceIds=[
@@ -140,6 +143,7 @@ export function runScenario(s:Case){
   }
   const fixture=preparePrevalidationFixture(s.fixture,s.declaredAmbition?{
     ambition:s.declaredAmbition,weeklyHours:s.weeklyHours,
+    ...(s.verifiedRunningPhaseEvidence?{weeksAvailable:s.weeks}:{}),
     sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
     strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2,
     maxSessionsPerDay:2,constraints:undefined,
@@ -163,11 +167,14 @@ export function runScenario(s:Case){
       strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2}:{}),
     planStartDate:'2026-10-26',raceDate,
     raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
+    ...(s.declaredPrimaryLimiter?{identifiedLimitersRaw:[s.declaredPrimaryLimiter]}:{}),
     _outputFormat:'json' as const};
   // Distinct source IDs only: the expanded approved set may overlap the base.
   // This is fixture de-duplication, not an athlete approval bypass.
   const reviews=[...new Set([...runSourceIds,
     ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
+    ...(s.supplementalV3Dose?['V3P_RUN_201']:[]),
+    ...(s.goal==='10K'?['V3P_RUN_018','V3P_RUN_073','V3P_RUN_074','V3P_RUN_075','V3P_RUN_095']:[]),
     ...(s.approvedBaseTteDose?['V3P_RUN_136']:[]),
     ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
     ...strengthSourceIds,
@@ -211,7 +218,7 @@ export function runScenario(s:Case){
     } satisfies V3ReviewedSettings;
   });
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
-  expect(report.sourceCount).toBe(800);
+  expect(report.sourceCount).toBe(s.supplementalV3Dose?801:800);
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
   if(s.approvedBaseTteDose){
@@ -252,6 +259,8 @@ export function runScenario(s:Case){
   const out=constructDeterministicPlan(athlete,config,
     {maxNodes:budgetNodes,maxMilliseconds:budgetMilliseconds},{
       ...contract,requireReviewedAthleteContext:true,
+      ...(s.verifiedRunningPhaseEvidence?{requireVerifiedRunningPhaseEvidence:true as const,
+        reconcileReviewedSourcePolarization:true as const}:{}),
       filterCandidate:(card,ctx)=>accepted.has(card.id)&&
         (baseFilter?.(card,ctx)??true),
       enforceWeeklyHoursCap:true,
@@ -383,6 +392,12 @@ export function runScenario(s:Case){
     declaredCompetitor:s.declaredCompetitor===true,
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     declaredAmbition:s.declaredAmbition??null,
+    declaredPrimaryLimiter:s.declaredPrimaryLimiter??null,
+    supplementalV3Dose:s.supplementalV3Dose===true,
+    verifiedRunningPhaseEvidence:s.verifiedRunningPhaseEvidence===true,
+    runningPhaseProof:s.verifiedRunningPhaseEvidence?out.issues.filter(i=>
+      i.code.startsWith('det_v358_')).map(i=>({week:i.week??null,code:i.code,
+        proof:JSON.parse(i.message??'{}')})):undefined,
     approvedBaseTteDose:s.approvedBaseTteDose===true,
     reviewedCompetitorPlacement:s.reviewedCompetitorPlacement===true,
     reviewedSlotPlacementEvidence:s.reviewedCompetitorPlacement?

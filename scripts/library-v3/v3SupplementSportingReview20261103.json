@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "id": "V3P_RUN_201",
+      "sport": "run",
+      "sourceFingerprint": "1c67a85a",
+      "sourceStatus": "source_prequalified_pending_individual_review",
+      "reviewOrigin": "TFCLab supplementary source screen 2026-11-03; not independent human or scientific approval",
+      "originReviewFingerprint": null,
+      "sourceBlockers": [],
+      "primaryIntent": "race_specific",
+      "primaryDomain": "mlss",
+      "limiterKeys": [
+        "threshold_tolerance",
+        "fractional_utilization",
+        "race_pace_durability"
+      ],
+      "mainDomainIds": [
+        "mlss"
+      ],
+      "minimumLevel": "trained",
+      "phases": [
+        "build",
+        "peak"
+      ],
+      "minimumRecoveryHours": 48,
+      "prerequisites": [
+        "Allure objectif 10 km vérifiée et compatible avec le domaine MLSS individuel",
+        "Tolérance à au moins 20 minutes de travail au seuil confirmée par le coach"
+      ],
+      "contraindications": [
+        "Douleur locomotrice ou reprise blessure non autorisée",
+        "Fatigue ou accumulation de chocs incompatible",
+        "Terrain non sécurisé"
+      ],
+      "equipment": [],
+      "humanSportingApproved": false,
+      "scientificSessionValidated": false,
+      "athleteApproved": false
+    }
+  ]
+}

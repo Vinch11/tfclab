@@ -9,6 +9,9 @@ import {
   auditV3Catalogue, evaluateV3Workout, v3FullCatalogue,
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
+import {v3ExtendedCatalogue,v3SupplementalCatalogue} from '../../scripts/library-v3/supplementalCatalogue';
+import supplementalRegistry from '../../scripts/library-v3/v3SupplementSportingReview20261103.json';
+import type {V3SportingSourceRecord} from '../../scripts/library-v3/sportingQualification800';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
 import {configureMeasuredStrengthTiming,type VerifiedStrengthTiming} from '../../scripts/library-v3/strengthTimingV3';
 import {
@@ -192,7 +195,14 @@ export function buildDetV3ContractFromCatalogue(
   specificBrickReviews:readonly V32SpecificBrickReview[]=[],
   lowRunBrickReviews:readonly V34SafeBrickReview[]=[]
 ) {
-  const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry()];
+  // Supplemental doses enter only through an explicit review of their ID.
+  // Historical 800-source contracts retain their exact source cohort/counts.
+  const requestedSupplement=reviews.some(r=>v3SupplementalCatalogue.workouts.some(w=>w.id===r.id));
+  const sourceCatalogue=requestedSupplement?v3ExtendedCatalogue:v3FullCatalogue;
+  const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry(),
+    ...(requestedSupplement?[...auditV3Catalogue(v3SupplementalCatalogue),
+      ...auditV3SportingRegistry(v3SupplementalCatalogue.workouts,
+        supplementalRegistry.records as V3SportingSourceRecord[],1)]:[])];
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
   if(v3FullCatalogue.workouts.length!==800 ||
       ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
@@ -202,12 +212,12 @@ export function buildDetV3ContractFromCatalogue(
     if(reviewMap.has(review.id))throw Error('v3_duplicate_review_id');
     reviewMap.set(review.id,review);
   }
-  for(const id of reviewMap.keys())if(!v3FullCatalogue.workouts.some(w=>w.id===id))
+  for(const id of reviewMap.keys())if(!sourceCatalogue.workouts.some(w=>w.id===id))
     throw Error('v3_unknown_reviewed_recipe:'+id);
   const faulty=new Map<string,string>();
   const resolvedIntensityTexts=new Map<string,string>();
   const qualifiedReviews:V3ReviewedSettings[]=[];
-  const cards:V3Workout[]=v3FullCatalogue.workouts.map(w=>{
+  const cards:V3Workout[]=sourceCatalogue.workouts.map(w=>{
     const settings=reviewMap.get(w.id);
     if(!settings)return w;
     try {
@@ -289,7 +299,7 @@ export function buildDetV3ContractFromCatalogue(
   // plan and the 800 source records. Never guess a synonym or silently claim
   // a physiological match merely because the sport/phase fits.
   const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
-    card.id,v3FullCatalogue.workouts.find(w=>w.id===card.id)
+    card.id,sourceCatalogue.workouts.find(w=>w.id===card.id)
       ?.prescription.physiologicalIntent.limiterKeys??[],
   ] as const));
   const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
@@ -409,12 +419,14 @@ export function buildDetV3ContractFromCatalogue(
       const source=configuredById.get(id);
       // Never infer a marathon/semi anchor from a title or a generic Z4.
       if(!card||!source||card.sport!=='run'||
-         source.primaryIntent!=='race_specific'||
          !verifiedZoneDoses.has(id)||
          !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
          !card.tags.includes('individual-coach-approval-recorded')||
          !card.tags.includes('v3-intensity-anchors-individually-verified'))
         return null;
+      if(source.primaryIntent!=='race_specific')return null;
+      if(source.primaryDomain==='mlss'&&card.goals.includes('10k'))
+        return {sourceId:id,objective:'10k'};
       if(source.primaryDomain==='semi_pace'&&card.goals.includes('semi'))
         return {sourceId:id,objective:'semi'};
       if(source.primaryDomain==='marathon_pace'&&card.goals.includes('marathon'))
@@ -443,12 +455,12 @@ export function buildDetV3ContractFromCatalogue(
       if(!meta)return [];
       const used=contract.consumedSourceIds?.(meta)??[];
       return used.map(sourceId=>{
-        const source=v3FullCatalogue.workouts.find(w=>w.id===sourceId);
+        const source=sourceCatalogue.workouts.find(w=>w.id===sourceId);
         if(!source||!Number.isFinite(source.minimumRecoveryHours)||source.minimumRecoveryHours<0)
           throw Error('v3_source_recovery_hours_untrusted:'+sourceId);
         return {sourceId,sport:source.sport,hours:source.minimumRecoveryHours};
       });
     },
   };
-  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,allBricks,auditErrors,sourceCounts:v3FullCatalogue.counts};
+  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts};
 }

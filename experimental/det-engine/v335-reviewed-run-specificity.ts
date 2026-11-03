@@ -8,7 +8,7 @@ import type {ParsedSession} from '@/lib/aiPlanParser';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
 import {matchingStructuredDose} from './v310-structured-zone-dose';
 
-export type RunningSpecificObjective='semi'|'marathon';
+export type RunningSpecificObjective='semi'|'marathon'|'10k';
 export type ReviewedRunningSpecificSource={
   sourceId:string;objective:RunningSpecificObjective;
 };

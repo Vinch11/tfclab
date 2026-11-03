@@ -5,6 +5,7 @@
  * Source prequalification is NOT scientific validation or athlete approval.
  */
 import raw from "./v33SportingReview800.json";
+import supplemental from "./v3SupplementSportingReview20261103.json";
 import {v3FullCatalogue, type V3Workout, type V3Block} from "./catalogueRuntime";
 
 export type V3SportingSourceStatus="source_blocked"|"source_prequalified_pending_individual_review";
@@ -64,7 +65,7 @@ export interface V3SportingGateResult {
  sourceFingerprint:string;
 }
 const RECORDS:ReadonlyArray<V3SportingSourceRecord>=raw.records as V3SportingSourceRecord[];
-const REGISTRY=new Map(RECORDS.map(r=>[r.id,r]));
+const REGISTRY=new Map([...RECORDS,...supplemental.records as V3SportingSourceRecord[]].map(r=>[r.id,r]));
 const HIGH=new Set(["mlss","sub_threshold","mixed_intensity","vo2max","neuromuscular","test"]);
 const PLAN_CHECKS=[
  "weekly_volume_within_coach_limit","load_progression_and_true_deload",
@@ -122,15 +123,17 @@ function recomputeSourceBlockers(w:V3Workout):string[]{
  if(!Number.isFinite(w.minimumRecoveryHours)||w.minimumRecoveryHours<0)add("minimum_recovery_invalid");
  return codes;
 }
-export function auditV3SportingRegistry(workouts:readonly V3Workout[]=v3FullCatalogue.workouts):string[]{
+export function auditV3SportingRegistry(workouts:readonly V3Workout[]=v3FullCatalogue.workouts,
+ records:readonly V3SportingSourceRecord[]=RECORDS,expectedCount=800):string[]{
+ const registry=new Map(records.map(r=>[r.id,r]));
  const errors:string[]=[];
- if(RECORDS.length!==800||REGISTRY.size!==800)errors.push("V3_SPORTING_REGISTER_800_MISSING_OR_DUPLICATE");
- if(workouts.length!==800)errors.push("V3_SPORTING_SOURCE_800_COUNT_MISMATCH");
+ if(records.length!==expectedCount||registry.size!==expectedCount)errors.push("V3_SPORTING_REGISTER_800_MISSING_OR_DUPLICATE");
+ if(workouts.length!==expectedCount)errors.push("V3_SPORTING_SOURCE_800_COUNT_MISMATCH");
  const sourceIds=new Set(workouts.map(w=>w.id));
  if(sourceIds.size!==workouts.length)errors.push("V3_SPORTING_DUPLICATE_SOURCE_ID");
- for(const r of RECORDS)if(!sourceIds.has(r.id))errors.push(r.id+":REGISTER_SOURCE_NOT_FOUND");
+ for(const r of records)if(!sourceIds.has(r.id))errors.push(r.id+":REGISTER_SOURCE_NOT_FOUND");
  for(const w of workouts) {
-  const r=REGISTRY.get(w.id);
+  const r=registry.get(w.id);
   if(!r){errors.push(w.id+":SPORTING_SCREEN_MISSING");continue;}
   if(r.sourceFingerprint!==fingerprintV3SportingSource(w))errors.push(w.id+":SPORTING_SOURCE_FINGERPRINT_DRIFT");
   if(r.sport!==w.sport||r.primaryIntent!==w.primaryIntent||r.primaryDomain!==w.primaryDomain||

@@ -5,6 +5,7 @@ on:
       - 'experimental/det-engine/**'
       - 'scripts/library-v3/**'
       - '.github/workflows/det-running-evidence.yml'
+      - 'scripts/det-engine/verify_running_review_calendars.py'
 jobs:
   running-evidence:
     name: Semi and 10K complete sporting acceptance
@@ -26,7 +27,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v358-running-acceptance.test.ts > running-evidence.log 2>&1
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v358-running-acceptance.test.ts experimental/det-engine/v358-running-evidence-safety.test.ts > running-evidence.log 2>&1
           TEST_STATUS=$?
           python3 - <<'PY'
           import json,re
@@ -43,6 +44,8 @@ jobs:
           PY
           tail -n 70 running-evidence.log
           exit "$TEST_STATUS"
+      - name: Independent emitted-calendar arithmetic and source recovery
+        run: python3 scripts/det-engine/verify_running_review_calendars.py running-evidence.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -51,3 +54,4 @@ jobs:
             running-evidence.log
             running-evidence.json
           retention-days: 14
+

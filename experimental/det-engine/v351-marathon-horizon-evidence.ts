@@ -35,10 +35,15 @@ function isKey(session:ParsedSession):boolean {
 /** The caller may pass only already athlete-reviewed source callbacks. */
 export function auditMarathonHorizon(
   plan:Pick<ParsedPlan,'weeks'|'phases'|'weeklyQuotas'>,proof:MarathonSourceProof,
+  runningScope?:{objective:'semi'|'10k';horizon:number},
 ):MarathonHorizonEvidence {
   const weeks=[...plan.weeks].sort((a,b)=>a.weekNumber-b.weekNumber);
   const refusals:string[]=[];
-  if(![16,40].includes(weeks.length))refusals.push('unsupported_marathon_horizon');
+  if(runningScope){
+    const horizons=runningScope.objective==='semi'?[8,30]:[8,10,12];
+    if(!horizons.includes(runningScope.horizon)||weeks.length!==runningScope.horizon)
+      refusals.push('unsupported_or_incomplete_running_horizon');
+  }else if(![16,40].includes(weeks.length))refusals.push('unsupported_marathon_horizon');
   if(weeks.some((week,i)=>week.weekNumber!==i+1))
     refusals.push('non_contiguous_or_repeated_week_numbers');
   const streaks:{first:number;last:number;weeks:number}[]=[];
@@ -100,7 +105,7 @@ export function auditMarathonHorizon(
       }
     }
     if(week.phase?.trim().toLowerCase()==='peak'&&runSource){
-      const decision=verifyReviewedRunningRaceSpecific(session,'marathon',
+      const decision=verifyReviewedRunningRaceSpecific(session,runningScope?.objective??'marathon',
         proof.runningSpecific,proof.dose);
       if(decision.verified)peakRaceSpecificSources.push({
         week:week.weekNumber,sourceId:decision.sourceId,minutes:decision.highMin,
@@ -112,7 +117,7 @@ export function auditMarathonHorizon(
     percentage!==null&&percentage>=30;
   if(!tteVerified)refusals.push('tte_source_verified_coverage_below_30_or_unknown');
   if(!peakRaceSpecificSources.length)
-    refusals.push('marathon_peak_specific_dose_unproven');
+    refusals.push(runningScope?'running_peak_specific_dose_unproven':'marathon_peak_specific_dose_unproven');
   return {verified:refusals.length===0,horizon:weeks.length,
     buildStreaks:streaks,excessiveBuildStreaks,peakRaceSpecificSources,
     buildMesocycleEvidence:{verified:projected,

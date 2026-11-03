@@ -19,6 +19,7 @@ export const syntheticV3ReviewAnchors=()=>structuredClone(SYNTHETIC_V3_ANCHORS);
 
 /** Test-only individual source review, never used by a production prescription path. */
 import {v3FullCatalogue} from "../../scripts/library-v3/catalogueRuntime";
+import {v3SupplementalCatalogue} from "../../scripts/library-v3/supplementalCatalogue";
 import {fingerprintV3SportingSource, type V3IndividualSportingEvidence} from "../../scripts/library-v3/sportingQualification800";
 import {buildDetV3ContractFromCatalogue, type V3ReviewedSettings} from "./v31-v3-catalogue";
 import type {V3BaseBrickReview} from "./v31-v3-brick";
@@ -27,7 +28,7 @@ import type {V34SafeBrickReview} from "./v34-v3-low-run-bricks";
 const SYNTHETIC_ATHLETE_ID="synthetic-qa-v3-athlete-001";
 export function syntheticV3SportingContext(id:string):
   {expectedAthleteId:string,sportingReview:V3IndividualSportingEvidence}|{} {
- const w=v3FullCatalogue.workouts.find(x=>x.id===id);
+ const w=[...v3FullCatalogue.workouts,...v3SupplementalCatalogue.workouts].find(x=>x.id===id);
  if(!w)return {};
  return {
   expectedAthleteId:SYNTHETIC_ATHLETE_ID,

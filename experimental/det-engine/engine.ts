@@ -43,7 +43,9 @@ import {verifyReviewedRunningRaceSpecific,type ReviewedRunningSpecificSource} fr
 import {auditMarathonHorizon} from './v351-marathon-horizon-evidence';
 import {proposeMeasuredMarathonMesocycles} from './v353-measured-marathon-mesocycles';
 import {isVerifiedTtePriorityCandidate} from './v355-reviewed-tte-candidate-priority';
-import {reconcileReviewedMarathonSpecificity} from './v352-reviewed-marathon-specificity';
+import {reconcileReviewedMarathonSpecificity,reconcileReviewedRunningSpecificity} from './v352-reviewed-marathon-specificity';
+import {annotateVerifiedRunningTaper} from './v358-reviewed-running-taper';
+import {prepareReviewed10kPhases} from './v358-running-phase-calendar';
 import {verifyReviewedTaperKeyStimulus} from './v329-proven-taper-quality';
 import {reconcileReviewedTaperSemantics,type ExplicitTaperCoachReview} from './v331-taper-semantic-adjudication';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
@@ -182,6 +184,8 @@ export interface ExperimentalAssemblyContract {
   /** V353: split long marathon Build only at REAL >=30% measured deloads.
    * Does not change the workout selection, phase source eligibility or quotas. */
   enableVerifiedMarathonMesocycles?:true;
+  /** V358: measured running mesocycles/taper and source-proven specificity. */
+  requireVerifiedRunningPhaseEvidence?:true;
   /** V355 isolated A/B: preferential search order for exact athlete-reviewed
    * >=20min MLSS key dose when the FIRST declared limiter is TTE. */
   prioritizeSourceVerifiedTteOnKeySlots?:true;
@@ -265,6 +269,17 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     result.candidate=buildStartToRunTemplatePlan();
     result.issues.push({code:'static_template_individualization_not_attested',severity:'warning'});
   } else {
+    if(experimentalContract?.requireVerifiedRunningPhaseEvidence===true&&
+       normalizeRepairGoal(config.objective??'')==='10k'){
+      const phases=prepareReviewed10kPhases(config);
+      result.issues.push({code:phases.verified?'det_v358_running_phase_calendar_prepared':
+        'det_v358_running_phase_calendar_refused',severity:phases.verified?'warning':'blocking',
+        message:JSON.stringify({...phases,foundationUnchanged:true,
+          weeklyQuotasAndAvailabilityUnchanged:true,scientificAttestation:false}),
+      });
+      if(!phases.verified)return refuse('v358_running_phase_calendar_refused');
+      config={...config,windowWeekPhases:phases.calendar};
+    }
     const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
     experimentalContract?.adapt(preparation,config);
     // V334: adaptation is the ONLY writer of the source pools. Freeze one
@@ -475,8 +490,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         severity:'blocking',message:'Strict final ratio search requires verified V3 structured polarization and triathlon_targets; no unproved source may be counted.'});
       return refuse('v314_strict_final_ratio_prerequisites_missing');
     }
+    // V358: prove race-specific work by the FINAL LOAD peak week. Waiting
+    // until a taper slot may require an inadmissible high-dose source there.
+    // This changes the deadline, never source eligibility or taper policy.
     const lastPeakWeekNumber=report.weeks.reduce((last,w)=>
-      w.phase?.trim().toLowerCase()==='peak'?w.week:last,0);
+      w.phase?.trim().toLowerCase()==='peak'&&
+      (experimentalContract?.requireVerifiedRunningPhaseEvidence!==true||
+       preparation.weeklyQuotas[w.week]?.weekType==='load')?w.week:last,0);
     let peakRaceSpecificSeen=false;
     const lastLoadWeekNumber=report.weeks.reduce((last,w)=>
       preparation.weeklyQuotas[w.week]?.weekType==='load'?w.week:last,0);
@@ -532,14 +552,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return proven;
       };
       const sourceSpecificEnabled=experimentalContract?.enableV335SourceRunningPeak===true&&
-        (runningGoal==='semi'||runningGoal==='marathon');
+        (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
       const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
         if(!sourceSpecificEnabled)return hasSourceVisibleRaceSpecificity(session);
         const cached=sourceSpecificCache.get(session);
         if(cached!==undefined)return cached;
         const verified=verifyReviewedRunningRaceSpecific(session,
-          runningGoal as 'semi'|'marathon',
+          runningGoal as 'semi'|'marathon'|'10k',
           experimentalContract?.reviewedRunningSpecificForId,
           experimentalContract?.sourceFullStructuredDoseForId).verified;
         sourceSpecificCache.set(session,verified);
@@ -854,7 +874,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         !/d[eé]charge|recovery|r[eé]cup[eé]ration/i.test(w.phase??'');
       const runningQualityRequired=
         experimentalContract?.requireReviewedRunningKeyQualityOnLoadWeeks===true&&
-        (runningGoal==='semi'||runningGoal==='marathon')&&
+        (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k')&&
         entry.weekType==='load'&&!layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent));
       const qualityRequired=((sourceQualityOnLoad||nativeLorangWeekQuality) &&
         config.ambition!=='finisher'&&triGoal)||runningQualityRequired;
@@ -1504,6 +1524,22 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
+    if(experimentalContract?.requireVerifiedRunningPhaseEvidence===true&&
+       ['semi','10k'].includes(normalizeRepairGoal(config.objective??'')??'')){
+      const meso=proposeMeasuredMarathonMesocycles(plan);
+      if(meso.verified)plan.phases=meso.projectedPhases;
+      if(meso.originallyLongBuildStreaks.length)result.issues.push({
+        code:meso.verified?'det_v358_measured_running_mesocycles_verified':
+          'det_v358_measured_running_mesocycles_unverified',
+        severity:meso.verified?'warning':'blocking',message:JSON.stringify(meso),
+      });
+      for(const proof of annotateVerifiedRunningTaper(plan,
+        experimentalContract.sourceFullStructuredDoseForId))result.issues.push({
+          code:proof.verified?'det_v358_running_taper_source_verified':
+            'det_v358_running_taper_source_unverified',week:proof.week,
+          severity:proof.verified?'warning':'blocking',message:JSON.stringify(proof),
+        });
+    }
     if(experimentalContract?.enableVerifiedMarathonMesocycles===true&&
        normalizeRepairGoal(config.objective??'')==='marathon'){
       const proof=proposeMeasuredMarathonMesocycles(plan);
@@ -1768,6 +1804,23 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         nativeIssues=migration.issues;
     }
   }
+  if(experimentalContract?.requireVerifiedRunningPhaseEvidence===true&&
+      ['semi','10k'].includes(normalizeRepairGoal(config.objective??'')??'')&&
+      nativeIssues.some(i=>i.code==='phase_coherence'&&
+        i.message?.startsWith('Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée'))){
+    const objective=normalizeRepairGoal(config.objective??'') as 'semi'|'10k';
+    const reviewed=experimentalContract.reviewedRunningSpecificForId;
+    const dose=experimentalContract.sourceFullStructuredDoseForId;
+    const proof=reviewed&&dose?reconcileReviewedRunningSpecificity(
+      result.candidate!,nativeIssues,reviewed,dose,objective):null;
+    result.issues.push({code:proof?.verified?
+      'det_v358_running_specificity_source_verified':'det_v358_running_specificity_unverified',
+      severity:proof?.verified?'warning':'blocking',message:JSON.stringify(proof??{
+        reason:'reviewed_running_specificity_proof_missing',nativeIssuesPreservedInAudit:true,
+      }),
+    });
+    if(proof?.verified)nativeIssues=proof.issues;
+  }
   if(experimentalContract?.reconcileReviewedMarathonSpecificityLexicalWarning===true&&
       normalizeRepairGoal(config.objective??'')==='marathon'&&
       nativeIssues.some(i=>i.code==='phase_coherence'&&
@@ -1860,6 +1913,27 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       message:JSON.stringify(proof??{
         reason:'source_proof_callback_or_triathlon_objective_missing',
         scientificAttestation:false,
+      }),
+    });
+  }
+  if(experimentalContract?.requireVerifiedRunningPhaseEvidence===true&&
+     ['semi','10k'].includes(normalizeRepairGoal(config.objective??'')??'')){
+    const provider=experimentalContract;
+    const scope={objective:normalizeRepairGoal(config.objective??'') as 'semi'|'10k',
+      horizon:config.weeksAvailable!};
+    const proof=provider.sourceFullStructuredDoseForId&&provider.reviewedRunningSpecificForId&&
+      provider.reviewedSourceLimiterKeysForId&&provider.reviewedSourcePrimaryDomainForId&&
+      config.identifiedLimitersRaw?.[0]==='tte'?auditMarathonHorizon(result.candidate!,{
+        dose:provider.sourceFullStructuredDoseForId,
+        runningSpecific:provider.reviewedRunningSpecificForId,
+        limiterKeys:provider.reviewedSourceLimiterKeysForId,
+        primaryDomain:provider.reviewedSourcePrimaryDomainForId,
+      },scope):null;
+    result.issues.push({code:proof?.verified?
+      'det_v358_running_exact_source_horizon_verified':'det_v358_running_exact_source_horizon_unverified',
+      severity:proof?.verified?'warning':'blocking',message:JSON.stringify(proof??{
+        refusals:['reviewed_source_or_supported_primary_limiter_missing'],
+        nativeValidatorsPreserved:true,scientificAttestation:false,
       }),
     });
   }
