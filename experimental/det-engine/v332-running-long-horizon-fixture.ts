@@ -41,6 +41,9 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON'|'B-10K';goal:RunningGo
   verifiedRunningPhaseEvidence?:true;
   declaredPrimaryLimiter?:'tte';
   supplementalV3Dose?:true;
+  declaredConstraints?:string;
+  declaredCadenceWeeks?:3|4;
+  declaredProhibitions?:string[];
   largerSearchBudget?:true;};
 /** Already existing V3 IDs: never mint training content to make an empty slot fit. */
 const runSourceIds=[
@@ -146,7 +149,8 @@ export function runScenario(s:Case){
     ...(s.verifiedRunningPhaseEvidence?{weeksAvailable:s.weeks}:{}),
     sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
     strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2,
-    maxSessionsPerDay:2,constraints:undefined,
+    maxSessionsPerDay:2,constraints:s.declaredConstraints,
+    ...(s.declaredCadenceWeeks?{deloadCadenceWeeks:s.declaredCadenceWeeks}:{}),
   }:{});
   const athleteId='synthetic-v332-'+s.id;
   const athlete={...fixture.athleteData,nom:'synthetic DET V332 '+s.id,
@@ -156,6 +160,8 @@ export function runScenario(s:Case){
     weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
     ...(s.declaredTwoSlotsPerDay?{maxSessionsPerDay:2}:{}),
     ...(s.unrestrictedSports?{constraints:undefined}:{}),
+    ...(s.declaredConstraints?{constraints:s.declaredConstraints}:{}),
+    ...(s.declaredProhibitions?{prohibitions:s.declaredProhibitions}:{}),
     ...(s.coachDeclaredRunOnly?{constraints:
       'Déclaration du coach synthétique : vélo interdit et natation interdite ; uniquement course à pied.'}:{}),
     ...(s.declaredCompetitor?{ambition:'competitor' as const,
@@ -393,6 +399,9 @@ export function runScenario(s:Case){
     declaredWorldClassCapacity:s.declaredWorldClassCapacity===true,
     declaredAmbition:s.declaredAmbition??null,
     declaredPrimaryLimiter:s.declaredPrimaryLimiter??null,
+    declaredConstraints:s.declaredConstraints??null,
+    declaredCadenceWeeks:s.declaredCadenceWeeks??null,
+    declaredProhibitions:s.declaredProhibitions??[],
     supplementalV3Dose:s.supplementalV3Dose===true,
     verifiedRunningPhaseEvidence:s.verifiedRunningPhaseEvidence===true,
     runningPhaseProof:s.verifiedRunningPhaseEvidence?out.issues.filter(i=>

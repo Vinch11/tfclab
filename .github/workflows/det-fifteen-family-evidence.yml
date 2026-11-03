@@ -1,0 +1,44 @@
+name: DET fifteen-family acceptance
+on:
+  pull_request:
+    paths:
+      - 'experimental/det-engine/**'
+      - 'scripts/library-v3/**'
+      - 'src/lib/plan/**'
+      - '.github/workflows/det-fifteen-family-evidence.yml'
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Remaining six families, actual complete-plan acceptance
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v359-fifteen-family-acceptance.test.ts > fifteen-families.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          rows=[]
+          for line in Path('fifteen-families.log').read_text().splitlines():
+              line=re.sub(r'\x1b\[[0-9;]*m','',line)
+              for marker in ['DET_V359_FAMILY ','DET_V359_CONSTRAINED_ACCEPTED ']:
+                  if marker in line:
+                      row=json.loads(line.split(marker,1)[1]);rows.append(row)
+                      print('FAMILY_RESULT '+json.dumps(row))
+          Path('fifteen-families.json').write_text(json.dumps(rows,indent=2))
+          PY
+          tail -n 90 fifteen-families.log
+          exit "$TEST_STATUS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fifteen-family-evidence
+          path: |
+            fifteen-families.log
+            fifteen-families.json
+          retention-days: 14
