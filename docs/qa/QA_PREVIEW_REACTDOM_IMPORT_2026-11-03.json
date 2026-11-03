@@ -1,0 +1,46 @@
+{
+  "scope": "QA preview only — project c3941303-40d2-447e-9b87-867d82727fd1; source e71a70c15ffbd87958dd85f60304e42ca75260f0",
+  "reported": "Coach preview: Failed to fetch dynamically imported module: …/node_modules/.vite/deps/react-dom_client.js?… . The bootstrap error formatter intentionally redacts query strings; the original HTTP status/hash is unknown.",
+  "observed": {
+    "devServer": "Vite 5.4.19. Log 18:22:31 UTC '.env changed, restarting server' (+ earlier restarts this session); deps metadata rewritten 18:22:34; an abandoned optimizer temp dir node_modules/.vite/deps_temp_ab3118ad dated 18:12:22 was present",
+    "localBeforeFix": "Chromium on localhost:8080/__qa/pilot-review rendered; react-dom_client.js 200 text/javascript",
+    "externalHost": "c3941303-…lovableproject.com answers 401 text/plain to unauthenticated requests (page and module): the coach's exact browser request could NOT be reproduced"
+  },
+  "cause": {
+    "probable": "the dynamic import ran while the dev server was restarting / re-optimizing dependencies (restart triggered by an .env rewrite), so the module fetch failed at network level",
+    "unknown": "exact HTTP status/hash of the coach's failed request; browser cache not established as cause"
+  },
+  "remediation": {
+    "server": "deleted only node_modules/.vite (incl. stale deps_temp), one supervised dev-server restart; new spawn ready, clean optimizer cache",
+    "code": "No application code or optimizeDeps change. Current server/browser checks did not justify a source patch; the precise original trigger remains unknown."
+  },
+  "browserChecksAfterFix": {
+    "engine": "headless Chromium against localhost:8080 (sandbox), full App, signed out",
+    "coldLoad": "splash removed, real page + 'Non connecté' guard visible",
+    "reload": "same",
+    "reactDom": "200 text/javascript ?v=ba72c1a0",
+    "simulatedModuleFailure": "react-dom_client.js aborted ⇒ 'L'application n'a pas pu démarrer' + one 'Recharger' button; no automatic reload after 3 s",
+    "recovery": "module restored, manual click ⇒ full app rendered",
+    "storageBlocked": "getItem/setItem throwing ⇒ app still renders",
+    "network": "no request to nolio.io or Edge functions; no session injected; no trial row created"
+  },
+  "files": "none changed (proof files only)",
+  "untouched": [
+    "V1",
+    "production",
+    "main",
+    "Nolio functions",
+    "database",
+    "publication",
+    "coach browser data"
+  ],
+  "rootVerification": {
+    "finalSavedSource": "46a9fe5793b07230894d8090feb161db6cedc837",
+    "diffFromValidatedSource": "Only the two new proof documents; application and all Nolio source files byte-identical to e71a70c15ffbd87958dd85f60304e42ca75260f0",
+    "browserScope": "Local sandbox Chromium, signed out. No claimed reproduction of the user's authenticated external proxy or a new login.",
+    "autoReloadScope": "No automatic reload observed for the simulated caught ReactDOM import failure during the 3-second observation. This does not claim removal of the pre-existing global stale-chunk/PWA mechanisms.",
+    "realUserMilestone": "During the repair, safe database receipts and the user's own screen confirmed the real Nolio creation + VERIFIED_UNIQUE readback. This was separate from the build's signed-out browser tests.",
+    "realProof": "NOLIO_V2_SINGLE_REAL_TRIAL_SUCCESS_2026-11-03.json",
+    "privacy": "No recipient name, private Nolio ID, token, secret or raw provider data recorded."
+  }
+}

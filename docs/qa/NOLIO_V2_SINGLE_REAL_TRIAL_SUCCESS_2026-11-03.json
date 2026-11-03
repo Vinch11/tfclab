@@ -113,7 +113,8 @@
   "bootstrapIncident": {
     "reported": "Dynamic ReactDOM module fetch failed in Lovable DEV preview",
     "userRecoveryEvidence": "The user subsequently reached the real-trial panel and reported its verified-unique result",
-    "repairTask": "Still under inspection/verification when this proof is recorded; precise original HTTP cause not established"
+    "repairTask": "Completed: only Vite dependency cache regenerated and one supervised DEV-server restart; no application source change. Full-app local Chromium checks passed; exact failed authenticated external request not reproduced.",
+    "repairProof": "QA_PREVIEW_REACTDOM_IMPORT_2026-11-03.json"
   },
   "privacy": "No Nolio athlete/sport ID, resource ID, recipient name, tokens, secret or raw provider response published.",
   "boundaries": [

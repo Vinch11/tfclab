@@ -23,6 +23,6 @@ La source QA précédemment vérifiée est `e71a70c15ffbd87958dd85f60304e42ca752
 
 ## Démarrage de l'aperçu et portée
 
-Un échec de chargement du module ReactDOM de l'aperçu DEV a été signalé. Le retour utilisateur suivant montre que le panneau d'essai a ensuite été ouvert ; la cause HTTP initiale n'est pas établie. Une réparation/vérification du démarrage se poursuit séparément lors de cet enregistrement.
+Un échec de chargement du module ReactDOM de l'aperçu DEV a été signalé. Le retour utilisateur suivant montre que le panneau d'essai a ensuite été ouvert ; la cause HTTP initiale n'est pas établie. Le seul cache Vite a ensuite été régénéré et le serveur DEV redémarré une fois. L'application complète a été vérifiée localement dans Chromium, à froid, après recharge et après une panne de module simulée suivie d'une reprise manuelle. Aucun code applicatif modifié. Le navigateur authentifié externe du coach n'a pas été reproduit : voir la [preuve de réparation](QA_PREVIEW_REACTDOM_IMPORT_2026-11-03.md).
 
 Ce succès prouve **une création réelle et une relecture exacte unique**. Il ne prouve ni l'export d'un plan complet, ni le renouvellement réel du jeton, ni la qualité sportive d'un plan. Aucun GO prescription ou production n'est accordé. V1, TFCLab v2.1/main et le futur choix DET Engine / IA restent inchangés.
