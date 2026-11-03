@@ -5,11 +5,14 @@
  */
 import { buildDryRunBody, canonical, postDryRun, sha256Hex, DRY_RUN_FIXTURE_CODE, type DryFetch, type DryRunCode, type DryRunOutcome } from "./dryRun.ts";
 import type { LoadResult } from "./connectionStore.ts";
+import type { TeamScopeContext } from "./teamScopeContext.ts";
 
 export type ReceiptInsert = { coach_id: string; athlete_id: string; fixture_code: string; payload_sha256: string | null; http_status: number | null; outcome: DryRunOutcome; code: DryRunCode | string };
 export type DryRunActionResult = {
   status: "DRY_RUN_VALID" | "REFUSED" | "UNKNOWN" | "BLOCKED"; code: string; httpStatus: number | null;
   receiptId: string | null; payloadSha256: string | null; network: "none" | "dry_run_post"; realSend: "ABSENT";
+  /** Privé, coach connecté seulement ; jamais dans le reçu ni les journaux. */
+  teamContext?: TeamScopeContext;
 };
 
 export async function runDryRunAction(a: {
@@ -31,5 +34,8 @@ export async function runDryRunAction(a: {
   try {
     receiptId = await a.insertReceipt({ coach_id: a.coachId, athlete_id: a.athleteId, fixture_code: DRY_RUN_FIXTURE_CODE, payload_sha256: payloadSha256, http_status: r.httpStatus, outcome: r.outcome, code: r.code });
   } catch { receiptId = null; }
-  return { status: r.outcome, code: r.code, httpStatus: r.httpStatus, receiptId, payloadSha256, network: "dry_run_post", realSend: "ABSENT" };
+  const out: DryRunActionResult = { status: r.outcome, code: r.code, httpStatus: r.httpStatus, receiptId, payloadSha256, network: "dry_run_post", realSend: "ABSENT" };
+  // Contexte d'équipe seulement si refus 403 team_scope_forbidden ET reçu enregistré (sinon rien ne peut être confirmé).
+  if (receiptId && r.teamContext && r.outcome === "REFUSED" && r.code === "team_scope_forbidden" && r.httpStatus === 403) out.teamContext = r.teamContext;
+  return out;
 }

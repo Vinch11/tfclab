@@ -1,7 +1,7 @@
 {
   "date": "2026-11-03",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "264d10cbd4f59c30da0a46c9d6b3f0afc9c78608",
+  "sourceCommit": "2408a31fda4f7d23e1912b3084149e4f77410870",
   "sourceRead": "exact raw contents at immutable Lovable source reference",
   "files": [
     {
@@ -81,29 +81,34 @@
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
-      "size": 9099,
-      "gitBlobSha": "9d39361f1179a8170fc4728852009af711b6fbe5"
+      "size": 9546,
+      "gitBlobSha": "343e69f273b417766f4c944b38c658578511388c"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
-      "size": 2602,
-      "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b"
+      "size": 3103,
+      "gitBlobSha": "dec08d9d1a97fa0902806b010d4e4b9be56eff2e"
     },
     {
       "path": "supabase/functions/nolio-v2-dry-run/index.ts",
       "size": 4520,
       "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea"
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/teamScopeContext.ts",
+      "size": 4725,
+      "gitBlobSha": "fd48accfaf442a5027d0a3e99415713ea902b453"
     }
   ],
   "method": "Deno static types only on isolated QA branch; no execution/deployment/provider requests/secrets",
-  "change": "403 diagnostic extracts official nested error.code only from exact six-code allowlist, with generic fallback. Other 17 server files byte-identical to previous checked snapshot.",
+  "change": "Private validated team-scope context returned only to authenticated coach after matching refusal receipt; no storage or logging of private values. 16 previous server files byte-identical.",
   "previousCheck": {
-    "runId": 41662179351,
+    "runId": 41682446729,
     "conclusion": "success",
-    "snapshotCommit": "4f87a41b82b130ca414138cb0cd5277fb62e589c"
+    "snapshotCommit": "16db9c3f3b07b8fd24ed79110be4c410f4391514"
   },
   "limits": [
-    "Initial real provider refusal remains REFUSED and exact cause UNKNOWN.",
-    "New real diagnostic still requires manual browser action by coach."
+    "Actual private context values were never inspected by the build agent.",
+    "Real dry-run acceptance is tracked separately from static types."
   ]
 }

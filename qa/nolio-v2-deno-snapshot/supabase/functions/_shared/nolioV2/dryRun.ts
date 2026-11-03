@@ -19,6 +19,7 @@
  * Tout le reste (2xx arbitraire, ressource créée, HTML, timeout, perte) ⇒ jamais confirmé.
  */
 import { NOLIO_V2_CONTRACT } from "./plannedMapper.ts";
+import { extractTeamScopeContext, type TeamScopeContext } from "./teamScopeContext.ts";
 
 export const DRY_RUN_OPENAPI_SHA256 = "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238";
 export const DRY_RUN_URL = `https://www.nolio.io${NOLIO_V2_CONTRACT.trainingsPath}`;
@@ -100,7 +101,7 @@ export type DryFetch = (url: string, init: { method: "POST"; headers: Record<str
 
 /** Transport dédié : URL fixe, redirect error, budget total fetch+corps, aucun retry. */
 export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body: Record<string, unknown>; budgetMs?: number }):
-  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null }> {
+  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null; teamContext?: TeamScopeContext | null }> {
   if (!isObj(a.body) || a.body.dry_run !== true) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
   if (!a.accessToken) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
   const ctl = new AbortController();
@@ -120,7 +121,10 @@ export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body
     const res = await Promise.race([run, deadline]);
     if (res === "timeout") return { outcome: "UNKNOWN", code: "timeout_or_lost", httpStatus: null };
     if (res.lost) return { outcome: "UNKNOWN", code: "timeout_or_lost", httpStatus: res.status };
-    return { ...classifyDryRunResponse(res.status, res.text), httpStatus: res.status };
+    const cls = classifyDryRunResponse(res.status, res.text);
+    // Contexte privé d'équipe : uniquement REFUSED + 403 + team_scope_forbidden ; jamais journalisé/stocké.
+    const teamContext = cls.outcome === "REFUSED" && cls.code === "team_scope_forbidden" ? extractTeamScopeContext(res.status, res.text) : null;
+    return { ...cls, httpStatus: res.status, ...(teamContext ? { teamContext } : {}) };
   } catch (e) {
     return { outcome: "UNKNOWN", code: (e as Error)?.name === "AbortError" ? "timeout_or_lost" : "network_error", httpStatus: null };
   } finally { clearTimeout(timer); }
