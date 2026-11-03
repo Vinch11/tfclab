@@ -258,16 +258,15 @@ function run(s:Scenario,dropTaperBlockProof=false,requireExplicitTaperReview=fal
     }
   }
 
-  // V3.23 — independent regression lock for the FIVE full-contract baselines
-  // observed as all_gates_pass on CI #1495 (SHA 944eb669). A future refusal
-  // on these specific inputs is a regression, even when correctly fail-closed.
-  // The 70.3 9 h and 9.5 h contexts are NOT frozen as failures: a genuinely
-  // valid solution may be admitted later, but must pass every gate below.
+  // V358 locks ALL SEVEN documented positive full-contract baselines,
+  // including the 9 h / 9.5 h 70.3 successes. Deliberate proof-removal and
+  // missing-coach-approval controls stay independent REQUIRED refusals.
   const certifiedRegressionBaselines = new Set([
     '703-consistent-anchors','703-lower-physiology',
+    '703-reduced-hours','703-intermediate-hours',
     'IM-consistent-anchors','IM-lower-physiology','IM-reduced-hours',
   ]);
-  if(certifiedRegressionBaselines.has(s.id)){
+  if(certifiedRegressionBaselines.has(s.id)&&!dropTaperBlockProof&&!requireExplicitTaperReview){
     expect(out.evidence.verdict).toBe('all_gates_pass');
   }
   if(out.evidence.verdict==='all_gates_pass'){

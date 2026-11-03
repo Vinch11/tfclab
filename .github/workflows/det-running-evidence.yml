@@ -44,6 +44,32 @@ jobs:
           PY
           tail -n 70 running-evidence.log
           exit "$TEST_STATUS"
+      - name: Preserve all seven complete multisport positives
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v320-full-contract-profile-matrix.test.ts -t 'complete evidence or conservative refusal' > multisport-regression.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PYCODE'
+          import json,re
+          from pathlib import Path
+          rows=[]
+          for line in Path("multisport-regression.log").read_text().splitlines():
+              line=re.sub(r"\x1b\[[0-9;]*m","",line)
+              marker="DET_V320_FULL_CONTRACT_MATRIX "
+              if marker in line: rows.append(json.loads(line.split(marker,1)[1]))
+          expected={"703-consistent-anchors","703-lower-physiology","703-reduced-hours","703-intermediate-hours","IM-consistent-anchors","IM-lower-physiology","IM-reduced-hours"}
+          Path("multisport-regression.json").write_text(json.dumps(rows,indent=2))
+          assert len(rows)==7 and {r["profile"] for r in rows}==expected
+          for row in rows:
+              assert row["verdict"]=="all_gates_pass" and not row["blockingCodes"]
+              assert row["weeks"]==(12 if row["objective"]=="703" else 16)
+              print("MULTISPORT_PRESERVED "+row["profile"])
+          PYCODE
+          CHECK_STATUS=$?
+          if [ "$TEST_STATUS" -ne 0 ]; then tail -n 50 multisport-regression.log; fi
+          if [ "$CHECK_STATUS" -ne 0 ]; then exit "$CHECK_STATUS"; fi
+          exit "$TEST_STATUS"
       - name: Independent emitted-calendar arithmetic and source recovery
         run: python3 scripts/det-engine/verify_running_review_calendars.py running-evidence.json
       - uses: actions/upload-artifact@v4
@@ -53,5 +79,7 @@ jobs:
           path: |
             running-evidence.log
             running-evidence.json
+            multisport-regression.log
+            multisport-regression.json
           retention-days: 14
 
