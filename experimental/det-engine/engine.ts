@@ -1907,8 +1907,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   }
   // Only the single lexical false-negative can be reconciled. Forbidden
   // peak/taper content and all other native findings remain mandatory.
-  if(experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true&&
-     experimentalContract.requireReviewedRaceSpecificPeak===true){
+  if(experimentalContract?.requireReviewedRaceSpecificPeak===true){
     const objective=enduranceSpecificObjective(normalizeRepairGoal(config.objective??'')??'');
     const proof=objective&&experimentalContract.reviewedRaceSpecificForId&&
       experimentalContract.sourceStructuredZoneForId?

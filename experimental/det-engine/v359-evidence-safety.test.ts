@@ -8,7 +8,7 @@ import {SPORT_RATIO_TARGETS} from '@/engines/plan/planValidator';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 
 describe('V359 evidence cannot be manufactured from labels or incomplete events',()=>{
-  const config={planStartDate:'2026-10-26',raceGoals:multiGoalCase.declaredRaceGoals};
+  const config={objective:'Semi',planStartDate:'2026-10-26',raceGoals:multiGoalCase.declaredRaceGoals};
   it('binds the B event by its exact date and sport, with an explicit estimate',()=>{
     const event=resolveDeclaredEvent(config,8,5,'run');
     expect(event.objective).toBe('10K');
