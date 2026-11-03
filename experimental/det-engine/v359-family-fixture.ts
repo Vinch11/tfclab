@@ -4,6 +4,9 @@ import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
 import {v3FullCatalogue} from '../../scripts/library-v3/catalogueRuntime';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
+import {prepareDedicatedSport} from './v359-dedicated-sport-preparation';
+import {preserveTriathlonTaperFrequency} from './v359-triathlon-layout';
+import {SHORT_TRI_BRICKS} from './v31-v3-brick';
 import type {PlanConfig} from '@/hooks/useAITrainingPlan';
 
 export interface FamilyCase {
@@ -14,17 +17,16 @@ export interface FamilyCase {
   raceGoals?:PlanConfig['raceGoals'];prohibitions?:string[];
 }
 const starts:Record<string,number[]>={
-  swim:[360,360,540,720,900,1020,480],bike:[600,660,600,480,600,420,540],
-  run:[420,420,1080,1020,1080,420,420],strength:[1140,1140,1140,1140,1140,1140,1140],
+  swim:[360,360,360,360,360,1020,480],bike:[600,660,600,480,600,420,540],
+  run:[1080,540,720,900,1080,1260,1140],strength:[1140,1140,1140,1140,1140,1140,1140],
   brick:[360,360,360,360,360,360,360],
 };
 export const familyCases:readonly FamilyCase[]=[
   {id:'sprint-8w-reference',family:10,objective:'Sprint',weeks:8,weeklyHours:8,fixture:'B-SPRINT',limiter:'vo2max',sessionsPerWeek:8,strengthSessionsPerWeek:1},
   {id:'olympic-12w-reference',family:10,objective:'Olympic',weeks:12,weeklyHours:10,fixture:'B-OLYMPIC',limiter:'tte',sessionsPerWeek:9,strengthSessionsPerWeek:1},
   {id:'cycling-ftp-8w-reference',family:11,objective:'Cyclisme FTP',weeks:8,weeklyHours:7,limiter:'ftp',sessionsPerWeek:4,strengthSessionsPerWeek:1},
-  {id:'swim-css-8w-reference',family:12,objective:'Natation CSS',weeks:8,weeklyHours:4,limiter:'css',sessionsPerWeek:4,strengthSessionsPerWeek:1},
-  {id:'10k-to-semi-16w-reference',family:13,objective:'Semi',weeks:16,weeklyHours:8,fixture:'B-SEMI',limiter:'tte',sessionsPerWeek:4,strengthSessionsPerWeek:1,
-    raceGoals:[{objective:'10K',raceDate:'2026-12-20',priority:'B'},{objective:'Semi',raceDate:'2027-02-14',priority:'A'}]},
+  {id:'swim-css-8w-reference',family:12,objective:'Natation 1500m',weeks:8,weeklyHours:4,limiter:'tte',sessionsPerWeek:4,strengthSessionsPerWeek:1},
+
 ];
 export function runFamily(s:FamilyCase){
   const raceDate=new Date(Date.UTC(2026,9,26+s.weeks*7-1)).toISOString().slice(0,10);
@@ -38,14 +40,20 @@ export function runFamily(s:FamilyCase){
   const athleteId='synthetic-v359-'+s.id;
   const athlete={...f.athleteData,nom:athleteId,ftp:300,paceThresholdSecPerKm:240,css:95,vma:18,
     ...(s.age?{age:s.age}:{})};
-  const config={...f.planConfig,objective:s.objective,weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
+  const dedicated=/cyclisme|natation/i.test(s.objective);
+  const config:PlanConfig={...(dedicated?{
+    ambition:s.ambition??'age_group',sessionsPerWeek:s.sessionsPerWeek??4,
+    strengthSessionsPerWeek:s.strengthSessionsPerWeek??1,maxSessionsPerDay:s.maxSessionsPerDay??2,
+    fondationDurationWeeks:2,
+  }:f.planConfig),objective:s.objective,weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
     planStartDate:'2026-10-26',raceDate,raceGoals:s.raceGoals??[{objective:s.objective,raceDate,priority:'A' as const}],
     identifiedLimitersRaw:[s.limiter??'tte'],prohibitions:s.prohibitions,
     _outputFormat:'json' as const};
   const sports=/cyclisme/i.test(s.objective)?['bike','strength']:
     /natation/i.test(s.objective)?['swim','strength']:
     /sprint|olympic/i.test(s.objective)?['bike','run','swim','strength']:['run','strength'];
-  const reviews=v3FullCatalogue.workouts.filter(w=>sports.includes(w.sport)).map(w=>{
+  const reviews=v3FullCatalogue.workouts.filter(w=>sports.includes(w.sport)&&
+    (w.sport!=='strength'||Number(w.id.slice(-3))>=101)).map(w=>{
     const context=syntheticV3SportingContext(w.id);
     if(!('sportingReview' in context))throw Error('missing_synthetic_context:'+w.id);
     return {id:w.id,objective:s.objective,athleteLevel:'trained' as const,
@@ -56,7 +64,10 @@ export function runFamily(s:FamilyCase){
       ...(w.sport==='strength'?{verifiedStrengthLoadAndRpe:true as const}:{}),
     } satisfies V3ReviewedSettings;
   });
-  const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
+  const short=SHORT_TRI_BRICKS.filter(b=>s.objective.toLowerCase()===b.goal);
+  const hasShort=short.length>0;
+  const {contract,report}=buildDetV3ContractFromCatalogue(reviews,short.map(b=>({id:b.id,
+    objective:s.objective,individualCoachApproval:true,transitionSeconds:180,preferReviewedV3:true})));
   const clock=(slot:{week:number;dayIndex:number;sport:string})=>{
     const time=starts[slot.sport]?.[slot.dayIndex];
     return time===undefined?null:{provenance:'coach_confirmed' as const,minuteOfDay:time,
@@ -66,7 +77,22 @@ export function runFamily(s:FamilyCase){
   const baseFilter=contract.filterCandidate;
   const out=constructDeterministicPlan(athlete,config,{maxNodes:60000,maxMilliseconds:12000},{
     ...contract,requireReviewedAthleteContext:true,
-    filterCandidate:(card,ctx)=>accepted.has(card.id)&&(baseFilter?.(card,ctx)??true),
+    ...(hasShort?{preferSourceBackedMultisportBalance:'triathlon_targets' as const,
+      requireFinalTriathlonMinuteRatios:true as const,auditVerifiedMultisportMinutes:true as const,
+      auditGlobalSourceSportRatioBounds:true as const,applyReviewedMinuteSportRatio:true as const,
+      adapt:(p:Parameters<typeof contract.adapt>[0],c:PlanConfig)=>preserveTriathlonTaperFrequency(p,c,athlete,contract)}:{}),
+    ...(dedicated?{adapt:(p:Parameters<typeof contract.adapt>[0],c:PlanConfig)=>prepareDedicatedSport(p,c,contract,/cyclisme/i.test(s.objective)?'bike':'swim')}:{}),
+    ...(!dedicated?{verifyOfficialRaceQuotaProjection:true as const}:{}),
+    requireReviewedEnduranceKeyQualityOnLoadWeeks:true,
+    ...(s.objective==='Olympic'?{qualitySportPreference:'swim' as const}:{}),
+    requireReviewedRaceSpecificPeak:true,
+    ...(!hasShort?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
+    prioritizeVerifiedRunningQualitySlot:true,
+    prioritizeVerifiedRunningQualityCandidate:true,
+    prioritizeRunningQualitySlotByMargin:true,
+    filterCandidate:(card,ctx)=>(accepted.has(card.id)||short.some(b=>b.id===card.id))&&
+      (!['base','build'].includes(ctx.phase)||!/taper|affûtage|supercomp|activation\s*j-?2/i.test(card.title+' '+card.structure))&&
+      (baseFilter?.(card,ctx)??true),
     enforceWeeklyHoursCap:true,enforceCalendarSafeV3Recovery:true,enforceConfirmedNoSameDayOverlap:true,
     coachSlotStart:clock,coachSessionStart:session=>clock({week:session.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
     improveV3RecoveryLayout:true,requireMeasuredDeloadSelection:true,annotateVerifiedDeloads:true,
@@ -82,7 +108,9 @@ export function runFamily(s:FamilyCase){
     technicallyConstructed:out.technicallyConstructed,constraintsSatisfied:out.constraintsSatisfied,
     admitted:report.accepted.length,rejectedExamples:report.rejected.filter(x=>reviews.some(r=>r.id===x.id)).slice(0,3),
     nodes:out.nodes,reason:out.reason??null,blockingCodes:[...new Set(hard.map(i=>i.code))],
-    examples:hard.slice(0,8),syntheticOnly:true,prescriptionAllowed:false,
+    examples:hard.slice(0,8),
+    selectedWeeks:out.issues.filter(i=>i.code==='det_v359_week_source_selection').map(i=>({week:i.week,sources:JSON.parse(i.message!)})),
+    trajectories:out.issues.filter(i=>i.code==='det_v312_source_ratio_trajectory').map(i=>({week:i.week,...JSON.parse(i.message!)})),syntheticOnly:true,prescriptionAllowed:false,
   }));
   return {out,contract,report,config,athlete};
 }

@@ -25,7 +25,7 @@ const sports=['swim','bike','run'] as const;
 export function reconcileNativeTriathlonCountRatio(input:{
   plan:ParsedPlan;
   weekTypes:Readonly<Record<number,string>>;
-  objective:'703'|'IM';
+  objective:'703'|'IM'|'Sprint'|'Olympic';
   verifiedCompositions:readonly RepairWorkoutMetadata[];
   nativeIssues:readonly RatioIssue[];
   quotaIssues:readonly RatioIssue[];

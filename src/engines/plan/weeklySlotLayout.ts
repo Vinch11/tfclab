@@ -48,7 +48,7 @@ export interface DayLayout {
 
 export interface WeeklySlotLayout {
   weekType: WeekType;
-  requiredEvents?: Array<{dayName:DayName;sport:"run"|"brick"}>;
+  requiredEvents?: Array<{dayName:DayName;sport:"run"|"brick"|"bike"|"swim"}>;
   /** Experimental, explicit event accounting. Never enabled by native preparation. */
   officialRaceOutsideTrainingQuota?: true;
   days: DayLayout[]; // 7 entrées, ordre lundi → dimanche
@@ -65,7 +65,7 @@ function midpoint(r: { min: number; max: number }): number {
 export interface SlotLayoutOptions {
   /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
   availableSports?: ReadonlySet<LayoutSport>;
-  raceEvents?: Array<{dayName:DayName;sport:"run"|"brick"}>;
+  raceEvents?: Array<{dayName:DayName;sport:"run"|"brick"|"bike"|"swim"}>;
   /** Only DET V3.9 may opt in; existing native plan baselines remain unchanged. */
   officialRaceOutsideTrainingQuota?: true;
   dayBans?: ReadonlyArray<{ day: DayName; sport: "any" | "run" | "bike" | "swim" | "strength" }>;

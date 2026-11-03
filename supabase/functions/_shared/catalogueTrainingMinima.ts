@@ -23,7 +23,7 @@ export function catalogueTrainingMinimaForWeek<T extends Minima>(minima: T, conf
  const start=isoDay(config.planStartDate);
  if (start===null) return result;
  const globalWeek=localWeek+(config.globalWeekOffset ?? 0);
- const eventSports=new Set<"run" | "brick">();
+ const eventSports=new Set<"run" | "brick" | "bike" | "swim">();
  for (const goal of declaredGoals(config)) {
   if (goal.raceFormat && goal.raceFormat !== "continuous") continue;
   const day=isoDay(goal.raceDate);
@@ -31,6 +31,8 @@ export function catalogueTrainingMinimaForWeek<T extends Minima>(minima: T, conf
   const key=normalizeRepairGoal(goal.objective);
   if (["5k","10k","semi","marathon","trail_short","trail_mountain","trail_long","trail_ultra"].includes(key ?? "")) eventSports.add("run");
   else if (["half","ironman","sprint","olympic"].includes(key ?? "")) eventSports.add("brick");
+  else if(key==='cycling')eventSports.add('bike');
+  else if(key==='swimming')eventSports.add('swim');
  }
  for (const sport of eventSports) {
   if (minima[sport]) result={...result,[sport]:{...minima[sport],min:Math.max(0,(minima[sport]!.min ?? 0)-1)}};
@@ -39,16 +41,17 @@ export function catalogueTrainingMinimaForWeek<T extends Minima>(minima: T, conf
 }
 
 /** Calendar reservation only: never constructs an event/session or infers LCW stages. */
-export function declaredRaceSlotsForWeek(config: DeclaredCalendar, localWeek: number): Array<{dayName:'lundi'|'mardi'|'mercredi'|'jeudi'|'vendredi'|'samedi'|'dimanche';sport:'run'|'brick'}> {
+export function declaredRaceSlotsForWeek(config: DeclaredCalendar, localWeek: number): Array<{dayName:'lundi'|'mardi'|'mercredi'|'jeudi'|'vendredi'|'samedi'|'dimanche';sport:'run'|'brick'|'bike'|'swim'}> {
  if(config.raceFormat && config.raceFormat!=='continuous')return [];
  const start=isoDay(config.planStartDate);if(start===null)return [];
- const result:Array<{dayName:'lundi'|'mardi'|'mercredi'|'jeudi'|'vendredi'|'samedi'|'dimanche';sport:'run'|'brick'}>=[];
+ const result:Array<{dayName:'lundi'|'mardi'|'mercredi'|'jeudi'|'vendredi'|'samedi'|'dimanche';sport:'run'|'brick'|'bike'|'swim'}>=[];
  const days=['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'] as const;
  for(const goal of declaredGoals(config)){
   if(goal.raceFormat && goal.raceFormat!=='continuous')continue;
   const date=isoDay(goal.raceDate);if(date===null || Math.floor((date-start)/(7*86400000))+1!==localWeek+(config.globalWeekOffset??0))continue;
   const objective=normalizeRepairGoal(goal.objective);
-  const sport=['half','ironman','sprint','olympic'].includes(objective??'')?'brick': ['5k','10k','semi','marathon','trail_short','trail_mountain','trail_long','trail_ultra'].includes(objective??'')?'run':null;
+  const sport=objective==='cycling'?'bike':objective==='swimming'?'swim':
+    ['half','ironman','sprint','olympic'].includes(objective??'')?'brick': ['5k','10k','semi','marathon','trail_short','trail_mountain','trail_long','trail_ultra'].includes(objective??'')?'run':null;
   if(!sport)continue;
   const dayName=days[new Date(date).getUTCDay()];
   if(!result.some(e=>e.dayName===dayName&&e.sport===sport))result.push({dayName,sport});

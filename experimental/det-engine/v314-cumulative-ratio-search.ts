@@ -6,9 +6,11 @@
  */
 import type {TriContribution,TriMinutes,TriSport} from './v312-triathlon-dose-trajectory';
 
-export const TRIATHLON_STRICT_MINUTE_RANGES:Record<'703'|'IM',Record<TriSport,readonly [number,number]>>={
+export const TRIATHLON_STRICT_MINUTE_RANGES:Record<'703'|'IM'|'Sprint'|'Olympic',Record<TriSport,readonly [number,number]>>={
   '703':{swim:[15,20],bike:[40,50],run:[30,40]},
   IM:{swim:[15,20],bike:[45,55],run:[25,35]},
+  Sprint:{swim:[18,28],bike:[40,50],run:[28,34]},
+  Olympic:{swim:[15,24],bike:[45,52],run:[28,34]},
 };
 const sports=['swim','bike','run'] as const;
 const validMinutes=(c:TriContribution|null):c is TriContribution=>
@@ -29,7 +31,7 @@ export interface CumulativeMinuteRatioBound {
   interpretation:'optimistic_independent_slot_bounds_only';
 }
 export function assessCumulativeTriathlonRatioPotential(
-  objective:'703'|'IM',
+  objective:'703'|'IM'|'Sprint'|'Olympic',
   prior:Readonly<TriMinutes>,
   selected:readonly (TriContribution|null)[],
   remaining:readonly (readonly (TriContribution|null)[])[],
@@ -71,7 +73,7 @@ export function assessCumulativeTriathlonRatioPotential(
     bounds,outside,interpretation:'optimistic_independent_slot_bounds_only'};
 }
 export function hasExactStrictTriathlonRatio(
-  objective:'703'|'IM',
+  objective:'703'|'IM'|'Sprint'|'Olympic',
   prior:Readonly<TriMinutes>,
   selected:readonly (TriContribution|null)[],
 ):boolean {

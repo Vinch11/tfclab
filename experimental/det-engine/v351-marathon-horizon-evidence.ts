@@ -40,7 +40,7 @@ export function auditMarathonHorizon(
   const weeks=[...plan.weeks].sort((a,b)=>a.weekNumber-b.weekNumber);
   const refusals:string[]=[];
   if(runningScope){
-    const horizons=runningScope.objective==='semi'?[8,30]:[8,10,12];
+    const horizons=runningScope.objective==='semi'?[8,16,30]:[8,10,12];
     if(!horizons.includes(runningScope.horizon)||weeks.length!==runningScope.horizon)
       refusals.push('unsupported_or_incomplete_running_horizon');
   }else if(![16,40].includes(weeks.length))refusals.push('unsupported_marathon_horizon');

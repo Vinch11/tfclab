@@ -1,6 +1,7 @@
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {familyCases,runFamily} from './v359-family-fixture';
 import {constrainedRunningCases} from './v359-constrained-running-fixture';
+import {multiGoalCase} from './v359-multi-goal-fixture';
 import {runScenario} from './v332-running-long-horizon-fixture';
 
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals();});
@@ -14,6 +15,19 @@ describe('V359 — remaining families require complete sporting acceptance',()=>
     expect(out.issues.filter(i=>['critical','blocking','error'].includes(i.severity))).toEqual([]);
     expect(out.humanReviewRequired).toBe(true);
     expect(out.sportingRelevance).toBe('not_attested');
+  },60000);
+  it('multi-objective: the B 10K and A half both bind to the exact declared date',()=>{
+    const out=runScenario(multiGoalCase);
+    expect(out.constraintsSatisfied).toBe(true);
+    expect(out.candidate?.weeks).toHaveLength(16);
+    const events=out.candidate!.weeks.flatMap(w=>w.sessions.filter(s=>s.title.startsWith('COURSE : '))
+      .map(s=>({week:w.weekNumber,day:s.dayIndex,title:s.title,minutes:s.durationMin})));
+    expect(events).toEqual([{week:8,day:5,title:'COURSE : 10K',minutes:40},
+      {week:16,day:6,title:'COURSE : Semi',minutes:95}]);
+    expect(out.candidate!.weeklyQuotas![9].weekType).toBe('recovery');
+    console.info('DET_V359_CONSTRAINED_ACCEPTED',JSON.stringify({family:13,id:multiGoalCase.id,
+      constraintsSatisfied:out.constraintsSatisfied,weeks:16,events,
+      syntheticOnly:true,prescriptionAllowed:false}));
   },60000);
   it.each(constrainedRunningCases)('$id: individual constraints survive actual complete selection',s=>{
     vi.stubGlobal('fetch',()=>{throw Error('DET_V359_NETWORK_FORBIDDEN');});

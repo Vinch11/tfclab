@@ -199,6 +199,219 @@
           "notAutoApproved": true
         }
       }
+    },
+    {
+      "id": "V3P_RUN_202",
+      "version": "3.2.0-candidate-supplement",
+      "sport": "run",
+      "title": "Retour de course facile avec alternances marche-course contrôlées",
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "phase": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumLevel": "light",
+      "focus": "Conserver un contact court et facile avec la course, sans travail au seuil ni sprint",
+      "origin": "TFCLab — recette originale supplémentaire, principes seulement ; aucune validation scientifique ou individuelle implicite",
+      "evidence": {
+        "referenceIds": [
+          "TID2024",
+          "TID2025",
+          "STR2024"
+        ],
+        "evidenceLevel": "principle_support_only",
+        "sessionSpecificValidation": false
+      },
+      "contraindications": [
+        "Douleur locomotrice ou reprise non autorisée",
+        "Fatigue rendant même une course douce inappropriée",
+        "Terrain non sécurisé"
+      ],
+      "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Marche-course autorisée et tolérance aux impacts légers confirmées par le coach"
+      ],
+      "methodology": "Adaptation au profil, stade d'entraînement et charge qualitative coach",
+      "blocks": [
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "role": "warmup",
+          "label": "Mise en route en marche active et course très douce"
+        },
+        {
+          "kind": "repeat",
+          "count": {
+            "min": 3,
+            "base": 3,
+            "max": 3
+          },
+          "betweenSec": 0,
+          "betweenSecBounds": {
+            "min": 0,
+            "base": 0,
+            "max": 0
+          },
+          "label": "Alternances sans accélération",
+          "steps": [
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 180,
+                "base": 180,
+                "max": 180
+              },
+              "domain": "recovery",
+              "role": "main",
+              "label": "Course douce dans le domaine récupération"
+            },
+            {
+              "kind": "time",
+              "seconds": {
+                "min": 60,
+                "base": 60,
+                "max": 60
+              },
+              "domain": "recovery",
+              "role": "main",
+              "label": "Marche relâchée, même domaine récupération"
+            }
+          ]
+        },
+        {
+          "kind": "time",
+          "seconds": {
+            "min": 300,
+            "base": 300,
+            "max": 300
+          },
+          "domain": "recovery",
+          "role": "cooldown",
+          "label": "Retour facile en marche-course"
+        }
+      ],
+      "automaticSelection": false,
+      "status": "candidate",
+      "adaptationPolicy": "Bornes déclarées uniquement; intensité et domaine non modifiables; aucune compensation intense pour remplir la durée.",
+      "prescription": {
+        "physiologicalIntent": {
+          "statement": "Conserver un contact court et facile avec la course, sans travail au seuil ni sprint",
+          "primaryIntent": "recovery",
+          "primaryDomain": "recovery",
+          "domainIds": [
+            "recovery"
+          ],
+          "limiterKeys": [
+            "fatigue_residual",
+            "recovery_tolerance"
+          ],
+          "goal": "targeted_adaptation_not_guaranteed",
+          "uncertainty": "principle_evidence_not_session_validation"
+        },
+        "individualization": {
+          "anchors": [
+            {
+              "domain": "recovery",
+              "key": "run_threshold_pace_sec_per_km",
+              "transform": "tfclDoctrine.run_speed_fraction_of_threshold",
+              "missing": "unresolved"
+            }
+          ],
+          "missingAnchorBehavior": "unresolved_no_numeric_target",
+          "coachMustConfirmMeasurements": true,
+          "strengthLoadSelection": "RPE_AND_technique_by_coach_no_invented_weight",
+          "swimCssPolicy": "CSS_may_only_proxy_MLSS_after_explicit_coach_validation_not_other_domains"
+        },
+        "parameters": [
+          {
+            "path": "0.seconds",
+            "unit": "seconds",
+            "min": 300,
+            "base": 300,
+            "max": 300,
+            "risk": "bounded_session_dose"
+          },
+          {
+            "path": "1.count",
+            "unit": "count",
+            "min": 3,
+            "base": 3,
+            "max": 3,
+            "risk": "bounded_session_dose"
+          },
+          {
+            "path": "1.betweenSec",
+            "unit": "seconds",
+            "min": 0,
+            "base": 0,
+            "max": 0,
+            "risk": "recovery_dose"
+          },
+          {
+            "path": "1.0.seconds",
+            "unit": "seconds",
+            "min": 180,
+            "base": 180,
+            "max": 180,
+            "risk": "bounded_session_dose"
+          },
+          {
+            "path": "1.1.seconds",
+            "unit": "seconds",
+            "min": 60,
+            "base": 60,
+            "max": 60,
+            "risk": "bounded_session_dose"
+          },
+          {
+            "path": "2.seconds",
+            "unit": "seconds",
+            "min": 300,
+            "base": 300,
+            "max": 300,
+            "risk": "bounded_session_dose"
+          }
+        ],
+        "duration": {
+          "formula": "SUM(leaf.seconds OR distance.meters*measured_domain_pace/100 OR reps*seconds_per_rep_estimated) + SUM((repeat.count-1)*betweenSec); recursive repeats multiply inner duration",
+          "classification": "exact_time",
+          "requiredMeasurements": [],
+          "unknownBehavior": "unresolved_not_filled_or_rounded",
+          "strengthRepsInterpretation": "timeboxed_including_rest"
+        },
+        "admissibility": {
+          "minimumLevel": "light",
+          "phases": [
+            "base",
+            "build",
+            "peak",
+            "taper"
+          ],
+          "minimumRecoveryHours": 24,
+          "prerequisites": [
+            "Marche-course autorisée et tolérance aux impacts légers confirmées par le coach"
+          ],
+          "contraindications": [
+            "Douleur locomotrice ou reprise non autorisée",
+            "Fatigue rendant même une course douce inappropriée",
+            "Terrain non sécurisé"
+          ],
+          "stopRule": "Interrompre en présence de douleur, technique dégradée ou effort hors du domaine cible",
+          "requiresIndividualCoachReview": true,
+          "requiresLoadAndFatigueCheck": true,
+          "requiresWeeklySportingValidation": true,
+          "notAutoApproved": true
+        }
+      }
     }
   ]
 }

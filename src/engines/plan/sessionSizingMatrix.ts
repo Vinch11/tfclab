@@ -729,6 +729,7 @@ export function applySessionsPerWeekTarget(
   targetCardioPerWeek: number,
   weekType: WeekType,
   protectedBrickMinimum = 0,
+  protectedRunMinimum = 0,
 ): { quota: WeeklyQuota; floors: SizingFloors } {
   const target0 = Math.round(targetCardioPerWeek);
   if (!Number.isFinite(target0) || target0 <= 0) return input;
@@ -758,7 +759,8 @@ export function applySessionsPerWeekTarget(
   const mins: Record<CardioSport, number> = {
     swim: allowed.swim ? Math.min(floors.minSwimPerWeek ?? 0, quota.swim.max) : 0,
     bike: allowed.bike && floors.longRideWeekly ? 1 : 0,
-    run: allowed.run && floors.longRunWeekly ? 1 : 0,
+    run: allowed.run ? Math.max(floors.longRunWeekly?1:0,
+      Math.min(protectedRunMinimum,quota.run.max)) : 0,
     brick: allowed.brick ? Math.min(protectedBrickMinimum, quota.brick.max) : 0,
   };
   const relaxOrder: CardioSport[] = ["brick", "swim", "bike"];

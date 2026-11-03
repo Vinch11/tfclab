@@ -14,7 +14,7 @@ export interface TriSlotDomain {
   choices:readonly (TriContribution|null)[];
 }
 export interface TriRatioTrajectory {
-  objective:'703'|'IM';
+  objective:'703'|'IM'|'Sprint'|'Olympic';
   referenceWeekMinutes:number;
   sportTargetMinutes:TriMinutes;
   low:TriMinutes;
@@ -28,11 +28,11 @@ const valid=(c:TriContribution|null):c is TriContribution=>
   c!==null&&allFields.every(s=>Number.isFinite(c[s])&&c[s]>=0)&&
   sports.reduce((sum,s)=>sum+c[s],0)+c.transition>0;
 const clamp=(v:number,lo:number,hi:number)=>Math.min(hi,Math.max(lo,v));
-const target:(objective:'703'|'IM')=>TriMinutes=(objective)=>objective==='703'?
+const target:(objective:'703'|'IM'|'Sprint'|'Olympic')=>TriMinutes=(objective)=>objective==='Sprint'?{swim:.23,bike:.46,run:.31}:objective==='Olympic'?{swim:.19,bike:.50,run:.31}:objective==='703'?
   {swim:.175,bike:.475,run:.35}:{swim:.175,bike:.50,run:.325};
 
 export function planTriathlonRatioTrajectory(
-  objective:'703'|'IM',
+  objective:'703'|'IM'|'Sprint'|'Olympic',
   domains:readonly TriSlotDomain[],
   prior:Readonly<TriMinutes>,
   weeklyCap:number,
@@ -65,7 +65,7 @@ export function planTriathlonRatioTrajectory(
   // point INSIDE the unchanged strict ranges. This is a sorting preference,
   // never a mutation of target criteria or of admissible source doses.
   const native=target(objective);
-  const caps=objective==='703'?
+  const caps=objective==='Sprint'?{swim:[.18,.28],bike:[.40,.50],run:[.28,.34]}:objective==='Olympic'?{swim:[.15,.24],bike:[.45,.52],run:[.28,.34]}:objective==='703'?
     {swim:[.15,.20],bike:[.40,.50],run:[.30,.40]}:
     {swim:[.15,.20],bike:[.45,.55],run:[.25,.35]};
   const supplied=coachScopedTarget;

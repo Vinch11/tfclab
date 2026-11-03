@@ -285,6 +285,8 @@ export function isStructuralSession(w: LibraryWorkout): boolean {
 /** Map objective strings to WorkoutGoal values */
 export function normalizeGoal(objective: string): WorkoutGoal[] {
   const lower = objective.toLowerCase();
+  if (/^(?:cycling|bike|v[ée]lo|cyclisme)(?:\b|$)|contre.la.montre/.test(lower)) return ["cycling"];
+  if (/^(?:swimming|swim|natation)(?:\b|$)/.test(lower)) return ["swimming"];
   // Order matters: check specific patterns before generic ones
   if (lower.includes("70.3") || lower === "703") return ["half"];
   if (lower.includes("ironman") || lower === "im") return ["ironman"];

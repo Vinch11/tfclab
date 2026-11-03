@@ -9,7 +9,7 @@ import {
   auditV3Catalogue, evaluateV3Workout, v3FullCatalogue,
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
-import {v3ExtendedCatalogue,v3SupplementalCatalogue} from '../../scripts/library-v3/supplementalCatalogue';
+import {v3SupplementalCatalogue} from '../../scripts/library-v3/supplementalCatalogue';
 import supplementalRegistry from '../../scripts/library-v3/v3SupplementSportingReview20261103.json';
 import type {V3SportingSourceRecord} from '../../scripts/library-v3/sportingQualification800';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
@@ -197,12 +197,15 @@ export function buildDetV3ContractFromCatalogue(
 ) {
   // Supplemental doses enter only through an explicit review of their ID.
   // Historical 800-source contracts retain their exact source cohort/counts.
-  const requestedSupplement=reviews.some(r=>v3SupplementalCatalogue.workouts.some(w=>w.id===r.id));
-  const sourceCatalogue=requestedSupplement?v3ExtendedCatalogue:v3FullCatalogue;
+  const requested=v3SupplementalCatalogue.workouts.filter(w=>reviews.some(r=>r.id===w.id));
+  const requestedSupplement=requested.length>0;
+  const sourceCatalogue=requestedSupplement?{...v3FullCatalogue,
+    count:800+requested.length,counts:{...v3FullCatalogue.counts,run:200+requested.length},
+    workouts:[...v3FullCatalogue.workouts,...requested]}:v3FullCatalogue;
   const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry(),
     ...(requestedSupplement?[...auditV3Catalogue(v3SupplementalCatalogue),
       ...auditV3SportingRegistry(v3SupplementalCatalogue.workouts,
-        supplementalRegistry.records as V3SportingSourceRecord[],1)]:[])];
+        supplementalRegistry.records as V3SportingSourceRecord[],v3SupplementalCatalogue.workouts.length)]:[])];
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
   if(v3FullCatalogue.workouts.length!==800 ||
       ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
@@ -440,8 +443,22 @@ export function buildDetV3ContractFromCatalogue(
       const card=report.accepted.find(m=>m.id===id);
       if(!card||!verifiedZoneDoses.has(id)||
          !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
-         !card.tags.includes('individual-coach-approval-recorded')||
-         !card.tags.includes('v3-primary-intent:race_specific'))return null;
+         !card.tags.includes('individual-coach-approval-recorded'))return null;
+      const source=configuredById.get(id);
+      // Dedicated FTP/CSS references: genuine MLSS work with an explicit
+      // goal-compatible individual review and supplied FTP/domain anchors.
+      // This is specific threshold TRAINING, not a predicted performance.
+      if(source?.primaryIntent==='mlss'&&source.primaryDomain==='mlss'){
+        if(card.sport==='bike'&&card.goals.includes('cycling'))
+          return {sourceId:id,objective:'Cycling'};
+        if(card.sport==='swim'&&card.goals.includes('swimming'))
+          return {sourceId:id,objective:'Swimming'};
+      }
+      if(source?.primaryIntent!=='race_specific')return null;
+      if(source.primaryDomain==='tempo'&&['bike','swim'].includes(card.sport)){
+        if(card.goals.includes('sprint'))return {sourceId:id,objective:'Sprint'};
+        if(card.goals.includes('olympic'))return {sourceId:id,objective:'Olympic'};
+      }
       if(card.goals.includes('half')&&
          card.tags.includes('v3-primary-domain:703_pace'))
         return {sourceId:id,objective:'703'};

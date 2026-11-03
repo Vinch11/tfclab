@@ -32,6 +32,7 @@ import {annotateOnlyMeasuredDeloads} from './v39-real-deload';
 import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-deload-selection';
 import {assessStrictPeriodizationEvidence} from './v316-strict-periodization-gate';
 import {certifyReviewedRaceSpecificPeak,type ProvenRaceSource} from './v317-certified-race-specific';
+import {resolveDeclaredEvent} from './v359-declared-event';
 import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-native-peak-candidate';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
@@ -122,6 +123,8 @@ export interface ExperimentalAssemblyContract {
    * stimulus on a RUN key slot of every non-race LOAD week. This does not
    * replace Lorang, limiter coherence or the native periodization validator. */
   requireReviewedRunningKeyQualityOnLoadWeeks?:true;
+  /** Explicit mono-sport/short-triathlon counterpart, same exact-source quality gate. */
+  requireReviewedEnduranceKeyQualityOnLoadWeeks?:true;
   /** V344 opt-in: prioritize an already-admissible source-backed quality KEY
    * slot during DFS, not only a candidate within that slot. Ordering ONLY. */
   prioritizeVerifiedRunningQualitySlot?:true;
@@ -137,6 +140,8 @@ export interface ExperimentalAssemblyContract {
    * best achievable certified easy/polarization margin (not just smallest
    * source domain). Ranking only: no dose/source/slot becomes admissible. */
   prioritizeRunningQualitySlotByMargin?:true;
+  /** Search order only, explicit synthetic coach discipline preference. */
+  qualitySportPreference?:'swim'|'bike'|'run';
   /** V345 opt-in: certify the NECESSARY presence of one genuine source-backed
    * RUN quality option in a B13-distinct matching of current slot domains. */
   auditRunningQualitySourceMatching?:true;
@@ -145,6 +150,8 @@ export interface ExperimentalAssemblyContract {
   /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
   reviewedRaceSpecificForId?:(id:string)=>ProvenRaceSource|null|undefined;
   requireReviewedRaceSpecificPeak?:true;
+  /** V359 explicit planned race estimates, separately declared by synthetic coach. */
+  useDeclaredEventDurationEstimates?:true;
   /** V315 only: validate training frequency excluding certified official race
    * EVENTS, while preserving physical and native validation of the full plan. */
   verifyOfficialRaceQuotaProjection?:true;
@@ -224,6 +231,8 @@ function isCountOnlyStrength(card:RepairWorkoutMetadata):boolean {
     card.durationMin[0]===0&&card.durationMin[1]===0&&
     card.tags.includes('v3-strength-frequency-only-unknown-duration');
 }
+const triObjective=(goal:string)=>({half:'703',ironman:'IM',sprint:'Sprint',olympic:'Olympic'} as const)[goal as 'half'|'ironman'|'sprint'|'olympic']??null;
+const enduranceSpecificObjective=(goal:string)=>triObjective(goal)??(goal==='cycling'?'Cycling':goal==='swimming'?'Swimming':null);
 const DEFAULT_LIMITS:SearchLimits={maxNodes:20000,maxMilliseconds:5000};
 
 /** Match the native final validator's explicit day-J/veille restrictions.
@@ -480,8 +489,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const sourceLoadLedger={swim:0,bike:0,run:0};
     let sourceLoadLedgerVerified=true;
     const strictFinalRatioRequested=experimentalContract?.requireFinalTriathlonMinuteRatios===true;
-    const objectiveForRatio=normalizeRepairGoal(config.objective??'')==='half'?'703':
-      normalizeRepairGoal(config.objective??'')==='ironman'?'IM':null;
+    const objectiveForRatio=triObjective(normalizeRepairGoal(config.objective??'')??'');
     if(strictFinalRatioRequested&&(
       !objectiveForRatio||
       experimentalContract?.preferSourceBackedMultisportBalance!=='triathlon_targets'||
@@ -495,7 +503,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     // This changes the deadline, never source eligibility or taper policy.
     const lastPeakWeekNumber=report.weeks.reduce((last,w)=>
       w.phase?.trim().toLowerCase()==='peak'&&
-      (experimentalContract?.requireVerifiedRunningPhaseEvidence!==true||
+      ((experimentalContract?.requireVerifiedRunningPhaseEvidence!==true&&experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks!==true)||
        preparation.weeklyQuotas[w.week]?.weekType==='load')?w.week:last,0);
     let peakRaceSpecificSeen=false;
     const lastLoadWeekNumber=report.weeks.reduce((last,w)=>
@@ -555,6 +563,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
       const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
+        if(experimentalContract?.requireReviewedRaceSpecificPeak===true){
+          if(!session.catalogId||typeof session.durationMin!=='number')return false;
+          const review=experimentalContract.reviewedRaceSpecificForId?.(session.catalogId);
+          const dose=experimentalContract.sourceStructuredZoneForId?.(session.catalogId,session.durationMin);
+          return review?.sourceId===session.catalogId&&
+            review.objective===enduranceSpecificObjective(normalizeRepairGoal(config.objective??'')??'')&&
+            !!dose&&Math.abs(dose.low+dose.nonLow+dose.unknown-session.durationMin)<1e-7;
+        }
         if(!sourceSpecificEnabled)return hasSourceVisibleRaceSpecificity(session);
         const cached=sourceSpecificCache.get(session);
         if(cached!==undefined)return cached;
@@ -596,7 +612,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         ceiling=Math.min(ceiling,realCap);
       }
       const options=slots.map(({slot,dayIndex,dayName})=>{
-        if(slot.isRaceEvent)return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,sport:slot.sport,title:`COURSE : ${w.objective}`,details:'Épreuve déclarée ; durée à confirmer par le coach.',durationMin:0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
+        if(slot.isRaceEvent){
+          const event=experimentalContract?.useDeclaredEventDurationEstimates===true?
+            resolveDeclaredEvent(config,w.week,dayIndex,slot.sport):null;
+          return [{weekNumber:w.week,weekTheme:w.phase??'',phase:w.phase??'',dayIndex,dayName,
+            sport:slot.sport,title:`COURSE : ${event?.objective??w.objective}`,
+            details:event?'Épreuve déclarée ; durée planifiée ESTIMÉE par le coach, pas une mesure de performance.':
+              'Épreuve déclarée ; durée à confirmer par le coach.',
+            durationMin:event?.targetTimeMinutes??0,custom:true,isRest:false,isKeySession:true,zones:[]} satisfies ParsedSession];
+        }
         return (catalogBySport.get(slot.sport)??[]).filter(m=>allowedIds.has(m.id))
           .filter(m=>raceOnlySourceMatchesDay(m.when,dayIndex,raceDayIndex))
           .filter(m=>evaluateRepairSportingEquivalence(null,m,{...context,operation:'insertion'}).compatible)
@@ -710,7 +734,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               catalog.find(m=>m.id===s.catalogId)!,{...context,week:w.week,slot,dayIndex})??0;
             const balanceMode=experimentalContract?.preferSourceBackedMultisportBalance;
             const balance=!!balanceMode &&
-              ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+              ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'');
             // Experimental triathlon: vary ALREADY APPROVED source doses to
             // reduce excessive swim/run and make room for bike. No dose is
             // lengthened, shortened, substituted, or inferred here.
@@ -827,7 +851,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       // brick minutes to prove a global sport ratio impossible.
       if(experimentalContract?.auditGlobalSourceSportRatioBounds===true&&
          entry.weekType==='load'&&
-         ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+         ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'')){
         slots.forEach(({slot},index)=>{
           if(!['swim','bike','run','brick'].includes(slot.sport))return;
           const strictSources=experimentalContract.requireStructuredPolarizationOnLoadWeeks===true;
@@ -864,7 +888,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
       // Fail early on exact lower bounds, rather than enumerating an impossible Cartesian product.
       const order=options.map((domain,i)=>({domain,slot:slots[i]})).sort((a,b)=>a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
-      const triGoal=['half','ironman'].includes(
+      const triGoal=['half','ironman','sprint','olympic'].includes(
         normalizeRepairGoal(config.objective??'')??'');
       const sourceQualityOnLoad=experimentalContract?.requireRealQualityOnLoadWeeks===true &&
         entry.weekType==='load';
@@ -873,8 +897,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         !layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent)) &&
         !/d[eé]charge|recovery|r[eé]cup[eé]ration/i.test(w.phase??'');
       const runningQualityRequired=
-        experimentalContract?.requireReviewedRunningKeyQualityOnLoadWeeks===true&&
-        (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k')&&
+        ((experimentalContract?.requireReviewedRunningKeyQualityOnLoadWeeks===true&&
+        (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k'))||
+        experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)&&
         entry.weekType==='load'&&!layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent));
       const qualityRequired=((sourceQualityOnLoad||nativeLorangWeekQuality) &&
         config.ambition!=='finisher'&&triGoal)||runningQualityRequired;
@@ -884,7 +909,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const cached=runningQualityCache.get(session);
           if(cached!==undefined)return cached;
           let proven=false;
-          if(session.isKeySession&&session.sport==='run'&&session.catalogId&&
+          if(session.isKeySession&&(session.sport==='run'||
+             experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true&&
+             ['bike','swim'].includes(session.sport))&&session.catalogId&&
              typeof session.durationMin==='number'){
             const dose=experimentalContract?.sourceFullStructuredDoseForId?.(
               session.catalogId,session.durationMin);
@@ -926,12 +953,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const dose=session.catalogId?
               experimentalContract?.sourceFullStructuredDoseForId?.(
                 session.catalogId,session.durationMin):null;
-            return dose?[dose.low-3*(dose.mid+dose.high)-(experimentalContract?.requireVerifiedRunningPhaseEvidence===true?3:0.01)*dose.unknown]:[];
+            return dose?[dose.low-3*(dose.mid+dose.high)-((experimentalContract?.requireVerifiedRunningPhaseEvidence===true||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)?3:0.01)*dose.unknown]:[];
           });
           return margins.length?Math.max(...margins):-Infinity;
         };
         const preferMargin=experimentalContract?.prioritizeRunningQualitySlotByMargin===true;
         order.sort((a,b)=>Number(certifiedKey(b))-Number(certifiedKey(a))||
+          (experimentalContract?.qualitySportPreference?
+            Number(b.slot.slot.sport===experimentalContract.qualitySportPreference)-
+            Number(a.slot.slot.sport===experimentalContract.qualitySportPreference):0)||
           (preferMargin?qualityMargin(b)-qualityMargin(a):0)||
           a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
         if(preferMargin)result.issues.push({
@@ -1029,7 +1059,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         })):[];
       const initialNecessaryBounds=requireStructuredZones?
         assessStructuredZoneNecessaryBounds([],structuredDomains,qualityRequired,
-          experimentalContract?.requireVerifiedRunningPhaseEvidence===true):null;
+          (experimentalContract?.requireVerifiedRunningPhaseEvidence===true||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)):null;
       if(initialNecessaryBounds&&initialNecessaryBounds.reason!=='not_refuted'){
         result.issues.push({
           code:'det_v310_structured_zone_necessary_bound_refused',
@@ -1051,8 +1081,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(requireStructuredZones){
         const targetRatioMode=experimentalContract?.preferSourceBackedMultisportBalance===
           'triathlon_targets'&&sourceLoadLedgerVerified&&
-          ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
-        const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+          ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'');
+        const objectiveKey=triObjective(normalizeRepairGoal(config.objective??'')??'')!;
         const ratioSlotKeys=order.map(({slot},index)=>
           [w.week,slot.dayIndex,slot.slot.sport,index].join(':'));
         const trajectory=targetRatioMode?planTriathlonRatioTrajectory(
@@ -1088,9 +1118,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               ...context,week:w.week,slot:slot.slot,dayIndex:slot.dayIndex})??0):0;
           };
           const score=(dose:NativeZoneDose|null)=>
-            dose===null?-Infinity:dose.low-3*dose.nonLow-(experimentalContract?.requireVerifiedRunningPhaseEvidence===true?3:0.01)*dose.unknown;
+            dose===null?-Infinity:dose.low-3*dose.nonLow-((experimentalContract?.requireVerifiedRunningPhaseEvidence===true||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)?3:0.01)*dose.unknown;
           const triathlonOrder=experimentalContract?.preferSourceBackedMultisportBalance===
-            'triathlon'&&['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
+            'triathlon'&&['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'');
           const triathlonDuration=(a:ParsedSession,b:ParsedSession)=>
             !triathlonOrder?0:slot.slot.sport==='bike'?
               (b.durationMin??0)-(a.durationMin??0):
@@ -1099,8 +1129,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           const preferred=trajectory?.preferredBySlot[ratioSlotKeys[slotIndex]];
           const targetDistance=(session:ParsedSession)=>
             triathlonCandidateDoseDistance(exactTriContribution(session),preferred);
+          const singleTriQualityAnchor=triGoal&&
+            experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true;
           candidates.sort((a,b)=>
             Number(a.dose===null)-Number(b.dose===null)||
+            (singleTriQualityAnchor&&slotIndex===0?
+              Number(isQuality(b.session))-Number(isQuality(a.session))||score(b.dose)-score(a.dose):0)||
+            (singleTriQualityAnchor&&slotIndex!==0&&trajectory?
+              targetDistance(a.session)-targetDistance(b.session):0)||
             (ttePreferenceEnabled&&slot.slot.isKeySession?
               Number(isCertifiedTteKey(b.session))-Number(isCertifiedTteKey(a.session)):0)||
             (runningQualityRequired&&slot.slot.isKeySession&&
@@ -1257,7 +1293,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const exact=assessStructuredZoneNecessaryBounds(
               proposed.map((dose,i)=>({dose,isKeyQuality:isQuality(chosen[i])})),
               structuredDomains.slice(index),qualityRequired,
-              experimentalContract?.requireVerifiedRunningPhaseEvidence===true);
+              (experimentalContract?.requireVerifiedRunningPhaseEvidence===true||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true));
             if(exact.reason!=='not_refuted'){
               countPrune(exact.reason);
               return false;
@@ -1285,7 +1321,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           if(requireStructuredZones)
             return assessStrictStructuredZoneTarget(
               chosen.map(session=>nativeProfiles.get(session)!) as NativeZoneDose[],
-              experimentalContract?.requireVerifiedRunningPhaseEvidence===true).admissible;
+              (experimentalContract?.requireVerifiedRunningPhaseEvidence===true||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)).admissible;
           if(requireStrictNativeZones)
             return assessStrictNativePolarizationTarget(chosen).admissible;
           return true;
@@ -1495,6 +1531,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return refuse('v315_recovery_duration_not_verified_week_'+w.week);
       }
       plan.weeks.push({weekNumber:w.week,theme:w.phase??'',phase:w.phase??'',sessions:chosen});
+      if(experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)
+        result.issues.push({code:'det_v359_week_source_selection',week:w.week,severity:'warning',
+          message:JSON.stringify(chosen.filter(s=>!s.isRest).map(s=>({day:s.dayIndex,sport:s.sport,
+            id:s.catalogId??null,minutes:s.durationMin,key:s.isKeySession}))) });
       previousCalendarWeekMinutes=measuredTrainingMinutes(chosen);
       if(entry.weekType==='load'&&
          experimentalContract?.preferSourceBackedMultisportBalance==='triathlon_targets'){
@@ -1559,8 +1599,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       });
     }
     if(experimentalContract?.auditGlobalSourceSportRatioBounds===true&&
-       ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
-      const objective=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+       ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'')){
+      const objective=triObjective(normalizeRepairGoal(config.objective??'')??'')!;
       const raw=SPORT_RATIO_TARGETS[objective];
       if(raw.swim&&raw.bike&&raw.run){
         const bound=assessGlobalSourceRatioEnvelope(sourceSlotRatioDomains,{
@@ -1608,7 +1648,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       }
     }
     if(experimentalContract?.auditVerifiedMultisportMinutes===true &&
-       ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+       ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'')){
       try{
         const quotas=Object.fromEntries(Object.entries(preparation.weeklyQuotas)
           .map(([week,entry])=>[Number(week),entry.weekType]));
@@ -1618,7 +1658,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         const ratio=Object.fromEntries((['swim','bike','run'] as const).map(sport=>[
           sport,total?100*audit.knownMinutes[sport]/total:null,
         ])) as Record<'swim'|'bike'|'run',number|null>;
-        const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+        const objectiveKey=triObjective(normalizeRepairGoal(config.objective??'')??'')!;
         const targets=SPORT_RATIO_TARGETS[objectiveKey];
         // Independent frequency quota proof. The native validator currently
         // counts whole sessions for a ratio intended to represent volume.
@@ -1850,15 +1890,33 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     });
     if(reconciliation?.verified)nativeIssues=reconciliation.issues;
   }
+  // Only the single lexical false-negative can be reconciled. Forbidden
+  // peak/taper content and all other native findings remain mandatory.
+  if(experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true&&
+     experimentalContract.requireReviewedRaceSpecificPeak===true){
+    const objective=enduranceSpecificObjective(normalizeRepairGoal(config.objective??'')??'');
+    const proof=objective&&experimentalContract.reviewedRaceSpecificForId&&
+      experimentalContract.sourceStructuredZoneForId?
+      certifyReviewedRaceSpecificPeak(result.candidate!,objective,
+        experimentalContract.reviewedRaceSpecificForId,experimentalContract.sourceStructuredZoneForId):null;
+    const findings=nativeIssues.filter(i=>i.code==='phase_coherence'&&i.severity==='warning'&&
+      i.message?.startsWith('Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée'));
+    if(proof?.verdict==='verified'&&findings.length===1){
+      nativeIssues=nativeIssues.map(i=>i===findings[0]?{
+        ...i,code:'det_v359_reviewed_specificity_lexical_reconciled',
+        message:JSON.stringify({originalNativeIssue:i,sourceProof:proof,otherNativeGatesUnchanged:true}),
+      }:i);
+    }
+  }
   if(experimentalContract?.applyReviewedMinuteSportRatio===true &&
      experimentalContract.auditVerifiedMultisportMinutes===true &&
-     ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'') &&
+     ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'') &&
      result.issues.some(i=>i.code==='det_multisport_minute_ratio_verified')){
     // This path is unavailable to the released application. Never reclassify
     // an unknown brick, incompatible frequency, or non-strict minute ratio.
     // It retains the original native count issue as a diagnostic warning and
     // leaves all OTHER blocking rules untouched.
-    const objectiveKey=normalizeRepairGoal(config.objective??'')==='half'?'703':'IM';
+    const objectiveKey=triObjective(normalizeRepairGoal(config.objective??'')??'')!;
     const quotaTypes=Object.fromEntries(Object.entries(result.candidate!.weeklyQuotas??{})
       .map(([week,entry])=>[Number(week),entry.weekType]));
     const reconciliation=reconcileNativeTriathlonCountRatio({
@@ -1888,7 +1946,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     }
   } else result.issues.push(...nativeIssues);
   if(experimentalContract?.auditVerifiedMultisportMinutes===true &&
-     ['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'')){
+     ['half','ironman','sprint','olympic'].includes(normalizeRepairGoal(config.objective??'')??'')){
     const failed=validation.issues.filter(i=>i.rule==='polarization' &&
       i.severity==='error'&&typeof i.week==='number').map(i=>i.week!);
     if(failed.length){
@@ -1900,8 +1958,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
   const final=computeFinalValidationIssues(result.candidate!,[],{objective:config.objective??'',ambition:config.ambition??'finisher',vmaKmh:athlete.vma,thresholdPaceSecPerKm:athlete.paceThresholdSecPerKm});
   result.issues.push(...final.issues.map(i=>({code:i.rule,severity:i.severity,message:i.message})));
   if(experimentalContract?.requireReviewedRaceSpecificPeak===true){
-    const objective=normalizeRepairGoal(config.objective??'')==='half'?'703':
-      normalizeRepairGoal(config.objective??'')==='ironman'?'IM':null;
+    const objective=enduranceSpecificObjective(normalizeRepairGoal(config.objective??'')??'');
     const candidate=result.candidate!;
     const proof=objective&&experimentalContract.reviewedRaceSpecificForId&&
       experimentalContract.sourceStructuredZoneForId?

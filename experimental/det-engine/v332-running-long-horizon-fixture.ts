@@ -7,6 +7,8 @@
  * different claims. No released entry point imports this file.
  */
 import {expect} from 'vitest';
+import type {PlanConfig} from '@/hooks/useAITrainingPlan';
+import {prepareMultiGoalMilestones} from './v359-declared-event';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
 import {constructDeterministicPlan} from './engine';
 import {buildDetV3ContractFromCatalogue,type V3ReviewedSettings} from './v31-v3-catalogue';
@@ -41,6 +43,7 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON'|'B-10K';goal:RunningGo
   verifiedRunningPhaseEvidence?:true;
   declaredPrimaryLimiter?:'tte';
   supplementalV3Dose?:true;
+  declaredRaceGoals?:PlanConfig['raceGoals'];
   declaredConstraints?:string;
   declaredCadenceWeeks?:3|4;
   declaredProhibitions?:string[];
@@ -149,7 +152,7 @@ export function runScenario(s:Case){
     ...(s.verifiedRunningPhaseEvidence?{weeksAvailable:s.weeks}:{}),
     sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
     strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2,
-    maxSessionsPerDay:2,constraints:s.declaredConstraints,
+    maxSessionsPerDay:2,constraints:s.declaredConstraints,raceGoals:s.declaredRaceGoals,
     ...(s.declaredCadenceWeeks?{deloadCadenceWeeks:s.declaredCadenceWeeks}:{}),
   }:{});
   const athleteId='synthetic-v332-'+s.id;
@@ -172,7 +175,7 @@ export function runScenario(s:Case){
       sessionsPerWeek:s.declaredAmbition==='age_group'?4:5,
       strengthSessionsPerWeek:s.declaredAmbition==='age_group'?1:2}:{}),
     planStartDate:'2026-10-26',raceDate,
-    raceGoals:[{objective:s.goal,raceDate,priority:'A' as const}],
+    raceGoals:s.declaredRaceGoals??[{objective:s.goal,raceDate,priority:'A' as const}],
     ...(s.declaredPrimaryLimiter?{identifiedLimitersRaw:[s.declaredPrimaryLimiter]}:{}),
     _outputFormat:'json' as const};
   // Distinct source IDs only: the expanded approved set may overlap the base.
@@ -180,6 +183,7 @@ export function runScenario(s:Case){
   const reviews=[...new Set([...runSourceIds,
     ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
     ...(s.supplementalV3Dose?['V3P_RUN_201']:[]),
+    ...(s.declaredRaceGoals?['V3P_RUN_202','V3P_RUN_102','V3P_RUN_104']:[]),
     ...(s.goal==='10K'?['V3P_RUN_018','V3P_RUN_073','V3P_RUN_074','V3P_RUN_075','V3P_RUN_095']:[]),
     ...(s.approvedBaseTteDose?['V3P_RUN_136']:[]),
     ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
@@ -224,7 +228,7 @@ export function runScenario(s:Case){
     } satisfies V3ReviewedSettings;
   });
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
-  expect(report.sourceCount).toBe(s.supplementalV3Dose?801:800);
+  expect(report.sourceCount).toBe(800+(s.supplementalV3Dose?1:0)+(s.declaredRaceGoals?1:0));
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
   if(s.approvedBaseTteDose){
@@ -256,15 +260,21 @@ export function runScenario(s:Case){
     s.largerSearchBudget?7000:3000;
   const budgetMilliseconds=s.extendedStrictSearchBudget?15000:
     s.largerSearchBudget?4500:2000;
-  const confirmedClock=s.reviewedCompetitorPlacement?
+  const normalClock=s.reviewedCompetitorPlacement?
     (slot:{week:number;dayIndex:number;sport:string})=>reviewedCompetitorClock(slot,
       ['taper','race'].includes(inferWeekType(slot.week,s.weeks,s.goal,
         athlete.age,config.deloadCadenceWeeks))):
     s.distinctSportClock?distinctConfirmedSportClock:
       s.wideRecoveryClock?wideRecoveryClock:declaredClock;
+  const confirmedClock=s.declaredRaceGoals?(slot:{week:number;dayIndex:number;sport:string})=>{
+    const date=new Date(Date.UTC(2026,9,26+(slot.week-1)*7+slot.dayIndex)).toISOString().slice(0,10);
+    return {...normalClock(slot),...(s.declaredRaceGoals?.some(g=>g.raceDate===date)?{minuteOfDay:540}:{})};
+  }:normalClock;
   const out=constructDeterministicPlan(athlete,config,
     {maxNodes:budgetNodes,maxMilliseconds:budgetMilliseconds},{
       ...contract,requireReviewedAthleteContext:true,
+      ...(s.declaredRaceGoals?{useDeclaredEventDurationEstimates:true as const,
+        adapt:(p:Parameters<typeof contract.adapt>[0],c:PlanConfig)=>prepareMultiGoalMilestones(p,c,contract)}:{}),
       ...(s.verifiedRunningPhaseEvidence?{requireVerifiedRunningPhaseEvidence:true as const,
         reconcileReviewedSourcePolarization:true as const}:{}),
       filterCandidate:(card,ctx)=>accepted.has(card.id)&&

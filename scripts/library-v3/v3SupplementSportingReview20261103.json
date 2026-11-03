@@ -37,6 +37,44 @@
       "humanSportingApproved": false,
       "scientificSessionValidated": false,
       "athleteApproved": false
+    },
+    {
+      "id": "V3P_RUN_202",
+      "sport": "run",
+      "sourceFingerprint": "7d567a44",
+      "sourceStatus": "source_prequalified_pending_individual_review",
+      "reviewOrigin": "TFCLab supplementary source screen 2026-11-03; not independent human or scientific approval",
+      "originReviewFingerprint": null,
+      "sourceBlockers": [],
+      "primaryIntent": "recovery",
+      "primaryDomain": "recovery",
+      "limiterKeys": [
+        "fatigue_residual",
+        "recovery_tolerance"
+      ],
+      "mainDomainIds": [
+        "recovery"
+      ],
+      "minimumLevel": "light",
+      "phases": [
+        "base",
+        "build",
+        "peak",
+        "taper"
+      ],
+      "minimumRecoveryHours": 24,
+      "prerequisites": [
+        "Marche-course autorisée et tolérance aux impacts légers confirmées par le coach"
+      ],
+      "contraindications": [
+        "Douleur locomotrice ou reprise non autorisée",
+        "Fatigue rendant même une course douce inappropriée",
+        "Terrain non sécurisé"
+      ],
+      "equipment": [],
+      "humanSportingApproved": false,
+      "scientificSessionValidated": false,
+      "athleteApproved": false
     }
   ]
 }

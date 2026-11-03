@@ -7,8 +7,9 @@
 import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
 import type {NativeZoneDose} from './v39-strict-native-polarization-target';
 
-export type TriObjective='703'|'IM';
-export type ProvenRaceSource={sourceId:string;objective:TriObjective};
+export type TriObjective='703'|'IM'|'Sprint'|'Olympic';
+export type EnduranceSpecificObjective=TriObjective|'Cycling'|'Swimming';
+export type ProvenRaceSource={sourceId:string;objective:EnduranceSpecificObjective};
 export interface ReviewedRaceSpecificProof{
   verdict:'verified'|'refused';
   reason:string;
@@ -24,7 +25,7 @@ const zonesValid=(dose:NativeZoneDose|null|undefined,minutes:number)=>
 const isPeak=(phase:string)=>phase.trim().toLowerCase()==='peak';
 
 export function certifyReviewedRaceSpecificPeak(
-  plan:ParsedPlan,objective:TriObjective,
+  plan:ParsedPlan,objective:EnduranceSpecificObjective,
   approved:(id:string)=>ProvenRaceSource|null|undefined,
   sourceDose:(id:string,durationMin:number)=>NativeZoneDose|null|undefined,
 ):ReviewedRaceSpecificProof{
