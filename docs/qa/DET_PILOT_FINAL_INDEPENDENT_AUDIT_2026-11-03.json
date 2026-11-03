@@ -1,0 +1,182 @@
+{
+  "date": "2026-11-03",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "sourceCommit": "5e87411535aa028e609a10194d4edfcfb41c0cfb",
+  "sourceUnpublished": true,
+  "independentDenoCheck": {
+    "runId": 41619663409,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41619663409",
+    "conclusion": "success",
+    "snapshotCommit": "87b11fcc39e4b1f25b178f48c030731c88f133b4",
+    "sourceCommit": "5e87411535aa028e609a10194d4edfcfb41c0cfb",
+    "files": 13,
+    "method": "Exact raw files read at immutable Lovable ref; Deno check only in isolated read-only CI, no execution/deployment or Nolio call"
+  },
+  "sourceClosure": {
+    "date": "2026-11-03",
+    "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+    "sourceCommit": "5e87411535aa028e609a10194d4edfcfb41c0cfb",
+    "readMethod": "Lovable read_file at explicit immutable ref; exact raw UTF-8 content copied",
+    "files": [
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+        "gitBlobSha": "16b1b31cde9394bfd9adc63440d5f7a3bb0f778c",
+        "size": 6155
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+        "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069",
+        "size": 6654
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+        "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb",
+        "size": 3070
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/localTime.ts",
+        "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05",
+        "size": 3736
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/oauth.ts",
+        "gitBlobSha": "07cb215bbba0e3c3742aaebd1aad657552c19b03",
+        "size": 16651
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+        "gitBlobSha": "3625ee94ebd74c7f6adf366053dfeca7ba71da2b",
+        "size": 2251
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/planSessions.ts",
+        "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
+        "size": 2447
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+        "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f",
+        "size": 19186
+      },
+      {
+        "sourcePath": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+        "gitBlobSha": "4d9f20b323f8d6b132d33436c5ff96fa4876f0a3",
+        "size": 26054
+      },
+      {
+        "sourcePath": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+        "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
+        "size": 1586
+      },
+      {
+        "sourcePath": "supabase/functions/nolio-v2-oauth/index.ts",
+        "gitBlobSha": "a151c6aa936cc21bd96c1a49cacece2916cf86fd",
+        "size": 3751
+      },
+      {
+        "sourcePath": "supabase/functions/nolio-v2-send-plan/index.ts",
+        "gitBlobSha": "7a908742081e962ae9c56877ad965eb92e338db7",
+        "size": 5102
+      },
+      {
+        "sourcePath": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+        "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
+        "size": 4433
+      }
+    ],
+    "check": "Deno check only, no module execution, no deployment, no database mutation, no real Nolio or secret access",
+    "workflowScope": "only qa/nolio-v2-deno-check-20261102 branch push, contents:read",
+    "limitations": [
+      "Static typing only; OAuth live unexercised",
+      "Nolio refresh/refs activation/dry-run still deferred as documented"
+    ]
+  },
+  "storageAndPrivilegeAudit": {
+    "rows": [
+      {
+        "connection_rows": 0,
+        "grants": [
+          {
+            "grantee": "authenticated",
+            "privilege": "INSERT",
+            "table": "qa_coach_recipe_reports"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege": "SELECT",
+            "table": "qa_coach_recipe_reports"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege": "INSERT",
+            "table": "qa_pilot_review_reports"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege": "SELECT",
+            "table": "qa_pilot_review_reports"
+          }
+        ],
+        "human_reviews": 0,
+        "oauth_grants": 0,
+        "oauth_states": 0
+      }
+    ]
+  },
+  "dataIntegrity": {
+    "rows": [
+      {
+        "control": "A_original_archives",
+        "fingerprint": "543e381a32500dfcf59bc1e384d3e752",
+        "rows": "4"
+      },
+      {
+        "control": "A_current",
+        "fingerprint": "34230fb711707b19d9766814105f0a33",
+        "rows": "1"
+      },
+      {
+        "control": "B_all_archives",
+        "fingerprint": "b2455793c35daa532d2cf10719e80156",
+        "rows": "11"
+      },
+      {
+        "control": "B_current",
+        "fingerprint": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+        "rows": "1"
+      }
+    ]
+  },
+  "reportsGrantsAfterCorrection": {
+    "rows": [
+      {
+        "grantee": "authenticated",
+        "privilege_type": "INSERT",
+        "table_name": "qa_coach_recipe_reports"
+      },
+      {
+        "grantee": "authenticated",
+        "privilege_type": "SELECT",
+        "table_name": "qa_coach_recipe_reports"
+      },
+      {
+        "grantee": "authenticated",
+        "privilege_type": "INSERT",
+        "table_name": "qa_pilot_review_reports"
+      },
+      {
+        "grantee": "authenticated",
+        "privilege_type": "SELECT",
+        "table_name": "qa_pilot_review_reports"
+      }
+    ]
+  },
+  "notProven": [
+    "Fresh login A/B",
+    "Human review submitted under A/B",
+    "Native iPhone or all-page visual PDF review",
+    "Any real Nolio OAuth grant, server dry-run, send or readback",
+    "Nolio token refresh and activation of verified refs (not implemented)",
+    "Independent sports/scientific clearance and production attestation"
+  ]
+}
