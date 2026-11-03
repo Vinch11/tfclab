@@ -569,7 +569,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
       const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
-        if(experimentalContract?.requireReviewedRaceSpecificPeak===true){
+        // The source-only early search predicate belongs to the new
+        // endurance-quality contract. Historical contracts keep their native
+        // early screen AND their separate final reviewed-source certificate.
+        if(experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true&&
+           experimentalContract.requireReviewedRaceSpecificPeak===true){
           if(!session.catalogId||typeof session.durationMin!=='number')return false;
           const review=experimentalContract.reviewedRaceSpecificForId?.(session.catalogId);
           const dose=experimentalContract.sourceStructuredZoneForId?.(session.catalogId,session.durationMin);
