@@ -38,7 +38,10 @@ jobs:
           tail -n 90 fifteen-families.log
           exit "$TEST_STATUS"
       - name: Independent calendar, source block and recovery arithmetic
-        run: python3 scripts/det-engine/verify_remaining_family_calendars.py fifteen-families.json | tee independent-families.log
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/det-engine/verify_remaining_family_calendars.py fifteen-families.json | tee independent-families.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
