@@ -121,6 +121,8 @@ export function normalizeRepairSport(raw: unknown): string {
 export function normalizeRepairGoal(raw: unknown): string | null {
   const value = normalizeToken(raw).replace(/\s+/g, " ");
   if (!value) return null;
+  if (/^(?:cycling|bike|velo|cyclisme)(?:\b|$)|contre.la.montre/.test(value)) return "cycling";
+  if (/^(?:swimming|swim|natation)(?:\b|$)/.test(value)) return "swimming";
   if (value === "half") return "half";
   if (value === "olympic") return "olympic";
   if (/start.?to.?run|debut.*cour|repris.*cour/.test(value)) return "start_to_run";

@@ -83,7 +83,7 @@ export type DPlusTarget = number | { min: number; max: number };
 // (ni dans `variants`, ni dans `goals`), qui retombaient silencieusement sur
 // le pool "half" (Sprint/Olympic) ou "10k" (5K) sans jamais bénéficier du
 // bonus de score "objectif documenté" (workoutCatalogBuilder.scoreWorkout).
-export type WorkoutGoal = "ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long" | "start_to_run";
+export type WorkoutGoal = "cycling" | "swimming" | "ironman" | "half" | "sprint" | "olympic" | "marathon" | "semi" | "10k" | "5k" | "trail_short" | "trail_mountain" | "trail_ultra" | "trail_long" | "start_to_run";
 
 // =============================================
 // PROFIL W'bal — Recalcul automatique des temps de repos

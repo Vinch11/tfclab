@@ -1,0 +1,58 @@
+name: DET trail acceptance
+on:
+  pull_request:
+    paths:
+      - 'experimental/det-engine/**'
+      - 'scripts/library-v3/**'
+      - 'scripts/det-engine/**'
+      - 'src/engines/plan/**'
+      - '.github/workflows/det-trail-evidence.yml'
+jobs:
+  trail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Source declaration from the complete checkout
+        run: bun scripts/preproduction/plan-release-source.mjs --write
+      - name: TypeScript experimental engine and tests
+        shell: bash
+        run: |
+          set -o pipefail
+          bunx tsc --noEmit -p experimental/det-engine/tsconfig.json 2>&1 | tee trail-typecheck.log
+      - name: Three complete trail plans and negative evidence controls
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v360-trail-acceptance.test.ts experimental/det-engine/v360-trail-safety.test.ts > trail-acceptance.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          rows=[]
+          for line in Path('trail-acceptance.log').read_text().splitlines():
+              line=re.sub(r'\x1b\[[0-9;]*m','',line)
+              if 'DET_V360_TRAIL ' in line:
+                  rows.append(json.loads(line.split('DET_V360_TRAIL ',1)[1]))
+          Path('trail-calendars.json').write_text(json.dumps(rows,indent=2,ensure_ascii=False))
+          PY
+          tail -n 60 trail-acceptance.log
+          exit "$TEST_STATUS"
+      - name: Independent source, terrain, recovery and calendar arithmetic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 scripts/det-engine/verify_trail_calendars.py trail-calendars.json | tee trail-independent.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trail-evidence
+          path: |
+            trail-typecheck.log
+            trail-acceptance.log
+            trail-calendars.json
+            trail-independent.log
+            supabase/functions/_shared/planReleaseManifest.ts
+          retention-days: 14

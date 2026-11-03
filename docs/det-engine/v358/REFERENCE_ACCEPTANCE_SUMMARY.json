@@ -1,0 +1,222 @@
+[
+  {
+    "scenario": "semi-8w-age_group-strict-acceptance",
+    "objective": "Semi",
+    "weeks": 8,
+    "weeklyHours": 7,
+    "ambition": "age_group",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 9,
+      "allKeySessions": 23,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 39.130434782608695,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "semi-8w-competitor-strict-acceptance",
+    "objective": "Semi",
+    "weeks": 8,
+    "weeklyHours": 9,
+    "ambition": "competitor",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 9,
+      "allKeySessions": 29,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 31.03448275862069,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "semi-30w-age_group-strict-acceptance",
+    "objective": "Semi",
+    "weeks": 30,
+    "weeklyHours": 7,
+    "ambition": "age_group",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 40,
+      "allKeySessions": 102,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 39.21568627450981,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "semi-30w-competitor-strict-acceptance",
+    "objective": "Semi",
+    "weeks": 30,
+    "weeklyHours": 9,
+    "ambition": "competitor",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 40,
+      "allKeySessions": 129,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 31.007751937984494,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-8w-age_group-strict-acceptance",
+    "objective": "10K",
+    "weeks": 8,
+    "weeklyHours": 7,
+    "ambition": "age_group",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 9,
+      "allKeySessions": 23,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 39.130434782608695,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-8w-competitor-strict-acceptance",
+    "objective": "10K",
+    "weeks": 8,
+    "weeklyHours": 9,
+    "ambition": "competitor",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 9,
+      "allKeySessions": 29,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 31.03448275862069,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-10w-age_group-strict-acceptance",
+    "objective": "10K",
+    "weeks": 10,
+    "weeklyHours": 7,
+    "ambition": "age_group",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 11,
+      "allKeySessions": 30,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 36.666666666666664,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-10w-competitor-strict-acceptance",
+    "objective": "10K",
+    "weeks": 10,
+    "weeklyHours": 9,
+    "ambition": "competitor",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 12,
+      "allKeySessions": 38,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 31.57894736842105,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": true,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-12w-age_group-strict-acceptance",
+    "objective": "10K",
+    "weeks": 12,
+    "weeklyHours": 7,
+    "ambition": "age_group",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 15,
+      "allKeySessions": 38,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 39.473684210526315,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  },
+  {
+    "scenario": "10k-12w-competitor-strict-acceptance",
+    "objective": "10K",
+    "weeks": 12,
+    "weeklyHours": 9,
+    "ambition": "competitor",
+    "primaryLimiter": "tte",
+    "tte": {
+      "verifiedMatches": 15,
+      "allKeySessions": 48,
+      "unknownKeySessions": 0,
+      "nonRunKeySessions": 0,
+      "percentage": 31.25,
+      "minimumPercentage": 30,
+      "verified": true,
+      "mapping": "v3_mlss_threshold_tolerance_exact_work_20min"
+    },
+    "supplementalV3Dose": false,
+    "syntheticOnly": true,
+    "prescriptionAllowed": false,
+    "scientificAttestation": false
+  }
+]

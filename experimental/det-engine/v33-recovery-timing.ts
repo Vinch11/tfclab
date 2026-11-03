@@ -36,8 +36,8 @@ function starts(session:ParsedSession,source?:RecoveryTimingInput['startForSessi
     throw Error('v3_session_clock_invalid');
   return time;
 }
-function serves(requested:string,sport:string):boolean {
-  return requested===sport||(sport==='brick'&&(requested==='bike'||requested==='run'));
+function serves(requested:string,sport:string,isOfficialTriathlon=false):boolean {
+  return requested===sport||(sport==='brick'&&(requested==='bike'||requested==='run'||isOfficialTriathlon&&requested==='swim'));
 }
 type Entry={session:ParsedSession;week:number;day:number;start:CoachSessionStart|null};
 export function auditSourceRecoveryTiming(input:RecoveryTimingInput):RecoveryTimingIssue[] {
@@ -86,7 +86,7 @@ export function auditSourceRecoveryTiming(input:RecoveryTimingInput):RecoveryTim
         continue;
       }
       if(requirement.hours===0)continue;
-      const following=records.slice(i+1).find(other=>serves(requirement.sport,other.session.sport));
+      const following=records.slice(i+1).find(other=>serves(requirement.sport,other.session.sport,other.session.custom===true&&other.session.title.startsWith('COURSE :')));
       if(!following)continue;
       const requiredMinutes=requirement.hours*60;
       const guaranteedGap=Math.max(0,(following.day-current.day-1)*MINUTES_PER_DAY);

@@ -56,6 +56,40 @@ describe('DET V35 — necessary-condition gate, never an authorization to add lo
     const report=auditV35BikeOnlyFeasibility(candidate(),cap(3442),[]);
     expect(report.verdict).toBe('baseline_exceeds_declared_ceiling');
   });
+  it('does not round exact fractional source minutes into a false infeasibility',()=>{
+    const plan=candidate();
+    plan.weeks[0].sessions[0].durationMin=10.25;
+    plan.weeks[0].sessions[1].durationMin=20.5;
+    plan.weeks[0].sessions[2].durationMin=10.25;
+    const r=auditV35BikeOnlyFeasibility(plan,cap(46),[]);
+    expect(r.knownMinutes).toEqual({swim:10.25,bike:20.5,run:10.25});
+    expect(r.optimisticCombinedHeadroomMinutes).toBe(5);
+    expect(r.requiredAdditionalBikeMinutes).toBeCloseTo(10.25/0.23-41,7);
+    expect(r.verdict).toBe('room_under_caps_only_not_executable');
+  });
+  it('keeps frequency-only strength separate from endurance minutes',()=>{
+    const plan=candidate();
+    plan.weeks[0].sessions.push({
+      weekNumber:1,weekTheme:'base',phase:'base',dayIndex:3,
+      dayName:'jeudi',sport:'strength',title:'Renforcement par fréquence',
+      details:'Une séance de force, durée non confirmée',
+      isRest:false,durationMin:undefined,
+    });
+    const r=auditV35BikeOnlyFeasibility(plan,cap(3500),[]);
+    expect(r.verdict).toBe('room_under_caps_only_not_executable');
+    expect(r.knownMinutes).toEqual({swim:805,bike:1348,run:1290});
+    expect(r.optimisticCombinedHeadroomMinutes).toBe(57);
+  });
+  it('returns a blocking-eligible invalid-baseline verdict instead of throwing on unknown endurance dose',()=>{
+    const plan=candidate();
+    plan.weeks[0].sessions[0].durationMin=undefined;
+    const r=auditV35BikeOnlyFeasibility(plan,cap(3500),[]);
+    expect(r.verdict).toBe('baseline_duration_invalid');
+    expect(r.reason).toContain('v31_planned_duration_unavailable');
+    expect(r.requiredAdditionalBikeMinutes).toBeNull();
+    expect(r.optimisticCombinedHeadroomMinutes).toBeNull();
+    expect(r.weeks).toEqual([]);
+  });
   it('does not treat the nominal 20% target as a 23% target',()=>{
     const report=auditV35BikeOnlyFeasibility(candidate(),cap(4025),[],20);
     expect(report.requiredAdditionalBikeMinutes).toBe(582);

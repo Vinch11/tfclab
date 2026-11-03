@@ -6,7 +6,15 @@
 import { getDoctrineDomain, type DoctrineDomainId } from "../../src/lib/zones/tfclDoctrine";
 import type { V3Workout, Paces } from "./catalogueRuntime";
 
+/** Individually reviewed FIELD effort cues; no population RPE-to-zone conversion.
+ * These describe a coach prescription, not a biological threshold measurement. */
+export interface V3RunTerrainReview {
+  athleteId:string; sourceId:string; terrainContextId:string;
+  fieldReviewReference:string; coachConfirmsFieldEffortReview:true;
+  domainRpe:Partial<Record<DoctrineDomainId,[number,number]>>;
+}
 export interface V3AthleteAnchors {
+  runTerrainReview?:V3RunTerrainReview;
   bikeFtpWatts?: number;
   bikePmaWatts?: number;
   bikeSprintPowerRangeWatts?: [number,number];
@@ -20,11 +28,11 @@ export interface V3AthleteAnchors {
 }
 export interface V3IntensityTarget {
   domain: DoctrineDomainId | null;
-  metric: "watts" | "sec_per_km" | "sec_per_100m" | "m_per_sec" | "coach_rpe_load";
+  metric: "watts" | "sec_per_km" | "sec_per_100m" | "m_per_sec" | "coach_rpe_load" | "coach_field_effort";
   min: number | null;
   max: number | null;
   source: "athlete_measurement_with_doctrine_model" | "direct_athlete_pace" |
-    "coach_approved_css_proxy" | "coach_confirmed_load" | "direct_athlete_range";
+    "coach_approved_css_proxy" | "coach_confirmed_load" | "direct_athlete_range" | "coach_reviewed_terrain_effort";
   confidence: "model" | "measured" | "proxy" | "coach_confirmed";
   note: string;
 }
@@ -72,6 +80,18 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
         source:"athlete_measurement_with_doctrine_model",confidence:"model",
         note:"Fourchette doctrine appliquée à FTP déclarée; LT1 ou MLSS non certifié par cette seule opération"});
     }else if(w.sport==="run"){
+      // Presence of terrain review is an explicit mode. Invalid/missing domain
+      // evidence must never fall back to a flat-road pace or % vVO2.
+      if(a.runTerrainReview){
+        const r=a.runTerrainReview,range=r.domainRpe[domain];
+        if(!r.athleteId||r.sourceId!==w.id||!r.terrainContextId||!r.fieldReviewReference||
+           r.coachConfirmsFieldEffortReview!==true||!rangeValid(range)||range[1]>10||
+           domain==='neuromuscular')missing.push('run_terrain_field_review.'+domain);
+        else targets.push({domain,metric:'coach_field_effort',min:range[0],max:range[1],
+          source:'coach_reviewed_terrain_effort',confidence:'coach_confirmed',
+          note:'Consigne de ressenti individuelle sur ce terrain; aucune allure plat transposée, aucun seuil biologique attesté'});
+        continue;
+      }
       if(domain==="neuromuscular"){
         if(!rangeValid(a.runSprintSpeedRangeMps))missing.push("run_verified_sprint_speed_range_mps");
         else targets.push({domain,metric:"m_per_sec",min:a.runSprintSpeedRangeMps[0],max:a.runSprintSpeedRangeMps[1],

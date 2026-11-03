@@ -234,4 +234,16 @@ jobs:
       - name: TypeScript — moteur expérimental complet
         run: bunx tsc --noEmit -p experimental/det-engine/tsconfig.json
       - name: Vitest — catalogue V3 et solveur déterministe
-        run: bunx vitest run --config experimental/det-engine/vitest.v31.config.ts
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts --bail=1 > det-v3-suite.log 2>&1
+          TEST_STATUS=$?
+          tail -n 120 det-v3-suite.log
+          exit "$TEST_STATUS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: det-v3-suite-log
+          path: det-v3-suite.log
+          retention-days: 14

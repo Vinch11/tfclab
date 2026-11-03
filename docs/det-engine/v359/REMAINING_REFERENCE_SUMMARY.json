@@ -1,0 +1,123 @@
+{
+  "codeUnderTest": "b40fd9174c2053a8c2523ca4ad00e877b962f965",
+  "workflowRun": 41660718605,
+  "artifactId": 13242306276,
+  "syntheticOnly": true,
+  "prescriptionAllowed": false,
+  "scientificAttestation": false,
+  "calendars": [
+    {
+      "scenario": "sprint-8w-reference",
+      "family": 10,
+      "weeks": 8,
+      "minimumLowPercentage": 75.08,
+      "deloads": [
+        4
+      ],
+      "ratios": {
+        "swim": 24.07499198180599,
+        "bike": 43.96886025016765,
+        "run": 31.956147768026355
+      },
+      "allKeySessions": 32,
+      "exactTteMatches": null,
+      "exactPeakSpecificSessions": 3
+    },
+    {
+      "scenario": "olympic-12w-reference",
+      "family": 10,
+      "weeks": 12,
+      "minimumLowPercentage": 85.4,
+      "deloads": [
+        4,
+        8
+      ],
+      "ratios": {
+        "swim": 18.99510673001915,
+        "bike": 50.18261116232892,
+        "run": 30.82228210765194
+      },
+      "allKeySessions": 51,
+      "exactTteMatches": null,
+      "exactPeakSpecificSessions": 2
+    },
+    {
+      "scenario": "cycling-ftp-8w-reference",
+      "family": 11,
+      "weeks": 8,
+      "minimumLowPercentage": 88.89,
+      "deloads": [
+        4
+      ],
+      "ratios": {
+        "swim": 0.0,
+        "bike": 100.0,
+        "run": 0.0
+      },
+      "allKeySessions": 29,
+      "exactTteMatches": null,
+      "exactPeakSpecificSessions": 1
+    },
+    {
+      "scenario": "swim-css-8w-reference",
+      "family": 12,
+      "weeks": 8,
+      "minimumLowPercentage": 93.81,
+      "deloads": [
+        4
+      ],
+      "ratios": {
+        "swim": 100.0,
+        "bike": 0.0,
+        "run": 0.0
+      },
+      "allKeySessions": 8,
+      "exactTteMatches": null,
+      "exactPeakSpecificSessions": 1
+    },
+    {
+      "scenario": "10k-B-to-semi-A-16w-reference",
+      "family": 13,
+      "weeks": 16,
+      "minimumLowPercentage": 82.79,
+      "deloads": [
+        4,
+        9,
+        12
+      ],
+      "ratios": {},
+      "allKeySessions": 49,
+      "exactTteMatches": 19,
+      "exactPeakSpecificSessions": 1
+    },
+    {
+      "scenario": "availability-10k-12w-four-days",
+      "family": 14,
+      "weeks": 12,
+      "minimumLowPercentage": 78.55,
+      "deloads": [
+        4,
+        8
+      ],
+      "ratios": {},
+      "allKeySessions": 38,
+      "exactTteMatches": 15,
+      "exactPeakSpecificSessions": 1
+    },
+    {
+      "scenario": "individual-recovery-10k-12w-2to1-sprint-ban",
+      "family": 15,
+      "weeks": 12,
+      "minimumLowPercentage": 80.32,
+      "deloads": [
+        3,
+        6,
+        9
+      ],
+      "ratios": {},
+      "allKeySessions": 37,
+      "exactTteMatches": 13,
+      "exactPeakSpecificSessions": 1
+    }
+  ]
+}
