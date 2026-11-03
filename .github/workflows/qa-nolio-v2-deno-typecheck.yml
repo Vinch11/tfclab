@@ -19,7 +19,7 @@ jobs:
         working-directory: qa/nolio-v2-deno-snapshot/supabase/functions
         run: |
           set -o pipefail
-          deno check --node-modules-dir=none nolio-v2-send-plan/index.ts qa-nolio-v2-concurrency-probe/index.ts nolio-v2-oauth/index.ts nolio-v2-oauth-callback/index.ts _shared/nolioV2/*.ts 2>&1 | tee ../../deno-check.log
+          deno check --node-modules-dir=none nolio-v2-send-plan/index.ts qa-nolio-v2-concurrency-probe/index.ts nolio-v2-oauth/index.ts nolio-v2-oauth-callback/index.ts nolio-v2-dry-run/index.ts _shared/nolioV2/*.ts 2>&1 | tee ../../deno-check.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:

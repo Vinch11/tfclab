@@ -1,7 +1,7 @@
 {
   "date": "2026-11-03",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "764a6200a157ab8e227b9edf8f0fa079c052c68e",
+  "sourceCommit": "22ffbe79e695eff946daaaad50e1adf2ce7bc4e8",
   "sourceRead": "exact raw content at explicit immutable Lovable ref",
   "files": [
     {
@@ -78,16 +78,31 @@
       "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
       "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
       "size": 1586
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
+      "gitBlobSha": "e41914c874d123534d5fba6811c83ff8d24e9d02",
+      "size": 8127
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
+      "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b",
+      "size": 2602
+    },
+    {
+      "path": "supabase/functions/nolio-v2-dry-run/index.ts",
+      "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea",
+      "size": 4520
     }
   ],
   "method": "Deno check only on isolated QA branch, no execution/deploy/provider requests/secret access",
-  "change": "Bounded references transport and response-body pagination plus safe duration logs. Frontend reviewed separately.",
+  "change": "Three dedicated dry-run-only server files; existing 15 server files byte-identical to previous independently checked snapshot.",
   "limits": [
-    "Static types only; no live Nolio load/refresh/activation/send proof"
+    "Static types only; no actual Nolio simulation or creation performed by agent."
   ],
   "previousCheck": {
-    "runId": 41647546843,
+    "runId": 41650858367,
     "conclusion": "success",
-    "snapshotCommit": "ed6e796109e1c43115c16a564bc20bfc685c7228"
+    "snapshotCommit": "ea7d90f1aaf45da9e7f934cbe3eb80b0ca0446af"
   }
 }
