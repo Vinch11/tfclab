@@ -5,13 +5,17 @@
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { connectionStatus, qaBackendOk, QA_COACHES, selectAthlete, startConnect } from "../_shared/nolioV2/oauth.ts";
+import { activateConnectionAction, connectionStatus, loadConfig, loadRemoteRefsAction, qaBackendOk, QA_COACHES, selectAthlete, startConnect } from "../_shared/nolioV2/oauth.ts";
+import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
+import { fetchRemoteRefs } from "../_shared/nolioV2/refs.ts";
 import { supabaseOAuthStore } from "../_shared/nolioV2/oauthStoreSupabase.ts";
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const FIELDS: Record<string, string[]> = { start: ["action", "athleteId"], status: ["action", "athleteId"], select: ["action", "athleteId", "nolioAthleteRef", "consent"] };
+const FIELDS: Record<string, string[]> = { start: ["action", "athleteId"], status: ["action", "athleteId"], select: ["action", "athleteId", "nolioAthleteRef", "consent"],
+  load_refs: ["action", "athleteId"],
+  activate: ["action", "athleteId", "consent", "refsDigest", "sportIds", "exerciseIds", "calendarTimeZone"] };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -40,10 +44,22 @@ Deno.serve(async (req) => {
 
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return json(500, { status: "REFUSED", reason: "server_misconfigured" });
-  const store = supabaseOAuthStore(createClient(url, serviceKey));
+  const admin = createClient(url, serviceKey);
+  const store = supabaseOAuthStore(admin);
   const env = { clientId: Deno.env.get("NOLIO_V2_CLIENT_ID"), clientSecret: Deno.env.get("NOLIO_V2_CLIENT_SECRET"), supabaseUrl: url };
   const now = Date.now();
   if (b.action === "start") return json(200, await startConnect({ coachId: sub, athleteId: b.athleteId, env, store, now }));
   if (b.action === "status") return json(200, await connectionStatus({ coachId: sub, athleteId: b.athleteId, env, store, now }));
+  if (b.action === "load_refs") {
+    const cfg = loadConfig(env);
+    const f = async (u: string, i: { method: string; headers: Record<string, string>; body?: string; redirect: "error" }) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; };
+    const r = await loadRemoteRefsAction({ coachId: sub, athleteId: b.athleteId, store, now: Date.now,
+      refresh: (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), fetch: f, now: Date.now }),
+      fetchRefs: (accessToken, athleteRef, scopes) => fetchRemoteRefs({ fetch: (u, i) => fetch(u, i), accessToken, athleteRef, scopes }) });
+    console.log(JSON.stringify({ fn: "nolio-v2-oauth", action: "load_refs", status: r.status, reason: "reason" in r ? r.reason : null }));
+    return json(200, r);
+  }
+  if (b.action === "activate") return json(200, await activateConnectionAction({ coachId: sub, athleteId: b.athleteId, store, now,
+    consent: b.consent, refsDigest: b.refsDigest, sportIds: b.sportIds, exerciseIds: b.exerciseIds, calendarTimeZone: b.calendarTimeZone }));
   return json(200, await selectAthlete({ coachId: sub, athleteId: b.athleteId, nolioAthleteRef: b.nolioAthleteRef, consent: b.consent, store, now }));
 });

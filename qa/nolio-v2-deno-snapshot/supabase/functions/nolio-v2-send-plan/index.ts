@@ -17,7 +17,9 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { mapPlanToNolioV2 } from "../_shared/nolioV2/plannedMapper.ts";
 import { sendPlannedV2 } from "../_shared/nolioV2/plannedClient.ts";
-import { loadAuthorizedV2Connection, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
+import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
+import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
+import { loadConfig } from "../_shared/nolioV2/oauth.ts";
 import { sessionsFromPlanJson } from "../_shared/nolioV2/planSessions.ts";
 import { supabaseNolioV2Ledger } from "../_shared/nolioV2/ledgerSupabase.ts";
 import { fetchNolioV2Http } from "../_shared/nolioV2/httpFetch.ts";
@@ -61,7 +63,10 @@ Deno.serve(async (req) => {
   if (!serviceKey) return json(500, { status: "REFUSED", reason: "server_misconfigured" });
   // Service-role créé SEULEMENT après getClaims + propriété plan/athlète vérifiées.
   const admin = createClient(url, serviceKey);
-  const loaded = await loadAuthorizedV2Connection(admin as unknown as ConnectionStoreClient, { coachId: sub, athleteId: pv.athlete_id });
+  const cfg = loadConfig({ clientId: Deno.env.get("NOLIO_V2_CLIENT_ID"), clientSecret: Deno.env.get("NOLIO_V2_CLIENT_SECRET"), supabaseUrl: url });
+  const loaded = await loadV2ConnectionWithRefresh(admin as unknown as ConnectionStoreClient, { coachId: sub, athleteId: pv.athlete_id },
+    (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), now: Date.now,
+      fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) {
     return json(200, {
       status: "BLOCKED", reason: loaded.reason, network: "none",

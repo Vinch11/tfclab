@@ -78,3 +78,49 @@ export async function loadAuthorizedV2Connection(admin: ConnectionStoreClient, c
   if (res.data.length > 1) return { ok: false, reason: "connection_store_ambiguous" };
   return validateV2ConnectionRow(res.data[0], { coachId: ctx.coachId, athleteId: ctx.athleteId, now: ctx.now ?? Date.now() });
 }
+
+/**
+ * Chargeur avec rafraîchissement paresseux : si la connexion active est liée à
+ * un grant (`grant_id`) et que le jeton expire dans < 10 min, un SEUL
+ * rafraîchissement sérialisé est tenté (RPC durable), puis relecture. Échec /
+ * inconnu ⇒ jeton actuel si encore valide, sinon BLOCKED (jamais de nouvel essai).
+ */
+export async function loadV2ConnectionWithRefresh(
+  admin: ConnectionStoreClient,
+  ctx: { coachId: string; athleteId: string; now?: () => number },
+  refresh: (grantId: string, generation: number, scopes: string[]) => Promise<{ status: string; reason: string }>,
+  refreshBeforeMs = 10 * 60_000,
+): Promise<LoadResult & { refresh?: string }> {
+  const now = ctx.now ?? Date.now;
+  if (!UUID.test(ctx.coachId) || !UUID.test(ctx.athleteId)) return { ok: false, reason: "binding_invalid" };
+  const read = async () => {
+    try {
+      const r = await admin.from("nolio_v2_connections").select("*").eq("coach_id", ctx.coachId).eq("athlete_id", ctx.athleteId).eq("status", "active").limit(2);
+      if (r.error || !Array.isArray(r.data)) return "error" as const;
+      return r.data;
+    } catch { return "error" as const; }
+  };
+  const rows = await read();
+  if (rows === "error") return { ok: false, reason: "connection_store_unavailable" };
+  if (rows.length === 0) return { ok: false, reason: "no_authorized_v2_connection" };
+  if (rows.length > 1) return { ok: false, reason: "connection_store_ambiguous" };
+  const row = rows[0] as Record<string, unknown>;
+  const exp = typeof row.token_expires_at === "string" ? Date.parse(row.token_expires_at) : NaN;
+  const first = validateV2ConnectionRow(row, { coachId: ctx.coachId, athleteId: ctx.athleteId, now: now() });
+  const soon = !Number.isFinite(exp) || exp - now() < refreshBeforeMs;
+  if (!soon || typeof row.grant_id !== "string" || typeof row.token_generation !== "number") return first;
+  if (first.ok === false && first.reason !== "token_expired_or_expiring") return first;
+  const out = await refresh(row.grant_id, row.token_generation, Array.isArray(row.granted_scopes) ? row.granted_scopes as string[] : []);
+  // Fail closed: any non-confirmed refresh (IN_PROGRESS, SUPERSEDED, UNKNOWN,
+  // NEEDS_RECONNECT, AMBIGUOUS, ...) blocks. The pre-refresh cached row is
+  // never returned as success, even if its access token is still time-valid.
+  if (out.status !== "REFRESHED") {
+    const reason = out.status === "IN_PROGRESS"
+      ? `token_refresh_in_progress_retry_later:${out.reason}`
+      : `token_refresh_${String(out.status).toLowerCase()}:${out.reason}`;
+    return { ok: false, reason, refresh: out.reason };
+  }
+  const again = await read();
+  if (again === "error" || again.length !== 1) return { ok: false, reason: "connection_reload_failed_after_refresh" };
+  return { ...validateV2ConnectionRow(again[0], { coachId: ctx.coachId, athleteId: ctx.athleteId, now: now() }), refresh: "refreshed" };
+}
