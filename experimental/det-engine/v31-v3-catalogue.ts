@@ -29,6 +29,8 @@ import type { ExperimentalAssemblyContract } from './engine';
 import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 
 export interface V3ReviewedSettings extends DetV3Review {
+  /** Independent route-context binding, mandatory in the explicit terrain mode. */
+  expectedRunTerrainContextId?:string;
   /** Separate expected athlete identity (not inferred from the review itself). */
   expectedAthleteId?:string;
   /** Explicit source-and-athlete sporting qualification evidence. */
@@ -130,6 +132,13 @@ function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
      'source='+t.source,'confiance='+t.confidence].join(' ')).join(' ; ');
 }
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
+  const terrain=settings.athleteAnchors?.runTerrainReview;
+  if(terrain||settings.expectedRunTerrainContextId){
+    if(workout.sport!=='run'||!terrain||!settings.expectedAthleteId||
+       terrain.athleteId!==settings.expectedAthleteId||terrain.sourceId!==workout.id||
+       !settings.expectedRunTerrainContextId||terrain.terrainContextId!==settings.expectedRunTerrainContextId)
+      throw Error('v3_terrain_context_or_athlete_binding_mismatch');
+  }
   const swimPaces=normalizedSwimPaces(settings);
   if(settings.verifiedStrengthTiming&&settings.overrides&&Object.keys(settings.overrides).length)
     throw Error('v3_strength_repetitions_changed_without_remeasurement');

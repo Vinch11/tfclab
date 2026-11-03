@@ -14,7 +14,7 @@ export function resolveDeclaredEvent(config:PlanConfig,week:number,dayIndex:numb
   const matches=config.raceGoals?.filter(g=>g.raceDate===date)??[];
   if(matches.length!==1)throw Error('event_date_missing_or_ambiguous');
   const event=matches[0],goal=normalizeRepairGoal(event.objective);
-  const expected=['10k','semi','marathon','5k'].includes(goal??'')?'run':
+  const expected=(['10k','semi','marathon','5k'].includes(goal??'')||goal?.startsWith('trail_'))?'run':
     goal==='cycling'?'bike':goal==='swimming'?'swim':'brick';
   if(sport!==expected||typeof event.targetTimeMinutes!=='number'||
      !Number.isFinite(event.targetTimeMinutes)||event.targetTimeMinutes<=0)

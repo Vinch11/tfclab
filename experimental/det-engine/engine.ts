@@ -152,6 +152,13 @@ export interface ExperimentalAssemblyContract {
   requireReviewedRaceSpecificPeak?:true;
   /** V359 explicit planned race estimates, separately declared by synthetic coach. */
   useDeclaredEventDurationEstimates?:true;
+  /** Explicit event time is kept in the physical calendar but outside the
+   * coach's TRAINING hours. No unknown event duration is exempted. */
+  officialEventOutsideTrainingHours?:true;
+  /** Dedicated, source/dose/route-bound trail proof; never inferred from a title. */
+  requireReviewedTrailEvidence?:true;
+  reviewedTrailSpecificForSession?:(session:ParsedSession)=>boolean;
+  auditReviewedTrailPlan?:(plan:ParsedPlan)=>{verified:boolean;problems:string[];evidence:unknown};
   /** V315 only: validate training frequency excluding certified official race
    * EVENTS, while preserving physical and native validation of the full plan. */
   verifyOfficialRaceQuotaProjection?:true;
@@ -503,7 +510,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     // This changes the deadline, never source eligibility or taper policy.
     const lastPeakWeekNumber=report.weeks.reduce((last,w)=>
       w.phase?.trim().toLowerCase()==='peak'&&
-      ((experimentalContract?.requireVerifiedRunningPhaseEvidence!==true&&experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks!==true)||
+      ((experimentalContract?.requireVerifiedRunningPhaseEvidence!==true&&experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks!==true&&experimentalContract?.requireReviewedTrailEvidence!==true)||
        preparation.weeklyQuotas[w.week]?.weekType==='load')?w.week:last,0);
     let peakRaceSpecificSeen=false;
     const lastLoadWeekNumber=report.weeks.reduce((last,w)=>
@@ -569,6 +576,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
       const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
+        if(experimentalContract?.requireReviewedTrailEvidence===true)
+          return experimentalContract.reviewedTrailSpecificForSession?.(session)===true;
         // The source-only early search predicate belongs to the new
         // endurance-quality contract. Historical contracts keep their native
         // early screen AND their separate final reviewed-source certificate.
@@ -620,6 +629,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           return refuse('v315_recovery_reference_minutes_unverified_week_'+w.week);
         }
         ceiling=Math.min(ceiling,realCap);
+      }
+      if(experimentalContract?.officialEventOutsideTrainingHours===true){
+        if(experimentalContract.useDeclaredEventDurationEstimates!==true)
+          return refuse('event_training_hours_requires_explicit_estimate');
+        // Every complete assignment includes exactly these reserved events.
+        // Adding their known estimate preserves the training-only ceiling.
+        ceiling+=slots.filter(s=>s.slot.isRaceEvent).reduce((n,s)=>n+
+          resolveDeclaredEvent(config,w.week,s.dayIndex,s.slot.sport).targetTimeMinutes,0);
       }
       const options=slots.map(({slot,dayIndex,dayName})=>{
         if(slot.isRaceEvent){
@@ -1802,6 +1819,20 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       code:i.code,week:i.weekNumber,severity:i.severity,message:i.reason,
     })));
   }
+  let trailProof:{verified:boolean;problems:string[];evidence:unknown}|null=null;
+  if(experimentalContract?.requireReviewedTrailEvidence===true){
+    const goal=normalizeRepairGoal(config.objective??'');
+    try{trailProof=goal?.startsWith('trail_')?
+      experimentalContract.auditReviewedTrailPlan?.(result.candidate!)??null:null;}
+    catch{trailProof={verified:false,problems:['trail_evidence_provider_unavailable'],evidence:null};}
+    result.issues.push({code:trailProof?.verified?'det_v360_trail_evidence_verified':
+      'det_v360_trail_evidence_refused',severity:trailProof?.verified?'warning':'blocking',
+      message:JSON.stringify(trailProof??{verified:false,problems:['dedicated_trail_proof_missing']})});
+    for(const proof of annotateVerifiedRunningTaper(result.candidate!,
+      experimentalContract.sourceFullStructuredDoseForId))result.issues.push({
+        code:proof.verified?'det_v360_trail_taper_verified':'det_v360_trail_taper_refused',
+        week:proof.week,severity:proof.verified?'warning':'blocking',message:JSON.stringify(proof)});
+  }
   const validation=validatePlan(result.candidate!,config.objective,config.prohibitions,undefined,
     config.identifiedLimitersRaw,undefined,athlete,undefined,{sessionsPerWeek:config.sessionsPerWeek,maxSessionsPerDay:config.maxSessionsPerDay,maxDoubleDaysPerWeek:config.maxDoubleDaysPerWeek},config.injuryRisk,config.ambition,
     config.constraints,config.raceGoals?.some(g=>g.raceFormat==='lcw_3day'),config.deloadCadenceWeeks,
@@ -1811,6 +1842,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     validation.issues.map(i=>({
       code:i.rule,week:i.week,severity:i.severity,message:i.message,
     }));
+  if(trailProof?.verified){
+    const findings=nativeIssues.filter(i=>i.code==='phase_coherence'&&i.severity==='warning'&&
+      i.message?.startsWith('Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée'));
+    if(findings.length===1)nativeIssues=nativeIssues.map(i=>i===findings[0]?{
+      ...i,code:'det_v360_trail_specificity_lexical_reconciled',
+      message:JSON.stringify({originalNativeIssue:i,trailProof,
+        reason:'Source-bound terrain, descent and fueling proof replaces a flat race-pace text test only',
+        otherNativeGatesUnchanged:true,scientificAttestation:false}),
+    }:i);
+  }
   if(experimentalContract?.requireExplicitTaperSemanticReview===true){
     const adjudication=reconcileReviewedTaperSemantics({
       plan:result.candidate!,nativeIssues,

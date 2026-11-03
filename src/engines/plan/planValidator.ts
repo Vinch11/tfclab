@@ -13,7 +13,7 @@ import { isOneTimeTestProtocol, parseWeeklyFrequencyCap } from '../../../supabas
  */
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
-import { inferWeekType, type WeekType } from "./sessionSizingMatrix";
+import { inferWeekType, taperWeeksForObjective, type WeekType } from "./sessionSizingMatrix";
 import type { PlanAthleteData } from "./types";
 import { parseAthleteConstraints, constraintSportLabel, type ConstraintSport } from "@/lib/plan/constraintRules";
 import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor";
@@ -3262,8 +3262,20 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
   for (const phase of phases) {
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
-    const range = idx === 4 && isUltraCompressedTrail ? ULTRA_COMPRESSED_PEAK_DURATION_RANGE : PHASE_DURATION_RANGE[idx];
-    if (!range) continue;
+    const defaultRange = idx === 4 && isUltraCompressedTrail ? ULTRA_COMPRESSED_PEAK_DURATION_RANGE : PHASE_DURATION_RANGE[idx];
+    if (!defaultRange) continue;
+    // inferWeekType counts taper weeks BEFORE the race week. A declared
+    // Affûtage block may also include the actual event. Use that same source
+    // of truth only when an authentic race closes the block; an arbitrary
+    // four-week taper without a race keeps the ordinary upper bound.
+    const phaseWeekMatch = phase.weeks.match(/(\d+)\s*[-–àto]\s*S?(\d+)/i);
+    const finalWeek = plan.weeks[plan.weeks.length - 1];
+    const endsWithRace = phase === phases[phases.length - 1] &&
+      phaseWeekMatch !== null && Number(phaseWeekMatch[2]) === finalWeek?.weekNumber &&
+      finalWeek?.sessions.some(isRaceDaySession);
+    const range: [number, number] = idx === 5 && endsWithRace
+      ? [defaultRange[0], Math.max(defaultRange[1], taperWeeksForObjective(objective) + 1)]
+      : defaultRange;
 
     // Parse weeks range like "S1-S4", "S1-S6" (préfixe "S" sur les deux
     // nombres, format produit par derivePhasesFromWeeks ET par l'exemple
