@@ -32,7 +32,18 @@ export const DRY_RUN_CODES = [
   "dry_run_valid", "validation_rejected_400", "auth_rejected_401", "forbidden_403", "rate_limited_429",
   "http_other", "success_shape_invalid", "unexpected_created_resource", "body_not_json",
   "timeout_or_lost", "network_error", "local_guard_refused",
+  ...["team_scope_forbidden", "missing_scope", "athlete_api_access_denied", "permission_denied", "wrong_api_version", "pat_required"] as const,
 ] as const;
+/** Codes 403 officiels (guide migration v1→v2, §4.3 et tableau §5.7, enveloppe {error:{code}}). Allowlist stricte. */
+export const NOLIO_403_CODES = ["team_scope_forbidden", "missing_scope", "athlete_api_access_denied", "permission_denied", "wrong_api_version", "pat_required"] as const;
+/** Extrait UNIQUEMENT error.code s'il est dans l'allowlist ; tout le reste (message, fields, team_name, URL…) est ignoré. */
+export function official403Code(text: string | null): typeof NOLIO_403_CODES[number] | null {
+  let j: unknown;
+  try { j = JSON.parse(text ?? ""); } catch { return null; }
+  if (!isObj(j) || !isObj(j.error)) return null;
+  const c = j.error.code;
+  return typeof c === "string" && (NOLIO_403_CODES as readonly string[]).includes(c) ? c as typeof NOLIO_403_CODES[number] : null;
+}
 export type DryRunCode = typeof DRY_RUN_CODES[number];
 
 export const DRY_RUN_FIXTURE_PREVIEW = {
@@ -71,7 +82,7 @@ export function classifyDryRunResponse(status: number, text: string | null): { o
   if (!Number.isInteger(status) || status < 100) return { outcome: "UNKNOWN", code: "local_guard_refused" };
   if (status === 400) return { outcome: "REFUSED", code: "validation_rejected_400" };
   if (status === 401) return { outcome: "REFUSED", code: "auth_rejected_401" };
-  if (status === 403) return { outcome: "REFUSED", code: "forbidden_403" };
+  if (status === 403) return { outcome: "REFUSED", code: official403Code(text) ?? "forbidden_403" };
   if (status === 429) return { outcome: "REFUSED", code: "rate_limited_429" };
   if (status < 200 || status >= 300) return { outcome: "UNKNOWN", code: "http_other" };
   let j: unknown;

@@ -1,108 +1,109 @@
 {
   "date": "2026-11-03",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "22ffbe79e695eff946daaaad50e1adf2ce7bc4e8",
-  "sourceRead": "exact raw content at explicit immutable Lovable ref",
+  "sourceCommit": "264d10cbd4f59c30da0a46c9d6b3f0afc9c78608",
+  "sourceRead": "exact raw contents at immutable Lovable source reference",
   "files": [
     {
       "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
-      "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895",
-      "size": 9062
+      "size": 9062,
+      "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
-      "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069",
-      "size": 6654
+      "size": 6654,
+      "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
-      "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb",
-      "size": 3070
+      "size": 3070,
+      "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/localTime.ts",
-      "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05",
-      "size": 3736
+      "size": 3736,
+      "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
-      "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
-      "size": 2447
+      "size": 2447,
+      "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
-      "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f",
-      "size": 19186
+      "size": 19186,
+      "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-      "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb",
-      "size": 27144
+      "size": 27144,
+      "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/oauth.ts",
-      "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
-      "size": 25115
+      "size": 25115,
+      "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
-      "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
-      "size": 3523
+      "size": 3523,
+      "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
-      "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4",
-      "size": 8143
+      "size": 8143,
+      "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/refs.ts",
-      "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25",
-      "size": 10895
+      "size": 10895,
+      "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25"
     },
     {
       "path": "supabase/functions/nolio-v2-send-plan/index.ts",
-      "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47",
-      "size": 5692
+      "size": 5692,
+      "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47"
     },
     {
       "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
-      "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
-      "size": 4433
+      "size": 4433,
+      "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a"
     },
     {
       "path": "supabase/functions/nolio-v2-oauth/index.ts",
-      "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57",
-      "size": 5392
+      "size": 5392,
+      "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57"
     },
     {
       "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
-      "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
-      "size": 1586
+      "size": 1586,
+      "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
-      "gitBlobSha": "e41914c874d123534d5fba6811c83ff8d24e9d02",
-      "size": 8127
+      "size": 9099,
+      "gitBlobSha": "9d39361f1179a8170fc4728852009af711b6fbe5"
     },
     {
       "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
-      "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b",
-      "size": 2602
+      "size": 2602,
+      "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b"
     },
     {
       "path": "supabase/functions/nolio-v2-dry-run/index.ts",
-      "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea",
-      "size": 4520
+      "size": 4520,
+      "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea"
     }
   ],
-  "method": "Deno check only on isolated QA branch, no execution/deploy/provider requests/secret access",
-  "change": "Three dedicated dry-run-only server files; existing 15 server files byte-identical to previous independently checked snapshot.",
-  "limits": [
-    "Static types only; no actual Nolio simulation or creation performed by agent."
-  ],
+  "method": "Deno static types only on isolated QA branch; no execution/deployment/provider requests/secrets",
+  "change": "403 diagnostic extracts official nested error.code only from exact six-code allowlist, with generic fallback. Other 17 server files byte-identical to previous checked snapshot.",
   "previousCheck": {
-    "runId": 41650858367,
+    "runId": 41662179351,
     "conclusion": "success",
-    "snapshotCommit": "ea7d90f1aaf45da9e7f934cbe3eb80b0ca0446af"
-  }
+    "snapshotCommit": "4f87a41b82b130ca414138cb0cd5277fb62e589c"
+  },
+  "limits": [
+    "Initial real provider refusal remains REFUSED and exact cause UNKNOWN.",
+    "New real diagnostic still requires manual browser action by coach."
+  ]
 }
