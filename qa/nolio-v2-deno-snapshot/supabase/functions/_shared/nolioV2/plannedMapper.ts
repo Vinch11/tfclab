@@ -118,6 +118,31 @@ function leafTargets(l: DetLeaf, notes: string[]): V2Target[] | string {
   return out.length ? out : [{ type: "no_target" }];
 }
 
+/** Même prédicat que mapNodes : une feuille exige une référence d'exercice. */
+export function nodeRequiresExercise(n: DetLeaf, sport: string): boolean {
+  return sport === "strength" || "reps" in n.dose || n.repsTarget !== undefined;
+}
+
+/**
+ * Libellés exacts de toutes les feuilles exigeant un exercice (repeats inclus),
+ * uniquement depuis detStructuredWorkout des séances fournies — aucun texte,
+ * catalogue ni nom deviné. Séance sans structure ⇒ ignorée (refus mapper explicite).
+ */
+export function requiredExerciseLabels(sessions: PlanSessionInput[]): string[] {
+  const out = new Set<string>();
+  const walk = (ns: DetNode[], sport: string) => { for (const n of ns) {
+    if (n.kind === "repeat") { if (Array.isArray(n.steps)) walk(n.steps, sport); }
+    else if (nodeRequiresExercise(n, sport) && typeof n.label === "string" && n.label) out.add(n.label);
+  } };
+  for (const s of sessions) {
+    if (s.isRest) continue;
+    const w = s.detStructuredWorkout;
+    if (!w || w.schema !== "det-structured-workout-v1" || !Array.isArray(w.nodes)) continue;
+    walk(w.nodes, w.sport);
+  }
+  return [...out];
+}
+
 function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string[]): V2Node[] | string {
   const out: V2Node[] = [];
   for (const n of ns) {
@@ -137,7 +162,7 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
     }
     const tg = leafTargets(n, notes);
     if (typeof tg === "string") return tg;
-    const isStrength = sport === "strength" || "reps" in n.dose || n.repsTarget !== undefined;
+    const isStrength = nodeRequiresExercise(n, sport);
     if (isStrength) {
       const ex = refs.exerciseIds[n.label];
       if (!ex) return `exercise_reference_missing:${n.label}`;

@@ -1,7 +1,7 @@
 {
   "date": "2026-11-03",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "59afc59539f925afed1112c55cb3116aa74c68c9",
+  "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
   "sourceRead": "exact raw content at explicit immutable Lovable ref",
   "files": [
     {
@@ -46,8 +46,8 @@
     },
     {
       "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-      "gitBlobSha": "4d9f20b323f8d6b132d33436c5ff96fa4876f0a3",
-      "size": 26054
+      "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb",
+      "size": 27144
     },
     {
       "path": "supabase/functions/_shared/nolioV2/refs.ts",
@@ -84,5 +84,11 @@
   "limits": [
     "Static types only, not live OAuth refresh/refs/activation/send",
     "SQL implementation separate live metadata review; no token values read"
-  ]
+  ],
+  "previousCheck": {
+    "runId": 41646966587,
+    "conclusion": "success",
+    "snapshotCommit": "a85ea7e826502184e9a710860e7babbb5486f914"
+  },
+  "changeSincePrevious": "plannedMapper adds exact recursive exercise-label helper; recheck final immutable source"
 }
