@@ -14,12 +14,12 @@ jobs:
           deno-version: v2.x
       - name: Deno version
         run: deno --version | tee qa/nolio-v2-deno-snapshot/deno-version.txt
-      - name: Check exact QA Nolio source snapshot
+      - name: Check exact QA Nolio source snapshot including OAuth
         shell: bash
         working-directory: qa/nolio-v2-deno-snapshot/supabase/functions
         run: |
           set -o pipefail
-          deno check --node-modules-dir=none nolio-v2-send-plan/index.ts qa-nolio-v2-concurrency-probe/index.ts _shared/nolioV2/*.ts 2>&1 | tee ../../deno-check.log
+          deno check --node-modules-dir=none nolio-v2-send-plan/index.ts qa-nolio-v2-concurrency-probe/index.ts nolio-v2-oauth/index.ts nolio-v2-oauth-callback/index.ts _shared/nolioV2/*.ts 2>&1 | tee ../../deno-check.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
