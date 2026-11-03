@@ -275,7 +275,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       result.issues.push({code:phases.verified?'det_v358_running_phase_calendar_prepared':
         'det_v358_running_phase_calendar_refused',severity:phases.verified?'warning':'blocking',
         message:JSON.stringify({...phases,foundationUnchanged:true,
-          weeklyQuotasAndAvailabilityUnchanged:true,scientificAttestation:false}),
+          quotaRulesAndAvailabilityUnchanged:true,scientificAttestation:false}),
       });
       if(!phases.verified)return refuse('v358_running_phase_calendar_refused');
       config={...config,windowWeekPhases:phases.calendar};
@@ -926,7 +926,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const dose=session.catalogId?
               experimentalContract?.sourceFullStructuredDoseForId?.(
                 session.catalogId,session.durationMin):null;
-            return dose?[dose.low-3*(dose.mid+dose.high)-0.01*dose.unknown]:[];
+            return dose?[dose.low-3*(dose.mid+dose.high)-(experimentalContract?.requireVerifiedRunningPhaseEvidence===true?3:0.01)*dose.unknown]:[];
           });
           return margins.length?Math.max(...margins):-Infinity;
         };
@@ -1028,7 +1028,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           return dose?{dose,isKeyQuality:isQuality(session)} satisfies BoundedZoneChoice:null;
         })):[];
       const initialNecessaryBounds=requireStructuredZones?
-        assessStructuredZoneNecessaryBounds([],structuredDomains,qualityRequired):null;
+        assessStructuredZoneNecessaryBounds([],structuredDomains,qualityRequired,
+          experimentalContract?.requireVerifiedRunningPhaseEvidence===true):null;
       if(initialNecessaryBounds&&initialNecessaryBounds.reason!=='not_refuted'){
         result.issues.push({
           code:'det_v310_structured_zone_necessary_bound_refused',
@@ -1087,7 +1088,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               ...context,week:w.week,slot:slot.slot,dayIndex:slot.dayIndex})??0):0;
           };
           const score=(dose:NativeZoneDose|null)=>
-            dose===null?-Infinity:dose.low-3*dose.nonLow-0.01*dose.unknown;
+            dose===null?-Infinity:dose.low-3*dose.nonLow-(experimentalContract?.requireVerifiedRunningPhaseEvidence===true?3:0.01)*dose.unknown;
           const triathlonOrder=experimentalContract?.preferSourceBackedMultisportBalance===
             'triathlon'&&['half','ironman'].includes(normalizeRepairGoal(config.objective??'')??'');
           const triathlonDuration=(a:ParsedSession,b:ParsedSession)=>
@@ -1255,7 +1256,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const proposed=selected as NativeZoneDose[];
             const exact=assessStructuredZoneNecessaryBounds(
               proposed.map((dose,i)=>({dose,isKeyQuality:isQuality(chosen[i])})),
-              structuredDomains.slice(index),qualityRequired);
+              structuredDomains.slice(index),qualityRequired,
+              experimentalContract?.requireVerifiedRunningPhaseEvidence===true);
             if(exact.reason!=='not_refuted'){
               countPrune(exact.reason);
               return false;
@@ -1282,7 +1284,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           if(qualityRequired&&!chosen.some(isQuality))return false;
           if(requireStructuredZones)
             return assessStrictStructuredZoneTarget(
-              chosen.map(session=>nativeProfiles.get(session)!) as NativeZoneDose[]).admissible;
+              chosen.map(session=>nativeProfiles.get(session)!) as NativeZoneDose[],
+              experimentalContract?.requireVerifiedRunningPhaseEvidence===true).admissible;
           if(requireStrictNativeZones)
             return assessStrictNativePolarizationTarget(chosen).admissible;
           return true;

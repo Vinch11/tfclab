@@ -1,4 +1,6 @@
 import {describe,expect,it} from 'vitest';
+import {assessStrictStructuredZoneTarget} from './v39-strict-native-polarization-target';
+import {assessStructuredZoneNecessaryBounds} from './v310-structured-polarization-bounds';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 import {annotateVerifiedRunningTaper} from './v358-reviewed-running-taper';
 import {prepareReviewed10kPhases} from './v358-running-phase-calendar';
@@ -18,6 +20,13 @@ const plan=()=>({weeks:[1,2].map(n=>({weekNumber:n,phase:n===1?'peak':'taper',
 const source=()=>({sourceIds:['V3P_RUN_001'],durationMin:60,low:55,mid:0,high:5,unknown:0,
   provenance:'v3_individually_configured_blocks_only' as const});
 describe('V358 exact running evidence refuses unsupported shortcuts',()=>{
+  it('keeps unknown minutes in the stricter whole-duration denominator',()=>{
+    const dose={low:75,nonLow:25,unknown:5};
+    expect(assessStrictStructuredZoneTarget([dose]).admissible).toBe(true);
+    expect(assessStrictStructuredZoneTarget([dose],true).admissible).toBe(false);
+    expect(assessStructuredZoneNecessaryBounds([{dose,isKeyQuality:true}],[],true,true).reason)
+      .toBe('easy_fraction_impossible');
+  });
   it('annotates a taper only after measured time and exact low-intensity source proof',()=>{
     const p=plan();const original=structuredClone(p.weeks.map(w=>w.sessions));
     expect(annotateVerifiedRunningTaper(p,source)[0].verified).toBe(true);

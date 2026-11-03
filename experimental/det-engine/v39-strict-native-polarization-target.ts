@@ -89,13 +89,14 @@ export function assessStrictNativePolarizationTarget(
  * remains separately required, so this is never a release certificate.
  */
 export function assessStrictStructuredZoneTarget(
-  doses:readonly NativeZoneDose[],
+  doses:readonly NativeZoneDose[],includeUnknownInLowDenominator=false,
 ):{admissible:boolean;lowPct:number|null;unknownPct:number|null} {
   const low=doses.reduce((n,d)=>n+d.low,0);
   const other=doses.reduce((n,d)=>n+d.nonLow,0);
   const unknown=doses.reduce((n,d)=>n+d.unknown,0);
   const known=low+other,grand=known+unknown;
-  const lowPct=known>0?100*low/known:null;
+  const denominator=includeUnknownInLowDenominator?grand:known;
+  const lowPct=denominator>0?100*low/denominator:null;
   const unknownPct=grand>0?100*unknown/grand:null;
   return {admissible:lowPct!==null&&lowPct>=75-1e-9&&
     unknownPct!==null&&unknownPct<=30+1e-9,

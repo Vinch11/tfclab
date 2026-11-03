@@ -34,15 +34,16 @@ const eps=1e-8;
 export function assessStructuredZoneNecessaryBounds(
   chosen:readonly BoundedZoneChoice[],
   remaining:readonly (readonly (BoundedZoneChoice|null)[])[],
-  requireKeyQuality:boolean,
+  requireKeyQuality:boolean,includeUnknownInLowDenominator=false,
 ):ZoneNecessaryBounds {
+  const easyMargin=(d:NativeZoneDose)=>easy(d)-(includeUnknownInLowDenominator?3*d.unknown:0);
   let bestEasy=0,minUnknown=0;
   let alreadyQuality=false;
   for(const selected of chosen){
     if(!valid(selected.dose))return {reason:'missing_certified_slot',
       maxEasyMargin:null,minUnknownMargin:null,
       maxEasyMarginWithQuality:null,remainingSlots:remaining.length};
-    bestEasy+=easy(selected.dose);
+    bestEasy+=easyMargin(selected.dose);
     minUnknown+=unknown(selected.dose);
     alreadyQuality ||= selected.isKeyQuality;
   }
@@ -54,7 +55,7 @@ export function assessStructuredZoneNecessaryBounds(
     if(!candidates.length)return {reason:'missing_certified_slot',
       maxEasyMargin:null,minUnknownMargin:null,
       maxEasyMarginWithQuality:null,remainingSlots:remaining.length};
-    const best=Math.max(...candidates.map(x=>easy(x.dose)));
+    const best=Math.max(...candidates.map(x=>easyMargin(x.dose)));
     bestEasy+=best;
     minUnknown+=Math.min(...candidates.map(x=>unknown(x.dose)));
     const quality=candidates.filter(x=>x.isKeyQuality);
@@ -63,7 +64,7 @@ export function assessStructuredZoneNecessaryBounds(
       // Force AT LEAST one key-quality card: its loss relative to each
       // slot's best independent easy-margin may be unavoidable.
       bestQualityDelta=Math.max(bestQualityDelta,
-        Math.max(...quality.map(x=>easy(x.dose)))-best);
+        Math.max(...quality.map(x=>easyMargin(x.dose)))-best);
     }
   }
   const requiredQualityAbsent=requireKeyQuality&&!alreadyQuality;
