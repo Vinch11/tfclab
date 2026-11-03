@@ -31,7 +31,7 @@ export type RemoteExercise = { id: string; name: string; type: string | null };
 export type RemoteRefs = {
   athleteRef: string;
   sports: RemoteSport[];
-  exercises: { status: "loaded" | "scope_missing" | "partial" | "unknown"; items: RemoteExercise[] };
+  exercises: { status: "loaded" | "scope_missing" | "partial" | "unknown" | "timeout"; items: RemoteExercise[] };
   digest: string;
 };
 
@@ -65,20 +65,38 @@ export function validateExercisePage(j: unknown): { data: RemoteExercise[]; hasM
 }
 
 type Page<T> = { data: T[]; hasMore: boolean } | null;
-async function readAll<T extends { id: string }>(f: FetchLike, token: string, path: string, base: URLSearchParams, maxPages: number, validate: (j: unknown) => Page<T>, timeoutMs: number):
-  Promise<{ ok: true; items: T[] } | { ok: false; reason: "partial" | "unknown" }> {
+
+/** Budgets serveur (ms). Sports d'abord ; la bibliothèque n'a que le reste et ne bloque jamais les sports.
+ *  Total serveur ≤ REFS_TOTAL_BUDGET_MS, strictement inférieur au budget client (NOLIO_LOAD_REFS_CLIENT_MS = 45 s). */
+export const SPORTS_BUDGET_MS = 12_000;
+export const EXERCISES_BUDGET_MS = 8_000;
+export const REFS_TOTAL_BUDGET_MS = SPORTS_BUDGET_MS + EXERCISES_BUDGET_MS;
+
+class Deadline extends Error {}
+/** Course bornée : rejette à l'échéance même si la promesse ignore l'abort. Timer toujours nettoyé. */
+function race<T>(p: Promise<T>, ms: number, ctl: AbortController): Promise<T> {
+  if (ms <= 0) { ctl.abort(); return Promise.reject(new Deadline()); }
+  let t: ReturnType<typeof setTimeout> | undefined;
+  const timer = new Promise<never>((_, rej) => { t = setTimeout(() => { ctl.abort(); rej(new Deadline()); }, ms); });
+  return Promise.race([p, timer]).finally(() => clearTimeout(t));
+}
+
+async function readAll<T extends { id: string }>(f: FetchLike, token: string, path: string, base: URLSearchParams, maxPages: number, validate: (j: unknown) => Page<T>, deadline: number, now: () => number):
+  Promise<{ ok: true; items: T[] } | { ok: false; reason: "partial" | "unknown" | "timeout" }> {
   const items: T[] = [];
   let after: string | null = null;
   for (let i = 0; ; i++) {
     if (i >= maxPages) return { ok: false, reason: "partial" };
+    if (deadline - now() <= 0) return { ok: false, reason: "timeout" };
     const q = new URLSearchParams(base); q.set("limit", "100"); if (after) q.set("starting_after", after);
-    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), timeoutMs);
+    const ctl = new AbortController();
     let page: Page<T>;
     try {
-      const r = await f(`${NOLIO_ORIGIN}${path}?${q.toString()}`, { method: "GET", redirect: "error", signal: ctl.signal, headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } });
+      const r = await race(Promise.resolve(f(`${NOLIO_ORIGIN}${path}?${q.toString()}`, { method: "GET", redirect: "error", signal: ctl.signal, headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } })), deadline - now(), ctl);
       if (r.status !== 200) return { ok: false, reason: "unknown" };
-      page = validate(JSON.parse(await r.text()));
-    } catch { return { ok: false, reason: "unknown" }; } finally { clearTimeout(t); }
+      const txt = await race(Promise.resolve(r.text()), deadline - now(), ctl);
+      page = validate(JSON.parse(txt));
+    } catch (e) { return { ok: false, reason: e instanceof Deadline ? "timeout" : "unknown" }; }
     if (!page) return { ok: false, reason: "unknown" };
     items.push(...page.data);
     if (!page.hasMore) break;
@@ -89,16 +107,19 @@ async function readAll<T extends { id: string }>(f: FetchLike, token: string, pa
   return { ok: true, items };
 }
 
-export async function fetchRemoteRefs(a: { fetch: FetchLike; accessToken: string; athleteRef: string; scopes: string[]; timeoutMs?: number }):
+export async function fetchRemoteRefs(a: { fetch: FetchLike; accessToken: string; athleteRef: string; scopes: string[]; sportsBudgetMs?: number; exercisesBudgetMs?: number; now?: () => number }):
   Promise<{ ok: true; refs: RemoteRefs } | { ok: false; reason: string }> {
   if (!USR.test(a.athleteRef)) return { ok: false, reason: "athlete_ref_invalid" };
   if (!a.accessToken) return { ok: false, reason: "access_token_absent" };
-  const tmo = a.timeoutMs ?? 15000;
-  const sp = await readAll(a.fetch, a.accessToken, SPORTS_PATH, new URLSearchParams({ athlete: a.athleteRef }), MAX_SPORT_PAGES, validateSportPage, tmo);
+  const now = a.now ?? Date.now;
+  const start = now();
+  const sp = await readAll(a.fetch, a.accessToken, SPORTS_PATH, new URLSearchParams({ athlete: a.athleteRef }), MAX_SPORT_PAGES, validateSportPage, start + (a.sportsBudgetMs ?? SPORTS_BUDGET_MS), now);
+  // Échec sports ⇒ aucun succès ; l'appelant ne stocke rien (anciens refs valides conservés).
   if (sp.ok === false) return { ok: false, reason: `sports_read_${sp.reason}` };
   let exercises: RemoteRefs["exercises"] = { status: "scope_missing", items: [] };
   if (a.scopes.includes("library:read")) {
-    const ex = await readAll(a.fetch, a.accessToken, EXERCISES_PATH, new URLSearchParams(), MAX_EXERCISE_PAGES, validateExercisePage, tmo);
+    // Budget propre à la bibliothèque : lente/partielle ⇒ statut explicite, force bloquée, sports conservés.
+    const ex = await readAll(a.fetch, a.accessToken, EXERCISES_PATH, new URLSearchParams(), MAX_EXERCISE_PAGES, validateExercisePage, now() + (a.exercisesBudgetMs ?? EXERCISES_BUDGET_MS), now);
     exercises = ex.ok === true ? { status: "loaded", items: ex.items } : { status: ex.reason, items: [] };
   }
   const body = { athleteRef: a.athleteRef, sports: sp.items, exercises };

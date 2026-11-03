@@ -1,7 +1,7 @@
 {
   "date": "2026-11-03",
   "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
-  "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+  "sourceCommit": "764a6200a157ab8e227b9edf8f0fa079c052c68e",
   "sourceRead": "exact raw content at explicit immutable Lovable ref",
   "files": [
     {
@@ -25,16 +25,6 @@
       "size": 3736
     },
     {
-      "path": "supabase/functions/_shared/nolioV2/oauth.ts",
-      "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
-      "size": 25115
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
-      "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
-      "size": 3523
-    },
-    {
       "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
       "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
       "size": 2447
@@ -50,9 +40,14 @@
       "size": 27144
     },
     {
-      "path": "supabase/functions/_shared/nolioV2/refs.ts",
-      "gitBlobSha": "331dfdb01141ac10ddc745f94c7cb82ecfcf1b05",
-      "size": 9392
+      "path": "supabase/functions/_shared/nolioV2/oauth.ts",
+      "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
+      "size": 25115
+    },
+    {
+      "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+      "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
+      "size": 3523
     },
     {
       "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
@@ -60,14 +55,9 @@
       "size": 8143
     },
     {
-      "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
-      "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
-      "size": 1586
-    },
-    {
-      "path": "supabase/functions/nolio-v2-oauth/index.ts",
-      "gitBlobSha": "08e2ec2f093158c3b9d4ab690ece1b6343d60ebf",
-      "size": 5294
+      "path": "supabase/functions/_shared/nolioV2/refs.ts",
+      "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25",
+      "size": 10895
     },
     {
       "path": "supabase/functions/nolio-v2-send-plan/index.ts",
@@ -78,17 +68,26 @@
       "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
       "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
       "size": 4433
+    },
+    {
+      "path": "supabase/functions/nolio-v2-oauth/index.ts",
+      "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57",
+      "size": 5392
+    },
+    {
+      "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+      "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
+      "size": 1586
     }
   ],
-  "method": "Deno check only on QA branch; no execution/deploy/database/Nolio provider requests or secret access",
+  "method": "Deno check only on isolated QA branch, no execution/deploy/provider requests/secret access",
+  "change": "Bounded references transport and response-body pagination plus safe duration logs. Frontend reviewed separately.",
   "limits": [
-    "Static types only, not live OAuth refresh/refs/activation/send",
-    "SQL implementation separate live metadata review; no token values read"
+    "Static types only; no live Nolio load/refresh/activation/send proof"
   ],
   "previousCheck": {
-    "runId": 41646966587,
+    "runId": 41647546843,
     "conclusion": "success",
-    "snapshotCommit": "a85ea7e826502184e9a710860e7babbb5486f914"
-  },
-  "changeSincePrevious": "plannedMapper adds exact recursive exercise-label helper; recheck final immutable source"
+    "snapshotCommit": "ed6e796109e1c43115c16a564bc20bfc685c7228"
+  }
 }

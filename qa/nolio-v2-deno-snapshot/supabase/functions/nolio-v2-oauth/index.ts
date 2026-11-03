@@ -51,12 +51,13 @@ Deno.serve(async (req) => {
   if (b.action === "start") return json(200, await startConnect({ coachId: sub, athleteId: b.athleteId, env, store, now }));
   if (b.action === "status") return json(200, await connectionStatus({ coachId: sub, athleteId: b.athleteId, env, store, now }));
   if (b.action === "load_refs") {
+    const t0 = Date.now();
     const cfg = loadConfig(env);
     const f = async (u: string, i: { method: string; headers: Record<string, string>; body?: string; redirect: "error" }) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; };
     const r = await loadRemoteRefsAction({ coachId: sub, athleteId: b.athleteId, store, now: Date.now,
       refresh: (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), fetch: f, now: Date.now }),
       fetchRefs: (accessToken, athleteRef, scopes) => fetchRemoteRefs({ fetch: (u, i) => fetch(u, i), accessToken, athleteRef, scopes }) });
-    console.log(JSON.stringify({ fn: "nolio-v2-oauth", action: "load_refs", status: r.status, reason: "reason" in r ? r.reason : null }));
+    console.log(JSON.stringify({ fn: "nolio-v2-oauth", action: "load_refs", status: r.status, reason: "reason" in r ? r.reason : null, exercises: "exercises" in r ? r.exercises : null, ms: Date.now() - t0 }));
     return json(200, r);
   }
   if (b.action === "activate") return json(200, await activateConnectionAction({ coachId: sub, athleteId: b.athleteId, store, now,
