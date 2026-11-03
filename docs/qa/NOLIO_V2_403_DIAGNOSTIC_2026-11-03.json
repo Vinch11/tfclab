@@ -1,0 +1,235 @@
+{
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "base": "d304476c9b11ce85671f7b5193bde9df52084e6e",
+  "initialRefusal": {
+    "receiptId": "47be28c7-807c-4a0c-9e7e-45c4ea118623",
+    "createdAt": "2026-11-03T17:02:23.486886Z",
+    "outcome": "REFUSED",
+    "code": "forbidden_403",
+    "httpStatus": 403,
+    "source": "reported by Vincent / root SQL projection, not read by agent",
+    "verdict": "REFUSED, cause UNKNOWN",
+    "immutable": true,
+    "rewritten": false
+  },
+  "defect": "classifyDryRunResponse returned forbidden_403 before parsing body, discarding Nolio error.code; original reason unrecoverable",
+  "hypothesis": "Additional team or athlete restrictions are possible; the specific cause of the original request remains UNKNOWN.",
+  "officialSources": {
+    "guide": {
+      "url": "https://media.cdn.nolio.io/api/migration-v1-to-v2.md",
+      "sha256": "7dcea57aebae5da3bd1aef0aa59028d33a2ebf69e1c36656d7b2b9f5aaa7a48d",
+      "sections": [
+        "4.3",
+        "5.7"
+      ]
+    },
+    "openapi": {
+      "url": "https://www.nolio.io/api/v2/openapi.json",
+      "sha256": "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238"
+    },
+    "envelope": "{\"error\":{\"code\":...}}",
+    "allowlist403": [
+      "team_scope_forbidden",
+      "missing_scope",
+      "athlete_api_access_denied",
+      "permission_denied",
+      "wrong_api_version",
+      "pat_required"
+    ]
+  },
+  "behaviour": "403 only: extract error.code if exact allowlist member, else forbidden_403; message/fields/scopes/team_name/athlete_name/team_options_url never stored, logged or returned. SQL CHECK ^[a-z0-9_]{1,64}$ compatible, no migration.",
+  "unchanged": [
+    "2xx strict validation",
+    "dry_run forced",
+    "fixed URL",
+    "deadlines",
+    "no retry",
+    "normal sender blocked",
+    "RLS",
+    "receipt read-back",
+    "button flow"
+  ],
+  "files": {
+    "supabase/functions/_shared/nolioV2/dryRun.ts": "19285590d2579cd7e4ad13aa7b2a86fee669288ab70e135ebb373f223bdc4456",
+    "src/qa/pilot-review/dryRunReceipt.ts": "2e49c91c3fbebb063b4f9f438a5a655d2c15c463ccfdfbc92e2308b69a4879ee",
+    "src/qa/pilot-review/__tests__/nolioDryRun403.test.ts": "87e1c576aacb0c4555960fe074ac13f6559f8c4cd0f196b18349162083ccfce8"
+  },
+  "tests": {
+    "vitest_pilot_review_plus_lovableBuild": "91 passed",
+    "vitest_pilot_review_plus_plan_before_manifest": "597 passed, 2 failed (stale manifest, then regenerated)",
+    "tsgo": "OK",
+    "eslint": "OK",
+    "deno": "not run locally; CI deno-test decides"
+  },
+  "deploy": {
+    "function": "nolio-v2-dry-run",
+    "source_sha256": "41d401711175ef3951f38679de1da6e494730754ca25657c7e3f7eee2720807e",
+    "others": "none"
+  },
+  "manifest": {
+    "releaseId": "9fc3cb52bf49eb29342fd76db1f4ab930a046a29cdd7edf703e86826e6d46885",
+    "attested": false
+  },
+  "agentNolioCalls": 0,
+  "nextAction": "User clicks once on « Tester la séance sans l'envoyer » to obtain the new official reason",
+  "finalSourceCommit": "264d10cbd4f59c30da0a46c9d6b3f0afc9c78608",
+  "independentAudit": {
+    "serverCI": {
+      "id": 41682446729,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41682446729",
+      "conclusion": "success",
+      "snapshotCommit": "16db9c3f3b07b8fd24ed79110be4c410f4391514",
+      "sourceCommit": "264d10cbd4f59c30da0a46c9d6b3f0afc9c78608",
+      "serverFileCount": 18,
+      "provenance": {
+        "date": "2026-11-03",
+        "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+        "sourceCommit": "264d10cbd4f59c30da0a46c9d6b3f0afc9c78608",
+        "sourceRead": "exact raw contents at immutable Lovable source reference",
+        "files": [
+          {
+            "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+            "size": 9062,
+            "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+            "size": 6654,
+            "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+            "size": 3070,
+            "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+            "size": 3736,
+            "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+            "size": 2447,
+            "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+            "size": 19186,
+            "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+            "size": 27144,
+            "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/oauth.ts",
+            "size": 25115,
+            "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+            "size": 3523,
+            "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+            "size": 8143,
+            "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/refs.ts",
+            "size": 10895,
+            "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25"
+          },
+          {
+            "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+            "size": 5692,
+            "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47"
+          },
+          {
+            "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+            "size": 4433,
+            "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a"
+          },
+          {
+            "path": "supabase/functions/nolio-v2-oauth/index.ts",
+            "size": 5392,
+            "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57"
+          },
+          {
+            "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+            "size": 1586,
+            "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
+            "size": 9099,
+            "gitBlobSha": "9d39361f1179a8170fc4728852009af711b6fbe5"
+          },
+          {
+            "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
+            "size": 2602,
+            "gitBlobSha": "18dd7ee2f0119777aea4fd71d0893b7e4c7f005b"
+          },
+          {
+            "path": "supabase/functions/nolio-v2-dry-run/index.ts",
+            "size": 4520,
+            "gitBlobSha": "b2f3b18f6456e851bd760d6498d6bf9879885bea"
+          }
+        ],
+        "method": "Deno static types only on isolated QA branch; no execution/deployment/provider requests/secrets",
+        "change": "403 diagnostic extracts official nested error.code only from exact six-code allowlist, with generic fallback. Other 17 server files byte-identical to previous checked snapshot.",
+        "previousCheck": {
+          "runId": 41662179351,
+          "conclusion": "success",
+          "snapshotCommit": "4f87a41b82b130ca414138cb0cd5277fb62e589c"
+        },
+        "limits": [
+          "Initial real provider refusal remains REFUSED and exact cause UNKNOWN.",
+          "New real diagnostic still requires manual browser action by coach."
+        ]
+      }
+    },
+    "initialReceiptUnchanged": true,
+    "receiptMetadata": [
+      {
+        "code": "forbidden_403",
+        "created_at": "2026-11-03 17:02:23.486886+00",
+        "fixture_code": "QA_TECH_RUN_10MIN_NO_TARGET",
+        "http_status": 403,
+        "id": "47be28c7-807c-4a0c-9e7e-45c4ea118623",
+        "outcome": "REFUSED",
+        "payload_sha256": "35cadad0588d8410f2226c14042be5a99e679a028e06519df6613b47fa9aefb7",
+        "real_send": "ABSENT"
+      }
+    ],
+    "grantMetadata": [
+      {
+        "active_connections": 1,
+        "athlete_selected": true,
+        "consent_confirmed": true,
+        "granted_scopes": [
+          "billing:read",
+          "library:read",
+          "marketplace:read",
+          "messaging:read",
+          "metrics:read",
+          "planned:read",
+          "planned:write",
+          "real:read",
+          "settings:read",
+          "team:read"
+        ],
+        "refresh_state": "idle",
+        "status": "active",
+        "token_expires_at": "2026-11-04 13:11:46.529+00",
+        "token_generation": 1
+      }
+    ],
+    "sourceReview": "403 extracts exact documented error.code allowlist only; strict 2xx success test, forced dry_run, deadlines and receipt verification retained. Only dryRun.ts changed among the 18 server modules.",
+    "currentRealCause": "UNKNOWN until a new real user response is observed",
+    "noNewAuthenticatedProviderRequestByAgent": true
+  }
+}
