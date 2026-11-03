@@ -1,0 +1,124 @@
+{
+  "schema": "QA_NOLIO_V2_SINGLE_REAL_TRIAL_SUCCESS_V1",
+  "date": "2026-11-03",
+  "verdict": "PASS_REAL_CREATE_AND_EXACT_UNIQUE_READBACK",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backendRef": "lkjesdacgpolrwfxulbo",
+  "fixture": {
+    "recipeCode": "QA_TECH_RUN_10MIN_NO_TARGET_REAL_1",
+    "name": "TFCLab QA — séance technique 10 min (non prescriptive)",
+    "sport": "run",
+    "durationSeconds": 600,
+    "target": "no_target",
+    "date": "2026-11-04",
+    "time": null
+  },
+  "evidence": {
+    "method": "Independent read-only query of safe database columns, then matching user confirmation from the actual QA interface",
+    "trial": {
+      "created_at": "2026-11-03 18:23:24.03246+00",
+      "id": "cef25564-08b2-4178-8396-e44ca83bbad3",
+      "payload_sha256": "88dc14f7643d253e01f5bb6808fbcd771fce80bf903acf45a91c197f8384bc49",
+      "post_http_status": 201,
+      "recipe_code": "QA_TECH_RUN_10MIN_NO_TARGET_REAL_1",
+      "state": "post_accepted",
+      "trial_date": "2026-11-04",
+      "updated_at": "2026-11-03 18:23:34.845036+00"
+    },
+    "receipts": [
+      {
+        "action": "prepare",
+        "code": "frozen",
+        "created_at": "2026-11-03 18:23:24.127384+00",
+        "exact_matches": null,
+        "http_status": null,
+        "id": "49e44404-3bba-4074-a514-1b27d3dc45e8",
+        "items_read": null,
+        "marker_matches": null,
+        "payload_sha256": "88dc14f7643d253e01f5bb6808fbcd771fce80bf903acf45a91c197f8384bc49",
+        "recipe_code": "QA_TECH_RUN_10MIN_NO_TARGET_REAL_1",
+        "trial_date": "2026-11-04",
+        "trial_id": "cef25564-08b2-4178-8396-e44ca83bbad3",
+        "verdict": "PREPARED"
+      },
+      {
+        "action": "send",
+        "code": "created_201",
+        "created_at": "2026-11-03 18:23:34.949579+00",
+        "exact_matches": null,
+        "http_status": 201,
+        "id": "8c958ab8-4993-4677-b973-8f0f78610ef9",
+        "items_read": null,
+        "marker_matches": null,
+        "payload_sha256": "88dc14f7643d253e01f5bb6808fbcd771fce80bf903acf45a91c197f8384bc49",
+        "recipe_code": "QA_TECH_RUN_10MIN_NO_TARGET_REAL_1",
+        "trial_date": "2026-11-04",
+        "trial_id": "cef25564-08b2-4178-8396-e44ca83bbad3",
+        "verdict": "POST_ACCEPTED"
+      },
+      {
+        "action": "verify",
+        "code": "exact_unique",
+        "created_at": "2026-11-03 18:23:35.319081+00",
+        "exact_matches": 1,
+        "http_status": null,
+        "id": "d6ecbfae-489d-4444-b29a-08d6b4b62591",
+        "items_read": 1,
+        "marker_matches": 1,
+        "payload_sha256": "88dc14f7643d253e01f5bb6808fbcd771fce80bf903acf45a91c197f8384bc49",
+        "recipe_code": "QA_TECH_RUN_10MIN_NO_TARGET_REAL_1",
+        "trial_date": "2026-11-04",
+        "trial_id": "cef25564-08b2-4178-8396-e44ca83bbad3",
+        "verdict": "VERIFIED_UNIQUE"
+      }
+    ],
+    "userConfirmation": {
+      "verifiedUnique": true,
+      "itemsRead": 1,
+      "date": "2026-11-04",
+      "nolioRecipientShown": true,
+      "privateNameNotRecorded": true
+    },
+    "providerCreation": "HTTP 201 / POST_ACCEPTED",
+    "providerReadback": "VERIFIED_UNIQUE / exact_unique; complete day list and detail comparison recorded by the deployed app",
+    "remoteResourceIdNotRead": true
+  },
+  "preserved": {
+    "archivesA4Unchanged": true,
+    "currentPlansAandBUnchanged": true,
+    "hashMethod": "Same PostgreSQL UTF-8 plan_json::text SHA-256 before/after; distinct from browser canonical hashes"
+  },
+  "codeValidation": {
+    "lastValidatedSource": "e71a70c15ffbd87958dd85f60304e42ca75260f0",
+    "tests": {
+      "targeted": 131,
+      "manifest": 5
+    },
+    "deno": {
+      "files": 21,
+      "runId": 41691971887,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41691971887",
+      "conclusion": "success"
+    },
+    "runtimeBinding": "Receipt does not embed a runtime source/manifest hash; no cryptographically signed runtime-source attestation"
+  },
+  "scope": {
+    "oneTechnicalSessionCreated": true,
+    "exactUniqueReadback": true,
+    "fullPlanExport": false,
+    "realTokenRefreshProven": false,
+    "sportsAttestation": false,
+    "productionPromotion": false
+  },
+  "bootstrapIncident": {
+    "reported": "Dynamic ReactDOM module fetch failed in Lovable DEV preview",
+    "userRecoveryEvidence": "The user subsequently reached the real-trial panel and reported its verified-unique result",
+    "repairTask": "Still under inspection/verification when this proof is recorded; precise original HTTP cause not established"
+  },
+  "privacy": "No Nolio athlete/sport ID, resource ID, recipient name, tokens, secret or raw provider response published.",
+  "boundaries": [
+    "No additional calendar creation or cleanup triggered by root",
+    "No main/production/V1 change",
+    "Future explicit DET Engine / IA choice preserved"
+  ]
+}
