@@ -1,5 +1,7 @@
 # TFCLab — recette QA et préparation du pilote
 
+Mise à jour du 3 novembre : la connexion manuelle de Vince n'est pas transmise au navigateur du service de test (signed_out). Une [recette Coach A à lancer dans son propre navigateur](COACH_A_SELF_RECIPE_2026-11-03.md) est prête au SHA QA `1a43da93f4b4c61519deb6644eff4fc9d6358bf5`. Aucun test A ni rapport n'a encore été exécuté ; les données A/B de référence sont inchangées. La recette doit être déclenchée par le bouton dans la session A de Vince.
+
 Suivi du 2 novembre 2026. Ce document distingue les preuves existantes des vérifications encore nécessaires. Il n'accorde aucun GO de prescription ni de production.
 
 ## Décision produit confirmée par Vincent le 2 novembre 2026
