@@ -131,10 +131,28 @@ export function parseStoredRefs(x: unknown): RemoteRefs | null {
   return x as unknown as RemoteRefs;
 }
 
-export type ConnectionRefs = { sportIds: Record<string, string>; exerciseIds: Record<string, string>; competition: null; calendarTimeZone: string | null };
+export type CompetitionRef = { date: string; name: string; sport: string; goalType?: "a" | "b" };
+export type ConnectionRefs = { sportIds: Record<string, string>; exerciseIds: Record<string, string>; competition: CompetitionRef | null; calendarTimeZone: string | null };
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+// Contrôles, bidi et séparateurs invisibles refusés (le nom doit être exactement celui confirmé).
+const UNSAFE_TEXT = /[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/;
+const realYmd = (d: string) => { if (!YMD.test(d)) return false; const t = new Date(`${d}T00:00:00Z`); return !Number.isNaN(t.getTime()) && t.toISOString().slice(0, 10) === d; };
+
+/** Identité de compétition confirmée par le coach : date réelle, nom borné exact, sport du plan déjà associé, priorité a|b facultative. */
+export function validateCompetitionRef(c: unknown, sportIds: Record<string, string>): { ok: true; value: CompetitionRef | null } | { ok: false; reason: string } {
+  if (c === null || c === undefined) return { ok: true, value: null };
+  if (!isObj(c)) return { ok: false, reason: "competition_invalid" };
+  const extra = Object.keys(c).filter((k) => !["date", "name", "sport", "goalType"].includes(k));
+  if (extra.length) return { ok: false, reason: "competition_unknown_fields" };
+  if (typeof c.date !== "string" || !realYmd(c.date)) return { ok: false, reason: "competition_date_invalid" };
+  if (typeof c.name !== "string" || !c.name || c.name.length > 120 || c.name !== c.name.trim() || UNSAFE_TEXT.test(c.name)) return { ok: false, reason: "competition_name_invalid" };
+  if (typeof c.sport !== "string" || !SPORT_KEY.test(c.sport) || !sportIds[c.sport]) return { ok: false, reason: "competition_sport_not_associated" };
+  if (c.goalType !== undefined && c.goalType !== "a" && c.goalType !== "b") return { ok: false, reason: "competition_goal_type_invalid" };
+  return { ok: true, value: { date: c.date, name: c.name, sport: c.sport, ...(c.goalType ? { goalType: c.goalType as "a" | "b" } : {}) } };
+}
 const SPORT_KEY = /^[a-z][a-z0-9_]{1,23}$/;
 
-export function validateActivationRefs(a: { remote: RemoteRefs; selectedRef: string; sportIds: unknown; exerciseIds: unknown; calendarTimeZone: unknown }):
+export function validateActivationRefs(a: { remote: RemoteRefs; selectedRef: string; sportIds: unknown; exerciseIds: unknown; calendarTimeZone: unknown; competition?: unknown }):
   { ok: true; refs: ConnectionRefs } | { ok: false; reason: string } {
   if (a.remote.athleteRef !== a.selectedRef) return { ok: false, reason: "refs_for_other_athlete" };
   if (!isObj(a.sportIds)) return { ok: false, reason: "sport_ids_invalid" };
@@ -170,5 +188,7 @@ export function validateActivationRefs(a: { remote: RemoteRefs; selectedRef: str
     try { new Intl.DateTimeFormat("en", { timeZone: a.calendarTimeZone }); } catch { return { ok: false, reason: "calendar_timezone_invalid" }; }
     tz = a.calendarTimeZone;
   }
-  return { ok: true, refs: { sportIds, exerciseIds, competition: null, calendarTimeZone: tz } };
+  const comp = validateCompetitionRef(a.competition, sportIds);
+  if (comp.ok === false) return { ok: false, reason: comp.reason };
+  return { ok: true, refs: { sportIds, exerciseIds, competition: comp.value, calendarTimeZone: tz } };
 }

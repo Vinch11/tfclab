@@ -39,6 +39,18 @@ export function supabaseOAuthStore(admin: Admin): OAuthStore {
       if (error || !data) return { ok: false as const, reason: "activation_rpc_failed" };
       return data.ok === true ? { ok: true as const } : { ok: false as const, reason: String(data.reason ?? "activation_refused") };
     },
+    async getActiveConnectionRefs(coachId: string, athleteId: string) {
+      const { data, error } = await admin.from("nolio_v2_connections").select("refs").eq("coach_id", coachId).eq("athlete_id", athleteId).eq("status", "active").limit(2);
+      if (error || !Array.isArray(data) || data.length > 1) return "error";
+      return data.length ? (data[0] as { refs: unknown }).refs ?? null : null;
+    },
+    async updateActiveRefs(grantId: string, coachId: string, athleteId: string, generation: number, refsDigest: string, expectedRefs: unknown, refs: unknown) {
+      const { data, error } = await admin.rpc("nolio_v2_update_active_refs", {
+        p_grant_id: grantId, p_coach_id: coachId, p_athlete_id: athleteId, p_generation: generation, p_refs_digest: refsDigest, p_expected_refs: expectedRefs, p_refs: refs,
+      });
+      if (error || !data) return { ok: false as const, reason: "update_refs_rpc_failed" };
+      return data.ok === true ? { ok: true as const } : { ok: false as const, reason: String(data.reason ?? "update_refs_refused") };
+    },
     async getGrant(coachId: string, athleteId: string) {
       const { data, error } = await admin.from("nolio_v2_oauth_grants").select("*").eq("coach_id", coachId).eq("athlete_id", athleteId).maybeSingle();
       if (error) return "error";

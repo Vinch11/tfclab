@@ -19,6 +19,7 @@
  */
 import { NOLIO_V2_REQUIRED_SCOPES } from "./plannedClient.ts";
 import { parseStoredRefs, REFS_MAX_AGE_MS, validateActivationRefs, type RemoteRefs, type RemoteSport } from "./refs.ts";
+import { canonicalJson } from "./plannedMapper.ts";
 import { needsRefresh, type RefreshOutcome } from "./tokenRefresh.ts";
 
 export const QA_BACKEND_REF = "lkjesdacgpolrwfxulbo";
@@ -96,6 +97,10 @@ export interface OAuthStore {
   storeRemoteRefs?(grantId: string, generation: number, refs: unknown): Promise<boolean>;
   /** RPC atomique : copie le jeton depuis le grant, une seule connexion active. */
   activate?(grantId: string, coachId: string, athleteId: string, generation: number, refsDigest: string, refs: unknown): Promise<{ ok: true } | { ok: false; reason: string }>;
+  /** Colonne `refs` SEULE de la connexion active (jamais le jeton). */
+  getActiveConnectionRefs?(coachId: string, athleteId: string): Promise<unknown | null | "error">;
+  /** RPC atomique : remplace UNIQUEMENT `refs` de la connexion active (CAS refs attendues + génération) ; jetons/consentement/association intacts. */
+  updateActiveRefs?(grantId: string, coachId: string, athleteId: string, generation: number, refsDigest: string, expectedRefs: unknown, refs: unknown): Promise<{ ok: true } | { ok: false; reason: string }>;
 }
 
 // ---------------- Start ----------------
@@ -228,6 +233,8 @@ export type SafeStatus = {
     refreshState: NonNullable<GrantRow["refresh_state"]>; generation: number;
     remoteRefs: null | { loadedAt: string | null; digest: string; sports: RemoteSport[]; exercises: { status: string; items: { id: string; name: string; type: string | null }[] } } };
   activeConnections: number | null;
+  /** Correspondances confirmées de la connexion active (aucun jeton) + empreinte pour CAS. */
+  activeRefs: null | { sha256: string; sportIds: Record<string, string>; exerciseIds: Record<string, string>; competition: unknown; calendarTimeZone: string | null };
   stages: Stages;
   remaining: string[];
 };
@@ -237,6 +244,7 @@ export async function connectionStatus(a: { coachId: string; athleteId: string; 
   const g = await a.store.getGrant(a.coachId, a.athleteId);
   if (g === "error") return { status: "BLOCKED", reason: "grant_read_failed" };
   const active = await a.store.countActiveConnections(a.coachId, a.athleteId);
+  const activeRefs = active === 1 ? await readActiveRefs(a.store, a.coachId, a.athleteId) : null;
   const rs = g?.refresh_state ?? "idle";
   const refs = g ? parseStoredRefs(g.remote_refs) : null;
   const tokenValid = !!g && Date.parse(g.token_expires_at) > a.now + 60_000;
@@ -259,7 +267,7 @@ export async function connectionStatus(a: { coachId: string; athleteId: string; 
   if (st.testAthleteSelected && !st.refsLoaded) remaining.push("cliquer « Charger les sports Nolio »");
   if (st.refsLoaded && !st.refsConfirmed) remaining.push("associer les sports du plan aux sports Nolio confirmés puis activer");
   if (refs && refs.exercises.status !== "loaded") remaining.push(`exercices de force non chargés (${refs.exercises.status}) : séances de force bloquées`);
-  remaining.push("preuve dry_run/envoi réel : ABSENTE (aucun envoi automatique)");
+  remaining.push("envoi calendrier : ABSENT (aucun envoi automatique)");
   return {
     configured: cfg.ok, callbackUrl: qaBackendOk(a.env.supabaseUrl) ? callbackUrlFor(a.env.supabaseUrl!) : null,
     grant: g ? {
@@ -269,7 +277,7 @@ export async function connectionStatus(a: { coachId: string; athleteId: string; 
       refreshState: rs, generation: g.token_generation ?? 1,
       remoteRefs: refs ? { loadedAt: g.remote_refs_loaded_at ?? null, digest: refs.digest, sports: refs.sports, exercises: refs.exercises } : null,
     } : null,
-    activeConnections: active, stages: st, remaining,
+    activeConnections: active, activeRefs: activeRefs && activeRefs !== "error" ? activeRefs : null, stages: st, remaining,
   };
 }
 
@@ -350,4 +358,46 @@ export async function selectAthlete(a: { coachId: string; athleteId: string; nol
   if (!hit.has_api_access) return { status: "REFUSED", reason: "athlete_api_access_denied" };
   const ok = await a.store.selectAthlete(a.coachId, a.athleteId, a.nolioAthleteRef, new Date(a.now).toISOString());
   return ok ? { status: "PENDING_REFS" } : { status: "REFUSED", reason: "selection_cas_failed" };
+}
+
+/** Lecture des correspondances actives (sans jeton) + empreinte canonique. */
+async function readActiveRefs(store: OAuthStore, coachId: string, athleteId: string) {
+  if (!store.getActiveConnectionRefs) return null;
+  const r = await store.getActiveConnectionRefs(coachId, athleteId);
+  if (r === "error" || r === null || typeof r !== "object" || Array.isArray(r)) return r === "error" ? "error" as const : null;
+  const o = r as Record<string, unknown>;
+  const map = (x: unknown) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x as Record<string, unknown>).filter(([, v]) => typeof v === "string")) as Record<string, string> : {});
+  return { sha256: await sha256Hex(canonicalJson(r)), sportIds: map(o.sportIds), exerciseIds: map(o.exerciseIds), competition: o.competition ?? null,
+    calendarTimeZone: typeof o.calendarTimeZone === "string" ? o.calendarTimeZone : null };
+}
+
+/**
+ * Mise à jour EXPLICITE des correspondances d'une connexion déjà ACTIVE (clic + consentement) :
+ * sports / exercices / compétition / fuseau validés contre les références officielles déjà
+ * chargées (< 1 h, même empreinte), CAS sur les correspondances actuellement lues par le coach.
+ * Aucun réseau, aucun jeton lu ni modifié, aucune reconnexion, aucun envoi.
+ */
+export async function updateActiveRefsAction(a: {
+  coachId: string; athleteId: string; store: OAuthStore; now: number;
+  consent: unknown; refsDigest: unknown; currentRefsSha: unknown; sportIds: unknown; exerciseIds: unknown; calendarTimeZone: unknown; competition: unknown;
+}): Promise<{ status: "REFS_UPDATED_NO_SEND" } | { status: "REFUSED"; reason: string }> {
+  if (!QA_COACHES.has(a.coachId)) return { status: "REFUSED", reason: "coach_not_qa" };
+  if (a.consent !== true) return { status: "REFUSED", reason: "consent_not_confirmed" };
+  const r = grantReady(await a.store.getGrant(a.coachId, a.athleteId));
+  if (r.ok === false) return { status: "REFUSED", reason: r.reason };
+  if (r.g.status !== "active") return { status: "REFUSED", reason: "grant_not_active" };
+  const remote = parseStoredRefs(r.g.remote_refs);
+  if (!remote) return { status: "REFUSED", reason: "refs_not_loaded" };
+  if (typeof a.refsDigest !== "string" || a.refsDigest !== remote.digest) return { status: "REFUSED", reason: "refs_digest_mismatch" };
+  const loadedAt = Date.parse(r.g.remote_refs_loaded_at ?? "");
+  if (!Number.isFinite(loadedAt) || a.now - loadedAt > REFS_MAX_AGE_MS) return { status: "REFUSED", reason: "refs_too_old_reload" };
+  if ((await a.store.countActiveConnections(a.coachId, a.athleteId)) !== 1) return { status: "REFUSED", reason: "active_connection_not_unique" };
+  if (!a.store.getActiveConnectionRefs || !a.store.updateActiveRefs) return { status: "REFUSED", reason: "store_unavailable" };
+  const current = await a.store.getActiveConnectionRefs(a.coachId, a.athleteId);
+  if (current === "error" || current === null) return { status: "REFUSED", reason: "active_refs_unreadable" };
+  if (typeof a.currentRefsSha !== "string" || a.currentRefsSha !== await sha256Hex(canonicalJson(current))) return { status: "REFUSED", reason: "active_refs_changed_reload_status" };
+  const v = validateActivationRefs({ remote, selectedRef: r.g.selected_athlete_ref!, sportIds: a.sportIds, exerciseIds: a.exerciseIds, calendarTimeZone: a.calendarTimeZone, competition: a.competition });
+  if (v.ok === false) return { status: "REFUSED", reason: v.reason };
+  const res = await a.store.updateActiveRefs(r.g.id, a.coachId, a.athleteId, r.g.token_generation ?? 1, remote.digest, current, v.refs);
+  return res.ok === true ? { status: "REFS_UPDATED_NO_SEND" } : { status: "REFUSED", reason: res.reason };
 }

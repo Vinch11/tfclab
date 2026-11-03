@@ -97,34 +97,55 @@ export function classifyDryRunResponse(status: number, text: string | null): { o
 }
 
 export type DryFetch = (url: string, init: { method: "POST"; headers: Record<string, string>; body: string; signal: AbortSignal; redirect: "error" }) =>
-  Promise<{ status: number; text(): Promise<string> }>;
+  Promise<{ status: number; text(): Promise<string>; headers?: { get(name: string): string | null } }>;
 
-/** Transport dédié : URL fixe, redirect error, budget total fetch+corps, aucun retry. */
-export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body: Record<string, unknown>; budgetMs?: number }):
-  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null; teamContext?: TeamScopeContext | null }> {
+/**
+ * Routes de simulation FERMÉES (OpenAPI courant, description de route : « `dry_run: true`
+ * validates the whole body and returns {dry_run, is_valid, summary} without writing ») :
+ * planned_trainings_create et planned_competitions_create. Aucune autre route, aucun batch.
+ */
+export const DRY_RUN_KINDS = ["training", "competition"] as const;
+export type DryRunKind = typeof DRY_RUN_KINDS[number];
+export const DRY_RUN_PATHS: Readonly<Record<DryRunKind, string>> = Object.freeze({
+  training: NOLIO_V2_CONTRACT.trainingsPath, competition: NOLIO_V2_CONTRACT.competitionsPath,
+});
+export const DRY_RUN_ORIGIN = "https://www.nolio.io";
+
+/** En-tête documenté (guide §5.8) ; absent/illisible ⇒ null (jamais une valeur supposée). */
+function remainingHour(h: { get(name: string): string | null } | undefined): number | null {
+  try { const v = h?.get("X-RateLimit-Remaining-Hour"); return v !== null && v !== undefined && /^\d{1,9}$/.test(v) ? Number(v) : null; } catch { return null; }
+}
+
+/** Transport dédié : URL fixe (origine + route fermée selon `kind`), redirect error, budget total fetch+corps, aucun retry. */
+export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body: Record<string, unknown>; budgetMs?: number; kind?: DryRunKind }):
+  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null; teamContext?: TeamScopeContext | null; quotaRemainingHour?: number | null }> {
+  const kind = a.kind ?? "training";
+  if (!(DRY_RUN_KINDS as readonly string[]).includes(kind) || !Object.prototype.hasOwnProperty.call(DRY_RUN_PATHS, kind)) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
   if (!isObj(a.body) || a.body.dry_run !== true) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
   if (!a.accessToken) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
+  const url = `${DRY_RUN_ORIGIN}${DRY_RUN_PATHS[kind]}`;
   const ctl = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<"timeout">((r) => { timer = setTimeout(() => { ctl.abort(); r("timeout"); }, a.budgetMs ?? DRY_RUN_SERVER_BUDGET_MS); });
   try {
     const run = (async () => {
-      const r = await a.fetch(DRY_RUN_URL, {
+      const r = await a.fetch(url, {
         method: "POST", redirect: "error", signal: ctl.signal,
         headers: { Authorization: `Bearer ${a.accessToken}`, Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify(forceDryRun(a.body)),
       });
+      const quota = remainingHour(r.headers);
       let text: string | null = null;
-      try { text = await r.text(); } catch { return { status: r.status, text: null, lost: true }; }
-      return { status: r.status, text, lost: false };
+      try { text = await r.text(); } catch { return { status: r.status, text: null, lost: true, quota }; }
+      return { status: r.status, text, lost: false, quota };
     })();
     const res = await Promise.race([run, deadline]);
     if (res === "timeout") return { outcome: "UNKNOWN", code: "timeout_or_lost", httpStatus: null };
-    if (res.lost) return { outcome: "UNKNOWN", code: "timeout_or_lost", httpStatus: res.status };
+    if (res.lost) return { outcome: "UNKNOWN", code: "timeout_or_lost", httpStatus: res.status, ...(res.quota !== null ? { quotaRemainingHour: res.quota } : {}) };
     const cls = classifyDryRunResponse(res.status, res.text);
     // Contexte privé d'équipe : uniquement REFUSED + 403 + team_scope_forbidden ; jamais journalisé/stocké.
     const teamContext = cls.outcome === "REFUSED" && cls.code === "team_scope_forbidden" ? extractTeamScopeContext(res.status, res.text) : null;
-    return { ...cls, httpStatus: res.status, ...(teamContext ? { teamContext } : {}) };
+    return { ...cls, httpStatus: res.status, ...(res.quota !== null ? { quotaRemainingHour: res.quota } : {}), ...(teamContext ? { teamContext } : {}) };
   } catch (e) {
     return { outcome: "UNKNOWN", code: (e as Error)?.name === "AbortError" ? "timeout_or_lost" : "network_error", httpStatus: null };
   } finally { clearTimeout(timer); }

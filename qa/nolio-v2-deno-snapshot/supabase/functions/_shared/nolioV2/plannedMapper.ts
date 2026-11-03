@@ -118,9 +118,17 @@ function leafTargets(l: DetLeaf, notes: string[]): V2Target[] | string {
   return out.length ? out : [{ type: "no_target" }];
 }
 
-/** Même prédicat que mapNodes : une feuille exige une référence d'exercice. */
+/**
+ * Même prédicat que mapNodes (et requiredExerciseLabels) : une feuille exige une référence
+ * d'exercice officielle. Décidé UNIQUEMENT par le rôle et la dose structurés (jamais le nom) :
+ * - série en répétitions (dose reps ou repsTarget), quel que soit le rôle ou le sport ;
+ * - feuille principale (role main) d'une séance de renforcement, même temporisée.
+ * Une phase warmup/cooldown temporisée ou en distance, sans répétitions, reste un step V2
+ * (durée, intensité, cibles et libellé conservés), sans exerciseId.
+ */
 export function nodeRequiresExercise(n: DetLeaf, sport: string): boolean {
-  return sport === "strength" || "reps" in n.dose || n.repsTarget !== undefined;
+  if ("reps" in n.dose || n.repsTarget !== undefined) return true;
+  return sport === "strength" && n.role === "main";
 }
 
 /**
@@ -143,16 +151,21 @@ export function requiredExerciseLabels(sessions: PlanSessionInput[]): string[] {
   return [...out];
 }
 
-function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string[]): V2Node[] | string {
+/** Guide v1→v2 §8.2 : « Up to 3 levels of nesting » pour repeat. */
+export const MAX_REPEAT_DEPTH = 3;
+
+function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string[], depth = 0): V2Node[] | string {
   const out: V2Node[] = [];
   for (const n of ns) {
     if (n.kind === "repeat") {
       if (!Number.isSafeInteger(n.count) || n.count < 1) return `repeat_count_invalid:${n.label}`;
       if (!fin(n.betweenSec) || n.betweenSec < 0) return `repeat_rest_invalid:${n.label}`;
       if (n.restAfterLast !== false) return `repeat_rest_after_last_unsupported:${n.label}`;
-      const inner = mapNodes(n.steps, sport, refs, notes);
+      if (depth + 1 > MAX_REPEAT_DEPTH) return `repeat_nesting_too_deep:${n.label}`;
+      // WorkoutRepeat.steps accepte tout type de nœud, mélangés (OpenAPI courant) : un exercice
+      // répété N fois avec repos entre séries reste fidèle (repos = step rest + skip_last).
+      const inner = mapNodes(n.steps, sport, refs, notes, depth + 1);
       if (typeof inner === "string") return inner;
-      if (inner.some((x) => x.kind === "exercise")) return `exercise_inside_repeat_unsupported:${n.label}`;
       if (n.betweenSec > 0) {
         // Repos ENTRE répétitions : skip_last omet le repos après la dernière (contrat V2).
         inner.push({ kind: "step", duration: { value: n.betweenSec, unit: "s" }, intensity: "rest", targets: [{ type: "no_target" }] });
@@ -175,7 +188,8 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
         set.duration = { value: n.dose.seconds, unit: "s" }; // fenêtre de temps de la source, pas une durée dérivée de répétitions
         if (n.repsTarget !== undefined) set.comment = `objectif ${n.repsTarget} répétitions dans la fenêtre`;
       } else set.distance = { value: n.dose.meters, unit: "m" };
-      out.push({ kind: "exercise", exercise: ex, sets: [set] });
+      // Libellé V3 conservé tel quel (aucun contenu supprimé, aucune charge inventée).
+      out.push({ kind: "exercise", exercise: ex, sets: [set], comment: n.label });
       continue;
     }
     if (n.role === "main" && n.domain === null) return `main_step_without_domain:${n.label}`;
@@ -213,6 +227,20 @@ export function semanticViolations(nodes: V2Node[], path = ""): string[] {
   return v;
 }
 
+export const RACE_TITLE_PREFIX = "COURSE : ";
+export type RaceIdentity = { sessionKey: string; date: string; name: string; sport: string; goalType: null };
+/**
+ * Identité SOURCE d'une course objectif (séance sans recette titrée « COURSE : … ») :
+ * date, nom (titre sans préfixe), sport. Le schéma de plan V3 actuel ne porte aucune
+ * priorité ⇒ goalType null : une priorité ajoutée côté coach ne correspond pas à la source.
+ */
+export function raceIdentityOf(s: PlanSessionInput): RaceIdentity | null {
+  if (s.isRest || s.catalogId || typeof s.title !== "string" || !s.title.startsWith(RACE_TITLE_PREFIX)) return null;
+  const name = s.title.slice(RACE_TITLE_PREFIX.length).trim();
+  if (!name || !isRealYmd(s.date) || !s.sport) return null;
+  return { sessionKey: s.sessionKey, date: s.date, name, sport: s.sport, goalType: null };
+}
+
 export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs): MapResult {
   const operations: V2Operation[] = []; const refusals: MapRefusal[] = [];
   const refuse = (sessionKey: string, reason: string) => { refusals.push({ sessionKey, reason }); };
@@ -233,11 +261,16 @@ export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs
     }
     const notes: string[] = [];
     if (!s.catalogId) {
-      // Course objectif : uniquement sur identité d'événement confirmée.
+      // Course objectif : uniquement sur identité d'événement confirmée par le coach ET identique
+      // à la séance source (date, nom, sport ; priorité seulement si la source en porte une).
       const c = refs.competition;
-      if (!s.title.startsWith("COURSE : ")) { refuse(s.sessionKey, "session_without_source_not_a_race"); continue; }
+      const src = raceIdentityOf(s);
+      if (!src) { refuse(s.sessionKey, "session_without_source_not_a_race"); continue; }
       if (!c) { refuse(s.sessionKey, "competition_identity_unconfirmed"); continue; }
-      if (c.date !== s.date) { refuse(s.sessionKey, "competition_date_mismatch"); continue; }
+      if (c.date !== src.date) { refuse(s.sessionKey, "competition_date_mismatch"); continue; }
+      if (c.name !== src.name) { refuse(s.sessionKey, "competition_name_mismatch"); continue; }
+      if (c.sport !== src.sport) { refuse(s.sessionKey, "competition_sport_mismatch"); continue; }
+      if ((c.goalType ?? null) !== src.goalType) { refuse(s.sessionKey, "competition_priority_mismatch"); continue; }
       const sport = refs.sportIds[c.sport];
       if (!sport || !OPAQUE.spt.test(sport)) { refuse(s.sessionKey, `sport_reference_missing:${c.sport}`); continue; }
       const body: Record<string, unknown> = { name: c.name, date_start: c.date, sport, athletes: [refs.athleteId] };

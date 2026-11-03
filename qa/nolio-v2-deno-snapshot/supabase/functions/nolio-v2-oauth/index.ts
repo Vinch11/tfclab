@@ -1,11 +1,12 @@
 /**
  * Nolio V2 OAuth QA — start / status / select. getClaims + coach QA A/B +
  * athlète possédé (client de l'appelant, RLS) AVANT tout client service-role.
- * Ne renvoie jamais de jeton ni de secret ; n'écrit jamais nolio_v2_connections.
+ * Ne renvoie jamais de jeton ni de secret. nolio_v2_connections n'est écrite que par les RPC
+ * service-role d'activation / de mise à jour des seules correspondances (update_refs).
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { activateConnectionAction, connectionStatus, loadConfig, loadRemoteRefsAction, qaBackendOk, QA_COACHES, selectAthlete, startConnect } from "../_shared/nolioV2/oauth.ts";
+import { activateConnectionAction, updateActiveRefsAction, connectionStatus, loadConfig, loadRemoteRefsAction, qaBackendOk, QA_COACHES, selectAthlete, startConnect } from "../_shared/nolioV2/oauth.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
 import { fetchRemoteRefs } from "../_shared/nolioV2/refs.ts";
 import { supabaseOAuthStore } from "../_shared/nolioV2/oauthStoreSupabase.ts";
@@ -15,7 +16,8 @@ const json = (status: number, body: unknown) =>
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FIELDS: Record<string, string[]> = { start: ["action", "athleteId"], status: ["action", "athleteId"], select: ["action", "athleteId", "nolioAthleteRef", "consent"],
   load_refs: ["action", "athleteId"],
-  activate: ["action", "athleteId", "consent", "refsDigest", "sportIds", "exerciseIds", "calendarTimeZone"] };
+  activate: ["action", "athleteId", "consent", "refsDigest", "sportIds", "exerciseIds", "calendarTimeZone"],
+  update_refs: ["action", "athleteId", "consent", "refsDigest", "currentRefsSha", "sportIds", "exerciseIds", "calendarTimeZone", "competition"] };
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -62,5 +64,11 @@ Deno.serve(async (req) => {
   }
   if (b.action === "activate") return json(200, await activateConnectionAction({ coachId: sub, athleteId: b.athleteId, store, now,
     consent: b.consent, refsDigest: b.refsDigest, sportIds: b.sportIds, exerciseIds: b.exerciseIds, calendarTimeZone: b.calendarTimeZone }));
+  if (b.action === "update_refs") {
+    const r = await updateActiveRefsAction({ coachId: sub, athleteId: b.athleteId, store, now, consent: b.consent, refsDigest: b.refsDigest, currentRefsSha: b.currentRefsSha,
+      sportIds: b.sportIds, exerciseIds: b.exerciseIds, calendarTimeZone: b.calendarTimeZone, competition: b.competition });
+    console.log(JSON.stringify({ fn: "nolio-v2-oauth", action: "update_refs", status: r.status, reason: "reason" in r ? r.reason : null }));
+    return json(200, r);
+  }
   return json(200, await selectAthlete({ coachId: sub, athleteId: b.athleteId, nolioAthleteRef: b.nolioAthleteRef, consent: b.consent, store, now }));
 });
