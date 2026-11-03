@@ -1,0 +1,53 @@
+name: DET running complete-plan evidence
+on:
+  pull_request:
+    paths:
+      - 'experimental/det-engine/**'
+      - 'scripts/library-v3/**'
+      - '.github/workflows/det-running-evidence.yml'
+jobs:
+  running-evidence:
+    name: Semi and 10K complete sporting acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source snapshot for reproducible offline diagnosis
+        run: |
+          git archive --format=tar HEAD src experimental scripts/library-v3 supabase/functions/_shared package.json bun.lockb tsconfig.json tsconfig.app.json vitest.config.ts > running-source.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: running-source
+          path: running-source.tar
+          retention-days: 7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Complete-plan acceptance, never a permitted NO-GO
+        shell: bash
+        run: |
+          set +e
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v358-running-acceptance.test.ts > running-evidence.log 2>&1
+          TEST_STATUS=$?
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          rows=[]
+          for line in Path("running-evidence.log").read_text().splitlines():
+              line=re.sub(r"\x1b\[[0-9;]*m","",line)
+              marker="DET_V332_RUNNING_REAL_SOLVER "
+              if marker not in line: continue
+              row=json.loads(line.split(marker,1)[1])
+              rows.append(row)
+              print("RUNNING_EVIDENCE "+json.dumps({k:row.get(k) for k in ("scenario","weeksRequested","weeksConstructed","nativeConstraintsSatisfied","reason","blockingCodes","blockingExamples","nativeGateEvidence")}))
+          Path("running-evidence.json").write_text(json.dumps(rows,indent=2))
+          PY
+          tail -n 70 running-evidence.log
+          exit "$TEST_STATUS"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: running-plan-evidence
+          path: |
+            running-evidence.log
+            running-evidence.json
+          retention-days: 14
