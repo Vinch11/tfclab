@@ -1,0 +1,367 @@
+{
+  "codeUnderTest": "61a14ee3ccbd6a55b0a864b59f3e210dfe6a62e1",
+  "referenceFamilies": 18,
+  "referenceCalendars": 31,
+  "totalWeeks": 468,
+  "scope": "synthetic_reference_acceptance_only",
+  "syntheticOnly": true,
+  "prescriptionAllowed": false,
+  "productionAllowed": false,
+  "scientificAttestation": false,
+  "evidence": [
+    {
+      "workflow": "DET marathon focused evidence",
+      "run": 41688255964,
+      "artifact": 13255926327,
+      "sha256": "af856b0c0ba3a336985b17b04eadc73ace6766b0890248fd119ef2a8bb3365ee"
+    },
+    {
+      "workflow": "DET fifteen-family acceptance",
+      "run": 41688255790,
+      "artifact": 13255696375,
+      "sha256": "3f8c2488f304beab36c8d24c894c6ab199e22dea5fbdfae9005b6b6266897d62"
+    },
+    {
+      "workflow": "DET running complete-plan evidence",
+      "run": 41688255849,
+      "artifact": 13257320527,
+      "sha256": "947114293127cd75a27f00d61f9e4c8c18c6f5e176f17a7320f57268840797a7"
+    },
+    {
+      "workflow": "DET trail acceptance",
+      "run": 41688255777,
+      "artifact": 13256271871,
+      "sha256": "ba6d0b3e6a009b7d8a01a38d8faf1fbf28b935e55bba75b75f9460dae8d332f9"
+    }
+  ],
+  "cases": [
+    {
+      "family": 1,
+      "id": "marathon-16w-age_group-tte-source-preferred",
+      "weeks": 16,
+      "weeklyHours": 7,
+      "artifact": 13255926327,
+      "file": "marathon-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 1,
+      "id": "marathon-16w-competitor-reviewed-placement-tte-source-preferred",
+      "weeks": 16,
+      "weeklyHours": 9,
+      "artifact": 13255926327,
+      "file": "marathon-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 2,
+      "id": "marathon-40w-age_group-tte-source-preferred",
+      "weeks": 40,
+      "weeklyHours": 7,
+      "artifact": 13255926327,
+      "file": "marathon-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 2,
+      "id": "marathon-40w-competitor-reviewed-placement-tte-source-preferred",
+      "weeks": 40,
+      "weeklyHours": 9,
+      "artifact": 13255926327,
+      "file": "marathon-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 3,
+      "id": "semi-8w-age_group-strict-acceptance",
+      "weeks": 8,
+      "weeklyHours": 7,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 3,
+      "id": "semi-8w-competitor-strict-acceptance",
+      "weeks": 8,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 4,
+      "id": "semi-30w-age_group-strict-acceptance",
+      "weeks": 30,
+      "weeklyHours": 7,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 4,
+      "id": "semi-30w-competitor-strict-acceptance",
+      "weeks": 30,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-10w-age_group-strict-acceptance",
+      "weeks": 10,
+      "weeklyHours": 7,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-10w-competitor-strict-acceptance",
+      "weeks": 10,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-12w-age_group-strict-acceptance",
+      "weeks": 12,
+      "weeklyHours": 7,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-12w-competitor-strict-acceptance",
+      "weeks": 12,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-8w-age_group-strict-acceptance",
+      "weeks": 8,
+      "weeklyHours": 7,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 5,
+      "id": "10k-8w-competitor-strict-acceptance",
+      "weeks": 8,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "running-evidence.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 6,
+      "id": "703-consistent-anchors",
+      "weeks": 12,
+      "weeklyHours": 10,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 6,
+      "id": "703-lower-physiology",
+      "weeks": 12,
+      "weeklyHours": 10,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 7,
+      "id": "703-reduced-hours",
+      "weeks": 12,
+      "weeklyHours": 9,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 8,
+      "id": "703-intermediate-hours",
+      "weeks": 12,
+      "weeklyHours": 9.5,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 9,
+      "id": "IM-consistent-anchors",
+      "weeks": 16,
+      "weeklyHours": 14,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 9,
+      "id": "IM-lower-physiology",
+      "weeks": 16,
+      "weeklyHours": 14,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 9,
+      "id": "IM-reduced-hours",
+      "weeks": 16,
+      "weeklyHours": 13,
+      "artifact": 13257320527,
+      "file": "multisport-regression.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 10,
+      "id": "olympic-12w-reference",
+      "weeks": 12,
+      "weeklyHours": 10,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 10,
+      "id": "sprint-8w-reference",
+      "weeks": 8,
+      "weeklyHours": 8,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 11,
+      "id": "cycling-ftp-8w-reference",
+      "weeks": 8,
+      "weeklyHours": 7,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 12,
+      "id": "swim-css-8w-reference",
+      "weeks": 8,
+      "weeklyHours": 4,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 13,
+      "id": "10k-B-to-semi-A-16w-reference",
+      "weeks": 16,
+      "weeklyHours": 8,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 14,
+      "id": "availability-10k-12w-four-days",
+      "weeks": 12,
+      "weeklyHours": 6.5,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 15,
+      "id": "individual-recovery-10k-12w-2to1-sprint-ban",
+      "weeks": 12,
+      "weeklyHours": 7,
+      "artifact": 13255696375,
+      "file": "fifteen-families.json",
+      "status": "accepted_complete_synthetic_reference"
+    },
+    {
+      "family": 16,
+      "id": "trail-short-12w",
+      "weeks": 12,
+      "weeklyHours": 7,
+      "status": "accepted_complete_synthetic_reference",
+      "artifact": 13256271871,
+      "file": "trail-calendars.json"
+    },
+    {
+      "family": 17,
+      "id": "trail-mountain-16w",
+      "weeks": 16,
+      "weeklyHours": 9,
+      "status": "accepted_complete_synthetic_reference",
+      "artifact": 13256271871,
+      "file": "trail-calendars.json"
+    },
+    {
+      "family": 18,
+      "id": "trail-ultra-20w",
+      "weeks": 20,
+      "weeklyHours": 12,
+      "status": "accepted_complete_synthetic_reference",
+      "artifact": 13256271871,
+      "file": "trail-calendars.json"
+    }
+  ],
+  "trailMetrics": [
+    {
+      "id": "trail-short-12w",
+      "weeks": 12,
+      "maximumTrainingMinutes": 390,
+      "maximumLongMinutes": 129,
+      "maximumWeeklyDPlusM": 820,
+      "maximumWeeklyDMinusM": 810,
+      "minimumLoadEasyPercentage": 87.36,
+      "primaryKeyCoverage": 0.5
+    },
+    {
+      "id": "trail-mountain-16w",
+      "weeks": 16,
+      "maximumTrainingMinutes": 538,
+      "maximumLongMinutes": 157,
+      "maximumWeeklyDPlusM": 1480,
+      "maximumWeeklyDMinusM": 1400,
+      "minimumLoadEasyPercentage": 85.85,
+      "primaryKeyCoverage": 0.5
+    },
+    {
+      "id": "trail-ultra-20w",
+      "weeks": 20,
+      "maximumTrainingMinutes": 570,
+      "maximumLongMinutes": 190,
+      "maximumWeeklyDPlusM": 1830,
+      "maximumWeeklyDMinusM": 1850,
+      "minimumLoadEasyPercentage": 86.93,
+      "primaryKeyCoverage": 0.5
+    }
+  ],
+  "trailTests": {
+    "passed": 17,
+    "skipped": 0,
+    "independentNegativeChecks": 4
+  },
+  "generalCI": {
+    "run": 41688256173,
+    "conclusion": "success",
+    "jobsPassed": 5,
+    "jobsRequired": 5,
+    "detSuitePassed": 507,
+    "detSuiteSkipped": 7,
+    "detSuiteFilesPassed": 81,
+    "detSuiteFilesSkipped": 1,
+    "detSuiteArtifactId": 13255757037,
+    "detSuiteArtifactSha256": "c97bd2df9146e5519497a3f167457dc19b358997f01b07ed2ff5d27b3fe93f78"
+  }
+}
