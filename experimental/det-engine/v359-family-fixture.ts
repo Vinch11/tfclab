@@ -6,6 +6,8 @@ import {v3FullCatalogue} from '../../scripts/library-v3/catalogueRuntime';
 import {syntheticV3ReviewAnchors,syntheticV3SportingContext} from './v3-test-anchor-fixtures';
 import {prepareDedicatedSport} from './v359-dedicated-sport-preparation';
 import {preserveTriathlonTaperFrequency} from './v359-triathlon-layout';
+import {composeReviewedBrickZoneDose} from './v310-structured-zone-dose';
+import type {ParsedSession} from '@/lib/aiPlanParser';
 import {SHORT_TRI_BRICKS} from './v31-v3-brick';
 import type {PlanConfig} from '@/hooks/useAITrainingPlan';
 
@@ -25,10 +27,11 @@ export const familyCases:readonly FamilyCase[]=[
   {id:'sprint-8w-reference',family:10,objective:'Sprint',weeks:8,weeklyHours:8,fixture:'B-SPRINT',limiter:'vo2max',sessionsPerWeek:8,strengthSessionsPerWeek:1},
   {id:'olympic-12w-reference',family:10,objective:'Olympic',weeks:12,weeklyHours:10,fixture:'B-OLYMPIC',limiter:'tte',sessionsPerWeek:9,strengthSessionsPerWeek:1},
   {id:'cycling-ftp-8w-reference',family:11,objective:'Cyclisme FTP',weeks:8,weeklyHours:7,limiter:'ftp',sessionsPerWeek:4,strengthSessionsPerWeek:1},
-  {id:'swim-css-8w-reference',family:12,objective:'Natation 1500m',weeks:8,weeklyHours:4,limiter:'tte',sessionsPerWeek:4,strengthSessionsPerWeek:1},
+  {id:'swim-css-8w-reference',family:12,objective:'Natation 1500m',weeks:8,weeklyHours:4,limiter:'tte',sessionsPerWeek:4,strengthSessionsPerWeek:1,
+    constraints:'Mercredi indisponible. Samedi indisponible.'},
 
 ];
-export function runFamily(s:FamilyCase){
+export function runFamily(s:FamilyCase,missingProof=false){
   const raceDate=new Date(Date.UTC(2026,9,26+s.weeks*7-1)).toISOString().slice(0,10);
   const f=preparePrevalidationFixture(s.fixture??'B-10K',{
     objective:s.objective,weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
@@ -48,6 +51,7 @@ export function runFamily(s:FamilyCase){
   }:f.planConfig),objective:s.objective,weeksAvailable:s.weeks,weeklyHours:s.weeklyHours,
     planStartDate:'2026-10-26',raceDate,raceGoals:s.raceGoals??[{objective:s.objective,raceDate,priority:'A' as const}],
     identifiedLimitersRaw:[s.limiter??'tte'],prohibitions:s.prohibitions,
+    ...(s.constraints?{constraints:s.constraints}:{}),
     _outputFormat:'json' as const};
   const sports=/cyclisme/i.test(s.objective)?['bike','strength']:
     /natation/i.test(s.objective)?['swim','strength']:
@@ -69,7 +73,8 @@ export function runFamily(s:FamilyCase){
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews,short.map(b=>({id:b.id,
     objective:s.objective,individualCoachApproval:true,transitionSeconds:180,preferReviewedV3:true})));
   const clock=(slot:{week:number;dayIndex:number;sport:string})=>{
-    const time=starts[slot.sport]?.[slot.dayIndex];
+    const time=s.family===12&&slot.sport==='swim'&&slot.dayIndex===3?720:
+      starts[slot.sport]?.[slot.dayIndex];
     return time===undefined?null:{provenance:'coach_confirmed' as const,minuteOfDay:time,
       utcOffsetMinutes:Date.UTC(2026,9,26+(slot.week-1)*7+slot.dayIndex)>=Date.UTC(2027,2,28)?120:60};
   };
@@ -77,6 +82,7 @@ export function runFamily(s:FamilyCase){
   const baseFilter=contract.filterCandidate;
   const out=constructDeterministicPlan(athlete,config,{maxNodes:60000,maxMilliseconds:12000},{
     ...contract,requireReviewedAthleteContext:true,
+    ...(missingProof?{sourceFullStructuredDoseForId:()=>null,sourceStructuredZoneForId:()=>null}:{}),
     ...(hasShort?{preferSourceBackedMultisportBalance:'triathlon_targets' as const,
       requireFinalTriathlonMinuteRatios:true as const,auditVerifiedMultisportMinutes:true as const,
       auditGlobalSourceSportRatioBounds:true as const,applyReviewedMinuteSportRatio:true as const,
@@ -102,6 +108,16 @@ export function runFamily(s:FamilyCase){
     auditStructuredPolarizationSources:true,requireStrictPeriodizationEvidence:true,
     enableV333ForwardCheck:true,
   });
+  const reviewDose=(session:ParsedSession)=>{
+    if(!session.catalogId||typeof session.durationMin!=='number')return null;
+    const recipe=SHORT_TRI_BRICKS.find(b=>b.id===session.catalogId);
+    if(!recipe)return contract.sourceFullStructuredDoseForId?.(session.catalogId,session.durationMin)??null;
+    const doses=[recipe.bikeId,recipe.runId].map(id=>{
+      const card=report.accepted.find(c=>c.id===id);
+      return card?contract.sourceFullStructuredDoseForId?.(id,card.durationMin[0])??null:null;
+    });
+    return composeReviewedBrickZoneDose(doses[0],doses[1],180,session.durationMin);
+  };
   const hard=out.issues.filter(i=>['critical','blocking','error'].includes(i.severity));
   console.info('DET_V359_FAMILY',JSON.stringify({scenario:s.id,family:s.family,objective:s.objective,
     weeksRequested:s.weeks,weeksConstructed:out.candidate?.weeks.length??0,
@@ -110,7 +126,21 @@ export function runFamily(s:FamilyCase){
     nodes:out.nodes,reason:out.reason??null,blockingCodes:[...new Set(hard.map(i=>i.code))],
     examples:hard.slice(0,8),
     selectedWeeks:out.issues.filter(i=>i.code==='det_v359_week_source_selection').map(i=>({week:i.week,sources:JSON.parse(i.message!)})),
-    trajectories:out.issues.filter(i=>i.code==='det_v312_source_ratio_trajectory').map(i=>({week:i.week,...JSON.parse(i.message!)})),syntheticOnly:true,prescriptionAllowed:false,
+    weeklyHours:s.weeklyHours,primaryLimiter:s.limiter,
+    reviewCalendar:out.constraintsSatisfied?{syntheticOnly:true,prescriptionAllowed:false,
+      weeks:out.candidate!.weeks.map(w=>({week:w.weekNumber,phase:w.phase,theme:w.theme,
+        weekType:out.candidate!.weeklyQuotas![w.weekNumber].weekType,
+        quota:out.candidate!.weeklyQuotas![w.weekNumber].quota,
+        sessions:w.sessions.map(session=>({day:session.dayName,sport:session.sport,sourceId:session.catalogId??null,
+          durationMin:session.durationMin??null,isKeySession:!!session.isKeySession,isRest:!!session.isRest,
+          title:session.title,details:session.details,
+          confirmedStart:session.isRest?null:clock({week:w.weekNumber,dayIndex:session.dayIndex,sport:session.sport}),
+          exactDose:reviewDose(session),
+          sourceRecoveryRequirements:session.catalogId?contract.sourceRecoveryForId?.(session.catalogId)??[]:[],
+          consumedSourceIds:session.catalogId?contract.consumedSourceIds?.(
+            [...report.accepted,...(contract.verifiedBrickCompositions??[])].find(c=>c.id===session.catalogId)!)??[]:[],
+        })),
+      }))}:null,syntheticOnly:true,prescriptionAllowed:false,
   }));
   return {out,contract,report,config,athlete};
 }

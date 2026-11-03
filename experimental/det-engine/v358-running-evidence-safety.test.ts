@@ -72,11 +72,10 @@ describe('V358 exact running evidence refuses unsupported shortcuts',()=>{
     expect(wrong.verified).toBe(false);
     expect(wrong.issues).toEqual(issues);
   });
-  it('audits the new dose separately and requires athlete/source approval',()=>{
-    const w=v3SupplementalCatalogue.workouts[0];
+  it.each(v3SupplementalCatalogue.workouts)('$id is audited separately and requires athlete/source approval',w=>{
     expect(auditV3Catalogue(v3SupplementalCatalogue)).toEqual([]);
     expect(auditV3SportingRegistry(v3SupplementalCatalogue.workouts,
-      registry.records as V3SportingSourceRecord[],1)).toEqual([]);
+      registry.records as V3SportingSourceRecord[],v3SupplementalCatalogue.workouts.length)).toEqual([]);
     expect(qualifyV3IndividualSportingSource(w,undefined,undefined).allowedToSubmitToDet).toBe(false);
     const c=syntheticV3SportingContext(w.id);
     if(!('sportingReview' in c))throw Error('missing_supplement_review');

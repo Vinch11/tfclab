@@ -25,7 +25,7 @@ export function prepareDedicatedSport(
       brick:{min:0,max:0},strength:{min:strength,max:strength},
       totalSessions:{min:count+strength,max:count+strength},
       maxSessionsPerDay:config.maxSessionsPerDay??1,minFullRestDays:1,
-      source:{tier:'practitioner_literature',ref:'Explicit synthetic coach frequency; native taper/recovery modulation, no normative physiological targets inferred'}};
+      source:{tier:'coach_declared',ref:'Explicit synthetic coach frequency; native taper/recovery modulation, no normative physiological targets inferred'}};
     quota[sport]={min:count,max:count};
     const floors:SizingFloors={minStrengthPerWeek:strength,
       ...(sport==='swim'?{minSwimPerWeek:count}:{}),

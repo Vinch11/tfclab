@@ -478,7 +478,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     if(report.status==='blocked')return refuse('existing_prevalidation_blocked');
     if(report.weeks.some(w=>!preparation.weeklyQuotas[w.week]?.layout))return refuse('dedicated_route_without_deterministic_quota');
     const scheduledSports=report.weeks.flatMap(week=>preparation.weeklyQuotas[week.week]?.layout?.days
-      .flatMap((d,dayIndex)=>d.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport})))??[]);
+      .flatMap((d,dayIndex)=>d.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport,isRaceEvent:slot.isRaceEvent===true})))??[]);
     const plan:ParsedPlan={title:`Plan TFCL™ — ${config.objective} ${athlete.nom??"Profil synthétique"} — ${config.weeksAvailable} semaines`,phases:[],weeks:[],totalWeeks:config.weeksAvailable,weeklyQuotas:preparation.weeklyQuotas};
     const usage=new Map<string,number>();
     const started=performance.now();
@@ -536,7 +536,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const slots=layout.days.flatMap((d,dayIndex)=>d.slots.map(slot=>({slot,dayIndex,dayName:d.dayName})));
       const eventDay=layout.days.findIndex(d=>d.slots.some(s=>s.isRaceEvent));
       const raceDayIndex=eventDay>=0?eventDay:null;
-      if(slots.some(s=>s.slot.isRaceEvent))result.issues.push({code:'race_duration_unestimated',week:w.week,severity:'warning'});
+      if(slots.some(s=>s.slot.isRaceEvent))result.issues.push({
+        code:experimentalContract?.useDeclaredEventDurationEstimates===true?
+          'declared_event_duration_estimate_used':'race_duration_unestimated',
+        week:w.week,severity:'warning',
+        message:experimentalContract?.useDeclaredEventDurationEstimates===true?
+          'Explicit planned event estimate; actual duration and physiological response remain unobserved.':undefined,
+      });
       const weeklyUsage=new Map<string,number>();
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
@@ -918,6 +924,15 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             proven=!!dose&&dose.provenance==='v3_individually_configured_blocks_only'&&
               dose.sourceIds.length===1&&dose.sourceIds[0]===session.catalogId&&
               dose.high>0;
+            if(proven&&experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true){
+              const domain=experimentalContract.reviewedSourcePrimaryDomainForId?.(session.catalogId);
+              const primary=(config.identifiedLimitersRaw?.[0]??'').toLowerCase();
+              // Real work in the declared physiological domain. A brief
+              // neuromuscular sprint cannot stand in for VO2, FTP or TTE.
+              proven=primary==='vo2max'?domain==='vo2max':
+                primary==='tte'?domain==='mlss':
+                primary==='ftp'?['mlss','sub_threshold','vo2max'].includes(domain??''):false;
+            }
           }
           runningQualityCache.set(session,proven);
           return proven;

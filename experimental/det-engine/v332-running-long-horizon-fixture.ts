@@ -43,6 +43,7 @@ export type Case={id:string;fixture:'B-SEMI'|'B-MARATHON'|'B-10K';goal:RunningGo
   verifiedRunningPhaseEvidence?:true;
   declaredPrimaryLimiter?:'tte';
   supplementalV3Dose?:true;
+  omitSupplementalRecovery?:true;
   declaredRaceGoals?:PlanConfig['raceGoals'];
   declaredConstraints?:string;
   declaredCadenceWeeks?:3|4;
@@ -183,7 +184,7 @@ export function runScenario(s:Case){
   const reviews=[...new Set([...runSourceIds,
     ...(s.expandedTaperSources?expandedTaperSourceIds:[]),
     ...(s.supplementalV3Dose?['V3P_RUN_201']:[]),
-    ...(s.declaredRaceGoals?['V3P_RUN_202','V3P_RUN_102','V3P_RUN_104']:[]),
+    ...(s.declaredRaceGoals?['V3P_RUN_102','V3P_RUN_104',...(!s.omitSupplementalRecovery?['V3P_RUN_202']:[])]:[]),
     ...(s.goal==='10K'?['V3P_RUN_018','V3P_RUN_073','V3P_RUN_074','V3P_RUN_075','V3P_RUN_095']:[]),
     ...(s.approvedBaseTteDose?['V3P_RUN_136']:[]),
     ...(s.expandedTaperSources&&s.goal==='Marathon'?['V3P_RUN_094']:[]),
@@ -228,7 +229,7 @@ export function runScenario(s:Case){
     } satisfies V3ReviewedSettings;
   });
   const {contract,report}=buildDetV3ContractFromCatalogue(reviews);
-  expect(report.sourceCount).toBe(800+(s.supplementalV3Dose?1:0)+(s.declaredRaceGoals?1:0));
+  expect(report.sourceCount).toBe(800+(s.supplementalV3Dose?1:0)+(s.declaredRaceGoals&&!s.omitSupplementalRecovery?1:0));
   expect(report.accepted.some(card=>card.sport==='run')).toBe(true);
   expect(report.accepted.some(card=>card.id==='V3P_RUN_130')).toBe(true);
   if(s.approvedBaseTteDose){

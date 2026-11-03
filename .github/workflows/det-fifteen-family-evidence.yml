@@ -4,6 +4,7 @@ on:
     paths:
       - 'experimental/det-engine/**'
       - 'scripts/library-v3/**'
+      - 'scripts/det-engine/**'
       - 'src/lib/plan/**'
       - '.github/workflows/det-fifteen-family-evidence.yml'
 jobs:
@@ -14,11 +15,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+      - name: Generate source declaration candidate from the actual checkout
+        run: bun scripts/preproduction/plan-release-source.mjs --write
       - name: Remaining six families, actual complete-plan acceptance
         shell: bash
         run: |
           set +e
-          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v359-fifteen-family-acceptance.test.ts > fifteen-families.log 2>&1
+          bunx vitest run --config experimental/det-engine/vitest.v31.config.ts experimental/det-engine/v359-fifteen-family-acceptance.test.ts experimental/det-engine/v359-evidence-safety.test.ts > fifteen-families.log 2>&1
           TEST_STATUS=$?
           python3 - <<'PY'
           import json,re
@@ -26,7 +29,7 @@ jobs:
           rows=[]
           for line in Path('fifteen-families.log').read_text().splitlines():
               line=re.sub(r'\x1b\[[0-9;]*m','',line)
-              for marker in ['DET_V359_FAMILY ','DET_V359_CONSTRAINED_ACCEPTED ']:
+              for marker in ['DET_V359_FAMILY ','DET_V359_CONSTRAINED_ACCEPTED ','DET_V332_RUNNING_REAL_SOLVER ']:
                   if marker in line:
                       row=json.loads(line.split(marker,1)[1]);rows.append(row)
                       print('FAMILY_RESULT '+json.dumps(row))
@@ -34,6 +37,8 @@ jobs:
           PY
           tail -n 90 fifteen-families.log
           exit "$TEST_STATUS"
+      - name: Independent calendar, source block and recovery arithmetic
+        run: python3 scripts/det-engine/verify_remaining_family_calendars.py fifteen-families.json | tee independent-families.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -41,4 +46,6 @@ jobs:
           path: |
             fifteen-families.log
             fifteen-families.json
+            independent-families.log
+            supabase/functions/_shared/planReleaseManifest.ts
           retention-days: 14

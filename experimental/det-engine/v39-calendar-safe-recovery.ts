@@ -8,11 +8,11 @@
  * This is an opt-in candidate FILTER, not a validator exemption. The final
  * auditSourceRecoveryTiming remains mandatory and authoritative.
  */
-export type ScheduledSport={week:number;dayIndex:number;sport:string};
+export type ScheduledSport={week:number;dayIndex:number;sport:string;isRaceEvent?:boolean};
 export type V3RecoveryRequirement={sourceId:string;sport:string;hours:number};
 const days=(s:ScheduledSport)=>(s.week-1)*7+s.dayIndex;
-function serves(requested:string,sport:string):boolean {
-  return requested===sport||(sport==='brick'&&(requested==='bike'||requested==='run'));
+function serves(requested:string,sport:string,isRaceEvent=false):boolean {
+  return requested===sport||(sport==='brick'&&(requested==='bike'||requested==='run'||isRaceEvent&&requested==='swim'));
 }
 export function calendarOnlyRecoverySafe(
   here:ScheduledSport,
@@ -30,9 +30,9 @@ export function calendarOnlyRecoverySafe(
     // If another exposure of this sport is already planned on this same day,
     // zero recovery is guaranteed; exclude the candidate without guessing
     // which of the two sessions happens first.
-    const today=allSlots.filter(s=>days(s)===day&&serves(req.sport,s.sport));
-    if(today.length>(serves(req.sport,here.sport)?1:0))return false;
-    const next=allSlots.filter(s=>days(s)>day&&serves(req.sport,s.sport))
+    const today=allSlots.filter(s=>days(s)===day&&serves(req.sport,s.sport,s.isRaceEvent));
+    if(today.length>(serves(req.sport,here.sport,here.isRaceEvent)?1:0))return false;
+    const next=allSlots.filter(s=>days(s)>day&&serves(req.sport,s.sport,s.isRaceEvent))
       .reduce<number|null>((best,s)=>best===null?days(s):Math.min(best,days(s)),null);
     if(next===null)continue;
     // A Wednesday-to-Friday pair gives only 24 hours of guaranteed recovery,
@@ -76,11 +76,11 @@ export function calendarOrConfirmedClockRecoverySafe(
     if(!req.sourceId?.trim()||!['swim','bike','run','strength'].includes(req.sport)||
        !Number.isFinite(req.hours)||req.hours<0)return false;
     if(req.hours===0)continue;
-    const today=allSlots.filter(slot=>absolute(slot)===thisDay&&serves(req.sport,slot.sport));
+    const today=allSlots.filter(slot=>absolute(slot)===thisDay&&serves(req.sport,slot.sport,slot.isRaceEvent));
     // Without a unique slot identity, same-day duplicate exposures cannot
     // be matched unambiguously to a coach-confirmed time; refuse.
-    if(today.length>(serves(req.sport,here.sport)?1:0))return false;
-    const next=allSlots.filter(slot=>absolute(slot)>thisDay&&serves(req.sport,slot.sport))
+    if(today.length>(serves(req.sport,here.sport,here.isRaceEvent)?1:0))return false;
+    const next=allSlots.filter(slot=>absolute(slot)>thisDay&&serves(req.sport,slot.sport,slot.isRaceEvent))
       .sort((a,b)=>absolute(a)-absolute(b))[0];
     if(!next)continue;
     const calendarGuaranteed=Math.max(0,(absolute(next)-thisDay-1)*1440);

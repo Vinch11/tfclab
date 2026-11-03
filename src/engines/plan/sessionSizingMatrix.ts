@@ -11,7 +11,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-export type EvidenceTier = "peer_reviewed" | "practitioner_literature" | "elite_practice";
+export type EvidenceTier = "peer_reviewed" | "practitioner_literature" | "elite_practice" | "coach_declared";
 
 export interface QuotaRange { min: number; max: number }
 
