@@ -1,110 +1,34 @@
 {
-  "sourceCommit": "27d8a1ae2c79447b5617d151770c9890729bc50d",
-  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "sourceCommit": "7469eb1cfaf1e0fd0ddbafabf6c11ff3d4b308d4",
   "files": [
-    {
-      "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
-      "characters": 9022
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
-      "characters": 6624
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
-      "characters": 3042
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/localTime.ts",
-      "characters": 3706
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
-      "characters": 2429
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
-      "characters": 19053
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
-      "characters": 29179
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/oauth.ts",
-      "characters": 29731
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
-      "characters": 4571
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
-      "characters": 8067
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/refs.ts",
-      "characters": 13022
-    },
-    {
-      "path": "supabase/functions/nolio-v2-send-plan/index.ts",
-      "characters": 5659
-    },
-    {
-      "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
-      "characters": 4418
-    },
-    {
-      "path": "supabase/functions/nolio-v2-oauth/index.ts",
-      "characters": 6161
-    },
-    {
-      "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
-      "characters": 1580
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/dryRun.ts",
-      "characters": 11086
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/dryRunAction.ts",
-      "characters": 3085
-    },
-    {
-      "path": "supabase/functions/nolio-v2-dry-run/index.ts",
-      "characters": 4488
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/teamScopeContext.ts",
-      "characters": 4683
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/trialSession.ts",
-      "characters": 17880
-    },
-    {
-      "path": "supabase/functions/nolio-v2-trial-session/index.ts",
-      "characters": 8090
-    },
-    {
-      "path": "supabase/functions/_shared/nolioV2/planDryRun.ts",
-      "characters": 13015
-    },
-    {
-      "path": "supabase/functions/nolio-v2-plan-dry-run/index.ts",
-      "characters": 8379
-    }
+    "supabase/functions/_shared/nolioV2/connectionStore.ts",
+    "supabase/functions/_shared/nolioV2/dryRun.ts",
+    "supabase/functions/_shared/nolioV2/dryRunAction.ts",
+    "supabase/functions/_shared/nolioV2/httpFetch.ts",
+    "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+    "supabase/functions/_shared/nolioV2/localTime.ts",
+    "supabase/functions/_shared/nolioV2/marker.ts",
+    "supabase/functions/_shared/nolioV2/oauth.ts",
+    "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+    "supabase/functions/_shared/nolioV2/planDryRun.ts",
+    "supabase/functions/_shared/nolioV2/planSend.ts",
+    "supabase/functions/_shared/nolioV2/planSessions.ts",
+    "supabase/functions/_shared/nolioV2/plannedClient.ts",
+    "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+    "supabase/functions/_shared/nolioV2/refs.ts",
+    "supabase/functions/_shared/nolioV2/teamScopeContext.ts",
+    "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+    "supabase/functions/_shared/nolioV2/trialSession.ts",
+    "supabase/functions/_shared/nolioV2/coachReview.ts",
+    "supabase/functions/_shared/nolioV2/verificationReceipt.ts",
+    "supabase/functions/nolio-v2-send-plan/index.ts",
+    "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+    "supabase/functions/nolio-v2-oauth/index.ts",
+    "supabase/functions/nolio-v2-oauth-callback/index.ts",
+    "supabase/functions/nolio-v2-dry-run/index.ts",
+    "supabase/functions/nolio-v2-trial-session/index.ts",
+    "supabase/functions/nolio-v2-plan-dry-run/index.ts",
+    "supabase/functions/qa-plan-coach-review/index.ts"
   ],
-  "method": "Exact immutable source contents copied to isolated QA snapshot; Deno static types only, no execution, secrets or provider calls",
-  "functionalTests": {
-    "nolioPlanDryRun.test.ts": 26,
-    "nolioV2ActiveRefsUpdate.test.ts": 7,
-    "srcLibNolioPlusQaPilotReview": "298/298 (16 files)",
-    "releaseManifestTests": "22/22",
-    "types": "ok",
-    "eslint": "0 errors, 1 pre-existing warning",
-    "denoLint": "no new errors except pre-existing no-import-prefix",
-    "denoCheck": "shared modules ok; Edge entrypoints inconclusive locally (tool crash)"
-  },
-  "realFullPlan": "not executed"
+  "scope": "Exact immutable source, Deno static typecheck only; no function execution, credentials or provider calls"
 }

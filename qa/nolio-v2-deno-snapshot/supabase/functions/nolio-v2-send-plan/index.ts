@@ -15,9 +15,11 @@
  *    arrêt sur incertain/401/403/429/refus, jamais de relance d'une opération incertaine.
  * 7. verify : lecture seule (liste complète du jour + détail, marqueur, correspondance exacte unique).
  */
+import { verifyAndPersist } from "../_shared/nolioV2/verificationReceipt.ts";
+import { reviewAccepted } from "../_shared/nolioV2/coachReview.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { sendPlannedV2, reconcileExact, originMarker } from "../_shared/nolioV2/plannedClient.ts";
+import { sendPlannedV2 } from "../_shared/nolioV2/plannedClient.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
 import { loadConfig } from "../_shared/nolioV2/oauth.ts";
@@ -36,15 +38,19 @@ const SIM_RECEIPTS = "qa_nolio_v2_plan_dry_run_receipts";
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { status: "REFUSED", reason: "method_not_allowed" });
+  const requestDeadline=Date.now()+35000;
   const auth = req.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) return json(401, { status: "REFUSED", reason: "unauthorized" });
   const url = Deno.env.get("SUPABASE_URL"), anon = Deno.env.get("SUPABASE_ANON_KEY");
   if (!url || !anon) return json(500, { status: "REFUSED", reason: "server_misconfigured" });
+  if(new URL(url).hostname.split(".")[0]!=="lkjesdacgpolrwfxulbo")return json(403,{status:"BLOCKED",reason:"qa_origin_required"});
   const userClient = createClient(url, anon, { global: { headers: { Authorization: auth } } });
   const { data: claims, error: claimsErr } = await userClient.auth.getClaims(auth.slice(7));
   const sub = claims?.claims?.sub;
   if (claimsErr || typeof sub !== "string" || !UUID.test(sub)) return json(401, { status: "REFUSED", reason: "unauthorized" });
 
+  const staff = await userClient.rpc("is_staff_coach",{_user_id:sub});
+  if(staff.error||staff.data!==true)return json(403,{status:"BLOCKED",reason:"staff_coach_required"});
   let body: unknown;
   try { body = await req.json(); } catch { return json(400, { status: "REFUSED", reason: "body_not_json" }); }
   const b = (body ?? {}) as Record<string, unknown>;
@@ -89,9 +95,14 @@ Deno.serve(async (req) => {
       receipts = r.data as DryReceipt[];
     }
   }
-  // Aucune source d'attestation humaine vérifiée n'existe en QA : jamais fabriquée.
+  const reviewRead = await admin.from("qa_plan_coach_reviews").select("*").eq("coach_id",sub).eq("plan_version_id",pv.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
+  const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:prepared.planSha256,refsSha256:prepared.refsSha256,opsSha256:prepared.opsSha256});
   const gate = await realSendGate({ planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
-    consent: b.consent, job, receipts, provenance: planJson?._provenance ?? null, attestation: null });
+    consent: b.consent, job, receipts, provenance: planJson?._provenance ?? null, attestation: reviewOk ? {planVersionId:pv.id,planSha256:prepared.planSha256,reviewer:sub} : null });
+  if (!reviewOk) gate.push("coach_review_absent_or_stale");
+  // A source manifest (even archived/attested) is NOT a sporting release attestation.
+  // No verified sporting release authority is installed in this isolated QA copy.
+  gate.push("release_sporting_attestation_absent");
   const preview = sendPreview(prepared);
 
   if (action === "precheck") return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, network: "none" });
@@ -100,8 +111,8 @@ Deno.serve(async (req) => {
     if (gate.length) return json(200, { status: "BLOCKED", reason: gate[0], gate, preview, network: "none" });
     const report = await sendPlannedV2({
       connection: conn.connection, refs: conn.refs, planVersionId: pv.id, operations: prepared.ops.map((o) => o.source),
-      ledger, http: fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken }),
-      maxNewPosts: PLAN_SEND_BATCH, stopOnRejected: true,
+      ledger, http: fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken,deadline:requestDeadline }),
+      maxNewPosts: PLAN_SEND_BATCH, stopOnRejected: true, noRetry: true,
     });
     return json(200, { ...report, gate, preview });
   }
@@ -110,15 +121,21 @@ Deno.serve(async (req) => {
   if (ops.error || !Array.isArray(ops.data)) return json(502, { status: "BLOCKED", reason: "ledger_read_failed", network: "none" });
   if (!ops.data.length) return json(200, { status: "NOTHING_SENT", reason: "no_ledger_entry", network: "none", gate, preview });
   const from = Number.isSafeInteger(b.fromIndex) && (b.fromIndex as number) >= 0 ? b.fromIndex as number : 0;
-  const http = fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken });
-  const results: Array<{ opIndex: number; result: string }> = [];
+  const http = fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken,deadline:requestDeadline });
+  if (!expected || expected.planSha256!==prepared.planSha256 || expected.refsSha256!==prepared.refsSha256 || expected.opsSha256!==prepared.opsSha256) return json(200,{status:"BLOCKED",reason:"verification_hashes_stale",gate,preview});
+  const deadline=requestDeadline;
+  const results: Array<{ opIndex: number; result: string; receiptId?: unknown }> = [];
   for (const o of prepared.ops.slice(from, from + PLAN_SEND_BATCH)) {
     const led = (ops.data as Array<{ session_key: string; state: string; payload_sha256: string; path: string }>).find((x) => x.session_key === o.sessionKey && x.path === o.path);
     if (!led) { results.push({ opIndex: o.opIndex, result: "not_sent" }); continue; }
     if (led.payload_sha256 !== o.bodySha256) { results.push({ opIndex: o.opIndex, result: "ledger_body_divergent" }); break; }
-    const rc = await reconcileExact(http, o.source, conn.refs.athleteId, o.body, await originMarker(pv.id, o.source));
-    results.push({ opIndex: o.opIndex, result: rc.kind === "exact" ? "verified_unique" : rc.kind });
-    if (rc.kind !== "exact") break;
+    if(Date.now()>=deadline)break;
+    const rc=await verifyAndPersist({coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,prepared,op:o,http,ledger,ledgerState:led.state,deadline,store:{insert:async(row)=>{
+      const w=await admin.from("qa_nolio_v2_plan_verify_receipts").insert(row).select("id").single();if(w.error||!w.data)return null;
+      const r=await admin.from("qa_nolio_v2_plan_verify_receipts").select("*").eq("id",w.data.id).eq("coach_id",sub).maybeSingle();return r.error?null:r.data;
+    }}});
+    results.push({opIndex:o.opIndex,...rc});
+    if(rc.result!=="verified_unique")break;
   }
-  return json(200, { status: "VERIFY", fromIndex: from, results, total: prepared.ops.length, ledgerStates: ops.data.map((x) => (x as { state: string }).state) });
+  return json(200, { status: "VERIFY", gate, preview, fromIndex: from, results, total: prepared.ops.length, ledgerStates: ops.data.map((x) => (x as { state: string }).state) });
 });

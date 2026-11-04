@@ -122,12 +122,15 @@ const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>,
   (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
 
 type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string } | { kind: "read_failed"; detail: string };
-export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string): Promise<Reconcile> {
+export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string, budget?: {deadline:number;now:()=>number}): Promise<Reconcile> {
+  const expired=()=>!!budget && budget.now()>=budget.deadline;
   const candidates: Array<Record<string, unknown>> = [];
   let after: string | null = null;
   for (let page = 0; ; page++) {
     if (page >= RECONCILE_MAX_PAGES) return { kind: "read_failed", detail: "pagination_limit_reached" };
+    if(expired())return {kind:"read_failed",detail:"deadline"};
     const r = await http.listPage(op.path, athlete, String(sent.date_start), after);
+    if(expired())return {kind:"read_failed",detail:"deadline"};
     if (!r.ok) return { kind: "read_failed", detail: (r as { detail: string }).detail };
     candidates.push(...r.items.filter((it) => looselySame(it, sent, marker)));
     if (!r.hasMore) break;
@@ -139,7 +142,9 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
   const exact: string[] = [];
   for (const c of candidates) {
     if (typeof c.id !== "string") return { kind: "ambiguous", detail: "candidate_without_id" };
+    if(expired())return {kind:"read_failed",detail:"deadline"};
     const d = await http.getDetail(op.path, c.id, athlete);
+    if(expired())return {kind:"read_failed",detail:"deadline"};
     if (!d.ok) return { kind: "read_failed", detail: `detail:${(d as { detail: string }).detail}` };
     if (d.item.id !== c.id) return { kind: "ambiguous", detail: "detail_id_mismatch" };
     if (exactRemoteMatch(d.item, sent)) exact.push(c.id);
@@ -162,6 +167,7 @@ export async function sendPlannedV2(input: {
   maxNewPosts?: number;
   /** Plan complet : un refus 400/404/409/422 ARRÊTE le lot (aucun état partiel silencieux). */
   stopOnRejected?: boolean;
+  noRetry?: boolean;
 }): Promise<SendReport> {
   const blocked = (reason: string): SendReport => ({ status: "BLOCKED", reason, results: [] });
   const c = input.connection;
@@ -205,11 +211,13 @@ export async function sendPlannedV2(input: {
       if (prev.state === "rejected") { if (input.stopOnRejected) return stop("STOPPED_REJECTED", `rejected:${op.sessionKey}`); results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null }); continue; }
       if (prev.state === "ambiguous") return stop("STOPPED_AMBIGUOUS", `ambiguous:${op.sessionKey}`);
       if (prev.state === "rate_limited") {
+        if(input.noRetry)return stop("STOPPED_RATE_LIMITED","no_retry_after_429");
         // 429 = non traité de façon certaine : seule exception où un nouvel essai est permis, via CAS.
         let won = false;
         try { won = await ledger.transition(opKey, "rate_limited", "sending", { detail: "retry_after_429" }); } catch { return stop("STOPPED_LEDGER_UNAVAILABLE", `cas_failed:${op.sessionKey}`); }
         if (!won) return stop("STOPPED_IN_FLIGHT", `concurrent_retry:${op.sessionKey}`);
       } else {
+        if(input.noRetry)return stop("STOPPED_UNCONFIRMED",`explicit_durable_verification_required:${op.sessionKey}`);
         // "sending" (POST possiblement en vol ou interrompu) ou "sent_unconfirmed" : JAMAIS de renvoi automatique.
         const rc = await reconcileExact(http, op, input.refs.athleteId, sent, marker);
         if (rc.kind === "exact") {

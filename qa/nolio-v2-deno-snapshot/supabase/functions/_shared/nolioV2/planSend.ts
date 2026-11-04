@@ -10,8 +10,8 @@
  *   (HTTP 2xx non NULL) pour CHAQUE opération avec le même index, séance, date et
  *   empreinte de corps MARQUÉ ;
  * - plan autorisé à la prescription (provenance prescriptionAllowed === true) ;
- * - attestation humaine du plan fournie par une source vérifiée (aucune n'existe
- *   aujourd'hui en QA ⇒ toujours absente ; jamais fabriquée ni déduite d'un avis QA).
+ * - revue coach ordinaire chargée et vérifiée ; elle ne vaut PAS attestation scientifique.
+ * Le endpoint ajoute les gardes non prescriptif et release sportive non attestée.
  * Puis `sendPlannedV2` (journal durable, réservation avant POST, aucune relance d'une
  * opération incertaine, arrêt 401/403/429/refus), lot borné.
  */
@@ -25,7 +25,7 @@ export type PlanSendAction = typeof PLAN_SEND_ACTIONS[number];
 export type Expected = { planSha256: string; refsSha256: string; opsSha256: string; jobId: string };
 export type DryJob = { id: string; plan_version_id: string; plan_sha256: string; refs_sha256: string; ops_sha256: string; total_ops: number } | null;
 export type DryReceipt = { op_index: number; session_key: string; session_date: string; body_sha256: string; outcome: string; code: string; http_status: number | null };
-/** Attestation humaine vérifiée : AUCUNE source n'existe en QA ⇒ toujours null côté Edge. */
+/** Legacy gate type: ordinary authenticated coach review, NOT scientific attestation. */
 export type HumanAttestation = { planVersionId: string; planSha256: string; reviewer: string } | null;
 
 export type GateInput = {

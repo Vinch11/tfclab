@@ -34,19 +34,25 @@ export type FetchLike = (url: string, init: { method: string; headers: Record<st
 type ReadResult = { ok: true; json: unknown } | { ok: false; detail: string };
 const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 
-export function fetchNolioV2Http(opts: { fetch: FetchLike; accessToken: string; timeoutMs?: number }): NolioV2Http {
+export function fetchNolioV2Http(opts: { fetch: FetchLike; accessToken: string; timeoutMs?: number; deadline?:number }): NolioV2Http {
   if (!opts.accessToken) throw new Error("access_token_absent");
   const timeoutMs = opts.timeoutMs ?? 15000;
+  const remaining=()=>Math.max(0,Math.min(timeoutMs,(opts.deadline??Infinity)-Date.now()));
+  async function bounded<T>(work:Promise<T>,ctl:AbortController):Promise<T>{
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{return await Promise.race([work,new Promise<never>((_,reject)=>{timer=setTimeout(()=>{ctl.abort();reject(new DOMException("timeout","AbortError"));},remaining());})]);}finally{if(timer)clearTimeout(timer);}
+  }
   const auth = { Authorization: `Bearer ${opts.accessToken}`, Accept: "application/json" };
 
   async function get(path: string, query: URLSearchParams): Promise<ReadResult> {
+    if(remaining()<=0)return {ok:false,detail:"timeout"};
     const ctl = new AbortController();
-    const timer = setTimeout(() => ctl.abort(), timeoutMs);
+    const timer = setTimeout(() => ctl.abort(), remaining());
     try {
-      const r = await opts.fetch(`${NOLIO_V2_ORIGIN}${path}?${query.toString()}`, { method: "GET", redirect: "error", signal: ctl.signal, headers: { ...auth } });
+      const r = await bounded(opts.fetch(`${NOLIO_V2_ORIGIN}${path}?${query.toString()}`, { method: "GET", redirect: "error", signal: ctl.signal, headers: { ...auth } }),ctl);
       if (r.status !== 200) return { ok: false, detail: `http_${r.status}` };
       let text: string;
-      try { text = await r.text(); } catch { return { ok: false, detail: "body_unreadable" }; }
+      try { text = await bounded(r.text(),ctl); } catch { return { ok: false, detail: "body_unreadable" }; }
       try { return { ok: true, json: JSON.parse(text) }; } catch { return { ok: false, detail: "json_invalid" }; }
     } catch (e) {
       return { ok: false, detail: (e as Error)?.name === "AbortError" ? "timeout" : "network_error" };
@@ -57,16 +63,17 @@ export function fetchNolioV2Http(opts: { fetch: FetchLike; accessToken: string; 
     async post(path, body): Promise<HttpResult> {
       if (!COLLECTIONS.has(path)) return { kind: "response", status: 0, json: { error: "path_not_allowed" } };
       if (body && typeof body === "object" && "dry_run" in (body as object)) return { kind: "response", status: 0, json: { error: "dry_run_not_enabled_in_qa" } };
+      if(remaining()<=0)return {kind:"lost",detail:"timeout"};
       const ctl = new AbortController();
-      const timer = setTimeout(() => ctl.abort(), timeoutMs);
+      const timer = setTimeout(() => ctl.abort(), remaining());
       try {
-        const r = await opts.fetch(`${NOLIO_V2_ORIGIN}${path}`, {
+        const r = await bounded(opts.fetch(`${NOLIO_V2_ORIGIN}${path}`, {
           method: "POST", redirect: "error", signal: ctl.signal,
           headers: { ...auth, "Content-Type": "application/json" },
           body: JSON.stringify(body),
-        });
+        }),ctl);
         let text: string;
-        try { text = await r.text(); } catch { return { kind: "lost", detail: "body_unreadable" }; }
+        try { text = await bounded(r.text(),ctl); } catch { return { kind: "lost", detail: "body_unreadable" }; }
         let json: unknown = null;
         if (text) { try { json = JSON.parse(text); } catch { if (r.status >= 200 && r.status < 300) return { kind: "lost", detail: "2xx_body_not_json" }; } }
         return { kind: "response", status: r.status, json };
