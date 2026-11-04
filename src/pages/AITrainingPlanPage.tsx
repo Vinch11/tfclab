@@ -1,3 +1,4 @@
+import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { CoachDetInputsPanel } from "@/pages/__qa/CoachDetInputsPanel";
 import { AthleteDetSimplePanel } from "@/components/plan/AthleteDetSimplePanel";
 import type { AthleteRecordView } from "@/lib/det/athleteDetBridge";
@@ -2038,6 +2039,11 @@ export default function AITrainingPlanPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
+      const archiveMetadata = planArchiveMetadata(parsedPlan, {
+        _planStartDate: format(planStartDate, "yyyy-MM-dd"), _objective: objective,
+        _raceName: raceName, _raceDate: raceDate, _raceGoals: raceGoals,
+        _coachLimiterOrder: [...coachLimiterOrder],
+      });
       const sessionsCount = (parsedPlan.weeks || [])
         .flatMap(w => w.sessions || [])
         .filter(s => !s.isRest).length;
@@ -2072,21 +2078,9 @@ export default function AITrainingPlanPage() {
         plan_json: {
           ...(parsedPlan as any),
           _markdown: buildMarkdownFromPlan(parsedPlan),
-          _planStartDate: format(planStartDate, "yyyy-MM-dd"),
-          _objective: objective,
-          _raceName: raceName,
-          _raceDate: raceDate,
-          // Objectifs secondaires (multi-objectif A/B/C) — cf. bug réel "Manu"
-          // (audit fiabilité génération plan IA) : ces objectifs ne vivaient
-          // QUE dans le localStorage du navigateur ayant servi à les saisir
-          // (persistKey ci-dessus), jamais en base. Régénérer depuis un autre
-          // appareil/navigateur repartait donc avec `raceGoals=[]`, et le plan
-          // redevenait 100% mono-objectif (plus de cycle Marathon, plus de
-          // catalogue restreint) sans aucun avertissement pour le coach.
-          _raceGoals: raceGoals,
-          _coachLimiterOrder: [...coachLimiterOrder],
+          ...archiveMetadata,
         },
-        objective: objective || currentAthlete.goal || null,
+        objective: archiveMetadata._objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
         sessions_count: sessionsCount,
         validator_score: validatorScore,
@@ -3951,17 +3945,17 @@ export default function AITrainingPlanPage() {
 
             {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
               <Label>Moteur de génération — QA</Label>
-              <Select value={planningEngine} onValueChange={v=>setPlanningEngine(v as CoachEngine)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
+              <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
               <p className="text-xs text-muted-foreground">DET utilise le même profil de planification que l’IA (diagnostic, limiteurs, réglages de la page). En test, avec une revue réelle des séances par le coach : semi-marathon 8 sem./6 h, marathon 16 sem./7 h (selon les limiteurs du profil, refus possible et expliqué) et Ironman 70.3 12 sem./9 h peuvent être acceptés ; semi 30 sem. et Ironman refusés ; les autres objectifs ne sont pas encore raccordés. Un refus ne déclenche jamais l’IA. Les deux sorties restent non prescriptives et soumises à la revue coach.</p>
               <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
               {currentAthlete && qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
                 return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
-                onAIShared={async(f)=>{if(!isLatest(f.fingerprint)){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
+                onAIShared={async(f)=>{const epoch=qaActionEpoch.current;const current=()=>epoch===qaActionEpoch.current&&isLatest(f.fingerprint);if(!current()){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const ins=planningInputFor(f,"ai");
                   const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
-                  if(!isLatest(f.fingerprint)){toast.error("Profil modifié pendant la prévalidation : génération annulée");return;}
+                  if(!current()){toast.error("Profil ou moteur modifié pendant la prévalidation : génération annulée");return;}
                   setPlanOverride(null);await generatePlanWindowed(ins.athlete,ins.config);
                 }});}}
                 form={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:Number(weeksAvailable??0),weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition}}
@@ -3976,7 +3970,7 @@ export default function AITrainingPlanPage() {
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(ep!==qaActionEpoch.current||!isLatest(fp))return;
                     const owner=await verifyQaCoach();if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
-                    setPlanOverride(o.plan);setIsSaved(false);setResponse("");
+                    setPlanOverride(bindAppPlanMetadata(o.plan,cur));setIsSaved(false);setResponse("");
                   }});
                 }}/>;})()}
               <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>

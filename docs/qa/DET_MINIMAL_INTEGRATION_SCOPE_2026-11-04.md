@@ -91,3 +91,11 @@ No deployment, backend schema change or athlete/calendar write is performed by t
 - Latest shared-context integration: 17/17 tests passed (parity + actual solver integration), synthetic records only.
 - Broader targeted checkpoint at parent 4bf48d339: 177/177 tests passed, including native race/phase regressions.
 - Source unchanged in protected diagnostic/limiter modules. No claim of live backend validation.
+
+## Generation → existing archive checkpoint
+
+The ordinary page now attaches the generated DET calendar's archive metadata from its frozen app input. Saving uses that original start date, objective, race dates/goals and limiter override rather than whatever happens to be in the live form. Historical coach-input DET can use its stored snapshot; missing source dates refuse explicitly. Sessions and physiological calculations are unchanged. AI retains its existing metadata behavior.
+
+Changing the selected engine invalidates pending QA actions immediately. In particular, an AI prevalidation completing after the coach switches to DET cannot launch the pending AI request.
+
+Local verification: 47/47 targeted tests passed, covering the real marathon solver → metadata → append-only in-memory save/read-back/reopen, changed-form retry identity, historical DET, AI secondary goals, engine dispatch and verbatim session display. TypeScript and new-module lint passed. These are offline checks, not authenticated database or Nolio receipts. The three GitHub workflows for the preceding commit cc538ff8 completed successfully; that evidence does not belong to the next source commit.

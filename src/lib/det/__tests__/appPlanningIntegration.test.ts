@@ -6,6 +6,7 @@
  * La revue des séances est SYNTHÉTIQUE (test uniquement) ; elle n'est pas une revue scientifique.
  */
 import { describe, it, expect, vi, beforeAll } from "vitest";
+import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from "@/lib/plan/appPlanningPipeline";
 import { freezeAppPlanningInput, planningInputFor, semanticPlanningPayload, explicitCoachLimiterOverride } from "../appPlanningInput";
 import { buildAthleteRecordView } from "../appRecordView";
@@ -228,10 +229,18 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     const db = new Map<string, Record<string, unknown>>();
     const transport = { insert: async (row: { id: string }) => { db.set(row.id, JSON.parse(JSON.stringify(row))); return { error: null }; },
       readById: async (id: string) => ({ data: db.get(id) ?? null, error: null }) };
-    const saved = await new AppendOnlyPlanVersionSaver({ transport } as never).save({ athlete_id: A1, coach_id: COACH, plan_json: out.plan, objective: "Marathon",
+    const generated = bindAppPlanMetadata(out.plan, p.frozen);
+    const archiveMetadata = planArchiveMetadata(generated, {
+      _planStartDate: "2028-01-03", _objective: "IM", _raceName: "changed live form", _raceDate: "2028-06-04", _raceGoals: [], _coachLimiterOrder: ["VO2max"],
+    });
+    expect(archiveMetadata._planStartDate).toBe(p.frozen.config.planStartDate);
+    expect(archiveMetadata._objective).toBe(p.frozen.config.objective);
+    expect(generated.weeks).toEqual(out.plan.weeks);
+    const saved = await new AppendOnlyPlanVersionSaver({ transport } as never).save({ athlete_id: A1, coach_id: COACH, plan_json: { ...generated, ...archiveMetadata }, objective: archiveMetadata._objective,
       weeks_count: 16, sessions_count: out.sessions, validator_score: null, validator_grade: null, validator_summary: null } as never);
     expect(saved.status).toBe("CONFIRMED");
     const restored = restoreStructuredPlan((db.get(saved.attemptId!) as { plan_json: unknown }).plan_json as never);
+    expect(planArchiveMetadata(restored!, archiveMetadata)).toEqual(archiveMetadata);
     const prov = (restored as unknown as { _provenance: { limiterOrder: { applied: string[]; semantics: { rawPriorities: string[] } }; planningInput: unknown } })._provenance;
     expect(prov.limiterOrder.applied).toEqual(["Durabilité", "TTE"]);
     expect(prov.limiterOrder.semantics.rawPriorities).toEqual(["Durabilité", "TTE"]);
