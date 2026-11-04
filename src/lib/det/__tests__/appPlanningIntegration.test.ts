@@ -63,8 +63,8 @@ const formState = (objective: string, weeks: number, hours: number, sessions: nu
   chronicWeeklyHours: "", recentWeeklyHours: "", recentWeeksCount: "", maxDoubleDaysPerWeek: "", coachLimiterOrder: [], currentAthleteId: A1,
 });
 
-async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number) {
-  const snapshots = [snapRow(pace)];
+async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18) {
+  const snapshots = [{ ...snapRow(pace), vma }];
   const ctx = computeAppAthleteContext(athleteRow, objective, "age_group", { snapshots, tests: [], checkins: [] })!;
   const st = formState(objective, weeks, hours, sessions);
   const config = buildAppPlanConfig(ctx.diagnostic, st);
@@ -88,6 +88,18 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it("VMA 17,5 km/h du profil enregistré : la conversion d'unité atteint le vrai solveur sans faux refus d'ancre", async () => {
+    const p = await pagePipeline(240, "Semi", 8, 6, 5, 17.5);
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const { b, out } = await runDet(p, "Semi", 8, 6, 5);
+      expect(b.snapshot!.anchors.runVvo2SpeedMps!.value).toBe(17.5 / 3.6);
+      expect(solver).toHaveBeenCalledTimes(1);
+      expect(solver.mock.calls[0][0].vma).toBe(17.5);
+      // This checks delivery to the solver, not approval of any resulting plan.
+      expect(["accepted", "engine_refused"]).toContain(out.kind);
+    } finally { solver.mockRestore(); }
+  }, 200000);
   it("une autre allure seuil enregistrée change le diagnostic et DET refuse son primaire non pris en charge, sans reprendre le plan précédent", async () => {
     const before = await pagePipeline(222, "Marathon", 16, 7, 4);
     const after = await pagePipeline(300, "Marathon", 16, 7, 4);

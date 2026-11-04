@@ -78,7 +78,9 @@ export function explicitCoachLimiterOverride(
   pageOrder: readonly string[], payload: { limiterOrder?: string[]; excludedLimiterMetrics?: string[]; overriddenByCoach?: { primary?: boolean; secondary?: boolean } } | null,
   applied: readonly string[],
 ): string[] | null {
-  if (pageOrder.length) return [...pageOrder];
+  // The shared config has already resolved precedence between page controls
+  // and the coach form. Record that effective choice, never an older control.
+  if (pageOrder.length) return [...applied];
   if (!payload) return null;
   const explicit = payload.limiterOrder !== undefined || (payload.excludedLimiterMetrics?.length ?? 0) > 0
     || payload.overriddenByCoach?.primary === true || payload.overriddenByCoach?.secondary === true;
@@ -99,11 +101,13 @@ export async function freezeAppPlanningInput(input: {
     throw new PlanningInputError(`date de début incohérente : config ${config.planStartDate} ≠ formulaire ${input.planStartDate}`);
   config.planStartDate = input.planStartDate;
   const applied = [...((config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [])];
+  if (input.coachOverride !== null && JSON.stringify(input.coachOverride) !== JSON.stringify(applied))
+    throw new PlanningInputError("ordre des limiteurs coach différent de la config partagée");
   const limiters: AppLimiterTrace = {
     appAutomatic: [...input.appAutomaticLimiters],
-    coachOverride: input.coachOverride && input.coachOverride.length ? [...input.coachOverride] : null,
+    coachOverride: input.coachOverride !== null ? [...input.coachOverride] : null,
     applied,
-    origin: input.coachOverride && input.coachOverride.length ? "coach_override" : "app_automatic",
+    origin: input.coachOverride !== null ? "coach_override" : "app_automatic",
   };
   const fingerprint = await planningFingerprint(athlete, config);
   return deepFreeze({ source: "app_planning_pipeline", athleteId: input.athleteId, athlete, config, limiters, fingerprint });

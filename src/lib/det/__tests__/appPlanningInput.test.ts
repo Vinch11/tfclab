@@ -99,6 +99,20 @@ async function runWith(app: Awaited<ReturnType<typeof frozen>> | null, rec = run
 beforeEach(() => { calls.prepare = 0; calls.diag = 0; calls.det = []; vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyOn(console, "warn").mockImplementation(() => {}); });
 
 describe("[frontière moquée — solveur capturé, pas une preuve d'acceptation] adaptateur profil de l'app → DET", () => {
+  it.each([14.5, 16.5, 17.5])("VMA %s km/h : conversion exacte vers les ancres revues, sans faux refus du profil partagé", async (vma) => {
+    const { athlete, config } = appPipelineOutput();
+    const app = await freezeAppPlanningInput({ athleteId: A1, athlete: { ...athlete, vma, paceThresholdSecPerKm: 300 }, config,
+      appAutomaticLimiters: ["TTE", "VLamax", "VO2max"], coachOverride: null, planStartDate: "2026-10-26" });
+    const rec = runner();
+    rec.refs.vma = vma;
+    rec.snapshot = { ...rec.snapshot, pace_threshold_sec_per_km: 300 };
+    const out = await runWith(app, rec);
+    expect(out.kind).toBe("engine_refused"); // le moteur capturé est atteint ; il ne retourne aucun plan
+    expect(calls.det).toHaveLength(1);
+    expect((calls.det[0].athlete as PlanAthleteData).vma).toBe(vma);
+    expect(calls.diag).toBe(0);
+    expect(calls.prepare).toBe(0);
+  });
   it("n'appelle ni computeDiagnostic ni prepareTrainingPlanContext ; le solveur reçoit l'athlète et la config de l'app à l'identique", async () => {
     const app = await frozen();
     const out = await runWith(app);
@@ -172,6 +186,21 @@ describe("[frontière moquée — solveur capturé, pas une preuve d'acceptation
     expect(explicitCoachLimiterOverride([], { limiterOrder: ["TTE"] }, ["TTE"])).toEqual(["TTE"]);
     expect(explicitCoachLimiterOverride([], { overriddenByCoach: { primary: true } }, ["VO2max"])).toEqual(["VO2max"]);
     expect(explicitCoachLimiterOverride(["VLamax"], null, ["VLamax"])).toEqual(["VLamax"]);
+  });
+  it("deux réglages coach : la trace reprend l'ordre effectivement résolu par la config de la page", () => {
+    expect(explicitCoachLimiterOverride(["TTE", "VO2max"], { limiterOrder: ["VO2max", "TTE"] }, ["VO2max", "TTE"]))
+      .toEqual(["VO2max", "TTE"]);
+  });
+  it("exclusion explicite de tous les limiteurs : origine coach conservée, même pour un ordre vide", async () => {
+    const { athlete, config } = appPipelineOutput();
+    const applied: string[] = [];
+    const app = await freezeAppPlanningInput({ athleteId: A1, athlete, config: { ...config, identifiedLimitersRaw: applied },
+      appAutomaticLimiters: ["TTE"], coachOverride: explicitCoachLimiterOverride([], { excludedLimiterMetrics: ["TTE"] }, applied),
+      planStartDate: "2026-10-26" });
+    expect(app.limiters).toMatchObject({ origin: "coach_override", coachOverride: [], applied: [] });
+  });
+  it("ordre coach différent de la config : gel refusé au lieu d'enregistrer une provenance contradictoire", async () => {
+    await expect(frozen(["TTE", "VO2max", "VLamax"])).rejects.toThrow(/ordre des limiteurs/);
   });
   it("aucune métrique non détectée n'est ajoutée : applied = identifiedLimitersRaw de l'app", async () => {
     const app = await frozen();
