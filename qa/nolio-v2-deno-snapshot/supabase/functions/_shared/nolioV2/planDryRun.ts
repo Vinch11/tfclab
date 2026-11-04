@@ -15,8 +15,9 @@
  * - Lot borné, cadence prudente, arrêt au premier 401/403/429/inconnu ou quota bas ; une
  *   opération déjà validée n'est ni refaite ni sautée ; une opération UNKNOWN n'est jamais relancée.
  */
-import { mapPlanToNolioV2, type NolioV2Refs, requiredExerciseLabels, raceIdentityOf } from "./plannedMapper.ts";
+import { mapPlanToNolioV2, type NolioV2Refs, type V2Operation, requiredExerciseLabels, raceIdentityOf } from "./plannedMapper.ts";
 import { sessionsFromPlanJson } from "./planSessions.ts";
+import { bodyToSend, operationKey } from "./marker.ts";
 import { canonical, forceDryRun, sha256Hex, DRY_RUN_PATHS, type DryRunCode, type DryRunKind, type DryRunOutcome } from "./dryRun.ts";
 
 export const PLAN_DRY_RUN_ACTIONS = ["precheck", "run"] as const;
@@ -44,7 +45,8 @@ export type Precheck = {
   opsByKind: { training: number; competition: number };
 };
 export type ManifestEntry = { opIndex: number; sessionKey: string; date: string; kind: DryRunKind; path: string; bodySha256: string };
-export type FrozenOp = ManifestEntry & { body: Record<string, unknown> };
+/** body = corps MARQUÉ réellement destiné à la création (même empreinte que le journal d'envoi) ; source = opération nue du mapper. */
+export type FrozenOp = ManifestEntry & { body: Record<string, unknown>; source: V2Operation };
 export type Prepared = { precheck: Precheck; ops: FrozenOp[]; planSha256: string; refsSha256: string; opsSha256: string };
 
 /** Empreinte des refs SANS jeton : athlète, sports, exercices, compétition, fuseau. */
@@ -62,7 +64,11 @@ export function opsDigest(m: ManifestEntry[]): Promise<string> {
 export const manifestOf = (ops: FrozenOp[]): ManifestEntry[] =>
   ops.map(({ opIndex, sessionKey, date, kind, path, bodySha256 }) => ({ opIndex, sessionKey, date, kind, path, bodySha256 }));
 
-export async function preparePlan(planJson: unknown, refs: NolioV2Refs): Promise<Prepared> {
+/**
+ * planVersionId lie le marqueur d'origine au corps figé : la simulation valide le corps
+ * marqué exact (bodySha256 = payloadSha256 du journal d'envoi), jamais un corps voisin.
+ */
+export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVersionId: string): Promise<Prepared> {
   const ex = sessionsFromPlanJson(planJson);
   const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs);
   const refusedBy = new Map<string, string>();
@@ -84,7 +90,8 @@ export async function preparePlan(planJson: unknown, refs: NolioV2Refs): Promise
     const op = m.operations[r.opIndex!];
     const kind: DryRunKind = op.kind;
     if (DRY_RUN_PATHS[kind] !== op.path) { r.status = "refused"; r.reason = "operation_path_not_allowed"; r.opIndex = null; continue; }
-    ops.push({ opIndex: ops.length, sessionKey: r.sessionKey, date: String(op.body.date_start), kind, path: op.path, bodySha256: await sha256Hex(canonical(op.body)), body: op.body });
+    const marked = await bodyToSend(planVersionId, op);
+    ops.push({ opIndex: ops.length, sessionKey: r.sessionKey, date: String(op.body.date_start), kind, path: op.path, bodySha256: (await operationKey(planVersionId, op)).payloadSha256, body: marked, source: op });
     r.opIndex = ops.length - 1;
   }
   const missingExercises = requiredExerciseLabels(ex.sessions).filter((l) => !refs.exerciseIds[l]);

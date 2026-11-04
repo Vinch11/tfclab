@@ -48,7 +48,7 @@ export type NolioV2Connection = {
   mode: "real" | "test-mock";
   grantedScopes: string[];
 };
-export type SendStatus = "BLOCKED" | "DONE" | "STOPPED_UNCONFIRMED" | "STOPPED_AMBIGUOUS" | "STOPPED_IN_FLIGHT" | "STOPPED_RATE_LIMITED" | "STOPPED_AUTH" | "STOPPED_LEDGER_UNAVAILABLE" | "DRY_RUN_NOT_VALIDATED";
+export type SendStatus = "BLOCKED" | "DONE" | "STOPPED_UNCONFIRMED" | "STOPPED_AMBIGUOUS" | "STOPPED_IN_FLIGHT" | "STOPPED_RATE_LIMITED" | "STOPPED_AUTH" | "STOPPED_LEDGER_UNAVAILABLE" | "DRY_RUN_NOT_VALIDATED" | "STOPPED_BATCH_LIMIT" | "STOPPED_REJECTED";
 export type SendReport = {
   status: SendStatus;
   reason: string | null;
@@ -58,27 +58,8 @@ export type SendReport = {
 export const NOLIO_V2_REQUIRED_SCOPES = ["planned:write", "planned:read"] as const;
 export const RECONCILE_MAX_PAGES = 50;
 
-async function sha256Hex(s: string): Promise<string> {
-  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(d)).map((b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-/** Marqueur d'origine TFCLab inscrit dans la description. Indice, PAS preuve absolue d'origine. */
-export async function originMarker(planVersionId: string, op: V2Operation): Promise<string> {
-  return `[TFCLab-QA ${(await sha256Hex(`nolio-v2-origin-1|${planVersionId}|${op.sessionKey}|${op.path}`)).slice(0, 24)}]`;
-}
-/** Corps réellement envoyé : corps du mapper + marqueur d'origine en fin de description. */
-export async function bodyToSend(planVersionId: string, op: V2Operation): Promise<Record<string, unknown>> {
-  const m = await originMarker(planVersionId, op);
-  const d = typeof op.body.description === "string" && op.body.description ? `${op.body.description}\n\n${m}` : m;
-  return { ...op.body, description: d };
-}
-
-export async function operationKey(planVersionId: string, op: V2Operation): Promise<{ opKey: string; payloadSha256: string }> {
-  const payloadSha256 = await sha256Hex(canonicalJson(await bodyToSend(planVersionId, op)));
-  const opKey = await sha256Hex(canonicalJson({ v: "nolio-v2-op-1", planVersionId, sessionKey: op.sessionKey, path: op.path, payloadSha256 }));
-  return { opKey, payloadSha256 };
-}
+import { originMarker, bodyToSend, operationKey } from "./marker.ts";
+export { originMarker, bodyToSend, operationKey };
 
 // ---- Réconciliation EXACTE ----
 const READ_ONLY = new Set(["id", "revision", "summary", "load", "time_in_zones", "has_structured_workout"]);
@@ -141,7 +122,7 @@ const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>,
   (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
 
 type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string } | { kind: "read_failed"; detail: string };
-async function reconcile(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string): Promise<Reconcile> {
+export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string): Promise<Reconcile> {
   const candidates: Array<Record<string, unknown>> = [];
   let after: string | null = null;
   for (let page = 0; ; page++) {
@@ -177,6 +158,10 @@ export async function sendPlannedV2(input: {
   ledger: NolioV2Ledger;
   http: NolioV2Http | null;
   dryRun?: boolean;
+  /** Nombre max de NOUVEAUX POST dans cet appel (lot borné) ; les opérations confirmées ne comptent pas. */
+  maxNewPosts?: number;
+  /** Plan complet : un refus 400/404/409/422 ARRÊTE le lot (aucun état partiel silencieux). */
+  stopOnRejected?: boolean;
 }): Promise<SendReport> {
   const blocked = (reason: string): SendReport => ({ status: "BLOCKED", reason, results: [] });
   const c = input.connection;
@@ -188,6 +173,7 @@ export async function sendPlannedV2(input: {
   if (!/^[0-9a-f-]{36}$/i.test(input.planVersionId)) return blocked("plan_version_id_invalid");
   const http = input.http, ledger = input.ledger;
   const results: SendReport["results"] = [];
+  let newPosts = 0;
   const stop = (status: SendStatus, reason: string, extra?: SendReport["results"][number]): SendReport => ({ status, reason, results: extra ? [...results, extra] : results });
 
   for (const op of input.operations) {
@@ -207,6 +193,8 @@ export async function sendPlannedV2(input: {
     const { opKey, payloadSha256 } = await operationKey(input.planVersionId, op);
     const entry: LedgerEntry = { opKey, planVersionId: input.planVersionId, sessionKey: op.sessionKey, path: op.path,
       athleteRef: input.refs.athleteId, payloadSha256, apiVersion: "v2", state: "sending", remoteId: null, detail: null };
+    // Lot borné : vérifié AVANT toute réservation (aucune opération réservée sans POST).
+    if (input.maxNewPosts !== undefined && newPosts >= input.maxNewPosts) return stop("STOPPED_BATCH_LIMIT", "batch_limit");
     let claim: Awaited<ReturnType<NolioV2Ledger["claim"]>>;
     try { claim = await ledger.claim(entry); } catch { return stop("STOPPED_LEDGER_UNAVAILABLE", `claim_failed:${op.sessionKey}`); }
 
@@ -214,7 +202,7 @@ export async function sendPlannedV2(input: {
       const prev = (claim as { existing: LedgerEntry }).existing;
       if (prev.payloadSha256 !== payloadSha256 || prev.athleteRef !== entry.athleteRef || prev.path !== op.path) return stop("BLOCKED", `ledger_divergence:${op.sessionKey}`);
       if (prev.state === "confirmed") { results.push({ sessionKey: op.sessionKey, state: "skipped_confirmed", remoteId: prev.remoteId }); continue; }
-      if (prev.state === "rejected") { results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null }); continue; }
+      if (prev.state === "rejected") { if (input.stopOnRejected) return stop("STOPPED_REJECTED", `rejected:${op.sessionKey}`); results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null }); continue; }
       if (prev.state === "ambiguous") return stop("STOPPED_AMBIGUOUS", `ambiguous:${op.sessionKey}`);
       if (prev.state === "rate_limited") {
         // 429 = non traité de façon certaine : seule exception où un nouvel essai est permis, via CAS.
@@ -223,7 +211,7 @@ export async function sendPlannedV2(input: {
         if (!won) return stop("STOPPED_IN_FLIGHT", `concurrent_retry:${op.sessionKey}`);
       } else {
         // "sending" (POST possiblement en vol ou interrompu) ou "sent_unconfirmed" : JAMAIS de renvoi automatique.
-        const rc = await reconcile(http, op, input.refs.athleteId, sent, marker);
+        const rc = await reconcileExact(http, op, input.refs.athleteId, sent, marker);
         if (rc.kind === "exact") {
           let ok = false;
           try { ok = await ledger.transition(opKey, prev.state, "confirmed", { remoteId: rc.id, detail: "réconcilié: correspondance exacte unique + marqueur (indice d'origine, pas preuve absolue)" }); } catch { ok = false; }
@@ -242,6 +230,7 @@ export async function sendPlannedV2(input: {
     }
 
     // Réservation acquise (état "sending" durable) ⇒ un seul POST.
+    newPosts++;
     const r = await http.post(op.path, sent);
     const cas = async (to: LedgerState, patch: { remoteId?: string | null; detail?: string | null }) => {
       try { return await ledger.transition(opKey, "sending", to, patch); } catch { return false; }
@@ -260,6 +249,7 @@ export async function sendPlannedV2(input: {
     }
     if (r.status === 400 || r.status === 404 || r.status === 409 || r.status === 422) {
       await cas("rejected", { detail: `HTTP ${r.status}` });
+      if (input.stopOnRejected) return stop("STOPPED_REJECTED", `http_${r.status}:${op.sessionKey}`, { sessionKey: op.sessionKey, state: "rejected", remoteId: null });
       results.push({ sessionKey: op.sessionKey, state: "rejected", remoteId: null });
       continue;
     }

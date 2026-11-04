@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), now: Date.now,
       fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) return json(200, { status: "BLOCKED", code: (loaded as { reason: string }).reason, precheck: null, progress: null });
-  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs);
+  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs, b.planVersionId);
   const planVersionId = b.planVersionId;
   const store: PlanDryRunStore = {
     async freezeJob(p) {
