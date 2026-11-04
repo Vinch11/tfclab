@@ -13,6 +13,7 @@
  *   avec les incompatibilités déjà démontrables depuis les règles du code
  *   source de l'expéditeur. Un test de payload ne prouverait pas l'envoi réel.
  */
+import {readableV3Prescription} from './readableV3Prescription';
 
 export interface DetSessionLike {
   weekNumber: number;
@@ -263,7 +264,10 @@ export function checkPdfHtml(
     if (det == null) {
       push("pdf_instructions_missing", "instructions absentes du bloc");
     } else {
-      if (instructionFingerprint(det) !== instructionFingerprint(s.details)) push("pdf_instructions_divergent", "instructions du bloc ≠ instructions source");
+      // Compare the deterministic presentation of the original archive,
+      // including exact V3 seconds → human-duration units. Do not waive the
+      // per-session comparison or strip numerical instructions/targets.
+      if (instructionFingerprint(det) !== instructionFingerprint(readableV3Prescription(s))) push("pdf_instructions_divergent", "instructions du bloc ≠ instructions source");
       const t = norm(det);
       for (const kind of ["repetitions", "recoveries", "targets"] as const) {
         for (const tok of s.tokens[kind]) if (!t.includes(norm(tok))) push(`pdf_${kind}_missing`, tok);

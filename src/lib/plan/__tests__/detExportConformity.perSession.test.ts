@@ -49,6 +49,20 @@ beforeAll(() => {
 afterAll(() => vi.restoreAllMocks());
 
 describe("reproduction : échange complet A/B entre deux séances", () => {
+  it('durées V3 lisibles : la représentation conforme passe, une minute ou une cible changée échoue toujours',async()=>{
+    const p:DetPlanLike={weeks:[{weekNumber:1,sessions:[{weekNumber:1,dayIndex:0,dayName:'Lundi',sport:'run',title:'Endurance V3',catalogId:'V3P_RUN_084',isRest:false,durationMin:157,
+      details:'0: 600s Échauffement | 1: 6600s Endurance | 2: 2220s Retour au calme | DURÉE CALCULÉE : 9420 secondes exactes (sans arrondi) | CIBLES INDIVIDUALISÉES: moderate_lt1 292.7 320 sec_per_km'}]}]};
+    const expected=buildDetExpectations(p,START),before=structuredClone(p);
+    for(const mode of MODES){
+      const html=await render(asParsed(p),mode);
+      expect(checkPdfHtml(expected,html,START)).toEqual([]);
+      expect(html).toContain('1 h 50 min Endurance');
+      for(const [from,to] of [['1 h 50 min Endurance','1 h 49 min Endurance'],['292.7 320 sec_per_km','290 320 sec_per_km']]){
+        expect(checkPdfHtml(expected,html.replace(from,to),START).map(i=>i.code)).toContain('pdf_instructions_divergent');
+      }
+    }
+    expect(p).toEqual(before);
+  });
   for (const m of MODES) {
     it(`${m.o}/${m.d} : rendu fidèle = [] ; échange dates/doses/instructions = échec par séance`, async () => {
       const html = await render(asParsed(twoSessions), m);

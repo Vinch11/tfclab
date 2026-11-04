@@ -49,3 +49,13 @@ Le marathon synthétique déjà enregistré le 3 novembre a été rouvert via l'
 - 22 contrôles build/déclaration passent, ainsi que les 5 tests ciblés de présentation/revue réutilisable. ESLint comparé à la base sur 22 fichiers : aucune régression d'erreur ni d'avertissement (le grand écran existant conserve ses erreurs historiques).
 
 Les revues scientifiques, l'approbation du programme par le coach, l'autorité de prescription et l'autorisation d'export sont distinctes. Elles ne sont jamais obtenues à partir des données synthétiques de ces tests.
+
+## Actualisation après la CI et la vérification navigateur
+
+La première CI du candidat IM (`ba3151b`, run `41924907641`) a passé TypeScript puis 3 809 tests frontend ; quatre tests PDF ont échoué car leur contrôle comparait les secondes brutes au nouveau texte lisible. Les autres jobs (Deno, Playwright et ESLint), le workflow de raccordement et le banc expérimental sont verts. Ce résultat remplace le simple diagnostic de délai local indiqué plus haut : le banc expérimental hébergé complet est réussi.
+
+Le contrôle PDF compare désormais chaque bloc à la présentation déterministe de la prescription archivée. Il conserve les contrôles d'identité, de durée, de répétitions, de récupération et de cibles. Un test dans les quatre formats prouve qu'une minute de travail modifiée ou une cible d'allure altérée reste détectée. Les 22 tests PDF/conformité/présentation passent, dont les quatre marathons et les sabotages de blocs ; ESLint des deux fichiers corrigés passe. La CI du correctif doit encore conclure.
+
+Dans la nouvelle QA `e9bd456`, Coach A a rouvert le marathon déjà sauvegardé, déplié une séance puis ouvert « PDF condensé ». Le document contient 16/16 semaines, 128 lignes de calendrier, dont exactement 75 séances actives. L'écran et le document montrent 10 min d'échauffement et 2 h 37 min de durée totale pour la source V3P_RUN_084, avec ses cibles archivées intactes. C'est une preuve de génération du document HTML imprimable depuis une archive authentifiée, pas un reçu d'impression PDF ni une nouvelle génération après revue humaine.
+
+Une reprise ponctuelle du travail a été programmée pour la nuit du 5 novembre vers 03 h, fuseau Europe/Brussels, afin de reprendre les contrôles à partir de GitHub. Elle conserve les limites de ce document et ne vaut pas garantie de clôture des validations humaines.
