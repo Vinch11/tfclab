@@ -8,6 +8,7 @@
  */
 import type { PlanAthleteData, PlanConfig } from '@/hooks/useAITrainingPlan';
 import { constructDeterministicPlan } from './engine';
+import { detPrimaryLimiterKey } from './v403-limiter-semantics';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
 import { constructDeterministicPlanWithBoundedReplays } from './v315-bounded-multiweek-replay';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
@@ -286,6 +287,16 @@ export function runCoachInputsDet(input: {
         reconcileReviewedMarathonSpecificityLexicalWarning: true as const,
         enableV333ForwardCheck: true as const, enableV335SourceRunningPeak: true as const,
       } : {
+        // Semi: use the existing V358 measured phase/taper evidence, as in
+        // the accepted long-horizon bench. No relabeling without dose proof.
+        ...(Number(input.config.weeksAvailable) > 12 ? {
+          requireMeasuredRunningPeriodization: true as const,
+        } : {}),
+        ...(Number(input.config.weeksAvailable) > 12 && detPrimaryLimiterKey(input.config) === 'tte' ? {
+          requireVerifiedRunningPhaseEvidence: true as const,
+          reconcileReviewedSourcePolarization: true as const,
+          prioritizeSourceVerifiedTteOnKeySlots: true as const,
+        } : {}),
         // Semi (V332) : décharges mesurées + contrôle avant/pic source.
         requireMeasuredDeloadSelection: true as const, annotateVerifiedDeloads: true as const,
         enableV333ForwardCheck: true as const, enableV335SourceRunningPeak: true as const,

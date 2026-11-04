@@ -201,6 +201,9 @@ export interface ExperimentalAssemblyContract {
   enableVerifiedMarathonMesocycles?:true;
   /** V358: measured running mesocycles/taper and source-proven specificity. */
   requireVerifiedRunningPhaseEvidence?:true;
+  /** Apply existing measured mesocycle/taper certificates independently of
+   * the primary-limiter-specific horizon audit. Never substitutes a limiter. */
+  requireMeasuredRunningPeriodization?:true;
   /** V355 isolated A/B: preferential search order for exact athlete-reviewed
    * >=20min MLSS key dose when the FIRST declared limiter is TTE. */
   prioritizeSourceVerifiedTteOnKeySlots?:true;
@@ -1643,11 +1646,12 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(entry.weekType==='load'&&!slots.some(s=>s.slot.isRaceEvent))previousLoad=chosen.reduce((n,s)=>n+(s.durationMin??0),0);
     }
     result.candidate=plan;
-    if(experimentalContract?.requireVerifiedRunningPhaseEvidence===true&&
+    if((experimentalContract?.requireVerifiedRunningPhaseEvidence===true||
+        experimentalContract?.requireMeasuredRunningPeriodization===true)&&
        ['semi','10k'].includes(normalizeRepairGoal(config.objective??'')??'')){
       const meso=proposeMeasuredMarathonMesocycles(plan);
       if(meso.verified)plan.phases=meso.projectedPhases;
-      if(meso.originallyLongBuildStreaks.length)result.issues.push({
+      if(meso.originallyLongBuildStreaks.length||!meso.verified)result.issues.push({
         code:meso.verified?'det_v358_measured_running_mesocycles_verified':
           'det_v358_measured_running_mesocycles_unverified',
         severity:meso.verified?'warning':'blocking',message:JSON.stringify(meso),

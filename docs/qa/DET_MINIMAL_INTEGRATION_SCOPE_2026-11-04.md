@@ -99,3 +99,11 @@ The ordinary page now attaches the generated DET calendar's archive metadata fro
 Changing the selected engine invalidates pending QA actions immediately. In particular, an AI prevalidation completing after the coach switches to DET cannot launch the pending AI request.
 
 Local verification: 47/47 targeted tests passed, covering the real marathon solver → metadata → append-only in-memory save/read-back/reopen, changed-form retry identity, historical DET, AI secondary goals, engine dispatch and verbatim session display. TypeScript and new-module lint passed. These are offline checks, not authenticated database or Nolio receipts. The three GitHub workflows for the preceding commit cc538ff8 completed successfully; that evidence does not belong to the next source commit.
+
+## Semi long and QA schema checkpoint
+
+The 30-week semi failed native gates with a 20-week Build block and a five-week load streak. The coach route now uses existing measured running mesocycle/taper certificates for long horizons. Phase splitting needs actual measured >=30% deload boundaries; taper labeling needs the configured V3 source doses and measured reduction. No session or physiological model is rewritten. Where TTE is primary on a long semi, the existing exact-source horizon/TTE audit and TTE candidate preference are also required; a missing TTE dose remains a refusal. Short-horizon behavior stays unchanged.
+
+A complete 30-week semi now passes both the coach-input runner and the full app diagnostic path, preserving the app's automatic limiter order. The existing source pool and reviewed doses are unchanged. Frontend help text reflects this observed acceptance, conditional on profile and reviewed sources. Ironman and unsupported limiter/family combinations remain unresolved.
+
+162/162 targeted frontend tests passed. The isolated QA backend lacked `det_library_source_reviews`; the candidate table was created there and its RLS/policies/grants checked by read-only queries afterward. No human review row was created. No production schema was changed. The QA preview still reports source ac891ceb5 and requires Lovable authentication in the available browser: this does not prove that the GitHub candidate is running there. See the schema checkpoint JSON for exact scope. The authenticated end-to-end route remains unverified.

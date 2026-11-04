@@ -197,6 +197,22 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(prov.limiterOrder).toMatchObject({ source: "app_planning_pipeline", applied: pipelineLimiters });
   }, 200000);
 
+  it("semi 30 sem./6 h : diagnostic de l'app inchangé, vrais mésocycles et calendrier complet", async () => {
+    const p = await pagePipeline(240, "Semi", 30, 6, 5);
+    const before = structuredClone(p.ctx.diagnostic);
+    const applied = [...p.frozen.limiters.applied];
+    const { out } = await runDet(p, "Semi", 30, 6, 5);
+    expect(out.kind).toBe("accepted");
+    if (out.kind !== "accepted") throw new Error(JSON.stringify(out.kind === "engine_refused" ? out.blockingIssues : out));
+    expect(out.plan.weeks).toHaveLength(30);
+    expect(out.limiterOrder.applied).toEqual(applied);
+    expect(p.ctx.diagnostic).toEqual(before);
+    expect(out.auditCodes).toContain("det_v358_measured_running_mesocycles_verified");
+    expect(out.auditCodes).not.toContain("det_v358_measured_running_mesocycles_unverified");
+    expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  }, 200000);
+
   it("marathon 16 sem./7 h depuis le VRAI diagnostic de l'app (enregistrement inchangé) : « Durabilité » primaire défini côté moteur (V403), ACCEPTÉ, priorités brutes conservées, jamais remplacé par TTE", async () => {
     const p = await pagePipeline(222, "Marathon", 16, 7, 4);
     const applied = p.frozen.limiters.applied;

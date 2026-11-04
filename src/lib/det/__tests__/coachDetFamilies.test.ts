@@ -170,10 +170,10 @@ describe("familles : formulaire coach → solveur réel → validateurs finaux",
 
 describe("familles : acceptations réellement obtenues (V3 seul, entrées coach)", () => {
   // Résultats consignés par les exécutions réelles ci-dessus (même fichier, ordre séquentiel).
-  it.each(["semi-8w-6h", "703-12w-9h", "703-12w-9.5h", "703-12w-10h"])("%s : ACCEPTÉ par le solveur et les validateurs finaux", (id) => {
+  it.each(["semi-8w-6h", "semi-30w-6h", "703-12w-9h", "703-12w-9.5h", "703-12w-10h"])("%s : ACCEPTÉ par le solveur et les validateurs finaux", (id) => {
     expect((results[id] as { kind?: string } | undefined)?.kind).toBe("accepted");
   });
-  it.each(["semi-30w-6h", "IM-16w-13h", "IM-16w-14h"])("%s : refus moteur réel consigné (pas présenté comme accepté)", (id) => {
+  it.each(["IM-16w-13h", "IM-16w-14h"])("%s : refus moteur réel consigné (pas présenté comme accepté)", (id) => {
     expect((results[id] as { kind?: string } | undefined)?.kind).toBe("engine_refused");
   });
   it("semi-marathon 8 sem./6 h : ACCEPTÉ, rappel allure semi revu à 25 min, cross-training V3", async () => {
