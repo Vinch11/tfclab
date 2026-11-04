@@ -75,6 +75,8 @@ export interface ExperimentalAssemblyContract {
   /** V321 opt-in: refuse any mismatch between source-specific measured anchors
    * and the athlete metrics actually supplied to the real planner. */
   requireReviewedAthleteContext?:true;
+  /** Check mandatory source coverage over the whole fixed horizon before DFS. */
+  requireReviewedHorizonSourceCoverage?:true;
   validateReviewedAthleteContext?:(athlete:PlanAthleteData)=>readonly string[];
   /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
   verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
@@ -495,6 +497,36 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     if(experimentalContract)result.issues.push({code:'experimental_contract_requires_review',severity:'warning'});
     if(report.status==='blocked')return refuse('existing_prevalidation_blocked');
     if(report.weeks.some(w=>!preparation.weeklyQuotas[w.week]?.layout))return refuse('dedicated_route_without_deterministic_quota');
+    if(experimentalContract?.requireReviewedHorizonSourceCoverage===true){
+      // A later mandatory slot cannot be rescued by revisiting earlier source
+      // choices when NO reviewed source supports its sport/phase at all.
+      // Inspect the complete catalogue, not ratio-dependent eligible doses.
+      // Duration, recovery and final sporting gates still run in normal DFS.
+      for(const week of report.weeks){
+        const entry=preparation.weeklyQuotas[week.week];
+        for(const [dayIndex,day] of entry.layout!.days.entries())for(const slot of day.slots){
+          if(slot.isRaceEvent||entry.quota[slot.sport].min===0)continue;
+          const matching=(catalogBySport.get(normalizeRepairSport(slot.sport))??[])
+            .filter(card=>card.phases.includes(week.phase??''))
+            .filter(card=>experimentalContract.filterCandidate?.(card,{
+              week:week.week,phase:week.phase,weekType:week.weekType,slot,dayIndex,
+            })!==false);
+          if(matching.length)continue;
+          result.issues.push({code:'det_required_horizon_source_missing',
+            week:week.week,severity:'blocking',message:JSON.stringify({
+              day:day.dayName,sport:slot.sport,phase:week.phase,weekType:week.weekType,
+              minDurationMin:slot.minDurationMin??null,maxDurationMin:slot.maxDurationMin??null,
+              quotaMin:entry.quota[slot.sport].min,quotaMax:entry.quota[slot.sport].max,
+              reviewedSportPhaseCandidates:0,
+              scope:'current_fixed_layout_and_reviewed_source_contract',
+              priorWeekChoicesCannotSupplyMissingSource:true,
+              noGlobalImpossibilityClaim:true,
+              remedy:'review an appropriate source/composition for this objective and phase; do not remove the mandatory quota',
+            })});
+          return refuse('required_reviewed_horizon_source_missing_week_'+week.week);
+        }
+      }
+    }
     const scheduledSports=report.weeks.flatMap(week=>preparation.weeklyQuotas[week.week]?.layout?.days
       .flatMap((d,dayIndex)=>d.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport,isRaceEvent:slot.isRaceEvent===true})))??[]);
     const plan:ParsedPlan={title:`Plan TFCL™ — ${config.objective} ${athlete.nom??"Profil synthétique"} — ${config.weeksAvailable} semaines`,phases:[],weeks:[],totalWeeks:config.weeksAvailable,weeklyQuotas:preparation.weeklyQuotas};

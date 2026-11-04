@@ -357,6 +357,12 @@ export function explainEngineRefusal(issues: { code: string; week: number | null
   const out: string[] = [];
   const recovery = new Set(issues.filter((i) => i.code === "det_v3_recovery_safe_slot_unfillable").map((i) => i.week));
   for (const i of issues) {
+    if (i.code === "det_required_horizon_source_missing") {
+      let d: { day?: string; sport?: string; phase?: string } = {};
+      try { d = JSON.parse(i.message); } catch { /* message non structuré */ }
+      const sp = SPORTS_OF[d.sport ?? ""] ?? d.sport ?? "?";
+      out.push(`Semaine ${i.week} (${PHASE_FR[d.phase ?? ""] ?? d.phase ?? "?"}) : le calendrier exige une séance de ${sp} le ${DAY_FR[d.day ?? ""] ?? d.day ?? "?"}, mais aucune source revue n'est disponible pour cet objectif et cette phase. Il faut compléter la revue des séances ou des enchaînements adaptés ; augmenter le temps de calcul ne suffit pas.`);
+    }
     if (i.code !== "det_empty_catalogue_slot") continue;
     let d: { day?: string; sport?: string; phase?: string; minDurationMin?: number | null; maxDurationMin?: number | null } = {};
     try { d = JSON.parse(i.message); } catch { /* message non structuré */ }

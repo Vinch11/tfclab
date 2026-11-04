@@ -10,6 +10,14 @@ Existing app diagnostic and limiter ranking remain the source. DET consumes the 
 
 Confirmed user requirement (2026-11-04): the finished app must let the coach explicitly select **IA** or **DET-ENGINE** within the existing planning workflow. Both engines receive the same existing app profile, limiter priorities, coach choices, objectives and constraints. A refusal from DET must remain visible; switching to IA requires the coach's explicit choice, never automatic fallback. Keep the existing sporting and release controls for either route. The current QA selector is not evidence that this choice is available in production.
 
+## Mandatory reviewed-source coverage (2026-11-04 follow-up)
+
+The coach path checks the complete fixed horizon before DFS. A mandatory sport/phase with no source admitted by the existing review contract produces `det_required_horizon_source_missing`; optional sports and official events are not turned into mandatory training. No duration, recovery, quota or final sporting rule is relaxed. Multisport replay preserves this concrete zero-node refusal instead of exhausting ratio targets that cannot create a missing source.
+
+Actual synthetic IM 16-week scenarios at 13 and 14 hours identify the same gap: week 13, Saturday, brick, phase peak / week type taper, quota 1–1, zero reviewed matching sources. Both remain refused, without a plan or AI fallback. The existing 70.3-only registry cannot approve an Ironman composition. This is a diagnosis and bounded-search correction, not completed IM support or sporting validation.
+
+Validation: five existing coach plans accepted (semi 8/30 weeks and 70.3 9/9.5/10 hours); 27 family tests passed, 11 full page-pipeline integration tests passed in the combined run, 116 experimental contracts passed, and the new French refusal explanation test passed. ESLint: zero errors. No authenticated QA workflow is claimed: frontend Supabase configuration remains absent.
+
 ## Protected calculations
 
 Git diff against the production reference: **no changes** in `src/engines/diagnostic`, `src/lib/v2`, `src/lib/zones`, `src/lib/limiterPrescription.ts`, `src/lib/physiologicalTargets.ts`.

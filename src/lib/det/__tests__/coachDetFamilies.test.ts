@@ -113,7 +113,7 @@ describe("familles : formulaire coach → solveur réel → validateurs finaux",
     const r = await run(s, context, c.limits);
     const ms = Date.now() - t0;
     results[c.id] = r.kind === "accepted" ? { kind: r.kind, sessions: r.sessions, weeks: (r.plan.weeks as unknown[]).length, ms }
-      : r.kind === "engine_refused" ? { kind: r.kind, reason: r.reason, blockingCodes: r.blockingCodes, ms } : { kind: r.kind, refusals: r.refusals, ms };
+      : r.kind === "engine_refused" ? { kind: r.kind, reason: r.reason, blockingCodes: r.blockingCodes, blockingIssues: r.blockingIssues, ms } : { kind: r.kind, refusals: r.refusals, ms };
     process.stdout.write(`DET_COACH_FAMILY ${c.id} ${JSON.stringify(results[c.id])}\n`);
     // Jamais de repli : un refus moteur reste un refus, sans plan.
     expect(["accepted", "engine_refused"]).toContain(r.kind);
@@ -174,7 +174,14 @@ describe("familles : acceptations réellement obtenues (V3 seul, entrées coach)
     expect((results[id] as { kind?: string } | undefined)?.kind).toBe("accepted");
   });
   it.each(["IM-16w-13h", "IM-16w-14h"])("%s : refus moteur réel consigné (pas présenté comme accepté)", (id) => {
-    expect((results[id] as { kind?: string } | undefined)?.kind).toBe("engine_refused");
+    const r = results[id] as { kind: string; reason: string; blockingCodes: string[]; blockingIssues: Array<{ code: string; week: number; message: string }> };
+    expect(r.kind).toBe("engine_refused");
+    expect(r.reason).toBe("required_reviewed_horizon_source_missing_week_13");
+    expect(r.blockingCodes).toContain("det_required_horizon_source_missing");
+    expect(r.blockingCodes).not.toContain("det_v315_bounded_multiweek_replays_unresolved");
+    const gap = r.blockingIssues.find(i => i.code === "det_required_horizon_source_missing")!;
+    expect(gap.week).toBe(13);
+    expect(JSON.parse(gap.message)).toMatchObject({ sport: "brick", quotaMin: 1, reviewedSportPhaseCandidates: 0, noGlobalImpossibilityClaim: true });
   });
   it("semi-marathon 8 sem./6 h : ACCEPTÉ, rappel allure semi revu à 25 min, cross-training V3", async () => {
     const s = snap("Semi-marathon", 8, 6, ymd(8));

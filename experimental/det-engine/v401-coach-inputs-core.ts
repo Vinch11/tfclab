@@ -227,6 +227,7 @@ export function runCoachInputsDet(input: {
   const common = {
     ...contract,
     requireReviewedAthleteContext: true as const,
+    requireReviewedHorizonSourceCoverage: true as const,
     filterCandidate: (card: Parameters<NonNullable<typeof baseFilter>>[0], ctx: Parameters<NonNullable<typeof baseFilter>>[1]) => accepted.has(card.id) && (baseFilter?.(card, ctx) ?? true),
     enforceWeeklyHoursCap: true as const,
     enforceCalendarSafeV3Recovery: true as const,

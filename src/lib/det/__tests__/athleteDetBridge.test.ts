@@ -288,4 +288,12 @@ describe("pont → VRAI solveur → validateurs finaux", () => {
     await expect(dispatchCoachEngine("det", { ai, det: async () => { throw new Error("det_refused"); } } as never)).rejects.toThrow();
     expect(ai).not.toHaveBeenCalled();
   });
+  it("une source obligatoire manquante nomme la semaine et la revue à compléter", () => {
+    const message = explainEngineRefusal([{ code: "det_required_horizon_source_missing", week: 13,
+      message: JSON.stringify({ day: "Saturday", sport: "brick", phase: "peak", quotaMin: 1 }) }]).join(" ");
+    expect(message).toMatch(/Semaine 13/);
+    expect(message).toMatch(/enchaînement vélo-course/);
+    expect(message).toMatch(/compléter la revue/);
+    expect(message).toMatch(/augmenter le temps de calcul ne suffit pas/);
+  });
 });

@@ -54,7 +54,7 @@ export interface ReplayAttempt {
 }
 export interface ReplayEvidence {
   verdict:'ratio_feasible_native_blockers_remain'|'all_gates_pass'|
-    'bounded_search_unresolved'|'invalid_contract';
+    'bounded_search_unresolved'|'invalid_contract'|'required_source_missing';
   attempts:ReplayAttempt[];
   totalNodes:number;
   experimentalOnly:true;
@@ -152,6 +152,13 @@ export function constructDeterministicPlanWithBoundedReplays(
       constrainedWeekDiagnostic:result.issues.find(i=>
         i.code==='det_v325_constrained_week_domain_diagnostic')?.message??null,
     });
+    // The opt-in preflight examines every mandatory sport/phase against the
+    // COMPLETE reviewed catalogue before DFS (zero assigned nodes). Ratio
+    // targets and bans on earlier selections cannot add a missing source.
+    // Preserve the concrete refusal; do not disguise it as budget exhaustion.
+    if(contract.requireReviewedHorizonSourceCoverage===true&&result.nodes===0&&
+       result.issues.some(i=>i.code==='det_required_horizon_source_missing'))
+      return finish('required_source_missing',rows,totalNodes,result);
     if(strictRatiosMet){
       if(result.constraintsSatisfied){
         result.nodes=totalNodes;
