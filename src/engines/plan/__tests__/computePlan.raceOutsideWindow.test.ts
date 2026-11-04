@@ -44,6 +44,30 @@ function config(raceDate: string): PlanGenerationConfig {
 }
 
 describe("anchorRaceDays — competition outside the stored plan window", () => {
+  it.each(["5K", "10K", "Semi", "Marathon", "TrailShort", "703", "IM"])("%s : respecte la vraie date, dans et hors du calendrier", objective => {
+    const inWindow = { ...config("2026-11-08"), objective,
+      raceGoals: [{ objective, raceDate: "2026-11-08", priority: "A" as const }] };
+    const result = postProcessParsedPlan(makePlan(40), inWindow).plan;
+    expect(result.weeks[0].sessions.filter(s => s.title.includes("COURSE OBJECTIF"))).toHaveLength(1);
+    expect(result.weeks[0].sessions.find(s => s.title.includes("COURSE OBJECTIF"))?.dayIndex).toBe(6);
+    const outOfWindow = { ...inWindow, raceGoals: [{ objective, raceDate: "2027-05-09", priority: "A" as const }] };
+    const untouched = postProcessParsedPlan(makePlan(40), outOfWindow).plan;
+    expect(untouched.weeks[0].sessions).toHaveLength(1);
+    expect(untouched.weeks[0].computedVolumeMin).toBe(40);
+  });
+
+  it("LCW : garde les trois étapes vendredi/samedi/dimanche quand la course est dans la fenêtre", () => {
+    const c = config("2026-11-08");
+    c.raceGoals = [{ objective: "703", raceDate: "2026-11-08", priority: "A", raceFormat: "lcw_3day" }];
+    const result = postProcessParsedPlan(makePlan(40), c).plan;
+    const stages = result.weeks[0].sessions.filter(s => s.title.includes("Étape"));
+    expect(stages.map(s => s.dayIndex)).toEqual([4, 5, 6]);
+    expect(stages.every(s => s.weekNumber === 1)).toBe(true);
+    expect(stages.map(s => s.details)).toEqual([
+      expect.stringContaining("2026-11-06"), expect.stringContaining("2026-11-07"), expect.stringContaining("2026-11-08"),
+    ]);
+  });
+
   it.each([40, 45])("does not add a phantom race or inflate the restored %i-minute week", durationMin => {
     const { plan } = postProcessParsedPlan(makePlan(durationMin), config("2027-05-09"));
     expect(plan.weeks).toHaveLength(1);
