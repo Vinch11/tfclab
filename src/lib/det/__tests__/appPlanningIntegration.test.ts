@@ -13,9 +13,10 @@ import { buildAthleteDetInputs, GENERAL_CONFIRMATIONS, CONDITIONAL_CONFIRMATIONS
 import { findSource, hashCoachInputs } from "../coachDetContext";
 import { fingerprintV3SportingSource } from "../../../../scripts/library-v3/sportingQualification800";
 import { familySourcePool } from "../familySourcePools";
-import { runCoachDetPlan } from "../coachDetRun";
+import { runAppPlanningDetPlan } from "../appPlanningDetRun";
 import { coachFamilyFor } from "../../../../experimental/det-engine/v401-coach-inputs-core";
 import { rankPrescriptionGaps } from "@/lib/limiterPrescription";
+import * as detEngine from "../../../../experimental/det-engine/engine";
 
 const COACH = "00000000-0000-4000-8000-0000000000c1";
 const A1 = "00000000-0000-4000-8000-0000000000a1";
@@ -78,7 +79,7 @@ async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: st
   const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
   expect(b.sourceReview.status).toBe("reviewed");
   const inputsHash = await hashCoachInputs(b.snapshot!);
-  const out = runCoachDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
+  const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
     snapshot: b.snapshot!, inputsHash, sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, now: () => new Date("2026-11-04T00:00:00Z"),
     limits: { maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
   return { b, out };
@@ -87,6 +88,59 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it("une autre allure seuil enregistrée change le diagnostic et DET refuse son primaire non pris en charge, sans reprendre le plan précédent", async () => {
+    const before = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const after = await pagePipeline(300, "Marathon", 16, 7, 4);
+    expect(after.frozen.fingerprint).not.toBe(before.frozen.fingerprint);
+    expect(before.frozen.limiters.applied).toEqual(["Durabilité", "TTE"]);
+    expect(after.frozen.limiters.applied[0]).toBe("VLamax");
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const accepted = await runDet(before, "Marathon", 16, 7, 4);
+      const refused = await runDet(after, "Marathon", 16, 7, 4);
+      expect(accepted.out.kind).toBe("accepted");
+      expect(refused.out.kind).toBe("refused");
+      if (refused.out.kind !== "refused") return;
+      expect(refused.out.blockedUnsupportedLimiter).toMatchObject({ code: "blocked_unsupported_limiter", raw: "VLamax" });
+      expect(refused.out.limiterOrder!.applied).toEqual(after.config.identifiedLimitersRaw);
+      expect(solver).toHaveBeenCalledTimes(1);
+      expect(before.frozen.athlete.paceThresholdSecPerKm).toBe(222);
+      expect(after.frozen.athlete.paceThresholdSecPerKm).toBe(300);
+    } finally { solver.mockRestore(); }
+  }, 200000);
+
+  it("l'ordre choisi dans la page atteint le vrai solveur et active la branche correspondante, sans modifier le diagnostic", async () => {
+    const p = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const rawBefore = structuredClone(p.ctx.diagnostic);
+    const order = [...p.frozen.limiters.applied].reverse();
+    const config = buildAppPlanConfig(p.ctx.diagnostic, { ...p.st, coachLimiterOrder: order });
+    const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: p.ctx.data, config, planStartDate: "2026-10-26",
+      appAutomaticLimiters: p.frozen.limiters.appAutomatic,
+      coachOverride: explicitCoachLimiterOverride(order, null, config.identifiedLimitersRaw ?? []) });
+    // Espion en passage réel : aucun résultat moteur n'est substitué.
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const automatic = await runDet(p, "Marathon", 16, 7, 4);
+      const coached = await runDet({ ...p, config, frozen }, "Marathon", 16, 7, 4);
+      expect(solver).toHaveBeenCalledTimes(2);
+      for (const [index, expected] of [p.frozen, frozen].entries()) {
+        const [athlete, receivedConfig] = solver.mock.calls[index];
+        expect(athlete).toEqual(expected.athlete);
+        expect(semanticPlanningPayload(athlete, receivedConfig)).toEqual(semanticPlanningPayload(
+          expected.athlete as Parameters<typeof semanticPlanningPayload>[0], expected.config));
+      }
+      expect(automatic.out.kind).toBe("accepted");
+      expect(coached.out.kind).toBe("accepted");
+      if (automatic.out.kind !== "accepted" || coached.out.kind !== "accepted") return;
+      expect(automatic.out.limiterOrder.applied).toEqual(["Durabilité", "TTE"]);
+      expect(coached.out.limiterOrder).toMatchObject({ mode: "coach", applied: ["TTE", "Durabilité"] });
+      expect(automatic.out.auditCodes).toContain("det_v403_race_durability_coverage_verified");
+      expect(coached.out.auditCodes).toContain("det_v355_exact_tte_candidate_preference_audit");
+      expect(coached.out.auditCodes).not.toContain("det_v403_race_durability_coverage_verified");
+      expect(p.ctx.diagnostic).toEqual(rawBefore);
+    } finally { solver.mockRestore(); }
+  }, 200000);
+
   it("semi 8 sem./6 h : limiteurs produits par le diagnostic de l'app, ACCEPTÉ, calendrier complet, entrée identique à l'IA, sauvegarde/réouverture", async () => {
     const p = await pagePipeline(240, "Semi", 8, 6, 5);
     // Le diagnostic réel de l'app a produit les limiteurs (pas une liste écrite dans le test).
@@ -189,7 +243,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(b.missing).toEqual([]);
     expect(b.sourceReview.status).toBe("reviewed");
     const h = await hashCoachInputs(b.snapshot!);
-    const out = runCoachDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
+    const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
       snapshot: b.snapshot!, inputsHash: h, sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, now: () => new Date("2026-11-04T00:00:00Z"),
       limits: { maxNodes: 200000, maxMilliseconds: 120000 }, appInput: frozen });
     // Résultat RÉEL sur le profil complet : refus nommé (pas une acceptation). Le pont réduit (athleteDetBridge.test)
@@ -229,7 +283,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(stale.ctx).toBeNull();
     const ok = buildAthleteDetInputs(a.record, f, answers("Semi", { clock: variedClock }), { ...genuineFor(a.record, "Semi"), planningInputFingerprint: a.frozen.fingerprint }, a.frozen.fingerprint);
     const h = await hashCoachInputs(ok.snapshot!);
-    const out = runCoachDetPlan({ reviewContextId: "x", ctx: { ...ok.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1, snapshot: ok.snapshot!, inputsHash: h,
+    const out = runAppPlanningDetPlan({ reviewContextId: "x", ctx: { ...ok.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1, snapshot: ok.snapshot!, inputsHash: h,
       sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, appInput: b2.frozen });
     expect(out.kind).toBe("refused");
   }, 60000);
