@@ -19,6 +19,8 @@ authenticated Nolio operation, calendar write or paid AI generation was performe
   first CI lint failure from importing those historical studies without disabling the lint gate.
 - Existing root package/lock files are retained. The incidental QA editor-plugin upgrade is excluded.
 - Historical QA receipts/reports containing provider identifiers are not imported into this branch.
+  The existing public OpenAPI read-contract fixture (blob `25ef3f16…` in PR455) is retained
+  as a required offline-test dependency, not an observation from an authenticated provider call.
 
 ## New work performed directly on the code
 
@@ -75,3 +77,11 @@ The 18 PR454 groups are 31 synthetic calendars / 468 weeks, not 18 sports or sci
 - Review the transfer patch, obtain explicit final deployment authorization, then test the integrated production version.
 
 No production/main merge, publication or sporting permission is granted by this candidate.
+
+## Clean-checkout correction
+
+The initial GitHub frontend failure was reproduced with the frozen installation: the Nolio
+read-contract test depended on a specification fixture present only in the working directory.
+The existing PR455 blob is now included, with its unchanged SHA-256 `5627666ed0149a31d2982164d3efbf302384112f51233159265a4a769606d915`.
+The source tree must be validated from a clean checkout; the earlier local all-green result
+alone did not prove that every test dependency was committed. No assertion was removed.
