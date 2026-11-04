@@ -3,6 +3,8 @@ import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 export const getCatalogSportFilter = (objective: string): TrainingSport[] | undefined => {
   const lower = objective.trim().toLowerCase();
+  if (normalizeObjectiveKey(objective)==="Cycling") return ["bike","cyclisme","strength","renforcement"];
+  if (normalizeObjectiveKey(objective)==="Swimming") return ["swim","natation","strength","renforcement"];
   const isTriathlon = ["703", "IM", "Sprint", "Olympic"].includes(normalizeObjectiveKey(objective)) || lower.includes("70.3") || lower === "703" || lower.includes("ironman") || lower === "im" || lower.includes("triathlon");
   // Triathlon: restreindre AUX sports triathlon (jamais de trail dans un plan 70.3/IM).
   if (isTriathlon) return ["swim", "bike", "run", "brick", "strength", "cyclisme", "course", "natation", "renforcement", "mixed"];

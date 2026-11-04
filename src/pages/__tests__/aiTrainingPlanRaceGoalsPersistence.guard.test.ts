@@ -50,8 +50,9 @@ describe("AITrainingPlanPage — garde-fou anti-régression : les objectifs seco
   it("persistPlanVersion sauvegarde raceGoals dans plan_json (pas seulement objective/raceName/raceDate)", () => {
     const body = sliceBetween(
       "const persistPlanVersion = useCallback(async (",
-      "if (error) throw error;",
+      "// Ne journaliser que statut + code, jamais le plan.",
     );
+    expect(body).toContain("versionSaverRef.current.saver.save(");
     expect(
       body,
       "persistPlanVersion ne sauvegarde plus _raceGoals — les objectifs secondaires (multi-objectif A/B/C) resteraient perdus dès qu'on change d'appareil/navigateur, exactement le bug réel constaté sur le plan de Manu.",

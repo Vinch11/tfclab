@@ -1,0 +1,7 @@
+import{resolveInSimulation,type EvidenceItem}from'./v14-state';import{digest}from'./v9-prospective';
+/** Source/time-bound observations. Only explicitly documented conditions get evidence. */
+export function reassessV22(result:any,spec:any){const slot=result.calendar.weeks.find((w:any)=>w.week===spec.target.week)?.slots.find((s:any)=>s.role.sport===spec.target.sport&&s.role.kind===spec.target.kind&&s.card.id===spec.target.sourceId);if(!slot)return{status:'target_missing',scenarios:[]};
+ const immutable=digest(result.calendar),scenarios=spec.scenarios.map((s:any)=>{
+ const evidence:EvidenceItem[]=s.documentedConditions.map((id:string)=>({conditionId:id,sessionKey:slot.key,assessedWeek:spec.target.week,validThroughWeek:spec.target.week,sourceId:slot.card.id,protocolUnchanged:true,coachReviewed:s.quality==='usable',response:s.response,recovered:s.recovered,symptoms:s.symptoms,envelopeMinutes:slot.role.currentCapacity,protocolElapsedMinutes:null,synthetic:true}));
+ const decision=resolveInSimulation(slot.input,slot.key,slot.card.id,evidence);return{id:s.id,evidence,decision,wholeMicrocycleUnchanged:true,changedSessions:[],actualHumanReview:false,capacityGainInferred:false,planRelease:false};
+ });if(digest(result.calendar)!==immutable)throw Error('REASSESSMENT_MUTATED_CALENDAR');return{slotKey:slot.key,currentCapacity:slot.role.currentCapacity,proposedMinutes:slot.minutes,scenarios,wholePlanHashBefore:immutable,wholePlanHashAfter:digest(result.calendar),actualApproval:false};}

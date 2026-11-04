@@ -1,0 +1,3 @@
+import{readFileSync}from'node:fs';import{gunzipSync}from'node:zlib';import{loadV5Candidates,type V6Candidate}from'./v6-cohort';
+export const readEvidence=(path:string):V6Candidate[]=>JSON.parse(gunzipSync(readFileSync(path)).toString());
+export function v7Cohorts(){return[{id:'V5_same76',rows:loadV5Candidates()},{id:'V6_same76',rows:readEvidence('docs/det-engine/v6/evidence/repair-final/retained.json.gz')},{id:'V6_new_ultra_only',rows:readEvidence('docs/det-engine/v6/evidence/trail-coverage/candidate.json.gz').filter(r=>r.candidate&&r.fixtureId?.includes('TrailUltra'))},{id:'V6_strict_IM_models',rows:readEvidence('docs/det-engine/v6/evidence/ironman-final/candidate.json.gz').filter(r=>r.candidate)}];}

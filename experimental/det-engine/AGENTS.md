@@ -1,0 +1,5 @@
+# DET engine rules
+
+- Coach families: each copies a CI-proven option set, tested weeks/hours envelope, required anchors and clock sports. Coach limiter order must be an exact permutation of `eligibleLimiterMetrics`, saved in `_provenance.limiterOrder`; family in `_provenance.family`. Native lexical phase warnings may be reconciled only per goal from reviewed V3 race-pace blocks with exact Z4 dose (`reconcileReviewedMarathonSpecificity(…, objective)`). Why: title heuristics missed genuine reviewed specificity; fixture native cards are not coach-reviewed.
+- QA engine is reconciled from PR454 b9ba425e (3-way on base d2d7d2f8, QA `*-core.ts`/V400–V402 kept); benches run via `vitest.experimental.config.ts`. Why: the QA fork had drifted from validated V358–V360 code.
+- DET limiter labels are resolved only by `experimental/det-engine/v403-limiter-semantics.ts` (lossless translation, raw priorities kept, unsupported primary ⇒ blocked_unsupported_limiter). Why: display labels and case-sensitive checks hid or mis-mapped app limiters.

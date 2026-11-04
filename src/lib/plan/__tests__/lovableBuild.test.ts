@@ -6,7 +6,7 @@ import { assertSameDeclaration, calculatePlanRelease, checkedPlanRelease, readDe
 
 const root = process.cwd();
 const temp = mkdtempSync(join(tmpdir(), "tfcl-lovable-source-test-"));
-for (const name of ["src", "supabase/functions/_shared", "supabase/functions/ai-training-plan", "supabase/functions/ai-training-plan-test", "scripts/preproduction", "vite.config.ts", "package.json", "bun.lockb"]) {
+for (const name of ["src", "supabase/functions/_shared", "supabase/functions/ai-training-plan", "supabase/functions/ai-training-plan-test", "scripts/preproduction", "experimental/det-engine", "scripts/library-v3", "vite.config.ts", "package.json", "bun.lockb"]) {
   cpSync(join(root, name), join(temp, name), { recursive: true });
 }
 symlinkSync(resolve(root, "node_modules"), join(temp, "node_modules"), "dir");

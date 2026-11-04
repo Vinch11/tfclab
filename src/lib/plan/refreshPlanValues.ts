@@ -99,6 +99,12 @@ export interface RefreshResult {
   plan: ParsedPlan;
   /** Nombre de séances dont le texte a été nettoyé. */
   changedSessions: number;
+  /**
+   * Refus explicite : le plan contient des prescriptions structurées DET
+   * (`detStructuredWorkout`) dont les cibles sont liées à la source admise.
+   * Aucune actualisation muette (texte, physioRefs) : requalifier/régénérer.
+   */
+  refused?: "structured_prescription_requires_requalification";
 }
 
 /**
@@ -109,6 +115,8 @@ export function refreshPlanAbsoluteValues(
   plan: ParsedPlan,
   currentRefs: PlanPhysioRefs,
 ): RefreshResult {
+  const hasStructured = plan.weeks.some((wk) => wk.sessions.some((s) => (s as { detStructuredWorkout?: unknown }).detStructuredWorkout != null));
+  if (hasStructured) return { plan, changedSessions: 0, refused: "structured_prescription_requires_requalification" };
   let changedSessions = 0;
   const weeks = plan.weeks.map((wk) => ({
     ...wk,

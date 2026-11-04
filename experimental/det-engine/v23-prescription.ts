@@ -1,0 +1,16 @@
+import{buildV22Prescription,revalidateV22Reservation}from'./v22-prescription';import{deriveV23Programming}from'./v23-programming';import{capacityDecisionV23}from'./v23-capacity';import{validateFourWeekScopeV23}from'./v23-scope';
+/** Composition of existing calendar, canonical gates and diagnostic chain. No alternative engine. */
+export function buildV23Prescription(v:any,spec:any,canonical:Map<string,any>){const programming=deriveV23Programming(v.prepared,v.profile,v.input);
+ const reference=buildV22Prescription(v.prepared,v.profile,spec,canonical),attempt=programming.policy?buildV22Prescription(v.prepared,v.profile,spec,canonical,programming.policy):null;
+ const counts=(issues:any[])=>{const m=new Map<string,number>();for(const i of issues)if(['error','critical','blocking','warning'].includes(i.severity)){const k=JSON.stringify([i.code,i.week??null,i.severity,i.control??null]);m.set(k,(m.get(k)??0)+1);}return m;};
+ const old=counts(reference.rawValidation.historical.issues),newIssues=attempt?[...counts(attempt.rawValidation.historical.issues)].filter(([k,n])=>n>(old.get(k)??0)).map(([key,count])=>({key,added:count-(old.get(key)??0)})):[];
+ const attemptedScope=attempt?validateFourWeekScopeV23(attempt,v.profile):null;const newIndividualRefusals=attempt?attempt.decisions.filter(d=>d.state==='not_admissible'&&reference.decisions.find(x=>x.slotKey===d.slotKey)?.state!=='not_admissible').map(d=>d.slotKey):[];
+ const programmingAcceptance={proposed:attempt!==null,attemptedBlockErrors:attemptedScope?.executedBlockErrors??[],newIndividualRefusals,accepted:attempt!==null&&newIssues.length===0&&attemptedScope!.executedBlockErrors.length===0&&newIndividualRefusals.length===0,newHistoricalFailuresOrWarnings:newIssues,decision:attempt===null?'no_supported_programming_difference':newIssues.length||attemptedScope!.executedBlockErrors.length||newIndividualRefusals.length?'rejected_new_warning_block_error_or_individual_refusal':'accepted_bounded_candidate_not_approved'};
+ const result=programmingAcceptance.accepted?attempt!:reference;const rejectedProgrammingAttempt=attempt&&!programmingAcceptance.accepted?attempt:null;const appliedObservations:any[]=[];
+ const observation=v.counterfactual?.observation;if(observation){const targets=result.calendar.weeks.filter(w=>w.week===observation.week).flatMap(w=>w.slots).filter(s=>s.role.sport===observation.sport&&s.role.kind===observation.kind&&s.card.id===observation.sourceId);
+  if(!observation.synthetic||!targets.length)throw Error('SCOPED_RECOVERY_OBSERVATION_REQUIRED');
+  if(observation.response==='adverse'||observation.recovered===false||observation.symptoms===true)for(const s of targets){s.input.hardFailures.push('documented_adverse_recovery_hold');appliedObservations.push({slotKey:s.key,observation,action:'hold_no_dose_or_capacity_increase',actualHumanReview:false});}
+  revalidateV22Reservation(result,v.profile);
+ }
+ const capacity=result.calendar.weeks.flatMap(w=>w.slots.map(s=>capacityDecisionV23(s,v.profile,canonical))),scope=validateFourWeekScopeV23(result,v.profile);
+ return{caseId:v.caseId,profile:v.profile.id,programming,programmingAcceptance,rejectedProgrammingAttempt,result,capacity,scope,appliedObservations,doseGrowthFromLimiterFormula:false,automaticApproval:false,expertReviewed:false};}

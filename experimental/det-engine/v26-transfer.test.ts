@@ -1,0 +1,13 @@
+import {it,expect} from 'vitest';
+import {loadV26Data} from './v26-test-data';
+import {consumeRunCostV26} from './v26-physiology';
+import {digest} from './v9-prospective';
+const d=loadV26Data(),f=d.fixtures.physiology[0];
+const context={simulation:true,verifiedArtifacts:d.fixtures.verifiedArtifacts,expectedRawHash:digest(f.raw)};
+const provenance={discipline:'run',qualification:'documented_synthetic_contract',rawInputHash:digest(f.raw)};
+it('only consumes the actual separately sourced 200 CE probe, never a profile substitution',()=>{const r=consumeRunCostV26(f.envelope,f.raw,null,d.spec.clock,context,provenance);expect(r.result.status).toBe('typed_context_consumed_for_review');expect(r.referenceInjectedIntoProfiles).toBe(false);expect(r.individualDoseApproved).toBe(false);});
+it.each(['unknown','bike','swim'])('refuses discipline %s even if units are correct',discipline=>{expect(consumeRunCostV26(f.envelope,f.raw,null,d.spec.clock,context,{...provenance,discipline}).result.status).toBe('hold_typed_reference');});
+it('refuses C8 historical confidence without scientific provenance',()=>{const r=consumeRunCostV26(f.envelope,f.raw,null,d.spec.clock,context,{...provenance,qualification:'unknown_historical_C8',confidence:0.95});expect(r.preflightReasons).toContain('historical_confidence_not_attested_C8');expect(r.result.experimental.prediction).toBeNull();});
+it('refuses a value taken from the correct source but attached to A',()=>{const r=consumeRunCostV26(f.envelope,d.prepared[0].prepared.diagnostic._rawInput,null,d.spec.clock,context,provenance);expect(r.result.status).toBe('hold_typed_reference');expect(r.result.reasons).toContain('missing_or_wrong_source_and_input_binding');});
+it('refuses an unknown method, uncertain reference and absent cost',()=>{for(const delta of[{method:{kind:'estimated',id:null,admissibility:'unverified'}},{status:'uncertain'},{status:'absent',value:null}])expect(consumeRunCostV26({...f.envelope,...delta},f.raw,null,d.spec.clock,context,provenance).result.status).toBe('hold_typed_reference');});
+it('does not convert a score or clamp an out-of-domain cost into admissibility',()=>{for(const value of[65,149,281]){const r=consumeRunCostV26({...f.envelope,value},f.raw,null,d.spec.clock,context,provenance);expect(r.result.status).toBe('hold_typed_reference');expect(r.preflightReasons).toContain('source_contract_oxygen_cost_domain');}});

@@ -13,6 +13,7 @@ import { AuthGate } from "@/components/AuthGate";
 import { CoachOnlyGate } from "@/components/CoachOnlyGate";
 import { OnboardingGate } from "@/components/OnboardingGate";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { QaRlsAuditLink } from "@/components/QaRlsAuditLink";
 
 // Eager: bundled in initial chunk
 import AuthPage from "./pages/AuthPage";
@@ -63,6 +64,10 @@ const PlanQAPage = lazy(() => import("./pages/PlanQAPage"));
 const MobileNavHarness = lazy(() => import("./pages/__e2e/MobileNavHarness"));
 const PrintPreviewPage = lazy(() => import("./pages/PrintPreviewPage"));
 const PrintExportHarness = lazy(() => import("./pages/__e2e/PrintExportHarness"));
+const ReadOnlyRlsAuditPage = lazy(() => import("./pages/__qa/ReadOnlyRlsAuditPage"));
+const DetLabPage = lazy(() => import("./pages/__qa/DetLabPage"));
+const CoachARecipePage = lazy(() => import("./pages/__qa/CoachARecipePage"));
+const PilotReviewPage = lazy(() => import("./pages/__qa/PilotReviewPage"));
 
 const queryClient = new QueryClient();
 
@@ -97,6 +102,7 @@ export default function App() {
           <Sonner />
           <BrowserRouter>
             <ScrollToTop />
+            <QaRlsAuditLink />
             <AuthProvider>
               <AppErrorBoundary>
               <Suspense fallback={<RouteFallback />}>
@@ -152,6 +158,12 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/planning" element={<ProtectedRoute><PlanningPage /></ProtectedRoute>} />
                   <Route path="/planning/ai-plan" element={<ProtectedRoute><AITrainingPlanPage /></ProtectedRoute>} />
+                  {/* Dev-only — recette RLS lecture seule, jamais dans un build de prod. */}
+                  {/* Dev-only — recette RLS lecture seule. Volontairement SANS ProtectedRoute/CoachOnlyGate : la page affiche son propre état déconnecté et vérifie origine QA + getSession + getUser + UID A/B (avec délais) avant tout SELECT ; la RLS serveur reste la seule barrière. */}
+                  {import.meta.env.DEV && <Route path="/__qa/rls-audit" element={<ReadOnlyRlsAuditPage />} />}
+                  {import.meta.env.DEV && <Route path="/__qa/det-lab" element={<DetLabPage />} />}
+                  {import.meta.env.DEV && <Route path="/__qa/coach-a-recipe" element={<CoachARecipePage />} />}
+                  {import.meta.env.DEV && <Route path="/__qa/pilot-review" element={<PilotReviewPage />} />}
                   <Route path="/debug/plan-qa" element={<ProtectedRoute><CoachOnlyGate><PlanQAPage /></CoachOnlyGate></ProtectedRoute>} />
                   {/* Dev-only — harness Playwright, jamais dans un build de prod (import.meta.env.DEV statiquement false). Pas de ProtectedRoute : exprès, voir MobileNavHarness.tsx. */}
                   {import.meta.env.DEV && <Route path="/__e2e/mobile-nav" element={<MobileNavHarness />} />}

@@ -229,40 +229,74 @@ const PRINT_PREVIEW_STORAGE_PREFIX = "tfc:printPreview:";
  * "Imprimer" déjà robuste de `CoachChecklistPage`), on élimine cette classe
  * entière de risques — sur desktop ET iPhone, avec le même code.
  *
- * `sessionStorage` est transmis automatiquement à l'onglet ouvert par
- * `window.open()` (copie, spec HTML — même origine, même session) : pas de
- * requête réseau supplémentaire, pas de limite de taille d'URL.
+ * Le relais ne dépend plus de la copie du sessionStorage parent → enfant
+ * (non garantie) : voir le correctif P0 ci-dessous.
+ */
+function isQuotaError(e: unknown): boolean {
+  return e instanceof DOMException && (e.name === "QuotaExceededError" || e.code === 22);
+}
+
+const QUOTA_MESSAGE =
+  "Ce document est trop volumineux pour l'aperçu d'impression. Réduisez le contenu exporté ou contactez le support.";
+
+/**
+ * Correctif P0 (2026-11-01, "Document introuvable" en preview QA) : le
+ * document n'est plus écrit dans le sessionStorage de l'onglet PARENT en
+ * comptant sur sa copie vers l'onglet ouvert (copie non garantie selon
+ * l'isolement du navigateur, les cadres, noopener…). On ouvre d'abord
+ * SYNCHRONEMENT (dans le geste utilisateur) une fenêtre `about:blank` de
+ * même origine, on écrit le document dans le sessionStorage DE CETTE
+ * FENÊTRE ENFANT, puis on la navigue vers `/print-preview?d=<clé>`.
+ * Repli si pop-up bloquée/inaccessible : même onglet (sessionStorage de
+ * l'onglet courant, toujours conservé par une navigation même origine),
+ * jamais d'échec silencieux. Jamais de localStorage, d'URL `blob:`, de
+ * réseau ni de journalisation du contenu.
  */
 function openPrintPreviewDocument(html: string, filenameHint?: string, autoPrint?: boolean): void {
-  const key = `${PRINT_PREVIEW_STORAGE_PREFIX}${Date.now()}_${Math.random().toString(36).slice(2)}`;
-  try {
-    sessionStorage.setItem(key, html);
-  } catch {
-    // Document inhabituellement volumineux (quota sessionStorage dépassé) —
-    // mieux vaut prévenir que d'ouvrir un onglet qui échouera silencieusement.
-    window.alert(
-      "Ce document est trop volumineux pour l'aperçu d'impression. Réduisez le contenu exporté ou contactez le support."
-    );
-    return;
-  }
-
-  const url = `/print-preview?d=${encodeURIComponent(key)}${autoPrint ? "&autoPrint=1" : ""}${
+  const rand =
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const key = `${PRINT_PREVIEW_STORAGE_PREFIX}${rand}`;
+  const query = `d=${encodeURIComponent(key)}${autoPrint ? "&autoPrint=1" : ""}${
     filenameHint ? `&title=${encodeURIComponent(filenameHint)}` : ""
   }`;
 
-  let win: Window | null = null;
+  let child: Window | null = null;
   try {
-    win = window.open(url, "_blank");
+    child = window.open("about:blank", "_blank");
   } catch {
-    win = null;
+    child = null;
   }
 
-  if (!win) {
-    try { sessionStorage.removeItem(key); } catch { /* best effort */ }
-    window.alert(
-      "La fenêtre d'impression a été bloquée par votre navigateur. Autorisez les pop-ups pour ce site, puis réessayez."
-    );
+  if (child) {
+    try {
+      child.sessionStorage.setItem(key, html);
+      child.location.replace(`${window.location.origin}/print-preview?${query}`);
+      return;
+    } catch (e) {
+      try { child.sessionStorage.removeItem(key); } catch { /* inaccessible */ }
+      try { child.close(); } catch { /* ignore */ }
+      if (isQuotaError(e)) {
+        window.alert(QUOTA_MESSAGE);
+        return;
+      }
+      // Fenêtre non accessible (isolée) → repli même onglet ci-dessous.
+    }
   }
+
+  // Repli : même onglet. Le document reste dans le sessionStorage de cet
+  // onglet uniquement ; /print-preview le lit puis le supprime.
+  try {
+    sessionStorage.setItem(key, html);
+  } catch (e) {
+    window.alert(isQuotaError(e) ? QUOTA_MESSAGE : "Impossible de préparer l'aperçu d'impression dans ce navigateur.");
+    return;
+  }
+  window.alert(
+    "La fenêtre d'impression n'a pas pu s'ouvrir (pop-up bloquée). L'aperçu va s'ouvrir dans cet onglet ; utilisez « Retour au plan » ou le bouton Précédent pour revenir."
+  );
+  window.location.assign(`/print-preview?${query}&sameTab=1`);
 }
 
 /**

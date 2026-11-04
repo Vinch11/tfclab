@@ -1,4 +1,15 @@
+import { CoachDetInputsPanel } from "@/pages/__qa/CoachDetInputsPanel";
+import { AthleteDetSimplePanel } from "@/components/plan/AthleteDetSimplePanel";
+import type { AthleteRecordView } from "@/lib/det/athleteDetBridge";
+import { verifyQaCoach, detEngineVersionFromRelease } from "@/pages/__qa/DetLabPage";
+import { dispatchCoachEngine, qaEngineChoiceEnabled, type CoachEngine } from "@/lib/plan/engineDispatch";
+import { buildCoachPlanInputs } from "@/lib/det/coachDetRun";
+import { OBJECTIVE_OPTIONS, buildAppDiagnosticInput, buildAppPlanConfig } from "@/lib/plan/appPlanningPipeline";
+import { buildAthleteRecordView } from "@/lib/det/appRecordView";
+import { explicitCoachLimiterOverride, freezeAppPlanningInput, planningInputFor, type FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
+import { isDetCoachInputsProvenance, isDetPlanProvenance } from "@/lib/plan/planProvenance";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
+import { AppendOnlyPlanVersionSaver, READBACK_COLUMNS } from "@/lib/plan/appendOnlyPlanVersionSave";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
 import { PlanPrevalidationPanel } from "@/components/PlanPrevalidationPanel";
@@ -15,6 +26,7 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
+import { isQaNonPrescriptivePlan } from "@/lib/aiPlanPDFExport";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -123,17 +135,7 @@ import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
 import { getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { Apple } from "lucide-react";
 
-const OBJECTIVE_OPTIONS = [
-  { value: "IM", label: "Ironman" },
-  { value: "703", label: "Ironman 70.3" },
-  { value: "Marathon", label: "Marathon" },
-  { value: "Semi", label: "Semi-Marathon" },
-  { value: "10K", label: "10 km" },
-  { value: "StartToRun", label: "Start to Run (débutant · marche-course)" },
-  { value: "TrailShort", label: "Trail court (20-40 km)" },
-  { value: "TrailMountain", label: "Trail montagne (40-80 km)" },
-  { value: "TrailUltra", label: "Ultra trail (80 km+)" },
-];
+
 
 /**
  * Audit "démarrage guidé" : le wizard posait "combien de temps peux-tu
@@ -515,6 +517,12 @@ export default function AITrainingPlanPage() {
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
   const { prevalidation, prevalidateTrainingPlan, response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
+  const qaChoice = qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL);
+  const [planningEngine,setPlanningEngine]=useState<CoachEngine>("ai");
+  const qaActionEpoch=useRef(0);
+  useEffect(()=>{qaActionEpoch.current++;},[currentAthlete?.id,planningEngine]);
+  useEffect(()=>{if(!qaChoice)return;let previous:string|null|undefined;const sub=supabase.auth.onAuthStateChange((_event,session)=>{const uid=session?.user.id??null;if(previous!==undefined&&previous!==uid){qaActionEpoch.current++;setPlanOverride(null);}previous=uid;});return()=>sub.data.subscription.unsubscribe();},[qaChoice]);
+  const detRelease=detEngineVersionFromRelease(typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__);
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
     try {
@@ -1118,151 +1126,7 @@ export default function AITrainingPlanPage() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   const buildDiagnosticForAthlete = useCallback((athlete: any, obj: string, amb: string): AthleteDiagnostic | null => {
-    const athleteSnapshots = getSnapshotsForAthlete(athlete.id);
-    const athleteTests = getTestsForAthlete(athlete.id);
-    const refs = getEffectiveRefs(athlete, athleteSnapshots);
-    // Coach form entry point: allow a synthetic (empty) snapshot when the athlete
-    // has no lab data yet. The coach form injects limiters manually downstream,
-    // so the diagnostic just needs a shape to hydrate from refs (fcMax/ftp/vma/css).
-    const activeSnap: any = refs.snapshotUsed ?? {};
-
-    const ftpKg = computeFtpKg(refs);
-
-    // Compute W' for diagnostic input
-    const cpResult = analyzeCriticalPower({
-      pmax_5s: activeSnap.pmax_5s,
-      p30s_w: activeSnap.p30s_w,
-      p60s_w: activeSnap.p60s_w,
-      map5min_w: activeSnap.map5min_w,
-      ftp: refs.ftp,
-    });
-
-    const age = calculateAge(athlete.birth_date ?? athlete.dateNaissance ?? null);
-
-    // Determine sportFocus from objectif first (running objectives → "run"),
-    // then fall back to snapshot.sport_main. This guarantees that for a runner
-    // (Marathon, Semi, 10km, 5K, Trail, TrailLong, Ultra), the limiter engine
-    // uses VMA instead of FTP/kg as the aerobic-expression metric, even if the
-    // active snapshot still has bike data attached.
-    // Running objectives use raw form values from OBJECTIVE_OPTIONS.
-    // We list both raw + normalized aliases to be robust to upstream changes.
-    const RUNNING_OBJECTIVES = new Set([
-      "Marathon", "Semi", "10K", "10km", "5K",
-      "StartToRun", "starttorun",
-      "Trail", "TrailShort", "TrailMountain", "TrailLong", "TrailUltra", "Ultra",
-    ]);
-    const sportFocus: "run" | "bike" =
-      RUNNING_OBJECTIVES.has(obj) || activeSnap.sport_main === "run"
-        ? "run"
-        : "bike";
-
-    // ✅ Alignement Dashboard (Index.tsx) — précalcul des inputs partagés
-    // pour garantir que le diagnostic du plan IA part exactement du même
-    // état que le dashboard : VLamax effectif fusionné, FatMax canonique,
-    // durée cible course (F-24) et dernier check-in.
-    const vlamaxEffectifPrecomputed = computeVLamaxEffectif({
-      athleteId: athlete.id,
-      objectif: obj,
-      activeSnapshotId: athlete.active_snapshot_id,
-      tests: athleteTests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
-      snapshots: athleteSnapshots.map(mapSnapshotToV2),
-    });
-
-    const raceChronos = {
-      time_5k_sec: (activeSnap as any).time_5k_sec ?? null,
-      time_10k_sec: (activeSnap as any).time_10k_sec ?? null,
-      time_20k_sec: (activeSnap as any).time_20k_sec ?? null,
-      time_half_sec: (activeSnap as any).time_half_sec ?? null,
-      time_marathon_sec: (activeSnap as any).time_marathon_sec ?? null,
-      time_5k_date: (activeSnap as any).time_5k_date ?? null,
-      time_10k_date: (activeSnap as any).time_10k_date ?? null,
-      time_20k_date: (activeSnap as any).time_20k_date ?? null,
-      time_half_date: (activeSnap as any).time_half_date ?? null,
-      time_marathon_date: (activeSnap as any).time_marathon_date ?? null,
-    };
-    const targetRaceDurationMin = predictRaceDurationMin({
-      objective: obj,
-      ambition: AMBITION_LEVEL_TO_PREDICTOR[normalizeAmbitionLevel(amb)],
-      raceChronos,
-      vmaKmh: refs.vma ?? null,
-      thresholdPaceSecPerKm: (activeSnap as any).pace_threshold_sec_km ?? activeSnap.pace_threshold_sec_per_km ?? null,
-      ftp: refs.ftp ?? null,
-      weightKg: refs.weightKg ?? null,
-      vlamaxRun: vlamaxEffectifPrecomputed.value ?? null,
-    })?.targetRaceDurationMin ?? null;
-
-    const latestCheckin = (getCheckinsForAthlete(athlete.id) ?? [])
-      .slice()
-      .sort((a, b) => new Date(b.date_iso).getTime() - new Date(a.date_iso).getTime())[0] ?? null;
-
-    // Build DiagnosticInput and delegate to the Diagnostic Engine
-    const diagnosticInput: DiagnosticInput = {
-      athleteId: athlete.id,
-      athleteName: athlete.name,
-      age,
-      sex: (athlete.sex === "M" || athlete.sex === "F") ? athlete.sex : null,
-      weightKg: refs.weightKg,
-      objectif: obj,
-      ambition: normalizeAmbitionLevel(amb),
-      sportFocus,
-      vo2max: refs.vo2max,
-      ftp: refs.ftp,
-      ftpKg,
-      pmax5s: activeSnap.pmax_5s,
-      p30sW: activeSnap.p30s_w,
-      p60sW: activeSnap.p60s_w,
-      map5minW: activeSnap.map5min_w,
-      vma: refs.vma,
-      css: refs.css,
-      vlamax: activeSnap.vlamax,
-      vlamaxRun: activeSnap.vlamax_run,
-      vlamaxSource: activeSnap.vlamax_source,
-      vlamaxProtocol: activeSnap.vlamax_protocol,
-      vlamaxIsReference: activeSnap.vlamax_is_reference ?? false,
-      vlamaxEffectifPrecomputed,
-      tteObservedMin: activeSnap.tte_observed_min,
-      tteObservedMinRun: (activeSnap as any).tte_observed_min_run ?? null,
-      tteMode: activeSnap.tte_mode,
-      tss7d: activeSnap.tss_7d,
-      snapshotDate: activeSnap.date ?? null,
-      fatigueState: activeSnap.fatigue_state,
-      runEconomyScore: activeSnap.run_economy_score,
-      runHrDriftPct: activeSnap.run_hr_drift_pct,
-      paceThresholdSecPerKm: activeSnap.pace_threshold_sec_per_km,
-      runningPower1s: activeSnap.running_power_1s,
-      runningPower5s: activeSnap.running_power_5s,
-      runningPower30s: activeSnap.running_power_30s,
-      runningPower60s: activeSnap.running_power_60s,
-      runningPower5min: activeSnap.running_power_5min,
-      runningPowerThreshold: activeSnap.running_power_threshold,
-      sprint15sDistance: activeSnap.sprint_15s_distance,
-      bikeCadenceRpm: activeSnap.bike_cadence_rpm,
-      bikeHrDriftFlag: activeSnap.bike_hr_drift_flag ?? false,
-      protocolQuality: activeSnap.protocol_quality,
-      wprimeKj: cpResult?.wprimeKJ ?? null,
-      cpDataQuality: cpResult?.dataQuality ?? null,
-      fatmax: computeFatMaxAnchorPctFTP(vlamaxEffectifPrecomputed.value, refs.vo2max ?? null),
-      forceDevMode: activeSnap.force_development_mode ?? false,
-      giIssuesFlag: activeSnap.gi_issues_flag ?? false,
-      checkinData: latestCheckin ? {
-        sleep: latestCheckin.sleep,
-        fatigue: latestCheckin.fatigue,
-        soreness: latestCheckin.soreness,
-        stress: latestCheckin.stress,
-        motivation: latestCheckin.motivation,
-        painFlag: latestCheckin.pain_flag ?? false,
-      } : undefined,
-      raceChronos,
-      targetRaceDurationMin,
-    };
-
-    return computeDiagnostic(diagnosticInput);
+    return computeDiagnostic(buildAppDiagnosticInput(athlete, obj, amb, { snapshots: getSnapshotsForAthlete(athlete.id), tests: getTestsForAthlete(athlete.id), checkins: getCheckinsForAthlete(athlete.id) }));
   }, [getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete]);
 
   // Compute athlete context for a given athlete (diagnostic + athlete data)
@@ -1280,6 +1144,10 @@ export default function AITrainingPlanPage() {
     return { data, diagnostic };
   }, [buildDiagnosticForAthlete, getSnapshotsForAthlete]);
 
+  // QA : coach connecté (lu une fois ; le garde serveur/RLS reste la seule barrière).
+  const [qaUserId, setQaUserId] = useState<string | null>(null);
+  useEffect(() => { let live = true; void supabase.auth.getSession().then(({ data }) => { if (live) setQaUserId(data.session?.user.id ?? null); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => setQaUserId(sess?.user.id ?? null)); return () => { live = false; sub.subscription.unsubscribe(); }; }, []);
   // Current athlete context (single mode)
   const athleteContext = useMemo(() => {
     if (!currentAthlete) return null;
@@ -1524,141 +1392,11 @@ export default function AITrainingPlanPage() {
     objectiveOverride?: string,
     athleteIdOverride?: string,
   ): PlanConfig => {
-    const amb = athleteAmbition || ambition;
-    // ⚠️ setObjective() est asynchrone : le wizard doit pouvoir imposer son
-    // objectif immédiatement, sinon la config part sur l'objectif précédent
-    // (ex. plan "Semi-Marathon" généré alors que le coach a choisi Start to Run).
-    const objEff = objectiveOverride || objective;
-
-
-    // Build raceGoals array for multi-objEff
-    const computeWeeksUntilRace = (date?: string) => {
-      if (!date) return undefined;
-      try {
-        const race = startOfDay(parseISO(date));
-        const start = startOfDay(planStartDate);
-        const days = differenceInCalendarDays(race, start);
-        return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
-      } catch {
-        return undefined;
-      }
-    };
-
-    const allRaceGoals: RaceGoal[] = [];
-    // Parse trail target time "h:mm" → minutes
-    const parseTargetTimeMin = (s: string): number | null => {
-      if (!s) return null;
-      const m = s.match(/^(\d{1,2})\s*[:hH]\s*(\d{0,2})$/);
-      if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2] || "0", 10);
-      const asInt = parseInt(s, 10);
-      return Number.isFinite(asInt) && asInt > 0 ? asInt : null;
-    };
-    // Les champs distance/D+/temps/altitude sont saisis dans la section TRAIL du
-    // formulaire uniquement. Pour tout objectif standard (semi/marathon/10K/IM/…),
-    // la distance est CANONIQUE (dérivée de l'objectif côté promptHelpers) — on ne
-    // laisse PAS un `trailDistanceKm` résiduel écraser cette valeur.
-    const isTrailPrimary = (objEff || "").toLowerCase().startsWith("trail");
-    const trailDistKm = isTrailPrimary ? (parseFloat(trailDistanceKm) || null) : null;
-    const trailDPlus = isTrailPrimary ? (parseInt(trailElevationM, 10) || null) : null;
-    const trailTargetMin = isTrailPrimary ? parseTargetTimeMin(trailTargetTimeH) : null;
-    const trailMaxAlt = isTrailPrimary ? (parseInt(trailMaxAltitudeM, 10) || null) : null;
-    // Primary objEff = A
-    allRaceGoals.push({
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
-      raceName: raceName || undefined,
-      raceDate: raceDate || undefined,
-      weeksUntilRace: computeWeeksUntilRace(raceDate),
-      priority: "A",
-      raceFormat: (objEff === "703" || objEff === "70.3") ? raceFormat : "continuous",
-      distanceKm: trailDistKm,
-      elevationGainM: trailDPlus,
-      targetTimeMinutes: trailTargetMin,
-      maxAltitudeM: trailMaxAlt,
-    });
-    // Additional goals
-    for (const g of raceGoals) {
-      allRaceGoals.push({
-        objective: OBJECTIVE_OPTIONS.find(o => o.value === g.objective)?.label || g.objective,
-        raceName: g.raceName || undefined,
-        raceDate: g.raceDate || undefined,
-        weeksUntilRace: computeWeeksUntilRace(g.raceDate),
-        priority: g.priority,
-      });
-    }
-
-    const formConfig: PlanFormConfig = {
-      objective: OBJECTIVE_OPTIONS.find(o => o.value === objEff)?.label || objEff,
-      raceName: raceName || undefined,
-      raceDate: raceDate || undefined,
-      raceGoals: allRaceGoals,
-      planStartDate: format(planStartDate, "yyyy-MM-dd"),
-      weeksAvailable: weeksAvailable ?? undefined,
-      weeklyHours: parseFloat(weeklyHours) || undefined,
-      sessionsPerWeek: (() => {
-        const n = parseInt(sessionsPerWeek);
-        if (!Number.isFinite(n) || n <= 0) return undefined;
-        // (a) — Conflit sessionsPerWeek utilisateur vs recommandation ambition (qualitesParSemaine = proxy min).
-        // Règle : le formulaire PRIME. On log une alerte si l'utilisateur descend en dessous du minimum
-        // requis pour placer les séances de qualité de son ambition.
-        try {
-          const ambKey = (amb || "").toLowerCase();
-          const ambDef = RACE_AMBITIONS.find((a: any) => a.key === ambKey || a.label?.toLowerCase() === ambKey);
-          const minRec = ambDef?.qualitesParSemaine;
-          if (typeof minRec === "number" && n < minRec) {
-            // eslint-disable-next-line no-console
-            console.warn(`⚠️ sessionsPerWeek user (${n}) < recommandé ambition (${minRec}) — le formulaire prime, l'IA sera forcée à ${n} séances/sem.`);
-          }
-        } catch { /* noop */ }
-        return n;
-      })(),
-      maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
-      strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
-      deloadCadenceWeeks: deloadCadence === "auto" ? undefined : (parseInt(deloadCadence, 10) as 3 | 4),
-      // ⚠️ NE PAS résoudre `amb` (clé canonique, ex. "world_class") vers son label
-      // AMBITION_OPTIONS ici : ce label inclut l'icône emoji ("👑 Elite"), et
-      // `normalizeAmbitionLevel` (appelé plus loin par computeAmbitionEffective)
-      // échoue silencieusement sur ce préfixe et retombe sur DEFAULT_AMBITION
-      // ("Confirmé") — bug réel : "Ambition visée" affichait Confirmé au lieu
-      // d'Elite malgré "Verrouiller l'ambition". `buildPlanConfigFromDiagnostic`
-      // re-dérive de toute façon un label propre depuis la clé résolue.
-      ambition: amb,
-      constraints: constraints || undefined,
-      trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
-      terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
-      lockAmbition,
-      crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
-      // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
-      // passthrough déclaratif (heures) — jamais consommé par ce builder
-      // pour la rampe de volume/weeklyHours (voir PlanConfig.loadHistory).
-      loadHistory: (() => {
-        const chronic = parseFloat(chronicWeeklyHours);
-        const recent = parseFloat(recentWeeklyHours);
-        const weeks = parseInt(recentWeeksCount, 10);
-        const hasAny = Number.isFinite(chronic) || Number.isFinite(recent) || Number.isFinite(weeks);
-        if (!hasAny) return undefined;
-        return {
-          chronicWeeklyHours: Number.isFinite(chronic) && chronic > 0 ? chronic : undefined,
-          recentWeeklyHours: Number.isFinite(recent) && recent > 0 ? recent : undefined,
-          recentWeeksCount: Number.isFinite(weeks) && weeks > 0 ? weeks : undefined,
-        };
-      })(),
-      maxDoubleDaysPerWeek: (() => {
-        const n = parseInt(maxDoubleDaysPerWeek, 10);
-        // Correction #F : 0 est une valeur significative ("aucune journée
-        // double autorisée"), distincte de "champ absent" — ne pas la
-        // perdre en la traitant comme falsy.
-        return Number.isFinite(n) && n >= 0 ? n : undefined;
-      })(),
-    };
-
-    const built = prepareTrainingPlanContext({
-      diagnostic,
-      formConfig,
-      coachLimiterOrder: coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
-    }).planConfig;
-    // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
-    return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
+    return buildAppPlanConfig(diagnostic, { objective, ambition, planStartDate, raceName, raceDate, raceFormat, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM,
+      weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, constraints, trainingLevel, terrainAvailability, lockAmbition,
+      crossTrainingVelo, crossTrainingNatation, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, coachLimiterOrder, currentAthleteId: currentAthlete?.id },
+      athleteAmbition, objectiveOverride, athleteIdOverride);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -1696,6 +1434,25 @@ export default function AITrainingPlanPage() {
     return lastCoachOverridesPayload ? buildCoachOverrides(lastCoachOverridesPayload, base) : base;
   }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
 
+  // Profil de planification figé, IDENTIQUE pour l'IA et DET (même athleteContext,
+  // même buildConfigWithCoachOverrides). Aucun recalcul côté DET.
+  const [appPlanningInput,setAppPlanningInput]=useState<FrozenAppPlanningInput|null>(null);
+  const [appPlanningStatus,setAppPlanningStatus]=useState<"ready"|"pending"|"missing">("pending");
+  // Dernier profil RÉELLEMENT courant (lu après chaque await) + jeton annulant les gels en attente.
+  const appPlanningRef=useRef<FrozenAppPlanningInput|null>(null);
+  const appPlanningToken=useRef(0);
+  useEffect(()=>{const tok=++appPlanningToken.current;appPlanningRef.current=null;setAppPlanningInput(null);
+    if(!athleteContext||!currentAthlete){setAppPlanningStatus("missing");return;}
+    setAppPlanningStatus("pending");
+    let config:PlanConfig;try{config=buildConfigWithCoachOverrides(athleteContext.diagnostic);}catch{setAppPlanningStatus("missing");return;}
+    const applied=(config as {identifiedLimitersRaw?:string[]}).identifiedLimitersRaw??[];
+    const coachOverride=explicitCoachLimiterOverride(coachLimiterOrder,lastCoachOverridesPayload as never,applied);
+    void freezeAppPlanningInput({athleteId:currentAthlete.id,athlete:athleteContext.data,config,planStartDate:format(planStartDate,"yyyy-MM-dd"),
+      appAutomaticLimiters:rankPrescriptionGaps(athleteContext.diagnostic.limiter.gapAnalysis).map(g=>g.metric),coachOverride})
+      .then(f=>{if(tok!==appPlanningToken.current)return;appPlanningRef.current=f;setAppPlanningInput(f);setAppPlanningStatus("ready");})
+      .catch(()=>{if(tok===appPlanningToken.current)setAppPlanningStatus("missing");});
+  },[athleteContext,currentAthlete,buildConfigWithCoachOverrides,coachLimiterOrder,lastCoachOverridesPayload,planStartDate]);
+
   useEffect(()=>{
     const policy=readCommittedLimiterPolicy(localStorage,currentAthlete?.id,objective);
     setLastCoachSelection(policy?{payload:policy,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)}:null);
@@ -1704,6 +1461,9 @@ export default function AITrainingPlanPage() {
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
     if (!rawParsedPlan) return null;
     if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
+    const provenance=(rawParsedPlan as ParsedPlan & {_provenance?:unknown})._provenance;
+    // Saved DET prescriptions are verbatim: validation below may flag, never rewrite.
+    if(isDetCoachInputsProvenance(provenance)||isDetPlanProvenance(provenance))return {plan:rawParsedPlan,taperFix:null};
 
 
     const clonedPlan: ParsedPlan = {
@@ -1843,6 +1603,7 @@ export default function AITrainingPlanPage() {
   };
 
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
+    if(qaChoice && planningEngine==="det"){toast.error("Confirmez les entrées et sources DET ci-dessous ; aucune bascule vers l’IA.");return;}
     // Une génération complète invalide toute régénération ciblée précédente.
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
@@ -1961,6 +1722,7 @@ export default function AITrainingPlanPage() {
     objectiveOverride?: string,
     prevalidateOnly=false,
   ) => {
+    if(qaChoice && planningEngine==="det"){toast.error("Utilisez les entrées DET confirmées ; aucune bascule IA.");return;}
     if (!athleteContext) {
       toast.error("Aucun contexte athlète — sélectionne un athlète d'abord.");
       return;
@@ -2005,7 +1767,7 @@ export default function AITrainingPlanPage() {
     if(payload.limiterOrder?.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objectiveOverride??objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
     generatePlanWindowed(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective]);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine, qaChoice]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
@@ -2257,6 +2019,11 @@ export default function AITrainingPlanPage() {
   } | null>(null);
   const pendingSaveRef = useRef<null | (() => Promise<void>)>(null);
 
+  // Sauvegarde append-only fail-closed : id client stable + read-back par id.
+  const versionSaverRef = useRef<{ athleteId: string; saver: AppendOnlyPlanVersionSaver } | null>(null);
+  const latestParsedPlanRef = useRef(parsedPlan);
+  latestParsedPlanRef.current = parsedPlan;
+
   const persistPlanVersion = useCallback(async (
     validatorScore: number | null,
     validatorGrade: string | null,
@@ -2264,6 +2031,8 @@ export default function AITrainingPlanPage() {
     overriddenCriticalIssues: number,
   ) => {
     if (!parsedPlan || !currentAthlete) return;
+    if (versionSaverRef.current?.saver.isPending) return; // double clic
+    const planAtStart = parsedPlan;
     setIsSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -2277,8 +2046,27 @@ export default function AITrainingPlanPage() {
         ? { ...validatorSummary, overriddenCriticalIssues: overriddenCriticalIssues || undefined }
         : validatorSummary;
 
+      if (!versionSaverRef.current || versionSaverRef.current.athleteId !== currentAthlete.id) {
+        versionSaverRef.current = {
+          athleteId: currentAthlete.id,
+          saver: new AppendOnlyPlanVersionSaver({
+            // Identité déterministe (SHA-256 du contenu) : aucun stockage navigateur.
+            transport: {
+              insert: async (row) => {
+                const { error } = await supabase.from("plan_versions").insert(row as any);
+                return { error: error ? { code: error.code, message: error.message } : null };
+              },
+              readById: async (id) => {
+                const { data, error } = await supabase.from("plan_versions").select(READBACK_COLUMNS).eq("id", id).maybeSingle();
+                return { data: (data as any) ?? null, error: error ? { code: error.code, message: error.message } : null };
+              },
+            },
+          }),
+        };
+      }
+
       // Archive this plan version (history only — no write to training_plan)
-      const { error } = await supabase.from("plan_versions").insert({
+      const result = await versionSaverRef.current.saver.save({
         athlete_id: currentAthlete.id,
         coach_id: user.id,
         plan_json: {
@@ -2297,22 +2085,33 @@ export default function AITrainingPlanPage() {
           // catalogue restreint) sans aucun avertissement pour le coach.
           _raceGoals: raceGoals,
           _coachLimiterOrder: [...coachLimiterOrder],
-        } as any,
+        },
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
         sessions_count: sessionsCount,
         validator_score: validatorScore,
         validator_grade: validatorGrade,
-        validator_summary: summaryWithOverride as any,
+        validator_summary: summaryWithOverride ?? null,
       });
-      if (error) throw error;
 
-      setIsSaved(true);
-      setHistoryRefreshKey(k => k + 1);
-      toast.success("Plan sauvegardé dans l'historique !");
+      // Ne journaliser que statut + code, jamais le plan.
+      console.info("[plan_version_save]", result.status, result.reason);
+      if (result.status === "CONFIRMED") {
+        if (latestParsedPlanRef.current === planAtStart) setIsSaved(true);
+        setHistoryRefreshKey(k => k + 1);
+        toast.success("Plan sauvegardé et relu dans l'historique.");
+      } else if (result.status === "UNKNOWN") {
+        toast.warning("Sauvegarde non confirmée : vérifiez l'historique avant de réessayer. Une nouvelle tentative du même contenu réutilise le même identifiant (pas de doublon).");
+      } else if (result.status === "BLOCKED") {
+        toast.error("Sauvegarde bloquée : une version différente existe déjà sous cet identifiant. Rien n'a été écrasé.");
+      } else if (result.status === "FAILED") {
+        toast.error("Sauvegarde refusée (" + result.reason + "). Aucune version créée.");
+      } else if (result.status === "NOT_SENT") {
+        toast.error("Sauvegarde non envoyée (" + result.reason + ") : contenu invalide ou empreinte indisponible. Aucune version créée.");
+      }
     } catch (err: any) {
-      console.error("Save plan error:", err);
-      toast.error("Erreur lors de la sauvegarde : " + (err.message || "Inconnu"));
+      console.error("Save plan error:", err?.code ?? err?.message ?? "unknown");
+      toast.error("Erreur avant envoi de la sauvegarde : " + (err?.message || "Inconnu"));
     } finally {
       setIsSaving(false);
     }
@@ -4117,7 +3916,7 @@ export default function AITrainingPlanPage() {
             )}
 
             {/* Adaptation Projections Summary */}
-            {!isMultiMode && athleteContext && (() => {
+            {!isMultiMode && athleteContext && !isQaNonPrescriptivePlan(parsedPlan) && (() => {
               const projections = buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections;
               return projections && projections.length > 0 ? (
                 <CollapsibleCard
@@ -4150,13 +3949,63 @@ export default function AITrainingPlanPage() {
               </Alert>
             )}
 
+            {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
+              <Label>Moteur de génération — QA</Label>
+              <Select value={planningEngine} onValueChange={v=>setPlanningEngine(v as CoachEngine)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
+              <p className="text-xs text-muted-foreground">DET utilise le même profil de planification que l’IA (diagnostic, limiteurs, réglages de la page). En test, avec une revue réelle des séances par le coach : semi-marathon 8 sem./6 h, marathon 16 sem./7 h (selon les limiteurs du profil, refus possible et expliqué) et Ironman 70.3 12 sem./9 h peuvent être acceptés ; semi 30 sem. et Ironman refusés ; les autres objectifs ne sont pas encore raccordés. Un refus ne déclenche jamais l’IA. Les deux sorties restent non prescriptives et soumises à la revue coach.</p>
+              <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
+              {currentAthlete && qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
+                const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
+                const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
+                return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
+                onAIShared={async(f)=>{if(!isLatest(f.fingerprint)){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
+                  const ins=planningInputFor(f,"ai");
+                  const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
+                  if(!isLatest(f.fingerprint)){toast.error("Profil modifié pendant la prévalidation : génération annulée");return;}
+                  setPlanOverride(null);await generatePlanWindowed(ins.athlete,ins.config);
+                }});}}
+                form={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:Number(weeksAvailable??0),weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition}}
+                sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
+                guard={async()=>{const v=await verifyQaCoach();if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
+                onOutcome={(o,fp)=>{if(o?.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
+                  const cur=appPlanningRef.current;
+                  if(pin?.source!=="app_planning_pipeline"||pin.fingerprint!==fp||!cur||!isLatest(fp)){toast.error("Profil de l'athlète modifié pendant le calcul : candidat non installé");return;}
+                  const ins=planningInputFor(cur,"det");
+                  const ep=qaActionEpoch.current;
+                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                    const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
+                    if(ep!==qaActionEpoch.current||!isLatest(fp))return;
+                    const owner=await verifyQaCoach();if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
+                    setPlanOverride(o.plan);setIsSaved(false);setResponse("");
+                  }});
+                }}/>;})()}
+              <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>
+              {currentAthlete && <CoachDetInputsPanel key={currentAthlete.id+objective+format(planStartDate,"yyyy-MM-dd")+raceDate+weeklyHours+sessionsPerWeek+coachLimiterOrder.join(",")} engine={planningEngine}
+                shared={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:weeksAvailable??undefined,weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition,coachLimiterOrder:coachLimiterOrder.length?coachLimiterOrder:null,...(appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?{planningInputFingerprint:appPlanningInput.fingerprint}:{})}}
+                sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
+                guard={async()=>{const v=await verifyQaCoach();if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
+                onAI={async(inputs,snapshot)=>{await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
+                  const preview=await prevalidateTrainingPlan(inputs.athlete,inputs.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
+                  setPlanOverride(null);await generatePlanWindowed(inputs.athlete,inputs.config);void snapshot;
+                }});}}
+                onOutcome={o=>{if(o?.kind!=="accepted")return;const ins=buildCoachPlanInputs(o.provenance.coachInputs as never);
+                  const epoch=qaActionEpoch.current;
+                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                    const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
+                    if(epoch!==qaActionEpoch.current)return;
+                    const owner=await verifyQaCoach();if("blocked" in owner||owner.athleteId!==currentAthlete.id||epoch!==qaActionEpoch.current)return;
+                    setPlanOverride(o.plan);setIsSaved(false);setResponse("");
+                  }});
+                }}/>}
+              </details>
+            </section>}
             <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
                 onClick={() => { void handleGenerate(); }}
-                disabled={isLoading || !hasData}
+                disabled={isLoading || !hasData || (qaChoice && planningEngine==="det")}
                 className="w-full"
                 size="lg"
               >
@@ -4170,7 +4019,7 @@ export default function AITrainingPlanPage() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer le Plan TFCL™
+                    Générer le Plan TFCL™ avec l’IA
                   </>
                 )}
               </Button>
@@ -4594,7 +4443,7 @@ export default function AITrainingPlanPage() {
                         currentWeekNumber={currentWeekNumber}
                         loadedFromCacheAt={loadedFromCacheAt}
                         adaptationProjections={
-                          athleteContext
+                          athleteContext && !isQaNonPrescriptivePlan(parsedPlan)
                             ? buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }

@@ -1,0 +1,2 @@
+ALTER TABLE public.det_coach_review_contexts ADD COLUMN brick_approvals jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.det_coach_review_contexts ADD CONSTRAINT det_coach_review_brick_approvals_is_array CHECK (jsonb_typeof(brick_approvals) = 'array' AND jsonb_array_length(brick_approvals) <= 16);

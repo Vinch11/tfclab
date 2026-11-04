@@ -11,6 +11,10 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import {requirePlanWriteReceipt,planWriteErrorMessage} from "@/lib/plan/planWriteReceipt";
+import { AppendOnlyPlanVersionSaver } from "@/lib/plan/appendOnlyPlanVersionSave";
+import { supabasePlanVersionTransport } from "@/lib/plan/planVersionEdits";
+import { persistAdaptation, detAdaptationRefusal, AdaptationWriteError } from "@/lib/plan/adaptationArchive";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { parseAIPlan } from "@/lib/aiPlanParser";
 import {
@@ -78,6 +82,10 @@ export function usePlanAdaptation() {
     setIsApplying(true);
     try {
       return await fn();
+    } catch (err) {
+      console.error("[usePlanAdaptation] confirmPendingSave error:",err);
+      toast.error(err instanceof AdaptationWriteError ? err.message : planWriteErrorMessage(err,"Échec de l’adaptation du plan"));
+      return null;
     } finally {
       setIsApplying(false);
     }
@@ -92,39 +100,35 @@ export function usePlanAdaptation() {
   /** Persiste un ParsedPlan dans `plans.plan_json`. */
   const persistPlan = useCallback(
     async (athleteId: string, coachId: string, plan: ParsedPlan) => {
-      const { error } = await supabase
+      await requirePlanWriteReceipt(supabase
         .from("plans")
         .upsert(
-          [
-            {
-              athlete_id: athleteId,
-              coach_id: coachId,
-              plan_json: plan as any,
-              updated_at: new Date().toISOString(),
-            },
-          ],
+          [{
+            athlete_id: athleteId,
+            coach_id: coachId,
+            plan_json: plan as never,
+            updated_at: new Date().toISOString(),
+          }],
           { onConflict: "athlete_id" }
-        );
-      if (error) throw error;
+        )
+        .select("athlete_id,coach_id,plan_json,updated_at")
+        .single(),{operation:"current",athleteId,coachId,planJson:plan});
+
     },
     []
   );
 
-  /** Archive le plan courant dans plan_versions avant écrasement. */
-  const archive = useCallback(
-    async (athleteId: string, coachId: string, plan: ParsedPlan, reason: string) => {
-      await supabase.from("plan_versions").insert([
-        {
-          athlete_id: athleteId,
-          coach_id: coachId,
-          plan_json: plan as any,
-          objective: `[ADAPTATION] ${reason}`,
-          weeks_count: plan.totalWeeks,
-          sessions_count: plan.weeks.reduce((sum, w) => sum + w.sessions.length, 0),
-        },
-      ]);
+  /** Saver append-only (identité = contenu hors generatedAt) : même archive réessayée ⇒ même ligne. */
+  const saverRef = useRef<AppendOnlyPlanVersionSaver | null>(null);
+  const getSaver = () => (saverRef.current ??= new AppendOnlyPlanVersionSaver({ transport: supabasePlanVersionTransport(supabase) }));
+
+  /** Archive confirmée PUIS courant ; tout état non confirmé lève AdaptationWriteError. */
+  const archiveThenPersist = useCallback(
+    async (athleteId: string, coachId: string, currentPlan: ParsedPlan, nextPlan: ParsedPlan, reason: string) => {
+      await persistAdaptation({ saver: getSaver(), athleteId, coachId, currentPlan: currentPlan as never, nextPlan, reason,
+        writeCurrent: (p) => persistPlan(athleteId, coachId, p as ParsedPlan) });
     },
-    []
+    [persistPlan]
   );
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -132,6 +136,8 @@ export function usePlanAdaptation() {
   // ───────────────────────────────────────────────────────────────────────────
   const applyPatch = useCallback(
     async (args: ApplyPatchArgs): Promise<PatchResult | null> => {
+      const detRefusal = detAdaptationRefusal(args.currentPlan);
+      if (detRefusal) { toast.error(detRefusal); return null; }
       setIsApplying(true);
       try {
         const guard = await checkAdaptationGuard(args.athleteId, "patch");
@@ -203,8 +209,7 @@ export function usePlanAdaptation() {
 
         const weeksImpacted = Array.from(new Set(result.diff.map((d) => d.weekNumber))).sort();
         const doPersist = async (): Promise<PatchResult> => {
-          await archive(args.athleteId, args.coachId, args.currentPlan, `Patch ${args.kind}`);
-          await persistPlan(args.athleteId, args.coachId, processedPlan);
+          await archiveThenPersist(args.athleteId, args.coachId, args.currentPlan, processedPlan, `Patch ${args.kind}`);
 
           await journalAdaptation({
             athleteId: args.athleteId,
@@ -231,13 +236,13 @@ export function usePlanAdaptation() {
         return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] applyPatch error:", err);
-        toast.error("Échec de l'adaptation du plan");
+        toast.error(err instanceof AdaptationWriteError ? err.message : planWriteErrorMessage(err,"Échec de l'adaptation du plan"));
         return null;
       } finally {
         setIsApplying(false);
       }
     },
-    [archive, persistPlan]
+    [archiveThenPersist]
   );
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -245,6 +250,8 @@ export function usePlanAdaptation() {
   // ───────────────────────────────────────────────────────────────────────────
   const regenerateWindow = useCallback(
     async (req: WindowRegenRequest & { athleteId: string; coachId: string; triggeredBy: AdaptationTrigger }) => {
+      const detRefusal = detAdaptationRefusal(req.currentPlan);
+      if (detRefusal) { toast.error(detRefusal); return null; }
       setIsApplying(true);
       try {
         const guard = await checkAdaptationGuard(req.athleteId, "window_regen");
@@ -321,8 +328,7 @@ export function usePlanAdaptation() {
         const criticalIssues = vr.issues.filter((i) => i.severity === "error");
 
         const doPersist = async (): Promise<ParsedPlan> => {
-          await archive(req.athleteId, req.coachId, req.currentPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);
-          await persistPlan(req.athleteId, req.coachId, processedPlan);
+          await archiveThenPersist(req.athleteId, req.coachId, req.currentPlan, processedPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);
 
           await journalAdaptation({
             athleteId: req.athleteId,
@@ -348,13 +354,13 @@ export function usePlanAdaptation() {
         return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] regenerateWindow error:", err);
-        toast.error("Échec de la régénération partielle");
+        toast.error(err instanceof AdaptationWriteError ? err.message : planWriteErrorMessage(err,"Échec de la régénération partielle"));
         return null;
       } finally {
         setIsApplying(false);
       }
     },
-    [aiPlan, archive, persistPlan]
+    [aiPlan, archiveThenPersist]
   );
 
   const listHistory = useCallback(

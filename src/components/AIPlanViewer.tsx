@@ -19,12 +19,13 @@ import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
-import { getFicheForSession, maybeDowngradeBikeSession } from "@/lib/aiPlanWorkoutEnricher";
+import { getFicheForSession, isRunOnlyHighIntensityBikeSession } from "@/lib/aiPlanWorkoutEnricher";
 import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
-import { exportAIPlanToPDF } from "@/lib/aiPlanPDFExport";
+import { exportAIPlanToPDF, isQaNonPrescriptivePlan, QA_NON_PRESCRIPTIVE_BANNER } from "@/lib/aiPlanPDFExport";
+import { readPlanProvenance } from "@/lib/plan/planProvenance";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
 import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
@@ -313,8 +314,8 @@ function resolveAmbitionLabel(amb?: string | null): string {
   const raw = amb.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
   const map: Record<string, AmbitionLevel> = {
     finisher: "finisher", decouverte: "finisher", finish: "finisher",
-    age_group: "age_group", "age-group": "age_group", ageGroup: "age_group" as any,
-    perf: "age_group", confirme: "age_group", confirmé: "age_group" as any,
+    age_group: "age_group", "age-group": "age_group", ageGroup: "age_group",
+    perf: "age_group", confirme: "age_group", confirmé: "age_group",
     competitor: "competitor", compet: "competitor", competiteur: "competitor",
     elite: "elite", qualifiable: "elite", pro: "elite",
     world_class: "world_class", worldclass: "world_class", world: "world_class", mondial: "world_class",
@@ -348,8 +349,11 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
   const targetTable = useTargetTable();
   const wbalRefs = useWbalAthleteRefs();
 
-  const session = useMemo(
-    () => maybeDowngradeBikeSession(rawSession, objectifEffectif),
+  // La séance SAUVEGARDÉE est affichée telle quelle (même contenu que l'historique
+  // et le PDF). Une séance vélo intense dans un plan running pur est seulement signalée.
+  const session = rawSession;
+  const bikeIntensityWarning = useMemo(
+    () => isRunOnlyHighIntensityBikeSession(rawSession, objectifEffectif),
     [rawSession, objectifEffectif]
   );
 
@@ -491,6 +495,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
       </div>
 
       {catalogueIssues.length > 0 && <p className="text-xs text-destructive mt-2">Prescription et fiche : correspondance à vérifier ({catalogueIssues.map(i => i.message.split(": ").pop()).join(", ")}).</p>}
+      {bikeIntensityWarning && <p className="text-xs text-destructive mt-2" data-testid="bike-intensity-warning">⚠️ Séance vélo à intensité élevée dans un plan running pur : prescription sauvegardée affichée telle quelle, à revoir par le coach.</p>}
       {expanded && session.details && (!fiche || catalogueIssues.length > 0) && (
         <div
           className="text-xs text-muted-foreground mt-2 leading-relaxed border-t border-current/10 pt-2 fiche-body whitespace-pre-wrap"
@@ -718,6 +723,8 @@ function WeekQualityBadge({ week }: { week: ParsedWeek }) {
 }
 
 interface WeekViewProps {
+  /** Fixture QA non prescriptive : pas de score numérique. */
+  hideQualityScore?: boolean;
   week: ParsedWeek;
   startDate?: Date;
   nolioCtx?: NolioCtx | null;
@@ -728,7 +735,7 @@ interface WeekViewProps {
   raceGoals?: RaceGoal[];
 }
 
-function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals }: WeekViewProps) {
+function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif, planTotalWeeks, phaseLabelMap = {}, raceGoals, hideQualityScore = false }: WeekViewProps) {
 
 
 
@@ -812,7 +819,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
                 🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
               </Badge>
             ))}
-            <WeekQualityBadge week={week} />
+            {!hideQualityScore && <WeekQualityBadge week={week} />}
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
           </div>
@@ -934,7 +941,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // Persist selected week
   useEffect(() => {
     if (!weekStorageKey) return;
-    try { localStorage.setItem(weekStorageKey, String(selectedWeek)); } catch {}
+    try { localStorage.setItem(weekStorageKey, String(selectedWeek)); } catch { /* stockage indisponible : semaine non mémorisée */ }
   }, [weekStorageKey, selectedWeek]);
 
   // --- Local plan state (allows in-UI session replacements without touching saved plan) ---
@@ -1077,7 +1084,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       vma: r.vma,
       css: r.css,
       fcMax: r.fcMax,
-      fcRest: (snap as any)?.fc_repos ?? null,
+      fcRest: (snap as { fc_repos?: number | null } | null | undefined)?.fc_repos ?? null,
       paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
       vlamax: snap?.vlamax ?? null,
       vlamaxRun: snap?.vlamax_run ?? null,
@@ -1157,7 +1164,11 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   const [valuesRefreshedAt, setValuesRefreshedAt] = useState<string | null>(null);
 
   const handleRefreshValues = useCallback(() => {
-    const { plan: next, changedSessions } = refreshPlanAbsoluteValues(plan, currentPhysioRefs);
+    const { plan: next, changedSessions, refused } = refreshPlanAbsoluteValues(plan, currentPhysioRefs);
+    if (refused) {
+      toast.error("Actualisation refusée : ce plan contient des séances structurées DET liées à leurs sources. Régénérez ou requalifiez le plan avec les nouvelles références ; rien n'a été modifié.");
+      return;
+    }
     setPlan(next);
     setValuesRefreshedAt(new Date().toISOString());
     toast.success(
@@ -1461,8 +1472,12 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
   // Corrige une distance hallucinée dans le titre IA + applique le nouveau format canonique
   // "{Objectif} — Structure {Ambition} — Objectif {tempsSnapshot}"
+  const isQaFixture = isQaNonPrescriptivePlan(plan);
+  // Fixture QA : jamais de projections ni de titre dérivé du contexte coach.
+  const effectiveProjections = isQaFixture ? undefined : adaptationProjections;
   const correctedTitle = useMemo(() => {
     const t = plan.title || "";
+    if (isQaNonPrescriptivePlan(plan)) return t;
     if (/Plan TFCL™\s*—\s*70\.3\s*LCW\s*—\s*\d+\s*semaines?/i.test(t)) return t;
     const primary = (raceGoals || []).find((g) => g.priority === "A" && typeof g.distanceKm === "number" && (g.distanceKm as number) > 0)
       || (raceGoals || []).find((g) => typeof g.distanceKm === "number" && (g.distanceKm as number) > 0);
@@ -1493,7 +1508,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     const kmRegex = /\(\s*\d{1,3}\s*km\s*\)/i;
     if (kmRegex.test(t)) return t.replace(kmRegex, `(${km}km)`);
     return t.replace(/—\s*([^—]+?)(\s+—|$)/, (_m, name, tail) => `— ${name.trim()} (${km}km)${tail}`);
-  }, [plan.title, raceGoals, gapContext]);
+  }, [plan, raceGoals, gapContext]);
 
   // Étend gapContext avec le CP/W' athlète — même donnée que la vue
   // interactive (WbalAthleteRefsProvider), pour que le PDF affiche aussi un
@@ -1504,13 +1519,13 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   );
 
   const handleExportPDF = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "landscape", "full", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "landscape", "full", gapContextWithWbal);
   };
   const handleExportPDFPortrait = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "full", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "portrait", "full", gapContextWithWbal);
   };
   const handleExportPDFCompact = () => {
-    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, adaptationProjections, "portrait", "compact", gapContextWithWbal);
+    exportAIPlanToPDF({ ...plan, title: correctedTitle }, athleteName, startDate, effectiveProjections, "portrait", "compact", gapContextWithWbal);
   };
 
 
@@ -1838,8 +1853,18 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div>
+              {isQaFixture && (
+                <div role="alert" data-testid="qa-non-prescriptive-banner" className="mb-2 rounded-md border-2 border-destructive bg-destructive/10 px-3 py-2 text-sm font-bold text-destructive">
+                  ⚠️ {QA_NON_PRESCRIPTIVE_BANNER} — NE PAS PRESCRIRE
+                </div>
+              )}
               <h3 className="font-bold text-base">{correctedTitle}</h3>
               <p className="text-xs text-muted-foreground">{plan.totalWeeks} semaines • {headerPhasesCount} blocs</p>
+              {(() => { const pv = readPlanProvenance(plan); return (
+                <p className="text-xs text-muted-foreground" data-testid="plan-provenance" data-engine={pv.engine}>
+                  Moteur : {pv.label}{pv.detail ? ` — ${pv.detail}` : ""}
+                </p>
+              ); })()}
               {loadedFromCacheAt && (
                 <p className="text-[10px] text-muted-foreground/80 italic mt-0.5">
                   Plan chargé depuis la sauvegarde locale — {(() => {
@@ -2091,12 +2116,12 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} />
+            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
           ))}
 
         </div>

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.1"
+    PostgrestVersion: "14.18"
   }
   public: {
     Tables: {
@@ -103,6 +103,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "snapshots"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tfcl_p0_active_snapshot_owned"
+            columns: ["active_snapshot_id", "id", "coach_id"]
+            isOneToOne: false
+            referencedRelation: "snapshots"
+            referencedColumns: ["id", "athlete_id", "coach_id"]
           },
         ]
       }
@@ -524,6 +531,53 @@ export type Database = {
           },
         ]
       }
+      det_coach_review_contexts: {
+        Row: {
+          athlete_id: string
+          brick_approvals: Json
+          coach_id: string
+          created_at: string
+          id: string
+          inputs_hash: string
+          inputs_snapshot: Json
+          session_clock: Json | null
+          source_qualifications: Json
+          sources_version: string
+        }
+        Insert: {
+          athlete_id: string
+          brick_approvals?: Json
+          coach_id: string
+          created_at?: string
+          id?: string
+          inputs_hash: string
+          inputs_snapshot: Json
+          session_clock?: Json | null
+          source_qualifications?: Json
+          sources_version: string
+        }
+        Update: {
+          athlete_id?: string
+          brick_approvals?: Json
+          coach_id?: string
+          created_at?: string
+          id?: string
+          inputs_hash?: string
+          inputs_snapshot?: Json
+          session_clock?: Json | null
+          source_qualifications?: Json
+          sources_version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "det_coach_review_contexts_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       literature_cohort_profiles: {
         Row: {
           age_mean: number | null
@@ -834,6 +888,250 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_v2_connections: {
+        Row: {
+          access_token: string
+          api_version: string
+          app_type: string
+          athlete_id: string
+          coach_id: string
+          consent_confirmed_at: string
+          created_at: string
+          grant_id: string | null
+          granted_scopes: string[]
+          id: string
+          nolio_athlete_ref: string
+          refs: Json
+          status: string
+          token_expires_at: string
+          token_generation: number | null
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          api_version: string
+          app_type: string
+          athlete_id: string
+          coach_id: string
+          consent_confirmed_at: string
+          created_at?: string
+          grant_id?: string | null
+          granted_scopes: string[]
+          id?: string
+          nolio_athlete_ref: string
+          refs: Json
+          status: string
+          token_expires_at: string
+          token_generation?: number | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          api_version?: string
+          app_type?: string
+          athlete_id?: string
+          coach_id?: string
+          consent_confirmed_at?: string
+          created_at?: string
+          grant_id?: string | null
+          granted_scopes?: string[]
+          id?: string
+          nolio_athlete_ref?: string
+          refs?: Json
+          status?: string
+          token_expires_at?: string
+          token_generation?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nolio_v2_connections_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nolio_v2_connections_grant_id_fkey"
+            columns: ["grant_id"]
+            isOneToOne: false
+            referencedRelation: "nolio_v2_oauth_grants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nolio_v2_oauth_grants: {
+        Row: {
+          access_token: string
+          allowed_athletes: Json
+          api_version: string
+          app_type: string
+          athlete_id: string
+          coach_id: string
+          consent_confirmed_at: string | null
+          created_at: string
+          granted_scopes: string[]
+          id: string
+          nolio_user_ref: string
+          refresh_lock_id: string | null
+          refresh_lock_until: string | null
+          refresh_state: string
+          refresh_token: string | null
+          remote_refs: Json | null
+          remote_refs_loaded_at: string | null
+          selected_athlete_ref: string | null
+          status: string
+          token_expires_at: string
+          token_generation: number
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          allowed_athletes: Json
+          api_version: string
+          app_type: string
+          athlete_id: string
+          coach_id: string
+          consent_confirmed_at?: string | null
+          created_at?: string
+          granted_scopes: string[]
+          id?: string
+          nolio_user_ref: string
+          refresh_lock_id?: string | null
+          refresh_lock_until?: string | null
+          refresh_state?: string
+          refresh_token?: string | null
+          remote_refs?: Json | null
+          remote_refs_loaded_at?: string | null
+          selected_athlete_ref?: string | null
+          status: string
+          token_expires_at: string
+          token_generation?: number
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          allowed_athletes?: Json
+          api_version?: string
+          app_type?: string
+          athlete_id?: string
+          coach_id?: string
+          consent_confirmed_at?: string | null
+          created_at?: string
+          granted_scopes?: string[]
+          id?: string
+          nolio_user_ref?: string
+          refresh_lock_id?: string | null
+          refresh_lock_until?: string | null
+          refresh_state?: string
+          refresh_token?: string | null
+          remote_refs?: Json | null
+          remote_refs_loaded_at?: string | null
+          selected_athlete_ref?: string | null
+          status?: string
+          token_expires_at?: string
+          token_generation?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nolio_v2_oauth_grants_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nolio_v2_oauth_states: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          pkce_verifier: string
+          return_path: string
+          state_digest: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          pkce_verifier: string
+          return_path: string
+          state_digest: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          pkce_verifier?: string
+          return_path?: string
+          state_digest?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nolio_v2_oauth_states_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nolio_v2_operations: {
+        Row: {
+          api_version: string
+          athlete_ref: string
+          coach_id: string
+          created_at: string
+          detail: string | null
+          op_key: string
+          path: string
+          payload_sha256: string
+          plan_version_id: string
+          remote_id: string | null
+          session_key: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          api_version?: string
+          athlete_ref: string
+          coach_id: string
+          created_at?: string
+          detail?: string | null
+          op_key: string
+          path: string
+          payload_sha256: string
+          plan_version_id: string
+          remote_id?: string | null
+          session_key: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          api_version?: string
+          athlete_ref?: string
+          coach_id?: string
+          created_at?: string
+          detail?: string | null
+          op_key?: string
+          path?: string
+          payload_sha256?: string
+          plan_version_id?: string
+          remote_id?: string | null
+          session_key?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nolio_workout_overrides: {
         Row: {
           coach_id: string
@@ -1128,7 +1426,15 @@ export type Database = {
           validator_summary?: Json | null
           weeks_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "plan_versions_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       plans: {
         Row: {
@@ -1197,6 +1503,511 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      qa_coach_recipe_reports: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          kind: string
+          recipe_code: string
+          reference_current_sha256: string | null
+          reference_version_id: string | null
+          report: Json
+          run_id: string
+          verified_user_id: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          kind: string
+          recipe_code: string
+          reference_current_sha256?: string | null
+          reference_version_id?: string | null
+          report: Json
+          run_id: string
+          verified_user_id: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          recipe_code?: string
+          reference_current_sha256?: string | null
+          reference_version_id?: string | null
+          report?: Json
+          run_id?: string
+          verified_user_id?: string
+        }
+        Relationships: []
+      }
+      qa_nolio_v2_dry_run_receipts: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          code: string
+          created_at: string
+          fixture_code: string
+          http_status: number | null
+          id: string
+          outcome: string
+          payload_sha256: string | null
+          real_send: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          code: string
+          created_at?: string
+          fixture_code: string
+          http_status?: number | null
+          id?: string
+          outcome: string
+          payload_sha256?: string | null
+          real_send?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          code?: string
+          created_at?: string
+          fixture_code?: string
+          http_status?: number | null
+          id?: string
+          outcome?: string
+          payload_sha256?: string | null
+          real_send?: string
+        }
+        Relationships: []
+      }
+      qa_nolio_v2_plan_dry_run_jobs: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          lock_id: string | null
+          lock_until: string | null
+          ops_sha256: string
+          plan_sha256: string
+          plan_version_id: string
+          refs_sha256: string
+          total_ops: number
+          total_sessions: number
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          lock_id?: string | null
+          lock_until?: string | null
+          ops_sha256: string
+          plan_sha256: string
+          plan_version_id: string
+          refs_sha256: string
+          total_ops: number
+          total_sessions: number
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          lock_id?: string | null
+          lock_until?: string | null
+          ops_sha256?: string
+          plan_sha256?: string
+          plan_version_id?: string
+          refs_sha256?: string
+          total_ops?: number
+          total_sessions?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_nolio_v2_plan_dry_run_jobs_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_nolio_v2_plan_dry_run_jobs_plan_version_id_fkey"
+            columns: ["plan_version_id"]
+            isOneToOne: false
+            referencedRelation: "plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_nolio_v2_plan_dry_run_receipts: {
+        Row: {
+          body_sha256: string
+          coach_id: string
+          code: string
+          created_at: string
+          http_status: number | null
+          id: string
+          job_id: string
+          op_index: number
+          outcome: string
+          session_date: string
+          session_key: string
+        }
+        Insert: {
+          body_sha256: string
+          coach_id: string
+          code: string
+          created_at?: string
+          http_status?: number | null
+          id?: string
+          job_id: string
+          op_index: number
+          outcome: string
+          session_date: string
+          session_key: string
+        }
+        Update: {
+          body_sha256?: string
+          coach_id?: string
+          code?: string
+          created_at?: string
+          http_status?: number | null
+          id?: string
+          job_id?: string
+          op_index?: number
+          outcome?: string
+          session_date?: string
+          session_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_nolio_v2_plan_dry_run_receipts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "qa_nolio_v2_plan_dry_run_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_nolio_v2_plan_verify_receipts: {
+        Row: {
+          athlete_id: string
+          body_sha256: string
+          coach_id: string
+          code: string
+          complete_read: boolean
+          created_at: string
+          exact_matches: number
+          id: string
+          kind: string
+          marker_matches: number
+          op_index: number
+          op_key: string
+          ops_sha256: string
+          outcome: string
+          path: string
+          plan_sha256: string
+          plan_version_id: string
+          provider_resource: string | null
+          refs_sha256: string
+          session_date: string
+          session_key: string
+        }
+        Insert: {
+          athlete_id: string
+          body_sha256: string
+          coach_id: string
+          code: string
+          complete_read: boolean
+          created_at?: string
+          exact_matches?: number
+          id?: string
+          kind: string
+          marker_matches?: number
+          op_index: number
+          op_key: string
+          ops_sha256: string
+          outcome: string
+          path: string
+          plan_sha256: string
+          plan_version_id: string
+          provider_resource?: string | null
+          refs_sha256: string
+          session_date: string
+          session_key: string
+        }
+        Update: {
+          athlete_id?: string
+          body_sha256?: string
+          coach_id?: string
+          code?: string
+          complete_read?: boolean
+          created_at?: string
+          exact_matches?: number
+          id?: string
+          kind?: string
+          marker_matches?: number
+          op_index?: number
+          op_key?: string
+          ops_sha256?: string
+          outcome?: string
+          path?: string
+          plan_sha256?: string
+          plan_version_id?: string
+          provider_resource?: string | null
+          refs_sha256?: string
+          session_date?: string
+          session_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_nolio_v2_plan_verify_receipts_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_nolio_v2_plan_verify_receipts_op_key_fkey"
+            columns: ["op_key"]
+            isOneToOne: false
+            referencedRelation: "nolio_v2_operations"
+            referencedColumns: ["op_key"]
+          },
+          {
+            foreignKeyName: "qa_nolio_v2_plan_verify_receipts_plan_version_id_fkey"
+            columns: ["plan_version_id"]
+            isOneToOne: false
+            referencedRelation: "plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_nolio_v2_trial_receipts: {
+        Row: {
+          action: string
+          athlete_id: string
+          coach_id: string
+          code: string
+          created_at: string
+          exact_matches: number | null
+          http_status: number | null
+          id: string
+          items_read: number | null
+          marker_matches: number | null
+          payload_sha256: string
+          recipe_code: string
+          trial_date: string
+          trial_id: string
+          verdict: string
+        }
+        Insert: {
+          action: string
+          athlete_id: string
+          coach_id: string
+          code: string
+          created_at?: string
+          exact_matches?: number | null
+          http_status?: number | null
+          id?: string
+          items_read?: number | null
+          marker_matches?: number | null
+          payload_sha256: string
+          recipe_code: string
+          trial_date: string
+          trial_id: string
+          verdict: string
+        }
+        Update: {
+          action?: string
+          athlete_id?: string
+          coach_id?: string
+          code?: string
+          created_at?: string
+          exact_matches?: number | null
+          http_status?: number | null
+          id?: string
+          items_read?: number | null
+          marker_matches?: number | null
+          payload_sha256?: string
+          recipe_code?: string
+          trial_date?: string
+          trial_id?: string
+          verdict?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_nolio_v2_trial_receipts_trial_id_fkey"
+            columns: ["trial_id"]
+            isOneToOne: false
+            referencedRelation: "qa_nolio_v2_trials"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_nolio_v2_trials: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          id: string
+          payload_sha256: string
+          post_http_status: number | null
+          recipe_code: string
+          remote_id: string | null
+          state: string
+          trial_date: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          payload_sha256: string
+          post_http_status?: number | null
+          recipe_code: string
+          remote_id?: string | null
+          state?: string
+          trial_date: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          payload_sha256?: string
+          post_http_status?: number | null
+          recipe_code?: string
+          remote_id?: string | null
+          state?: string
+          trial_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_nolio_v2_trials_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_pilot_review_reports: {
+        Row: {
+          athlete_id: string
+          coach_id: string
+          created_at: string
+          decisions: Json
+          engine_component_hash: string
+          id: string
+          plan_sha256: string
+          plan_version_id: string | null
+          release_id: string | null
+          report: Json
+          scenario_id: string | null
+          source_kind: string
+        }
+        Insert: {
+          athlete_id: string
+          coach_id?: string
+          created_at?: string
+          decisions: Json
+          engine_component_hash: string
+          id?: string
+          plan_sha256: string
+          plan_version_id?: string | null
+          release_id?: string | null
+          report: Json
+          scenario_id?: string | null
+          source_kind: string
+        }
+        Update: {
+          athlete_id?: string
+          coach_id?: string
+          created_at?: string
+          decisions?: Json
+          engine_component_hash?: string
+          id?: string
+          plan_sha256?: string
+          plan_version_id?: string | null
+          release_id?: string | null
+          report?: Json
+          scenario_id?: string | null
+          source_kind?: string
+        }
+        Relationships: []
+      }
+      qa_plan_coach_reviews: {
+        Row: {
+          athlete_id: string
+          blockers: Json
+          coach_id: string
+          created_at: string
+          decisions: Json
+          id: string
+          ops_sha256: string
+          plan_sha256: string
+          plan_version_id: string
+          prescription_allowed: boolean
+          refs_sha256: string
+          reviewed_by_coach: boolean
+          scientific_attestation: boolean
+        }
+        Insert: {
+          athlete_id: string
+          blockers: Json
+          coach_id: string
+          created_at?: string
+          decisions: Json
+          id?: string
+          ops_sha256: string
+          plan_sha256: string
+          plan_version_id: string
+          prescription_allowed?: boolean
+          refs_sha256: string
+          reviewed_by_coach: boolean
+          scientific_attestation?: boolean
+        }
+        Update: {
+          athlete_id?: string
+          blockers?: Json
+          coach_id?: string
+          created_at?: string
+          decisions?: Json
+          id?: string
+          ops_sha256?: string
+          plan_sha256?: string
+          plan_version_id?: string
+          prescription_allowed?: boolean
+          refs_sha256?: string
+          reviewed_by_coach?: boolean
+          scientific_attestation?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_plan_coach_reviews_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athletes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_plan_coach_reviews_plan_version_id_fkey"
+            columns: ["plan_version_id"]
+            isOneToOne: false
+            referencedRelation: "plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reliability_scores: {
         Row: {
@@ -1728,6 +2539,149 @@ export type Database = {
       _read_nolio_cron_secret: { Args: never; Returns: string }
       _trigger_nolio_daily_cron: { Args: never; Returns: number }
       is_staff_coach: { Args: { _user_id: string }; Returns: boolean }
+      nolio_v2_activate_connection: {
+        Args: {
+          p_athlete_id: string
+          p_coach_id: string
+          p_generation: number
+          p_grant_id: string
+          p_refs: Json
+          p_refs_digest: string
+        }
+        Returns: Json
+      }
+      nolio_v2_claim_operation: {
+        Args: {
+          p_athlete_ref: string
+          p_coach_id: string
+          p_op_key: string
+          p_path: string
+          p_payload_sha256: string
+          p_plan_version_id: string
+          p_session_key: string
+        }
+        Returns: Json
+      }
+      nolio_v2_grant_reconnect: {
+        Args: {
+          p_access: string
+          p_allowed: Json
+          p_app_type: string
+          p_athlete_id: string
+          p_coach_id: string
+          p_expires: string
+          p_refresh: string
+          p_scopes: string[]
+          p_user_ref: string
+        }
+        Returns: Json
+      }
+      nolio_v2_refresh_begin: {
+        Args: {
+          p_expected_generation: number
+          p_grant_id: string
+          p_lease_seconds: number
+          p_lock_id: string
+        }
+        Returns: Json
+      }
+      nolio_v2_refresh_commit: {
+        Args: {
+          p_access: string
+          p_expires: string
+          p_generation: number
+          p_grant_id: string
+          p_lock_id: string
+          p_refresh: string
+          p_scopes: string[]
+        }
+        Returns: Json
+      }
+      nolio_v2_refresh_fail: {
+        Args: { p_grant_id: string; p_lock_id: string; p_outcome: string }
+        Returns: Json
+      }
+      nolio_v2_store_remote_refs: {
+        Args: { p_generation: number; p_grant_id: string; p_refs: Json }
+        Returns: Json
+      }
+      nolio_v2_transition_operation: {
+        Args: {
+          p_coach_id: string
+          p_detail: string
+          p_from: string
+          p_op_key: string
+          p_remote_id: string
+          p_to: string
+        }
+        Returns: boolean
+      }
+      nolio_v2_update_active_refs: {
+        Args: {
+          p_athlete_id: string
+          p_coach_id: string
+          p_expected_refs: Json
+          p_generation: number
+          p_grant_id: string
+          p_refs: Json
+          p_refs_digest: string
+        }
+        Returns: Json
+      }
+      qa_nolio_v2_concurrent_claim_probe: {
+        Args: {
+          p_athlete_ref: string
+          p_coach_id: string
+          p_hold_ms: number
+          p_op_key: string
+          p_path: string
+          p_payload_sha256: string
+          p_plan_version_id: string
+          p_session_key: string
+        }
+        Returns: Json
+      }
+      qa_nolio_v2_plan_job_lease: {
+        Args: {
+          p_coach_id: string
+          p_job_id: string
+          p_lock_id: string
+          p_seconds: number
+        }
+        Returns: boolean
+      }
+      qa_nolio_v2_plan_job_release: {
+        Args: { p_coach_id: string; p_job_id: string; p_lock_id: string }
+        Returns: boolean
+      }
+      qa_nolio_v2_trial_claim_send: {
+        Args: {
+          p_coach_id: string
+          p_payload_sha256: string
+          p_trial_id: string
+        }
+        Returns: boolean
+      }
+      qa_nolio_v2_trial_finish_send: {
+        Args: {
+          p_coach_id: string
+          p_http_status: number
+          p_remote_id: string
+          p_to: string
+          p_trial_id: string
+        }
+        Returns: boolean
+      }
+      qa_nolio_v2_trial_freeze: {
+        Args: {
+          p_athlete_id: string
+          p_coach_id: string
+          p_payload_sha256: string
+          p_recipe_code: string
+          p_trial_date: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

@@ -7,6 +7,8 @@
  */
 export function normalizeObjectiveKey(obj: string): string {
   const lower = obj.toLowerCase();
+  if (/^(?:cycling|bike|v[ée]lo|cyclisme)(?:\b|$)|contre.la.montre/.test(lower)) return "Cycling";
+  if (/^(?:swimming|swim|natation)(?:\b|$)/.test(lower)) return "Swimming";
   // Order matters: "70.3" before "ironman" to avoid "Ironman 70.3" → "IM"
   if (lower.includes("70.3") || lower === "703") return "703";
   if (lower.includes("ironman") || lower === "im") return "IM";

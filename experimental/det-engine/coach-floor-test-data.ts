@@ -1,0 +1,2 @@
+import fs from'node:fs';import zlib from'node:zlib';import{loadV25TestData}from'./v25-test-data';
+export function loadCoachFloorData(){const d=loadV25TestData();return{...d,baselineV25:JSON.parse(zlib.gunzipSync(fs.readFileSync('docs/det-engine/v25/evidence/validation-3/build/results.json.gz')).toString()),registration:JSON.parse(fs.readFileSync('docs/det-engine/v25-coach-floor/inputs.json','utf8')),policyRecord:JSON.parse(fs.readFileSync('docs/det-engine/v25-coach-floor/COACH_POLICY.json','utf8'))};}

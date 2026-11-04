@@ -15,6 +15,8 @@ const FAMILY_PATTERNS: Array<{ family: IntentFamily; rx: RegExp }> = [
   // intention plus spécifique (repris comme fallback légitime).
   { family: "test",                  rx: /\btest\b|assessment|\beval\b|_tt\b|time[-_\s]?trial|\bTT\b/i },
   { family: "race_pace",             rx: /race[-_\s]?pace|race[-_\s]?sim|allure\s*(marathon|semi|10k|ironman|half|course|specifique)|sp[eé]cifique\s*(marathon|semi|10k|70\.3|IM)|repetition\s*generale|dress[-_\s]?rehearsal/i },
+  // Explicit over-under is a mixed stimulus, NEVER a pure threshold/VO2 alias.
+  { family: "mixed_intensity",       rx: /\bover[-_\s]?under\b|\bsous[-_\s]?sur\s*seuil\b/i },
   { family: "fatmax",                rx: /fatmax|fat[-_\s]?max|train[-_\s]?low|fasted|jeun/i },
   { family: "sprint",                rx: /\bsprint\b|neuromuscul|pmax|_PMAX_|strides?|acceleration/i },
   { family: "vo2",                   rx: /\bvo2(?:max)?\b|\bvma\b|30[-_\s]?30|15[-_\s]?15|hill[-_\s]?repeat|c[oô]tes\s*courtes|intervalles?\s*courts/i },

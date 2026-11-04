@@ -1,0 +1,9 @@
+import{WorkoutLibrary}from'@/lib/workoutLibrary';import type{RepairWorkoutMetadata}from'../../supabase/functions/_shared/repairSportingEquivalence';
+/** Literal arithmetic only for unambiguous supported recipes. Never scales a protocol. */
+export function literalDose(card:RepairWorkoutMetadata){const source=WorkoutLibrary.find(w=>w.id===card.id),parts=source?.structure??[],main=parts.find(p=>/main/i.test(p.part))?.text??'';const flank=parts.filter(p=>!/main/i.test(p.part));let extra=0,optional=0;for(const p of flank){const m=p.text.match(/^\s*(\d+)\s*(?:min|'|’)/);if(!m)return{range:null,proof:'non-literal flank duration'};extra+=Number(m[1]);const opt=p.text.match(/\+[^+]*?(\d+)\s*min.*optionnel/i);if(opt)optional+=Number(opt[1]);}
+ if(/progressif:/i.test(main)&&/→/.test(main)){const durations=[...main.matchAll(/(\d+)\s*['’]/g)].map(m=>Number(m[1]));if(durations.length===3){const total=extra+durations.reduce((a,b)=>a+b,0);return{range:[total,total]as[number,number],proof:'literal three-stage progressive block + warm-up/cool-down; no scaling'};}}
+ const reps=main.match(/\b(\d+)\s*[x×]\s*(\d+)\s*['’].*\br\s*=\s*(\d+)\s*['’]/i);if(reps){const n=+reps[1],work=+reps[2],rest=+reps[3];return{range:[extra+n*work+(n-1)*rest,extra+n*work+n*rest]as[number,number],proof:'explicit repetitions and rest; last rest presence retained as bounded ambiguity'};}
+ const minutes=main.match(/^(\d+)\s*[-–]\s*(\d+)\s*(?:min|'|’)/);if(minutes)return{range:[extra+(+minutes[1]),extra+optional+(+minutes[2])]as[number,number],proof:'literal variable main duration + explicit flank and optional minutes'};
+ const hours=main.match(/^(\d+)h(\d+)\s*[-–]\s*(\d+)h(\d+)/);if(hours)return{range:[extra+(+hours[1])*60+(+hours[2]),extra+(+hours[3])*60+(+hours[4])]as[number,number],proof:'literal main hour range + flank minutes'};
+ return{range:null,proof:'catalogue total range only; complete component chronology not independently attested'};
+}

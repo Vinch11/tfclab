@@ -1,0 +1,10 @@
+import {useEffect,useRef,useState} from 'react';
+import {supabase} from '@/integrations/supabase/client';
+import {Button} from '@/components/ui/button';
+/** Read own immutable facts only; provider ids intentionally excluded. */
+export function RealVerificationHistory({planVersionId}:{planVersionId:string}){
+ const [text,setText]=useState('Vérification réelle non relue'),[busy,setBusy]=useState(false);const epoch=useRef(0);
+ useEffect(()=>{epoch.current++;setText('Vérification réelle non relue');const s=supabase.auth.onAuthStateChange(()=>{epoch.current++;setText('Identité changée : vérification non relue');});return()=>{epoch.current++;s.data.subscription.unsubscribe();};},[planVersionId]);
+ async function read(){const e=epoch.current;setBusy(true);try{const u=await supabase.auth.getUser();if(!u.data.user)throw Error();const r=await supabase.from('qa_nolio_v2_plan_verify_receipts').select('id,outcome,code,complete_read,exact_matches,marker_matches,body_sha256,plan_sha256,refs_sha256,ops_sha256,op_index,created_at').eq('coach_id',u.data.user.id).eq('plan_version_id',planVersionId).order('created_at',{ascending:false}).limit(1000);if(e!==epoch.current)return;if(r.error)throw Error();const latest=new Map<number,typeof r.data[number]>();for(const row of r.data)if(!latest.has(row.op_index))latest.set(row.op_index,row);const valid=[...latest.values()].filter(x=>x.outcome==='VERIFIED_UNIQUE'&&x.code==='exact_unique'&&x.complete_read===true&&x.exact_matches===1&&x.marker_matches===1);setText(`${valid.length} relecture(s) exacte(s) unique(s) sauvegardée(s), ${latest.size-valid.length} non confirmée(s). Historique uniquement : ces reçus ne prouvent pas l’éligibilité des associations actuelles ni une couverture totale.`);}catch{if(e===epoch.current)setText('Relecture inconnue : aucune réussite déduite');}finally{setBusy(false);}}
+ return <section className="border-t pt-3 space-y-2"><Button variant="outline" disabled={busy} onClick={()=>void read()}>Relire les preuves d’envoi réel</Button><p role="status" className="text-sm">{text}</p></section>;
+}

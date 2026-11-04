@@ -1,0 +1,2 @@
+REVOKE ALL PRIVILEGES ON TABLE public.qa_pilot_review_reports, public.qa_coach_recipe_reports FROM anon, authenticated;
+GRANT SELECT, INSERT ON TABLE public.qa_pilot_review_reports, public.qa_coach_recipe_reports TO authenticated;
