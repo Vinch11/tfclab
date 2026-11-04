@@ -22,6 +22,7 @@ import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, isRunOnlyHighIntensityBikeSession } from "@/lib/aiPlanWorkoutEnricher";
 import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
+import { readableV3Prescription } from "@/lib/plan/readableV3Prescription";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { exportAIPlanToPDF, isQaNonPrescriptivePlan, QA_NON_PRESCRIPTIVE_BANNER } from "@/lib/aiPlanPDFExport";
@@ -372,8 +373,8 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
     [session.title, session.sport, targetTable]
   );
   const displayDetails = useMemo(
-    () => enrichWithAbsoluteValues(session.details ?? "", targetTable, session.sport as SportKind),
-    [session.details, session.sport, targetTable]
+    () => enrichWithAbsoluteValues(readableV3Prescription({details:session.details,catalogId:session.catalogId}), targetTable, session.sport as SportKind),
+    [session.details, session.catalogId, session.sport, targetTable]
   );
 
   const trailAlts = useMemo(

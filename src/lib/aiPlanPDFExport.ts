@@ -10,6 +10,7 @@ import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, isRunOnlyHighIntensityBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import type { WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
+import { readableV3Prescription } from "@/lib/plan/readableV3Prescription";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
@@ -461,7 +462,7 @@ export function buildPlanHTML(
       const downgradeNote = wouldDowngrade
         ? `<div data-role="info" style="color:#a22;font-size:10px;margin-top:4px;">⚠️ Séance vélo à intensité élevée dans un plan running pur : prescription sauvegardée affichée telle quelle, à revoir par le coach.</div>`
         : "";
-      const detailsHTML = `<div data-src="details">${formatFicheText(s.details || "")}</div>${downgradeNote}`;
+      const detailsHTML = `<div data-src="details">${formatFicheText(readableV3Prescription(s))}</div>${downgradeNote}`;
 
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest

@@ -162,7 +162,7 @@ export function AthleteDetSimplePanel(props: {
 
   return <div className="space-y-4 rounded-md border p-3" data-testid="athlete-det-simple">
     <h3 className="font-semibold">Plan à partir de la fiche de l'athlète</h3>
-    {!family && <p className="text-sm">« {props.form.objective || "objectif non renseigné"} » : pas encore pris en charge par DET. {props.engine === "ai" ? "L'IA peut être utilisée." : "Choisir l’IA ou un objectif raccordé (marathon 16 sem., semi-marathon 8 ou 30 sem., Ironman 70.3 12 sem. ; l'Ironman atteint le moteur mais est actuellement refusé)."}</p>}
+    {!family && <p className="text-sm">« {props.form.objective || "objectif non renseigné"} » : pas encore pris en charge par DET. {props.engine === "ai" ? "L'IA peut être utilisée." : "Choisir l’IA ou un objectif raccordé (marathon 16 sem., semi-marathon 8 ou 30 sem., Ironman 70.3 12 sem., Ironman 16 sem. avec composition vélo-course revue)."}</p>}
     {family && <>
       <section className="space-y-1">
         <p className="text-sm font-medium">1. Ce que l'app connaît déjà</p>

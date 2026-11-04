@@ -10,6 +10,7 @@ import type {NativeZoneDose} from './v39-strict-native-polarization-target';
 export type TriObjective='703'|'IM'|'Sprint'|'Olympic';
 export type EnduranceSpecificObjective=TriObjective|'Cycling'|'Swimming';
 export type ProvenRaceSource={sourceId:string;objective:EnduranceSpecificObjective};
+export type ReviewedBrickComponents={sourceId:string;transitionSeconds:number;components:{sourceId:string;sport:'bike'|'run';durationMin:number}[]};
 export interface ReviewedRaceSpecificProof{
   verdict:'verified'|'refused';
   reason:string;
@@ -28,6 +29,7 @@ export function certifyReviewedRaceSpecificPeak(
   plan:ParsedPlan,objective:EnduranceSpecificObjective,
   approved:(id:string)=>ProvenRaceSource|null|undefined,
   sourceDose:(id:string,durationMin:number)=>NativeZoneDose|null|undefined,
+  brickComponents?:(id:string)=>ReviewedBrickComponents|null|undefined,
 ):ReviewedRaceSpecificProof{
   const refuse=(reason:string,rejected:string[]=[])=>({
     verdict:'refused' as const,reason,sourceIds:[],peakWeeks:[],
@@ -44,7 +46,26 @@ export function certifyReviewedRaceSpecificPeak(
   let providerUnavailable=false;
   let invalidReviewedEvidence=false;
   for(const w of peak){
+    const evidenceSessions:ParsedSession[]=[];
     for(const session of w.sessions as ParsedSession[]){
+      if(session.sport!=='brick'||!session.catalogId||!brickComponents){evidenceSessions.push(session);continue;}
+      let composition:ReviewedBrickComponents|null|undefined;
+      try{composition=brickComponents(session.catalogId);}catch{providerUnavailable=true;continue;}
+      if(!composition){evidenceSessions.push(session);continue;}
+      const parts=composition.components;
+      if(composition.sourceId!==session.catalogId||parts.length!==2||new Set(parts.map(p=>p.sourceId)).size!==2||
+         !parts.some(p=>p.sport==='bike')||!parts.some(p=>p.sport==='run')||
+         parts.some(p=>!new RegExp('^V3P_'+(p.sport==='bike'?'BIKE':'RUN')+'_\\d{3}$').test(p.sourceId))||
+         parts.some(p=>p.sourceId===session.catalogId||!Number.isFinite(p.durationMin)||p.durationMin<=0)||
+         !Number.isSafeInteger(composition.transitionSeconds)||composition.transitionSeconds<180||composition.transitionSeconds>600||
+         typeof session.durationMin!=='number'||Math.abs(parts.reduce((n,p)=>n+p.durationMin,0)+composition.transitionSeconds/60-session.durationMin)>1e-7){
+        invalidReviewedEvidence=true;rejected.push('invalid_reviewed_brick_components:'+session.catalogId);continue;
+      }
+      // Proof projection only: source IDs and exact admitted component doses,
+      // never a new workout or a rewrite of the saved composite session.
+      for(const part of parts)evidenceSessions.push({...session,catalogId:part.sourceId,sport:part.sport,durationMin:part.durationMin});
+    }
+    for(const session of evidenceSessions){
       if(session.isRest||!session.catalogId)continue;
       let review:ProvenRaceSource|null|undefined;
       try{review=approved(session.catalogId);}

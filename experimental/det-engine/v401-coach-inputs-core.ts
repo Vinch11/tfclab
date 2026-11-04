@@ -10,10 +10,11 @@ import type { PlanAthleteData, PlanConfig } from '@/hooks/useAITrainingPlan';
 import { constructDeterministicPlan } from './engine';
 import { detPrimaryLimiterKey } from './v403-limiter-semantics';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
-import { constructDeterministicPlanWithBoundedReplays } from './v315-bounded-multiweek-replay';
+import { constructDeterministicPlanWithBoundedReplays, type ReplayEvidence } from './v315-bounded-multiweek-replay';
 import { V3_BASE_BRICK_ID } from './v31-v3-brick';
 import { V32_703_BRICK_BLUEPRINTS } from './v32-v3-specific-bricks';
 import { V34_SAFE_RUN_BRICKS } from './v34-v3-low-run-bricks';
+import { IM_TAPER_BRICK } from './v404-im-taper-brick';
 
 export interface CoachConfirmedClock {
   /** Fuseau IANA déclaré par le coach ; l'offset est calculé à l'instant réel de la séance. */
@@ -196,6 +197,8 @@ export interface CoachBrickApproval { id: string; transitionSeconds: number }
 export const COACH_703_BRICK_IDS: readonly string[] = [
   V3_BASE_BRICK_ID, ...V32_703_BRICK_BLUEPRINTS.map((b) => b.id), ...V34_SAFE_RUN_BRICKS.map((b) => b.id),
 ];
+export const COACH_IM_BRICK_IDS: readonly string[] = [IM_TAPER_BRICK.id];
+export const coachBrickIdsFor = (family: string): readonly string[] => family === 'triathlon_703' ? COACH_703_BRICK_IDS : family === 'triathlon_ironman' ? COACH_IM_BRICK_IDS : [];
 
 export function runCoachInputsDet(input: {
   athlete: PlanAthleteData;
@@ -210,15 +213,16 @@ export function runCoachInputsDet(input: {
   const family = coachFamilyFor(String(input.config.objective));
   if (!family) throw new Error(`coach_inputs_objective_not_qualified:${objectiveKey}`);
   const bricks = input.brickApprovals ?? [];
-  if (bricks.length && family.key !== 'triathlon_703') throw new Error('coach_inputs_bricks_not_qualified_for_family');
-  for (const b of bricks) if (!COACH_703_BRICK_IDS.includes(b.id)) throw new Error(`coach_inputs_unknown_brick:${b.id}`);
+  if (bricks.length && !coachBrickIdsFor(family.key).length) throw new Error('coach_inputs_bricks_not_qualified_for_family');
+  for (const b of bricks) if (!coachBrickIdsFor(family.key).includes(b.id)) throw new Error(`coach_inputs_unknown_brick:${b.id}`);
   const obj = family.engineObjective;
   const mk = (b: CoachBrickApproval) => ({ id: b.id, objective: obj, individualCoachApproval: true as const, transitionSeconds: b.transitionSeconds, preferReviewedV3: true as const });
-  const { contract, report, allBricks, structuredWorkoutForId } = buildDetV3ContractFromCatalogue(
+  const { contract, report, allBricks, imBrickReport, structuredWorkoutForId } = buildDetV3ContractFromCatalogue(
     input.reviews.map((r) => ({ ...r, objective: obj })),
     bricks.filter((b) => b.id === V3_BASE_BRICK_ID).map(mk) as never,
     bricks.filter((b) => V32_703_BRICK_BLUEPRINTS.some((x) => x.id === b.id)).map(mk) as never,
-    bricks.filter((b) => V34_SAFE_RUN_BRICKS.some((x) => x.id === b.id)).map(mk) as never);
+    bricks.filter((b) => V34_SAFE_RUN_BRICKS.some((x) => x.id === b.id)).map(mk) as never,
+    bricks.filter((b) => b.id === IM_TAPER_BRICK.id).map(mk) as never);
   // Seules les sources V3 admises et les bricks validés un par un par le coach.
   const accepted = new Set([...report.accepted.map((c) => c.id), ...allBricks.map((b) => b.id)]);
   const contextProblems = contract.validateReviewedAthleteContext?.(input.athlete) ?? [];
@@ -242,13 +246,21 @@ export function runCoachInputsDet(input: {
     requireStructuredPolarizationOnLoadWeeks: true as const,
     auditStructuredPolarizationSources: true as const,
   };
-  const limits = input.limits ?? { maxNodes: 25000, maxMilliseconds: 15000 };
+  // Use the bounded full-horizon triathlon budget already exercised by the
+  // family bench. The former running budget was divided across eight IM
+  // targets and stopped before a complete admissible chronology was tested.
+  // This changes search resources only; every sporting gate stays mandatory.
+  const limits = input.limits ?? (family.sportFocus === 'tri'
+    ? { maxNodes: 200000, maxMilliseconds: 120000 }
+    : { maxNodes: 25000, maxMilliseconds: 15000 });
   let out: ReturnType<typeof constructDeterministicPlan>;
+  let replayEvidence: ReplayEvidence | undefined;
   if (family.sportFocus === 'tri') {
     // Jeu d'options EXACT de V320 (ratios minutes tri finaux, quotas course
     // officielle, pic spécifique revu, décharges mesurées).
     const triOptions = {
       ...common,
+      ...(family.key === 'triathlon_ironman' ? { exploreTriathlonTargetsBeforeLookback: true as const, requireSourceVerifiedTriathlonPeak: true as const } : {}),
       requireReviewedRaceSpecificPeak: true as const,
       rankCandidate: (card: { id: string }, context: { phase: string; slot: { isKeySession?: boolean } }) => {
         const proven = contract.reviewedRaceSpecificForId?.(card.id);
@@ -269,6 +281,7 @@ export function runCoachInputsDet(input: {
       } : {}),
     };
     const replay = constructDeterministicPlanWithBoundedReplays(input.athlete, input.config, limits, triOptions as never);
+    replayEvidence = replay.evidence;
     out = replay.result ?? ({ candidate: null, constraintsSatisfied: false, technicallyConstructed: false, issues: [], trace: [], nodes: replay.evidence.totalNodes, reason: `bounded_replay_${replay.evidence.verdict}` } as unknown as ReturnType<typeof constructDeterministicPlan>);
   } else {
     out = constructDeterministicPlan(input.athlete, input.config, limits, {
@@ -312,8 +325,9 @@ export function runCoachInputsDet(input: {
     family: family.key,
     admittedSourceIds: [...accepted],
     admittedBrickIds: allBricks.map((b) => b.id),
-    rejectedSources: report.rejected.map((r) => ({ id: r.id, reason: r.reason })),
+    rejectedSources: [...report.rejected,...imBrickReport.rejected].map((r) => ({ id: r.id, reason: r.reason })),
     contextProblems: [...contextProblems],
     structuredWorkoutForId,
+    replayEvidence,
   };
 }

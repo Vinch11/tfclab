@@ -97,8 +97,9 @@ export function constructDeterministicPlanWithBoundedReplays(
   // Without this, a bounded 9 h search can consume its whole budget inside
   // one target's descendants, and never test other admissible ratio targets.
   // All candidates still pass unchanged source, load, recovery and native gates.
-  const breadthFirstLimited703=objective==='703' &&
-    contract.requireLorangQualityBeforeFinalValidation===true;
+  const breadthFirstLimited703=(objective==='703' &&
+    contract.requireLorangQualityBeforeFinalValidation===true)||
+    contract.exploreTriathlonTargetsBeforeLookback===true;
   const started=performance.now();
   const rows:ReplayAttempt[]=[];
   const queue:ReplayState[]=preset[objective].map((_,targetIndex)=>({
@@ -109,6 +110,7 @@ export function constructDeterministicPlanWithBoundedReplays(
     Math.floor(limits.maxNodes/750)));
   let totalNodes=0;
   let last:EngineResult|null=null;
+  let rootDiagnostic:{result:EngineResult;weeks:number}|null=null;
   let firstRatio:{result:EngineResult;attempt:number}|null=null;
 
   while(queue.length&&rows.length<maxAttempts){
@@ -152,11 +154,14 @@ export function constructDeterministicPlanWithBoundedReplays(
       constrainedWeekDiagnostic:result.issues.find(i=>
         i.code==='det_v325_constrained_week_domain_diagnostic')?.message??null,
     });
+    const built=rows[rows.length-1].weeksBuilt;
+    if(contract.requireReviewedHorizonSourceCoverage===true&&exclusions.length===0&&
+       (!rootDiagnostic||built>rootDiagnostic.weeks))rootDiagnostic={result,weeks:built};
     // The opt-in preflight examines every mandatory sport/phase against the
     // COMPLETE reviewed catalogue before DFS (zero assigned nodes). Ratio
     // targets and bans on earlier selections cannot add a missing source.
     // Preserve the concrete refusal; do not disguise it as budget exhaustion.
-    if(contract.requireReviewedHorizonSourceCoverage===true&&result.nodes===0&&
+    if(contract.requireReviewedHorizonSourceCoverage===true&&exclusions.length===0&&result.nodes===0&&
        result.issues.some(i=>i.code==='det_required_horizon_source_missing'))
       return finish('required_source_missing',rows,totalNodes,result);
     if(strictRatiosMet){
@@ -228,6 +233,9 @@ export function constructDeterministicPlanWithBoundedReplays(
     return finish('ratio_feasible_native_blockers_remain',rows,totalNodes,result);
   }
   // Never return an incomplete prefix as if it were a usable plan.
+  // A no-good child may remove the only source for one week. Its missing
+  // domain is not a missing review in the original coach source contract.
+  if(rootDiagnostic)last=rootDiagnostic.result;
   if(last){
     last.status='refused';last.technicallyConstructed=false;
     last.constraintsSatisfied=false;last.candidate=undefined;

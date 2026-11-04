@@ -77,6 +77,8 @@ export interface ExperimentalAssemblyContract {
   requireReviewedAthleteContext?:true;
   /** Check mandatory source coverage over the whole fixed horizon before DFS. */
   requireReviewedHorizonSourceCoverage?:true;
+  /** Explore independently admissible ratio targets before no-good descendants. */
+  exploreTriathlonTargetsBeforeLookback?:true;
   validateReviewedAthleteContext?:(athlete:PlanAthleteData)=>readonly string[];
   /** Only explicitly reviewed compositions may be decomposed for a V35 ratio audit. */
   verifiedBrickCompositions?:readonly RepairWorkoutMetadata[];
@@ -153,6 +155,8 @@ export interface ExperimentalAssemblyContract {
   /** V317 independent athlete-approved 70.3/IM race pace source evidence. */
   reviewedRaceSpecificForId?:(id:string)=>ProvenRaceSource|null|undefined;
   requireReviewedRaceSpecificPeak?:true;
+  requireSourceVerifiedTriathlonPeak?:true;
+  reviewedBrickComponentsForId?:(id:string)=>import('./v317-certified-race-specific').ReviewedBrickComponents|null|undefined;
   /** V359 explicit planned race estimates, separately declared by synthetic coach. */
   useDeclaredEventDurationEstimates?:true;
   /** Explicit event time is kept in the physical calendar but outside the
@@ -637,6 +641,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         (runningGoal==='semi'||runningGoal==='marathon'||runningGoal==='10k');
       const sourceSpecificCache=new WeakMap<ParsedSession,boolean>();
       const hasProvenRaceSpecificity=(session:ParsedSession):boolean=>{
+        if(experimentalContract?.requireSourceVerifiedTriathlonPeak===true){
+          const cached=sourceSpecificCache.get(session);
+          if(cached!==undefined)return cached;
+          const objective=enduranceSpecificObjective(normalizeRepairGoal(config.objective??'')??'');
+          const c=experimentalContract;
+          const verified=!!objective&&!!c.reviewedRaceSpecificForId&&!!c.sourceStructuredZoneForId&&
+            certifyReviewedRaceSpecificPeak({title:'Source evidence projection',totalWeeks:1,phases:[],weeks:[{weekNumber:w.week,theme:'Source evidence',phase:'peak',sessions:[session]}]},objective,
+              c.reviewedRaceSpecificForId,c.sourceStructuredZoneForId,c.reviewedBrickComponentsForId).verdict==='verified';
+          sourceSpecificCache.set(session,verified);return verified;
+        }
         if(experimentalContract?.requireReviewedTrailEvidence===true)
           return experimentalContract.reviewedTrailSpecificForSession?.(session)===true;
         // The source-only early search predicate belongs to the new
@@ -920,7 +934,16 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             durationMin:duration,isRest:false,isKeySession:!!slot.isKeySession,
             zones:m.mainZoneMax?['Z'+m.mainZoneMax]:m.zones,
           };
-          return {id:m.id,checks:checkSessionCatalogue(session,{...context,catalog})};
+          const requirements=experimentalContract?.sourceRecoveryForId?.(m.id)??[];
+          const here={week:w.week,dayIndex,sport:slot.sport};
+          return {id:m.id,checks:checkSessionCatalogue(session,{...context,catalog}),
+            recovery:experimentalContract?.enforceCalendarSafeV3Recovery?{
+              requiredHours:requirements.map(r=>r.hours),
+              calendarSafe:calendarOnlyRecoverySafe(here,requirements,scheduledSports),
+              confirmedClockSafe:calendarOrConfirmedClockRecoverySafe(here,duration,requirements,scheduledSports,experimentalContract.coachSlotStart),
+              nextSlots:scheduledSports.filter(s=>(s.week-1)*7+s.dayIndex>(w.week-1)*7+dayIndex&&
+                (s.sport===slot.sport||s.sport==='brick')).slice(0,2).map(s=>({week:s.week,day:s.dayIndex,sport:s.sport})),
+            }:undefined};
         });
         if(calendarRecoveryExclusions)result.issues.push({code:'det_v3_recovery_safe_slot_unfillable',
           week:w.week,severity:'blocking',message:'At least one slot is unfillable after clock-free V3 recovery screening; coach must change the schedule or supply genuine clock evidence.'});
@@ -2060,7 +2083,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const proof=objective&&experimentalContract.reviewedRaceSpecificForId&&
       experimentalContract.sourceStructuredZoneForId?
       certifyReviewedRaceSpecificPeak(result.candidate!,objective,
-        experimentalContract.reviewedRaceSpecificForId,experimentalContract.sourceStructuredZoneForId):null;
+        experimentalContract.reviewedRaceSpecificForId,experimentalContract.sourceStructuredZoneForId,experimentalContract.reviewedBrickComponentsForId):null;
     const findings=nativeIssues.filter(i=>i.code==='phase_coherence'&&i.severity==='warning'&&
       i.message?.startsWith('Bloc Race-Specific sans aucune séance allure course/race-pace/simulation détectée'));
     if(proof?.verdict==='verified'&&findings.length===1){
@@ -2126,7 +2149,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       experimentalContract.sourceStructuredZoneForId?
       certifyReviewedRaceSpecificPeak(candidate,objective,
         experimentalContract.reviewedRaceSpecificForId,
-        experimentalContract.sourceStructuredZoneForId):null;
+        experimentalContract.sourceStructuredZoneForId,experimentalContract.reviewedBrickComponentsForId):null;
     result.issues.push({
       code:proof?.verdict==='verified'?
         'det_v317_individually_reviewed_peak_specificity_verified':

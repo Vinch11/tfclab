@@ -50,6 +50,35 @@ export interface DetStructuredWorkout {
   nodes: DetStructuredNode[];
   /** Somme exacte des secondes si toutes les feuilles sont en temps, sinon null. */
   exactSeconds: number | null;
+  /** Exact admitted sub-workouts; a multisport export must understand this. */
+  composition?: { schema: 'det-reviewed-brick-v1'; bike: DetStructuredWorkout; run: DetStructuredWorkout; transitionSeconds: number };
+}
+
+/** Assemble only already structured, admitted components. Never parse prose. */
+export function buildDetStructuredBrick(input: {
+  sourceId: string; bike: DetStructureResult; run: DetStructureResult;
+  transitionSeconds: number; chosenDurationMin: number | undefined;
+}): DetStructureResult {
+  const { sourceId, bike, run, transitionSeconds, chosenDurationMin } = input;
+  if (bike.status !== 'structured' || run.status !== 'structured') return refused(sourceId, 'brick_component_structure_missing');
+  const b = bike.workout, r = run.workout;
+  if (b.sport !== 'bike' || r.sport !== 'run' || b.composition || r.composition || b.sourceId === r.sourceId ||
+      b.sourceId === sourceId || r.sourceId === sourceId) return refused(sourceId, 'brick_component_identity_invalid');
+  if (!Number.isSafeInteger(transitionSeconds) || transitionSeconds < 180 || transitionSeconds > 600 || transitionSeconds % 60 !== 0)
+    return refused(sourceId, 'brick_transition_invalid');
+  if (b.exactSeconds === null || r.exactSeconds === null ||
+      exactSeconds(b.nodes) !== b.exactSeconds || exactSeconds(r.nodes) !== r.exactSeconds ||
+      Math.abs(b.exactSeconds - b.chosenDurationMin * 60) > 1e-6 || Math.abs(r.exactSeconds - r.chosenDurationMin * 60) > 1e-6)
+    return refused(sourceId, 'brick_component_dose_not_exact');
+  const total = b.exactSeconds + transitionSeconds + r.exactSeconds;
+  if (typeof chosenDurationMin !== 'number' || !Number.isFinite(chosenDurationMin) || Math.abs(chosenDurationMin * 60 - total) > 1e-6)
+    return refused(sourceId, 'brick_chosen_duration_not_conserved');
+  return { status: 'structured', workout: {
+    schema: DET_STRUCTURED_SCHEMA, sourceId, sport: 'brick', chosenDurationMin, exactSeconds: total,
+    nodes: [...structuredClone(b.nodes), { kind: 'step', role: 'main', label: 'Transition confirmée par le coach — hors exercice',
+      domain: null, target: null, dose: { seconds: transitionSeconds } }, ...structuredClone(r.nodes)],
+    composition: { schema: 'det-reviewed-brick-v1', bike: structuredClone(b), run: structuredClone(r), transitionSeconds },
+  } };
 }
 export type DetStructureResult =
   | { status: 'structured'; workout: DetStructuredWorkout }

@@ -58,8 +58,13 @@ const POOLS_RAW: Record<CoachFamilyKey, Omit<FamilySourcePool, "pinnedFingerprin
     doses: { V3P_RUN_160: { targetDurationMin: 25, allowWorksetChange: true } } },
   triathlon_703: { family: "triathlon_703", ciScenario: "v320 70.3 + rôles V3 V402", independentScientificReview: false,
     ids: uniq([...TRI_COMMON, "V3P_BIKE_012", "V3P_BIKE_084", "V3P_SWIM_199", ...TRI_ROLE, "V3P_BIKE_185", "V3P_RUN_165", ...STRENGTH]), doses: TRI_DOSES },
-  triathlon_ironman: { family: "triathlon_ironman", ciScenario: "v320 Ironman + rôles V3 V402 (refusé par le solveur borné)", independentScientificReview: false,
-    ids: uniq([...TRI_COMMON, "V3P_BIKE_038", "V3P_BIKE_081", "V3P_SWIM_194", ...TRI_ROLE, "V3P_BIKE_180", ...STRENGTH]), doses: TRI_DOSES },
+  triathlon_ironman: { family: "triathlon_ironman", ciScenario: "v320 Ironman + rôles V3 V402 + composition IM V404 (revue individuelle requise)", independentScientificReview: false,
+    ids: uniq([...TRI_COMMON, "V3P_BIKE_038", "V3P_BIKE_081", "V3P_SWIM_194", ...TRI_ROLE, "V3P_BIKE_180", ...STRENGTH]),
+    // Existing endurance source: 15 min warmup + 125 min under LT1 + 10 min
+    // cooldown, within its declared 96–144 min main-block range. The normal
+    // app's moderate-risk IM profile requires a 150 min long-bike minimum;
+    // the historical high-risk 139 min review cannot satisfy that contract.
+    doses: { ...TRI_DOSES, V3P_BIKE_016: { targetDurationMin: 150 } } },
 };
 
 /** Empreinte du contenu courant de la bibliothèque pour un pool. */

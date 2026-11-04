@@ -25,8 +25,9 @@ import {
 import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
 import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-v3-low-run-bricks';
+import { composeReviewedImTaperBrick, type ImTaperBrickReview } from './v404-im-taper-brick';
 import type { ExperimentalAssemblyContract } from './engine';
-import {buildDetStructuredWorkout,type DetStructureResult} from './v400-structured-workout';
+import {buildDetStructuredWorkout,buildDetStructuredBrick,type DetStructureResult} from './v400-structured-workout';
 import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 
 export interface V3ReviewedSettings extends DetV3Review {
@@ -203,7 +204,8 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
 export function buildDetV3ContractFromCatalogue(
   reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[],
   specificBrickReviews:readonly V32SpecificBrickReview[]=[],
-  lowRunBrickReviews:readonly V34SafeBrickReview[]=[]
+  lowRunBrickReviews:readonly V34SafeBrickReview[]=[],
+  imBrickReviews:readonly ImTaperBrickReview[]=[]
 ) {
   // Supplemental doses enter only through an explicit review of their ID.
   // Historical 800-source contracts retain their exact source cohort/counts.
@@ -282,10 +284,11 @@ export function buildDetV3ContractFromCatalogue(
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
   const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
   const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
-  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted];
+  const imBrickReport=composeReviewedImTaperBrick(report.accepted,imBrickReviews);
+  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted,...imBrickReport.accepted];
   const brickById=new Map(allBricks.map(card=>[card.id,card]));
   const approvedBrickTransitions=new Map<string,number>(
-    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
+    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
       .map(r=>[r.id,r.transitionSeconds] as const));
   for(const brick of allBricks){
     const transition=approvedBrickTransitions.get(brick.id);
@@ -305,7 +308,7 @@ export function buildDetV3ContractFromCatalogue(
       transition,brick.durationMin[0]);
     if(combined)verifiedZoneDoses.set(brick.id,combined);
   }
-  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
+  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
     .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
     .map(review=>review.id));
   const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
@@ -351,6 +354,17 @@ export function buildDetV3ContractFromCatalogue(
       return problems;
     },
     verifiedBrickCompositions:allBricks,
+    reviewedBrickComponentsForId(id){
+      const brick=brickById.get(id),transition=approvedBrickTransitions.get(id);
+      if(!brick||transition===undefined)return null;
+      const ids=contract.consumedSourceIds?.(brick)??[];
+      const components=ids.flatMap(sourceId=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return card&&['bike','run'].includes(card.sport)&&card.durationMin[0]===card.durationMin[1]?
+          [{sourceId,sport:card.sport as 'bike'|'run',durationMin:card.durationMin[0]}]:[];
+      });
+      return components.length===2?{sourceId:id,transitionSeconds:transition,components}:null;
+    },
     adapt(preparation,config){
       planLimiters=new Set((config.identifiedLimitersRaw??[])
         .filter((x):x is string=>typeof x==='string').map(canonicalLimiter));
@@ -371,9 +385,12 @@ export function buildDetV3ContractFromCatalogue(
         if(!brick.phases.includes(ctx.phase??''))return false;
         // A short, entirely easy brick must not masquerade as an intensity key.
         if(ctx.slot.isKeySession && !ctx.slot.isLongSession && brick.mainZoneMax<3)return false;
-        // Composite bricks require a genuine loading week, never a nominal
-        // taper, race, or recovery week even if the phase metadata is stale.
-        if(ctx.weekType!=='load')return false;
+        // Existing 70.3 compositions remain load-only. The distinct IM
+        // composition has two individually reviewed taper sources at their
+        // exact lighter doses, and is admissible only in a taper week.
+        if(imBrickReport.accepted.some(b=>b.id===brick.id)) {
+          if(ctx.weekType!=='taper')return false;
+        } else if(ctx.weekType!=='load')return false;
       }
       return sourceContract.filterCandidate?.(card,ctx)??true;
     },
@@ -494,11 +511,27 @@ export function buildDetV3ContractFromCatalogue(
   // V400: serialisable structure from the CONFIGURED + admitted blocks only.
   const structuredWorkoutForId=(id:string,chosenDurationMin:number|undefined):DetStructureResult=>{
     const admitted=report.accepted.find(card=>card.id===id);
+    const brick=brickById.get(id);
+    if(brick){
+      const sourceIds=contract.consumedSourceIds?.(brick)??[];
+      const bikeId=sourceIds.find(x=>x.startsWith('V3P_BIKE_'));
+      const runId=sourceIds.find(x=>x.startsWith('V3P_RUN_'));
+      if(sourceIds.length!==2||!bikeId||!runId||brick.durationMin[0]!==brick.durationMin[1])
+        return {status:'refused',sourceId:id,reason:'brick_reviewed_composition_incomplete'};
+      const component=(sourceId:string):DetStructureResult=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return buildDetStructuredWorkout({sourceId,configured:configuredById.get(sourceId),targets:resolvedTargets.get(sourceId),
+          admitted:!!card,isBrick:false,chosenDurationMin:card?.durationMin[0],
+          exactDurationMin:card&&card.durationMin[0]===card.durationMin[1]?card.durationMin[0]:null});
+      };
+      return buildDetStructuredBrick({sourceId:id,bike:component(bikeId),run:component(runId),
+        transitionSeconds:approvedBrickTransitions.get(id)??NaN,chosenDurationMin});
+    }
     return buildDetStructuredWorkout({
       sourceId:id,configured:configuredById.get(id),targets:resolvedTargets.get(id),
       admitted:!!admitted,isBrick:brickById.has(id),chosenDurationMin,
       exactDurationMin:admitted&&admitted.durationMin[0]===admitted.durationMin[1]?admitted.durationMin[0]:null,
     });
   };
-  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts,structuredWorkoutForId};
+  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,imBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts,structuredWorkoutForId};
 }

@@ -17,7 +17,8 @@ import {
   SWIM_DOMAINS, SWIM_DOMAIN_LABELS, type SwimDomain,
   type AnchorEntry, type AnchorKey, type CoachDetInputSnapshot, type CoachReviewContext, type PhysioKey, type SourceQualification,
 } from "@/lib/det/coachDetContext";
-import { COACH_FAMILIES, COACH_BLOCKED_OBJECTIVES, COACH_703_BRICK_IDS, coachFamilyFor, type CoachBrickApproval } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { COACH_FAMILIES, COACH_BLOCKED_OBJECTIVES, coachBrickIdsFor, coachFamilyFor, type CoachBrickApproval } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { IM_TAPER_BRICK } from "../../../experimental/det-engine/v404-im-taper-brick";
 import { buildCoachPlanInputs, eligibleLimiterMetrics, runCoachDetPlan, type CoachDetOutcome } from "@/lib/det/coachDetRun";
 
 type Verified = { userId: string; athleteId: string };
@@ -284,9 +285,10 @@ export function CoachDetInputsPanel(props: {
         {SWIM_DOMAINS.map((k) => entryRow(`Natation ${SWIM_DOMAIN_LABELS[k]}`, swim[k], (d) => setSwim((x) => ({ ...x, [k]: d })), "s/100 m"))}
         <label className="flex gap-2 text-xs items-center"><input type="checkbox" checked={cssProxy} onChange={(e) => setCssProxy(e.target.checked)} />J'accepte d'utiliser la CSS comme approximation du seuil natation (sans mesure de seuil dédiée)</label>
       </div>}
-      {family?.key === "triathlon_703" && <div className="space-y-1 text-xs" data-testid="brick-approvals">
+      {family && coachBrickIdsFor(family.key).length > 0 && <div className="space-y-1 text-xs" data-testid="brick-approvals">
         <p className="text-sm font-medium">Enchaînements vélo-course validés un par un (transition en minutes, vide = non validé)</p>
-        {COACH_703_BRICK_IDS.map((id) => <label key={id} className="flex gap-2 items-center"><span className="w-56">{id}</span>
+        {family.key === "triathlon_ironman" && <p>Composition candidate d’affûtage : {IM_TAPER_BRICK.bikeId} (57 min) puis {IM_TAPER_BRICK.runId} (34 min), transition exacte 5 min ; total 96 min. Les deux sources doivent être revues séparément. Cette confirmation ne constitue ni validation scientifique ni autorisation de prescription.</p>}
+        {coachBrickIdsFor(family.key).map((id) => <label key={id} className="flex gap-2 items-center"><span className="w-56">{id}</span>
           <Input aria-label={`transition ${id}`} placeholder="minutes (3–10)" value={bricks[id] ?? ""} onChange={(e) => setBricks((b) => ({ ...b, [id]: e.target.value }))} /></label>)}
       </div>}
       <p className="text-sm font-medium">Physiologie du diagnostic</p>

@@ -14,7 +14,7 @@ import { v3FullCatalogue, type V3Workout } from "../../../scripts/library-v3/cat
 import { fingerprintV3SportingSource, type V3IndividualSportingEvidence } from "../../../scripts/library-v3/sportingQualification800";
 import { resolveV3IntensityTargets, type V3AthleteAnchors } from "../../../scripts/library-v3/resolveV3Intensity";
 import type { V3ReviewedSettings } from "../../../experimental/det-engine/v31-v3-catalogue";
-import { clockProblems, coachObjectiveKey, coachFamilyFor, isRealYmd, COACH_BLOCKED_OBJECTIVES, COACH_FAMILIES, COACH_703_BRICK_IDS, type CoachBrickApproval, type CoachConfirmedClock } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { clockProblems, coachObjectiveKey, coachFamilyFor, isRealYmd, COACH_BLOCKED_OBJECTIVES, COACH_FAMILIES, COACH_703_BRICK_IDS, coachBrickIdsFor, type CoachBrickApproval, type CoachConfirmedClock } from "../../../experimental/det-engine/v401-coach-inputs-core";
 import { canonicalJson, sha256Hex } from "@/lib/plan/appendOnlyPlanVersionSave";
 
 export const COACH_INPUTS_SCHEMA = "tfcl.det.coach-inputs.v1" as const;
@@ -321,8 +321,8 @@ export function checkCoachReviewContext(input: {
   }
   const fam = coachFamilyFor(current.snapshot.objective);
   for (const b of ctx.brickApprovals ?? []) {
-    if (fam?.key !== "triathlon_703") r.push(`brick ${b.id} : enchaînements validés uniquement pour le triathlon 70.3`);
-    else if (!COACH_703_BRICK_IDS.includes(b.id)) r.push(`brick ${b.id} inconnu du registre`);
+    if (COACH_703_BRICK_IDS.includes(b.id) && fam?.key !== "triathlon_703") r.push(`brick ${b.id} : enchaînements validés uniquement pour le triathlon 70.3`);
+    else if (!coachBrickIdsFor(fam?.key ?? "").includes(b.id)) r.push(`brick ${b.id} inconnu du registre de cette famille`);
     if (!(Number.isInteger(b.transitionSeconds) && b.transitionSeconds >= 180 && b.transitionSeconds <= 600)) r.push(`brick ${b.id} : transition non confirmée (3–10 min)`);
   }
   if (ctx.clock && fam) for (const sp of fam.requiredClockSports) {

@@ -20,6 +20,7 @@ import { coachFamilyFor, COACH_703_BRICK_IDS, type CoachBrickApproval, type Coac
 import { V32_703_BRICK_BLUEPRINTS } from "../../../experimental/det-engine/v32-v3-specific-bricks";
 import { V34_SAFE_RUN_BRICKS } from "../../../experimental/det-engine/v34-v3-low-run-bricks";
 import { V3_BASE_BRICK_ID } from "../../../experimental/det-engine/v31-v3-brick";
+import { IM_TAPER_BRICK } from "../../../experimental/det-engine/v404-im-taper-brick";
 import {
   ANCHOR_LABELS, COACH_INPUTS_SCHEMA, PHYSIO_LABELS, SWIM_DOMAINS, SWIM_DOMAIN_LABELS, findSource,
   type AnchorEntry, type AnchorKey, type CoachDetInputSnapshot, type CoachReviewContext, type PhysioKey, type SourceQualification, type SwimDomain,
@@ -206,12 +207,14 @@ export const BRICKS_703: CoachBrickApproval[] = [
   ...V32_703_BRICK_BLUEPRINTS.map((b) => ({ id: b.id, transitionSeconds: b.transitionSeconds })),
   ...V34_SAFE_RUN_BRICKS.map((b) => ({ id: b.id, transitionSeconds: b.transitionSeconds })),
 ].filter((b) => COACH_703_BRICK_IDS.includes(b.id));
+export const BRICKS_IM: CoachBrickApproval[] = [{ id: IM_TAPER_BRICK.id, transitionSeconds: IM_TAPER_BRICK.transitionSeconds }];
+export const bricksForFamily = (family: string): CoachBrickApproval[] => family === "triathlon_703" ? BRICKS_703 : family === "triathlon_ironman" ? BRICKS_IM : [];
 
 /** Sports pour lesquels un horaire doit être confirmé. */
 export function clockSportsFor(family: CoachFamily, pool: FamilySourcePool): string[] {
   const s = new Set<string>(family.requiredClockSports as string[]);
   for (const sp of athleteChecklist(pool).sports) s.add(sp);
-  if (family.key === "triathlon_703") s.add("brick");
+  if (bricksForFamily(family.key).length) s.add("brick");
   return [...s];
 }
 
@@ -296,7 +299,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
     minutesBySport[sp] = row;
   }
   if (a.clock.timeZone.trim() && Object.keys(minutesBySport).length) clock = { timeZone: a.clock.timeZone.trim(), minutesBySport } as CoachConfirmedClock;
-  if (family.key === "triathlon_703" && !a.bricksConfirmed) missing.push({ key: "bricks", label: "Enchaînements vélo-course", why: "confirmer les enchaînements du registre 70.3 (transition 3–10 min)" });
+  if (bricksForFamily(family.key).length && !a.bricksConfirmed) missing.push({ key: "bricks", label: "Enchaînements vélo-course", why: `confirmer les horaires des enchaînements du registre ${family.label} (ne vaut pas revue des compositions)` });
   const ymd = form.planStartDate;
   const snapshot: CoachDetInputSnapshot = {
     schema: COACH_INPUTS_SCHEMA, athleteId: record.athleteId, coachId: record.coachId, objective: form.objective,
@@ -325,9 +328,10 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
     if (q && ev?.coachReviewedSource === true && q.sourceFingerprint === fingerprintV3SportingSource(w)) qualifications.push(q);
     else unreviewedIds.push(id);
   }
-  const needBricks = family.key === "triathlon_703";
+  const familyBricks = bricksForFamily(family.key);
+  const needBricks = familyBricks.length > 0;
   const approvedBricks = new Set((g?.brickApprovals ?? []).map((b) => b.id));
-  const unreviewedBricks = needBricks ? BRICKS_703.map((b) => b.id).filter((id) => !approvedBricks.has(id)) : [];
+  const unreviewedBricks = familyBricks.map((b) => b.id).filter((id) => !approvedBricks.has(id));
   if (unreviewedIds.length || unreviewedBricks.length) {
     return { family, pool, missing, snapshot, ctx: null, excludedSources: excluded, limiterTrace: trace,
       sourceReview: { status: "blocked_missing_source_review", unreviewedIds, unreviewedBricks, upstreamTask: "review_family_pool_sources_in_advanced_grid",
@@ -337,7 +341,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   return { family, pool, missing, snapshot: reviewedSnapshot, excludedSources: excluded, limiterTrace: trace,
     sourceReview: { status: "reviewed", reviewContextId: g!.reviewContextId, reviewedAt: g!.reviewedAt, reviewedIds: qualifications.length },
     ctx: { coachId: record.coachId, athleteId: record.athleteId, qualifications, clock,
-      ...(needBricks ? { brickApprovals: (g!.brickApprovals).filter((b) => BRICKS_703.some((x) => x.id === b.id)) } : {}) } };
+      ...(needBricks ? { brickApprovals: (g!.brickApprovals).filter((b) => familyBricks.some((x) => x.id === b.id)) } : {}) } };
 }
 
 /** Ordre initial proposé au coach : ordre du diagnostic de l'app restreint aux limiteurs éligibles DET. */

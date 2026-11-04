@@ -10,7 +10,7 @@ import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPl
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from "@/lib/plan/appPlanningPipeline";
 import { freezeAppPlanningInput, planningInputFor, semanticPlanningPayload, explicitCoachLimiterOverride } from "../appPlanningInput";
 import { buildAthleteRecordView } from "../appRecordView";
-import { buildAthleteDetInputs, GENERAL_CONFIRMATIONS, CONDITIONAL_CONFIRMATIONS, clockSportsFor, BRICKS_703, type CoachAnswers, type GenuineSourceReviews, type AthleteRecordView } from "../athleteDetBridge";
+import { buildAthleteDetInputs, GENERAL_CONFIRMATIONS, CONDITIONAL_CONFIRMATIONS, clockSportsFor, bricksForFamily, type CoachAnswers, type GenuineSourceReviews, type AthleteRecordView } from "../athleteDetBridge";
 import { findSource, hashCoachInputs } from "../coachDetContext";
 import { fingerprintV3SportingSource } from "../../../../scripts/library-v3/sportingQualification800";
 import { familySourcePool } from "../familySourcePools";
@@ -18,6 +18,7 @@ import { runAppPlanningDetPlan } from "../appPlanningDetRun";
 import { coachFamilyFor } from "../../../../experimental/det-engine/v401-coach-inputs-core";
 import { rankPrescriptionGaps } from "@/lib/limiterPrescription";
 import * as detEngine from "../../../../experimental/det-engine/engine";
+import { triClock, swimPaces } from './coachDetFamilies.test.shared';
 
 const COACH = "00000000-0000-4000-8000-0000000000c1";
 const A1 = "00000000-0000-4000-8000-0000000000a1";
@@ -43,7 +44,7 @@ function genuineFor(rec: AthleteRecordView, objective: string, over: Partial<Gen
     qualifications: pool.ids.map((id) => { const w = findSource(id)!; return { id, sourceFingerprint: fingerprintV3SportingSource(w), preferReviewedV3: true, ...(pool.doses[id] ?? {}),
       evidence: { coachReviewedSource: true, ...Object.fromEntries(Object.keys({ ...GENERAL_CONFIRMATIONS, ...CONDITIONAL_CONFIRMATIONS }).map((k) => [k, true])), currentPhase: w.phase[0], recentLoad: "moderate", fatigue: "ready", injuryScreen: "cleared_by_coach",
         checkedPrerequisites: [...w.prerequisites], checkedContraindications: [...w.contraindications] } as never } as never; }),
-    brickApprovals: /70/.test(objective) ? BRICKS_703 : [], ...over };
+    brickApprovals: bricksForFamily(coachFamilyFor(objective)!.key), ...over };
 }
 
 const toHm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
@@ -65,7 +66,7 @@ const formState = (objective: string, weeks: number, hours: number, sessions: nu
 });
 
 async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18) {
-  const snapshots = [{ ...snapRow(pace), vma }];
+  const snapshots = [{ ...snapRow(pace), ...(/Ironman/.test(objective) ? {sport_main:'tri',css:95} : {}), vma }];
   const ctx = computeAppAthleteContext(athleteRow, objective, "age_group", { snapshots, tests: [], checkins: [] })!;
   const st = formState(objective, weeks, hours, sessions);
   const config = buildAppPlanConfig(ctx.diagnostic, st);
@@ -75,20 +76,34 @@ async function pagePipeline(pace: number, objective: string, weeks: number, hour
   const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
   return { ctx, config, frozen, record, st };
 }
-async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: string, weeks: number, hours: number, sessions: number) {
+async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: string, weeks: number, hours: number, sessions: number, extraAnswers:Partial<CoachAnswers>={}) {
   const f = { objective, planStartDate: "2026-10-26", raceDate: p.st.raceDate, weeksAvailable: weeks, weeklyHours: hours, sessionsPerWeek: sessions, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
-  const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
+  const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock, ...extraAnswers }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
   expect(b.sourceReview.status).toBe("reviewed");
   const inputsHash = await hashCoachInputs(b.snapshot!);
   const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
     snapshot: b.snapshot!, inputsHash, sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, now: () => new Date("2026-11-04T00:00:00Z"),
-    limits: { maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
+    limits: /Ironman/.test(objective)?undefined:{ maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
   return { b, out };
 }
 beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it('Ironman 16 sem./14 h : profil et priorités automatiques de l’app conservés dans le calendrier complet',async()=>{
+    const p=await pagePipeline(240,'Ironman',16,14,10),before=structuredClone(p.ctx.diagnostic);
+    const clock={timeZone:triClock.timeZone,bySport:Object.fromEntries(Object.entries(triClock.minutesBySport).map(([sport,row])=>[sport,{time:'',days,perDay:(sport==='run'?[420,420,1080,1200,1080,420,420]:row).map(toHm)}]))};
+    const {out,b}=await runDet(p,'Ironman',16,14,10,{clock,swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHÉTIQUE QA',uncertainty:'±5 s/100 m'}]))});
+    process.stdout.write('IM_APP_PIPELINE '+JSON.stringify({kind:out.kind,priorities:p.frozen.limiters.applied,missing:b.missing,...(out.kind==='engine_refused'?{issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{sessions:out.sessions})})+'\n');
+    expect(out.kind).toBe('accepted');
+    expect(p.ctx.diagnostic).toEqual(before);
+    if(out.kind==='accepted'){
+      expect(out.plan.weeks).toHaveLength(16);
+      expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+      expect(out.provenance.planningInput).toEqual({source:'app_planning_pipeline',fingerprint:p.frozen.fingerprint});
+      expect(out.provenance.prescriptionAllowed).toBe(false);
+    }
+  },180000);
   it("VMA 17,5 km/h du profil enregistré : la conversion d'unité atteint le vrai solveur sans faux refus d'ancre", async () => {
     const p = await pagePipeline(240, "Semi", 8, 6, 5, 17.5);
     const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
