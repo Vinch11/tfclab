@@ -45,7 +45,13 @@ interface PhaseRange {
 function parseWeekRange(raw: string): { start: number; end: number } | null {
   if (!raw) return null;
   const m = raw.match(/S?(\d+)\s*(?:-|–|—|to|à)\s*S?(\d+)/i);
-  if (!m) return null;
+  if (!m) {
+    // Semaine unique : "1", "S1", "Semaine 1" → S1-S1.
+    const single = raw.match(/^\s*(?:S|Semaines?\s*)?(\d+)\s*$/i);
+    if (!single) return null;
+    const n = parseInt(single[1], 10);
+    return Number.isFinite(n) && n >= 1 ? { start: n, end: n } : null;
+  }
   const a = parseInt(m[1], 10);
   const b = parseInt(m[2], 10);
   if (!Number.isFinite(a) || !Number.isFinite(b) || a < 1 || b < a) return null;
@@ -54,18 +60,21 @@ function parseWeekRange(raw: string): { start: number; end: number } | null {
 
 /** Fallback Lorang standard sur une plage [start, end] (bornes GLOBALES du plan). */
 function fallbackLorangPhasesForRange(start: number, end: number, nameSuffix: string): PhaseRange[] {
-  const w = Math.max(1, end - start + 1);
+  if (end < start) return [];
+  const w = end - start + 1;
   const off = start - 1;
-  const foundationEnd = Math.max(1, Math.round(w * 0.25));
-  const buildEnd = Math.max(foundationEnd + 1, Math.round(w * 0.60));
-  const peakEnd = Math.max(buildEnd + 1, Math.round(w * 0.90));
-  const ranges: PhaseRange[] = [
+  // Bornes cumulées, toujours clampées à w : un plan court (1-3 sem.) ne
+  // produit jamais de phase au-delà de `end` (ex. 1 sem. → Fondation seule).
+  const foundationEnd = Math.min(w, Math.max(1, Math.round(w * 0.25)));
+  const buildEnd = Math.min(w, Math.max(foundationEnd + 1, Math.round(w * 0.60)));
+  const peakEnd = Math.min(w, Math.max(buildEnd + 1, Math.round(w * 0.90)));
+  const candidates: PhaseRange[] = [
     { name: `Fondation${nameSuffix}`,  start: off + 1, end: off + foundationEnd },
     { name: `Build${nameSuffix}`,      start: off + foundationEnd + 1, end: off + buildEnd },
     { name: `Spécifique${nameSuffix}`, start: off + buildEnd + 1, end: off + peakEnd },
+    { name: `Affûtage${nameSuffix}`,   start: off + peakEnd + 1, end },
   ];
-  if (off + peakEnd < end) ranges.push({ name: `Affûtage${nameSuffix}`, start: off + peakEnd + 1, end });
-  return ranges;
+  return candidates.filter(r => r.start <= r.end && r.start >= start && r.end <= end);
 }
 
 /** Fallback Lorang standard sur totalWeeks (plan mono-cycle). */

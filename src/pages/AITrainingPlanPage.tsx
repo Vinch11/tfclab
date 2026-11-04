@@ -15,6 +15,7 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
+import { isQaNonPrescriptivePlan } from "@/lib/aiPlanPDFExport";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
  * Generates personalized training plans using AI + TFCL methodology
@@ -4117,7 +4118,7 @@ export default function AITrainingPlanPage() {
             )}
 
             {/* Adaptation Projections Summary */}
-            {!isMultiMode && athleteContext && (() => {
+            {!isMultiMode && athleteContext && !isQaNonPrescriptivePlan(parsedPlan) && (() => {
               const projections = buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections;
               return projections && projections.length > 0 ? (
                 <CollapsibleCard
@@ -4594,7 +4595,7 @@ export default function AITrainingPlanPage() {
                         currentWeekNumber={currentWeekNumber}
                         loadedFromCacheAt={loadedFromCacheAt}
                         adaptationProjections={
-                          athleteContext
+                          athleteContext && !isQaNonPrescriptivePlan(parsedPlan)
                             ? buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }

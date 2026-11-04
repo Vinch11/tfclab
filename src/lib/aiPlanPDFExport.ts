@@ -385,6 +385,19 @@ export interface PDFGapContext {
   wbalRefs?: WbalAthleteRefs | null;
 }
 
+/**
+ * Fixture QA non prescriptive : identifiée STRICTEMENT par le double marqueur
+ * `_qaFixture === true && _qaNonPrescriptive === true` (lecture seule, cast
+ * local — le type ParsedPlan ne porte pas ces champs).
+ */
+export function isQaNonPrescriptivePlan(plan: unknown): boolean {
+  if (!plan || typeof plan !== "object") return false;
+  const p = plan as { _qaFixture?: unknown; _qaNonPrescriptive?: unknown };
+  return p._qaFixture === true && p._qaNonPrescriptive === true;
+}
+
+export const QA_NON_PRESCRIPTIVE_BANNER = "QA — PLAN FICTIF / NON PRESCRIPTIF";
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -407,6 +420,10 @@ function buildPlanHTML(
   detailLevel: PlanPDFDetailLevel = "full",
   gapContext?: PDFGapContext,
 ): string {
+
+  // Défense en profondeur : une fixture QA n'exporte jamais de projections.
+  const isQaFixture = isQaNonPrescriptivePlan(plan);
+  if (isQaFixture) adaptationProjections = undefined;
 
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
@@ -435,6 +452,10 @@ function buildPlanHTML(
           </div>`
         : "";
       const fiche = (isCompact || s.isRest) ? null : getFicheForSession(s, gapContext?.objective, gapContext?.wbalRefs);
+      // Dose chiffrée déjà connue : affichée telle quelle, jamais inférée.
+      const durationHTML = !s.isRest && typeof s.durationMin === "number" && Number.isFinite(s.durationMin) && s.durationMin > 0
+        ? `<div class="session-duration" style="font-weight:600;color:#14131A;margin-bottom:4px;">Durée : ${s.durationMin} min</div>`
+        : "";
 
       const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });
       const catalogueWarning = catalogueIssues.length ? `<p style="color:#a22;font-weight:bold">Prescription et référence catalogue : correspondance à vérifier.</p>` : "";
@@ -447,7 +468,7 @@ function buildPlanHTML(
             ${getSportBadge(s.sport)}
             <span style="font-weight:600;color:#14131A;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${durationHTML}${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
           ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
           : "";
@@ -478,7 +499,7 @@ function buildPlanHTML(
         <td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;vertical-align:top;font-weight:600;color:#2B2933;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #DAD6CC;vertical-align:top;">${getSportBadge(s.sport)}</td>
         <td style="padding:6px 10px;border:1px solid #DAD6CC;font-weight:600;vertical-align:top;color:#14131A;">${renderTitleForPDF(s.title, fiche)}</td>
-        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${durationHTML}${formatFicheText(s.details || "")}</td>
       </tr>
       ${ficheRow}
       ${altsRow}
@@ -519,6 +540,7 @@ function buildPlanHTML(
           <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${displayPhase(week.phase, phaseLabelMap)}</span>
         </h3>
         ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        ${week.computedVolumeStr && week.computedVolumeStr.trim() ? `<p class="week-computed-volume" style="margin:0 0 10px 6px;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume réel calculé : ${escapeHTML(week.computedVolumeStr)}</p>` : ""}
         ${sessionsBlock}
         ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#5C5966;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #C8860D;">⚡ ${week.coachNotes}</p>` : ""}
       </div>
@@ -605,6 +627,7 @@ function buildPlanHTML(
   <div class="no-print" style="background:#e3f2fd;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:13px;">
     📄 Utilisez <strong>Ctrl+P</strong> (ou <strong>⌘+P</strong> sur Mac) → <strong>Imprimer en PDF</strong> pour exporter ce plan.
   </div>
+  ${isQaFixture ? `<div class="qa-non-prescriptive-banner" style="background:#fdecea;color:#8a1c1c;border:2px solid #c62828;padding:10px 14px;border-radius:6px;font-weight:700;font-size:14px;margin-bottom:16px;">⚠️ ${QA_NON_PRESCRIPTIVE_BANNER} — NE PAS PRESCRIRE</div>` : ""}
   ${incompleteWarningHTML}
   <h1>${plan.title}</h1>
   ${athleteName ? `<p style="color:#666;margin:0 0 8px 0;">Athlète : ${athleteName}</p>` : ""}
