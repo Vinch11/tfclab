@@ -27,7 +27,7 @@ import type {V32SpecificBrickReview} from "./v32-v3-specific-bricks";
 import type {V34SafeBrickReview} from "./v34-v3-low-run-bricks";
 const SYNTHETIC_ATHLETE_ID="synthetic-qa-v3-athlete-001";
 export function syntheticV3SportingContext(id:string):
-  {expectedAthleteId:string,sportingReview:V3IndividualSportingEvidence}|{} {
+  {expectedAthleteId:string,sportingReview:V3IndividualSportingEvidence}|Record<string, never> {
  const w=[...v3FullCatalogue.workouts,...v3SupplementalCatalogue.workouts].find(x=>x.id===id);
  if(!w)return {};
  return {

@@ -13,6 +13,10 @@ authenticated Nolio operation, calendar write or paid AI generation was performe
   immutable plan saver, reviewer and Nolio V2 modules.
 - This is a versioned **composition**, not a claim that the entire QA snapshot equals production.
   Large files were reconstructed from immutable diffs when the read API truncated them.
+- Only the reachable engine modules and the requested acceptance benches are included. The 340
+  unused historical study files from the first transfer remain available in PR454 and were removed
+  from this candidate; no original branch or athlete archive/receipt was deleted. This fixes the
+  first CI lint failure from importing those historical studies without disabling the lint gate.
 - Existing root package/lock files are retained. The incidental QA editor-plugin upgrade is excluded.
 - Historical QA receipts/reports containing provider identifiers are not imported into this branch.
 
