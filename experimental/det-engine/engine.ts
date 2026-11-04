@@ -1651,7 +1651,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
        ['semi','10k'].includes(normalizeRepairGoal(config.objective??'')??'')){
       const meso=proposeMeasuredMarathonMesocycles(plan);
       if(meso.verified)plan.phases=meso.projectedPhases;
-      if(meso.originallyLongBuildStreaks.length||!meso.verified)result.issues.push({
+      if(meso.originallyLongBuildStreaks.length||
+         (experimentalContract?.requireMeasuredRunningPeriodization===true&&!meso.verified))result.issues.push({
         code:meso.verified?'det_v358_measured_running_mesocycles_verified':
           'det_v358_measured_running_mesocycles_unverified',
         severity:meso.verified?'warning':'blocking',message:JSON.stringify(meso),
