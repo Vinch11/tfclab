@@ -1,0 +1,20 @@
+name: Diagnostic to DET bridge
+
+on:
+  pull_request:
+
+jobs:
+  diagnostic-det-bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: App diagnostic, strict input boundary and real solver integration
+        run: bunx vitest run src/lib/det
+      - name: Check source declaration
+        run: node scripts/preproduction/plan-release-source.mjs

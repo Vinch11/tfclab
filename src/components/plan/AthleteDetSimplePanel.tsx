@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { withTimeout } from "@/pages/__qa/ReadOnlyRlsAuditPage";
 import { ATHLETE_LEVEL_LABELS, LIMITER_LABELS, SWIM_DOMAIN_LABELS, hashCoachInputs, type SwimDomain } from "@/lib/det/coachDetContext";
-import { runCoachDetPlan, type CoachDetOutcome } from "@/lib/det/coachDetRun";
+import type { CoachDetOutcome } from "@/lib/det/coachDetRun";
+import { runAppPlanningDetPlan } from "@/lib/det/appPlanningDetRun";
 import {
   CONDITIONAL_CONFIRMATIONS, GENERAL_CONFIRMATIONS, athleteChecklist, explainEngineRefusal, buildAthleteDetInputs, clockSportsFor, prefillFromRecord, requiredAnchorKeys,
   type AthleteRecordView, type CoachAnswers, type FieldKey, type PlanFormView, type GenuineSourceReviews,
@@ -120,7 +121,7 @@ export function AthleteDetSimplePanel(props: {
       if (error || !data) { setMsg([`Vérifications non enregistrées : ${error?.message?.slice(0, 160) ?? "inconnu"}`]); return; }
       await new Promise((r) => setTimeout(r, 30));
       if (!current()) return;
-      const out = runCoachDetPlan({ reviewContextId: data.id, ctx: { ...b.ctx, inputsHash, sourcesVersion: props.sourcesVersion }, coachId: v.userId, athleteId: v.athleteId,
+      const out = runAppPlanningDetPlan({ reviewContextId: data.id, ctx: { ...b.ctx, inputsHash, sourcesVersion: props.sourcesVersion }, coachId: v.userId, athleteId: v.athleteId,
         snapshot: b.snapshot, inputsHash, sourcesVersion: props.sourcesVersion, engineVersion: props.engineVersion, releaseId: props.releaseId, appInput: app });
       if (!current()) return;
       props.onOutcome(out, fpAt);

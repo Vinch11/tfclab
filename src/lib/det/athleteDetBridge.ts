@@ -82,7 +82,9 @@ export function prefillFromRecord(r: AthleteRecordView): PrefilledField[] {
   };
   add("runThresholdPaceSecPerKm", r.snapshot?.pace_threshold_sec_per_km, r.snapshot ? "snapshot" : "none");
   // Conversion d'unité exacte km/h → m/s (VMA de la fiche), pas une estimation.
-  add("runVvo2SpeedMps", r.refs.vma != null ? Math.round((r.refs.vma / 3.6) * 1000) / 1000 : null, r.refs.sources.vma, r.refs.vma != null ? ` (VMA ${r.refs.vma} km/h ÷ 3,6)` : "");
+  // Keep the full value: rounding here corrupts the anchor that is checked
+  // against the app's VMA before generation (e.g. 17.5 km/h -> 4.861 m/s).
+  add("runVvo2SpeedMps", r.refs.vma != null ? r.refs.vma / 3.6 : null, r.refs.sources.vma, r.refs.vma != null ? ` (VMA ${r.refs.vma} km/h ÷ 3,6)` : "");
   add("bikeFtpWatts", r.refs.ftp, r.refs.sources.ftp);
   add("cssSecPer100m", r.refs.css, r.refs.sources.css);
   add("vo2max", r.refs.vo2max, r.refs.sources.vo2max);
