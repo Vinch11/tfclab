@@ -1,0 +1,3958 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Nolio API",
+    "version": "2.0.0",
+    "description": "## Terms of use\n\nUse of the Nolio API is governed by the [Nolio API Terms](https://www.nolio.io/en/api-terms/). Read them before you build: creating an application or an API key, or calling the API, means you accept them. Data recorded by some connected devices and services is also bound by their provider's own terms: depending on how you access it, such a record can come back with a `restriction` object and some of its measurements withheld.\n\n## Base URL\n\nAll paths are relative to `https://www.nolio.io`, e.g. `GET https://www.nolio.io/api/v2/me/`. Trailing slashes are required.\n\n## Applications and authentication\n\nAn application is created from Nolio settings, in one of three kinds:\n\n- **Personal application**: works on your own account and the athletes you coach. It authenticates with a **Personal Access Token** (`Authorization: Bearer nolio_sk_…`, the `pat` security scheme). OAuth is refused to it (**403** `pat_required`). A key carries its own scopes, never more than its application's.\n- **Partner application**: a product other Nolio users connect to their own account, through OAuth2 Authorization Code (the `oauth2` security scheme). It is born blocked. A first request, reviewed by Nolio, opens it in **development mode**, limited to 5 connected accounts: the code exchange of a sixth account is refused (`access_denied`). A second request moves it to production, without that limit.\n- **Team application**: the application of one Nolio team, managed by every manager of the team, through OAuth2 only. Only the team's members can authorize it: anyone else is refused at the consent screen, then at the code exchange (`access_denied`), and a member who leaves or is paused is refused on every call (**403** `team_membership_required`). Its calls stay inside the team: the athletes, groups and data of the team only, whatever else the authorizing coach manages elsewhere; `billing/payments`, which mixes every team of the coach, answers **403**. `GET /api/v2/app/` reports it as `type: team`.\n\nEach endpoint declares the scope it requires (`<universe>:<action>`, e.g. `real:read`); the full catalog is listed under the `oauth2` security scheme. The reference reads (your athletes and groups under `me/`, sports, final zones, tags, the metric catalog) open with any one scope of a universe that uses them as input: an application allowed to plan may read the sports and zones it plans with. A new application starts with the nine `:read` scopes only; its owner widens it in Nolio settings, and a token never carries more than its application. An application created for the previous API (`/api/`) is refused here with a **403** `wrong_api_version`: create a new one.\n\nOAuth2 for a partner application: access tokens are valid for **24 hours**, authorization codes for **10 minutes**. PKCE is required for public clients (such as MCP clients) and optional for confidential ones.\n\n1. Send the user to the consent screen: `GET /api/authorize/?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=YOUR_CALLBACK&state=opaque`. After approval Nolio redirects to your callback with `?code=...&state=...`.\n2. Exchange the code for a token:\n   ```\n   curl -X POST https://www.nolio.io/api/token/ -d grant_type=authorization_code -d code=AUTH_CODE -d redirect_uri=YOUR_CALLBACK -d client_id=YOUR_CLIENT_ID -d client_secret=YOUR_CLIENT_SECRET\n   ```\n3. Call the API:\n   ```\n   curl https://www.nolio.io/api/v2/me/ -H 'Authorization: Bearer YOUR_TOKEN'\n   ```\n\nWhen the access token expires, POST `grant_type=refresh_token` to `/api/token/` to obtain a new one.\n\n## Webhooks\n\nAn application receives change notifications on one http(s) URL, set with `PUT /api/v2/app/webhook/` (see that page for event types, signature and retries). `access.ended` tells you a user is no longer reachable by your application: delete their data, as the API terms require.\n\n## Acting for a managed athlete\n\nA coach works on a **managed athlete**'s data:\n\n- Reads, updates and deletes take `?athlete=usr_…` (the athlete's public id). Read endpoints (calendar, metrics, records, HRV, settings) then return that athlete's data. Omit the parameter to target your own data; targeting an athlete you do not manage returns **403**.\n- Creating on the **planned** calendar, or applying a library template, names the audience in the body instead: `athletes` (`usr_…` ids) or `group` (`grp_…`). `?athlete=` is refused there with a **400**. Realized events, metric values and settings are created with `?athlete=`.\n- Records and HRV stay **read-only** for a managed athlete.\n\nBy default a team with several coaches (managers and assistants) forbids them every write and delete on its athletes (planned, real, metrics, settings); reads stay open. A team with a single coach never restricts. Such a call answers **403** `team_scope_forbidden` until a manager of the team allows it in the team options. An athlete can also turn off outside access to their data: **403** `athlete_api_access_denied`, with `error.athlete_name`.\n\n## Rate limits\n\nLimits are per application: an hourly and a daily ceiling, recomputed every night from the owner's profile and the number of athletes and connected accounts the application serves. Authenticated responses include `X-RateLimit-Limit-Hour`, `X-RateLimit-Remaining-Hour`, `X-RateLimit-Limit-Day`, and `X-RateLimit-Remaining-Day`; remaining counts reflect the request just made. The records endpoint is additionally capped at **20 req/min**. Exceeding a limit returns **429** with a `Retry-After` header; a missing or invalid token returns **401**, and a token lacking the required scope returns **403**.\n\n## Pagination & windowing\n\nList endpoints use keyset (cursor) pagination: pass `limit` (default 10, max 100, unless the endpoint states other bounds) and follow `starting_after=<last id>` to page forward. A paginated list returns `has_more` (boolean) alongside `data`. Calendar lists (planned, real) and metric values take `date_from` / `date_to` (`YYYY-MM-DD`, inclusive); records and HRV take `from` / `to`. HRV lists are not paginated: they return a plain array, bounded as their pages describe.\n\n## Response conventions\n\n- Dates are `YYYY-MM-DD`. Times are `HH:MM` on planned events and HRV rows, `HH:MM:SS` on realized events and metric values.\n- A key that does not apply is present with a `null` value, unless the endpoint says otherwise (records omit their optional keys).\n- Every error returns the same JSON envelope with a `4xx`/`5xx` status: `{\"error\": {\"code\": \"…\", \"message\": \"…\"}}`. `code` is a stable machine string (`validation_error`, `read_only_field`, `not_found`, `bad_request`, `conflict`, `missing_scope`, `wrong_api_version`, `pat_required`, `team_membership_required`, `athlete_api_access_denied`, `throttled`, `not_authenticated`, …). Field validation adds an `error.fields` map (`{\"<field>\": [\"…\"]}`); a scope denial adds `error.scopes`. A `team_scope_forbidden` 403 means the athlete's team, which has several coaches, forbids them this scope (Options d'équipe > API et MCP): it adds `error.scopes`, `error.team_name` and, for a manager of the team, `error.team_options_url`; do not retry. A `503` signals a transient backend failure: retry.",
+    "termsOfService": "https://www.nolio.io/en/api-terms/",
+    "contact": {
+      "name": "Nolio API Support",
+      "email": "contact@nolio.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://www.nolio.io",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/api/v2/planned/trainings/": {
+      "get": {
+        "operationId": "planned_trainings_list",
+        "description": "**This list does NOT contain competitions.** A planned race is its own resource: list it on `/planned/competitions/`. Read both to cover an athlete's whole planned calendar: reading this one alone silently misses every race, including the season goal a plan is built around.\n\nReturns the planned trainings of the authenticated athlete's calendar, newest first (`date_start` desc). Keyset pagination via `limit` + `starting_after` + `has_more`.\n\n**Gotchas:**\n- Events planned beyond the coach-defined visibility fence are hidden (except those you created yourself).\n- The hidden parent row of a workout planned one-per-athlete never appears. You only see your own copy.\n- The legs of a multi-sport training are not listed, as on the web calendar (listing them would double-count duration and load); they stay retrievable by id.\nIds are opaque prefixed strings (`ptrn_…`). Planned competitions are a separate resource (`pcmp_…`): a planned competition is NEVER addressable here.\n\nWhen you update or delete a **managed athlete's** event, the write additionally passes that athlete's own edit-permission checks: a **403** can arise even for an individual event (for example when the athlete has disabled coach editing). An event targeting several athletes at once stays read-only (403).\n\n**Audience.** An individual event lists its athletes in `athletes` (`group` null); a group event names its group in `group` (`athletes` empty). A create names the audience in the body: `athletes` (one or several athletes you coach) or `group` (a group you manage), none for yourself. `?athlete=usr_…` and `?group=grp_…` only locate an existing event to read, update or delete: on a create they are a 400. An athlete who merely belongs to the group reads its events but never writes them (**403**). Events planned one-per-athlete from a group are served as the individual events they are; their hidden parent row is never addressable.\n\n**One representation.** A detail serves exactly the fields a write takes, plus read-only ones (`id`, `revision`, `summary`, `load`, `time_in_zones`, `has_structured_workout`). Send a read back without those read-only fields: any other value equal to the one served changes nothing, so an unchanged total stays derived from the workout. A read-only field in a body is a 400 `read_only_field` naming it. Quantities are `{value, unit}`: on read `duration` in `s`, `distance` in `km`, `elevation_gain` and `elevation_loss` in `m`; on write `s|min|h`, `m|km|mi`, `m|ft`. Workout nodes follow the same units. `workout` is the structured content, null without one (detail only: a list row carries `has_structured_workout`); on write it replaces the whole content, keeping the `id` of every node you keep. On a create, null and [] mean \"not set\", so a read posted back, read-only fields removed, creates a copy.\n\n**Structured workout.** `workout` is an ordered list of nodes: `step`, `repeat`, `exercise`, `superset`, `emom`, `for_time`, `amrap`. A step carries one or two targets: a zone, a percentage of a metric (`metric` + `percent`), a raw value (`raw`, e.g. a `\"5:15\"` pace with unit `\"/km\"`), an RPE or an RIR. Full schema on the `workout` field (in a request body, under *Show additional properties*).\n\n`description` is plain text both ways: send plain text, read plain text (newlines kept). The web stores it as HTML, so formatting typed there (bold, links, images) is flattened on read; writing back the text you just read leaves that stored formatting untouched.\nErrors use the standard `{\"error\": {...}}` envelope (see ApiError).\n\n**Recurrence:** Each event carries its recurrence rule and opaque rcr_... id, or null.",
+        "summary": "List planned trainings",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "athlete",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Coach access: the public id (usr_…) of a managed athlete to target instead of yourself. Omit to target your own data. Acting on an athlete you do not manage returns 403. A former athlete (listed under `team/teams/{id}/archives/`) is not managed: their data answers 403 too, past included, unlike the web archive view. An athlete can also close the API on their own data: they stay listed by `me/athletes/` with `has_api_access: false`, and every call naming them answers 403 `athlete_api_access_denied`.",
+            "examples": {
+              "Athlete": {
+                "value": "usr_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Only planned trainings with `date_start` >= this date (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Only planned trainings with `date_start` <= this date (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "fields",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated response fields (for example id,date_start,duration). Omit for the full response. Unknown names and empty selections return 400. A second-level name (rpe, or debrief.rpe) selects its whole parent object. id is always included for pagination; source and restriction are also kept when the resource exposes them."
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group access: the public id (grp_…) of a group you manage, to target the events carried by that group instead of one person's. Never combine it with `athlete` (400): a group event belongs to the group, an individual one to the athlete. Serves the group's own events only, not the individual events of its members. A group you do not manage returns 404.",
+            "examples": {
+              "Group": {
+                "value": "grp_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Page size (default 10, max 100). Must be >= 1.",
+            "examples": {
+              "PageOf25": {
+                "value": 25,
+                "summary": "Page of 25"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "recurrence",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter this collection by its recurrence id (rcr_...). Visibility still applies."
+          },
+          {
+            "in": "query",
+            "name": "starting_after",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque id of the last object of the previous page; the next page starts strictly after it. Combine with `has_more` to walk the full collection.",
+            "examples": {
+              "Cursor": {
+                "value": "trn_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_in_zones",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `time_in_zones` on every row of the page (seconds per intensity zone, one entry per stream). Omitted, the field is null on a list, because the breakdown is heavy and most listings do not need it. A single training retrieved by id always carries it.",
+            "examples": {
+              "WithZones": {
+                "value": true,
+                "summary": "With zones"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "with_revision",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `revision` on every row of the page: the handle an update of the structured content must echo (`If-Match`, or `?revision=`). Omitted, the field is null on a list, because the value hashes the whole structured tree. A single row retrieved by id always carries it. Listing with it is what lets one read feed a whole batch of updates.",
+            "examples": {
+              "WithRevision": {
+                "value": true,
+                "summary": "With revision"
+              }
+            }
+          },
+          {
+            "name": "with_description_html",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `description_html`, the stored description in HTML. Omitted, the field is null, on a list as on a single object. Read it before changing a description that is already set: plain text is refused there."
+          }
+        ],
+        "tags": [
+          "Planned: Trainings"
+        ],
+        "security": [
+          {
+            "pat": []
+          },
+          {
+            "oauth2": [
+              "planned:read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PlannedTrainingSelectedFields"
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "has_more"
+                  ]
+                }
+              }
+            },
+            "description": "One page of planned trainings.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "BusinessRule": {
+                    "value": {
+                      "error": {
+                        "code": "bad_request",
+                        "message": "Training does not exist"
+                      }
+                    },
+                    "summary": "Business rule"
+                  },
+                  "FieldValidation": {
+                    "value": {
+                      "error": {
+                        "code": "validation_error",
+                        "message": "Invalid request.",
+                        "fields": {
+                          "from": [
+                            "from parameter not valid, date format is YYYY-MM-DD"
+                          ]
+                        }
+                      }
+                    },
+                    "summary": "Field validation"
+                  }
+                }
+              }
+            },
+            "description": "Validation or business-rule failure. Field validation carries a per-field `error.fields` map; a business-rule failure carries only `error.code` + `error.message`.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Forbidden": {
+                    "value": {
+                      "error": {
+                        "code": "permission_denied",
+                        "message": "You do not have permission to perform this action."
+                      }
+                    }
+                  },
+                  "MissingScope": {
+                    "value": {
+                      "error": {
+                        "code": "missing_scope",
+                        "message": "missing scope",
+                        "scopes": [
+                          "real:read"
+                        ]
+                      }
+                    },
+                    "summary": "Missing scope"
+                  },
+                  "AthleteClosedTheAPI": {
+                    "value": {
+                      "error": {
+                        "code": "athlete_api_access_denied",
+                        "message": "This athlete has turned off API access to their data.",
+                        "athlete_name": "Jane Doe"
+                      }
+                    },
+                    "summary": "Athlete closed the API"
+                  },
+                  "BlockedByTheTeamOptions": {
+                    "value": {
+                      "error": {
+                        "code": "team_scope_forbidden",
+                        "scopes": [
+                          "planned:write"
+                        ],
+                        "team_name": "Club",
+                        "team_options_url": "https://www.nolio.io/team/12/manage/?options=api",
+                        "message": "Blocked by the options of the athlete's team: its coaches may not use planned:write on the athletes of this team through the API or the MCP. This option only applies to teams with several coaches. As a manager of the team, you can allow it in \"Options\" > \"API et MCP\" on the team page: https://www.nolio.io/team/12/manage/?options=api"
+                      }
+                    },
+                    "summary": "Blocked by the team options"
+                  }
+                }
+              }
+            },
+            "description": "Authentication or permission failure: missing, invalid or expired OAuth2 bearer token, insufficient scope for the requested operation, an athlete who turned off API access (`athlete_api_access_denied`), a team option that forbids the scope to its coaches (`team_scope_forbidden`), or the planning rules of the web app: an athlete without premium plans only when their coach allows it, and applies, reapplies or removes only the plans they bought.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Throttled": {
+                    "value": {
+                      "error": {
+                        "code": "throttled",
+                        "message": "Request was throttled. Expected available in 3600 seconds."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Rate limit exceeded (per-hour and per-day quotas; the records endpoint adds a 20 req/min cap). Honor the `Retry-After` response header (seconds) before retrying.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/planned/trainings/{id}/": {
+      "get": {
+        "operationId": "planned_trainings_retrieve",
+        "description": "Returns one planned training by its opaque id.\nIds are opaque prefixed strings (`ptrn_…`). Planned competitions are a separate resource (`pcmp_…`): a planned competition is NEVER addressable here.\n\nWhen you update or delete a **managed athlete's** event, the write additionally passes that athlete's own edit-permission checks: a **403** can arise even for an individual event (for example when the athlete has disabled coach editing). An event targeting several athletes at once stays read-only (403).\n\n**Audience.** An individual event lists its athletes in `athletes` (`group` null); a group event names its group in `group` (`athletes` empty). A create names the audience in the body: `athletes` (one or several athletes you coach) or `group` (a group you manage), none for yourself. `?athlete=usr_…` and `?group=grp_…` only locate an existing event to read, update or delete: on a create they are a 400. An athlete who merely belongs to the group reads its events but never writes them (**403**). Events planned one-per-athlete from a group are served as the individual events they are; their hidden parent row is never addressable.\n\n**One representation.** A detail serves exactly the fields a write takes, plus read-only ones (`id`, `revision`, `summary`, `load`, `time_in_zones`, `has_structured_workout`). Send a read back without those read-only fields: any other value equal to the one served changes nothing, so an unchanged total stays derived from the workout. A read-only field in a body is a 400 `read_only_field` naming it. Quantities are `{value, unit}`: on read `duration` in `s`, `distance` in `km`, `elevation_gain` and `elevation_loss` in `m`; on write `s|min|h`, `m|km|mi`, `m|ft`. Workout nodes follow the same units. `workout` is the structured content, null without one (detail only: a list row carries `has_structured_workout`); on write it replaces the whole content, keeping the `id` of every node you keep. On a create, null and [] mean \"not set\", so a read posted back, read-only fields removed, creates a copy.\n\n**Structured workout.** `workout` is an ordered list of nodes: `step`, `repeat`, `exercise`, `superset`, `emom`, `for_time`, `amrap`. A step carries one or two targets: a zone, a percentage of a metric (`metric` + `percent`), a raw value (`raw`, e.g. a `\"5:15\"` pace with unit `\"/km\"`), an RPE or an RIR. Full schema on the `workout` field (in a request body, under *Show additional properties*).\n\n`description` is plain text both ways: send plain text, read plain text (newlines kept). The web stores it as HTML, so formatting typed there (bold, links, images) is flattened on read; writing back the text you just read leaves that stored formatting untouched.\nErrors use the standard `{\"error\": {...}}` envelope (see ApiError).\n\n**Recurrence:** The recurrence field is null for a standalone event. A series remains local to this calendar or plan template.",
+        "summary": "Get a planned training",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "athlete",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Coach access: the public id (usr_…) of a managed athlete to target instead of yourself. Omit to target your own data. Acting on an athlete you do not manage returns 403. A former athlete (listed under `team/teams/{id}/archives/`) is not managed: their data answers 403 too, past included, unlike the web archive view. An athlete can also close the API on their own data: they stay listed by `me/athletes/` with `has_api_access: false`, and every call naming them answers 403 `athlete_api_access_denied`.",
+            "examples": {
+              "Athlete": {
+                "value": "usr_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group access: the public id (grp_…) of a group you manage, to target the events carried by that group instead of one person's. Never combine it with `athlete` (400): a group event belongs to the group, an individual one to the athlete. Serves the group's own events only, not the individual events of its members. A group you do not manage returns 404.",
+            "examples": {
+              "Group": {
+                "value": "grp_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "recurrence_action",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "following",
+                "one"
+              ],
+              "default": "one"
+            },
+            "description": "Occurrences concerned: one, this occurrence and those after it, or all. On GET, explicitly supplying this parameter returns recurrence_preview with their ids and count, and an MCP confirmation token for that selection."
+          },
+          {
+            "name": "with_description_html",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `description_html`, the stored description in HTML. Omitted, the field is null, on a list as on a single object. Read it before changing a description that is already set: plain text is refused there."
+          }
+        ],
+        "tags": [
+          "Planned: Trainings"
+        ],
+        "security": [
+          {
+            "pat": []
+          },
+          {
+            "oauth2": [
+              "planned:read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedTraining"
+                },
+                "examples": {
+                  "PlannedTraining": {
+                    "value": {
+                      "id": "ptrn_9aK2xQ7bLm4Fw",
+                      "athletes": [
+                        "usr_R7hVe2Kd1Ns8Pq"
+                      ],
+                      "group": null,
+                      "date_start": "2026-08-15",
+                      "time": "10:00",
+                      "moment": null,
+                      "recurrence": null,
+                      "name": "Threshold intervals 4x8min",
+                      "sport": "spt_o9Qqbid1vRktj",
+                      "description": "Stay seated on the climbs.",
+                      "duration": {
+                        "value": 4500,
+                        "unit": "s"
+                      },
+                      "distance": {
+                        "value": 10,
+                        "unit": "km"
+                      },
+                      "elevation_gain": null,
+                      "elevation_loss": null,
+                      "tonnage": null,
+                      "rpe": 7,
+                      "show_rpe": false,
+                      "color": null,
+                      "tags": [
+                        "tag_R7hVe2Kd1Ns8Pq"
+                      ],
+                      "workout": null,
+                      "has_structured_workout": false,
+                      "summary": null,
+                      "revision": "rev_3f9a1c2b7d4e5f60"
+                    },
+                    "summary": "Planned training"
+                  }
+                }
+              }
+            },
+            "description": "The planned training.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "BusinessRule": {
+                    "value": {
+                      "error": {
+                        "code": "bad_request",
+                        "message": "Training does not exist"
+                      }
+                    },
+                    "summary": "Business rule"
+                  },
+                  "FieldValidation": {
+                    "value": {
+                      "error": {
+                        "code": "validation_error",
+                        "message": "Invalid request.",
+                        "fields": {
+                          "from": [
+                            "from parameter not valid, date format is YYYY-MM-DD"
+                          ]
+                        }
+                      }
+                    },
+                    "summary": "Field validation"
+                  }
+                }
+              }
+            },
+            "description": "Validation or business-rule failure. Field validation carries a per-field `error.fields` map; a business-rule failure carries only `error.code` + `error.message`.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Forbidden": {
+                    "value": {
+                      "error": {
+                        "code": "permission_denied",
+                        "message": "You do not have permission to perform this action."
+                      }
+                    }
+                  },
+                  "MissingScope": {
+                    "value": {
+                      "error": {
+                        "code": "missing_scope",
+                        "message": "missing scope",
+                        "scopes": [
+                          "real:read"
+                        ]
+                      }
+                    },
+                    "summary": "Missing scope"
+                  },
+                  "AthleteClosedTheAPI": {
+                    "value": {
+                      "error": {
+                        "code": "athlete_api_access_denied",
+                        "message": "This athlete has turned off API access to their data.",
+                        "athlete_name": "Jane Doe"
+                      }
+                    },
+                    "summary": "Athlete closed the API"
+                  },
+                  "BlockedByTheTeamOptions": {
+                    "value": {
+                      "error": {
+                        "code": "team_scope_forbidden",
+                        "scopes": [
+                          "planned:write"
+                        ],
+                        "team_name": "Club",
+                        "team_options_url": "https://www.nolio.io/team/12/manage/?options=api",
+                        "message": "Blocked by the options of the athlete's team: its coaches may not use planned:write on the athletes of this team through the API or the MCP. This option only applies to teams with several coaches. As a manager of the team, you can allow it in \"Options\" > \"API et MCP\" on the team page: https://www.nolio.io/team/12/manage/?options=api"
+                      }
+                    },
+                    "summary": "Blocked by the team options"
+                  }
+                }
+              }
+            },
+            "description": "Authentication or permission failure: missing, invalid or expired OAuth2 bearer token, insufficient scope for the requested operation, an athlete who turned off API access (`athlete_api_access_denied`), a team option that forbids the scope to its coaches (`team_scope_forbidden`), or the planning rules of the web app: an athlete without premium plans only when their coach allows it, and applies, reapplies or removes only the plans they bought.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "NotFound": {
+                    "value": {
+                      "error": {
+                        "code": "not_found",
+                        "message": "Not found."
+                      }
+                    },
+                    "summary": "Not found"
+                  }
+                }
+              }
+            },
+            "description": "Not found: malformed or unknown id, id of another resource type, or an object you cannot see. Existence never leaks. An invisible object is a 404, not a 403.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Throttled": {
+                    "value": {
+                      "error": {
+                        "code": "throttled",
+                        "message": "Request was throttled. Expected available in 3600 seconds."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Rate limit exceeded (per-hour and per-day quotas; the records endpoint adds a 20 req/min cap). Honor the `Retry-After` response header (seconds) before retrying.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/planned/competitions/": {
+      "get": {
+        "operationId": "planned_competitions_list",
+        "description": "Returns the planned competitions of the authenticated athlete's calendar, newest first (`date_start` desc). Keyset pagination via `limit` + `starting_after` + `has_more`.\n\n**Gotchas:**\n- Competitions stay visible even beyond the coach-defined visibility fence (they anchor the athlete's season).\n- The legs of a multi-sport competition are not listed, as on the web calendar; they stay retrievable by id.\nIds are opaque prefixed strings (`pcmp_…`). Plain planned trainings are a separate resource (`ptrn_…`): a planned training is NEVER addressable here. A planned competition is the mirror of a planned training, plus `event`, `location` and `goal_type`, for one athlete.\n\nWhen you update or delete a **managed athlete's** event, the write additionally passes that athlete's own edit-permission checks: a **403** can arise even for an individual event (for example when the athlete has disabled coach editing). An event targeting several athletes at once stays read-only (403).\n\n**Audiences.** A planned event targets either athletes (`athletes`, `group` null), or a whole group (`group` names it, `athletes` empty). Reads and edits follow: your own events, a managed athlete's with `?athlete=usr_…`, a managed group's with `?group=grp_…`. **These parameters read and edit, they never create** (400): a creation names its audience in the body, `athletes` for a managed athlete or `group` for a group you manage (a group you do not manage is a 400 listing yours), none for yourself. `athletes` takes one athlete, except on a planned training, which accepts several at once. An athlete who merely belongs to the group reads its events but never writes them (**403**). Events that a coach planned one-per-athlete from a group are served as the individual events they are; their hidden parent row is never addressable.\n\n**One representation.** A detail serves exactly the fields a write takes, plus read-only ones (`id`, `revision`, `summary`, `load`, `time_in_zones`, `has_structured_workout`). Send a read back without those read-only fields: any other value equal to the one served changes nothing, so an unchanged total stays derived from the workout. A read-only field in a body is a 400 `read_only_field` naming it. Quantities are `{value, unit}`: on read `duration` in `s`, `distance` in `km`, `elevation_gain` and `elevation_loss` in `m`; on write `s|min|h`, `m|km|mi`, `m|ft`. Workout nodes follow the same units. `workout` is the structured content, null without one (detail only: a list row carries `has_structured_workout`); on write it replaces the whole content, keeping the `id` of every node you keep. On a create, null and [] mean \"not set\", so a read posted back, read-only fields removed, creates a copy.\n\n**Structured workout.** `workout` is an ordered list of nodes: `step`, `repeat`, `exercise`, `superset`, `emom`, `for_time`, `amrap`. A step carries one or two targets: a zone, a percentage of a metric (`metric` + `percent`), a raw value (`raw`, e.g. a `\"5:15\"` pace with unit `\"/km\"`), an RPE or an RIR. Full schema on the `workout` field (in a request body, under *Show additional properties*).\n\n`description` is plain text both ways: send plain text, read plain text (newlines kept). The web stores it as HTML, so formatting typed there (bold, links, images) is flattened on read; writing back the text you just read leaves that stored formatting untouched.\nErrors use the standard `{\"error\": {...}}` envelope (see ApiError).\n\n**Recurrence:** Each event carries its recurrence rule and opaque rcr_... id, or null.",
+        "summary": "List planned competitions",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "athlete",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Coach access: the public id (usr_…) of a managed athlete to target instead of yourself. Omit to target your own data. Acting on an athlete you do not manage returns 403. A former athlete (listed under `team/teams/{id}/archives/`) is not managed: their data answers 403 too, past included, unlike the web archive view. An athlete can also close the API on their own data: they stay listed by `me/athletes/` with `has_api_access: false`, and every call naming them answers 403 `athlete_api_access_denied`.",
+            "examples": {
+              "Athlete": {
+                "value": "usr_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Only planned competitions with `date_start` >= this date (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Only planned competitions with `date_start` <= this date (YYYY-MM-DD)."
+          },
+          {
+            "in": "query",
+            "name": "fields",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Comma-separated response fields (for example id,date_start,duration). Omit for the full response. Unknown names and empty selections return 400. A second-level name (rpe, or debrief.rpe) selects its whole parent object. id is always included for pagination; source and restriction are also kept when the resource exposes them."
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group access: the public id (grp_…) of a group you manage, to target the events carried by that group instead of one person's. Never combine it with `athlete` (400): a group event belongs to the group, an individual one to the athlete. Serves the group's own events only, not the individual events of its members. A group you do not manage returns 404.",
+            "examples": {
+              "Group": {
+                "value": "grp_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Page size (default 10, max 100). Must be >= 1.",
+            "examples": {
+              "PageOf25": {
+                "value": 25,
+                "summary": "Page of 25"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "recurrence",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter this collection by its recurrence id (rcr_...). Visibility still applies."
+          },
+          {
+            "in": "query",
+            "name": "starting_after",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Opaque id of the last object of the previous page; the next page starts strictly after it. Combine with `has_more` to walk the full collection.",
+            "examples": {
+              "Cursor": {
+                "value": "trn_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "time_in_zones",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `time_in_zones` on every row of the page (seconds per intensity zone, one entry per stream). Omitted, the field is null on a list, because the breakdown is heavy and most listings do not need it. A single training retrieved by id always carries it.",
+            "examples": {
+              "WithZones": {
+                "value": true,
+                "summary": "With zones"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "with_revision",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `revision` on every row of the page: the handle an update of the structured content must echo (`If-Match`, or `?revision=`). Omitted, the field is null on a list, because the value hashes the whole structured tree. A single row retrieved by id always carries it. Listing with it is what lets one read feed a whole batch of updates.",
+            "examples": {
+              "WithRevision": {
+                "value": true,
+                "summary": "With revision"
+              }
+            }
+          },
+          {
+            "name": "with_description_html",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `description_html`, the stored description in HTML. Omitted, the field is null, on a list as on a single object. Read it before changing a description that is already set: plain text is refused there."
+          }
+        ],
+        "tags": [
+          "Planned: Competitions"
+        ],
+        "security": [
+          {
+            "pat": []
+          },
+          {
+            "oauth2": [
+              "planned:read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PlannedCompetitionSelectedFields"
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "has_more"
+                  ]
+                }
+              }
+            },
+            "description": "One page of planned competitions.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "BusinessRule": {
+                    "value": {
+                      "error": {
+                        "code": "bad_request",
+                        "message": "Training does not exist"
+                      }
+                    },
+                    "summary": "Business rule"
+                  },
+                  "FieldValidation": {
+                    "value": {
+                      "error": {
+                        "code": "validation_error",
+                        "message": "Invalid request.",
+                        "fields": {
+                          "from": [
+                            "from parameter not valid, date format is YYYY-MM-DD"
+                          ]
+                        }
+                      }
+                    },
+                    "summary": "Field validation"
+                  }
+                }
+              }
+            },
+            "description": "Validation or business-rule failure. Field validation carries a per-field `error.fields` map; a business-rule failure carries only `error.code` + `error.message`.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Forbidden": {
+                    "value": {
+                      "error": {
+                        "code": "permission_denied",
+                        "message": "You do not have permission to perform this action."
+                      }
+                    }
+                  },
+                  "MissingScope": {
+                    "value": {
+                      "error": {
+                        "code": "missing_scope",
+                        "message": "missing scope",
+                        "scopes": [
+                          "real:read"
+                        ]
+                      }
+                    },
+                    "summary": "Missing scope"
+                  },
+                  "AthleteClosedTheAPI": {
+                    "value": {
+                      "error": {
+                        "code": "athlete_api_access_denied",
+                        "message": "This athlete has turned off API access to their data.",
+                        "athlete_name": "Jane Doe"
+                      }
+                    },
+                    "summary": "Athlete closed the API"
+                  },
+                  "BlockedByTheTeamOptions": {
+                    "value": {
+                      "error": {
+                        "code": "team_scope_forbidden",
+                        "scopes": [
+                          "planned:write"
+                        ],
+                        "team_name": "Club",
+                        "team_options_url": "https://www.nolio.io/team/12/manage/?options=api",
+                        "message": "Blocked by the options of the athlete's team: its coaches may not use planned:write on the athletes of this team through the API or the MCP. This option only applies to teams with several coaches. As a manager of the team, you can allow it in \"Options\" > \"API et MCP\" on the team page: https://www.nolio.io/team/12/manage/?options=api"
+                      }
+                    },
+                    "summary": "Blocked by the team options"
+                  }
+                }
+              }
+            },
+            "description": "Authentication or permission failure: missing, invalid or expired OAuth2 bearer token, insufficient scope for the requested operation, an athlete who turned off API access (`athlete_api_access_denied`), a team option that forbids the scope to its coaches (`team_scope_forbidden`), or the planning rules of the web app: an athlete without premium plans only when their coach allows it, and applies, reapplies or removes only the plans they bought.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Throttled": {
+                    "value": {
+                      "error": {
+                        "code": "throttled",
+                        "message": "Request was throttled. Expected available in 3600 seconds."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Rate limit exceeded (per-hour and per-day quotas; the records endpoint adds a 20 req/min cap). Honor the `Retry-After` response header (seconds) before retrying.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/planned/competitions/{id}/": {
+      "get": {
+        "operationId": "planned_competitions_retrieve",
+        "description": "Returns one planned competition by its opaque id.\nIds are opaque prefixed strings (`pcmp_…`). Plain planned trainings are a separate resource (`ptrn_…`): a planned training is NEVER addressable here. A planned competition is the mirror of a planned training, plus `event`, `location` and `goal_type`, for one athlete.\n\nWhen you update or delete a **managed athlete's** event, the write additionally passes that athlete's own edit-permission checks: a **403** can arise even for an individual event (for example when the athlete has disabled coach editing). An event targeting several athletes at once stays read-only (403).\n\n**Audiences.** A planned event targets either athletes (`athletes`, `group` null), or a whole group (`group` names it, `athletes` empty). Reads and edits follow: your own events, a managed athlete's with `?athlete=usr_…`, a managed group's with `?group=grp_…`. **These parameters read and edit, they never create** (400): a creation names its audience in the body, `athletes` for a managed athlete or `group` for a group you manage (a group you do not manage is a 400 listing yours), none for yourself. `athletes` takes one athlete, except on a planned training, which accepts several at once. An athlete who merely belongs to the group reads its events but never writes them (**403**). Events that a coach planned one-per-athlete from a group are served as the individual events they are; their hidden parent row is never addressable.\n\n**One representation.** A detail serves exactly the fields a write takes, plus read-only ones (`id`, `revision`, `summary`, `load`, `time_in_zones`, `has_structured_workout`). Send a read back without those read-only fields: any other value equal to the one served changes nothing, so an unchanged total stays derived from the workout. A read-only field in a body is a 400 `read_only_field` naming it. Quantities are `{value, unit}`: on read `duration` in `s`, `distance` in `km`, `elevation_gain` and `elevation_loss` in `m`; on write `s|min|h`, `m|km|mi`, `m|ft`. Workout nodes follow the same units. `workout` is the structured content, null without one (detail only: a list row carries `has_structured_workout`); on write it replaces the whole content, keeping the `id` of every node you keep. On a create, null and [] mean \"not set\", so a read posted back, read-only fields removed, creates a copy.\n\n**Structured workout.** `workout` is an ordered list of nodes: `step`, `repeat`, `exercise`, `superset`, `emom`, `for_time`, `amrap`. A step carries one or two targets: a zone, a percentage of a metric (`metric` + `percent`), a raw value (`raw`, e.g. a `\"5:15\"` pace with unit `\"/km\"`), an RPE or an RIR. Full schema on the `workout` field (in a request body, under *Show additional properties*).\n\n`description` is plain text both ways: send plain text, read plain text (newlines kept). The web stores it as HTML, so formatting typed there (bold, links, images) is flattened on read; writing back the text you just read leaves that stored formatting untouched.\nErrors use the standard `{\"error\": {...}}` envelope (see ApiError).\n\n**Recurrence:** The recurrence field is null for a standalone event. A series remains local to this calendar or plan template.",
+        "summary": "Get a planned competition",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "athlete",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Coach access: the public id (usr_…) of a managed athlete to target instead of yourself. Omit to target your own data. Acting on an athlete you do not manage returns 403. A former athlete (listed under `team/teams/{id}/archives/`) is not managed: their data answers 403 too, past included, unlike the web archive view. An athlete can also close the API on their own data: they stay listed by `me/athletes/` with `has_api_access: false`, and every call naming them answers 403 `athlete_api_access_denied`.",
+            "examples": {
+              "Athlete": {
+                "value": "usr_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "group",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Group access: the public id (grp_…) of a group you manage, to target the events carried by that group instead of one person's. Never combine it with `athlete` (400): a group event belongs to the group, an individual one to the athlete. Serves the group's own events only, not the individual events of its members. A group you do not manage returns 404.",
+            "examples": {
+              "Group": {
+                "value": "grp_9aK2xQ7bLm4Fw"
+              }
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "recurrence_action",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "following",
+                "one"
+              ],
+              "default": "one"
+            },
+            "description": "Occurrences concerned: one, this occurrence and those after it, or all. On GET, explicitly supplying this parameter returns recurrence_preview with their ids and count, and an MCP confirmation token for that selection."
+          },
+          {
+            "name": "with_description_html",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Set to `true` to serve `description_html`, the stored description in HTML. Omitted, the field is null, on a list as on a single object. Read it before changing a description that is already set: plain text is refused there."
+          }
+        ],
+        "tags": [
+          "Planned: Competitions"
+        ],
+        "security": [
+          {
+            "pat": []
+          },
+          {
+            "oauth2": [
+              "planned:read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedCompetition"
+                },
+                "examples": {
+                  "PlannedCompetition": {
+                    "value": {
+                      "id": "pcmp_9aK2xQ7bLm4Fw",
+                      "athletes": [
+                        "usr_R7hVe2Kd1Ns8Pq"
+                      ],
+                      "group": null,
+                      "date_start": "2026-10-04",
+                      "time": "09:00",
+                      "moment": null,
+                      "recurrence": null,
+                      "name": "Marathon of the city",
+                      "sport": "spt_o9Qqbid1vRktj",
+                      "description": "Goal race of the season.",
+                      "duration": null,
+                      "distance": {
+                        "value": 42.195,
+                        "unit": "km"
+                      },
+                      "elevation_gain": null,
+                      "elevation_loss": null,
+                      "tonnage": null,
+                      "rpe": null,
+                      "show_rpe": false,
+                      "color": null,
+                      "tags": [
+                        "tag_R7hVe2Kd1Ns8Pq"
+                      ],
+                      "event": "City Marathon",
+                      "location": "Lyon",
+                      "goal_type": "a",
+                      "workout": null,
+                      "has_structured_workout": false,
+                      "summary": null,
+                      "revision": "rev_3f9a1c2b7d4e5f60"
+                    },
+                    "summary": "Planned competition"
+                  }
+                }
+              }
+            },
+            "description": "The planned competition.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "BusinessRule": {
+                    "value": {
+                      "error": {
+                        "code": "bad_request",
+                        "message": "Training does not exist"
+                      }
+                    },
+                    "summary": "Business rule"
+                  },
+                  "FieldValidation": {
+                    "value": {
+                      "error": {
+                        "code": "validation_error",
+                        "message": "Invalid request.",
+                        "fields": {
+                          "from": [
+                            "from parameter not valid, date format is YYYY-MM-DD"
+                          ]
+                        }
+                      }
+                    },
+                    "summary": "Field validation"
+                  }
+                }
+              }
+            },
+            "description": "Validation or business-rule failure. Field validation carries a per-field `error.fields` map; a business-rule failure carries only `error.code` + `error.message`.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Forbidden": {
+                    "value": {
+                      "error": {
+                        "code": "permission_denied",
+                        "message": "You do not have permission to perform this action."
+                      }
+                    }
+                  },
+                  "MissingScope": {
+                    "value": {
+                      "error": {
+                        "code": "missing_scope",
+                        "message": "missing scope",
+                        "scopes": [
+                          "real:read"
+                        ]
+                      }
+                    },
+                    "summary": "Missing scope"
+                  },
+                  "AthleteClosedTheAPI": {
+                    "value": {
+                      "error": {
+                        "code": "athlete_api_access_denied",
+                        "message": "This athlete has turned off API access to their data.",
+                        "athlete_name": "Jane Doe"
+                      }
+                    },
+                    "summary": "Athlete closed the API"
+                  },
+                  "BlockedByTheTeamOptions": {
+                    "value": {
+                      "error": {
+                        "code": "team_scope_forbidden",
+                        "scopes": [
+                          "planned:write"
+                        ],
+                        "team_name": "Club",
+                        "team_options_url": "https://www.nolio.io/team/12/manage/?options=api",
+                        "message": "Blocked by the options of the athlete's team: its coaches may not use planned:write on the athletes of this team through the API or the MCP. This option only applies to teams with several coaches. As a manager of the team, you can allow it in \"Options\" > \"API et MCP\" on the team page: https://www.nolio.io/team/12/manage/?options=api"
+                      }
+                    },
+                    "summary": "Blocked by the team options"
+                  }
+                }
+              }
+            },
+            "description": "Authentication or permission failure: missing, invalid or expired OAuth2 bearer token, insufficient scope for the requested operation, an athlete who turned off API access (`athlete_api_access_denied`), a team option that forbids the scope to its coaches (`team_scope_forbidden`), or the planning rules of the web app: an athlete without premium plans only when their coach allows it, and applies, reapplies or removes only the plans they bought.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "NotFound": {
+                    "value": {
+                      "error": {
+                        "code": "not_found",
+                        "message": "Not found."
+                      }
+                    },
+                    "summary": "Not found"
+                  }
+                }
+              }
+            },
+            "description": "Not found: malformed or unknown id, id of another resource type, or an object you cannot see. Existence never leaks. An invisible object is a 404, not a 403.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "examples": {
+                  "Throttled": {
+                    "value": {
+                      "error": {
+                        "code": "throttled",
+                        "message": "Request was throttled. Expected available in 3600 seconds."
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "description": "Rate limit exceeded (per-hour and per-day quotas; the records endpoint adds a 20 req/min cap). Honor the `Retry-After` response header (seconds) before retrying.",
+            "headers": {
+              "X-RateLimit-Limit-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Hour": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Limit-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "X-RateLimit-Remaining-Day": {
+                "description": "Current application quota for this window.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "oauth2": {
+        "type": "oauth2",
+        "description": "OAuth2 is available for partner applications only. Personal applications use a Personal Access Token.",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "/api/authorize/",
+            "tokenUrl": "/api/token/",
+            "scopes": {
+              "real:read": "Read the realized calendar (workouts, competitions, notes)",
+              "real:write": "Create and update realized workouts, competitions and notes",
+              "real:delete": "Delete realized workouts, competitions and notes",
+              "planned:read": "Read the planned calendar (planned workouts, competitions, notes)",
+              "planned:write": "Create and update planned workouts, competitions and notes",
+              "planned:delete": "Delete planned items",
+              "metrics:read": "Read metrics, records and HRV data",
+              "metrics:write": "Create and update metrics",
+              "metrics:delete": "Delete metrics",
+              "messaging:read": "Read conversations and messages",
+              "messaging:write": "Send messages",
+              "messaging:delete": "Delete messages",
+              "library:read": "Read the template library (workouts, plans, exercises)",
+              "library:write": "Create and update templates",
+              "library:delete": "Delete templates",
+              "settings:read": "Read profile, zones, sports and connectors",
+              "settings:write": "Update profile, zones, sports and connectors",
+              "settings:delete": "Delete settings (zones, tags…)",
+              "team:read": "Read teams, groups and athletes",
+              "team:write": "Manage teams, groups and invitations",
+              "team:delete": "Remove members or delete groups",
+              "marketplace:read": "Read your storefront and plan sales",
+              "marketplace:write": "Manage your storefront and plans for sale",
+              "marketplace:delete": "Remove plans from sale",
+              "billing:read": "Read your Nolio subscriptions and invoices",
+              "app:manage": "Create, read back and revoke API keys (Personal Access Tokens) on your own developer app"
+            }
+          }
+        }
+      },
+      "pat": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Personal Access Token: send `Authorization: Bearer nolio_sk_…`. Required for personal applications. Acts as the token owner (self-access); the app's granted scopes apply."
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ApiErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Machine-readable code, e.g. validation_error, not_found, conflict."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable message."
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Per-field validation messages, present on validation_error only."
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Scopes at stake: missing on missing_scope, forbidden by the team on team_scope_forbidden."
+          },
+          "windows": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Record catalog to pick from, present on unknown_record_window only."
+          },
+          "team_name": {
+            "type": "string",
+            "description": "Name of the athlete's team whose options refused the scope, present on team_scope_forbidden only."
+          },
+          "athlete_name": {
+            "type": "string",
+            "description": "Display name of the athlete who turned off API access, present on athlete_api_access_denied only."
+          },
+          "team_options_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where a manager of that team can allow the scope (Options d'équipe > API et MCP); present on team_scope_forbidden only when the caller manages the team."
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "CogganSourceEnum": {
+        "enum": [
+          "manual",
+          "workout",
+          "power",
+          "pace",
+          "heart_rate",
+          "rpe"
+        ],
+        "type": "string"
+      },
+      "FrequencyEnum": {
+        "enum": [
+          "daily",
+          "weekly",
+          "monthly"
+        ],
+        "type": "string"
+      },
+      "NullEnum": {
+        "type": "null"
+      },
+      "PlannedCompetition": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Race or event name."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Where the race takes place."
+          },
+          "goal_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "`a` = main goal (gold trophy), `b` = secondary goal (silver trophy), null otherwise."
+          },
+          "recurrence_result": {
+            "$ref": "#/components/schemas/RecurrenceResult"
+          },
+          "recurrence_preview": {
+            "$ref": "#/components/schemas/RecurrencePreview"
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "sport": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Sport catalog id (`spt_…`)."
+          },
+          "description": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Free text shown above the workout."
+          },
+          "description_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The description as stored, in HTML, without the structured workout. Null unless `?with_description_html=true` is passed. To change a description that is already set, send it back edited here: plain text is refused once a description exists."
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Seconds on read; s, min or h on write.",
+            "example": {
+              "value": 3600,
+              "unit": "s"
+            },
+            "readOnly": true
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilometers on read; m, km or mi on write.",
+            "example": {
+              "value": 12.5,
+              "unit": "km"
+            },
+            "readOnly": true
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "tonnage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilograms on read; kg or lbs on write.",
+            "example": {
+              "value": 4250,
+              "unit": "kg"
+            },
+            "readOnly": true
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 10,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Planned RPE, 1-10, null when unset."
+          },
+          "show_rpe": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The athlete sees the planned RPE. False: coach only."
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Coggan load (TSS) set by hand, overriding the computed one, null when the load is computed. Set it to pin the load, null to go back to the computed value; `load.coggan` serves the load in effect."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Custom hex color, null when the sport color applies."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Tag ids (`tag_…`)."
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "description": "Structured content (step, repeat, exercise, superset, emom, for_time, amrap nodes), null when the workout has none. Detail only: a list serves has_structured_workout instead.",
+            "readOnly": true
+          },
+          "has_structured_workout": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The event carries structured content (read `workout` on the detail)."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The workout as readable text, null without one. Detail only."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Optimistic-lock version of the whole event. Send it back as `If-Match` (or `?revision=`) on the update, and a change made in between answers 409 instead of being overwritten. Always present on a detail; on a list, pass `?with_revision=true`."
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Athlete ids (`usr_…`) of an individual event, empty for a group event."
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Group id (`grp_…`) of a group event, null otherwise."
+          },
+          "date_start": {
+            "type": "string",
+            "readOnly": true,
+            "description": "YYYY-MM-DD."
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Start time, HH:MM, null when unset. Never together with moment."
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Part of the day (morning, noon, afternoon, evening), null when unset. Never together with time."
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "load": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingLoad"
+              }
+            ],
+            "readOnly": true
+          },
+          "time_in_zones": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeInZones"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Seconds by intensity stream and zone. Streams without data are omitted, and zone seconds may not sum to the training duration. On a list this is null unless `?time_in_zones=true` is passed, a detail always carries it."
+          }
+        },
+        "required": [
+          "athletes",
+          "coggan_load",
+          "color",
+          "date_start",
+          "description",
+          "description_html",
+          "distance",
+          "duration",
+          "elevation_gain",
+          "elevation_loss",
+          "event",
+          "goal_type",
+          "group",
+          "has_structured_workout",
+          "id",
+          "load",
+          "location",
+          "moment",
+          "name",
+          "recurrence",
+          "revision",
+          "rpe",
+          "show_rpe",
+          "sport",
+          "summary",
+          "tags",
+          "time",
+          "time_in_zones",
+          "tonnage",
+          "workout"
+        ]
+      },
+      "PlannedCompetitionSelectedFields": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Race or event name."
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Where the race takes place."
+          },
+          "goal_type": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "`a` = main goal (gold trophy), `b` = secondary goal (silver trophy), null otherwise."
+          },
+          "recurrence_result": {
+            "$ref": "#/components/schemas/RecurrenceResult"
+          },
+          "recurrence_preview": {
+            "$ref": "#/components/schemas/RecurrencePreview"
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "sport": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Sport catalog id (`spt_…`)."
+          },
+          "description": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Free text shown above the workout."
+          },
+          "description_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The description as stored, in HTML, without the structured workout. Null unless `?with_description_html=true` is passed. To change a description that is already set, send it back edited here: plain text is refused once a description exists."
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Seconds on read; s, min or h on write.",
+            "example": {
+              "value": 3600,
+              "unit": "s"
+            },
+            "readOnly": true
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilometers on read; m, km or mi on write.",
+            "example": {
+              "value": 12.5,
+              "unit": "km"
+            },
+            "readOnly": true
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "tonnage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilograms on read; kg or lbs on write.",
+            "example": {
+              "value": 4250,
+              "unit": "kg"
+            },
+            "readOnly": true
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 10,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Planned RPE, 1-10, null when unset."
+          },
+          "show_rpe": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The athlete sees the planned RPE. False: coach only."
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Coggan load (TSS) set by hand, overriding the computed one, null when the load is computed. Set it to pin the load, null to go back to the computed value; `load.coggan` serves the load in effect."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Custom hex color, null when the sport color applies."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Tag ids (`tag_…`)."
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "description": "Structured content (step, repeat, exercise, superset, emom, for_time, amrap nodes), null when the workout has none. Detail only: a list serves has_structured_workout instead.",
+            "readOnly": true
+          },
+          "has_structured_workout": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The event carries structured content (read `workout` on the detail)."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The workout as readable text, null without one. Detail only."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Optimistic-lock version of the whole event. Send it back as `If-Match` (or `?revision=`) on the update, and a change made in between answers 409 instead of being overwritten. Always present on a detail; on a list, pass `?with_revision=true`."
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Athlete ids (`usr_…`) of an individual event, empty for a group event."
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Group id (`grp_…`) of a group event, null otherwise."
+          },
+          "date_start": {
+            "type": "string",
+            "readOnly": true,
+            "description": "YYYY-MM-DD."
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Start time, HH:MM, null when unset. Never together with moment."
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Part of the day (morning, noon, afternoon, evening), null when unset. Never together with time."
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "load": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingLoad"
+              }
+            ],
+            "readOnly": true
+          },
+          "time_in_zones": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeInZones"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Seconds by intensity stream and zone. Streams without data are omitted, and zone seconds may not sum to the training duration. On a list this is null unless `?time_in_zones=true` is passed, a detail always carries it."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "PlannedTraining": {
+        "type": "object",
+        "properties": {
+          "recurrence_result": {
+            "$ref": "#/components/schemas/RecurrenceResult"
+          },
+          "recurrence_preview": {
+            "$ref": "#/components/schemas/RecurrencePreview"
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "sport": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Sport catalog id (`spt_…`)."
+          },
+          "description": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Free text shown above the workout."
+          },
+          "description_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The description as stored, in HTML, without the structured workout. Null unless `?with_description_html=true` is passed. To change a description that is already set, send it back edited here: plain text is refused once a description exists."
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Seconds on read; s, min or h on write.",
+            "example": {
+              "value": 3600,
+              "unit": "s"
+            },
+            "readOnly": true
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilometers on read; m, km or mi on write.",
+            "example": {
+              "value": 12.5,
+              "unit": "km"
+            },
+            "readOnly": true
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "tonnage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilograms on read; kg or lbs on write.",
+            "example": {
+              "value": 4250,
+              "unit": "kg"
+            },
+            "readOnly": true
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 10,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Planned RPE, 1-10, null when unset."
+          },
+          "show_rpe": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The athlete sees the planned RPE. False: coach only."
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Coggan load (TSS) set by hand, overriding the computed one, null when the load is computed. Set it to pin the load, null to go back to the computed value; `load.coggan` serves the load in effect."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Custom hex color, null when the sport color applies."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Tag ids (`tag_…`)."
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "description": "Structured content (step, repeat, exercise, superset, emom, for_time, amrap nodes), null when the workout has none. Detail only: a list serves has_structured_workout instead.",
+            "readOnly": true
+          },
+          "has_structured_workout": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The event carries structured content (read `workout` on the detail)."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The workout as readable text, null without one. Detail only."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Optimistic-lock version of the whole event. Send it back as `If-Match` (or `?revision=`) on the update, and a change made in between answers 409 instead of being overwritten. Always present on a detail; on a list, pass `?with_revision=true`."
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Athlete ids (`usr_…`) of an individual event, empty for a group event."
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Group id (`grp_…`) of a group event, null otherwise."
+          },
+          "date_start": {
+            "type": "string",
+            "readOnly": true,
+            "description": "YYYY-MM-DD."
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Start time, HH:MM, null when unset. Never together with moment."
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Part of the day (morning, noon, afternoon, evening), null when unset. Never together with time."
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "load": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingLoad"
+              }
+            ],
+            "readOnly": true
+          },
+          "time_in_zones": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeInZones"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Seconds by intensity stream and zone. Streams without data are omitted, and zone seconds may not sum to the training duration. On a list this is null unless `?time_in_zones=true` is passed, a detail always carries it."
+          }
+        },
+        "required": [
+          "athletes",
+          "coggan_load",
+          "color",
+          "date_start",
+          "description",
+          "description_html",
+          "distance",
+          "duration",
+          "elevation_gain",
+          "elevation_loss",
+          "group",
+          "has_structured_workout",
+          "id",
+          "load",
+          "moment",
+          "name",
+          "recurrence",
+          "revision",
+          "rpe",
+          "show_rpe",
+          "sport",
+          "summary",
+          "tags",
+          "time",
+          "time_in_zones",
+          "tonnage",
+          "workout"
+        ]
+      },
+      "PlannedTrainingSelectedFields": {
+        "type": "object",
+        "properties": {
+          "recurrence_result": {
+            "$ref": "#/components/schemas/RecurrenceResult"
+          },
+          "recurrence_preview": {
+            "$ref": "#/components/schemas/RecurrencePreview"
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true
+          },
+          "sport": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Sport catalog id (`spt_…`)."
+          },
+          "description": {
+            "type": "string",
+            "readOnly": true,
+            "description": "Free text shown above the workout."
+          },
+          "description_html": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The description as stored, in HTML, without the structured workout. Null unless `?with_description_html=true` is passed. To change a description that is already set, send it back edited here: plain text is refused once a description exists."
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Seconds on read; s, min or h on write.",
+            "example": {
+              "value": 3600,
+              "unit": "s"
+            },
+            "readOnly": true
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilometers on read; m, km or mi on write.",
+            "example": {
+              "value": 12.5,
+              "unit": "km"
+            },
+            "readOnly": true
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Meters on read; m or ft on write.",
+            "example": {
+              "value": 450,
+              "unit": "m"
+            },
+            "readOnly": true
+          },
+          "tonnage": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ],
+            "description": "Kilograms on read; kg or lbs on write.",
+            "example": {
+              "value": 4250,
+              "unit": "kg"
+            },
+            "readOnly": true
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 10,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Planned RPE, 1-10, null when unset."
+          },
+          "show_rpe": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The athlete sees the planned RPE. False: coach only."
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1,
+            "readOnly": true,
+            "description": "Coggan load (TSS) set by hand, overriding the computed one, null when the load is computed. Set it to pin the load, null to go back to the computed value; `load.coggan` serves the load in effect."
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Custom hex color, null when the sport color applies."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Tag ids (`tag_…`)."
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "description": "Structured content (step, repeat, exercise, superset, emom, for_time, amrap nodes), null when the workout has none. Detail only: a list serves has_structured_workout instead.",
+            "readOnly": true
+          },
+          "has_structured_workout": {
+            "type": "boolean",
+            "readOnly": true,
+            "description": "The event carries structured content (read `workout` on the detail)."
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "The workout as readable text, null without one. Detail only."
+          },
+          "revision": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Optimistic-lock version of the whole event. Send it back as `If-Match` (or `?revision=`) on the update, and a change made in between answers 409 instead of being overwritten. Always present on a detail; on a list, pass `?with_revision=true`."
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "readOnly": true,
+            "description": "Athlete ids (`usr_…`) of an individual event, empty for a group event."
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Group id (`grp_…`) of a group event, null otherwise."
+          },
+          "date_start": {
+            "type": "string",
+            "readOnly": true,
+            "description": "YYYY-MM-DD."
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Start time, HH:MM, null when unset. Never together with moment."
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "readOnly": true,
+            "description": "Part of the day (morning, noon, afternoon, evening), null when unset. Never together with time."
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRead"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true
+          },
+          "load": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TrainingLoad"
+              }
+            ],
+            "readOnly": true
+          },
+          "time_in_zones": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TimeInZones"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "readOnly": true,
+            "description": "Seconds by intensity stream and zone. Streams without data are omitted, and zone seconds may not sum to the training duration. On a list this is null unless `?time_in_zones=true` is passed, a detail always carries it."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "RecurrenceActionEnum": {
+        "enum": [
+          "one",
+          "following",
+          "all"
+        ],
+        "type": "string"
+      },
+      "RecurrencePreview": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/RecurrenceActionEnum"
+          },
+          "occurrence_count": {
+            "type": "integer"
+          },
+          "ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "occurrence_count"
+        ]
+      },
+      "RecurrenceRead": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "$ref": "#/components/schemas/FrequencyEnum"
+          },
+          "interval": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "weekdays": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "maximum": 7,
+              "minimum": 1
+            },
+            "description": "Weekly only. Monday = 1, Sunday = 7."
+          },
+          "until": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "week": {
+                    "type": "integer"
+                  },
+                  "day": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "week",
+                  "day"
+                ],
+                "additionalProperties": false
+              }
+            ],
+            "description": "Inclusive end: a calendar date, or {week, day} inside a plan. Supply either until or period_count."
+          },
+          "period_count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of daily, weekly or monthly periods, including the first. Four weekly periods with two weekdays may create eight events."
+          },
+          "id": {
+            "type": "string",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "frequency",
+          "id"
+        ]
+      },
+      "RecurrenceResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Public id of the surviving event returned by the operation."
+          },
+          "occurrence_count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "occurrence_count"
+        ]
+      },
+      "TimeInZone": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "order": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "seconds": {
+            "type": "integer",
+            "description": "Sum of positive slice durations in seconds."
+          }
+        },
+        "required": [
+          "color",
+          "name",
+          "order",
+          "seconds"
+        ]
+      },
+      "TimeInZones": {
+        "type": "object",
+        "properties": {
+          "heartrate": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          },
+          "watts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          },
+          "pace": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          },
+          "cadence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          },
+          "gap": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          },
+          "va": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeInZone"
+            }
+          }
+        }
+      },
+      "TrainingLoad": {
+        "type": "object",
+        "properties": {
+          "coggan": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Coggan TSS (Training Stress Score), rounded. Null when not computable. May be an RPE-derived estimate when no power/HR data exists, in which case it tracks `foster` rather than being an independent signal: `coggan_source` says which. A 0 load reads as null. Read-only: write `coggan_load` to set it by hand."
+          },
+          "coggan_source": {
+            "description": "Where `coggan` comes from. `manual`: set by hand (`coggan_load` reads the same value). `workout`: computed from the planned structured workout (power or heart rate targets). `power`: normalized power and FTP of the recorded activity. `pace`: running pace (rTSS). `heart_rate`: time in heart rate zones. `rpe`: estimated from the RPE and the duration only. Null when `coggan` is null.\n\n* `manual` - manual\n* `workout` - workout\n* `power` - power\n* `pace` - pace\n* `heart_rate` - heart_rate\n* `rpe` - rpe",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CogganSourceEnum"
+              },
+              {
+                "$ref": "#/components/schemas/NullEnum"
+              }
+            ]
+          },
+          "foster": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double",
+            "description": "Foster session load (duration in minutes x RPE), rounded. Null when no RPE or no duration. A 0 load reads as null."
+          }
+        },
+        "required": [
+          "coggan",
+          "coggan_source",
+          "foster"
+        ]
+      },
+      "WorkoutAmrap": {
+        "type": "object",
+        "description": "AMRAP circuit: as many rounds as possible. Provide duration (total time cap) XOR open_ended: true (no cap). One of the two is required, never both.",
+        "properties": {
+          "kind": {
+            "const": "amrap"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "name": {
+            "type": "string",
+            "description": "Block title, shown above its type."
+          },
+          "comment": {
+            "type": "string"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Total time cap."
+          },
+          "open_ended": {
+            "type": "boolean",
+            "description": "No time cap. Mutually exclusive with duration."
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Rest between rounds."
+          }
+        },
+        "required": [
+          "kind",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutDistance": {
+        "type": "object",
+        "description": "Distance quantity with a friendly unit, converted by the server (e.g. {\"value\": 400, \"unit\": \"m\"}).",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "m",
+              "km",
+              "mi"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutDuration": {
+        "type": "object",
+        "description": "Time quantity with a friendly unit, converted by the server (e.g. {\"value\": 10, \"unit\": \"min\"}).",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "s",
+              "min",
+              "h"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutEmom": {
+        "type": "object",
+        "description": "EMOM circuit: start a round at every interval. Provide duration (total time cap) XOR open_ended: true (\"Death By\", no cap). One of the two is required, never both.",
+        "properties": {
+          "kind": {
+            "const": "emom"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "name": {
+            "type": "string",
+            "description": "Block title, shown above its type."
+          },
+          "comment": {
+            "type": "string"
+          },
+          "interval": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Interval length (e.g. every minute = {\"value\": 1, \"unit\": \"min\"})."
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Total time cap."
+          },
+          "open_ended": {
+            "type": "boolean",
+            "description": "\"Death By\" mode: no time cap. Mutually exclusive with duration."
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Rest between rounds."
+          }
+        },
+        "required": [
+          "kind",
+          "interval",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutExercise": {
+        "type": "object",
+        "description": "Strength exercise with its sets.",
+        "properties": {
+          "kind": {
+            "const": "exercise"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "exercise": {
+            "type": "string",
+            "description": "Public exercise id (e.g. exf_…) found via `GET /api/v2/library/exercises/`. Always cite an id from a search result, never guess one."
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutSet"
+            },
+            "minItems": 1
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "exercise",
+          "sets"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutExercises": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WorkoutExercise"
+        },
+        "minItems": 1,
+        "description": "Exercises of the circuit: full exercise nodes (kind: \"exercise\")."
+      },
+      "WorkoutForTime": {
+        "type": "object",
+        "description": "For-time circuit: complete the work as fast as possible. Provide duration only when the coach sets a time cap, never invent one.",
+        "properties": {
+          "kind": {
+            "const": "for_time"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "name": {
+            "type": "string",
+            "description": "Block title, shown above its type."
+          },
+          "comment": {
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Time cap."
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Rest between rounds."
+          }
+        },
+        "required": [
+          "kind",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutNode": {
+        "description": "One workout node, discriminated by \"kind\": step | repeat | exercise | superset | emom | for_time | amrap.",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/WorkoutStep"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutRepeat"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutExercise"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutSuperset"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutEmom"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutForTime"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutAmrap"
+          }
+        ]
+      },
+      "WorkoutRepeat": {
+        "type": "object",
+        "description": "Repeat a block of nodes N times.",
+        "properties": {
+          "kind": {
+            "const": "repeat"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "times": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "minItems": 1,
+            "description": "Child nodes, in order: any node kind, mixed (e.g. 6 rounds of [500m row + 20 squats], or 3 rounds of [amrap 5min + 200m run]); repeats can nest."
+          },
+          "skip_last": {
+            "type": "boolean",
+            "description": "No recovery after the last interval: the final round skips its trailing rest step."
+          }
+        },
+        "required": [
+          "kind",
+          "times",
+          "steps"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutSet": {
+        "type": "object",
+        "description": "One set of an exercise. Axis: exactly one of reps, duration or distance, never several.",
+        "properties": {
+          "reps": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rep count. For unilateral exercises this is the TOTAL of both sides (see laterality)."
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Set duration, for time-based sets (e.g. planks)."
+          },
+          "distance": {
+            "$ref": "#/components/schemas/WorkoutDistance",
+            "description": "Set distance, for distance-based sets (e.g. rowing, sled)."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Repeat this identical set N times (5×5 squat = one set with reps: 5, count: 5). For a pyramid, list explicit sets instead."
+          },
+          "tempo": {
+            "type": "string",
+            "description": "Tempo notation, e.g. \"31X1\"."
+          },
+          "laterality": {
+            "type": "string",
+            "enum": [
+              "alternate",
+              "left",
+              "right",
+              "fifty_fifty"
+            ],
+            "description": "For unilateral exercises. reps/duration/distance always count BOTH sides combined: \"3×10 per leg\" = reps: 20 + laterality. Values: alternate (switch sides each rep), left / right (that side only), fifty_fifty (first half on one side, then switch). Omit for bilateral exercises."
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Rest after this set."
+          },
+          "targets": {
+            "$ref": "#/components/schemas/WorkoutTargets",
+            "description": "Load / intensity of the set (raw kg, % of metric, rpe, rir…). Omit when the set has no prescribed load or intensity (bodyweight reps, AMRAP rounds)."
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutStep": {
+        "type": "object",
+        "description": "Endurance step. Axis: duration XOR distance: provide at most one, never both; a step with neither is a plain note (not exported to devices).",
+        "properties": {
+          "kind": {
+            "const": "step"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "distance": {
+            "$ref": "#/components/schemas/WorkoutDistance"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/WorkoutTargets"
+          },
+          "intensity": {
+            "type": "string",
+            "enum": [
+              "warmup",
+              "work",
+              "rest",
+              "cooldown",
+              "ramp_up",
+              "ramp_down",
+              "max_effort",
+              "freeride"
+            ],
+            "description": "Optional role of the step in the workout."
+          },
+          "lap_advance": {
+            "type": "boolean",
+            "description": "Early exit: the athlete presses the LAP button to skip to the next step before the duration/distance is done. Garmin & Coros devices only; no effect on a step without duration/distance."
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "targets"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutSuperset": {
+        "type": "object",
+        "description": "Superset circuit: alternate the listed exercises for the given number of rounds.",
+        "properties": {
+          "kind": {
+            "const": "superset"
+          },
+          "id": {
+            "type": "string",
+            "description": "Node id from a read (GET). On update, preserve it verbatim for every node you keep (the server then keeps everything the web editor set on it); omit it for new nodes and on create, never invent one."
+          },
+          "name": {
+            "type": "string",
+            "description": "Block title, shown above its type."
+          },
+          "comment": {
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration",
+            "description": "Rest between rounds."
+          }
+        },
+        "required": [
+          "kind",
+          "rounds",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTarget": {
+        "description": "One target, discriminated by \"type\": zone | metric | raw | rpe | rir | no_target.",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/WorkoutTargetZone"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetMetric"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRaw"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRpe"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRir"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetNoTarget"
+          }
+        ]
+      },
+      "WorkoutTargetMetric": {
+        "type": "object",
+        "description": "Percentage of an athlete metric: portable, resolved per athlete by the server.",
+        "properties": {
+          "type": {
+            "const": "metric"
+          },
+          "metric": {
+            "type": "string",
+            "description": "The `key` of an entry of `GET /api/v2/metrics/items/?is_wb_compatible=true` (e.g. \"FTP\"): cite it verbatim, never the name nor the mti_ id."
+          },
+          "percent": {
+            "type": "number",
+            "minimum": 0
+          },
+          "percent_max": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Upper bound of a percent range. Omit for a single-value target."
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type",
+          "metric",
+          "percent"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetNoTarget": {
+        "type": "object",
+        "description": "Steps only: an untargeted step. A set without load omits `targets` instead.",
+        "properties": {
+          "type": {
+            "const": "no_target"
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRaw": {
+        "type": "object",
+        "description": "Absolute target value with a friendly unit, converted by the server.",
+        "properties": {
+          "type": {
+            "const": "raw"
+          },
+          "value": {
+            "type": [
+              "number",
+              "string"
+            ],
+            "description": "A number for most units; pace is a \"m:ss\" string (e.g. \"4:15\" with unit \"/km\", \"1:45\" with unit \"/100m\")."
+          },
+          "unit": {
+            "type": "string",
+            "description": "Friendly unit, e.g. \"kg\", \"W\", \"km/h\", \"rpm\" (bike cadence), \"ppm\" (run cadence), \"/km\", \"/100m\", \"/500m\", \"/mi\", \"/100yd\"."
+          },
+          "value_max": {
+            "type": [
+              "number",
+              "string"
+            ],
+            "description": "Upper bound of a range. Omit for a single-value target. For a ceiling (\"stay under 165 bpm\"), use value: 0 with value_max: 165."
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRir": {
+        "type": "object",
+        "description": "Reps-in-reserve target: a single value, or a range with rir_max.",
+        "properties": {
+          "type": {
+            "const": "rir"
+          },
+          "rir": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rir_max": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Upper bound of a RIR range. Omit for a single-value target."
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type",
+          "rir"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRpe": {
+        "type": "object",
+        "description": "Perceived exertion target (0-10): a single value, or a range with rpe_max.",
+        "properties": {
+          "type": {
+            "const": "rpe"
+          },
+          "rpe": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "rpe_max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Upper bound of an RPE range. Omit for a single-value target."
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type",
+          "rpe"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetZone": {
+        "type": "object",
+        "description": "Training zone target. The band is implicit, no explicit range.",
+        "properties": {
+          "type": {
+            "const": "zone"
+          },
+          "zone": {
+            "type": [
+              "integer",
+              "string"
+            ],
+            "description": "Zone reference: the zone name (string) or its index (int), as listed by `GET /api/v2/settings/zones/final/` for the workout's target. Prefer the name, copied verbatim. Use the index when the user speaks in zone numbers (\"zone 4\")."
+          },
+          "stream": {
+            "type": "string",
+            "enum": [
+              "heartrate",
+              "watts",
+              "pace",
+              "cadence",
+              "va"
+            ],
+            "description": "Data stream the zone applies to. Omit when the request does not imply one."
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true,
+            "description": "Read-only enrichment returned by a read (GET) (values resolved for the athlete): accepted and ignored on write, so a read result can be re-emitted as-is."
+          }
+        },
+        "required": [
+          "type",
+          "zone"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargets": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WorkoutTarget"
+        },
+        "minItems": 1,
+        "maxItems": 2,
+        "description": "Targets: [0] = primary, [1] = optional secondary."
+      }
+    }
+  }
+}
