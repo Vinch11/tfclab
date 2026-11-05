@@ -1,3 +1,4 @@
+import {primaryRunningInputProblems} from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 /**
  * Chemin « entrées coach » → VRAI moteur DET. Aucun import de fixture ou de
  * helper synthétique (vérifié par test). Les valeurs absentes restent nulles :
@@ -57,7 +58,7 @@ export function buildCoachPlanInputs(s: CoachDetInputSnapshot): { athlete: PlanA
     coachLimiterOrder: s.coachLimiterOrder ? [...s.coachLimiterOrder] : undefined,
     formConfig: {
       objective, raceDate: s.raceDate, planStartDate: s.planStartDate,
-      raceGoals: [{ objective, raceDate: s.raceDate, priority: "A" }],
+      raceGoals: s.raceGoals?.length ? structuredClone(s.raceGoals) : [{ objective, raceDate: s.raceDate, priority: "A" }],
       weeksAvailable: s.weeksAvailable, weeklyHours: s.weeklyHours, sessionsPerWeek: s.sessionsPerWeek,
       maxSessionsPerDay: s.maxSessionsPerDay, strengthSessionsPerWeek: s.strengthSessionsPerWeek, ambition: s.ambition,
     },
@@ -164,7 +165,9 @@ export function runCoachDetPlan(input: {
   limiterOrder.semantics = semantics;
   limiterOrder.unrecognizedByDet = semantics.resolutions.filter((r) => r.status === "unsupported").map((r) => r.raw);
   if (semantics.blocking) return { kind: "refused", refusals: [`Limiteur principal « ${semantics.blocking.raw} » sans définition DET pour cette famille : ${semantics.blocking.reason}. Rien n'est remplacé ; DET ne génère pas (code blocked_unsupported_limiter).`, ...semantics.blocking.missingItems.map((m) => `Manquant : ${m}`)], blockedUnsupportedLimiter: semantics.blocking, limiterOrder };
-  const run = runCoachInputsDet({ athlete, config, reviews: check.reviews, clock: input.ctx!.clock!, brickApprovals: input.ctx!.brickApprovals, limits: input.limits });
+  const primaryProblems=primaryRunningInputProblems(config);
+  if(primaryProblems.length)return {kind:"refused",refusals:primaryProblems,limiterOrder};
+  const run = runCoachInputsDet({ athlete, config, reviews: check.reviews, clock: input.ctx!.clock!, trail: input.snapshot.trail, brickApprovals: input.ctx!.brickApprovals, limits: input.limits });
   const out = run.out;
   const hard = out.issues.filter((i) => ["critical", "blocking", "error"].includes(i.severity)).map((i) => i.code);
   if (!out.constraintsSatisfied || !out.candidate || run.contextProblems.length) {

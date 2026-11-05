@@ -14,3 +14,6 @@ export const violatesNativeNormalPeak=(s:ParsedSession):boolean=>
   !s.isRest&&forbiddenPeak.test(text(s));
 export const hasSourceVisibleRaceSpecificity=(s:ParsedSession):boolean=>
   !s.isRest&&raceSpecific.test(text(s));
+
+/** Early screen of native base/build forbidden content; final native rule remains authoritative. */
+export const violatesNativeBaseBuild=(s:ParsedSession,phase:string):boolean=>!s.isRest&&(phase==='base'?/taper|affûtage|supercomp|activation\s*j-?2/i:phase==='build'?/taper|affûtage|supercomp/i:/$^/).test(text(s));

@@ -19,6 +19,7 @@ const sameDay=(a:string,b:string)=>a.trim().toLocaleLowerCase('fr-FR')===
 export function projectCertifiedRaceEventsForTrainingQuotas(
   plan:MergedPlan,
   entries:Readonly<Record<number,WeekQuotaEntry>>,
+  declaredEstimate?:(week:number,dayIndex:number,sport:string)=>number|null,
 ):CertifiedRaceQuotaProjection {
   const fail=(reason:string):CertifiedRaceQuotaProjection=>({
     verdict:'refused',reason,projected:null,excludedEvents:0,
@@ -48,14 +49,13 @@ export function projectCertifiedRaceEventsForTrainingQuotas(
         sameDay(s.dayName,event.dayName));
       if(slotMatches.length!==1)return fail('race_slot_missing_or_duplicated');
       const slot=slotMatches[0];
-      const candidates=week.sessions.flatMap((session,i)=>
-        session.sport===event.sport &&
-        session.dayIndex===slot.dayIndex &&
-        sameDay(session.dayName,slot.dayName) &&
-        session.custom===true && session.durationMin===0 &&
-        session.title.startsWith('COURSE :') &&
-        session.details.startsWith('Épreuve déclarée ; durée à confirmer') ?
-          [i]:[]);
+      let estimated:number|null=null;
+      if(declaredEstimate){try{estimated=declaredEstimate(weekNumber,slot.dayIndex,event.sport);}catch{return fail('declared_event_estimate_binding_invalid');}}
+      const candidates=week.sessions.flatMap((session,i)=>{
+        const original=session.durationMin===0&&session.details.startsWith('Épreuve déclarée ; durée à confirmer');
+        const explicit=typeof estimated==='number'&&Number.isFinite(estimated)&&estimated>0&&session.durationMin===estimated&&session.details==='Épreuve déclarée ; durée planifiée ESTIMÉE par le coach, pas une mesure de performance.';
+        return session.sport===event.sport&&session.dayIndex===slot.dayIndex&&sameDay(session.dayName,slot.dayName)&&session.custom===true&&session.catalogId==null&&session.title.startsWith('COURSE :')&&(declaredEstimate?explicit:original)?[i]:[];
+      });
       if(candidates.length!==1||used.has(candidates[0]))
         return fail('race_session_missing_duplicate_or_not_source_proven');
       used.add(candidates[0]);

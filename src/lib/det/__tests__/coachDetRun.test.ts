@@ -198,7 +198,7 @@ describe("ordre des limiteurs et périmètre (sans moteur)", () => {
     // 70.3 a sa propre famille (options V320), jamais celles du marathon.
     expect(coachObjectiveKey("Ironman 70.3")).toBe("triathlon_703");
   });
-  it.each(["5 km", "Trail court", "Marathon de trail", "Marathon du Mont-Blanc"])("objectif %s refusé explicitement (hors périmètre qualifié)", async (objective) => {
+  it.each(["5 km", "Trail", "Marathon de trail", "Marathon du Mont-Blanc"])("objectif %s refusé explicitement (hors périmètre qualifié)", async (objective) => {
     const s = { ...snapshot(), objective };
     const r = await run(s, await ctxFor(s));
     expect(r.kind).toBe("refused");
@@ -235,12 +235,12 @@ describe("ordre des limiteurs et périmètre (sans moteur)", () => {
  * profils sont des athlètes SYNTHÉTIQUES saisis ici ; les qualifications
  * simulées restent non attestées (sportingAttestation:false).
  */
-describe("chemin coach : VRAI moteur — profil 240 s/km (refus analysé, inchangé)", () => {
-  it("ordre automatique [VLamax, TTE] ⇒ blocage nommé AVANT le solveur (VLamax : aucune branche primaire marathon), ordre brut conservé", async () => {
+describe("chemin coach : VRAI moteur — profil 240 s/km, branches VLamax et TTE distinctes", () => {
+  it("ordre automatique [VLamax, TTE] ⇒ branche de réduction exacte, ordre brut conservé", async () => {
     const s = snapshot(); const r = await run(s, await ctxFor(s));
-    expect(r.kind).toBe("refused");
-    if (r.kind !== "refused") throw new Error("attendu refused");
-    expect(r.blockedUnsupportedLimiter).toMatchObject({ code: "blocked_unsupported_limiter", raw: "VLamax" });
+    expect(r.kind).toBe("accepted");
+    if (r.kind !== "accepted") throw new Error("attendu accepted");
+    expect(r.provenance.prescriptionAllowed).toBe(false);
     expect(r.limiterOrder).toMatchObject({ mode: "automatic", source: "manual_coach_inputs", automatic: ["VLamax", "TTE"], coachConfirmed: null, applied: ["VLamax", "TTE"] });
     expect(r.limiterOrder!.semantics!.rawPriorities).toEqual(["VLamax", "TTE"]);
   }, 600000);

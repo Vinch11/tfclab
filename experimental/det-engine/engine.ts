@@ -1,3 +1,4 @@
+import {EXTENDED_RUNNING_PRIMARIES,verifyPrimaryRunningSession} from './v408-primary-limiter-evidence';
 /** Experimental, pure catalogue assembly. Never imported by the application. */
 import type { PlanAthleteData, PlanConfig } from '@/hooks/useAITrainingPlan';
 import type { ParsedPlan, ParsedSession } from '@/lib/aiPlanParser';
@@ -33,7 +34,7 @@ import {measuredRecoveryCeiling,measuredTrainingMinutes} from './v315-measured-d
 import {assessStrictPeriodizationEvidence} from './v316-strict-periodization-gate';
 import {certifyReviewedRaceSpecificPeak,type ProvenRaceSource} from './v317-certified-race-specific';
 import {resolveDeclaredEvent} from './v359-declared-event';
-import {violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-native-peak-candidate';
+import {violatesNativeBaseBuild,violatesNativeNormalPeak,hasSourceVisibleRaceSpecificity} from './v316-native-peak-candidate';
 import {projectCertifiedRaceEventsForTrainingQuotas} from './v315-certified-race-quota-projection';
 import {reconcileTextPolarizationWithReviewedSources} from './v315-reviewed-source-polarization';
 import {candidateViolatesNativeTaperPhase} from './v315-taper-phase-prefilter';
@@ -213,6 +214,9 @@ export interface ExperimentalAssemblyContract {
   /** V355 isolated A/B: preferential search order for exact athlete-reviewed
    * >=20min MLSS key dose when the FIRST declared limiter is TTE. */
   prioritizeSourceVerifiedTteOnKeySlots?:true;
+  /** V408: explicitly typed additional PRIMARY branches, exact source audit mandatory. */
+  prioritizeSourceVerifiedPrimaryRunning?:true;
+  excludeNativeBaseBuildPhaseConflicts?:true;
   /** V403: same search-order mechanism for primary « Durabilité » (race-relative),
    * proven by V353 threshold-sustain OR V335 objective race-pace durability blocks;
    * adds a blocking per-load-week coverage audit. Never an eligibility exception. */
@@ -602,6 +606,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       const runningGoal=normalizeRepairGoal(config.objective??'');
       const primaryLimiterKey=detPrimaryLimiterKey(config);
+      const extendedPrimary=primaryLimiterKey&&EXTENDED_RUNNING_PRIMARIES.includes(primaryLimiterKey)&&experimentalContract?.prioritizeSourceVerifiedPrimaryRunning===true?primaryLimiterKey:null;
+      const primaryProvider=experimentalContract?.sourceFullStructuredDoseForId&&experimentalContract.reviewedSourceLimiterKeysForId&&experimentalContract.reviewedSourcePrimaryDomainForId?{dose:experimentalContract.sourceFullStructuredDoseForId,limiterKeys:experimentalContract.reviewedSourceLimiterKeysForId,primaryDomain:experimentalContract.reviewedSourcePrimaryDomainForId}:null;
+      const primaryVerified=(session:ParsedSession)=>!!extendedPrimary&&!!primaryProvider&&verifyPrimaryRunningSession(session,extendedPrimary,primaryProvider).verified;
       const ttePreferenceEnabled=
         experimentalContract?.prioritizeSourceVerifiedTteOnKeySlots===true&&
         primaryLimiterKey==='tte';
@@ -758,7 +765,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             const unverified=checked.unknown.filter(code=>
               !(code==='intensity_not_declared'&&isIndividuallyReviewedV3Strength(m)));
             return checked.errors.length||unverified.length?[]:[session];
-          }).filter(session=>{
+          }).filter(session=>experimentalContract?.excludeNativeBaseBuildPhaseConflicts!==true||!violatesNativeBaseBuild(session,w.phase??'')).filter(session=>{
             if(experimentalContract?.excludeNativeForbiddenTaperCandidates!==true ||
                (w.phase!=='taper'&&entry.weekType!=='taper'))return true;
             const disallowed=candidateViolatesNativeTaperPhase(session);
@@ -850,7 +857,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               balance && (balanceMode==='all'||balanceMode===slot.sport||triathlon) &&
                 (slot.sport==='bike'||slot.sport==='run')?
                 (b.durationMin??0)-(a.durationMin??0):0;
-            return (ttePreferenceEnabled&&slot.isKeySession?
+            return (extendedPrimary&&slot.isKeySession?Number(primaryVerified(b))-Number(primaryVerified(a)):0)||
+              (ttePreferenceEnabled&&slot.isKeySession?
                Number(isCertifiedTteKey(b))-Number(isCertifiedTteKey(a)):0)||
               (durabilityPreferenceEnabled&&slot.isKeySession?
                Number(isCertifiedDurabilityKey(b))-Number(isCertifiedDurabilityKey(a)):0)||
@@ -1259,6 +1267,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               Number(isQuality(b.session))-Number(isQuality(a.session))||score(b.dose)-score(a.dose):0)||
             (singleTriQualityAnchor&&slotIndex!==0&&trajectory?
               targetDistance(a.session)-targetDistance(b.session):0)||
+            (extendedPrimary&&slot.slot.isKeySession?Number(primaryVerified(b.session))-Number(primaryVerified(a.session)):0)||
             (ttePreferenceEnabled&&slot.slot.isKeySession?
               Number(isCertifiedTteKey(b.session))-Number(isCertifiedTteKey(a.session)):0)||
             (durabilityPreferenceEnabled&&slot.slot.isKeySession?
@@ -1883,7 +1892,8 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     let checkedQuotaIssues=nativeQuotaIssues;
     if(experimentalContract?.verifyOfficialRaceQuotaProjection===true){
       const projection=projectCertifiedRaceEventsForTrainingQuotas(
-        merged,preparation.weeklyQuotas);
+        merged,preparation.weeklyQuotas,experimentalContract.useDeclaredEventDurationEstimates===true?
+          (week,day,sport)=>resolveDeclaredEvent(config,week,day,sport).targetTimeMinutes:undefined);
       if(projection.verdict==='verified'&&projection.projected){
         const trainingOnly=validateWeeklyQuotas(
           projection.projected,preparation.weeklyQuotas);
@@ -2172,13 +2182,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const proof=provider.sourceFullStructuredDoseForId&&provider.reviewedRunningSpecificForId&&
       provider.reviewedSourceLimiterKeysForId&&provider.reviewedSourcePrimaryDomainForId&&
       (detPrimaryLimiterKey(config)==='tte'||
+        (provider.prioritizeSourceVerifiedPrimaryRunning===true&&EXTENDED_RUNNING_PRIMARIES.includes(detPrimaryLimiterKey(config)!))||
         (detPrimaryLimiterKey(config)==='durability_race_relative'&&
          provider.prioritizeSourceVerifiedRaceDurabilityOnKeySlots===true))?auditMarathonHorizon(result.candidate!,{
         dose:provider.sourceFullStructuredDoseForId,
         runningSpecific:provider.reviewedRunningSpecificForId,
         limiterKeys:provider.reviewedSourceLimiterKeysForId,
         primaryDomain:provider.reviewedSourcePrimaryDomainForId,
-      },scope):null;
+      },scope,provider.prioritizeSourceVerifiedPrimaryRunning===true&&EXTENDED_RUNNING_PRIMARIES.includes(detPrimaryLimiterKey(config)!)?detPrimaryLimiterKey(config)!:undefined):null;
     result.issues.push({code:proof?.verified?
       'det_v358_running_exact_source_horizon_verified':'det_v358_running_exact_source_horizon_unverified',
       severity:proof?.verified?'warning':'blocking',message:JSON.stringify(proof??{
@@ -2199,7 +2210,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         runningSpecific:provider.reviewedRunningSpecificForId,
         limiterKeys:provider.reviewedSourceLimiterKeysForId,
         primaryDomain:provider.reviewedSourcePrimaryDomainForId,
-      }):null;
+      },undefined,provider.prioritizeSourceVerifiedPrimaryRunning===true&&EXTENDED_RUNNING_PRIMARIES.includes(detPrimaryLimiterKey(config)!)?detPrimaryLimiterKey(config)!:undefined):null;
     result.issues.push({
       code:report?.verified?
         'det_v351_marathon_exact_source_horizon_evidence_verified':

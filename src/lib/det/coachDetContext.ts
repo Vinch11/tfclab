@@ -1,3 +1,6 @@
+import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
+import { v3ExtendedCatalogue } from '../../../scripts/library-v3/supplementalCatalogue';
+import type { RaceGoal } from '@/hooks/useAITrainingPlan';
 /**
  * Contexte de revue coach pour DET (QA). Pur, sérialisable, sans réseau.
  *
@@ -89,6 +92,9 @@ export interface CoachDetInputSnapshot {
   schema: typeof COACH_INPUTS_SCHEMA;
   /** Empreinte du profil de planification complet de l'app (IA = DET) auquel ces vérifications se rapportent. */
   planningInputFingerprint?: string;
+  sourceContentReview?:{notes:string;manifestHash:string;athleteChecksKey:string};
+  raceGoals?: RaceGoal[];
+  trail?: TrailPlanningDeclaration;
   athleteId: string;
   coachId: string;
   objective: string;
@@ -173,8 +179,10 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     p.push(why ? `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach — ${why}`
       : `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach (choisir exactement : ${supported})`);
   }
+  if (family?.sportFocus === "trail" && !s.trail) p.push("revue trail terrain/parcours/historique requise");
+  if (s.trail && (s.trail.review.athleteId !== s.athleteId || s.trail.routes.some(r => r.athleteId !== s.athleteId))) p.push("revue terrain d’un autre athlète");
   if (family) {
-    const [w0, w1] = family.testedEnvelope.weeks, [h0, h1] = family.testedEnvelope.weeklyHours;
+    const [w0, w1] = family.testedEnvelope.weeks, [h0, h1] = (s.raceGoals?.length ?? 0) > 1 && family.sportFocus === "run" ? [8,8] : family.testedEnvelope.weeklyHours;
     if (Number.isInteger(s.weeksAvailable) && (s.weeksAvailable < w0 || s.weeksAvailable > w1))
       p.push(`${family.label} : ${s.weeksAvailable} semaines hors de la plage testée du moteur (${w0 === w1 ? w0 : `${w0}–${w1}`} semaines)`);
     if (pos(s.weeklyHours) && (s.weeklyHours < h0 || s.weeklyHours > h1))
@@ -228,7 +236,7 @@ export function anchorsFromSnapshot(s: CoachDetInputSnapshot): V3AthleteAnchors 
 }
 
 export function findSource(id: string): V3Workout | undefined {
-  return v3FullCatalogue.workouts.find((w) => w.id === id);
+  return v3ExtendedCatalogue.workouts.find((w) => w.id === id);
 }
 
 /** Recherche lisible : titre, sport, intention ou focus. L'identifiant reste secondaire. */
@@ -237,7 +245,7 @@ export function searchSources(query: string, limit = 12): Array<{ id: string; ti
   const terms = norm(query).split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   const out: Array<{ id: string; title: string; sport: string; intent: string; phases: string[] }> = [];
-  for (const w of v3FullCatalogue.workouts) {
+  for (const w of v3ExtendedCatalogue.workouts) {
     const hay = norm([w.title, SPORT_LABELS[w.sport] ?? w.sport, INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, w.focus, w.id].join(" "));
     if (terms.every((t) => hay.includes(t))) out.push({ id: w.id, title: w.title, sport: SPORT_LABELS[w.sport] ?? w.sport, intent: INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, phases: [...w.phase] });
     if (out.length >= limit) break;
@@ -314,7 +322,9 @@ export function checkCoachReviewContext(input: {
     for (const pre of w.prerequisites) if (!checked.has(pre)) r.push(`source ${q.id} : prérequis non vérifié « ${pre} »`);
     const ci = new Set(q.evidence.checkedContraindications);
     for (const c of w.contraindications) if (!ci.has(c)) r.push(`source ${q.id} : contre-indication non vérifiée « ${c} »`);
-    const res = resolveV3IntensityTargets(w, anchors);
+    const route=current.snapshot.trail?.routes.find(r=>r.sourceId===w.id);
+    const terrain=route?{athleteId:current.athleteId,sourceId:w.id,terrainContextId:route.routeId,fieldReviewReference:current.snapshot.trail!.fieldReviewReference,coachConfirmsFieldEffortReview:true as const,domainRpe:current.snapshot.trail!.domainRpe}:undefined;
+    const res = resolveV3IntensityTargets(w, {...anchors,...(terrain?{runTerrainReview:terrain}:{})});
     if (res.status !== "resolved") r.push(`source ${q.id} : ancres manquantes (${res.missing.join(", ")})`);
     if (q.overrides && Object.keys(q.overrides).length && !q.allowWorksetChange && q.targetDurationMin === undefined)
       r.push(`source ${q.id} : modification de dose sans permission explicite`);
@@ -347,7 +357,8 @@ export function checkCoachReviewContext(input: {
       ...(w.sport === "strength" && s.coachValidatedStrengthLoadAndRpe ? { verifiedStrengthLoadAndRpe: true as const } : {}),
       expectedAthleteId: current.athleteId,
       sportingReview: { ...q.evidence, athleteId: current.athleteId, sourceFingerprint: q.sourceFingerprint },
-      athleteAnchors: structuredClone(anchors),
+      athleteAnchors: {...structuredClone(anchors),...(s.trail&&w.sport==='run'?{runTerrainReview:{athleteId:s.athleteId,sourceId:w.id,terrainContextId:s.trail.routes.find(r=>r.sourceId===w.id)?.routeId??'',fieldReviewReference:s.trail.fieldReviewReference,coachConfirmsFieldEffortReview:true as const,domainRpe:s.trail.domainRpe}}:{})},
+      ...(s.trail&&w.sport==='run'?{expectedRunTerrainContextId:s.trail.routes.find(r=>r.sourceId===w.id)?.routeId??''}:{}),
       ...(q.overrides ? { overrides: { ...q.overrides } } : {}),
       ...(q.targetDurationMin !== undefined ? { targetDurationMin: q.targetDurationMin } : {}),
       ...(q.allowWorksetChange ? { allowWorksetChange: true as const } : {}),

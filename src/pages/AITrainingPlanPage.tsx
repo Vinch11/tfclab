@@ -723,6 +723,7 @@ export default function AITrainingPlanPage() {
     );
   }, [raceFormat, objective, savedAthleteRaceGoals]);
   const [raceDate, setRaceDate] = useState("");
+  const [raceTargetMinutes, setRaceTargetMinutes] = useState("");
   // Mode alternatif "durée en semaines" (demande coach) : pour un bloc de
   // préparation sans date de course fixée (reprise, base hors-saison, objectif
   // pas encore calé), le coach fixe directement le nombre de semaines plutôt
@@ -779,7 +780,7 @@ export default function AITrainingPlanPage() {
   const removeRaceGoal = (idx: number) => {
     setRaceGoals(prev => prev.filter((_, i) => i !== idx));
   };
-  const updateRaceGoal = (idx: number, field: keyof RaceGoal, value: string) => {
+  const updateRaceGoal = <K extends keyof RaceGoal>(idx: number, field: K, value: RaceGoal[K]) => {
     setRaceGoals(prev => prev.map((g, i) => i === idx ? { ...g, [field]: value } : g));
   };
 
@@ -887,6 +888,7 @@ export default function AITrainingPlanPage() {
     // ont fuité dans sa régénération complète.
     if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
     setRaceName("");
+    setRaceTargetMinutes("");
     setRaceFormat("continuous");
     setRaceDate("");
     setPlanDurationMode("date");
@@ -922,6 +924,7 @@ export default function AITrainingPlanPage() {
       if (savedState.raceName) setRaceName(savedState.raceName);
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
+      if (typeof savedState.raceTargetMinutes === "string") setRaceTargetMinutes(savedState.raceTargetMinutes);
       if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
       if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
@@ -1062,6 +1065,7 @@ export default function AITrainingPlanPage() {
       raceName,
       raceFormat,
       raceDate,
+      raceTargetMinutes,
       planDurationMode,
       planWeeksInput,
       weeklyHours,
@@ -1120,7 +1124,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, raceTargetMinutes, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1393,11 +1397,11 @@ export default function AITrainingPlanPage() {
     objectiveOverride?: string,
     athleteIdOverride?: string,
   ): PlanConfig => {
-    return buildAppPlanConfig(diagnostic, { objective, ambition, planStartDate, raceName, raceDate, raceFormat, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM,
+    return buildAppPlanConfig(diagnostic, { objective, ambition, planStartDate, raceName, raceDate, raceTargetMinutes, raceFormat, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM,
       weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, constraints, trainingLevel, terrainAvailability, lockAmbition,
       crossTrainingVelo, crossTrainingNatation, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, coachLimiterOrder, currentAthleteId: currentAthlete?.id },
       athleteAmbition, objectiveOverride, athleteIdOverride);
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
+  }, [objective, raceName, raceFormat, raceDate, raceTargetMinutes, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -3599,6 +3603,7 @@ export default function AITrainingPlanPage() {
                   );
                 })()}
 
+                {raceGoals.length > 0 && <div className="space-y-1"><Label>Durée prévue de l’objectif principal (minutes)</Label><Input type="number" min="1" aria-label="Durée prévue objectif principal" value={raceTargetMinutes} onChange={e=>setRaceTargetMinutes(e.target.value)}/><p className="text-xs text-muted-foreground">Estimation déclarée par le coach pour planifier la course et la récupération.</p></div>}
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => {
                   const classification = getRaceGoalClassification(idx);
@@ -3638,7 +3643,8 @@ export default function AITrainingPlanPage() {
                         className="h-9 text-xs"
                       />
                     </div>
-                    <Select value={goal.priority} onValueChange={v => updateRaceGoal(idx, "priority", v)}>
+                    <Input type="number" min="1" aria-label={`Durée prévue objectif ${idx+2} (minutes)`} placeholder="Durée prévue (minutes)" value={goal.targetTimeMinutes ?? ""} onChange={e=>updateRaceGoal(idx,"targetTimeMinutes",e.target.value ? Number(e.target.value) : null)}/>
+                    <Select value={goal.priority} onValueChange={v => updateRaceGoal(idx, "priority", v as RaceGoal["priority"])}>
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="A">🅰️ Objectif A (pic complet si l'écart le permet)</SelectItem>

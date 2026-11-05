@@ -47,7 +47,15 @@ export function bindLibraryReview(input: {
   if (!libraryReviewMatches(row, coachId, hash) || canonicalJson(row!.manifest) !== canonicalJson(manifest)
     || !fingerprint || !a.recentLoad || !a.fatigue || a.injuryScreen !== 'cleared_by_coach'
     || !a.prerequisitesAllMet || !a.contraindicationsAllAbsent) return null;
-  const qualifications: SourceQualification[] = manifest.sources.map(s => ({
+  const qualifications=draftQualificationsForExplicitReview(manifest,a);
+  return { origin: 'det_library_source_reviews', reviewContextId: row!.id, coachId, athleteId,
+    reviewedAt: row!.created_at, planningInputFingerprint: fingerprint, qualifications, brickApprovals: [],
+    libraryManifestHash: hash, libraryFamily: manifest.family, athleteChecksKey: canonicalJson(a) };
+}
+
+/** Draft only. The caller must obtain a human content review and persist/read it before reuse. */
+export function draftQualificationsForExplicitReview(manifest:LibraryReviewManifest,a:CoachAnswers):SourceQualification[]{
+  return manifest.sources.map(s => ({
     id: s.id, sourceFingerprint: s.fingerprint, preferReviewedV3: true,
     ...manifest.doses[s.id],
     evidence: {
@@ -63,7 +71,4 @@ export function bindLibraryReview(input: {
       checkedContraindications: s.contraindications.filter(c => !a.presentContraindications.includes(c)),
     } as SourceQualification['evidence'],
   }));
-  return { origin: 'det_library_source_reviews', reviewContextId: row!.id, coachId, athleteId,
-    reviewedAt: row!.created_at, planningInputFingerprint: fingerprint, qualifications, brickApprovals: [],
-    libraryManifestHash: hash, libraryFamily: manifest.family, athleteChecksKey: canonicalJson(a) };
 }

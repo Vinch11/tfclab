@@ -1,3 +1,6 @@
+import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
+import {AthleteSourceReview} from './AthleteSourceReview';
+import {TrailEvidenceForm} from './TrailEvidenceForm';
 /**
  * Parcours coach simple (QA) : fiche athlète réelle → DET ou IA.
  * Reprend ce que l'app connaît déjà, ne demande que l'essentiel manquant,
@@ -54,10 +57,12 @@ export function AthleteDetSimplePanel(props: {
   // Tout changement d'athlète / objectif / budget annule les actions en cours et efface la sortie.
   // … et aussi tout changement du profil de planification (physiologie, ordre, dates) ou du moteur.
   const fp = props.appInputStatus === "ready" ? props.appInput?.fingerprint ?? null : null;
-  const ctxKey = `${props.record.athleteId}|${JSON.stringify(props.form)}|${fp ?? props.appInputStatus}|${props.engine}`;
+  const profileKey = `${props.record.athleteId}|${JSON.stringify(props.form)}|${fp ?? props.appInputStatus}|${props.engine}`;
+  const ctxKey = `${profileKey}|${canonicalJson(a)}|${props.sourcesVersion}|${props.engineVersion}`;
+  const onOutcomeRef=useRef(props.onOutcome);onOutcomeRef.current=props.onOutcome;
   const live = useRef({ fp, engine: props.engine });
   live.current = { fp, engine: props.engine };
-  useEffect(() => { epoch.current++; setBusy(false); props.onOutcome(null, null); setMsg([]); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [ctxKey]);
+  useEffect(() => { epoch.current++; setBusy(false); onOutcomeRef.current(null, null); setMsg([]); }, [ctxKey]);
   // Revue RÉELLE par séance déjà enregistrée (grille « Avancé ») pour ce coach + athlète : seule autorité de revue des séances.
   const [genuine, setGenuine] = useState<GenuineSourceReviews | null>(null);
   const [libraryGenuine, setLibraryGenuine] = useState<GenuineSourceReviews | null>(null);
@@ -69,13 +74,13 @@ export function AthleteDetSimplePanel(props: {
       if (!fp) return;
       // Revue humaine liée à CE profil de planification ; les lignes recopiées par ce panneau
       // (sourceReviewProvenance) ne sont jamais relues comme revue.
-      const { data } = await supabase.from("det_coach_review_contexts").select("id,coach_id,athlete_id,created_at,source_qualifications,brick_approvals")
+      const { data } = await supabase.from("det_coach_review_contexts").select("id,coach_id,athlete_id,created_at,source_qualifications,brick_approvals,inputs_snapshot")
         .eq("coach_id", props.record.coachId).eq("athlete_id", props.record.athleteId)
         .eq("inputs_snapshot->>planningInputFingerprint", fp).is("inputs_snapshot->sourceReviewProvenance", null)
         .order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (!live || !data) return;
       setGenuine({ origin: "det_coach_review_contexts", reviewContextId: data.id, coachId: data.coach_id, athleteId: data.athlete_id, reviewedAt: data.created_at,
-        qualifications: (data.source_qualifications ?? []) as never, brickApprovals: (data.brick_approvals ?? []) as never, planningInputFingerprint: fp });
+        qualifications: (data.source_qualifications ?? []) as never, brickApprovals: (data.brick_approvals ?? []) as never, planningInputFingerprint: fp, ...((data.inputs_snapshot as unknown as {sourceContentReview?:{athleteChecksKey:string}})?.sourceContentReview?.athleteChecksKey?{athleteChecksKey:(data.inputs_snapshot as unknown as {sourceContentReview:{athleteChecksKey:string}}).sourceContentReview.athleteChecksKey}:{}) });
     })();
     return () => { live = false; }; }, [props.record.coachId, props.record.athleteId, fp]);
 
@@ -89,7 +94,8 @@ export function AthleteDetSimplePanel(props: {
   // Ordre des limiteurs : uniquement celui du profil partagé (aucun diagnostic relancé ici).
   const initial = { order: [...(props.appInput?.limiters.applied ?? [])], appendedEligible: [] as string[], notGuiding: [] as string[] };
   const order = initial.order;
-  const bridge = useMemo(() => buildAthleteDetInputs(props.record, props.form, { ...a, coachLimiterOrder: null }, effectiveGenuine, fp), [props.record, props.form, a, effectiveGenuine, fp]);
+  const planningForm = useMemo(()=>({...props.form,...(props.appInput?.config.raceGoals?.length ? {raceGoals:props.appInput.config.raceGoals} : {})}),[props.form,props.appInput]);
+  const bridge = useMemo(() => buildAthleteDetInputs(props.record, planningForm, { ...a, coachLimiterOrder: null }, effectiveGenuine, fp), [props.record, planningForm, a, effectiveGenuine, fp]);
   const set = (patch: Partial<CoachAnswers>) => setA((x) => ({ ...x, ...patch }));
 
   const generate = async () => {
@@ -102,7 +108,7 @@ export function AthleteDetSimplePanel(props: {
       const v = await props.guard(); if (!v || !current()) return;
       if (v.athleteId !== props.record.athleteId || v.userId !== props.record.coachId || app.athleteId !== v.athleteId) { setMsg(["Session ou athlète différent : action annulée."]); return; }
       if (engineAt === "ai") { await props.onAIShared(app); return; }
-      const b = buildAthleteDetInputs(props.record, props.form, { ...a, coachLimiterOrder: null }, effectiveGenuine, fpAt);
+      const b = buildAthleteDetInputs(props.record, planningForm, { ...a, coachLimiterOrder: null }, effectiveGenuine, fpAt);
       if (!b.snapshot || !b.ctx) { setMsg(b.sourceReview.status === "blocked_missing_source_review" ? [b.sourceReview.reason] : b.missing.map((m) => `${m.label} : ${m.why}`)); return; }
       if (libraryProblems.length) { setMsg(libraryProblems); return; }
       if (!props.sourcesVersion) { setMsg(["Version des séances DET indisponible."]); return; }
@@ -213,6 +219,8 @@ export function AthleteDetSimplePanel(props: {
           <ul className="text-xs">{list.contraindications.map((c) => <li key={c}><label className="flex items-center gap-2"><Checkbox checked={a.presentContraindications.includes(c)} onCheckedChange={(v) => set({ presentContraindications: v === true ? [...a.presentContraindications, c] : a.presentContraindications.filter((x) => x !== c) })} />{c}</label></li>)}</ul></details>}
         <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.contraindicationsAllAbsent} onCheckedChange={(v) => set({ contraindicationsAllAbsent: v === true })} />J'ai relu les contre-indications avec l'athlète (celles cochées écartent les séances concernées)</label>
       </section>
+      {pool && family.sportFocus === "trail" && <TrailEvidenceForm key={profileKey} pool={pool} app={props.appInput} value={a.trail} onChange={trail=>set({trail})} />}
+      {pool && (family.sportFocus === "trail" || family.key === "10k") && <AthleteSourceReview pool={pool} snapshot={bridge.snapshot} answers={a} sourcesVersion={props.sourcesVersion} fingerprint={fp} coachId={props.record.coachId} athleteId={props.record.athleteId} clock={bridge.reviewClock??bridge.ctx?.clock??null} guard={props.guard} onResolved={setGenuine} />}
       {pool && <LibrarySourceReview pool={pool} coachId={props.record.coachId} athleteId={props.record.athleteId} fingerprint={fp} answers={a} guard={props.guard} onResolved={setLibraryGenuine} />}
       {libraryProblems.map((p) => <p key={p} className="text-sm text-destructive">{p}</p>)}
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}

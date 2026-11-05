@@ -1,3 +1,4 @@
+import {evaluateV3Workout} from '../../../scripts/library-v3/catalogueRuntime';
 /**
  * Pools de sources V3 par famille DET « coach » — niveau BIBLIOTHÈQUE, réutilisable.
  *
@@ -48,17 +49,23 @@ export interface FamilySourcePool {
 }
 
 const uniq = (xs: string[]) => [...new Set(xs)];
+const TRAIL_RUN = n('V3P_RUN_', ['003','031','032','035','038','084','085','086','089','092','014','016','025','028','033','066','068','087','090','101','102','103','104','105','125','130','136','137','139','167','168','169']);
+const TRAIL_OTHER = [...n('V3P_BIKE_', ['001','013','048','049','092','105']),...Array.from({length:20},(_,i)=>`V3P_STRENGTH_${101+i}`)];
+const trailPool=(family:CoachFamilyKey,threshold:boolean):Omit<FamilySourcePool,'pinnedFingerprint'>=>({family,ciScenario:'V360 terrain/history/source-bound contract',ids:[...TRAIL_RUN.filter(id=>!['003','031','032','035','038','084','085','086','089','092'].some(x=>id.endsWith(x))||(evaluateV3Workout(findSource(id)!).minutes??Infinity)<=(family==='trail_short'?129:family==='trail_mountain'?157:190)).filter(id=>threshold?!['167','168','169'].some(x=>id.endsWith(x)):!['136','137','139'].some(x=>id.endsWith(x))),...TRAIL_OTHER],doses:threshold?{V3P_RUN_136:{targetDurationMin:51,allowWorksetChange:true}}:{},independentScientificReview:false});
 const POOLS_RAW: Record<CoachFamilyKey, Omit<FamilySourcePool, "pinnedFingerprint">> = {
-  '10k': { family: '10k', ciScenario: 'v358 strict 10 km age-group, 8/10/12 weeks (7 h)', independentScientificReview: false,
-    ids: uniq([...RUN_BASE, ...RUN_TAPER, ...CROSS_BIKE, ...STRENGTH, ...n('V3P_RUN_', ['018','073','074','075','095','136'])]),
+  trail_short:trailPool('trail_short',false),
+  trail_mountain:trailPool('trail_mountain',true),
+  trail_ultra:{...trailPool('trail_ultra',true),doses:{V3P_RUN_136:{targetDurationMin:51,allowWorksetChange:true},V3P_RUN_085:{targetDurationMin:190,allowWorksetChange:true}}},
+  '10k': { family: '10k', ciScenario: 'v358 strict 10 km 8/10/12 weeks (7 h) + reviewed multi-event recovery sources V406', independentScientificReview: false,
+    ids: uniq([...RUN_BASE, ...RUN_TAPER, ...CROSS_BIKE, ...STRENGTH, ...n('V3P_RUN_', ['018','073','074','075','095','136','102','104','202'])]),
     doses: { V3P_RUN_136: { targetDurationMin: 51, allowWorksetChange: true }, V3P_RUN_001: { targetDurationMin: 28 } } },
-  marathon: { family: "marathon", ciScenario: "v351–v357 marathon route (coachDetRun.test)", independentScientificReview: false,
-    ids: uniq([...RUN_BASE, ...RUN_TAPER, "V3P_RUN_136", "V3P_RUN_094", ...STRENGTH, ...CROSS_BIKE]),
+  marathon: { family: "marathon", ciScenario: "v351–v357 marathon route + V406 multi-event 40 weeks", independentScientificReview: false,
+    ids: uniq([...RUN_BASE, ...RUN_TAPER, "V3P_RUN_136", "V3P_RUN_094", "V3P_RUN_102", "V3P_RUN_104", "V3P_RUN_202", ...STRENGTH, ...CROSS_BIKE]),
     doses: { V3P_RUN_136: { targetDurationMin: 51, allowWorksetChange: true }, V3P_RUN_094: { targetDurationMin: 28, allowWorksetChange: true },
       V3P_RUN_001: { targetDurationMin: 28 }, V3P_RUN_155: { targetDurationMin: 28, allowWorksetChange: true } } },
-  semi_marathon: { family: "semi_marathon", ciScenario: "v332 semi + affûtage étendu (V402)", independentScientificReview: false,
-    ids: uniq([...RUN_BASE, ...RUN_TAPER, ...CROSS_BIKE, ...STRENGTH]),
-    doses: { V3P_RUN_160: { targetDurationMin: 25, allowWorksetChange: true } } },
+  semi_marathon: { family: "semi_marathon", ciScenario: "v332 semi + affûtage étendu V402 + V406 10 km B → semi A", independentScientificReview: false,
+    ids: uniq([...RUN_BASE, ...RUN_TAPER, ...CROSS_BIKE, ...STRENGTH, ...n("V3P_RUN_", ["102","104","136","202"])]),
+    doses: { V3P_RUN_160: { targetDurationMin: 25, allowWorksetChange: true }, V3P_RUN_136: { targetDurationMin: 51, allowWorksetChange: true }, V3P_RUN_001: { targetDurationMin: 28 } } },
   triathlon_703: { family: "triathlon_703", ciScenario: "v320 70.3 + rôles V3 V402", independentScientificReview: false,
     ids: uniq([...TRI_COMMON, "V3P_BIKE_012", "V3P_BIKE_084", "V3P_SWIM_199", ...TRI_ROLE, "V3P_BIKE_185", "V3P_RUN_165", ...STRENGTH]), doses: TRI_DOSES },
   triathlon_ironman: { family: "triathlon_ironman", ciScenario: "v320 Ironman + rôles V3 V402 + composition IM V404 (revue individuelle requise)", independentScientificReview: false,
@@ -79,9 +86,10 @@ export async function computePoolFingerprint(ids: readonly string[]): Promise<st
 
 /** Empreintes figées lors de la revue du pool (recalculées par `familySourcePools.test.ts`). */
 export const PINNED_POOL_FINGERPRINTS: Record<CoachFamilyKey, string> = {
-  '10k': "abe798a31abf784e8b212ff9ebe341b52c094aa36d355a006bece2895a8d645e",
-  marathon: "506ef5194a2359d26859b3df4edde2ef1a257ddfc76c75394e9ea4fdf62e2580",
-  semi_marathon: "54e2bf2c8f4acef04e7b20729ccb2d63601cc6a8610931d9cf7f02a069fc5695",
+  trail_short:'1bb681a3b63b82a747e46c9e4fc3877049156125eb800774eee9ed3edf8b5e9c',trail_mountain:'10babddc10605e6982c84ffe5ff3b6253034433475046adfdabacfd6015de4e3',trail_ultra:'f7d55c4b3010e9de08b51c9322ba367fce27be21feb0139cb8afe4068a097f26',
+  '10k': "ffdf63ced9d92dd535df3a2563a26984c7c6da07be8e74dead6e9e05cbb19575",
+  marathon: "1457c1388a6e66956c88b535a43a1738fdc6d8e0bc22f746eab53c472f4031a9",
+  semi_marathon: "c82ac4baf3b66fd9d623fe966f86ffe3f8ebc5c10c2c5e232007b9a7a53db836",
   triathlon_703: "106505b06e0a0a71501c3101bb9d0958f33e9d997efe6c3cbe04f94be05b0535",
   triathlon_ironman: "99cec932df53d3125222ba82cc3ae91880d70623bc86c703db7fc79e06a558da",
 };

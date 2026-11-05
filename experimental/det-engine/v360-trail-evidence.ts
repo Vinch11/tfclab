@@ -9,10 +9,10 @@ export interface TrailRouteReview {
  durationMin:number;distanceKm:number;dPlusM:number;dMinusM:number;descentMinutes:number;
  technicality:'easy'|'rocky';role:'support'|'technical'|'long_terrain'|'uphill_quality';
  fuelingPractice:boolean;minimumRecoveryHours:number;
- provenance:'explicit_synthetic_route_observation';coachApproved:true;
+ provenance:'explicit_synthetic_route_observation'|'explicit_coach_route_observation';coachApproved:true;
 }
 export interface TrailCoachReview {
- athleteId:string;objective:string;weeks:number;weeklyHours:number;primaryLimiter:'vo2max'|'tte';
+ athleteId:string;objective:string;weeks:number;weeklyHours:number;primaryLimiter:'vo2max'|'tte'|'durability_race_relative';
  race:{distanceKm:number;elevationGainM:number;elevationLossM:number;targetTimeMinutes:number};
  history:{weeksHeld:number;weeklyMinutes:number;weeklyDPlusM:number;weeklyDMinusM:number;
   longestRunMinutes:number;largestDescentM:number;observedReadyAfterHours:number;
@@ -50,7 +50,7 @@ export function validateTrailReview(review:TrailCoachReview,routes:readonly Trai
  for(const r of routes){
   const w=source(r.sourceId),dose=exact(r.sourceId,r.durationMin);
   if(r.athleteId!==review.athleteId||r.objective!==review.objective||!r.routeId||
-   r.coachApproved!==true||r.provenance!=='explicit_synthetic_route_observation'||
+   r.coachApproved!==true||!['explicit_synthetic_route_observation','explicit_coach_route_observation'].includes(r.provenance)||
    review.routeFingerprints[r.sourceId]!==fingerprintTrailRoute(r))problems.push('trail_route_binding_invalid:'+r.sourceId);
   if(!w||w.sport!=='run'||r.sourceFingerprint!==fingerprintV3SportingSource(w)||
    !dose||dose.sourceIds.length!==1||dose.sourceIds[0]!==r.sourceId||
@@ -122,7 +122,7 @@ export function auditTrailPlan(plan:ParsedPlan,review:TrailCoachReview,routes:re
    if(kind==='load'&&s.isKeySession){
     keys++;
     const primary=source(s.catalogId!)?.primaryDomain;
-    if(review.primaryLimiter==='tte'?primary==='mlss'&&d.high>=20:primary==='vo2max'&&d.high>=8){
+    if(review.primaryLimiter!=='vo2max'?primary==='mlss'&&d.high>=20:primary==='vo2max'&&d.high>=8){
      row.qualitySources.push(s.catalogId!);matchedKeys++;
     }
    }

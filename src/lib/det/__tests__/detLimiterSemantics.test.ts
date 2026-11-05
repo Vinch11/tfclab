@@ -12,7 +12,7 @@ describe("résolution sans perte (casse / accents / espaces), tracée", () => {
   it.each([
     ["TTE", "tte", "exact"], ["tte", "tte", "exact"], ["Tte", "tte", "case"], [" TTE ", "tte", "accent_or_whitespace"],
     ["Durabilité", "durability_race_relative", "exact"], ["DURABILITÉ", "durability_race_relative", "case"],
-    ["Durabilite", "durability_race_relative", "accent_or_whitespace"], ["VO2max", "vo2max", "exact"], ["FTP", "ftp", "exact"],
+    ["VMA", "vma_velocity", "exact"], ["VLamax", "vlamax_reduction", "exact"], ["Durabilite", "durability_race_relative", "accent_or_whitespace"], ["VO2max", "vo2max", "exact"], ["FTP", "ftp", "exact"],
   ])("%s → %s (%s)", (raw, key, translation) => {
     expect(resolveDetLimiter(raw)).toEqual({ raw, status: "supported", key, translation });
   });
@@ -29,7 +29,7 @@ describe("physiologies différentes : jamais traduites", () => {
     expect(DET_LIMITER_CAPABILITIES.durability_race_relative.scientificReview).toBe(false);
   });
   it.each([
-    ["Durabilité (découplage)", /découplage/], ["VMA", /VMA/], ["FTP/kg", /FTP\/kg/], ["VLamax", /aucune branche DET primaire/],
+    ["Durabilité (découplage)", /découplage/], ["FTP/kg", /FTP\/kg/], ["FatMax", /aucune branche DET primaire/],
     ["Durabilté", /inconnu/], ["TTEE", /inconnu/], ["Foo", /inconnu/], ["", /inconnu/],
   ])("%s ⇒ non supporté (raison nommée)", (raw, reason) => {
     const r = resolveDetLimiter(raw);
@@ -53,9 +53,10 @@ describe("politique primaire / secondaire par famille", () => {
     expect(t.rawPriorities).toEqual(["Durabilté", "TTE"]);
     expect(t.resolutions.map((r) => r.policy)).toEqual(["blocked_unsupported_primary", "native_validators_only"]);
   });
-  it("marathon : VLamax primaire ⇒ bloqué (aucune branche primaire marathon), jamais remplacé par le secondaire TTE", () => {
+  it("marathon : VLamax conserve sa nouvelle branche distincte, jamais remplacé par TTE", () => {
     const t = traceLimiterSemantics(["VLamax", "TTE"], "marathon");
-    expect(t.blocking?.raw).toBe("VLamax");
+    expect(t.blocking).toBeNull();
+    expect(t.resolutions[0]).toMatchObject({key:"vlamax_reduction",policy:"det_primary_branch"});
     expect(t.rawPriorities).toEqual(["VLamax", "TTE"]);
   });
   it("marathon : Durabilité et TTE primaires définis", () => {
@@ -68,8 +69,8 @@ describe("politique primaire / secondaire par famille", () => {
     expect(t.resolutions.map((r) => [r.raw, r.policy])).toEqual([
       ["TTE", "det_primary_branch"], ["Durabilité (découplage)", "retained_unsupported_secondary"], ["Foo", "retained_unsupported_secondary"]]);
   });
-  it("semi / 70.3 : la famille ne lit pas le primaire ⇒ validateurs natifs seulement, aucun blocage", () => {
-    expect(traceLimiterSemantics(["VLamax"], "semi_marathon").resolutions[0].policy).toBe("native_validators_only");
+  it("semi : branche typée ; 70.3 : politique native historique conservée", () => {
+    expect(traceLimiterSemantics(["VLamax"], "semi_marathon").resolutions[0].policy).toBe("det_primary_branch");
     expect(traceLimiterSemantics(["Foo"], "triathlon_703").blocking).toBeNull();
   });
 });

@@ -1,3 +1,5 @@
+import {auditPrimaryRunningCoverage,type PrimarySourceEvidence} from './v408-primary-limiter-evidence';
+import type {DetLimiterKey} from './v403-limiter-semantics';
 /**
  * DET V3.51 — independent, fail-closed long-marathon evidence.
  * NEVER replaces native periodization, limiter or phase validators.
@@ -16,6 +18,7 @@ export interface MarathonHorizonEvidence {
   excessiveBuildStreaks:readonly {first:number;last:number;weeks:number}[];
   peakRaceSpecificSources:readonly {week:number;sourceId:string;minutes:number}[];
   buildMesocycleEvidence:{verified:boolean;segments:number;measuredRecoveryBoundaries:number};
+  primaryCoverage?:ReturnType<typeof auditPrimaryRunningCoverage>;
   tte:{verifiedMatches:number;allKeySessions:number;unknownKeySessions:number;
     nonRunKeySessions:number;percentage:number|null;minimumPercentage:30;verified:boolean;
     mapping:'v3_mlss_threshold_tolerance_exact_work_20min';};
@@ -36,6 +39,7 @@ function isKey(session:ParsedSession):boolean {
 export function auditMarathonHorizon(
   plan:Pick<ParsedPlan,'weeks'|'phases'|'weeklyQuotas'>,proof:MarathonSourceProof,
   runningScope?:{objective:'semi'|'10k';horizon:number},
+  primary?:DetLimiterKey,
 ):MarathonHorizonEvidence {
   const weeks=[...plan.weeks].sort((a,b)=>a.weekNumber-b.weekNumber);
   const refusals:string[]=[];
@@ -115,10 +119,11 @@ export function auditMarathonHorizon(
   const percentage=allKeySessions?100*verifiedMatches/allKeySessions:null;
   const tteVerified=allKeySessions>0&&unknownKeySessions===0&&
     percentage!==null&&percentage>=30;
-  if(!tteVerified)refusals.push('tte_source_verified_coverage_below_30_or_unknown');
+  const primaryCoverage=primary?auditPrimaryRunningCoverage(plan,primary,proof as PrimarySourceEvidence):undefined;
+  if(primaryCoverage?!primaryCoverage.verified||unknownKeySessions>0:!tteVerified)refusals.push(primaryCoverage?'primary_source_verified_coverage_below_30_or_unknown':'tte_source_verified_coverage_below_30_or_unknown');
   if(!peakRaceSpecificSources.length)
     refusals.push(runningScope?'running_peak_specific_dose_unproven':'marathon_peak_specific_dose_unproven');
-  return {verified:refusals.length===0,horizon:weeks.length,
+  return {...(primaryCoverage?{primaryCoverage}:{}),verified:refusals.length===0,horizon:weeks.length,
     buildStreaks:streaks,excessiveBuildStreaks,peakRaceSpecificSources,
     buildMesocycleEvidence:{verified:projected,
       segments:partition?.mesocycles.length??0,

@@ -1,3 +1,7 @@
+import {EXTENDED_RUNNING_PRIMARIES,primaryRunningInputProblems} from './v408-primary-limiter-evidence';
+import { reviewedTrailContract, type TrailPlanningDeclaration } from './v407-reviewed-trail-contract';
+import { multiGoalProblems } from './v406-multi-goal-contract';
+import { prepareMultiGoalMilestones } from './v359-declared-event';
 /**
  * V401 — exécution DET sur des ENTRÉES COACH (aucune fixture synthétique).
  *
@@ -130,13 +134,13 @@ export function clockFor(clock: CoachConfirmedClock, planStartDate: string) {
  * enveloppe ⇒ refus explicite, jamais une extrapolation silencieuse.
  * Une preuve synthétique CI n'est PAS une preuve pour un athlète réel.
  */
-export type CoachFamilyKey = '10k' | 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman';
+export type CoachFamilyKey = '10k' | 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman' | 'trail_short' | 'trail_mountain' | 'trail_ultra';
 export interface CoachFamily {
   key: CoachFamilyKey;
   label: string;
   /** Chaîne d'objectif transmise au moteur (celle des scénarios CI). */
-  engineObjective: '10K' | 'Marathon' | 'Semi' | '703' | 'IM';
-  sportFocus: 'run' | 'tri';
+  engineObjective: '10K' | 'Marathon' | 'Semi' | '703' | 'IM' | 'TrailShort' | 'TrailMountain' | 'TrailUltra';
+  sportFocus: 'run' | 'tri' | 'trail';
   /** Ancres V3 que le coach doit fournir (mesure ou estimation identifiée). */
   requiredAnchors: readonly string[];
   /** Sports dont un créneau horaire confirmé est obligatoire. */
@@ -145,6 +149,9 @@ export interface CoachFamily {
   ciEvidence: string;
 }
 export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
+  trail_short: {key:'trail_short',label:'Trail court',engineObjective:'TrailShort',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[12,12],weeklyHours:[7,7]},ciEvidence:'V360 trail court 12 semaines 7 h'},
+  trail_mountain: {key:'trail_mountain',label:'Trail montagne',engineObjective:'TrailMountain',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[16,16],weeklyHours:[9,9]},ciEvidence:'V360 trail montagne 16 semaines 9 h'},
+  trail_ultra: {key:'trail_ultra',label:'Ultra trail',engineObjective:'TrailUltra',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[20,20],weeklyHours:[12,12]},ciEvidence:'V360 ultra trail 20 semaines 12 h'},
   '10k': { key: '10k', label: '10 km route', engineObjective: '10K', sportFocus: 'run',
     requiredAnchors: ['runThresholdPaceSecPerKm', 'runVvo2SpeedMps'], requiredClockSports: ['run', 'bike'],
     testedEnvelope: { weeks: [8, 12], weeklyHours: [7, 7] }, ciEvidence: 'v358 strict 10 km (8/10/12 sem., 7 h)' },
@@ -168,7 +175,7 @@ export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
 /** Objectifs reconnus mais NON raccordés, avec la raison exacte. */
 export const COACH_BLOCKED_OBJECTIVES: Readonly<Record<string, string>> = {
   '5k': '5 km : aucun scénario CI du moteur V3 avec acceptation stricte — non raccordé',
-  trail: "trail : le moteur trail (generateTrailPlan, v4) exige un profil d'épreuve (terrain/D+/modèle de calendrier) et le catalogue natif, pas le contrat V3 revu par le coach — non raccordé",
+  trail: 'Préciser trail court, montagne ou ultra et compléter la revue terrain.',
   tri_short: 'triathlon sprint/olympique : aucun scénario CI V3 avec acceptation stricte — non raccordé',
 };
 export const COACH_QUALIFIED_OBJECTIVES = Object.keys(COACH_FAMILIES) as CoachFamilyKey[];
@@ -185,6 +192,9 @@ export function coachObjectiveKey(objective: string): CoachObjectiveKey {
   if (['im', 'ironman', 'triathlon ironman', 'full ironman'].includes(t)) return 'triathlon_ironman';
   if (['10k', '10 km', '10km', '10 km route'].includes(t)) return '10k';
   if (['5k', '5 km', '5km'].includes(t)) return '5k';
+  if (['trailshort','trail short','trail court','trail court (20 40 km)'].includes(t)) return 'trail_short';
+  if (['trailmountain','trail mountain','trail montagne','trail long','trail montagne (40 80 km)'].includes(t)) return 'trail_mountain';
+  if (['trailultra','trail ultra','ultra trail','ultra trail (80 km+)'].includes(t)) return 'trail_ultra';
   if (/^trail( (court|short|long|montagne|mountain|ultra))?$/.test(t) || t === 'trailshort' || t === 'ultra trail') return 'trail';
   if (['sprint', 'olympic', 'olympique', 'triathlon sprint', 'triathlon olympique'].includes(t)) return 'tri_short';
   return 'unsupported';
@@ -208,6 +218,7 @@ export function runCoachInputsDet(input: {
   reviews: readonly V3ReviewedSettings[];
   clock: CoachConfirmedClock;
   brickApprovals?: readonly CoachBrickApproval[];
+  trail?: TrailPlanningDeclaration;
   limits?: { maxNodes: number; maxMilliseconds: number };
 }) {
   const objectiveKey = coachObjectiveKey(String(input.config.objective));
@@ -218,6 +229,12 @@ export function runCoachInputsDet(input: {
   if (bricks.length && !coachBrickIdsFor(family.key).length) throw new Error('coach_inputs_bricks_not_qualified_for_family');
   for (const b of bricks) if (!coachBrickIdsFor(family.key).includes(b.id)) throw new Error(`coach_inputs_unknown_brick:${b.id}`);
   const obj = family.engineObjective;
+  const primaryKey=detPrimaryLimiterKey(input.config);
+  const extendedPrimary=family.sportFocus==='run'&&primaryKey&&EXTENDED_RUNNING_PRIMARIES.includes(primaryKey);
+  if(primaryRunningInputProblems(input.config).length)throw Error('coach_inputs_vlamax_reduction_direction_not_declared_by_app');
+  const multi = (input.config.raceGoals?.length ?? 0) > 1;
+  const multiProblems = multiGoalProblems(input.config);
+  if (multi && (family.sportFocus === 'trail' || multiProblems.length)) throw new Error('coach_inputs_multi_goal_invalid:'+multiProblems.join(','));
   const mk = (b: CoachBrickApproval) => ({ id: b.id, objective: obj, individualCoachApproval: true as const, transitionSeconds: b.transitionSeconds, preferReviewedV3: true as const });
   const { contract, report, allBricks, imBrickReport, structuredWorkoutForId } = buildDetV3ContractFromCatalogue(
     input.reviews.map((r) => ({ ...r, objective: obj })),
@@ -233,6 +250,8 @@ export function runCoachInputsDet(input: {
   const common = {
     ...contract,
     requireReviewedAthleteContext: true as const,
+    ...(multi ? {useDeclaredEventDurationEstimates:true as const,excludeNativeBaseBuildPhaseConflicts:true as const,
+      adapt:(p:Parameters<typeof contract.adapt>[0],c:PlanConfig)=>prepareMultiGoalMilestones(p,c,contract)} : {}),
     requireReviewedHorizonSourceCoverage: true as const,
     filterCandidate: (card: Parameters<NonNullable<typeof baseFilter>>[0], ctx: Parameters<NonNullable<typeof baseFilter>>[1]) => accepted.has(card.id) && (baseFilter?.(card, ctx) ?? true),
     enforceWeeklyHoursCap: true as const,
@@ -257,7 +276,13 @@ export function runCoachInputsDet(input: {
     : { maxNodes: 25000, maxMilliseconds: 15000 });
   let out: ReturnType<typeof constructDeterministicPlan>;
   let replayEvidence: ReplayEvidence | undefined;
-  if (family.sportFocus === 'tri') {
+  if (family.sportFocus === 'trail') {
+    if (!input.trail) throw Error('coach_inputs_trail_review_required');
+    for (const card of report.accepted) { const r=input.trail.routes.find(r=>r.sourceId===card.id); if(r) card.structure+=' | PARCOURS APPROUVÉ '+r.routeId+' : D+ '+r.dPlusM+' m ; D− '+r.dMinusM+' m ; descente '+r.descentMinutes+' min. Réévaluer douleur, technique et disponibilité avant la séance suivante.'; }
+    const trailConfig={...input.config,objective:obj};
+    const trailContract=reviewedTrailContract(contract,input.trail,trailConfig,accepted,slotClock);
+    out=constructDeterministicPlan(input.athlete,trailConfig,input.limits??{maxNodes:60000,maxMilliseconds:15000},trailContract);
+  } else if (family.sportFocus === 'tri') {
     // Jeu d'options EXACT de V320 (ratios minutes tri finaux, quotas course
     // officielle, pic spécifique revu, décharges mesurées).
     const triOptions = {
@@ -288,7 +313,9 @@ export function runCoachInputsDet(input: {
   } else {
     out = constructDeterministicPlan(input.athlete, input.config, limits, {
       ...common,
+      ...(extendedPrimary?{prioritizeSourceVerifiedPrimaryRunning:true as const}:{}),
       requireStrictPeriodizationEvidence: true,
+      reconcileReviewedSourcePolarization:true as const,
       // Exigences du chemin marathon prouvé en CI (V351–V357) : preuves plus
       // strictes et classements, jamais un assouplissement.
       ...(family.key === '10k' ? {
@@ -312,6 +339,12 @@ export function runCoachInputsDet(input: {
         reconcileReviewedMarathonSpecificityLexicalWarning: true as const,
         enableV333ForwardCheck: true as const, enableV335SourceRunningPeak: true as const,
       } : {
+        ...(multi||extendedPrimary ? { requireReviewedRunningKeyQualityOnLoadWeeks:true as const,
+          prioritizeVerifiedRunningQualitySlot:true as const, auditRunningQualitySourceMatching:true as const,
+          prioritizeVerifiedRunningQualityCandidate:true as const, prioritizeRunningStructuredEasyMargin:true as const,
+          prioritizeRunningQualitySlotByMargin:true as const,
+          requireVerifiedRunningPhaseEvidence: true as const, reconcileReviewedSourcePolarization:true as const,
+          prioritizeSourceVerifiedTteOnKeySlots:true as const, prioritizeSourceVerifiedRaceDurabilityOnKeySlots:true as const } : {}),
         // Semi: use the existing V358 measured phase/taper evidence, as in
         // the accepted long-horizon bench. No relabeling without dose proof.
         ...(Number(input.config.weeksAvailable) > 12 ? {

@@ -1,3 +1,5 @@
+import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
+import type { RaceGoal } from '@/hooks/useAITrainingPlan';
 import { canonicalJson } from "@/lib/plan/appendOnlyPlanVersionSave";
 /**
  * Pont « contexte athlète réel → entrées DET/IA ». Pur, sans réseau.
@@ -42,6 +44,7 @@ export interface AthleteRecordView {
   diagnosticLimiters: string[];
 }
 export interface PlanFormView {
+  raceGoals?: RaceGoal[];
   objective: string; planStartDate: string; raceDate: string; weeksAvailable: number; weeklyHours: number;
   sessionsPerWeek: number; strengthSessionsPerWeek: number; maxSessionsPerDay: number; ambition: string;
 }
@@ -105,6 +108,7 @@ export function requiredAnchorKeys(family: CoachFamily, pool: FamilySourcePool):
   const swim = new Set<SwimDomain>(); let strengthRpe = false;
   for (const id of pool.ids) {
     const w = findSource(id); if (!w) continue;
+    if (family.sportFocus==='trail' && w.sport==='run') continue;
     const res = resolveV3IntensityTargets(w, {} as never) as { missing?: string[] };
     for (const m of res.missing ?? []) {
       if (RESOLVER_TO_ANCHOR[m]) anchors.add(RESOLVER_TO_ANCHOR[m]);
@@ -141,6 +145,7 @@ export const CONDITIONAL_CONFIRMATIONS = {
 export type ConditionalKey = keyof typeof CONDITIONAL_CONFIRMATIONS;
 
 export interface CoachAnswers {
+  trail?: TrailPlanningDeclaration;
   /** Choix de provenance pour chaque valeur reprise de la fiche. */
   provenance: Partial<Record<FieldKey, { kind: AnchorEntry["kind"]; uncertainty?: string }>>;
   /** Valeurs manquantes saisies par le coach (avec méthode et provenance). */
@@ -162,6 +167,8 @@ export interface CoachAnswers {
 }
 
 export interface BridgeResult {
+  /** Confirmed clock available for recording a new human source review; grants no source authority. */
+  reviewClock?:CoachConfirmedClock|null;
   family: CoachFamily | null;
   pool: FamilySourcePool | null;
   missing: MissingItem[];
@@ -231,6 +238,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   const trace = { diagnostic: [...record.diagnosticLimiters], coach: a.coachLimiterOrder ? [...a.coachLimiterOrder] : null };
   if (!family) return { family: null, pool: null, missing: [{ key: "objective", label: "Objectif", why: `« ${form.objective} » n'est pas encore pris en charge par DET (voir le tableau des familles). L'IA reste disponible.` }], snapshot: null, ctx: null, excludedSources: [], limiterTrace: trace, sourceReview: NE };
   const pool = familySourcePool(family.key);
+  if (family.sportFocus === "trail" && !a.trail) missing.push({key:"trail",label:"Données terrain",why:"Compléter parcours, historique et limites individuelles avant génération."});
   const req = requiredAnchorKeys(family, pool);
   const pre = new Map(prefillFromRecord(record).map((p) => [p.key, p]));
   const entry = (k: FieldKey, required: boolean): AnchorEntry | null => {
@@ -302,11 +310,13 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   if (bricksForFamily(family.key).length && !a.bricksConfirmed) missing.push({ key: "bricks", label: "Enchaînements vélo-course", why: `confirmer les horaires des enchaînements du registre ${family.label} (ne vaut pas revue des compositions)` });
   const ymd = form.planStartDate;
   const snapshot: CoachDetInputSnapshot = {
+    ...(form.raceGoals?.length ? { raceGoals: structuredClone(form.raceGoals) } : {}),
     schema: COACH_INPUTS_SCHEMA, athleteId: record.athleteId, coachId: record.coachId, objective: form.objective,
     planStartDate: form.planStartDate, raceDate: form.raceDate, weeksAvailable: form.weeksAvailable, weeklyHours: form.weeklyHours,
     sessionsPerWeek: form.sessionsPerWeek, strengthSessionsPerWeek: form.strengthSessionsPerWeek, maxSessionsPerDay: form.maxSessionsPerDay,
     ambition: form.ambition, athleteLevel: (a.athleteLevel || "trained") as CoachDetInputSnapshot["athleteLevel"],
     age: age(record.birthDate, ymd), sex: record.sex === "M" || record.sex === "F" ? record.sex : null,
+    ...(a.trail ? {trail:structuredClone(a.trail)} : {}),
     anchors, physiology, coachValidatedStrengthLoadAndRpe: a.strengthLoadAndRpeConfirmed === true,
     ...(Object.keys(swimDomainPaces).length ? { swimDomainPaces } : {}),
     coachLimiterOrder: a.coachLimiterOrder ? [...a.coachLimiterOrder] : null,
@@ -317,7 +327,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   // et à l'empreinte actuelle de chaque séance. Le pool CI ne remplace jamais cette revue.
   const sameAthlete = genuine && (genuine.origin === "det_coach_review_contexts" || genuine.origin === "det_library_source_reviews") && genuine.coachId === record.coachId && genuine.athleteId === record.athleteId;
   // Chemin normal : la revue doit porter sur le MÊME profil de planification (empreinte complète).
-  const staleContext = !!(sameAthlete && ((planningFingerprint && genuine!.planningInputFingerprint !== planningFingerprint)
+  const staleContext = !!(sameAthlete && ((genuine!.athleteChecksKey && genuine!.athleteChecksKey!==canonicalJson(a)) || (planningFingerprint && genuine!.planningInputFingerprint !== planningFingerprint)
     || (genuine!.origin === "det_library_source_reviews" && (genuine!.libraryFamily !== family.key || genuine!.athleteChecksKey !== canonicalJson(a)))));
   const g = sameAthlete && !staleContext ? genuine : null;
   const byId = new Map((g?.qualifications ?? []).map((q) => [q.id, q]));
@@ -333,12 +343,12 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   const approvedBricks = new Set((g?.brickApprovals ?? []).map((b) => b.id));
   const unreviewedBricks = familyBricks.map((b) => b.id).filter((id) => !approvedBricks.has(id));
   if (unreviewedIds.length || unreviewedBricks.length) {
-    return { family, pool, missing, snapshot, ctx: null, excludedSources: excluded, limiterTrace: trace,
+    return { family, pool, missing, snapshot, ctx: null, reviewClock:clock, excludedSources: excluded, limiterTrace: trace,
       sourceReview: { status: "blocked_missing_source_review", unreviewedIds, unreviewedBricks, upstreamTask: "review_family_pool_sources_in_advanced_grid",
         reason: (staleContext ? "La revue enregistrée concerne un autre état du profil de l'athlète (données, objectif, budget ou ordre des limiteurs modifiés) : elle n'est pas reprise. " : "") + `${unreviewedIds.length} séance(s)${unreviewedBricks.length ? ` et ${unreviewedBricks.length} enchaînement(s)` : ""} de cette famille n'ont pas de revue réelle par le coach pour cet athlète. La sélection CI du moteur n'est pas une revue humaine : faire la revue une fois dans « Avancé — revue par séance ».` } };
   }
   const reviewedSnapshot: CoachDetInputSnapshot = { ...snapshot, sourceReviewProvenance: { kind: "genuine_coach_source_review", reviewContextId: g!.reviewContextId, reviewedAt: g!.reviewedAt, reviewedIds: qualifications.length, origin: g!.origin, ...(g!.libraryManifestHash ? { libraryManifestHash: g!.libraryManifestHash } : {}) } };
-  return { family, pool, missing, snapshot: reviewedSnapshot, excludedSources: excluded, limiterTrace: trace,
+  return { family, pool, missing, snapshot: reviewedSnapshot, reviewClock:clock, excludedSources: excluded, limiterTrace: trace,
     sourceReview: { status: "reviewed", reviewContextId: g!.reviewContextId, reviewedAt: g!.reviewedAt, reviewedIds: qualifications.length },
     ctx: { coachId: record.coachId, athleteId: record.athleteId, qualifications, clock,
       ...(needBricks ? { brickApprovals: (g!.brickApprovals).filter((b) => familyBricks.some((x) => x.id === b.id)) } : {}) } };
@@ -361,6 +371,11 @@ export function explainEngineRefusal(issues: { code: string; week: number | null
   const out: string[] = [];
   const recovery = new Set(issues.filter((i) => i.code === "det_v3_recovery_safe_slot_unfillable").map((i) => i.week));
   for (const i of issues) {
+    if(i.code==='det_v336_root_source_matching_conflict'){
+      let d:{slotsRequired?:number;distinctSourcesAvailable?:number}={};
+      try{d=JSON.parse(i.message);}catch{/* diagnostic non structuré */}
+      out.push(`Semaine ${i.week} : ${d.slotsRequired??"plusieurs"} créneaux exigent des séances distinctes, mais seulement ${d.distinctSourcesAvailable??"trop peu de"} source(s) revue(s) restent compatibles avec les doses et horaires confirmés. Il faut revoir les disponibilités réelles ou les sources admissibles ; aucune séance n'est dupliquée artificiellement.`);
+    }
     if (i.code === "det_required_horizon_source_missing") {
       let d: { day?: string; sport?: string; phase?: string } = {};
       try { d = JSON.parse(i.message); } catch { /* message non structuré */ }

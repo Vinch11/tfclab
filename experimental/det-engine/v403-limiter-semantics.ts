@@ -15,7 +15,7 @@ import type {ParsedSession} from '@/lib/aiPlanParser';
 import {verifyReviewedTteThresholdDose} from './v353-reviewed-tte-dose';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
 
-export type DetLimiterKey='tte'|'vo2max'|'ftp'|'durability_race_relative';
+export type DetLimiterKey='tte'|'vo2max'|'ftp'|'durability_race_relative'|'vma_velocity'|'vlamax_reduction';
 export type DetTranslationKind='exact'|'case'|'accent_or_whitespace';
 
 export interface DetLimiterCapability {
@@ -31,6 +31,8 @@ export interface DetLimiterCapability {
 
 /** Engine capability registry — derived from the engine branches, not UI labels. */
 export const DET_LIMITER_CAPABILITIES:Readonly<Record<DetLimiterKey,DetLimiterCapability>>={
+  vma_velocity:{key:'vma_velocity',appLabels:['VMA'],appMeaning:'Vitesse maximale aérobie (km/h), signal distinct de VO2max. Prescription de plafond aérobie à partir de la vitesse individuelle, sans conversion en consommation d’oxygène.',primaryBranches:['engine.ts:V408 primary running exact source preference + full-key 30% coverage'],scientificReview:false},
+  vlamax_reduction:{key:'vlamax_reduction',appLabels:['VLamax'],appMeaning:'VLamax supérieure à la cible ; sens de réduction exigé de la valeur et de la cible du diagnostic existant de l’app. Endurance prolongée et seuil long co-contributeur ; aucune baisse mesurée ou garantie.',primaryBranches:['engine.ts:V408 primary running exact source preference + full-key 30% coverage'],scientificReview:false},
   tte:{key:'tte',appLabels:['TTE'],
     appMeaning:'TTE effectif (min tenues au seuil) vs cible TTE par objectif/ambition/âge (unifiedLimiterDetection.ts, bloc TTE).',
     primaryBranches:[
@@ -101,10 +103,13 @@ export function detPrimaryLimiterKey(config:{identifiedLimitersRaw?:readonly unk
 
 /** Families whose CI-proven option set reads the PRIMARY limiter, and the keys they define. */
 export const FAMILY_PRIMARY_REQUIREMENT:Readonly<Record<string,{keys:readonly DetLimiterKey[];why:string}|null>>={
-  '10k':{keys:['tte','durability_race_relative'],why:'v358 strict exact threshold-dose horizon and 10 km phase preparation'},
-  marathon:{keys:['tte','durability_race_relative'],
+  trail_short:{keys:['vo2max'],why:'V360 exact uphill VO2 dose + route/history trail audit'},
+  trail_mountain:{keys:['tte','durability_race_relative'],why:'V360 exact threshold dose + route/history trail audit'},
+  trail_ultra:{keys:['tte','durability_race_relative'],why:'V360 exact threshold dose + route/history trail audit'},
+  '10k':{keys:['tte','durability_race_relative','vo2max','vma_velocity','vlamax_reduction'],why:'v358 strict exact threshold-dose horizon and 10 km phase preparation'},
+  marathon:{keys:['tte','durability_race_relative','vo2max','vma_velocity','vlamax_reduction'],
     why:'option marathon prioritizeSourceVerifiedTteOnKeySlots / prioritizeSourceVerifiedRaceDurabilityOnKeySlots + audit V351'},
-  semi_marathon:null,triathlon_703:null,triathlon_ironman:null,
+  semi_marathon:{keys:['tte','durability_race_relative','vo2max','vma_velocity','vlamax_reduction'],why:'V358 phase/source + V408 exact primary coverage'},triathlon_703:null,triathlon_ironman:null,
 };
 
 export interface LimiterSemanticsTrace {

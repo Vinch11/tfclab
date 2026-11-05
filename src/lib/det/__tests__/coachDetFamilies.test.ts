@@ -29,13 +29,13 @@ describe("familles : clés canoniques strictes", () => {
     expect(coachObjectiveKey("Ironman")).toBe("triathlon_ironman");
     expect(coachObjectiveKey("Ironman 70.3 Nice")).toBe("unsupported");
     expect(coachObjectiveKey("Semi-marathon de trail")).toBe("unsupported");
-    expect(coachObjectiveKey("Trail court")).toBe("trail");
+    expect(coachObjectiveKey("Trail court")).toBe("trail_short");
     expect(coachObjectiveKey("10 km")).toBe("10k");
     expect(coachFamilyFor("10 km")?.key).toBe("10k");
     expect(coachFamilyFor("10 km route")?.key).toBe("10k");
-    expect(coachFamilyFor("Trail court")).toBeNull();
+    expect(coachFamilyFor("Trail court")?.key).toBe("trail_short");
   });
-  it.each([["Trail court", /generateTrailPlan/], ["Triathlon olympique", /sprint\/olympique/], ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
+  it.each([["Trail", /Préciser trail/], ["Triathlon olympique", /sprint\/olympique/], ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
     const s = snap(o, 12, 6, ymd(12));
     const r = await run(s, await ctx(s, RUN332, {}, runClock));
     expect(r.kind).toBe("refused");
@@ -43,7 +43,7 @@ describe("familles : clés canoniques strictes", () => {
   });
   it("le moteur refuse lui-même une famille non raccordée (aucun contournement par l'adaptateur)", () => {
     const { athlete, config } = buildCoachPlanInputs(snap("Marathon", 16, 7, ymd(16)));
-    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Trail court" }, reviews: [], clock: runClock })).toThrow(/objective_not_qualified:trail/);
+    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Trail" }, reviews: [], clock: runClock })).toThrow(/objective_not_qualified:trail/);
     expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Semi" }, reviews: [], clock: runClock, brickApprovals: [{ id: V3_BASE_BRICK_ID, transitionSeconds: 300 }] })).toThrow(/bricks_not_qualified/);
   });
 });

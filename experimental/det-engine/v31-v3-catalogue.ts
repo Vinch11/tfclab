@@ -133,6 +133,29 @@ function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
     [t.domain,t.min===null?'':String(t.min),t.max===null?'open':String(t.max),t.metric,
      'source='+t.source,'confiance='+t.confidence].join(' ')).join(' ; ');
 }
+/** Same configured blocks for the human source review and engine admission. No approval is created here. */
+export function previewV3SourceDose(dosing:V3Workout,settings:Pick<V3ReviewedSettings,'overrides'|'targetDurationMin'|'allowWorksetChange'>,swimPaces:Record<string,number>={}){
+  if (settings.overrides && settings.targetDurationMin !== undefined)
+    throw Error('v3_conflicting_recipe_controls');
+  let overrides=settings.overrides??{};
+  if (settings.targetDurationMin !== undefined) {
+    // Fitting cannot change the load-bearing work unless coach explicitly opts in.
+    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
+      swimPaces,toleranceSeconds:0,
+      allowWorksetChange:settings.allowWorksetChange===true,
+    });
+    if(!fit.fitsSlot || fit.computed.status!=='confirmed')
+      throw Error('v3_target_duration_unreachable:'+fit.code);
+    overrides=fit.overrides;
+  }
+  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
+  const seen=new Set<string>();
+  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
+  if(seen.size!==Object.keys(overrides).length)
+    throw Error('v3_override_unknown_path');
+  return configured;
+}
+
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   const terrain=settings.athleteAnchors?.runTerrainReview;
   if(terrain||settings.expectedRunTerrainContextId){
@@ -157,24 +180,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
     if(!repeat||repeat.kind!=='repeat'||repeat.betweenSec<90)
       throw Error('v3_sprint_25m_recovery_not_sufficient');
   }
-  if (settings.overrides && settings.targetDurationMin !== undefined)
-    throw Error('v3_conflicting_recipe_controls');
-  let overrides=settings.overrides??{};
-  if (settings.targetDurationMin !== undefined) {
-    // Fitting cannot change the load-bearing work unless coach explicitly opts in.
-    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
-      swimPaces,toleranceSeconds:0,
-      allowWorksetChange:settings.allowWorksetChange===true,
-    });
-    if(!fit.fitsSlot || fit.computed.status!=='confirmed')
-      throw Error('v3_target_duration_unreachable:'+fit.code);
-    overrides=fit.overrides;
-  }
-  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
-  const seen=new Set<string>();
-  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
-  if(seen.size!==Object.keys(overrides).length)
-    throw Error('v3_override_unknown_path');
+  const configured=previewV3SourceDose(dosing,settings,swimPaces);
   const result=evaluateV3Workout(configured,{swimPaces});
   // For historical strength, the weekly prescription is a count of reviewed
   // sessions, not a fabricated appointment duration. Other sports still

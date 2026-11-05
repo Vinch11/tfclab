@@ -59,7 +59,7 @@ const variedClock = { timeZone: "Europe/Brussels", bySport: {
 /** Lignes SYNTHÉTIQUES au format `athletes` / `snapshots` (aucune donnée réelle). */
 const athleteRow = { id: A1, name: "Synthétique A1", birth_date: "1991-01-01", sex: "M", active_snapshot_id: "snap-syn-1", refs: { fcMax: 188 } };
 const snapRow = (pace: number) => ({ id: "snap-syn-1", athlete_id: A1, date: "2026-10-01", sport_main: "run", vma: 18, ftp: 300, weight_kg: 72, vo2max: 58, fc_max: 188,
-  pace_threshold_sec_per_km: pace, tte_observed_min_run: 45, vlamax_run: null, fatigue_state: "ok", tss_7d: 380, run_economy_score: 68, run_hr_drift_pct: 3.5 });
+  pace_threshold_sec_per_km: pace, tte_observed_min_run: 45, vlamax_run: null, vlamax_source:null as string|null, vlamax_protocol:null as string|null, fatigue_state: "ok", tss_7d: 380, run_economy_score: 68, run_hr_drift_pct: 3.5 });
 const formState = (objective: string, weeks: number, hours: number, sessions: number): AppPlanFormState => ({
   objective, ambition: "age_group", planStartDate: new Date(2026, 9, 26), raceName: "", raceDate: new Date(Date.UTC(2026, 9, 26 + weeks * 7 - 1)).toISOString().slice(0, 10),
   raceFormat: "continuous", raceGoals: [], trailDistanceKm: "", trailElevationM: "", trailTargetTimeH: "", trailMaxAltitudeM: "",
@@ -68,10 +68,10 @@ const formState = (objective: string, weeks: number, hours: number, sessions: nu
   chronicWeeklyHours: "", recentWeeklyHours: "", recentWeeksCount: "", maxDoubleDaysPerWeek: "", coachLimiterOrder: [], currentAthleteId: A1,
 });
 
-async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18, snapshotOverrides: Partial<ReturnType<typeof snapRow>> = {}) {
+async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18, snapshotOverrides: Partial<ReturnType<typeof snapRow>> = {}, formOverrides: Partial<AppPlanFormState> = {}) {
   const snapshots = [{ ...snapRow(pace), ...(/Ironman/.test(objective) ? {sport_main:'tri',css:95} : {}), vma, ...snapshotOverrides }];
   const ctx = computeAppAthleteContext(athleteRow, objective, "age_group", { snapshots, tests: [], checkins: [] })!;
-  const st = formState(objective, weeks, hours, sessions);
+  const st = { ...formState(objective, weeks, hours, sessions), ...formOverrides };
   const config = buildAppPlanConfig(ctx.diagnostic, st);
   const applied = (config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
   const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: ctx.data, config, planStartDate: "2026-10-26",
@@ -80,7 +80,7 @@ async function pagePipeline(pace: number, objective: string, weeks: number, hour
   return { ctx, config, frozen, record, st };
 }
 async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: string, weeks: number, hours: number, sessions: number, extraAnswers:Partial<CoachAnswers>={}) {
-  const f = { objective, planStartDate: "2026-10-26", raceDate: p.st.raceDate, weeksAvailable: weeks, weeklyHours: hours, sessionsPerWeek: sessions, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
+  const f = { raceGoals:p.frozen.config.raceGoals, objective, planStartDate: "2026-10-26", raceDate: p.st.raceDate, weeksAvailable: weeks, weeklyHours: hours, sessionsPerWeek: sessions, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
   const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock, ...extraAnswers }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
   expect(b.sourceReview.status).toBe("reviewed");
   const inputsHash = await hashCoachInputs(b.snapshot!);
@@ -93,6 +93,77 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it.each([
+    {label:'VO2max',pace:222,vma:18,snapshot:{vo2max:30,tte_observed_min_run:80}},
+    {label:'VMA',pace:285,vma:14,snapshot:{tte_observed_min_run:80,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}},
+    {label:'VLamax',pace:300,vma:18,snapshot:{}},
+  ])('primary $label : exact app diagnosis retained, complete marathon',async c=>{
+    const p=await pagePipeline(c.pace,'Marathon',16,7,4,c.vma,c.snapshot);
+    expect(p.frozen.limiters.applied[0]).toBe(c.label);
+    const {out}=await runDet(p,'Marathon',16,7,4);
+    if(out.kind!=='accepted')process.stdout.write('PRIMARY_RESULT '+JSON.stringify({label:c.label,kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.plan.weeks).toHaveLength(16);expect(out.provenance.prescriptionAllowed).toBe(false);
+  },180000);
+  it.each([0,1,2])('Trail format %s : profil figé de la page, parcours propres à cet athlète, solveur réel',async index=>{
+    const {runTrail,trailCases}=await import('../../../../experimental/det-engine/v360-trail-fixture');
+    const {fingerprintTrailRoute}=await import('../../../../experimental/det-engine/v360-trail-evidence');
+    const reference=runTrail(trailCases[index]);
+    const spec=trailCases[index],sessions=index===0?5:6;
+    const p=await pagePipeline(222,spec.objective,spec.weeks,spec.weeklyHours,sessions,18,index===0?{vo2max:30,tte_observed_min_run:80}:{tte_observed_min_run:10},{crossTrainingVelo:true,crossTrainingNatation:false,trailDistanceKm:String(spec.event.distanceKm),trailElevationM:String(spec.event.elevationGainM),trailTargetTimeH:Math.floor(spec.event.targetTimeMinutes/60)+'h'+spec.event.targetTimeMinutes%60});
+    const routes=reference.routes.map(r=>({...r,athleteId:A1,provenance:'explicit_coach_route_observation' as const}));
+    const {detPrimaryLimiterKey}=await import('../../../../experimental/det-engine/v403-limiter-semantics');
+    const review={...reference.coachReview,primaryLimiter:detPrimaryLimiterKey(p.frozen.config) as typeof reference.coachReview.primaryLimiter,athleteId:A1,routeFingerprints:Object.fromEntries(routes.map(r=>[r.sourceId,fingerprintTrailRoute(r)]))};
+    const times=[720,720,420,930,420,720,420].map(toHm);
+    const {out,b}=await runDet(p,spec.objective,spec.weeks,spec.weeklyHours,sessions,{trail:{review,routes,longStartMinutes:spec.longStart,longPeakMinutes:spec.longPeak,scheduleConfirmed:true,fieldReviewReference:'SYNTHETIC field check only',domainRpe:{recovery:[1,2],moderate_lt1:[2,3],mlss:[6,7],vo2max:[8,9]}},clock:{timeZone:'UTC',bySport:{run:{time:'',days,perDay:times},bike:{time:'',days,perDay:times},strength:{time:'18:00',days}}}});
+    if(out.kind!=='accepted')process.stdout.write('TRAIL_APP '+JSON.stringify({primary:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues,context:out.contextProblems}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(p.frozen.limiters.applied[0]).toBe(index===0?'VO2max':'TTE');expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(spec.weeks);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+    const runs=out.plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='run'&&!s.isRest&&!s.title.startsWith('COURSE : '));
+    expect(runs.every(s=>s.details.includes('coach_field_effort'))).toBe(true);
+    expect(runs.every(s=>!s.details.includes('sec_per_km'))).toBe(true);
+  },180000);
+  it('10 km B puis 70.3 A : calendrier multi-sport complet depuis la page',async()=>{
+    const p=await pagePipeline(240,'Ironman 70.3',12,9,8,18,{}, {raceTargetMinutes:'330',raceGoals:[{objective:'10K',raceDate:'2026-11-28',priority:'B',targetTimeMinutes:40}]});
+    const solver=vi.spyOn(detEngine,'constructDeterministicPlan');
+    const {out}=await runDet(p,'Ironman 70.3',12,9,8,{clock:{timeZone:triClock.timeZone,bySport:Object.fromEntries(Object.entries(triClock.minutesBySport).map(([sport,row])=>[sport,{time:'',days,perDay:row.map(m=>m===null?'':toHm(m))}]))},swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHÉTIQUE QA',uncertainty:'±5 s/100 m'}]))});
+    if(out.kind!=='accepted')process.stdout.write('MULTI_TRI_ATTEMPTS '+JSON.stringify(solver.mock.results.filter(r=>r.type==='return').slice(0,3).map(r=>({reason:r.value.reason,hard:r.value.issues.filter((i:{severity:string;week?:number})=>['blocking','critical','error'].includes(i.severity)||i.week===6),trace:r.value.trace?.slice(-3)})))+'\n');
+    if(out.kind!=='accepted'&&solver.mock.calls[1]){const {prepareGenerationContracts}=await import('@/lib/plan/prepareGenerationContracts');const prep=prepareGenerationContracts(p.ctx.data,p.frozen.config);solver.mock.calls[1][3]?.adapt(prep,p.frozen.config);process.stdout.write('MULTI_TRI_WEEK6 '+JSON.stringify(prep.weeklyQuotas[6])+'\n');}
+    solver.mockRestore();
+    if(out.kind!=='accepted')process.stdout.write('MULTI_TRI '+JSON.stringify({kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(12);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.plan.weeks[4].sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({day:s.dayIndex,duration:s.durationMin,sport:s.sport}))).toEqual([{day:5,duration:40,sport:'run'}]);
+    expect(out.plan.weeklyQuotas?.[6].weekType).toBe('recovery');expect(out.provenance.prescriptionAllowed).toBe(false);
+  },240000);
+  it('marathon 40 semaines : deux courses B, récupérations et course A conservées',async()=>{
+    const p=await pagePipeline(222,'Marathon',40,8,4,18,{tte_observed_min_run:10},{raceTargetMinutes:'195',raceGoals:[{objective:'10K',raceDate:'2026-12-19',priority:'B',targetTimeMinutes:40},{objective:'Semi',raceDate:'2027-04-11',priority:'B',targetTimeMinutes:95}]});
+    const {out}=await runDet(p,'Marathon',40,8,4);
+    if(out.kind!=='accepted')process.stdout.write('MULTI_40 '+JSON.stringify({kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    const races=out.plan.weeks.flatMap(w=>w.sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({week:w.weekNumber,day:s.dayIndex,minutes:s.durationMin})));
+    expect(races).toEqual([{week:8,day:5,minutes:40},{week:24,day:6,minutes:95},{week:40,day:6,minutes:195}]);
+    expect(out.plan.weeklyQuotas?.[9].weekType).toBe('recovery');expect(out.plan.weeklyQuotas?.[25].weekType).toBe('recovery');expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+  },180000);
+  it('multi pool fingerprint is pinned',async()=>{
+    const {computePoolFingerprint}=await import('../familySourcePools');
+    expect(await computePoolFingerprint(familySourcePool('semi_marathon').ids)).toBe(familySourcePool('semi_marathon').pinnedFingerprint);
+  });
+  it('10 km B puis semi A : calendrier complet depuis les déclarations de la page',async()=>{
+    const p=await pagePipeline(222,'Semi',16,8,4,18,{tte_observed_min_run:10},{raceTargetMinutes:'95',raceGoals:[{objective:'10K',raceDate:'2026-12-19',priority:'B',targetTimeMinutes:40}]});
+    const {out,b}=await runDet(p,'Semi',16,8,4);
+    if(out.kind!=='accepted')process.stdout.write('MULTI_APP '+JSON.stringify({kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:{refusals:out.refusals})})+'\n');
+    expect(out.kind).toBe('accepted');
+    if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(16);
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    const races=out.plan.weeks.flatMap(w=>w.sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({week:w.weekNumber,day:s.dayIndex,minutes:s.durationMin})));
+    expect(races).toEqual([{week:8,day:5,minutes:40},{week:16,day:6,minutes:95}]);
+    expect(out.plan.weeklyQuotas?.[9].weekType).toBe('recovery');
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  },180000);
   it.each([8, 10, 12])("10 km %s semaines : le diagnostic TTE de l'app guide le calendrier complet", async (weeks) => {
     const p = await pagePipeline(222, '10K', weeks, 7, 4, 18, { tte_observed_min_run: 10 });
     const before = structuredClone(p.ctx.diagnostic);
@@ -136,7 +207,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
       expect(["accepted", "engine_refused"]).toContain(out.kind);
     } finally { solver.mockRestore(); }
   }, 200000);
-  it("une autre allure seuil enregistrée change le diagnostic et DET refuse son primaire non pris en charge, sans reprendre le plan précédent", async () => {
+  it("une autre allure seuil enregistrée change le diagnostic et conserve la branche VLamax, sans reprendre le plan précédent", async () => {
     const before = await pagePipeline(222, "Marathon", 16, 7, 4);
     const after = await pagePipeline(300, "Marathon", 16, 7, 4);
     expect(after.frozen.fingerprint).not.toBe(before.frozen.fingerprint);
@@ -147,11 +218,10 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
       const accepted = await runDet(before, "Marathon", 16, 7, 4);
       const refused = await runDet(after, "Marathon", 16, 7, 4);
       expect(accepted.out.kind).toBe("accepted");
-      expect(refused.out.kind).toBe("refused");
-      if (refused.out.kind !== "refused") return;
-      expect(refused.out.blockedUnsupportedLimiter).toMatchObject({ code: "blocked_unsupported_limiter", raw: "VLamax" });
-      expect(refused.out.limiterOrder!.applied).toEqual(after.config.identifiedLimitersRaw);
-      expect(solver).toHaveBeenCalledTimes(1);
+      expect(["accepted","engine_refused"]).toContain(refused.out.kind);
+      if(refused.out.kind!=="accepted"&&refused.out.kind!=="engine_refused")return;
+      expect(refused.out.limiterOrder.applied).toEqual(after.config.identifiedLimitersRaw);
+      expect(solver).toHaveBeenCalledTimes(2);
       expect(before.frozen.athlete.paceThresholdSecPerKm).toBe(222);
       expect(after.frozen.athlete.paceThresholdSecPerKm).toBe(300);
     } finally { solver.mockRestore(); }
@@ -350,7 +420,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(out.limiterOrder.semantics!.resolutions[0].policy).toBe("native_validators_only");
   }, 200000);
 
-  it.each([["Durabilté", "faute de frappe"], ["Foo", "inconnu"], ["VLamax", "sans branche primaire marathon"]])(
+  it.each([["Durabilté", "faute de frappe"], ["Foo", "inconnu"], ["FatMax", "sans branche primaire marathon"]])(
     "marathon : primaire « %s » (%s) ⇒ blocked_unsupported_limiter AVANT le solveur, priorités brutes conservées, rien de substitué", async (bad) => {
     const p0 = await pagePipeline(222, "Marathon", 16, 7, 4);
     const config = { ...JSON.parse(JSON.stringify(p0.config)), identifiedLimitersRaw: [bad, "TTE"] };

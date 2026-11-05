@@ -203,7 +203,7 @@ export function computeAppAthleteContext(athlete: any, obj: string, amb: string,
 
 export interface AppPlanFormState {
   objective: string; ambition: string; planStartDate: Date;
-  raceName: string; raceDate: string; raceFormat: any; raceGoals: Array<{ objective: string; raceName?: string; raceDate?: string; priority: any }>;
+  raceName: string; raceDate: string; raceTargetMinutes?: string; raceFormat: any; raceGoals: Array<{ objective: string; raceName?: string; raceDate?: string; priority: any; targetTimeMinutes?: number | null }>;
   trailDistanceKm: string; trailElevationM: string; trailTargetTimeH: string; trailMaxAltitudeM: string;
   weeksAvailable: number | null | undefined; weeklyHours: string; sessionsPerWeek: string; maxSessionsPerDay: string; strengthSessionsPerWeek: string;
   deloadCadence: string; constraints: string; trainingLevel: string; terrainAvailability: string; lockAmbition: boolean;
@@ -264,7 +264,7 @@ export function buildAppPlanFormConfig(st: AppPlanFormState, athleteAmbition?: s
       raceFormat: (objEff === "703" || objEff === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
-      targetTimeMinutes: trailTargetMin,
+      targetTimeMinutes: isTrailPrimary ? trailTargetMin : (st.raceTargetMinutes?.trim() ? Number(st.raceTargetMinutes) : null),
       maxAltitudeM: trailMaxAlt,
     });
     // Additional goals
@@ -275,6 +275,7 @@ export function buildAppPlanFormConfig(st: AppPlanFormState, athleteAmbition?: s
         raceDate: g.raceDate || undefined,
         weeksUntilRace: computeWeeksUntilRace(g.raceDate),
         priority: g.priority,
+        ...(g.targetTimeMinutes !== undefined ? { targetTimeMinutes: g.targetTimeMinutes } : {}),
       });
     }
 
