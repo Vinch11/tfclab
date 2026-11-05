@@ -1,3 +1,5 @@
+import {prepareDedicatedSport} from './v359-dedicated-sport-preparation';
+import {preserveTriathlonTaperFrequency} from './v359-triathlon-layout';
 import {EXTENDED_RUNNING_PRIMARIES,primaryRunningInputProblems} from './v408-primary-limiter-evidence';
 import { reviewedTrailContract, type TrailPlanningDeclaration } from './v407-reviewed-trail-contract';
 import { multiGoalProblems } from './v406-multi-goal-contract';
@@ -15,7 +17,7 @@ import { constructDeterministicPlan } from './engine';
 import { detPrimaryLimiterKey } from './v403-limiter-semantics';
 import { buildDetV3ContractFromCatalogue, type V3ReviewedSettings } from './v31-v3-catalogue';
 import { constructDeterministicPlanWithBoundedReplays, type ReplayEvidence } from './v315-bounded-multiweek-replay';
-import { V3_BASE_BRICK_ID } from './v31-v3-brick';
+import { SHORT_TRI_BRICKS, V3_BASE_BRICK_ID } from './v31-v3-brick';
 import { V32_703_BRICK_BLUEPRINTS } from './v32-v3-specific-bricks';
 import { V34_SAFE_RUN_BRICKS } from './v34-v3-low-run-bricks';
 import { IM_TAPER_BRICK } from './v404-im-taper-brick';
@@ -134,13 +136,13 @@ export function clockFor(clock: CoachConfirmedClock, planStartDate: string) {
  * enveloppe ⇒ refus explicite, jamais une extrapolation silencieuse.
  * Une preuve synthétique CI n'est PAS une preuve pour un athlète réel.
  */
-export type CoachFamilyKey = '10k' | 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman' | 'trail_short' | 'trail_mountain' | 'trail_ultra';
+export type CoachFamilyKey = '10k' | 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman' | 'trail_short' | 'trail_mountain' | 'trail_ultra' | 'cycling_ftp' | 'swimming_css' | 'triathlon_sprint' | 'triathlon_olympic';
 export interface CoachFamily {
   key: CoachFamilyKey;
   label: string;
   /** Chaîne d'objectif transmise au moteur (celle des scénarios CI). */
-  engineObjective: '10K' | 'Marathon' | 'Semi' | '703' | 'IM' | 'TrailShort' | 'TrailMountain' | 'TrailUltra';
-  sportFocus: 'run' | 'tri' | 'trail';
+  engineObjective: '10K' | 'Marathon' | 'Semi' | '703' | 'IM' | 'TrailShort' | 'TrailMountain' | 'TrailUltra' | 'Cyclisme FTP' | 'Natation 1500m' | 'Sprint' | 'Olympic';
+  sportFocus: 'run' | 'tri' | 'trail' | 'bike' | 'swim';
   /** Ancres V3 que le coach doit fournir (mesure ou estimation identifiée). */
   requiredAnchors: readonly string[];
   /** Sports dont un créneau horaire confirmé est obligatoire. */
@@ -149,6 +151,10 @@ export interface CoachFamily {
   ciEvidence: string;
 }
 export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
+  cycling_ftp:{key:'cycling_ftp',label:'Cyclisme FTP',engineObjective:'Cyclisme FTP',sportFocus:'bike',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['bike','strength'],testedEnvelope:{weeks:[8,8],weeklyHours:[7,7]},ciEvidence:'V359 cycling FTP 8 weeks, 7 h'},
+  swimming_css:{key:'swimming_css',label:'Natation 1500m',engineObjective:'Natation 1500m',sportFocus:'swim',requiredAnchors:['cssSecPer100m'],requiredClockSports:['swim','strength'],testedEnvelope:{weeks:[8,8],weeklyHours:[4,4]},ciEvidence:'V359 swim CSS 8 weeks, 4 h'},
+  triathlon_sprint:{key:'triathlon_sprint',label:'Triathlon sprint',engineObjective:'Sprint',sportFocus:'tri',requiredAnchors:['runThresholdPaceSecPerKm','runVvo2SpeedMps','bikeFtpWatts','cssSecPer100m'],requiredClockSports:['swim','bike','run','brick','strength'],testedEnvelope:{weeks:[8,8],weeklyHours:[8,8]},ciEvidence:'V359 sprint 8 weeks, 8 h'},
+  triathlon_olympic:{key:'triathlon_olympic',label:'Triathlon olympique',engineObjective:'Olympic',sportFocus:'tri',requiredAnchors:['runThresholdPaceSecPerKm','runVvo2SpeedMps','bikeFtpWatts','cssSecPer100m'],requiredClockSports:['swim','bike','run','brick','strength'],testedEnvelope:{weeks:[12,12],weeklyHours:[10,10]},ciEvidence:'V359 Olympic 12 weeks, 10 h'},
   trail_short: {key:'trail_short',label:'Trail court',engineObjective:'TrailShort',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[12,12],weeklyHours:[7,7]},ciEvidence:'V360 trail court 12 semaines 7 h'},
   trail_mountain: {key:'trail_mountain',label:'Trail montagne',engineObjective:'TrailMountain',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[16,16],weeklyHours:[9,9]},ciEvidence:'V360 trail montagne 16 semaines 9 h'},
   trail_ultra: {key:'trail_ultra',label:'Ultra trail',engineObjective:'TrailUltra',sportFocus:'trail',requiredAnchors:['bikeFtpWatts'],requiredClockSports:['run','bike','strength'],testedEnvelope:{weeks:[20,20],weeklyHours:[12,12]},ciEvidence:'V360 ultra trail 20 semaines 12 h'},
@@ -176,16 +182,20 @@ export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
 export const COACH_BLOCKED_OBJECTIVES: Readonly<Record<string, string>> = {
   '5k': '5 km : aucun scénario CI du moteur V3 avec acceptation stricte — non raccordé',
   trail: 'Préciser trail court, montagne ou ultra et compléter la revue terrain.',
-  tri_short: 'triathlon sprint/olympique : aucun scénario CI V3 avec acceptation stricte — non raccordé',
+  cycling_tt: 'contre-la-montre : contrat spécifique durée d’épreuve/position aéro et banc strict encore requis ; un plan FTP ne vaut pas validation CLM',
 };
 export const COACH_QUALIFIED_OBJECTIVES = Object.keys(COACH_FAMILIES) as CoachFamilyKey[];
-export type CoachObjectiveKey = CoachFamilyKey | 'unsupported' | '5k' | 'trail' | 'tri_short';
+export type CoachObjectiveKey = CoachFamilyKey | 'unsupported' | '5k' | 'trail' | 'cycling_tt';
 /**
  * Clé d'objectif canonique EXACTE : le nom libre d'événement (« Marathon de
  * Paris », « Marathon de trail »…) n'est jamais une clé d'objectif.
  */
 export function coachObjectiveKey(objective: string): CoachObjectiveKey {
   const t = String(objective ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[\s_-]+/g, ' ');
+  if(['cyclisme ftp','cycling ftp'].includes(t))return 'cycling_ftp';
+  if(['natation 1500m','swimming css','natation css'].includes(t))return 'swimming_css';
+  if(['sprint','triathlon sprint'].includes(t))return 'triathlon_sprint';
+  if(['olympic','olympique','triathlon olympique'].includes(t))return 'triathlon_olympic';
   if (['semi', 'semi marathon', 'demi marathon', 'half marathon', 'semi marathon route'].includes(t)) return 'semi_marathon';
   if (t === 'marathon' || t === 'marathon route') return 'marathon';
   if (['703', '70.3', 'ironman 70.3', 'half ironman', 'triathlon 70.3'].includes(t)) return 'triathlon_703';
@@ -196,7 +206,7 @@ export function coachObjectiveKey(objective: string): CoachObjectiveKey {
   if (['trailmountain','trail mountain','trail montagne','trail long','trail montagne (40 80 km)'].includes(t)) return 'trail_mountain';
   if (['trailultra','trail ultra','ultra trail','ultra trail (80 km+)'].includes(t)) return 'trail_ultra';
   if (/^trail( (court|short|long|montagne|mountain|ultra))?$/.test(t) || t === 'trailshort' || t === 'ultra trail') return 'trail';
-  if (['sprint', 'olympic', 'olympique', 'triathlon sprint', 'triathlon olympique'].includes(t)) return 'tri_short';
+  if(['cyclisme contre la montre','contre la montre','cycling tt','time trial'].includes(t))return 'cycling_tt';
   return 'unsupported';
 }
 export function coachFamilyFor(objective: string): CoachFamily | null {
@@ -204,13 +214,14 @@ export function coachFamilyFor(objective: string): CoachFamily | null {
   return (COACH_QUALIFIED_OBJECTIVES as string[]).includes(k) ? COACH_FAMILIES[k as CoachFamilyKey] : null;
 }
 
-/** Validations de bricks déclarées individuellement par le coach (triathlon 70.3 uniquement). */
+/** Validations de bricks déclarées individuellement par le coach, séparément de la revue des sources composantes. */
 export interface CoachBrickApproval { id: string; transitionSeconds: number }
 export const COACH_703_BRICK_IDS: readonly string[] = [
   V3_BASE_BRICK_ID, ...V32_703_BRICK_BLUEPRINTS.map((b) => b.id), ...V34_SAFE_RUN_BRICKS.map((b) => b.id),
 ];
 export const COACH_IM_BRICK_IDS: readonly string[] = [IM_TAPER_BRICK.id];
-export const coachBrickIdsFor = (family: string): readonly string[] => family === 'triathlon_703' ? COACH_703_BRICK_IDS : family === 'triathlon_ironman' ? COACH_IM_BRICK_IDS : [];
+export const COACH_SHORT_TRI_BRICKS = SHORT_TRI_BRICKS;
+export const coachBrickIdsFor = (family: string): readonly string[] => family === 'triathlon_sprint' ? SHORT_TRI_BRICKS.filter(b=>b.goal==='sprint').map(b=>b.id) : family === 'triathlon_olympic' ? SHORT_TRI_BRICKS.filter(b=>b.goal==='olympic').map(b=>b.id) : family === 'triathlon_703' ? COACH_703_BRICK_IDS : family === 'triathlon_ironman' ? COACH_IM_BRICK_IDS : [];
 
 export function runCoachInputsDet(input: {
   athlete: PlanAthleteData;
@@ -230,7 +241,7 @@ export function runCoachInputsDet(input: {
   for (const b of bricks) if (!coachBrickIdsFor(family.key).includes(b.id)) throw new Error(`coach_inputs_unknown_brick:${b.id}`);
   const obj = family.engineObjective;
   const primaryKey=detPrimaryLimiterKey(input.config);
-  const extendedPrimary=family.sportFocus==='run'&&primaryKey&&EXTENDED_RUNNING_PRIMARIES.includes(primaryKey);
+  const extendedPrimary=(family.sportFocus==='run'||['triathlon_sprint','triathlon_olympic'].includes(family.key))&&primaryKey&&EXTENDED_RUNNING_PRIMARIES.includes(primaryKey);
   if(primaryRunningInputProblems(input.config).length)throw Error('coach_inputs_vlamax_reduction_direction_not_declared_by_app');
   const multi = (input.config.raceGoals?.length ?? 0) > 1;
   const multiProblems = multiGoalProblems(input.config);
@@ -238,7 +249,7 @@ export function runCoachInputsDet(input: {
   const mk = (b: CoachBrickApproval) => ({ id: b.id, objective: obj, individualCoachApproval: true as const, transitionSeconds: b.transitionSeconds, preferReviewedV3: true as const });
   const { contract, report, allBricks, imBrickReport, structuredWorkoutForId } = buildDetV3ContractFromCatalogue(
     input.reviews.map((r) => ({ ...r, objective: obj })),
-    bricks.filter((b) => b.id === V3_BASE_BRICK_ID).map(mk) as never,
+    bricks.filter((b) => (b.id === V3_BASE_BRICK_ID || SHORT_TRI_BRICKS.some(x=>x.id===b.id))).map(mk) as never,
     bricks.filter((b) => V32_703_BRICK_BLUEPRINTS.some((x) => x.id === b.id)).map(mk) as never,
     bricks.filter((b) => V34_SAFE_RUN_BRICKS.some((x) => x.id === b.id)).map(mk) as never,
     bricks.filter((b) => b.id === IM_TAPER_BRICK.id).map(mk) as never);
@@ -282,6 +293,24 @@ export function runCoachInputsDet(input: {
     const trailConfig={...input.config,objective:obj};
     const trailContract=reviewedTrailContract(contract,input.trail,trailConfig,accepted,slotClock);
     out=constructDeterministicPlan(input.athlete,trailConfig,input.limits??{maxNodes:60000,maxMilliseconds:15000},trailContract);
+  } else if (['cycling_ftp','swimming_css','triathlon_sprint','triathlon_olympic'].includes(family.key)) {
+    const dedicated=family.sportFocus==='bike'||family.sportFocus==='swim';
+    out=constructDeterministicPlan(input.athlete,{...input.config,objective:obj},input.limits??{maxNodes:60000,maxMilliseconds:15000},{
+      ...common,
+      adapt:(p,c)=>dedicated?prepareDedicatedSport(p,c,contract,family.sportFocus as 'bike'|'swim'):preserveTriathlonTaperFrequency(p,c,input.athlete,contract),
+      ...(!dedicated?{preferSourceBackedMultisportBalance:'triathlon_targets' as const,requireFinalTriathlonMinuteRatios:true as const,auditVerifiedMultisportMinutes:true as const,auditGlobalSourceSportRatioBounds:true as const,applyReviewedMinuteSportRatio:true as const,verifyOfficialRaceQuotaProjection:true as const}:{}),
+      ...(extendedPrimary?{prioritizeSourceVerifiedPrimaryRunning:true as const}:{}),
+      requireReviewedEnduranceKeyQualityOnLoadWeeks:true,
+      requireLorangQualityBeforeFinalValidation:true,requireSourceVerifiedTaperQuality:true,
+      ...(family.key==='triathlon_olympic'?{qualitySportPreference:'swim' as const}:{}),
+      requireReviewedRaceSpecificPeak:true,
+      ...(dedicated?{prioritizeRunningStructuredEasyMargin:true as const}:{}),
+      prioritizeVerifiedRunningQualitySlot:true,prioritizeVerifiedRunningQualityCandidate:true,prioritizeRunningQualitySlotByMargin:true,
+      excludeNativeBaseBuildPhaseConflicts:true,
+      requireMeasuredDeloadSelection:true,annotateVerifiedDeloads:true,
+      requireReviewedRunningKeyQualityOnLoadWeeks:true,reconcileReviewedSourcePolarization:true,requireStrictPeriodizationEvidence:true,
+      enableV333ForwardCheck:true,
+    });
   } else if (family.sportFocus === 'tri') {
     // Jeu d'options EXACT de V320 (ratios minutes tri finaux, quotas course
     // officielle, pic spécifique revu, décharges mesurées).

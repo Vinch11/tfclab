@@ -33,9 +33,13 @@ describe("familles : clés canoniques strictes", () => {
     expect(coachObjectiveKey("10 km")).toBe("10k");
     expect(coachFamilyFor("10 km")?.key).toBe("10k");
     expect(coachFamilyFor("10 km route")?.key).toBe("10k");
+    expect(coachFamilyFor("Sprint")?.key).toBe("triathlon_sprint");
+    expect(coachFamilyFor("Olympic")?.key).toBe("triathlon_olympic");
+    expect(coachFamilyFor("Cyclisme FTP")?.key).toBe("cycling_ftp");
+    expect(coachFamilyFor("Natation CSS")?.key).toBe("swimming_css");
     expect(coachFamilyFor("Trail court")?.key).toBe("trail_short");
   });
-  it.each([["Trail", /Préciser trail/], ["Triathlon olympique", /sprint\/olympique/], ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
+  it.each([["Trail", /Préciser trail/], ["Cyclisme contre-la-montre", /durée d’épreuve\/position aéro/], ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
     const s = snap(o, 12, 6, ymd(12));
     const r = await run(s, await ctx(s, RUN332, {}, runClock));
     expect(r.kind).toBe("refused");

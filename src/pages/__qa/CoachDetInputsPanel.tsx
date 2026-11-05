@@ -125,6 +125,7 @@ export function CoachDetInputsPanel(props: {
     const v = await props.guard(); if (!v) return;
     const { snap, errors } = buildSnapshot(v);
     if (errors.length || !snap) { setMsg(errors); return; }
+    if(family?.sportFocus==='bike'||family?.sportFocus==='swim'){setMsg(['Programme dédié : utilisez le profil partagé de la page normale et sa cible explicite. Aucun diagnostic partiel n’est reconstruit dans le formulaire manuel.']);return;}
     const list = eligibleLimiterMetrics(snap);
     setDetected(list);
     setCoachOrder((prev) => (prev.length === list.length && prev.every((m) => list.includes(m)) ? prev : [...list]));
@@ -280,7 +281,7 @@ export function CoachDetInputsPanel(props: {
       </div>
       <p className="text-sm font-medium">Ancres d'intensité (seulement celles réellement disponibles)</p>
       {(Object.keys(ANCHOR_LABELS) as AnchorKey[]).map((k) => entryRow(ANCHOR_LABELS[k], anchors[k], (d) => setAnchors((x) => ({ ...x, [k]: d })), RANGE_KEYS.has(k) ? "min-max" : "valeur"))}
-      {family?.sportFocus === "tri" && <div className="space-y-1" data-testid="swim-domain-paces">
+      {(family?.sportFocus === "tri"||family?.sportFocus === "swim") && <div className="space-y-1" data-testid="swim-domain-paces">
         <p className="text-sm font-medium">Allures natation par domaine (s/100 m) — seulement celles réellement connues</p>
         {SWIM_DOMAINS.map((k) => entryRow(`Natation ${SWIM_DOMAIN_LABELS[k]}`, swim[k], (d) => setSwim((x) => ({ ...x, [k]: d })), "s/100 m"))}
         <label className="flex gap-2 text-xs items-center"><input type="checkbox" checked={cssProxy} onChange={(e) => setCssProxy(e.target.checked)} />J'accepte d'utiliser la CSS comme approximation du seuil natation (sans mesure de seuil dédiée)</label>

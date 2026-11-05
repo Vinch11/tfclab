@@ -1,3 +1,4 @@
+import {dedicatedProgrammeProblems} from '@/lib/plan/dedicatedSportGoal';
 import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
 import {AthleteSourceReview} from './AthleteSourceReview';
 import {TrailEvidenceForm} from './TrailEvidenceForm';
@@ -105,6 +106,8 @@ export function AthleteDetSimplePanel(props: {
     const current = () => my === epoch.current && live.current.fp === fpAt && live.current.engine === engineAt && live.current.ctxKey === keyAt;
     try {
       if (!app || !fpAt) { setMsg([props.appInputStatus === "pending" ? "Profil de planification en cours de préparation : patientez." : "Profil de planification de l'athlète indisponible (diagnostic ou formulaire incomplet) : rien n'est reconstruit ici."]); return; }
+      const programmeProblems=dedicatedProgrammeProblems(app.config,app.athlete);
+      if(programmeProblems.length){setMsg(programmeProblems);return;}
       const v = await props.guard(); if (!v || !current()) return;
       if (v.athleteId !== props.record.athleteId || v.userId !== props.record.coachId || app.athleteId !== v.athleteId) { setMsg(["Session ou athlète différent : action annulée."]); return; }
       if (engineAt === "ai") { await props.onAIShared(app); return; }
@@ -179,7 +182,7 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm font-medium">2. Priorités (limiteurs détectés par l'app)</p>
         {order.length === 0 && <p className="text-xs text-muted-foreground">Compléter les valeurs pour voir les limiteurs utilisables.</p>}
         {props.appInputStatus === "pending" && <p className="text-xs text-muted-foreground">Profil de planification en préparation…</p>}
-        {props.appInput && <p className="text-xs text-muted-foreground">Ordre repris tel quel du profil de l'app (même que pour l'IA) — {props.appInput.limiters.origin === "coach_override" ? "ordre choisi par le coach dans la page" : "ordre automatique du diagnostic de l'app"}. Pour le changer, utilisez le réglage des limiteurs de la page.</p>}
+        {props.appInput && <p className="text-xs text-muted-foreground">Ordre repris tel quel du profil de l'app (même que pour l'IA) — {props.appInput.config.planningGoalContext ? "priorité de programme issue de la cible explicite du coach (profil physiologique conservé)" : props.appInput.limiters.origin === "coach_override" ? "ordre choisi par le coach dans la page" : "ordre automatique du diagnostic de l'app"}. Pour le changer, utilisez le réglage des limiteurs de la page.</p>}
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
       <section className="space-y-2">
@@ -206,7 +209,7 @@ export function AthleteDetSimplePanel(props: {
             {DAYS.map((d, i) => <label key={d} className="flex items-center gap-1"><Checkbox checked={c.days[i]} onCheckedChange={(v) => upd({ days: c.days.map((x, j) => (j === i ? v === true : x)) })} />{d}</label>)}
             <details><summary className="text-xs cursor-pointer">heure différente selon le jour</summary><div className="flex gap-1">{DAYS.map((d, i) => <Input key={d} aria-label={`${sp} ${d}`} className="w-20" placeholder={d} value={c.perDay?.[i] ?? ""} onChange={(e) => { const p = [...(c.perDay ?? Array(7).fill(""))]; p[i] = e.target.value; upd({ perDay: p }); }} />)}</div></details>
           </div>; })}
-        {family.key === "triathlon_703" && <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.bricksConfirmed} onCheckedChange={(v) => set({ bricksConfirmed: v === true })} />Horaires des enchaînements vélo-course possibles pour l'athlète (ne vaut pas revue des enchaînements)</label>}
+        {sports.includes("brick") && <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.bricksConfirmed} onCheckedChange={(v) => set({ bricksConfirmed: v === true })} />Horaires des enchaînements vélo-course possibles pour l'athlète (ne vaut pas revue des enchaînements)</label>}
       </section>
       <section className="space-y-1">
         <p className="text-sm font-medium">5. Vérifications pour cet athlète</p>
@@ -220,7 +223,7 @@ export function AthleteDetSimplePanel(props: {
         <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.contraindicationsAllAbsent} onCheckedChange={(v) => set({ contraindicationsAllAbsent: v === true })} />J'ai relu les contre-indications avec l'athlète (celles cochées écartent les séances concernées)</label>
       </section>
       {pool && family.sportFocus === "trail" && <TrailEvidenceForm key={profileKey} pool={pool} app={props.appInput} value={a.trail} onChange={trail=>set({trail})} />}
-      {pool && (family.sportFocus === "trail" || family.key === "10k") && <AthleteSourceReview pool={pool} snapshot={bridge.snapshot} answers={a} sourcesVersion={props.sourcesVersion} fingerprint={fp} coachId={props.record.coachId} athleteId={props.record.athleteId} clock={bridge.reviewClock??bridge.ctx?.clock??null} guard={props.guard} onResolved={setGenuine} />}
+      {pool && (family.sportFocus === "trail" || family.key === "10k" || family.sportFocus === "bike" || family.sportFocus === "swim" || ["triathlon_sprint","triathlon_olympic"].includes(family.key)) && <AthleteSourceReview pool={pool} snapshot={bridge.snapshot} answers={a} sourcesVersion={props.sourcesVersion} fingerprint={fp} coachId={props.record.coachId} athleteId={props.record.athleteId} clock={bridge.reviewClock??bridge.ctx?.clock??null} guard={props.guard} onResolved={setGenuine} />}
       {pool && <LibrarySourceReview pool={pool} coachId={props.record.coachId} athleteId={props.record.athleteId} fingerprint={fp} answers={a} guard={props.guard} onResolved={setLibraryGenuine} />}
       {libraryProblems.map((p) => <p key={p} className="text-sm text-destructive">{p}</p>)}
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}

@@ -18,7 +18,7 @@ import { canonicalJson } from "@/lib/plan/appendOnlyPlanVersionSave";
 import { v3FullCatalogue } from "../../../scripts/library-v3/catalogueRuntime";
 import { resolveV3IntensityTargets } from "../../../scripts/library-v3/resolveV3Intensity";
 import { fingerprintV3SportingSource } from "../../../scripts/library-v3/sportingQualification800";
-import { coachFamilyFor, COACH_703_BRICK_IDS, type CoachBrickApproval, type CoachConfirmedClock, type CoachFamily } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { coachFamilyFor, COACH_SHORT_TRI_BRICKS, COACH_703_BRICK_IDS, type CoachBrickApproval, type CoachConfirmedClock, type CoachFamily } from "../../../experimental/det-engine/v401-coach-inputs-core";
 import { V32_703_BRICK_BLUEPRINTS } from "../../../experimental/det-engine/v32-v3-specific-bricks";
 import { V34_SAFE_RUN_BRICKS } from "../../../experimental/det-engine/v34-v3-low-run-bricks";
 import { V3_BASE_BRICK_ID } from "../../../experimental/det-engine/v31-v3-brick";
@@ -215,7 +215,7 @@ export const BRICKS_703: CoachBrickApproval[] = [
   ...V34_SAFE_RUN_BRICKS.map((b) => ({ id: b.id, transitionSeconds: b.transitionSeconds })),
 ].filter((b) => COACH_703_BRICK_IDS.includes(b.id));
 export const BRICKS_IM: CoachBrickApproval[] = [{ id: IM_TAPER_BRICK.id, transitionSeconds: IM_TAPER_BRICK.transitionSeconds }];
-export const bricksForFamily = (family: string): CoachBrickApproval[] => family === "triathlon_703" ? BRICKS_703 : family === "triathlon_ironman" ? BRICKS_IM : [];
+export const bricksForFamily = (family: string): CoachBrickApproval[] => family === "triathlon_sprint" ? COACH_SHORT_TRI_BRICKS.filter(b=>b.goal==="sprint").map(b=>({id:b.id,transitionSeconds:180})) : family === "triathlon_olympic" ? COACH_SHORT_TRI_BRICKS.filter(b=>b.goal==="olympic").map(b=>({id:b.id,transitionSeconds:180})) : family === "triathlon_703" ? BRICKS_703 : family === "triathlon_ironman" ? BRICKS_IM : [];
 
 /** Sports pour lesquels un horaire doit être confirmé. */
 export function clockSportsFor(family: CoachFamily, pool: FamilySourcePool): string[] {

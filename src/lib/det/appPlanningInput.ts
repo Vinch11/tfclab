@@ -13,7 +13,7 @@ import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
 /** Champs propres à un moteur (format de sortie), exclus de l'empreinte sémantique. */
 export const ENGINE_SPECIFIC_CONFIG_KEYS = ["_outputFormat"] as const;
 
-export type LimiterOrigin = "app_automatic" | "coach_override";
+export type LimiterOrigin = "app_automatic" | "coach_override" | "explicit_coach_programme_target";
 
 export interface AppLimiterTrace {
   /** Ordre automatique du diagnostic de l'app (gapAnalysis classé), tel qu'affiché. */
@@ -107,7 +107,7 @@ export async function freezeAppPlanningInput(input: {
     appAutomatic: [...input.appAutomaticLimiters],
     coachOverride: input.coachOverride !== null ? [...input.coachOverride] : null,
     applied,
-    origin: input.coachOverride !== null ? "coach_override" : "app_automatic",
+    origin: input.coachOverride !== null ? "coach_override" : config.planningGoalContext ? "explicit_coach_programme_target" : "app_automatic",
   };
   const fingerprint = await planningFingerprint(athlete, config);
   return deepFreeze({ source: "app_planning_pipeline", athleteId: input.athleteId, athlete, config, limiters, fingerprint });

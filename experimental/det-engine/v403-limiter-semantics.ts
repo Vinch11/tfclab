@@ -15,7 +15,7 @@ import type {ParsedSession} from '@/lib/aiPlanParser';
 import {verifyReviewedTteThresholdDose} from './v353-reviewed-tte-dose';
 import type {StructuredZoneDose} from './v310-structured-zone-dose';
 
-export type DetLimiterKey='tte'|'vo2max'|'ftp'|'durability_race_relative'|'vma_velocity'|'vlamax_reduction';
+export type DetLimiterKey='tte'|'vo2max'|'ftp'|'durability_race_relative'|'vma_velocity'|'vlamax_reduction'|'css_threshold';
 export type DetTranslationKind='exact'|'case'|'accent_or_whitespace';
 
 export interface DetLimiterCapability {
@@ -33,6 +33,7 @@ export interface DetLimiterCapability {
 export const DET_LIMITER_CAPABILITIES:Readonly<Record<DetLimiterKey,DetLimiterCapability>>={
   vma_velocity:{key:'vma_velocity',appLabels:['VMA'],appMeaning:'Vitesse maximale aérobie (km/h), signal distinct de VO2max. Prescription de plafond aérobie à partir de la vitesse individuelle, sans conversion en consommation d’oxygène.',primaryBranches:['engine.ts:V408 primary running exact source preference + full-key 30% coverage'],scientificReview:false},
   vlamax_reduction:{key:'vlamax_reduction',appLabels:['VLamax'],appMeaning:'VLamax supérieure à la cible ; sens de réduction exigé de la valeur et de la cible du diagnostic existant de l’app. Endurance prolongée et seuil long co-contributeur ; aucune baisse mesurée ou garantie.',primaryBranches:['engine.ts:V408 primary running exact source preference + full-key 30% coverage'],scientificReview:false},
+  css_threshold:{key:'css_threshold',appLabels:['CSS'],appMeaning:'Allure CSS propre à la nage considérée (s/100 m), comparée à la cible de programme du coach ; pas un TTE ni une transposition aux autres nages.',primaryBranches:['engine.ts:runningQualityCache (swim, exact MLSS blocks)'],scientificReview:false},
   tte:{key:'tte',appLabels:['TTE'],
     appMeaning:'TTE effectif (min tenues au seuil) vs cible TTE par objectif/ambition/âge (unifiedLimiterDetection.ts, bloc TTE).',
     primaryBranches:[
@@ -103,6 +104,10 @@ export function detPrimaryLimiterKey(config:{identifiedLimitersRaw?:readonly unk
 
 /** Families whose CI-proven option set reads the PRIMARY limiter, and the keys they define. */
 export const FAMILY_PRIMARY_REQUIREMENT:Readonly<Record<string,{keys:readonly DetLimiterKey[];why:string}|null>>={
+  cycling_ftp:{keys:['ftp'],why:'V359 dedicated cycling + explicit programme FTP target'},
+  swimming_css:{keys:['css_threshold','tte'],why:'V359 dedicated swimming + explicit CSS target / original bench TTE scope'},
+  triathlon_sprint:{keys:['vo2max','tte','vma_velocity','vlamax_reduction'],why:'V359 short triathlon source-domain quality'},
+  triathlon_olympic:{keys:['vo2max','tte','vma_velocity','vlamax_reduction'],why:'V359 short triathlon source-domain quality'},
   trail_short:{keys:['vo2max'],why:'V360 exact uphill VO2 dose + route/history trail audit'},
   trail_mountain:{keys:['tte','durability_race_relative'],why:'V360 exact threshold dose + route/history trail audit'},
   trail_ultra:{keys:['tte','durability_race_relative'],why:'V360 exact threshold dose + route/history trail audit'},

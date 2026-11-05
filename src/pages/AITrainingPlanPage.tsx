@@ -1,3 +1,4 @@
+import {appPlanningPriorityGaps,dedicatedGoalMetric} from '@/lib/plan/dedicatedSportGoal';
 import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { CoachDetInputsPanel } from "@/pages/__qa/CoachDetInputsPanel";
 import { AthleteDetSimplePanel } from "@/components/plan/AthleteDetSimplePanel";
@@ -5,7 +6,7 @@ import type { AthleteRecordView } from "@/lib/det/athleteDetBridge";
 import { verifyQaCoach, detEngineVersionFromRelease } from "@/pages/__qa/DetLabPage";
 import { dispatchCoachEngine, qaEngineChoiceEnabled, type CoachEngine } from "@/lib/plan/engineDispatch";
 import { buildCoachPlanInputs } from "@/lib/det/coachDetRun";
-import { OBJECTIVE_OPTIONS, buildAppDiagnosticInput, buildAppPlanConfig } from "@/lib/plan/appPlanningPipeline";
+import { OBJECTIVE_OPTIONS, computeAppDiagnosticForAthlete, buildAppPlanConfig } from "@/lib/plan/appPlanningPipeline";
 import { buildAthleteRecordView } from "@/lib/det/appRecordView";
 import { explicitCoachLimiterOverride, freezeAppPlanningInput, planningInputFor, type FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
 import { isDetCoachInputsProvenance, isDetPlanProvenance } from "@/lib/plan/planProvenance";
@@ -68,7 +69,7 @@ import { useAITrainingPlan, getCatalogSportFilter, getCatalogExclusions, type Pl
 import { buildWorkoutCatalog, serializeCatalogForPrompt, resetCatalogAttribution, toInjuryRiskCatalogOption } from "@/lib/workoutCatalogBuilder";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import { evaluateDurationCoherenceMultiObjective, evaluateLimiterDurationCoherence } from "@/lib/plan/recommendedPlanDuration";
-import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
+import { type AthleteDiagnostic } from "@/engines/diagnostic";
 import { prepareTrainingPlanContext, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
@@ -724,6 +725,7 @@ export default function AITrainingPlanPage() {
   }, [raceFormat, objective, savedAthleteRaceGoals]);
   const [raceDate, setRaceDate] = useState("");
   const [raceTargetMinutes, setRaceTargetMinutes] = useState("");
+  const [programmeTarget,setProgrammeTarget]=useState("");
   // Mode alternatif "durée en semaines" (demande coach) : pour un bloc de
   // préparation sans date de course fixée (reprise, base hors-saison, objectif
   // pas encore calé), le coach fixe directement le nombre de semaines plutôt
@@ -888,7 +890,7 @@ export default function AITrainingPlanPage() {
     // ont fuité dans sa régénération complète.
     if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
     setRaceName("");
-    setRaceTargetMinutes("");
+    setRaceTargetMinutes("");setProgrammeTarget("");
     setRaceFormat("continuous");
     setRaceDate("");
     setPlanDurationMode("date");
@@ -924,6 +926,7 @@ export default function AITrainingPlanPage() {
       if (savedState.raceName) setRaceName(savedState.raceName);
       if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
       if (savedState.raceDate) setRaceDate(savedState.raceDate);
+      if(typeof savedState.programmeTarget==="string")setProgrammeTarget(savedState.programmeTarget);
       if (typeof savedState.raceTargetMinutes === "string") setRaceTargetMinutes(savedState.raceTargetMinutes);
       if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
       if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
@@ -1065,7 +1068,7 @@ export default function AITrainingPlanPage() {
       raceName,
       raceFormat,
       raceDate,
-      raceTargetMinutes,
+      raceTargetMinutes,programmeTarget,
       planDurationMode,
       planWeeksInput,
       weeklyHours,
@@ -1124,15 +1127,16 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, raceTargetMinutes, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, raceTargetMinutes, programmeTarget, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
   // ═══════════════════════════════════════════════════════════════════════════
 
   const buildDiagnosticForAthlete = useCallback((athlete: any, obj: string, amb: string): AthleteDiagnostic | null => {
-    return computeDiagnostic(buildAppDiagnosticInput(athlete, obj, amb, { snapshots: getSnapshotsForAthlete(athlete.id), tests: getTestsForAthlete(athlete.id), checkins: getCheckinsForAthlete(athlete.id) }));
-  }, [getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete]);
+    if(isMultiMode&&dedicatedGoalMetric(obj))throw Error('dedicated_programme_requires_individual_athlete_target');
+    return computeAppDiagnosticForAthlete(athlete, obj, amb, { programmeTarget:programmeTarget.trim()?Number(programmeTarget):null,snapshots: getSnapshotsForAthlete(athlete.id), tests: getTestsForAthlete(athlete.id), checkins: getCheckinsForAthlete(athlete.id) });
+  }, [getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete,programmeTarget,isMultiMode]);
 
   // Compute athlete context for a given athlete (diagnostic + athlete data)
   const computeAthleteContext = useCallback((athlete: any, obj: string, amb: string): AthleteComputedContext | null => {
@@ -1235,7 +1239,7 @@ export default function AITrainingPlanPage() {
   const limiterDurationCoherence = useMemo(
     () => evaluateLimiterDurationCoherence(
       weeksAvailable,
-      athleteContext?.diagnostic.limiter.gapAnalysis,
+      athleteContext?appPlanningPriorityGaps(athleteContext.diagnostic):undefined,
       coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
     ),
     [weeksAvailable, athleteContext, coachLimiterOrder],
@@ -1453,7 +1457,7 @@ export default function AITrainingPlanPage() {
     const applied=(config as {identifiedLimitersRaw?:string[]}).identifiedLimitersRaw??[];
     const coachOverride=explicitCoachLimiterOverride(coachLimiterOrder,lastCoachOverridesPayload as never,applied);
     void freezeAppPlanningInput({athleteId:currentAthlete.id,athlete:athleteContext.data,config,planStartDate:format(planStartDate,"yyyy-MM-dd"),
-      appAutomaticLimiters:rankPrescriptionGaps(athleteContext.diagnostic.limiter.gapAnalysis).map(g=>g.metric),coachOverride})
+      appAutomaticLimiters:rankPrescriptionGaps(appPlanningPriorityGaps(athleteContext.diagnostic)).map(g=>g.metric),coachOverride})
       .then(f=>{if(tok!==appPlanningToken.current)return;appPlanningRef.current=f;setAppPlanningInput(f);setAppPlanningStatus("ready");})
       .catch(()=>{if(tok===appPlanningToken.current)setAppPlanningStatus("missing");});
   },[athleteContext,currentAthlete,buildConfigWithCoachOverrides,coachLimiterOrder,lastCoachOverridesPayload,planStartDate]);
@@ -1700,7 +1704,7 @@ export default function AITrainingPlanPage() {
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
   const coachPrefill = useMemo<CoachProfilePrefill | null>(() => {
     if (!athleteContext) return null;
-    const gaps = rankPrescriptionGaps(athleteContext.diagnostic.limiter.gapAnalysis);
+    const gaps = rankPrescriptionGaps(appPlanningPriorityGaps(athleteContext.diagnostic));
     const order = resolveCoachLimiterOrder(gaps.map(g=>g.metric),{order:coachLimiterOrder});
     const ranked=order.map(metric=>gaps.find(g=>g.metric===metric)).filter((g):g is typeof gaps[number]=>!!g);
     const primary = ranked[0]?.metric;
@@ -2130,7 +2134,7 @@ export default function AITrainingPlanPage() {
       if (athleteContext) {
         const cfg = buildConfigWithCoachOverrides(athleteContext.diagnostic);
         const limiterKeys = deriveLimiterKeysFromGapAnalysis(
-          athleteContext.diagnostic.limiter.gapAnalysis,
+          appPlanningPriorityGaps(athleteContext.diagnostic),
           cfg.identifiedLimitersRaw,
           cfg.identifiedLimitersRaw,
         );
@@ -3317,7 +3321,7 @@ export default function AITrainingPlanPage() {
                     <Target className="h-3.5 w-3.5" />
                     Objectif principal (A)
                   </Label>
-                  <Select value={objective} onValueChange={setObjective}>
+                  <Select value={objective} onValueChange={v=>{setObjective(v);setProgrammeTarget("");setCoachLimiterOrder([]);}}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {OBJECTIVE_OPTIONS.map(o => (
@@ -3332,6 +3336,7 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
 
+                {dedicatedGoalMetric(objective)&&<div className="space-y-2"><Label>{dedicatedGoalMetric(objective)==='FTP'?'Cible FTP du programme (W)':'Cible CSS du programme (s/100 m)'}</Label><Input type="number" min="1" step="0.1" value={programmeTarget} onChange={e=>{setProgrammeTarget(e.target.value);setCoachLimiterOrder([]);}} aria-label="Cible du programme dédié"/><p className="text-xs text-muted-foreground">Cible choisie par le coach, comparée à la référence FTP ou CSS existante. Le profil physiologique est conservé ; cette comparaison n’est pas un nouveau diagnostic causal. Aucun gain n’est garanti. Ces programmes se règlent athlète par athlète, en mode individuel.</p></div>}
                 <div className="space-y-2">
                   <Label>Nom de la course (optionnel)</Label>
                   <Input placeholder="Ex: IM Nice, Marathon Paris..." value={raceName} onChange={e => setRaceName(e.target.value)} />
@@ -3885,7 +3890,7 @@ export default function AITrainingPlanPage() {
             </CollapsibleCard>
 
             {/* Detected Limiters — editable hierarchy (single mode only) */}
-            {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
+            {!isMultiMode && !athleteContext?.diagnostic.planningGoalAnalysis && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
               <CollapsibleCard
                 title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
                 icon={<Zap className="h-4 w-4 text-primary" />}
@@ -4348,7 +4353,7 @@ export default function AITrainingPlanPage() {
                         limiterResult={athleteContext?.diagnostic.limiter ?? null}
                         prohibitions={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.prohibitions : undefined}
                         identifiedLimiters={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.identifiedLimiters : undefined}
-                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
+                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(appPlanningPriorityGaps(athleteContext.diagnostic), buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
                         coachLimiterOrder={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw : undefined}
                         athleteData={athleteContext?.data}
                         constraintsText={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.constraints : undefined}
@@ -4447,7 +4452,7 @@ export default function AITrainingPlanPage() {
                             ? buildConfigWithCoachOverrides(athleteContext.diagnostic).adaptationProjections
                             : undefined
                         }
-                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(athleteContext.diagnostic.limiter.gapAnalysis, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
+                        identifiedLimiterKeys={athleteContext ? deriveLimiterKeysFromGapAnalysis(appPlanningPriorityGaps(athleteContext.diagnostic), buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw, buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw) : undefined}
                         gapContext={(() => {
                           const ambRes = computeAmbitionEffective({
                             ambitionSaisie: ambition,

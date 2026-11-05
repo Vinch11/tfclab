@@ -1,3 +1,4 @@
+import {dedicatedProgrammeProblems} from '@/lib/plan/dedicatedSportGoal';
 import { multiGoalProblems } from '../../../experimental/det-engine/v406-multi-goal-contract';
 import type { FrozenAppPlanningInput } from "./appPlanningInput";
 import { runCoachDetPlan, type CoachDetOutcome } from "./coachDetRun";
@@ -14,6 +15,8 @@ export function runAppPlanningDetPlan(input: AppPlanningDetRunInput): CoachDetOu
       "Profil de planification de l'app absent : génération DET annulée, aucun diagnostic n'est reconstruit.",
     ] };
   }
+  const dedicatedProblems=dedicatedProgrammeProblems(input.appInput.config,input.appInput.athlete);
+  if(dedicatedProblems.length)return {kind:'refused',refusals:dedicatedProblems};
   const multiProblems = multiGoalProblems(input.appInput.config);
   if(multiProblems.length)return {kind:'refused',refusals:['Calendrier multi-objectifs incomplet : '+multiProblems.join(', ')+'. Renseignez les dates, les priorités et les durées prévues de chaque épreuve.']};
   const applied = input.appInput.config.identifiedLimitersRaw ?? [];

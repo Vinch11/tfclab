@@ -1,3 +1,4 @@
+import {appPlanningPriorityGaps} from '@/lib/plan/dedicatedSportGoal';
 /**
  * INTÉGRATION RÉELLE (aucun mock moteur) : enregistrements SYNTHÉTIQUES au format du dépôt
  * → pipeline de la page (computeAppAthleteContext + buildAppPlanConfig, extraits tels quels)
@@ -59,7 +60,7 @@ const variedClock = { timeZone: "Europe/Brussels", bySport: {
 /** Lignes SYNTHÉTIQUES au format `athletes` / `snapshots` (aucune donnée réelle). */
 const athleteRow = { id: A1, name: "Synthétique A1", birth_date: "1991-01-01", sex: "M", active_snapshot_id: "snap-syn-1", refs: { fcMax: 188 } };
 const snapRow = (pace: number) => ({ id: "snap-syn-1", athlete_id: A1, date: "2026-10-01", sport_main: "run", vma: 18, ftp: 300, weight_kg: 72, vo2max: 58, fc_max: 188,
-  pace_threshold_sec_per_km: pace, tte_observed_min_run: 45, vlamax_run: null, vlamax_source:null as string|null, vlamax_protocol:null as string|null, fatigue_state: "ok", tss_7d: 380, run_economy_score: 68, run_hr_drift_pct: 3.5 });
+  pace_threshold_sec_per_km: pace, tte_observed_min_run: 45, vlamax_run: null,vlamax:null as number|null, vlamax_source:null as string|null, vlamax_protocol:null as string|null, fatigue_state: "ok", tss_7d: 380, run_economy_score: 68, run_hr_drift_pct: 3.5 });
 const formState = (objective: string, weeks: number, hours: number, sessions: number): AppPlanFormState => ({
   objective, ambition: "age_group", planStartDate: new Date(2026, 9, 26), raceName: "", raceDate: new Date(Date.UTC(2026, 9, 26 + weeks * 7 - 1)).toISOString().slice(0, 10),
   raceFormat: "continuous", raceGoals: [], trailDistanceKm: "", trailElevationM: "", trailTargetTimeH: "", trailMaxAltitudeM: "",
@@ -69,13 +70,13 @@ const formState = (objective: string, weeks: number, hours: number, sessions: nu
 });
 
 async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18, snapshotOverrides: Partial<ReturnType<typeof snapRow>> = {}, formOverrides: Partial<AppPlanFormState> = {}) {
-  const snapshots = [{ ...snapRow(pace), ...(/Ironman/.test(objective) ? {sport_main:'tri',css:95} : {}), vma, ...snapshotOverrides }];
-  const ctx = computeAppAthleteContext(athleteRow, objective, "age_group", { snapshots, tests: [], checkins: [] })!;
+  const snapshots = [{ ...snapRow(pace), ...(/Ironman|Sprint|Olympic|Natation/.test(objective) ? {sport_main:'tri',css:95} : /Cyclisme/.test(objective)?{sport_main:'bike'}:{}), vma, ...snapshotOverrides }];
+  const ctx = computeAppAthleteContext({...athleteRow,objectif:"703"}, objective, "age_group", { snapshots, tests: [], checkins: [],programmeTarget:objective==="Cyclisme FTP"?330:objective==="Natation 1500m"?90:null })!;
   const st = { ...formState(objective, weeks, hours, sessions), ...formOverrides };
   const config = buildAppPlanConfig(ctx.diagnostic, st);
   const applied = (config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
   const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: ctx.data, config, planStartDate: "2026-10-26",
-    appAutomaticLimiters: rankPrescriptionGaps(ctx.diagnostic.limiter.gapAnalysis).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
+    appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(ctx.diagnostic)).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
   const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
   return { ctx, config, frozen, record, st };
 }
@@ -93,6 +94,21 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it.each([
+    {goal:'Cyclisme FTP',weeks:8,hours:7,sessions:4,expected:'FTP'},
+    {goal:'Natation 1500m',weeks:8,hours:4,sessions:4,expected:'CSS'},
+    {goal:'Sprint',weeks:8,hours:8,sessions:8,expected:'VLamax'},
+    {goal:'Olympic',weeks:12,hours:10,sessions:9,expected:'VLamax'},
+  ])('new family $goal : shared app input and real solver',async c=>{
+    const p=await pagePipeline(240,c.goal,c.weeks,c.hours,c.sessions,18,c.goal==='Cyclisme FTP'?{vlamax:0.25,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}:{},c.goal==='Natation 1500m'?{constraints:'Mercredi indisponible. Samedi indisponible.'}:{});
+    const clock={timeZone:'Europe/Brussels',bySport:Object.fromEntries(Object.entries({swim:[360,360,360,720,360,1020,480],bike:[600,660,600,480,600,420,540],run:[1080,540,720,900,1080,1260,1140],strength:Array(7).fill(1140),brick:Array(7).fill(360)}).map(([sport,row])=>[sport,{time:'',days,perDay:row.map(toHm)}]))};
+    const {out,b}=await runDet(p,c.goal,c.weeks,c.hours,c.sessions,{clock,swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHETIC TEST ONLY',uncertainty:'±5 s/100 m'}]))});
+    if(out.kind!=='accepted')process.stdout.write('NEW_FAMILY_APP '+JSON.stringify({goal:c.goal,priorities:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues,context:out.contextProblems}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    if(p.ctx.diagnostic.planningGoalAnalysis){const reference=computeAppAthleteContext({...athleteRow,objectif:'703'},'703','age_group',{snapshots:[{...snapRow(240),...(/Cyclisme/.test(c.goal)?{sport_main:'bike',vlamax:0.25,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}:{sport_main:'tri',css:95})}],tests:[],checkins:[]})!;expect(p.ctx.diagnostic.limiter).toEqual(reference.diagnostic.limiter);const withoutAuditClock=(x:unknown)=>JSON.parse(JSON.stringify(x,(key,value)=>key==='calibrationLog'&&value?{...value,date:undefined}:value));expect(withoutAuditClock(p.ctx.diagnostic._rawInput)).toEqual(withoutAuditClock(reference.diagnostic._rawInput));}
+    expect(out.plan.weeks).toHaveLength(c.weeks);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);expect(out.provenance.prescriptionAllowed).toBe(false);
+    if(c.expected)expect(out.limiterOrder.applied[0]).toBe(c.expected);if(c.goal==='Cyclisme FTP'||c.goal==='Natation 1500m'){expect(p.frozen.config.planningGoalContext).toMatchObject({origin:'explicit_coach_programme_target',profileObjective:'703',causalLimiterDiagnosis:false});}
+  },180000);
   it.each([
     {label:'VO2max',pace:222,vma:18,snapshot:{vo2max:30,tte_observed_min_run:80}},
     {label:'VMA',pace:285,vma:14,snapshot:{tte_observed_min_run:80,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}},
@@ -392,7 +408,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     const config = buildAppPlanConfig(ctx.diagnostic, st);
     const applied = (config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
     const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: ctx.data, config, planStartDate: "2026-10-26",
-      appAutomaticLimiters: rankPrescriptionGaps(ctx.diagnostic.limiter.gapAnalysis).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
+      appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(ctx.diagnostic)).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
     const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
     const sw = { recovery: 120, moderate_lt1: 110, tempo: 103, im_pace: 108, "703_pace": 102, marathon_pace: 103, sub_threshold: 98, semi_pace: 98, mlss: 95, vo2max: 88, neuromuscular: 80 } as const;
     const f = { objective: "703", planStartDate: "2026-10-26", raceDate: st.raceDate, weeksAvailable: 12, weeklyHours: hours, sessionsPerWeek: 8, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };

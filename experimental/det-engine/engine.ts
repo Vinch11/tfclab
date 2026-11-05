@@ -1023,7 +1023,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)&&
         entry.weekType==='load'&&!layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent));
       const qualityRequired=((sourceQualityOnLoad||nativeLorangWeekQuality) &&
-        config.ambition!=='finisher'&&triGoal)||runningQualityRequired;
+        config.ambition!=='finisher'&&(triGoal||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true))||runningQualityRequired;
       const runningQualityCache=new WeakMap<ParsedSession,boolean>();
       const isQuality=(session:ParsedSession)=>{
         if(runningQualityRequired){
@@ -1045,8 +1045,9 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               // Real work in the declared physiological domain. A brief
               // neuromuscular sprint cannot stand in for VO2, FTP or TTE.
               proven=primary==='vo2max'?domain==='vo2max':
-                primary==='tte'?domain==='mlss':
-                primary==='ftp'?['mlss','sub_threshold','vo2max'].includes(domain??''):false;
+                primary==='tte'||primary==='css_threshold'?domain==='mlss':
+                primary==='ftp'?['mlss','sub_threshold','vo2max'].includes(domain??''):
+                primary==='vlamax_reduction'||primary==='vma_velocity'?primaryVerified(session):false;
             }
           }
           runningQualityCache.set(session,proven);

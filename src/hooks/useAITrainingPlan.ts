@@ -332,6 +332,7 @@ export interface AdaptationProjection {
 }
 
 export interface PlanConfig {
+  planningGoalContext?:import('@/lib/plan/dedicatedSportGoal').DedicatedSportGoalAnalysis;
   _outputFormat?: "json" | "markdown";
   objective: string;
   /** ID de l'athlète — requis pour la mémoire de diversité inter-plans (P3). */
@@ -775,6 +776,10 @@ export function useAITrainingPlan() {
 
       // ─── PHASE 2B : Target Table (source unique des valeurs physiologiques) ───
       let targetTable: TargetTable | null = null;
+      // New dedicated programmes have an explicit coach target, not a
+      // normative triathlon race target. Never normalize their unknown label
+      // through the historical 70.3 target-table fallback.
+      if (!planConfig.planningGoalContext) {
       try {
         targetTable = buildTargetTable({
           ftp: athleteData.ftp ?? null,
@@ -817,6 +822,7 @@ export function useAITrainingPlan() {
         });
       } catch (e) {
         console.warn("[useAITrainingPlan] targetTable build failed:", e);
+      }
       }
 
       // Enrichit planConfig avec les quotas + target table (transmission edge)

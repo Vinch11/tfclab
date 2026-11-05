@@ -40,6 +40,7 @@ export function buildCoachPlanInputs(s: CoachDetInputSnapshot): { athlete: PlanA
   // Famille canonique : l'objectif moteur est celui du scénario CI, jamais le titre libre.
   const family = coachFamilyFor(s.objective);
   const objective = family?.engineObjective ?? s.objective;
+  if(family?.sportFocus==="swim"||family?.sportFocus==="bike")throw Error("dedicated_programme_requires_shared_app_input");
   const sportFocus = family?.sportFocus ?? "run";
   const diagnosticInput = {
     athleteId: s.athleteId, athleteName: athlete.nom, age: s.age, sex: s.sex ?? null, weightKg,
@@ -149,6 +150,7 @@ export function runCoachDetPlan(input: {
       applied: [...app.limiters.applied],
     };
   } else {
+    if(["bike","swim"].includes(coachFamilyFor(input.snapshot.objective)?.sportFocus??""))return {kind:"refused",refusals:["Les programmes dédiés utilisent le profil partagé de la page et une cible explicite ; la saisie manuelle QA ne reconstruit pas leur diagnostic."]};
     const automatic = eligibleLimiterMetrics(input.snapshot);
     const orderProblems = limiterOrderProblems(input.snapshot, automatic);
     if (orderProblems.length) return { kind: "refused", refusals: orderProblems };
