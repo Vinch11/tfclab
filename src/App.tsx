@@ -18,7 +18,8 @@ import { QaRlsAuditLink } from "@/components/QaRlsAuditLink";
 // Eager: bundled in initial chunk
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
-import Index from "./pages/Index";
+// Load the dashboard only on its protected route; /auth must not fetch its analysis graph.
+const Index = lazy(() => import("./pages/Index"));
 
 
 
