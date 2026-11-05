@@ -521,7 +521,7 @@ export default function AITrainingPlanPage() {
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
   const { prevalidation, prevalidateTrainingPlan, response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
-  const qaChoice = qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL);
+  const qaChoice = qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL,globalThis.location?.origin);
   const [planningEngine,setPlanningEngine]=useState<CoachEngine>("ai");
   const qaActionEpoch=useRef(0);
   useEffect(()=>{qaActionEpoch.current++;},[currentAthlete?.id,planningEngine]);
@@ -3975,7 +3975,7 @@ export default function AITrainingPlanPage() {
                 }});}}
                 form={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:Number(weeksAvailable??0),weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition}}
                 sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
-                guard={async()=>{const v=await verifyQaCoach();if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
+                guard={async()=>{const v=await verifyQaCoach({ surface: "planning" });if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
                 onOutcome={(o,fp)=>{if(o?.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
                   const cur=appPlanningRef.current;
                   if(pin?.source!=="app_planning_pipeline"||pin.fingerprint!==fp||!cur||!isLatest(fp)){toast.error("Profil de l'athlète modifié pendant le calcul : candidat non installé");return;}
@@ -3984,7 +3984,7 @@ export default function AITrainingPlanPage() {
                   void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(ep!==qaActionEpoch.current||!isLatest(fp))return;
-                    const owner=await verifyQaCoach();if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
+                    const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
                     setPlanOverride(bindAppPlanMetadata(o.plan,cur));setIsSaved(false);setResponse("");
                   }});
                 }}/>;})()}
@@ -3992,7 +3992,7 @@ export default function AITrainingPlanPage() {
               {currentAthlete && <CoachDetInputsPanel key={currentAthlete.id+objective+format(planStartDate,"yyyy-MM-dd")+raceDate+weeklyHours+sessionsPerWeek+coachLimiterOrder.join(",")} engine={planningEngine}
                 shared={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:weeksAvailable??undefined,weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition,coachLimiterOrder:coachLimiterOrder.length?coachLimiterOrder:null,...(appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?{planningInputFingerprint:appPlanningInput.fingerprint}:{})}}
                 sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
-                guard={async()=>{const v=await verifyQaCoach();if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
+                guard={async()=>{const v=await verifyQaCoach({ surface: "planning" });if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
                 onAI={async(inputs,snapshot)=>{await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const preview=await prevalidateTrainingPlan(inputs.athlete,inputs.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
                   setPlanOverride(null);await generatePlanWindowed(inputs.athlete,inputs.config);void snapshot;
@@ -4002,7 +4002,7 @@ export default function AITrainingPlanPage() {
                   void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(epoch!==qaActionEpoch.current)return;
-                    const owner=await verifyQaCoach();if("blocked" in owner||owner.athleteId!==currentAthlete.id||epoch!==qaActionEpoch.current)return;
+                    const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||epoch!==qaActionEpoch.current)return;
                     setPlanOverride(o.plan);setIsSaved(false);setResponse("");
                   }});
                 }}/>}
