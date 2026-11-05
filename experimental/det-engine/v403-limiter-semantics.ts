@@ -101,6 +101,7 @@ export function detPrimaryLimiterKey(config:{identifiedLimitersRaw?:readonly unk
 
 /** Families whose CI-proven option set reads the PRIMARY limiter, and the keys they define. */
 export const FAMILY_PRIMARY_REQUIREMENT:Readonly<Record<string,{keys:readonly DetLimiterKey[];why:string}|null>>={
+  '10k':{keys:['tte','durability_race_relative'],why:'v358 strict exact threshold-dose horizon and 10 km phase preparation'},
   marathon:{keys:['tte','durability_race_relative'],
     why:'option marathon prioritizeSourceVerifiedTteOnKeySlots / prioritizeSourceVerifiedRaceDurabilityOnKeySlots + audit V351'},
   semi_marathon:null,triathlon_703:null,triathlon_ironman:null,

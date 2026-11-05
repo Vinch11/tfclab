@@ -130,12 +130,12 @@ export function clockFor(clock: CoachConfirmedClock, planStartDate: string) {
  * enveloppe ⇒ refus explicite, jamais une extrapolation silencieuse.
  * Une preuve synthétique CI n'est PAS une preuve pour un athlète réel.
  */
-export type CoachFamilyKey = 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman';
+export type CoachFamilyKey = '10k' | 'marathon' | 'semi_marathon' | 'triathlon_703' | 'triathlon_ironman';
 export interface CoachFamily {
   key: CoachFamilyKey;
   label: string;
   /** Chaîne d'objectif transmise au moteur (celle des scénarios CI). */
-  engineObjective: 'Marathon' | 'Semi' | '703' | 'IM';
+  engineObjective: '10K' | 'Marathon' | 'Semi' | '703' | 'IM';
   sportFocus: 'run' | 'tri';
   /** Ancres V3 que le coach doit fournir (mesure ou estimation identifiée). */
   requiredAnchors: readonly string[];
@@ -145,6 +145,9 @@ export interface CoachFamily {
   ciEvidence: string;
 }
 export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
+  '10k': { key: '10k', label: '10 km route', engineObjective: '10K', sportFocus: 'run',
+    requiredAnchors: ['runThresholdPaceSecPerKm', 'runVvo2SpeedMps'], requiredClockSports: ['run', 'bike'],
+    testedEnvelope: { weeks: [8, 12], weeklyHours: [7, 7] }, ciEvidence: 'v358 strict 10 km (8/10/12 sem., 7 h)' },
   marathon: { key: 'marathon', label: 'Marathon route', engineObjective: 'Marathon', sportFocus: 'run',
     requiredAnchors: ['runThresholdPaceSecPerKm', 'runVvo2SpeedMps'], requiredClockSports: ['run'],
     testedEnvelope: { weeks: [16, 40], weeklyHours: [7, 9] }, ciEvidence: 'v332/v351–v357 (16/40 sem., 7/9 h)' },
@@ -164,13 +167,12 @@ export const COACH_FAMILIES: Readonly<Record<CoachFamilyKey, CoachFamily>> = {
 };
 /** Objectifs reconnus mais NON raccordés, avec la raison exacte. */
 export const COACH_BLOCKED_OBJECTIVES: Readonly<Record<string, string>> = {
-  '10k': "10 km : la seule preuve CI (v36) vérifie une construction technique, pas l'acceptation stricte (constraintsSatisfied) — non raccordé",
   '5k': '5 km : aucun scénario CI du moteur V3 avec acceptation stricte — non raccordé',
   trail: "trail : le moteur trail (generateTrailPlan, v4) exige un profil d'épreuve (terrain/D+/modèle de calendrier) et le catalogue natif, pas le contrat V3 revu par le coach — non raccordé",
   tri_short: 'triathlon sprint/olympique : aucun scénario CI V3 avec acceptation stricte — non raccordé',
 };
 export const COACH_QUALIFIED_OBJECTIVES = Object.keys(COACH_FAMILIES) as CoachFamilyKey[];
-export type CoachObjectiveKey = CoachFamilyKey | 'unsupported' | '10k' | '5k' | 'trail' | 'tri_short';
+export type CoachObjectiveKey = CoachFamilyKey | 'unsupported' | '5k' | 'trail' | 'tri_short';
 /**
  * Clé d'objectif canonique EXACTE : le nom libre d'événement (« Marathon de
  * Paris », « Marathon de trail »…) n'est jamais une clé d'objectif.
@@ -181,7 +183,7 @@ export function coachObjectiveKey(objective: string): CoachObjectiveKey {
   if (t === 'marathon' || t === 'marathon route') return 'marathon';
   if (['703', '70.3', 'ironman 70.3', 'half ironman', 'triathlon 70.3'].includes(t)) return 'triathlon_703';
   if (['im', 'ironman', 'triathlon ironman', 'full ironman'].includes(t)) return 'triathlon_ironman';
-  if (['10k', '10 km', '10km'].includes(t)) return '10k';
+  if (['10k', '10 km', '10km', '10 km route'].includes(t)) return '10k';
   if (['5k', '5 km', '5km'].includes(t)) return '5k';
   if (/^trail( (court|short|long|montagne|mountain|ultra))?$/.test(t) || t === 'trailshort' || t === 'ultra trail') return 'trail';
   if (['sprint', 'olympic', 'olympique', 'triathlon sprint', 'triathlon olympique'].includes(t)) return 'tri_short';
@@ -289,7 +291,16 @@ export function runCoachInputsDet(input: {
       requireStrictPeriodizationEvidence: true,
       // Exigences du chemin marathon prouvé en CI (V351–V357) : preuves plus
       // strictes et classements, jamais un assouplissement.
-      ...(family.key === 'marathon' ? {
+      ...(family.key === '10k' ? {
+        requireMeasuredDeloadSelection: true as const, annotateVerifiedDeloads: true as const,
+        requireReviewedRunningKeyQualityOnLoadWeeks: true as const,
+        prioritizeVerifiedRunningQualitySlot: true as const, auditRunningQualitySourceMatching: true as const,
+        prioritizeVerifiedRunningQualityCandidate: true as const, prioritizeRunningStructuredEasyMargin: true as const,
+        prioritizeRunningQualitySlotByMargin: true as const, prioritizeSourceVerifiedTteOnKeySlots: true as const,
+        prioritizeSourceVerifiedRaceDurabilityOnKeySlots: true as const,
+        requireVerifiedRunningPhaseEvidence: true as const, reconcileReviewedSourcePolarization: true as const,
+        enableV333ForwardCheck: true as const, enableV335SourceRunningPeak: true as const,
+      } : family.key === 'marathon' ? {
         requireMeasuredDeloadSelection: true as const, annotateVerifiedDeloads: true as const,
         requireReviewedRunningKeyQualityOnLoadWeeks: true as const,
         prioritizeVerifiedRunningQualitySlot: true as const, auditRunningQualitySourceMatching: true as const,

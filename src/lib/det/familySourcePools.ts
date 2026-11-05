@@ -49,6 +49,9 @@ export interface FamilySourcePool {
 
 const uniq = (xs: string[]) => [...new Set(xs)];
 const POOLS_RAW: Record<CoachFamilyKey, Omit<FamilySourcePool, "pinnedFingerprint">> = {
+  '10k': { family: '10k', ciScenario: 'v358 strict 10 km age-group, 8/10/12 weeks (7 h)', independentScientificReview: false,
+    ids: uniq([...RUN_BASE, ...RUN_TAPER, ...CROSS_BIKE, ...STRENGTH, ...n('V3P_RUN_', ['018','073','074','075','095','136'])]),
+    doses: { V3P_RUN_136: { targetDurationMin: 51, allowWorksetChange: true }, V3P_RUN_001: { targetDurationMin: 28 } } },
   marathon: { family: "marathon", ciScenario: "v351–v357 marathon route (coachDetRun.test)", independentScientificReview: false,
     ids: uniq([...RUN_BASE, ...RUN_TAPER, "V3P_RUN_136", "V3P_RUN_094", ...STRENGTH, ...CROSS_BIKE]),
     doses: { V3P_RUN_136: { targetDurationMin: 51, allowWorksetChange: true }, V3P_RUN_094: { targetDurationMin: 28, allowWorksetChange: true },
@@ -76,6 +79,7 @@ export async function computePoolFingerprint(ids: readonly string[]): Promise<st
 
 /** Empreintes figées lors de la revue du pool (recalculées par `familySourcePools.test.ts`). */
 export const PINNED_POOL_FINGERPRINTS: Record<CoachFamilyKey, string> = {
+  '10k': "abe798a31abf784e8b212ff9ebe341b52c094aa36d355a006bece2895a8d645e",
   marathon: "506ef5194a2359d26859b3df4edde2ef1a257ddfc76c75394e9ea4fdf62e2580",
   semi_marathon: "54e2bf2c8f4acef04e7b20729ccb2d63601cc6a8610931d9cf7f02a069fc5695",
   triathlon_703: "106505b06e0a0a71501c3101bb9d0958f33e9d997efe6c3cbe04f94be05b0535",

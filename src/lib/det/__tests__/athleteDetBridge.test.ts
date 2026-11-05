@@ -102,7 +102,7 @@ describe("pont fiche athlète → DET", () => {
     expect(familySourcePool("marathon").independentScientificReview).toBe(false);
   });
   it("objectif non raccordé ⇒ message clair, aucun appel moteur", () => {
-    const b = buildAthleteDetInputs(runner(), form("10 km", 10, 6), answers("Semi-marathon"));
+    const b = buildAthleteDetInputs(runner(), form("5 km", 10, 6), answers("Semi-marathon"));
     expect(b.family).toBeNull(); expect(b.missing[0].why).toMatch(/pas encore pris en charge/);
   });
   it("limiteurs : ordre du diagnostic de l'app, restreint aux éligibles, non-guidants signalés", () => {

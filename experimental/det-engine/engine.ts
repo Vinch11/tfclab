@@ -2166,9 +2166,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     const provider=experimentalContract;
     const scope={objective:normalizeRepairGoal(config.objective??'') as 'semi'|'10k',
       horizon:config.weeksAvailable!};
+    // Durability retains its distinct app label/branch. Its documented
+    // increase_tte lever must pass the SAME exact threshold-dose horizon
+    // audit, in addition to the blocking per-load-week durability proof.
     const proof=provider.sourceFullStructuredDoseForId&&provider.reviewedRunningSpecificForId&&
       provider.reviewedSourceLimiterKeysForId&&provider.reviewedSourcePrimaryDomainForId&&
-      detPrimaryLimiterKey(config)==='tte'?auditMarathonHorizon(result.candidate!,{
+      (detPrimaryLimiterKey(config)==='tte'||
+        (detPrimaryLimiterKey(config)==='durability_race_relative'&&
+         provider.prioritizeSourceVerifiedRaceDurabilityOnKeySlots===true))?auditMarathonHorizon(result.candidate!,{
         dose:provider.sourceFullStructuredDoseForId,
         runningSpecific:provider.reviewedRunningSpecificForId,
         limiterKeys:provider.reviewedSourceLimiterKeysForId,

@@ -198,7 +198,7 @@ describe("ordre des limiteurs et périmètre (sans moteur)", () => {
     // 70.3 a sa propre famille (options V320), jamais celles du marathon.
     expect(coachObjectiveKey("Ironman 70.3")).toBe("triathlon_703");
   });
-  it.each(["10 km", "Trail court", "Marathon de trail", "Marathon du Mont-Blanc"])("objectif %s refusé explicitement (hors périmètre qualifié)", async (objective) => {
+  it.each(["5 km", "Trail court", "Marathon de trail", "Marathon du Mont-Blanc"])("objectif %s refusé explicitement (hors périmètre qualifié)", async (objective) => {
     const s = { ...snapshot(), objective };
     const r = await run(s, await ctxFor(s));
     expect(r.kind).toBe("refused");
@@ -211,7 +211,7 @@ describe("ordre des limiteurs et périmètre (sans moteur)", () => {
   });
   it("le cœur moteur refuse lui-même un objectif non qualifié (fail-closed)", () => {
     const { athlete, config } = buildCoachPlanInputs(snapshot());
-    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "10 km" }, reviews: [], clock })).toThrow(/objective_not_qualified:10k/);
+    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "5 km" }, reviews: [], clock })).toThrow(/objective_not_qualified:5k/);
     expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Marathon de trail" }, reviews: [], clock })).toThrow(/objective_not_qualified:unsupported/);
   });
   it("cardio et force comptés et libellés séparément", () => {

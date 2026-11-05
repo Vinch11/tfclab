@@ -68,8 +68,8 @@ const formState = (objective: string, weeks: number, hours: number, sessions: nu
   chronicWeeklyHours: "", recentWeeklyHours: "", recentWeeksCount: "", maxDoubleDaysPerWeek: "", coachLimiterOrder: [], currentAthleteId: A1,
 });
 
-async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18) {
-  const snapshots = [{ ...snapRow(pace), ...(/Ironman/.test(objective) ? {sport_main:'tri',css:95} : {}), vma }];
+async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18, snapshotOverrides: Partial<ReturnType<typeof snapRow>> = {}) {
+  const snapshots = [{ ...snapRow(pace), ...(/Ironman/.test(objective) ? {sport_main:'tri',css:95} : {}), vma, ...snapshotOverrides }];
   const ctx = computeAppAthleteContext(athleteRow, objective, "age_group", { snapshots, tests: [], checkins: [] })!;
   const st = formState(objective, weeks, hours, sessions);
   const config = buildAppPlanConfig(ctx.diagnostic, st);
@@ -93,6 +93,23 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it.each([8, 10, 12])("10 km %s semaines : le diagnostic TTE de l'app guide le calendrier complet", async (weeks) => {
+    const p = await pagePipeline(222, '10K', weeks, 7, 4, 18, { tte_observed_min_run: 10 });
+    const before = structuredClone(p.ctx.diagnostic);
+    const { out } = await runDet(p, '10K', weeks, 7, 4);
+    process.stdout.write('TENK_APP '+JSON.stringify({weeks,limiters:p.frozen.limiters.applied,...(out.kind==='accepted'?{kind:out.kind,sessions:out.sessions,audit:out.auditCodes}:out.kind==='engine_refused'?{kind:out.kind,reason:out.reason,issues:out.blockingIssues}:{kind:out.kind,refusals:out.refusals})})+'\n');
+    expect(out.kind).toBe('accepted');
+    expect(p.ctx.diagnostic).toEqual(before);
+    if (out.kind !== 'accepted') return;
+    expect(out.plan.weeks).toHaveLength(weeks);
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.auditCodes).toContain('det_v358_running_exact_source_horizon_verified');
+    expect(out.auditCodes).toContain('det_v403_race_durability_coverage_verified');
+    const { isDetCoachInputsProvenance, readPlanProvenance } = await import('@/lib/plan/planProvenance');
+    expect(isDetCoachInputsProvenance(out.provenance)).toBe(true);
+    expect(readPlanProvenance(JSON.parse(JSON.stringify(out.plan))).engine).toBe('det');
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  }, 120000);
   it('Ironman 16 sem./14 h : profil et priorités automatiques de l’app conservés dans le calendrier complet',async()=>{
     const p=await pagePipeline(240,'Ironman',16,14,10),before=structuredClone(p.ctx.diagnostic);
     const clock={timeZone:triClock.timeZone,bySport:Object.fromEntries(Object.entries(triClock.minutesBySport).map(([sport,row])=>[sport,{time:'',days,perDay:(sport==='run'?[420,420,1080,1200,1080,420,420]:row).map(toHm)}]))};
