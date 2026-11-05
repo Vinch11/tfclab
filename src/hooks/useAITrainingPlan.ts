@@ -1,3 +1,4 @@
+import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
 import { aiProvenance } from "@/lib/plan/aiProvenance";
 import { qaEngineChoiceEnabled } from "@/lib/plan/engineDispatch";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
@@ -332,6 +333,8 @@ export interface AdaptationProjection {
 }
 
 export interface PlanConfig {
+  planningProfileReference?:string;
+  timeTrialContext?:TimeTrialDeclaration;
   planningGoalContext?:import('@/lib/plan/dedicatedSportGoal').DedicatedSportGoalAnalysis;
   _outputFormat?: "json" | "markdown";
   objective: string;
@@ -707,6 +710,7 @@ export function useAITrainingPlan() {
   const generationInFlightRef=useRef(false);
   const batchInFlightRef=useRef(false);
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }, frozenOptions?:Parameters<typeof prepareGenerationContracts>[2]) => {
+    if(isTimeTrial(String(planConfig.objective))){toast.error("Le CLM nécessite actuellement le contrat de sources et de position du moteur DET ; aucun appel IA n’est lancé.");return;}
     if(qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL))planConfig={...planConfig,_outputFormat:"json"};
     // Guard against double-fire
     if (isLoading || generationInFlightRef.current) {
@@ -1578,6 +1582,7 @@ export function useAITrainingPlan() {
     athleteData: PlanAthleteData,
     planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
   ): Promise<void> => {
+    if(isTimeTrial(String(planConfig.objective))){toast.error("Le CLM utilise actuellement le contrat de sources du moteur DET ; aucun appel IA n’est lancé.");return;}
     const totalWeeks = planConfig.weeksAvailable ?? 0;
     const { chunkSize } = computeChunkSizing(planConfig.objective || "", totalWeeks);
     const totalChunksForPlan = computeTotalChunks(planConfig.objective || "", totalWeeks);

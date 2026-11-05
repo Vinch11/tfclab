@@ -1,3 +1,4 @@
+import type {DetLimiterKey} from './v403-limiter-semantics';
 import {EXTENDED_RUNNING_PRIMARIES,verifyPrimaryRunningSession} from './v408-primary-limiter-evidence';
 /** Experimental, pure catalogue assembly. Never imported by the application. */
 import type { PlanAthleteData, PlanConfig } from '@/hooks/useAITrainingPlan';
@@ -216,6 +217,7 @@ export interface ExperimentalAssemblyContract {
   prioritizeSourceVerifiedTteOnKeySlots?:true;
   /** V408: explicitly typed additional PRIMARY branches, exact source audit mandatory. */
   prioritizeSourceVerifiedPrimaryRunning?:true;
+  reviewedBikePrimaryForSession?:(session:ParsedSession,key:DetLimiterKey)=>boolean;
   excludeNativeBaseBuildPhaseConflicts?:true;
   /** V403: same search-order mechanism for primary « Durabilité » (race-relative),
    * proven by V353 threshold-sustain OR V335 objective race-pace durability blocks;
@@ -1046,10 +1048,11 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
               // neuromuscular sprint cannot stand in for VO2, FTP or TTE.
               proven=primary==='vo2max'?domain==='vo2max':
                 primary==='tte'||primary==='css_threshold'?domain==='mlss':
-                primary==='ftp'?['mlss','sub_threshold','vo2max'].includes(domain??''):
-                primary==='vlamax_reduction'||primary==='vma_velocity'?primaryVerified(session):false;
+                (primary==='ftp'||primary==='ftp_relative')?['mlss','sub_threshold','vo2max'].includes(domain??''):
+                primary==='vlamax_reduction'||primary==='vma_velocity'?(primaryVerified(session)||experimentalContract.reviewedBikePrimaryForSession?.(session,primary)===true):false;
             }
           }
+          if(proven&&session.sport==='bike'&&experimentalContract?.reviewedBikePrimaryForSession&&detPrimaryLimiterKey(config))proven=experimentalContract.reviewedBikePrimaryForSession(session,detPrimaryLimiterKey(config)!);
           runningQualityCache.set(session,proven);
           return proven;
         }

@@ -1,3 +1,5 @@
+import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
+import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
 import {primaryRunningInputProblems} from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 /**
  * Chemin « entrées coach » → VRAI moteur DET. Aucun import de fixture ou de
@@ -141,6 +143,7 @@ export function runCoachDetPlan(input: {
     if (input.snapshot.planningInputFingerprint !== app.fingerprint) return { kind: "refused", refusals: ["vérifications enregistrées pour un autre état du profil de planification : refaire les vérifications"] };
     if (app.config.planStartDate !== input.snapshot.planStartDate) return { kind: "refused", refusals: [`date de début incohérente (profil ${String(app.config.planStartDate)} ≠ vérifications ${input.snapshot.planStartDate})`] };
     if (input.snapshot.coachLimiterOrder) return { kind: "refused", refusals: ["l'ordre des limiteurs se règle dans la page (il est déjà inclus dans le profil partagé IA/DET)"] };
+    if(isTimeTrial(String(app.config.objective))&&canonicalJson(input.snapshot.timeTrial)!==canonicalJson(app.config.timeTrialContext))return {kind:'refused',refusals:['Revue CLM différente du profil partagé.']};
     const mism = anchorMismatches(app, input.snapshot.anchors as never);
     if (mism.length) return { kind: "refused", refusals: mism };
     ({ athlete, config } = planningInputFor(app, "det"));
@@ -169,7 +172,9 @@ export function runCoachDetPlan(input: {
   if (semantics.blocking) return { kind: "refused", refusals: [`Limiteur principal « ${semantics.blocking.raw} » sans définition DET pour cette famille : ${semantics.blocking.reason}. Rien n'est remplacé ; DET ne génère pas (code blocked_unsupported_limiter).`, ...semantics.blocking.missingItems.map((m) => `Manquant : ${m}`)], blockedUnsupportedLimiter: semantics.blocking, limiterOrder };
   const primaryProblems=primaryRunningInputProblems(config);
   if(primaryProblems.length)return {kind:"refused",refusals:primaryProblems,limiterOrder};
-  const run = runCoachInputsDet({ athlete, config, reviews: check.reviews, clock: input.ctx!.clock!, trail: input.snapshot.trail, brickApprovals: input.ctx!.brickApprovals, limits: input.limits });
+  let run:ReturnType<typeof runCoachInputsDet>;
+  try { run=runCoachInputsDet({ athlete,athleteId:input.athleteId, config, reviews: check.reviews, clock: input.ctx!.clock!, trail: input.snapshot.trail,timeTrial:input.snapshot.timeTrial, brickApprovals: input.ctx!.brickApprovals, limits: input.limits }); }
+  catch(error){if(!isTimeTrial(String(config.objective)))throw error;return {kind:'refused',refusals:[error instanceof Error&&error.message.startsWith('CLM :')?error.message:'Contrat CLM non exécuté : erreur technique, aucune génération acceptée.'],limiterOrder};}
   const out = run.out;
   const hard = out.issues.filter((i) => ["critical", "blocking", "error"].includes(i.severity)).map((i) => i.code);
   if (!out.constraintsSatisfied || !out.candidate || run.contextProblems.length) {

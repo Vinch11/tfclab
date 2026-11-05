@@ -46,7 +46,7 @@ export interface DetCoachInputsProvenance {
   /** Entrée de planification : profil de l'app partagé avec l'IA (empreinte) ou saisie QA manuelle. */
   planningInput?: { source: "app_planning_pipeline"; fingerprint: string } | { source: "manual_coach_inputs"; fingerprint: null };
   /** Famille canonique DET réellement exécutée (absent sur les anciennes versions ⇒ marathon historique). */
-  family?: "10k" | "marathon" | "semi_marathon" | "triathlon_703" | "triathlon_ironman" | "trail_short" | "trail_mountain" | "trail_ultra" | "cycling_ftp" | "swimming_css" | "triathlon_sprint" | "triathlon_olympic";
+  family?: "10k" | "marathon" | "semi_marathon" | "triathlon_703" | "triathlon_ironman" | "trail_short" | "trail_mountain" | "trail_ultra" | "cycling_ftp" | "cycling_tt" | "swimming_css" | "triathlon_sprint" | "triathlon_olympic";
   brickApprovals?: Array<{ id: string; transitionSeconds: number }>;
   syntheticFixture: false;
   /** Une qualification de source n'est jamais une approbation sportive du plan. */
@@ -65,7 +65,7 @@ export function isDetCoachInputsProvenance(v: unknown): v is DetCoachInputsProve
     && typeof v.reviewContextId === "string" && v.reviewContextId.length > 0
     && isObj(v.coachInputs) && Array.isArray(v.qualifiedSourceIds) && Array.isArray(v.admittedSourceIds)
     && (v.limiterOrder === undefined || isLimiterOrder(v.limiterOrder))
-    && (v.family === undefined || ["10k", "marathon", "semi_marathon", "triathlon_703", "triathlon_ironman", "trail_short", "trail_mountain", "trail_ultra", "cycling_ftp", "swimming_css", "triathlon_sprint", "triathlon_olympic"].includes(v.family as string))
+    && (v.family === undefined || ["10k", "marathon", "semi_marathon", "triathlon_703", "triathlon_ironman", "trail_short", "trail_mountain", "trail_ultra", "cycling_ftp", "cycling_tt", "swimming_css", "triathlon_sprint", "triathlon_olympic"].includes(v.family as string))
     && (v.brickApprovals === undefined || (Array.isArray(v.brickApprovals) && (v.brickApprovals as unknown[]).every((b) => !!b && typeof (b as { id?: unknown }).id === "string" && Number.isInteger((b as { transitionSeconds?: unknown }).transitionSeconds))))
     && v.syntheticFixture === false && v.sourceQualificationIsNotPlanApproval === true
     && v.prescriptionAllowed === false && v.sportingAttestation === false

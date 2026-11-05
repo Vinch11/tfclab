@@ -10,5 +10,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bunx vitest run -c vitest.experimental.config.ts experimental/det-engine/v35 experimental/det-engine/v359 experimental/det-engine/v360 experimental/det-engine/v404 experimental/det-engine/v405 experimental/det-engine/v406 experimental/det-engine/v407 experimental/det-engine/v408 experimental/det-engine/v409
+      - run: bunx vitest run -c vitest.experimental.config.ts experimental/det-engine/v35 experimental/det-engine/v359 experimental/det-engine/v360 experimental/det-engine/v404 experimental/det-engine/v405 experimental/det-engine/v406 experimental/det-engine/v407 experimental/det-engine/v408 experimental/det-engine/v409 experimental/det-engine/v410
       - run: node scripts/preproduction/plan-release-source.mjs

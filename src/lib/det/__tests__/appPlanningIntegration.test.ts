@@ -1,3 +1,4 @@
+import {TT_OBJECTIVE,type TimeTrialDeclaration} from '../../../../experimental/det-engine/v410-time-trial-contract';
 import {appPlanningPriorityGaps} from '@/lib/plan/dedicatedSportGoal';
 /**
  * INTÉGRATION RÉELLE (aucun mock moteur) : enregistrements SYNTHÉTIQUES au format du dépôt
@@ -82,7 +83,7 @@ async function pagePipeline(pace: number, objective: string, weeks: number, hour
 }
 async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: string, weeks: number, hours: number, sessions: number, extraAnswers:Partial<CoachAnswers>={}) {
   const f = { raceGoals:p.frozen.config.raceGoals, objective, planStartDate: "2026-10-26", raceDate: p.st.raceDate, weeksAvailable: weeks, weeklyHours: hours, sessionsPerWeek: sessions, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
-  const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock, ...extraAnswers }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
+  const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock,timeTrial:p.frozen.config.timeTrialContext, ...extraAnswers }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
   expect(b.sourceReview.status).toBe("reviewed");
   const inputsHash = await hashCoachInputs(b.snapshot!);
   const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
@@ -94,6 +95,16 @@ beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyO
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
 describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it('CLM : original app profile and exact declared posture calendar',async()=>{
+    const timeTrialContext:TimeTrialDeclaration={aeroWeeks:[5,6],aeroDayIndex:3,athleteId:A1,raceDurationMinutes:60,observedOn:'2026-10-20',reviewReference:'SYNTHETIC FIELD REVIEW ONLY',bikeFitConfirmed:true,symptomScreenClear:true,longestContinuousAeroMinutes:20,maxAeroMinutesPerSession:60,minimumContinuousAeroMinutes:15,minimumAeroMinutesPerSession:30,minimumAeroSessions:2};
+    const p=await pagePipeline(240,TT_OBJECTIVE,8,7,4,20,{ftp:180,vo2max:75,tte_observed_min_run:80,vlamax:0.25,vlamax_run:0.25,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC lactate lab',sport_main:'bike'},{raceTargetMinutes:'60',timeTrialContext,constraints:'pas de vélo le mercredi'});
+    const clock={timeZone:'Europe/Brussels',bySport:{bike:{time:'',days,perDay:[480,360,480,540,600,480,480].map(toHm)},strength:{time:'19:00',days}}};
+    const {out,b}=await runDet(p,TT_OBJECTIVE,8,7,4,{clock});
+    process.stdout.write('TT_APP '+JSON.stringify({priorities:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;expect(out.plan.weeks).toHaveLength(8);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);expect(out.provenance.prescriptionAllowed).toBe(false);expect(p.config.planningProfileReference).toBe('703');
+    const bad=await pagePipeline(240,TT_OBJECTIVE,8,7,4,20,{ftp:180,vo2max:75,tte_observed_min_run:80,vlamax:0.25,vlamax_run:0.25,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC lactate lab',sport_main:'bike'},{raceTargetMinutes:'60',timeTrialContext:{...timeTrialContext,aeroWeeks:[3,6]},constraints:'pas de vélo le mercredi'});
+    const refused=await runDet(bad,TT_OBJECTIVE,8,7,4,{clock});expect(refused.out.kind).toBe('refused');if(refused.out.kind==='refused')expect(refused.out.refusals.join(' ')).toMatch(/rendez-vous aéro.*semaine 3/);
+  },180000);
   it.each([
     {goal:'Cyclisme FTP',weeks:8,hours:7,sessions:4,expected:'FTP'},
     {goal:'Natation 1500m',weeks:8,hours:4,sessions:4,expected:'CSS'},

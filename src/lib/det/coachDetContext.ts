@@ -1,3 +1,4 @@
+import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
 import { v3ExtendedCatalogue } from '../../../scripts/library-v3/supplementalCatalogue';
 import type { RaceGoal } from '@/hooks/useAITrainingPlan';
@@ -95,6 +96,7 @@ export interface CoachDetInputSnapshot {
   sourceContentReview?:{notes:string;manifestHash:string;athleteChecksKey:string};
   raceGoals?: RaceGoal[];
   trail?: TrailPlanningDeclaration;
+  timeTrial?:TimeTrialDeclaration;
   athleteId: string;
   coachId: string;
   objective: string;
@@ -179,6 +181,7 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     p.push(why ? `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach — ${why}`
       : `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach (choisir exactement : ${supported})`);
   }
+  p.push(...timeTrialProblems(s.timeTrial,s.athleteId,{objective:s.objective,planStartDate:s.planStartDate,raceDate:s.raceDate,weeksAvailable:s.weeksAvailable,raceGoals:s.raceGoals}));
   if (family?.sportFocus === "trail" && !s.trail) p.push("revue trail terrain/parcours/historique requise");
   if (s.trail && (s.trail.review.athleteId !== s.athleteId || s.trail.routes.some(r => r.athleteId !== s.athleteId))) p.push("revue terrain d’un autre athlète");
   if (family) {

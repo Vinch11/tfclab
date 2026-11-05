@@ -1,3 +1,4 @@
+import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {dedicatedProgrammeProblems} from '@/lib/plan/dedicatedSportGoal';
 import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
 import {AthleteSourceReview} from './AthleteSourceReview';
@@ -96,7 +97,7 @@ export function AthleteDetSimplePanel(props: {
   const initial = { order: [...(props.appInput?.limiters.applied ?? [])], appendedEligible: [] as string[], notGuiding: [] as string[] };
   const order = initial.order;
   const planningForm = useMemo(()=>({...props.form,...(props.appInput?.config.raceGoals?.length ? {raceGoals:props.appInput.config.raceGoals} : {})}),[props.form,props.appInput]);
-  const bridge = useMemo(() => buildAthleteDetInputs(props.record, planningForm, { ...a, coachLimiterOrder: null }, effectiveGenuine, fp), [props.record, planningForm, a, effectiveGenuine, fp]);
+  const bridge = useMemo(() => buildAthleteDetInputs(props.record, planningForm, { ...a,timeTrial:props.appInput?.config.timeTrialContext, coachLimiterOrder: null }, effectiveGenuine, fp), [props.record, planningForm, a, effectiveGenuine, fp,props.appInput]);
   const set = (patch: Partial<CoachAnswers>) => setA((x) => ({ ...x, ...patch }));
 
   const generate = async () => {
@@ -110,8 +111,9 @@ export function AthleteDetSimplePanel(props: {
       if(programmeProblems.length){setMsg(programmeProblems);return;}
       const v = await props.guard(); if (!v || !current()) return;
       if (v.athleteId !== props.record.athleteId || v.userId !== props.record.coachId || app.athleteId !== v.athleteId) { setMsg(["Session ou athlète différent : action annulée."]); return; }
+      if(engineAt==='ai'&&isTimeTrial(String(app.config.objective))){setMsg(['Le CLM utilise actuellement le contrat de sources et de position de DET. Aucun appel IA n’est lancé pour ce format.']);return;}
       if (engineAt === "ai") { await props.onAIShared(app); return; }
-      const b = buildAthleteDetInputs(props.record, planningForm, { ...a, coachLimiterOrder: null }, effectiveGenuine, fpAt);
+      const b = buildAthleteDetInputs(props.record, planningForm, { ...a,timeTrial:props.appInput?.config.timeTrialContext, coachLimiterOrder: null }, effectiveGenuine, fpAt);
       if (!b.snapshot || !b.ctx) { setMsg(b.sourceReview.status === "blocked_missing_source_review" ? [b.sourceReview.reason] : b.missing.map((m) => `${m.label} : ${m.why}`)); return; }
       if (libraryProblems.length) { setMsg(libraryProblems); return; }
       if (!props.sourcesVersion) { setMsg(["Version des séances DET indisponible."]); return; }

@@ -1,3 +1,4 @@
+import {isTimeTrial,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {dedicatedGoalMetric,compareDedicatedProgrammeGoal,appPlanningPriorityGaps} from './dedicatedSportGoal';
 import {rankPrescriptionGaps} from '@/lib/limiterPrescription';
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -24,6 +25,7 @@ import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 export const OBJECTIVE_OPTIONS = [
   {value:"Sprint",label:"Triathlon sprint"},
   {value:"Olympic",label:"Triathlon olympique"},
+  {value:"Cyclisme contre-la-montre",label:"Cyclisme contre-la-montre"},
   {value:"Cyclisme FTP",label:"Cyclisme FTP"},
   {value:"Natation 1500m",label:"Natation 1500m"},
   { value: "IM", label: "Ironman" },
@@ -52,7 +54,7 @@ export interface AppAthleteContext { data: PlanAthleteData; diagnostic: AthleteD
 export function buildAppDiagnosticInput(athlete: any, obj: string, amb: string, src: AppAthleteSources): DiagnosticInput {
     // Dedicated programmes reuse the athlete's actual existing profile reference.
     // No unknown new objective is allowed to normalize silently to 70.3.
-    if(dedicatedGoalMetric(obj)){
+    if(dedicatedGoalMetric(obj)||isTimeTrial(obj)){
       const reference=athlete.objectif;
       const known=new Set(['IM','703','Sprint','Olympic','Marathon','Semi','5K','10K','Trail','TrailShort','TrailMountain','TrailUltra']);
       if(!known.has(reference))throw Error('existing_physiological_profile_reference_required');
@@ -216,6 +218,7 @@ export function computeAppAthleteContext(athlete: any, obj: string, amb: string,
 }
 
 export interface AppPlanFormState {
+  timeTrialContext?:TimeTrialDeclaration;
   objective: string; ambition: string; planStartDate: Date;
   raceName: string; raceDate: string; raceTargetMinutes?: string; raceFormat: any; raceGoals: Array<{ objective: string; raceName?: string; raceDate?: string; priority: any; targetTimeMinutes?: number | null }>;
   trailDistanceKm: string; trailElevationM: string; trailTargetTimeH: string; trailMaxAltitudeM: string;
@@ -389,7 +392,7 @@ export function buildAppPlanConfig(
         physiologicalTrace:{...built.physiologicalTrace!,diagnostic:{...built.physiologicalTrace!.diagnostic,uncertainty:[...built.physiologicalTrace!.diagnostic.uncertainty,'Profil de référence conservé. Cible de programme distincte déclarée par le coach, sans nouveau diagnostic causal.']}},
       };
     }
-    return { ...built, athleteId: athleteIdOverride ?? currentAthleteId };
+    return { ...built, athleteId: athleteIdOverride ?? currentAthleteId,...(isTimeTrial(String(formConfig.objective))?{planningProfileReference:diagnostic.objectif,timeTrialContext:st.timeTrialContext?structuredClone(st.timeTrialContext):undefined}:{}) };
 }
 
 export function computeAppDiagnosticForAthlete(athlete:any,obj:string,amb:string,src:AppAthleteSources):AthleteDiagnostic{

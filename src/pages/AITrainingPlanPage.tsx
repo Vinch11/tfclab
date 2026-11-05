@@ -1,3 +1,5 @@
+import {TimeTrialEvidenceForm} from '@/components/plan/TimeTrialEvidenceForm';
+import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
 import {appPlanningPriorityGaps,dedicatedGoalMetric} from '@/lib/plan/dedicatedSportGoal';
 import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { CoachDetInputsPanel } from "@/pages/__qa/CoachDetInputsPanel";
@@ -726,6 +728,7 @@ export default function AITrainingPlanPage() {
   const [raceDate, setRaceDate] = useState("");
   const [raceTargetMinutes, setRaceTargetMinutes] = useState("");
   const [programmeTarget,setProgrammeTarget]=useState("");
+  const [timeTrialContext,setTimeTrialContext]=useState<TimeTrialDeclaration|undefined>();
   // Mode alternatif "durée en semaines" (demande coach) : pour un bloc de
   // préparation sans date de course fixée (reprise, base hors-saison, objectif
   // pas encore calé), le coach fixe directement le nombre de semaines plutôt
@@ -890,7 +893,7 @@ export default function AITrainingPlanPage() {
     // ont fuité dans sa régénération complète.
     if (currentAthlete?.objectif) setObjective(currentAthlete.objectif);
     setRaceName("");
-    setRaceTargetMinutes("");setProgrammeTarget("");
+    setRaceTargetMinutes("");setProgrammeTarget("");setTimeTrialContext(undefined);
     setRaceFormat("continuous");
     setRaceDate("");
     setPlanDurationMode("date");
@@ -1134,7 +1137,7 @@ export default function AITrainingPlanPage() {
   // ═══════════════════════════════════════════════════════════════════════════
 
   const buildDiagnosticForAthlete = useCallback((athlete: any, obj: string, amb: string): AthleteDiagnostic | null => {
-    if(isMultiMode&&dedicatedGoalMetric(obj))throw Error('dedicated_programme_requires_individual_athlete_target');
+    if(isMultiMode&&(dedicatedGoalMetric(obj)||isTimeTrial(obj)))throw Error('dedicated_programme_requires_individual_athlete_target');
     return computeAppDiagnosticForAthlete(athlete, obj, amb, { programmeTarget:programmeTarget.trim()?Number(programmeTarget):null,snapshots: getSnapshotsForAthlete(athlete.id), tests: getTestsForAthlete(athlete.id), checkins: getCheckinsForAthlete(athlete.id) });
   }, [getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete,programmeTarget,isMultiMode]);
 
@@ -1401,11 +1404,11 @@ export default function AITrainingPlanPage() {
     objectiveOverride?: string,
     athleteIdOverride?: string,
   ): PlanConfig => {
-    return buildAppPlanConfig(diagnostic, { objective, ambition, planStartDate, raceName, raceDate, raceTargetMinutes, raceFormat, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM,
+    return buildAppPlanConfig(diagnostic, { objective, ambition, planStartDate, raceName, raceDate, raceTargetMinutes,timeTrialContext, raceFormat, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM,
       weeksAvailable, weeklyHours, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, constraints, trainingLevel, terrainAvailability, lockAmbition,
       crossTrainingVelo, crossTrainingNatation, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, coachLimiterOrder, currentAthleteId: currentAthlete?.id },
       athleteAmbition, objectiveOverride, athleteIdOverride);
-  }, [objective, raceName, raceFormat, raceDate, raceTargetMinutes, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
+  }, [objective, raceName, raceFormat, raceDate, raceTargetMinutes,timeTrialContext, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -3321,7 +3324,7 @@ export default function AITrainingPlanPage() {
                     <Target className="h-3.5 w-3.5" />
                     Objectif principal (A)
                   </Label>
-                  <Select value={objective} onValueChange={v=>{setObjective(v);setProgrammeTarget("");setCoachLimiterOrder([]);}}>
+                  <Select value={objective} onValueChange={v=>{setObjective(v);setProgrammeTarget("");setTimeTrialContext(undefined);setCoachLimiterOrder([]);}}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {OBJECTIVE_OPTIONS.map(o => (
@@ -3336,6 +3339,7 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
 
+                {isTimeTrial(objective)&&<TimeTrialEvidenceForm key={`${currentAthlete?.id}|${objective}`} athleteId={currentAthlete?.id??""} profileObjective={athleteContext?.diagnostic.objectif} raceDuration={raceTargetMinutes} value={timeTrialContext} onChange={setTimeTrialContext}/>}
                 {dedicatedGoalMetric(objective)&&<div className="space-y-2"><Label>{dedicatedGoalMetric(objective)==='FTP'?'Cible FTP du programme (W)':'Cible CSS du programme (s/100 m)'}</Label><Input type="number" min="1" step="0.1" value={programmeTarget} onChange={e=>{setProgrammeTarget(e.target.value);setCoachLimiterOrder([]);}} aria-label="Cible du programme dédié"/><p className="text-xs text-muted-foreground">Cible choisie par le coach, comparée à la référence FTP ou CSS existante. Le profil physiologique est conservé ; cette comparaison n’est pas un nouveau diagnostic causal. Aucun gain n’est garanti. Ces programmes se règlent athlète par athlète, en mode individuel.</p></div>}
                 <div className="space-y-2">
                   <Label>Nom de la course (optionnel)</Label>
@@ -3608,7 +3612,7 @@ export default function AITrainingPlanPage() {
                   );
                 })()}
 
-                {raceGoals.length > 0 && <div className="space-y-1"><Label>Durée prévue de l’objectif principal (minutes)</Label><Input type="number" min="1" aria-label="Durée prévue objectif principal" value={raceTargetMinutes} onChange={e=>setRaceTargetMinutes(e.target.value)}/><p className="text-xs text-muted-foreground">Estimation déclarée par le coach pour planifier la course et la récupération.</p></div>}
+                {(raceGoals.length > 0||isTimeTrial(objective)) && <div className="space-y-1"><Label>Durée prévue de l’objectif principal (minutes)</Label><Input type="number" min="1" aria-label="Durée prévue objectif principal" value={raceTargetMinutes} onChange={e=>setRaceTargetMinutes(e.target.value)}/><p className="text-xs text-muted-foreground">Estimation déclarée par le coach pour planifier la course et la récupération.</p></div>}
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => {
                   const classification = getRaceGoalClassification(idx);

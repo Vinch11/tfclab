@@ -60,6 +60,7 @@ const SPORT_FAMILY_SOURCES = {
 } as const;
 const sportPool=(family:keyof typeof SPORT_FAMILY_SOURCES):Omit<FamilySourcePool,'pinnedFingerprint'>=>({family,ciScenario:'V359/V409 source-exact calendar + shared-app primary evidence',independentScientificReview:false,doses:{},ids:SPORT_FAMILY_SOURCES[family]});
 const POOLS_RAW: Record<CoachFamilyKey, Omit<FamilySourcePool, "pinnedFingerprint">> = {
+  cycling_tt:{...sportPool('cycling_ftp'),family:'cycling_tt',ciScenario:'V410 exact aero bouts and declared CLM duration',doses:{V3P_BIKE_087:{targetDurationMin:60,allowWorksetChange:true},V3P_BIKE_149:{targetDurationMin:60,allowWorksetChange:true}},ids:[...SPORT_FAMILY_SOURCES.cycling_ftp,'V3P_BIKE_057','V3P_BIKE_087','V3P_BIKE_146','V3P_BIKE_147','V3P_BIKE_148','V3P_BIKE_149','V3P_BIKE_109','V3P_BIKE_124']},
   cycling_ftp:sportPool('cycling_ftp'),
   swimming_css:sportPool('swimming_css'),
   triathlon_sprint:sportPool('triathlon_sprint'),
@@ -97,6 +98,7 @@ export async function computePoolFingerprint(ids: readonly string[]): Promise<st
 
 /** Empreintes figées lors de la revue du pool (recalculées par `familySourcePools.test.ts`). */
 export const PINNED_POOL_FINGERPRINTS: Record<CoachFamilyKey, string> = {
+  cycling_tt:'240c969dbf584761fd86e1215a2e86ac29f9a0b25ab01f46200ec0359ab9eac3',
   cycling_ftp:'1e1672826cb13740455edd13a5b2c1225315ebbf39e4ac499fcec713251a981e',swimming_css:'fd11942982e123bc31a6005e610a7c48aa771734708c1610fa07d9a30e02e239',triathlon_sprint:'e8b1e9257938bb71611d3f7ca089be5716ba24d1e16c85820650a47af7ae8e60',triathlon_olympic:'9bd4ddb280fda0d0410dd17d2507ba3701d7cefbe63f0fddcd8a0672b8d89f60',
   trail_short:'1bb681a3b63b82a747e46c9e4fc3877049156125eb800774eee9ed3edf8b5e9c',trail_mountain:'10babddc10605e6982c84ffe5ff3b6253034433475046adfdabacfd6015de4e3',trail_ultra:'f7d55c4b3010e9de08b51c9322ba367fce27be21feb0139cb8afe4068a097f26',
   '10k': "ffdf63ced9d92dd535df3a2563a26984c7c6da07be8e74dead6e9e05cbb19575",

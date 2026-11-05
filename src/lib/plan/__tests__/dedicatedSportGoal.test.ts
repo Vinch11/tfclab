@@ -21,7 +21,7 @@ describe('explicit programme comparison, never a replacement physiological diagn
   const c=config('Cyclisme FTP',330);expect(dedicatedProgrammeProblems(c,{...athlete,ftp:299}).length).toBeGreaterThan(0);
   c.planningGoalContext!.gaps[0].gap=-1;expect(dedicatedProgrammeProblems(c,athlete).length).toBeGreaterThan(0);
  });
- it('a FTP programme is never advertised as a validated time trial',()=>{expect(coachFamilyFor('Cyclisme contre-la-montre')).toBeNull();expect(coachObjectiveKey('Cyclisme contre-la-montre')).toBe('cycling_tt');});
+ it('a FTP programme is never advertised as a validated time trial',()=>{expect(coachFamilyFor('Cyclisme contre-la-montre')?.key).toBe('cycling_tt');expect(coachFamilyFor('Cyclisme contre-la-montre')?.key).not.toBe(coachFamilyFor('Cyclisme FTP')?.key);expect(coachObjectiveKey('Cyclisme contre-la-montre')).toBe('cycling_tt');});
  it('changing the explicit target invalidates the frozen profile/review fingerprint',async()=>{expect(await planningFingerprint(athlete,config('Cyclisme FTP',330))).not.toBe(await planningFingerprint(athlete,config('Cyclisme FTP',340)));});
  it('never normalizes an unknown dedicated physiological reference to 70.3',()=>{
   expect(()=>buildAppDiagnosticInput({objectif:'unknown'},'Cyclisme FTP','age_group',{snapshots:[],tests:[],checkins:[]})).toThrow('existing_physiological_profile_reference_required');

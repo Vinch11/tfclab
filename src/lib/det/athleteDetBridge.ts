@@ -1,3 +1,4 @@
+import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
 import type { RaceGoal } from '@/hooks/useAITrainingPlan';
 import { canonicalJson } from "@/lib/plan/appendOnlyPlanVersionSave";
@@ -145,6 +146,7 @@ export const CONDITIONAL_CONFIRMATIONS = {
 export type ConditionalKey = keyof typeof CONDITIONAL_CONFIRMATIONS;
 
 export interface CoachAnswers {
+  timeTrial?:TimeTrialDeclaration;
   trail?: TrailPlanningDeclaration;
   /** Choix de provenance pour chaque valeur reprise de la fiche. */
   provenance: Partial<Record<FieldKey, { kind: AnchorEntry["kind"]; uncertainty?: string }>>;
@@ -308,6 +310,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   }
   if (a.clock.timeZone.trim() && Object.keys(minutesBySport).length) clock = { timeZone: a.clock.timeZone.trim(), minutesBySport } as CoachConfirmedClock;
   if (bricksForFamily(family.key).length && !a.bricksConfirmed) missing.push({ key: "bricks", label: "Enchaînements vélo-course", why: `confirmer les horaires des enchaînements du registre ${family.label} (ne vaut pas revue des compositions)` });
+  for(const why of timeTrialProblems(a.timeTrial,record.athleteId,{...form,raceGoals:form.raceGoals})){missing.push({key:'timeTrial',label:'Revue CLM',why});}
   const ymd = form.planStartDate;
   const snapshot: CoachDetInputSnapshot = {
     ...(form.raceGoals?.length ? { raceGoals: structuredClone(form.raceGoals) } : {}),
@@ -316,6 +319,7 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
     sessionsPerWeek: form.sessionsPerWeek, strengthSessionsPerWeek: form.strengthSessionsPerWeek, maxSessionsPerDay: form.maxSessionsPerDay,
     ambition: form.ambition, athleteLevel: (a.athleteLevel || "trained") as CoachDetInputSnapshot["athleteLevel"],
     age: age(record.birthDate, ymd), sex: record.sex === "M" || record.sex === "F" ? record.sex : null,
+    ...(a.timeTrial ? {timeTrial:structuredClone(a.timeTrial)} : {}),
     ...(a.trail ? {trail:structuredClone(a.trail)} : {}),
     anchors, physiology, coachValidatedStrengthLoadAndRpe: a.strengthLoadAndRpeConfirmed === true,
     ...(Object.keys(swimDomainPaces).length ? { swimDomainPaces } : {}),

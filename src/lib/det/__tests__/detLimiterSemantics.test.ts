@@ -12,7 +12,7 @@ describe("résolution sans perte (casse / accents / espaces), tracée", () => {
   it.each([
     ["TTE", "tte", "exact"], ["tte", "tte", "exact"], ["Tte", "tte", "case"], [" TTE ", "tte", "accent_or_whitespace"],
     ["Durabilité", "durability_race_relative", "exact"], ["DURABILITÉ", "durability_race_relative", "case"],
-    ["VMA", "vma_velocity", "exact"], ["VLamax", "vlamax_reduction", "exact"], ["Durabilite", "durability_race_relative", "accent_or_whitespace"], ["VO2max", "vo2max", "exact"], ["FTP", "ftp", "exact"],
+    ["VMA", "vma_velocity", "exact"], ["VLamax", "vlamax_reduction", "exact"], ["Durabilite", "durability_race_relative", "accent_or_whitespace"], ["VO2max", "vo2max", "exact"], ["FTP", "ftp", "exact"], ["FTP/kg","ftp_relative","exact"],
   ])("%s → %s (%s)", (raw, key, translation) => {
     expect(resolveDetLimiter(raw)).toEqual({ raw, status: "supported", key, translation });
   });
@@ -22,6 +22,7 @@ describe("résolution sans perte (casse / accents / espaces), tracée", () => {
 });
 
 describe("physiologies différentes : jamais traduites", () => {
+  it("FTP/kg keeps W/kg and is not mapped to FTP watts",()=>{expect(detPrimaryLimiterKey({identifiedLimitersRaw:["FTP/kg"]})).toBe("ftp_relative");expect(traceLimiterSemantics(["FTP/kg"],"marathon").blocking).not.toBeNull();expect(traceLimiterSemantics(["FTP/kg"],"cycling_tt").blocking).toBeNull();});
   it("Durabilité ≠ TTE : clés, définitions et branches distinctes", () => {
     expect(resolveDetLimiter("Durabilité")).toMatchObject({ key: "durability_race_relative" });
     expect(DET_LIMITER_CAPABILITIES.durability_race_relative.primaryBranches).not.toEqual(DET_LIMITER_CAPABILITIES.tte.primaryBranches);
@@ -29,7 +30,7 @@ describe("physiologies différentes : jamais traduites", () => {
     expect(DET_LIMITER_CAPABILITIES.durability_race_relative.scientificReview).toBe(false);
   });
   it.each([
-    ["Durabilité (découplage)", /découplage/], ["FTP/kg", /FTP\/kg/], ["FatMax", /aucune branche DET primaire/],
+    ["Durabilité (découplage)", /découplage/], ["FatMax", /aucune branche DET primaire/],
     ["Durabilté", /inconnu/], ["TTEE", /inconnu/], ["Foo", /inconnu/], ["", /inconnu/],
   ])("%s ⇒ non supporté (raison nommée)", (raw, reason) => {
     const r = resolveDetLimiter(raw);
