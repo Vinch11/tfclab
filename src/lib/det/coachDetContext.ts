@@ -80,8 +80,13 @@ export const LIMITER_LABELS: Record<string, string> = {
 
 export interface AnchorEntry {
   value: number | [number, number];
-  /** Mesure terrain réelle ou estimation explicitement identifiée. */
-  kind: "field_measurement" | "explicit_estimate";
+  /** A recorded app reference preserves unknown nature; it is never upgraded to measurement. */
+  kind: "field_measurement" | "explicit_estimate" | "app_reference";
+  recordReference?: {
+    athleteId:string; coachId:string; field:string; origin:"snapshot"|"profile"; recordId:string;
+    recordedOn:string|null; source:string|null; planningInputFingerprint:string;
+    declaredNature:"field_measurement"|"explicit_estimate"|"undocumented";
+  };
   /** Protocole de mesure ou méthode d'estimation (obligatoire). */
   method: string;
   measuredOn: string | null;
@@ -209,6 +214,7 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     ...(Object.entries(s.physiology ?? {}) as [PhysioKey, AnchorEntry][]).map(([k, a]) => [PHYSIO_LABELS[k], a] as [string, AnchorEntry]),
     ...(Object.entries(s.swimDomainPaces ?? {}) as [SwimDomain, AnchorEntry][]).map(([k, a]) => [`Allure natation ${SWIM_DOMAIN_LABELS[k] ?? k} (s/100 m)`, a] as [string, AnchorEntry]),
   ];
+  if ([...Object.values(s.physiology??{}),...Object.values(s.swimDomainPaces??{})].some(value=>value?.kind==="app_reference")) p.push("référence de l’app hors des ancres liées au profil partagé");
   for (const k of Object.keys(s.swimDomainPaces ?? {})) if (!(SWIM_DOMAINS as readonly string[]).includes(k)) p.push(`domaine d'allure natation inconnu « ${k} »`);
   if (s.coachConfirmsCssAsMlssProxy && !s.anchors.cssSecPer100m) p.push("proxy CSS→seuil confirmé sans CSS saisie");
   for (const [label, a] of entries) {
@@ -218,7 +224,10 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     if (!ok) p.push(`${k} : valeur invalide`);
     if (!a.method?.trim()) p.push(`${k} : méthode/protocole manquant`);
     if (a.kind === "explicit_estimate" && !a.uncertainty?.trim()) p.push(`${k} : estimation sans incertitude`);
-    if (a.kind !== "field_measurement" && a.kind !== "explicit_estimate") p.push(`${k} : provenance inconnue`);
+    if (a.kind === "app_reference") {
+      const r=a.recordReference;
+      if(!r || r.athleteId!==s.athleteId || r.coachId!==s.coachId || !r.recordId?.trim() || !["snapshot","profile"].includes(r.origin) || !["field_measurement","explicit_estimate","undocumented"].includes(r.declaredNature) || r.planningInputFingerprint!==s.planningInputFingerprint || !/^[a-f0-9]{64}$/.test(r.planningInputFingerprint) || !a.uncertainty?.trim()) p.push(`${k} : référence de l’app non liée au profil courant`);
+    } else if (a.kind !== "field_measurement" && a.kind !== "explicit_estimate") p.push(`${k} : provenance inconnue`);
   }
   return p;
 }
@@ -230,10 +239,14 @@ export async function hashCoachInputs(s: CoachDetInputSnapshot): Promise<string>
 export function anchorsFromSnapshot(s: CoachDetInputSnapshot): V3AthleteAnchors {
   const out: Record<string, unknown> = {};
   for (const [k, a] of Object.entries(s.anchors)) if (a) out[k] = Array.isArray(a.value) ? [...a.value] : a.value;
+  out.anchorReferenceKinds = Object.fromEntries(Object.entries(s.anchors).filter(([,value])=>value).map(([key,value])=>[key,value!.kind]));
   if (s.coachValidatedStrengthLoadAndRpe) out.coachValidatedStrengthLoadAndRpe = true;
   const swim: Record<string, number> = {};
   for (const [k, a] of Object.entries(s.swimDomainPaces ?? {})) if (a && typeof a.value === "number") swim[k] = a.value;
-  if (Object.keys(swim).length) out.swimDomainPacesSecPer100m = swim;
+  if (Object.keys(swim).length) {
+    out.swimDomainPacesSecPer100m = swim;
+    out.swimDomainPaceKinds = Object.fromEntries(Object.entries(s.swimDomainPaces??{}).filter(([,value])=>value).map(([key,value])=>[key,value!.kind]));
+  }
   if (s.coachConfirmsCssAsMlssProxy === true) out.coachConfirmsCssAsMlssProxy = true;
   return out as V3AthleteAnchors;
 }

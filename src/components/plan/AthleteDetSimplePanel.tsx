@@ -1,3 +1,4 @@
+import { appRecordReferenceProblems } from "@/lib/det/appRecordReference";
 import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
 import { detInputDraft, detDraftSignature, restoreDetInputDraft } from "@/lib/det/detInputDraft";
 import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
@@ -141,6 +142,8 @@ export function AthleteDetSimplePanel(props: {
       if (engineAt === "ai") { await props.onAIShared(app); return; }
       const b = buildAthleteDetInputs(props.record, planningForm, { ...a,timeTrial:props.appInput?.config.timeTrialContext, coachLimiterOrder: null }, effectiveGenuine, fpAt);
       if (!b.snapshot || !b.ctx) { setMsg(b.sourceReview.status === "blocked_missing_source_review" ? [b.sourceReview.reason] : b.missing.map((m) => `${m.label} : ${m.why}`)); return; }
+      const referenceProblems=appRecordReferenceProblems(b.snapshot,app);
+      if(referenceProblems.length){setMsg(referenceProblems);return;}
       if (libraryProblems.length) { setMsg(libraryProblems); return; }
       if (!props.sourcesVersion) { setMsg(["Version des séances DET indisponible."]); return; }
       const inputsHash = await hashCoachInputs(b.snapshot);
@@ -197,9 +200,7 @@ export function AthleteDetSimplePanel(props: {
   };
   const confKeys = list ? [...Object.keys(GENERAL_CONFIRMATIONS), ...Object.keys(CONDITIONAL_CONFIRMATIONS).filter((k) => CONDITIONAL_CONFIRMATIONS[k as keyof typeof CONDITIONAL_CONFIRMATIONS].when(list))] : [];
 
-  const provenanceFields = prefill.filter(p =>
-    (req?.anchors.some(key => key === p.key) && p.typedKind !== "field_measurement")
-    || bridge.missing.some(item => item.key === `unc:${p.key}`));
+  const provenanceFields = prefill.filter(p => bridge.missing.some(item => item.key === `prov:${p.key}` || item.key === `unc:${p.key}`));
 
   return <div className="space-y-4 rounded-md border p-3" data-testid="athlete-det-simple">
     <h3 className="font-semibold">Plan à partir de la fiche de l'athlète</h3>
@@ -211,6 +212,7 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm" data-testid="det-shared-config">{planningForm.objective || "Objectif à choisir dans la configuration"} · {planningForm.weeksAvailable || "—"} semaines · {planningForm.weeklyHours || "—"} h/semaine · {planningForm.sessionsPerWeek || "—"} séances · {planningForm.strengthSessionsPerWeek} renforcement · {planningForm.maxSessionsPerDay} maximum/jour</p>
         <p className="text-xs text-muted-foreground">Dates, ambition, volume, fréquence et contraintes viennent de la configuration commune. Pour les modifier, utilisez cette configuration en haut de page.</p>
         {inherited.inheritedLevel && <p className="text-sm" data-testid="det-shared-level">Niveau repris : {ATHLETE_LEVEL_LABELS[a.athleteLevel as keyof typeof ATHLETE_LEVEL_LABELS]} ({props.appInput?.config.ambitionMeta?.trainingLevelSource === "manual" ? "choisi dans la configuration" : "résolu par l’app à partir de la charge"}).</p>}
+        <p className="text-xs text-muted-foreground">Les références numériques existantes sont reprises sans ressaisie. Une nature mesure/estimation ou une marge d’erreur non documentée reste indiquée comme telle dans l’audit ; elle ne devient pas une mesure vérifiée.</p>
         <details><summary className="text-sm cursor-pointer">Voir les {prefill.length} valeurs du profil et leurs origines</summary>
           <ul className="text-sm space-y-2">{prefill.map(p => <li key={p.key}>{p.label} : <b>{Array.isArray(p.value) ? p.value.join("–") : p.value}</b><br /><span className="text-xs text-muted-foreground">{p.method} · {p.typedKind === "field_measurement" ? "mesure selon la fiche" : p.typedKind === "explicit_estimate" ? "estimation selon la fiche" : "nature mesure/estimation non renseignée"}</span></li>)}</ul>
         </details>

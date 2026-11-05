@@ -1,3 +1,4 @@
+import { appRecordReferenceProblems } from "./appRecordReference";
 import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
 import {primaryRunningInputProblems} from '../../../experimental/det-engine/v408-primary-limiter-evidence';
@@ -129,6 +130,8 @@ export function runCoachDetPlan(input: {
   appInput?: FrozenAppPlanningInput | null;
 }): CoachDetOutcome {
   if (!input.engineVersion || !/^[a-f0-9]{64}$/.test(input.engineVersion)) return { kind: "refused", refusals: ["version moteur DET indisponible"] };
+  const referenceProblems=appRecordReferenceProblems(input.snapshot,input.appInput);
+  if(referenceProblems.length)return {kind:"refused",refusals:referenceProblems};
   const check = checkCoachReviewContext({
     ctx: input.ctx,
     current: { coachId: input.coachId, athleteId: input.athleteId, snapshot: input.snapshot, inputsHash: input.inputsHash, sourcesVersion: input.sourcesVersion },

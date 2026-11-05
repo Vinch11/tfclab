@@ -14,6 +14,8 @@ export interface V3RunTerrainReview {
   domainRpe:Partial<Record<DoctrineDomainId,[number,number]>>;
 }
 export interface V3AthleteAnchors {
+  anchorReferenceKinds?:Record<string,"field_measurement"|"explicit_estimate"|"app_reference">;
+  swimDomainPaceKinds?:Record<string,"field_measurement"|"explicit_estimate">;
   runTerrainReview?:V3RunTerrainReview;
   bikeFtpWatts?: number;
   bikePmaWatts?: number;
@@ -31,7 +33,7 @@ export interface V3IntensityTarget {
   metric: "watts" | "sec_per_km" | "sec_per_100m" | "m_per_sec" | "coach_rpe_load" | "coach_field_effort";
   min: number | null;
   max: number | null;
-  source: "athlete_measurement_with_doctrine_model" | "direct_athlete_pace" |
+  source: "athlete_measurement_with_doctrine_model" | "athlete_reference_with_doctrine_model" | "direct_athlete_pace" |
     "coach_approved_css_proxy" | "coach_confirmed_load" | "direct_athlete_range" | "coach_reviewed_terrain_effort";
   confidence: "model" | "measured" | "proxy" | "coach_confirmed";
   note: string;
@@ -48,6 +50,8 @@ const rangeValid=(v:[number,number]|undefined):v is [number,number] =>
   !!v&&v.length===2&&valid(v[0])&&valid(v[1])&&v[0]<=v[1];
 export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3IntensityResolution {
   const missing:string[]=[], targets:V3IntensityTarget[]=[];
+  const modelSource=(keys:string[])=>keys.some(key=>a.anchorReferenceKinds?.[key] && a.anchorReferenceKinds[key]!=="field_measurement")?"athlete_reference_with_doctrine_model" as const:"athlete_measurement_with_doctrine_model" as const;
+  const modelNote=(keys:string[],text:string)=>modelSource(keys)==="athlete_reference_with_doctrine_model"?text.replace(/mesurée?/g,"de référence")+" Référence du profil : aucune mesure attestée par cette seule valeur.":text;
   const domainList=w.prescription.physiologicalIntent.domainIds;
   if(w.sport==="strength") {
     if(a.coachValidatedStrengthLoadAndRpe!==true)missing.push("coach_verified_rpe_and_load");
@@ -70,15 +74,15 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
           missing.push("bike_pma_w_validated_above_vo2_floor");continue;
         }
         targets.push({domain,metric:"watts",min:+(1.05*a.bikeFtpWatts).toFixed(1),max:a.bikePmaWatts,
-          source:"athlete_measurement_with_doctrine_model",confidence:"model",
-          note:"Borne basse modèle FTP + 5%; borne haute PMA individuelle mesurée"});
+          source:modelSource(["bikeFtpWatts", "bikePmaWatts"]),confidence:"model",
+          note:modelNote(["bikeFtpWatts", "bikePmaWatts"],"Borne basse modèle FTP + 5%; borne haute PMA individuelle mesurée")});
         continue;
       }
       if(!d.bike){missing.push("tfclDoctrine.bike."+domain);continue;}
       targets.push({domain,metric:"watts",min:+(a.bikeFtpWatts*d.bike.min).toFixed(1),
         max:+(a.bikeFtpWatts*d.bike.max).toFixed(1),
-        source:"athlete_measurement_with_doctrine_model",confidence:"model",
-        note:"Fourchette doctrine appliquée à FTP déclarée; LT1 ou MLSS non certifié par cette seule opération"});
+        source:modelSource(["bikeFtpWatts"]),confidence:"model",
+        note:modelNote(["bikeFtpWatts"],"Fourchette doctrine appliquée à FTP déclarée; LT1 ou MLSS non certifié par cette seule opération")});
     }else if(w.sport==="run"){
       // Presence of terrain review is an explicit mode. Invalid/missing domain
       // evidence must never fall back to a flat-road pace or % vVO2.
@@ -105,20 +109,20 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
           missing.push("run_vvo2_speed_mps_validated_above_vo2_floor");continue;
         }
         targets.push({domain,metric:"m_per_sec",min:+(1.03*speedThreshold).toFixed(3),max:a.runVvo2SpeedMps,
-          source:"athlete_measurement_with_doctrine_model",confidence:"model",
-          note:"Vitesse borne haute vVO2 mesurée, sans substitution par VMA de population"});
+          source:modelSource(["runThresholdPaceSecPerKm", "runVvo2SpeedMps"]),confidence:"model",
+          note:modelNote(["runThresholdPaceSecPerKm", "runVvo2SpeedMps"],"Vitesse borne haute vVO2 mesurée, sans substitution par VMA de population")});
         continue;
       }
       if(!d.run||d.run.max<=0){missing.push("tfclDoctrine.run."+domain);continue;}
       targets.push({domain,metric:"sec_per_km",min:+(a.runThresholdPaceSecPerKm/d.run.max).toFixed(1),
         max:d.run.min===0?null:+(a.runThresholdPaceSecPerKm/d.run.min).toFixed(1),
-        source:"athlete_measurement_with_doctrine_model",confidence:"model",
-        note:"Allure calculée par fraction de vitesse seuil; pace rapide = min secondes/km. LT1 non attesté"});
+        source:modelSource(["runThresholdPaceSecPerKm"]),confidence:"model",
+        note:modelNote(["runThresholdPaceSecPerKm"],"Allure calculée par fraction de vitesse seuil; pace rapide = min secondes/km. LT1 non attesté")});
     }else if(w.sport==="swim"){
       const measured=a.swimDomainPacesSecPer100m?.[domain];
       if(valid(measured)){
         targets.push({domain,metric:"sec_per_100m",min:measured,max:measured,
-          source:"direct_athlete_pace",confidence:"measured",note:"Allure propre à ce domaine fournie par le coach"});
+          source:"direct_athlete_pace",confidence:a.swimDomainPaceKinds?.[domain]==="explicit_estimate"?"model":"measured",note:a.swimDomainPaceKinds?.[domain]==="explicit_estimate"?"Allure estimée par le coach, incertitude conservée dans la revue":"Allure propre à ce domaine fournie par le coach"});
       } else if(domain==="mlss" && valid(a.cssSecPer100m) && a.coachConfirmsCssAsMlssProxy===true) {
         targets.push({domain,metric:"sec_per_100m",min:a.cssSecPer100m,max:a.cssSecPer100m,
           source:"coach_approved_css_proxy",confidence:"proxy",note:"CSS utilisé comme proxy, pas comme MLSS biologiquement mesuré"});

@@ -87,6 +87,13 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
+  it('reuses the real snapshot references without showing four provenance questions', () => {
+    const p = props();
+    render(<AthleteDetSimplePanel {...p} record={{ ...record, snapshot: { ...record.snapshot!, id: 'snap-synthetic', source: 'manual' } }} appInput={{ ...app(), athlete: { ...app().athlete, paceThresholdSecPerKm: 240 } }} />);
+    for (const label of ['Allure seuil course (s/km)', 'Vitesse VO₂max course (m/s)', 'FTP vélo (W)', 'CSS natation (s/100 m)']) expect(screen.queryByLabelText(`${label} nature`)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
   it('asks for a missing level instead of promoting the prudent fallback to known data', () => {
     const p = props(); p.appInput = { ...p.appInput, config: { ...p.appInput.config, ambitionMeta: { ...p.appInput.config.ambitionMeta!, trainingLevelSource: 'fallback-prudent' } } };
     render(<AthleteDetSimplePanel {...p} />);

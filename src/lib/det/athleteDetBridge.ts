@@ -1,3 +1,4 @@
+import { appRecordReference } from "./appRecordReference";
 import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
 import type { RaceGoal } from '@/hooks/useAITrainingPlan';
@@ -40,7 +41,7 @@ export interface AthleteRecordView {
   refs: { vma: number | null; ftp: number | null; css: number | null; vo2max: number | null; weightKg: number | null; fcMax: number | null;
     sources: Record<"vma" | "ftp" | "css" | "vo2max" | "weightKg" | "fcMax", RecordOrigin> };
   /** Profil physiologique effectif (ligne existante), ou null. */
-  snapshot: { id?: string; date?: string | null; vlamax_source?: string | null; vlamax_protocol?: string | null; pace_threshold_sec_per_km?: number | null; tte_observed_min_run?: number | null; vlamax_run?: number | null; vlamax?: number | null; fatigue_state?: string | null } | null;
+  snapshot: { id?: string; source?: string | null; date?: string | null; vlamax_source?: string | null; vlamax_protocol?: string | null; pace_threshold_sec_per_km?: number | null; tte_observed_min_run?: number | null; vlamax_run?: number | null; vlamax?: number | null; fatigue_state?: string | null } | null;
   /** Limiteurs du diagnostic de l'app, dans l'ordre d'impact. */
   diagnosticLimiters: string[];
 }
@@ -52,9 +53,9 @@ export interface PlanFormView {
 export type FieldKey = AnchorKey | PhysioKey;
 export interface PrefilledField { key: FieldKey; label: string; value: number | [number, number]; origin: Exclude<RecordOrigin, "none">; recordedOn: string | null; method: string;
   /** Nature déjà typée dans la fiche (seulement si un champ de source fiable existe), sinon absent ⇒ question au coach. */
-  typedKind?: AnchorEntry["kind"] }
+  typedKind?: Exclude<AnchorEntry["kind"], "app_reference"> }
 /** Seuls les champs de source réellement typés de la fiche sont repris (VLamax : lab / field_test / sprint ⇒ mesure ; estimation ⇒ estimation). */
-export function typedKindFromSource(src: string | null | undefined): AnchorEntry["kind"] | undefined {
+export function typedKindFromSource(src: string | null | undefined): Exclude<AnchorEntry["kind"], "app_reference"> | undefined {
   if (!src) return undefined;
   if (["lab", "field_test", "sprint", "test"].includes(src)) return "field_measurement";
   if (["estimation", "estimated", "estimate"].includes(src)) return "explicit_estimate";
@@ -79,7 +80,7 @@ function age(birth: string | null, on: string): number | null {
 export function prefillFromRecord(r: AthleteRecordView): PrefilledField[] {
   const out: PrefilledField[] = [];
   const snapDate = r.snapshot?.date ?? null;
-  const add = (key: FieldKey, value: number | null | undefined, origin: RecordOrigin, extra = "", typedKind?: AnchorEntry["kind"]) => {
+  const add = (key: FieldKey, value: number | null | undefined, origin: RecordOrigin, extra = "", typedKind?: Exclude<AnchorEntry["kind"], "app_reference">) => {
     if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || origin === "none") return;
     const label = (ANCHOR_LABELS as Record<string, string>)[key] ?? PHYSIO_LABELS[key as PhysioKey];
     out.push({ key, label, value, origin, recordedOn: origin === "snapshot" ? snapDate : null,
@@ -249,6 +250,10 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
     if (p) {
       const pv = a.provenance[k] ?? (p.typedKind === "field_measurement" ? { kind: "field_measurement" as const } : p.typedKind ? { kind: p.typedKind } : undefined);
       if (p.typedKind === "explicit_estimate" && pv?.kind === "field_measurement") { missing.push({ key: `prov:${k}`, label, why: "la fiche indique une estimation : elle ne peut pas être déclarée mesure" }); return null; }
+      if (required && planningFingerprint && (!pv || (p.typedKind === "explicit_estimate" && !a.provenance[k]))) {
+        const reference=appRecordReference(record,p,planningFingerprint);
+        if(reference)return reference;
+      }
       if (!pv) { if (required) missing.push({ key: `prov:${k}`, label, why: `valeur ${Array.isArray(p.value) ? p.value.join("–") : p.value} reprise de la fiche : indiquer s'il s'agit d'une mesure terrain ou d'une estimation` }); return null; }
       if (pv.kind === "explicit_estimate" && !pv.uncertainty?.trim()) { missing.push({ key: `unc:${k}`, label, why: "estimation : préciser l'incertitude (ex. ±5 s/km)" }); return null; }
       return { value: p.value, kind: pv.kind, method: p.method, measuredOn: p.recordedOn, uncertainty: pv.uncertainty?.trim() || null };

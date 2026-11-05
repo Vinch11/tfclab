@@ -423,9 +423,10 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
     const sw = { recovery: 120, moderate_lt1: 110, tempo: 103, im_pace: 108, "703_pace": 102, marathon_pace: 103, sub_threshold: 98, semi_pace: 98, mlss: 95, vo2max: 88, neuromuscular: 80 } as const;
     const f = { objective: "703", planStartDate: "2026-10-26", raceDate: st.raceDate, weeksAvailable: 12, weeklyHours: hours, sessionsPerWeek: 8, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
-    const a = answers("703", { swimPaces: Object.fromEntries(Object.entries(sw).map(([k, v]) => [k, { value: v, kind: "explicit_estimate", method: "SYNTHÉTIQUE test 400/200", uncertainty: "±3 s" }])) as never });
+    const a = answers("703", { provenance: {}, swimPaces: Object.fromEntries(Object.entries(sw).map(([k, v]) => [k, { value: v, kind: "explicit_estimate", method: "SYNTHÉTIQUE test 400/200", uncertainty: "±3 s" }])) as never });
     const b = buildAthleteDetInputs(record, f, a, { ...genuineFor(record, "703"), planningInputFingerprint: frozen.fingerprint }, frozen.fingerprint);
     expect(b.missing).toEqual([]);
+    expect(Object.values(b.snapshot!.anchors).every(a => a?.kind === "app_reference")).toBe(true);
     expect(b.sourceReview.status).toBe("reviewed");
     const h = await hashCoachInputs(b.snapshot!);
     const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
