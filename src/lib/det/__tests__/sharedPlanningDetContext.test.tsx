@@ -84,14 +84,14 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.queryByRole('combobox', { name: 'niveau' })).toBeNull();
     expect(screen.queryByLabelText('VO₂max (ml/kg/min) nature')).toBeNull();
     expect(screen.getByLabelText('FTP vélo (W) nature')).toHaveValue('');
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
   it('reuses the real snapshot references without showing four provenance questions', () => {
     const p = props();
     render(<AthleteDetSimplePanel {...p} record={{ ...record, snapshot: { ...record.snapshot!, id: 'snap-synthetic', source: 'manual' } }} appInput={{ ...app(), athlete: { ...app().athlete, paceThresholdSecPerKm: 240 } }} />);
     for (const label of ['Allure seuil course (s/km)', 'Vitesse VO₂max course (m/s)', 'FTP vélo (W)', 'CSS natation (s/100 m)']) expect(screen.queryByLabelText(`${label} nature`)).toBeNull();
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
   it('groups missing inputs separately from coach reviews and keeps limiter priorities visible', () => {
@@ -102,22 +102,24 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.getByTestId('det-readiness-current')).toHaveTextContent('3 point(s) à traiter');
     expect(screen.getByTestId('det-readiness-clock')).toHaveTextContent('6 point(s) à traiter');
     expect(screen.getByTestId('det-readiness-review')).toHaveTextContent('13 point(s) à traiter');
+    screen.getByTestId('det-final-review').setAttribute('open', '');
     fireEvent.click(screen.getByRole('button', { name: /4. Revue du coach/ }));
     expect(document.getElementById('det-step-review')).toHaveAttribute('open');
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
   it('asks for a missing level instead of promoting the prudent fallback to known data', () => {
     const p = props(); p.appInput = { ...p.appInput, config: { ...p.appInput.config, ambitionMeta: { ...p.appInput.config.ambitionMeta!, trainingLevelSource: 'fallback-prudent' } } };
     render(<AthleteDetSimplePanel {...p} />);
     expect(screen.queryByRole('combobox', { name: 'niveau' })).toBeNull();
+    screen.getByTestId('det-final-review').setAttribute('open', '');
     expect(screen.getByRole('link', { name: 'choisissez-le dans la configuration commune' })).toHaveAttribute('href', '#plan-training-level');
     expect(screen.queryByTestId('det-shared-level')).toBeNull();
   });
   it('does not display a stale inherited level while the app profile is pending', () => {
     render(<AthleteDetSimplePanel {...props()} appInputStatus="pending" />);
     expect(screen.queryByTestId('det-shared-level')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
   });
   it('retains descriptive typing but clears human checks when the shared planning profile changes', () => {
     const p = props(), view = render(<AthleteDetSimplePanel {...p} />);
@@ -125,7 +127,7 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.getByLabelText('charge')).toHaveValue('moderate');
     view.rerender(<AthleteDetSimplePanel {...p} appInput={{ ...p.appInput, fingerprint: 'b'.repeat(64) }} />);
     expect(screen.getByLabelText('charge')).toHaveValue('moderate');
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
   });
   it('reopens a DET input draft after navigation without restoring coach approvals', () => {
     const p = props(), view = render(<AthleteDetSimplePanel {...p} />);
@@ -143,7 +145,7 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.getByLabelText('natation recovery')).toHaveValue('120');
     expect(screen.getByLabelText('natation recovery méthode')).toHaveValue('SYNTHETIC observation');
     expect(screen.getByLabelText('Volume demandé compatible avec la charge actuelle')).not.toBeChecked();
-    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine', hidden: true })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
   it('does not restore input from another coach or from changed profile values', () => {

@@ -1,3 +1,4 @@
+import { DetPlanningDraft } from "./DetPlanningDraft";
 import { appRecordReferenceProblems } from "@/lib/det/appRecordReference";
 import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
 import { detInputDraft, detDraftSignature, restoreDetInputDraft } from "@/lib/det/detInputDraft";
@@ -257,6 +258,8 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm">Cet ordre de priorités guide la sélection des séances. L’objectif précise la préparation ; les horaires, la charge et la récupération encadrent le calendrier.</p>
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
+      <DetPlanningDraft app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} restrictions={{ presentContraindications: a.presentContraindications, unmetPrerequisites: a.unmetPrerequisites, injuryScreen: a.injuryScreen }} />
+      <details className="space-y-4" data-testid="det-final-review"><summary className="cursor-pointer text-sm font-medium">Finaliser après revue — paramètres détaillés</summary>
       <DetReadinessSummary missing={bridge.missing} />
       <section id="det-step-data" tabIndex={-1} className="space-y-2 scroll-mt-4">
         <p className="text-sm font-medium">1. Données à compléter</p>
@@ -326,13 +329,15 @@ export function AthleteDetSimplePanel(props: {
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}
       {bridge.sourceReview.status === "reviewed" && <p className="text-xs text-muted-foreground">Revue des séances reprise : votre revue du {bridge.sourceReview.reviewedAt.slice(0, 10)} ({bridge.sourceReview.reviewedIds} séances).</p>}
 
+    <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
+      {props.engine === "det" ? "Générer avec DET Engine" : "Générer avec l'IA"}
+    </Button>
+      </details>
       <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Détails techniques</summary>
         <p>Liste de séances : {pool!.ids.length} séances V3 du scénario {pool!.ciScenario} ; revue scientifique indépendante : non. {bridge.excludedSources.length} séance(s) écartée(s) par vos réponses.</p>
         <p>Moteur {props.engineVersion?.slice(0, 12) ?? "?"} · séances {props.sourcesVersion?.slice(0, 12) ?? "?"}</p></details>
     </>}
-    <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
-      {props.engine === "det" ? "Générer avec DET Engine" : "Générer avec l'IA"}
-    </Button>
+
     {msg.map((m) => <p key={m} className="text-sm">{m}</p>)}
   </div>;
 }

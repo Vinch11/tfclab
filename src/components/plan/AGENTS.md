@@ -6,3 +6,5 @@
 - Reusable source-content reviews may come from an explicit human action in LibrarySourceReview, bound to the full source/dose manifest and coach. They never supply athlete checks: bindLibraryReview requires current explicit answers and the bridge invalidates a changed answer set/family/profile. No scientific or prescription authority; candidate SQL is not applied by the app.
 
 - `NolioMultisportPreparation` requires deliberate per-brick choice plus explicit representation/time confirmation, then creates a new owned version through the common append-only saver with exact readback. It never mutates the parent version, invokes a sender, or carries coach-review/export authority to the new version; changing the displayed version clears all drafts.
+
+- The simple panel starts with a read-only `DetPlanningDraft` study from the shared profile before the detailed review controls. It lists candidate sources, never a qualified dose or a saved/exportable plan; invalidating the profile/negative restrictions discards the study. No human check is prefilled or transferred from this preview to the strict generation path.
