@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { AthleteDetSimplePanel } from '@/components/plan/AthleteDetSimplePanel';
+import { planningDraftStorage } from '@/lib/plan/planningFormDraft';
 import { sharedPlanningDetContext } from '../sharedPlanningDetContext';
 import type { FrozenAppPlanningInput } from '../appPlanningInput';
 import type { AthleteRecordView, CoachAnswers, PlanFormView } from '../athleteDetBridge';
@@ -67,10 +68,11 @@ vi.mock('@/components/plan/AthleteSourceReview', () => ({ AthleteSourceReview: (
 vi.mock('@/lib/det/familySourcePools', async importOriginal => ({ ...await importOriginal<typeof import('@/lib/det/familySourcePools')>(), poolLibraryProblems: async () => [] }));
 
 beforeEach(() => {
+  localStorage.clear();
   const chain = { select: () => chain, eq: () => chain, is: () => chain, order: () => chain, limit: () => chain, maybeSingle: async () => ({ data: null }) };
   db.from.mockReturnValue(chain); db.insert.mockReset();
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 describe('coach panel with inherited configuration', () => {
   const props = () => ({ record, form, appInput: app(), appInputStatus: 'ready' as const, engine: 'det' as const,
@@ -97,12 +99,48 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.queryByTestId('det-shared-level')).toBeNull();
     expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
   });
-  it('clears athlete-specific answers when the shared planning profile changes', () => {
+  it('retains descriptive typing but clears human checks when the shared planning profile changes', () => {
     const p = props(), view = render(<AthleteDetSimplePanel {...p} />);
     fireEvent.change(screen.getByLabelText('charge'), { target: { value: 'moderate' } });
     expect(screen.getByLabelText('charge')).toHaveValue('moderate');
     view.rerender(<AthleteDetSimplePanel {...p} appInput={{ ...p.appInput, fingerprint: 'b'.repeat(64) }} />);
-    expect(screen.getByLabelText('charge')).toHaveValue('');
+    expect(screen.getByLabelText('charge')).toHaveValue('moderate');
     expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
   });
+  it('reopens a DET input draft after navigation without restoring coach approvals', () => {
+    const p = props(), view = render(<AthleteDetSimplePanel {...p} />);
+    fireEvent.change(screen.getByLabelText('charge'), { target: { value: 'moderate' } });
+    fireEvent.change(screen.getByLabelText('heure swim'), { target: { value: '06:00' } });
+    fireEvent.change(screen.getByLabelText('natation recovery'), { target: { value: '120' } });
+    fireEvent.change(screen.getByLabelText('natation recovery méthode'), { target: { value: 'SYNTHETIC observation' } });
+    fireEvent.change(screen.getByLabelText('natation recovery incertitude'), { target: { value: '±5 s' } });
+    const loadCheck = screen.getByLabelText('Volume demandé compatible avec la charge actuelle');
+    fireEvent.click(loadCheck); expect(loadCheck).toBeChecked();
+    view.unmount();
+    render(<AthleteDetSimplePanel {...p} />);
+    expect(screen.getByLabelText('charge')).toHaveValue('moderate');
+    expect(screen.getByLabelText('heure swim')).toHaveValue('06:00');
+    expect(screen.getByLabelText('natation recovery')).toHaveValue('120');
+    expect(screen.getByLabelText('natation recovery méthode')).toHaveValue('SYNTHETIC observation');
+    expect(screen.getByLabelText('Volume demandé compatible avec la charge actuelle')).not.toBeChecked();
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
+  it('does not restore input from another coach or from changed profile values', () => {
+    const p = props(), view = render(<AthleteDetSimplePanel {...p} />);
+    fireEvent.change(screen.getByLabelText('charge'), { target: { value: 'high' } });
+    view.rerender(<AthleteDetSimplePanel {...p} record={{ ...record, coachId: 'SYNTH_B' }} />);
+    expect(screen.getByLabelText('charge')).toHaveValue('');
+    view.rerender(<AthleteDetSimplePanel {...p} record={{ ...record, refs: { ...record.refs, ftp: 310 } }} />);
+    expect(screen.getByLabelText('charge')).toHaveValue('');
+  });
+  it('reports failed local storage while keeping typed input on screen', () => {
+    const failure = vi.spyOn(planningDraftStorage, 'setItem').mockImplementation(() => { throw Error('quota'); });
+    render(<AthleteDetSimplePanel {...props()} />);
+    fireEvent.change(screen.getByLabelText('charge'), { target: { value: 'moderate' } });
+    expect(screen.getByLabelText('charge')).toHaveValue('moderate');
+    expect(screen.getByRole('status').textContent).toContain('non conservées');
+    failure.mockRestore();
+  });
+
 });

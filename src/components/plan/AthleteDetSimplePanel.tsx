@@ -1,3 +1,5 @@
+import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
+import { detInputDraft, detDraftSignature, restoreDetInputDraft } from "@/lib/det/detInputDraft";
 import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {dedicatedProgrammeProblems} from '@/lib/plan/dedicatedSportGoal';
 import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
@@ -73,7 +75,28 @@ export function AthleteDetSimplePanel(props: {
   const [genuine, setGenuine] = useState<GenuineSourceReviews | null>(null);
   const [libraryGenuine, setLibraryGenuine] = useState<GenuineSourceReviews | null>(null);
   // Confirmations belong to this athlete/profile, never to the previously selected athlete.
-  useEffect(() => { setA(emptyAnswers(browserTz)); setLibraryGenuine(null); }, [props.record.athleteId, fp, browserTz]);
+  const inputDraftKey = planningDraftKey(props.record.coachId, props.record.athleteId, "det");
+  const inputDraftSignature = detDraftSignature(props.record, props.form.objective);
+  const inputDraftScope = fp ? `${inputDraftKey}|${inputDraftSignature}|${fp}` : null;
+  const [inputDraftReady, setInputDraftReady] = useState<string | null>(null);
+  const [inputDraftStatus, setInputDraftStatus] = useState<DraftStatus>("pending");
+  const inputDraftRevision = useRef(0);
+  useEffect(() => {
+    setLibraryGenuine(null);
+    const empty = emptyAnswers(browserTz);
+    if (!inputDraftScope) { setA(empty); setInputDraftReady(null); return; }
+    const read = readPlanningDraft(planningDraftStorage, inputDraftKey, inputDraftSignature, value => restoreDetInputDraft(value, empty));
+    setA(read.data ?? empty); inputDraftRevision.current = read.revision;
+    setInputDraftStatus(read.status); setInputDraftReady(inputDraftScope);
+  // Exact owner/profile scope; descriptive typing may return, human checks never do.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputDraftScope, browserTz]);
+  const inputDraftJSON = canonicalJson(detInputDraft(draft));
+  useEffect(() => {
+    if (!inputDraftScope || inputDraftReady !== inputDraftScope || ["invalid", "unavailable"].includes(inputDraftStatus)) return;
+    const result = writePlanningDraft(planningDraftStorage, inputDraftKey, inputDraftSignature, JSON.parse(inputDraftJSON), inputDraftRevision.current);
+    inputDraftRevision.current = result.revision; setInputDraftStatus(result.status);
+  }, [inputDraftJSON, inputDraftScope, inputDraftReady, inputDraftKey, inputDraftSignature]); // eslint-disable-line react-hooks/exhaustive-deps
   const effectiveGenuine = genuine ?? libraryGenuine;
   useEffect(() => { let live = true; setGenuine(null);
     void (async () => {
@@ -180,6 +203,7 @@ export function AthleteDetSimplePanel(props: {
 
   return <div className="space-y-4 rounded-md border p-3" data-testid="athlete-det-simple">
     <h3 className="font-semibold">Plan à partir de la fiche de l'athlète</h3>
+    <p role="status" className="text-xs text-muted-foreground">{inputDraftStatus === "saved" || inputDraftStatus === "restored" ? "Saisies DET conservées dans ce navigateur. Les vérifications du coach sont à reconfirmer après réouverture." : inputDraftStatus === "conflict" ? "Saisies modifiées dans un autre onglet : rechargez avant de continuer." : ["invalid", "unavailable"].includes(inputDraftStatus) ? "Saisies DET non conservées : stockage indisponible ou illisible. Gardez cette page ouverte." : "Préparation du brouillon DET…"}</p>
     {!family && <p className="text-sm">« {props.form.objective || "objectif non renseigné"} » : pas encore pris en charge par DET. {props.engine === "ai" ? "L'IA peut être utilisée." : "Choisir l’IA ou un objectif raccordé (marathon 16 sem., semi-marathon 8 ou 30 sem., Ironman 70.3 12 sem., Ironman 16 sem. avec composition vélo-course revue)."}</p>}
     {family && <>
       <section className="space-y-1">

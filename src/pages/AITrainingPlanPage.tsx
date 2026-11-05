@@ -1,3 +1,4 @@
+import { decodePlanningFormDraft, planningDraftStorage, planningDraftKey, readPlanningDraft, writePlanningDraft, type DraftStatus, type PlanningFormDraft } from "@/lib/plan/planningFormDraft";
 import {TimeTrialEvidenceForm} from '@/components/plan/TimeTrialEvidenceForm';
 import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
 import {appPlanningPriorityGaps,dedicatedGoalMetric} from '@/lib/plan/dedicatedSportGoal';
@@ -521,6 +522,14 @@ export default function AITrainingPlanPage() {
   const { raceGoals: savedAthleteRaceGoals } = useAthleteRaceGoals(currentAthlete?.id ?? null);
   const { snapshots, tests, getSnapshotsForAthlete, getTestsForAthlete, getCheckinsForAthlete, getPlan, addSnapshot, updateSnapshot } = useCloudDataContext();
   const { prevalidation, prevalidateTrainingPlan, response, isLoading, chunkProgress, generatePlanWindowed, reset, setResponse, parsedPlan: jsonParsedPlan, sportObjectiveIssues, mergedPlan, weeklyQuotaIssues, catalogIdIssues, lastAllowedCatalogIdsRef, lastWeeklyQuotasRef, lastResponseRef } = useAITrainingPlan();
+  // QA : coach connecté (lu une fois ; le garde serveur/RLS reste la seule barrière).
+  const [qaUserId, setQaUserId] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true, observedAuthChange = false;
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => { observedAuthChange = true; if (live) setQaUserId(sess?.user.id ?? null); });
+    void supabase.auth.getSession().then(({ data }) => { if (live && !observedAuthChange) setQaUserId(data.session?.user.id ?? null); });
+    return () => { live = false; sub.subscription.unsubscribe(); };
+  }, []);
   const qaChoice = qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL,globalThis.location?.origin);
   const [planningEngine,setPlanningEngine]=useState<CoachEngine>("ai");
   const qaActionEpoch=useRef(0);
@@ -698,14 +707,13 @@ export default function AITrainingPlanPage() {
   const crossTrainingNatationTouchedRef = useRef(false);
 
 
-  // Form state — restore from localStorage if available
-  const savedState = useMemo(() => {
-    if (!persistKey) return null;
-    try {
-      const raw = localStorage.getItem(persistKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
-  }, [persistKey]);
+  // Editable configuration is persisted before generation, scoped to coach + athlete.
+  const formDraftKey = planningDraftKey(qaUserId, currentAthlete?.coach_id === qaUserId ? currentAthlete?.id : null, "form");
+  const [formDraftReady, setFormDraftReady] = useState<string | null>(null);
+  const [formDraftStatus, setFormDraftStatus] = useState<DraftStatus>("pending");
+  const formDraftRevision = useRef(0);
+  const savedFormDraft = useMemo(() => readPlanningDraft(planningDraftStorage, formDraftKey, "form-v1", decodePlanningFormDraft), [formDraftKey]);
+  const savedState = savedFormDraft.data;
 
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
@@ -910,6 +918,7 @@ export default function AITrainingPlanPage() {
     setStrengthSessionsPerWeek("2");
     setDeloadCadence("auto");
     setTrainingLevel("auto");
+    setPlanningEngine("ai");
     setLockAmbition(false);
     setRaceGoals([]);
     setCoachLimiterOrder([]);
@@ -925,34 +934,35 @@ export default function AITrainingPlanPage() {
     if (savedState) {
       // savedState.response volontairement jamais appliqué ici — cf.
       // commentaire au-dessus de cet effet (décision coach 2026-10-22).
-      if (savedState.objective) setObjective(savedState.objective);
-      if (savedState.raceName) setRaceName(savedState.raceName);
-      if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
-      if (savedState.raceDate) setRaceDate(savedState.raceDate);
+      if (typeof savedState.objective === "string") setObjective(savedState.objective);
+      if (typeof savedState.raceName === "string") setRaceName(savedState.raceName);
+      if (typeof savedState.raceFormat === "string") setRaceFormat(savedState.raceFormat);
+      if (typeof savedState.raceDate === "string") setRaceDate(savedState.raceDate);
       if(typeof savedState.programmeTarget==="string")setProgrammeTarget(savedState.programmeTarget);
       if (typeof savedState.raceTargetMinutes === "string") setRaceTargetMinutes(savedState.raceTargetMinutes);
-      if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
-      if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
-      if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
-      if (savedState.chronicWeeklyHours) setChronicWeeklyHours(savedState.chronicWeeklyHours);
-      if (savedState.recentWeeklyHours) setRecentWeeklyHours(savedState.recentWeeklyHours);
-      if (savedState.recentWeeksCount) setRecentWeeksCount(savedState.recentWeeksCount);
-      if (savedState.maxDoubleDaysPerWeek) setMaxDoubleDaysPerWeek(savedState.maxDoubleDaysPerWeek);
-      if (savedState.sessionsPerWeek) setSessionsPerWeek(savedState.sessionsPerWeek);
-      if (savedState.ambition) setAmbition(savedState.ambition);
-      if (savedState.constraints) setConstraints(savedState.constraints);
-      if (savedState.maxSessionsPerDay) setMaxSessionsPerDay(savedState.maxSessionsPerDay);
-      if (savedState.strengthSessionsPerWeek) setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
-      if (savedState.deloadCadence) setDeloadCadence(savedState.deloadCadence);
-      if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
+      if (typeof savedState.planDurationMode === "string") setPlanDurationMode(savedState.planDurationMode);
+      if (typeof savedState.planWeeksInput === "string") setPlanWeeksInput(savedState.planWeeksInput);
+      if (typeof savedState.weeklyHours === "string") setWeeklyHours(savedState.weeklyHours);
+      if (typeof savedState.chronicWeeklyHours === "string") setChronicWeeklyHours(savedState.chronicWeeklyHours);
+      if (typeof savedState.recentWeeklyHours === "string") setRecentWeeklyHours(savedState.recentWeeklyHours);
+      if (typeof savedState.recentWeeksCount === "string") setRecentWeeksCount(savedState.recentWeeksCount);
+      if (typeof savedState.maxDoubleDaysPerWeek === "string") setMaxDoubleDaysPerWeek(savedState.maxDoubleDaysPerWeek);
+      if (typeof savedState.sessionsPerWeek === "string") setSessionsPerWeek(savedState.sessionsPerWeek);
+      if (typeof savedState.ambition === "string") setAmbition(savedState.ambition);
+      if (typeof savedState.constraints === "string") setConstraints(savedState.constraints);
+      if (typeof savedState.maxSessionsPerDay === "string") setMaxSessionsPerDay(savedState.maxSessionsPerDay);
+      if (typeof savedState.strengthSessionsPerWeek === "string") setStrengthSessionsPerWeek(savedState.strengthSessionsPerWeek);
+      if (typeof savedState.deloadCadence === "string") setDeloadCadence(savedState.deloadCadence);
+      if (typeof savedState.trainingLevel === "string") setTrainingLevel(savedState.trainingLevel);
       if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
 
+      setPlanningEngine(savedState.planningEngine);
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
-      if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
-      if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
-      if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
-      if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
-      if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
+      if (typeof savedState.trailDistanceKm === "string") setTrailDistanceKm(savedState.trailDistanceKm);
+      if (typeof savedState.trailElevationM === "string") setTrailElevationM(savedState.trailElevationM);
+      if (typeof savedState.trailTargetTimeH === "string") setTrailTargetTimeH(savedState.trailTargetTimeH);
+      if (typeof savedState.trailMaxAltitudeM === "string") setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
+      if (typeof savedState.terrainAvailability === "string") setTerrainAvailability(savedState.terrainAvailability);
       if (typeof savedState.crossTrainingVelo === "boolean") setCrossTrainingVelo(savedState.crossTrainingVelo);
       if (typeof savedState.crossTrainingNatation === "boolean") {
         setCrossTrainingNatation(savedState.crossTrainingNatation);
@@ -964,7 +974,7 @@ export default function AITrainingPlanPage() {
 
     // Ancrage calendaire : restaure la date de début du plan persistée, sinon
     // le plan rechargé serait ré-ancré au lundi de la semaine courante (dates fausses).
-    const startRaw = restoredStart || savedState?.planStartDate || null;
+    const startRaw = savedState?.planStartDate || restoredStart || null;
     if (startRaw) {
       try {
         const d = parseISO(startRaw);
@@ -997,15 +1007,18 @@ export default function AITrainingPlanPage() {
     // `reset()` vide toujours l'état JSON du hook (sinon le plan de
     // l'athlète précédent resterait visible). Seul `PlanHistoryCard` (clic +
     // confirmation de date) peut désormais afficher une version existante.
-    const hasLocalPlan = activeRestored || Boolean(savedState?.response);
+    const hasLocalPlan = activeRestored;
     if (!hasDraft) setPlanOverride(null);
     reset();
     setIsSaved(false);
-    if (!hasLocalPlan) {
+    if (!hasLocalPlan && !savedState?.planStartDate) {
       setPlanStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
     }
+    formDraftRevision.current = savedFormDraft.revision;
+    setFormDraftStatus(savedFormDraft.status);
+    setFormDraftReady(formDraftKey);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persistKey]);
+  }, [persistKey, formDraftKey]);
 
   /**
    * Auto-défaut "Natation en maintien" pour un plan multi-objectifs dont
@@ -1061,6 +1074,49 @@ export default function AITrainingPlanPage() {
       setLoadedFromCacheAt(null); // fresh generation in progress, indicator clears
     }
   }, [isLoading]);
+
+  // No debounce: navigating away after typing must not lose an ungenerated form.
+  const editableFormDraft: PlanningFormDraft = {
+      planningEngine, objective,
+      raceName,
+      raceFormat,
+      raceDate,
+      raceTargetMinutes,programmeTarget,
+      planDurationMode,
+      planWeeksInput,
+      weeklyHours,
+      chronicWeeklyHours,
+      recentWeeklyHours,
+      recentWeeksCount,
+      maxDoubleDaysPerWeek,
+      sessionsPerWeek,
+      ambition,
+      constraints,
+      maxSessionsPerDay,
+      strengthSessionsPerWeek,
+      deloadCadence,
+      trainingLevel,
+      lockAmbition,
+
+      raceGoals,
+      trailDistanceKm,
+      trailElevationM,
+      trailTargetTimeH,
+      trailMaxAltitudeM,
+      terrainAvailability,
+      crossTrainingVelo,
+      crossTrainingNatation,
+      // Ancrage calendaire du plan (sinon dates ré-ancrées au lundi courant après refresh)
+      planStartDate: format(planStartDate, "yyyy-MM-dd"),
+    };
+  const editableFormJSON = JSON.stringify(editableFormDraft);
+  useEffect(() => {
+    if (isMultiMode || !formDraftKey || formDraftReady !== formDraftKey) return;
+    if (["invalid", "unavailable"].includes(savedFormDraft.status)) return;
+    const result = writePlanningDraft(planningDraftStorage, formDraftKey, "form-v1", JSON.parse(editableFormJSON), formDraftRevision.current);
+    formDraftRevision.current = result.revision;
+    setFormDraftStatus(result.status);
+  }, [editableFormJSON, formDraftKey, formDraftReady, isMultiMode, savedFormDraft.status]);
 
   // Persist single-athlete plan + config to localStorage after generation completes
   useEffect(() => {
@@ -1156,10 +1212,6 @@ export default function AITrainingPlanPage() {
     return { data, diagnostic };
   }, [buildDiagnosticForAthlete, getSnapshotsForAthlete]);
 
-  // QA : coach connecté (lu une fois ; le garde serveur/RLS reste la seule barrière).
-  const [qaUserId, setQaUserId] = useState<string | null>(null);
-  useEffect(() => { let live = true; void supabase.auth.getSession().then(({ data }) => { if (live) setQaUserId(data.session?.user.id ?? null); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, sess) => setQaUserId(sess?.user.id ?? null)); return () => { live = false; sub.subscription.unsubscribe(); }; }, []);
   // Current athlete context (single mode)
   const athleteContext = useMemo(() => {
     if (!currentAthlete) return null;
@@ -3110,6 +3162,7 @@ export default function AITrainingPlanPage() {
             <p className="text-sm text-muted-foreground">
               Plan d'entraînement personnalisé par IA
             </p>
+            {!isMultiMode && <p className="text-xs text-muted-foreground" role="status">{formDraftStatus === "saved" ? "Brouillon de configuration conservé dans ce navigateur." : formDraftStatus === "restored" ? "Brouillon de configuration repris." : formDraftStatus === "conflict" ? "Ce brouillon a changé dans un autre onglet : rechargez avant de poursuivre la saisie." : ["unavailable", "invalid"].includes(formDraftStatus) ? "Brouillon non conservé : stockage indisponible ou illisible. Gardez cette page ouverte." : "Préparation du brouillon…"}</p>}
           </div>
           {/* WIZARD launcher — questionnaire guidé 8 étapes */}
           <Button
@@ -3963,7 +4016,7 @@ export default function AITrainingPlanPage() {
               <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
               <p className="text-xs text-muted-foreground">Les deux moteurs utilisent la configuration et le profil de cette page. DET reprend les réglages existants et demande uniquement les informations absentes et les vérifications du coach. Un refus DET est expliqué et ne lance jamais l’IA.</p>
               <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
-              {planningEngine === "det" && currentAthlete && qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
+              {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
                 return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
