@@ -71,3 +71,12 @@ Le mapper Nolio a été examiné : une opération planned V2 possède un seul sp
 Validation locale du changement : 25/25 tests mapper (dont les quatre marathons préexistants et les deux nouveaux refus), TypeScript et ESLint des fichiers modifiés passent. Les déclarations de source du candidat et de la QA sont recalculées séparément, sans attestation sportive.
 
 Les cinq points restent au niveau décrit dans le tableau : raccordement isolé ; profil/limiteurs et choix IA/DET figés préservés sans fallback ; preuves IM synthétiques et pipeline pur conservées ; sauvegarde/PDF établis et Nolio multisport bloqué ; recette authentifiée historique 14/14 conservée, mais aucune nouvelle génération normale authentifiée après revue humaine réelle. Cette dernière revue et la validation scientifique restent à effectuer par leurs responsables. Ni fusion, ni production, ni modification de clé/base, ni agent Lovable payant.
+
+
+## Reprise du 5 novembre — confirmation QA et protection du parcours Nolio historique
+
+La relance du job frontend QA 41955443382 est terminée avec succès. Les quatre jobs de cette QA sont maintenant verts, sans changement d'assertion ni de délai. Le dépassement calendrier précédent ne s'est pas reproduit.
+
+L'inspection du parcours normal a identifié une autre voie : AIPlanViewer, NolioSessionButton et NolioSendPlanCard pouvaient préparer l'envoi historique en reconstruisant des blocs depuis le catalogue, sans reprendre detStructuredWorkout. Le parcours historique est désormais désactivé pour un plan déclarant une provenance DET (même incomplète), contenant une structure/refus DET ou des identifiants V3. Un plan mixte est bloqué en entier. Le contrôle est exécuté avant la projection vers l'ancien payload ; aucune dose ni instruction n'est modifiée. Les actions devenues périmées sont également bloquées à la confirmation. Un message indique la nécessité du parcours V2 et de la revue coach.
+
+Validation : 29 tests ciblés (dont quatre tests du parcours UI, un changement IA vers DET avec athlète lié et aucun appel d'envoi), 10 tests existants du lecteur/sauvegarde/PDF et 17 tests de déclaration réussis. Ceci ferme une voie frontend de dégradation ; ce n'est ni l'implémentation de l'export multisport V2, ni une nouvelle validation sportive/authentifiée. Aucun envoi réel ni déploiement backend.

@@ -1,3 +1,4 @@
+import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
 /**
  * NolioSendPlanCard — Bouton + modale pour envoyer un plan IA vers Nolio.
  * Visible uniquement si l'athlète sélectionné a un `nolio_id` en base.
@@ -116,6 +117,8 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
 
   const activeCount = sessions.filter((s) => !s.isRest && s.dayIndex >= 0).length;
 
+  if (blocksLegacyNolioExport(parsedPlan)) return <Card><CardContent className="p-4 text-sm" role="status">{DET_LEGACY_EXPORT_BLOCKED}</CardContent></Card>;
+
   if (loadingNolioId) return null;
 
   if (nolioId == null) {
@@ -135,7 +138,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
   }
 
   async function handleSend() {
-    if (!parsedPlan) return;
+    if (!parsedPlan || blocksLegacyNolioExport(parsedPlan)) return;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("nolio-send-plan", {

@@ -1,3 +1,4 @@
+import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -1211,8 +1212,9 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     });
   }, []);
 
+  const legacyNolioBlocked = blocksLegacyNolioExport(plan);
   const nolioCtx: NolioCtx | null = useMemo(() => {
-    if (!athleteId || nolioId == null || !startDate) return null;
+    if (legacyNolioBlocked || !athleteId || nolioId == null || !startDate) return null;
     return {
       athleteId,
       nolioId,
@@ -1224,7 +1226,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       toggleSelected,
       setManySelected,
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+  }, [legacyNolioBlocked, athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
 
   // Bulk send state
   const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
@@ -1359,6 +1361,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   }, [targetSessions, sentKeys, nolioCtx, planSlotMap]);
 
   async function handleBulkSend() {
+    if (blocksLegacyNolioExport(plan)) { toast.error(DET_LEGACY_EXPORT_BLOCKED); return; }
     if (!nolioCtx || targetSessions.length === 0) return;
     setBulkSending(true);
     setBulkProgress({ done: 0, total: targetSessions.length });
@@ -1737,6 +1740,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
 
+      {legacyNolioBlocked && <Alert data-testid="det-legacy-nolio-blocked"><AlertDescription>{DET_LEGACY_EXPORT_BLOCKED}</AlertDescription></Alert>}
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <CollapsibleCard
@@ -2168,7 +2172,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       )}
 
       {/* Bulk confirmation dialog */}
-      <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
+      <Dialog open={bulkConfirmOpen && !legacyNolioBlocked} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Confirmer l'envoi vers Nolio</DialogTitle>

@@ -1,3 +1,4 @@
+import { requiresStructuredNolioExport } from "@/lib/nolio/legacyExportGuard";
 /**
  * NolioSessionButton — Bouton "→ Nolio" par séance (envoi unitaire).
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
@@ -74,7 +75,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
     return { sessionDate: sd, planStartMonday: ps, computedPlanStart: toIso(ps) };
   }, [selectedMonday, session.weekNumber, session.dayIndex]);
 
-  if (session.isRest || session.dayIndex < 0) return null;
+  if (session.isRest || session.dayIndex < 0 || requiresStructuredNolioExport(session)) return null;
 
   function stop(e: MouseEvent) {
     e.stopPropagation();
@@ -87,6 +88,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
 
   async function handleConfirm(e: MouseEvent) {
     e.stopPropagation();
+    if (requiresStructuredNolioExport(session)) return;
     setSending(true);
     try {
       const lib = findLibraryWorkoutForSession({ title: session.title, details: session.details });
