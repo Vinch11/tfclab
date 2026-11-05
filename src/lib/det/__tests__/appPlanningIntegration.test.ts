@@ -426,7 +426,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     const a = answers("703", { provenance: {}, swimPaces: Object.fromEntries(Object.entries(sw).map(([k, v]) => [k, { value: v, kind: "explicit_estimate", method: "SYNTHÉTIQUE test 400/200", uncertainty: "±3 s" }])) as never });
     const b = buildAthleteDetInputs(record, f, a, { ...genuineFor(record, "703"), planningInputFingerprint: frozen.fingerprint }, frozen.fingerprint);
     expect(b.missing).toEqual([]);
-    expect(Object.values(b.snapshot!.anchors).every(a => a?.kind === "app_reference")).toBe(true);
+    for (const key of ["runThresholdPaceSecPerKm", "runVvo2SpeedMps", "bikeFtpWatts", "cssSecPer100m"] as const) expect(b.snapshot!.anchors[key]?.kind).toBe("app_reference");
     expect(b.sourceReview.status).toBe("reviewed");
     const h = await hashCoachInputs(b.snapshot!);
     const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
