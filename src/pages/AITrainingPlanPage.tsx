@@ -3715,7 +3715,7 @@ export default function AITrainingPlanPage() {
                     <span className="text-[10px] text-muted-foreground">(charge récente estimée)</span>
                   </Label>
                   <Select value={trainingLevel} onValueChange={setTrainingLevel}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="plan-training-level"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="auto">🤖 Auto (TSS 7j si disponible)</SelectItem>
                       <SelectItem value="untrained">🛌 Pas du tout entraîné (reprise)</SelectItem>
@@ -3961,9 +3961,9 @@ export default function AITrainingPlanPage() {
             {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
               <Label>Moteur de génération — QA</Label>
               <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
-              <p className="text-xs text-muted-foreground">DET utilise le même profil de planification que l’IA (diagnostic, limiteurs, réglages de la page). En test, avec une revue réelle des séances par le coach : semi-marathon 8 ou 30 sem./6 h, marathon 16 sem./7 h, Ironman 70.3 12 sem./9–10 h et Ironman 16 sem./13–14 h peuvent être acceptés selon le profil, les doses revues et les horaires. L’Ironman nécessite aussi une revue explicite de sa composition vélo-course d’affûtage ; un refus reste possible et expliqué. Les autres objectifs ne sont pas encore raccordés. Un refus ne déclenche jamais l’IA. Les deux sorties restent non prescriptives et soumises à la revue coach.</p>
+              <p className="text-xs text-muted-foreground">Les deux moteurs utilisent la configuration et le profil de cette page. DET reprend les réglages existants et demande uniquement les informations absentes et les vérifications du coach. Un refus DET est expliqué et ne lance jamais l’IA.</p>
               <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
-              {currentAthlete && qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
+              {planningEngine === "det" && currentAthlete && qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
                 return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
@@ -3988,7 +3988,7 @@ export default function AITrainingPlanPage() {
                     setPlanOverride(bindAppPlanMetadata(o.plan,cur));setIsSaved(false);setResponse("");
                   }});
                 }}/>;})()}
-              <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>
+              {planningEngine === "det" && <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>
               {currentAthlete && <CoachDetInputsPanel key={currentAthlete.id+objective+format(planStartDate,"yyyy-MM-dd")+raceDate+weeklyHours+sessionsPerWeek+coachLimiterOrder.join(",")} engine={planningEngine}
                 shared={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:weeksAvailable??undefined,weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition,coachLimiterOrder:coachLimiterOrder.length?coachLimiterOrder:null,...(appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?{planningInputFingerprint:appPlanningInput.fingerprint}:{})}}
                 sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
@@ -4006,13 +4006,13 @@ export default function AITrainingPlanPage() {
                     setPlanOverride(o.plan);setIsSaved(false);setResponse("");
                   }});
                 }}/>}
-              </details>
+              </details>}
             </section>}
-            <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
+            {!(qaChoice && planningEngine === "det") && <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>}
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
-              <Button
+              !(qaChoice && planningEngine === "det") && <Button
                 onClick={() => { void handleGenerate(); }}
                 disabled={isLoading || !hasData || (qaChoice && planningEngine==="det")}
                 className="w-full"
