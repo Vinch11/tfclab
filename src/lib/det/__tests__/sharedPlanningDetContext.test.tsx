@@ -94,6 +94,19 @@ describe('coach panel with inherited configuration', () => {
     expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
     expect(db.insert).not.toHaveBeenCalled();
   });
+  it('groups missing inputs separately from coach reviews and keeps limiter priorities visible', () => {
+    const p = props();
+    render(<AthleteDetSimplePanel {...p} record={{ ...record, snapshot: { ...record.snapshot!, id: 'snap-synthetic', source: 'manual' } }} appInput={{ ...app(), athlete: { ...app().athlete, paceThresholdSecPerKm: 240 } }} />);
+    expect(screen.getByText('Limiteurs qui guident le plan')).toBeInTheDocument();
+    expect(screen.getByTestId('det-readiness-data')).toHaveTextContent('4 point(s) à traiter');
+    expect(screen.getByTestId('det-readiness-current')).toHaveTextContent('3 point(s) à traiter');
+    expect(screen.getByTestId('det-readiness-clock')).toHaveTextContent('6 point(s) à traiter');
+    expect(screen.getByTestId('det-readiness-review')).toHaveTextContent('13 point(s) à traiter');
+    fireEvent.click(screen.getByRole('button', { name: /4. Revue du coach/ }));
+    expect(document.getElementById('det-step-review')).toHaveAttribute('open');
+    expect(screen.getByRole('button', { name: 'Générer avec DET Engine' })).toBeDisabled();
+    expect(db.insert).not.toHaveBeenCalled();
+  });
   it('asks for a missing level instead of promoting the prudent fallback to known data', () => {
     const p = props(); p.appInput = { ...p.appInput, config: { ...p.appInput.config, ambitionMeta: { ...p.appInput.config.ambitionMeta!, trainingLevelSource: 'fallback-prudent' } } };
     render(<AthleteDetSimplePanel {...p} />);

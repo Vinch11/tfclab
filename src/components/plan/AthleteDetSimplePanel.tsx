@@ -34,6 +34,38 @@ import { traceLimiterSemantics } from "../../../experimental/det-engine/v403-lim
 
 type Verified = { userId: string; athleteId: string };
 const SPORT: Record<string, string> = { run: "Course", bike: "Vélo", swim: "Natation", strength: "Force", brick: "Enchaînement vélo-course" };
+type MissingPoint = { key: string; label: string; why: string };
+function readinessGroup(key: string): "data" | "current" | "clock" | "review" {
+  if (["recentLoad", "fatigue", "injuryScreen"].includes(key)) return "current";
+  if (key.startsWith("clock:") || ["tz", "bricks"].includes(key)) return "clock";
+  if (key.startsWith("gen:") || ["strengthRpe", "prereq", "contra"].includes(key)) return "review";
+  return "data";
+}
+function DetReadinessSummary({ missing }: { missing: MissingPoint[] }) {
+  const groups = [
+    { key: "data", label: "Données à compléter" },
+    { key: "current", label: "Situation actuelle" },
+    { key: "clock", label: "Disponibilités" },
+    { key: "review", label: "Revue du coach" },
+  ];
+  const openSection = (key: string) => {
+    const element = document.getElementById(`det-step-${key}`);
+    if (element?.tagName === "DETAILS") (element as HTMLDetailsElement).open = true;
+    element?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+    element?.focus({ preventScroll: true });
+  };
+  return <section aria-label="Avancement de la préparation DET" className="space-y-2 rounded border p-3">
+    <p className="text-sm font-medium">Préparer le plan en 4 étapes</p>
+    <p className="text-xs text-muted-foreground">Les données du profil sont déjà reprises. Complétez les manques, puis effectuez votre revue. Les vérifications ne sont jamais cochées automatiquement.</p>
+    {groups.map((group, index) => {
+      const points = missing.filter(point => readinessGroup(point.key) === group.key);
+      return <div key={group.key} className="rounded border p-2 text-sm" data-testid={`det-readiness-${group.key}`}>
+        <button type="button" className="text-left underline w-full" onClick={() => openSection(group.key)}>{index + 1}. {group.label} — {points.length ? `${points.length} point(s) à traiter` : "complété"}</button>
+        {points.length > 0 && <details><summary className="cursor-pointer text-xs mt-1">Voir le détail</summary><ul className="list-disc pl-5 space-y-1">{points.map(point => <li key={point.key}>{point.label} — {point.why}</li>)}</ul></details>}
+      </div>;
+    })}
+  </section>;
+}
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const emptyAnswers = (tz: string): CoachAnswers => ({
   provenance: {}, entered: {}, swimPaces: {}, athleteLevel: "", recentLoad: "", fatigue: "", injuryScreen: "", general: {},
@@ -218,14 +250,16 @@ export function AthleteDetSimplePanel(props: {
         </details>
       </section>
       <section className="space-y-1">
-        <p className="text-sm font-medium">Priorités reprises du profil</p>
+        <p className="text-sm font-medium">Limiteurs qui guident le plan</p>
         {order.length === 0 && <p className="text-xs text-muted-foreground">Compléter les valeurs pour voir les limiteurs utilisables.</p>}
         {props.appInputStatus === "pending" && <p className="text-xs text-muted-foreground">Profil de planification en préparation…</p>}
         {props.appInput && <p className="text-xs text-muted-foreground">Ordre repris tel quel du profil de l'app (même que pour l'IA) — {props.appInput.config.planningGoalContext ? "priorité de programme issue de la cible explicite du coach (profil physiologique conservé)" : props.appInput.limiters.origin === "coach_override" ? "ordre choisi par le coach dans la page" : "ordre automatique du diagnostic de l'app"}. Pour le changer, utilisez le réglage des limiteurs de la page.</p>}
+        <p className="text-sm">Cet ordre de priorités guide la sélection des séances. L’objectif précise la préparation ; les horaires, la charge et la récupération encadrent le calendrier.</p>
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
-      <section className="space-y-2">
-        <p className="text-sm font-medium">Informations encore nécessaires pour DET</p>
+      <DetReadinessSummary missing={bridge.missing} />
+      <section id="det-step-data" tabIndex={-1} className="space-y-2 scroll-mt-4">
+        <p className="text-sm font-medium">1. Données à compléter</p>
         {provenanceFields.length > 0 && <details>
           <summary className="text-sm cursor-pointer">Préciser l’origine des valeurs nécessaires</summary>
           <p className="text-xs text-muted-foreground">Les nombres sont déjà repris. La fiche ne précise pas toujours s’ils proviennent d’un test ou d’une estimation. Confirmez uniquement cette information manquante ; aucune mesure n’est supposée.</p>
@@ -248,14 +282,19 @@ export function AthleteDetSimplePanel(props: {
         </details>}
         <div className="grid grid-cols-1 gap-2 text-sm">
           {!inherited.inheritedLevel && <p className="text-sm">Le niveau n’est pas encore renseigné : <a href="#plan-training-level" className="underline">choisissez-le dans la configuration commune</a>. Le réglage automatique prudent ne constitue pas un niveau connu.</p>}
+        </div>
+      </section>
+      <section id="det-step-current" tabIndex={-1} className="space-y-2 scroll-mt-4">
+        <p className="text-sm font-medium">2. Situation actuelle</p>
+        <div className="grid grid-cols-1 gap-2 text-sm">
           <select aria-label="charge" className="rounded-md border bg-background p-1" value={a.recentLoad} onChange={(e) => set({ recentLoad: e.target.value as CoachAnswers["recentLoad"] })}><option value="">Charge des 4 dernières semaines…</option><option value="low">faible</option><option value="moderate">modérée</option><option value="high">élevée</option></select>
           <select aria-label="forme" className="rounded-md border bg-background p-1" value={a.fatigue} onChange={(e) => set({ fatigue: e.target.value as CoachAnswers["fatigue"] })}><option value="">Forme actuelle{props.record.snapshot?.fatigue_state ? ` (fiche : ${props.record.snapshot.fatigue_state})` : ""}…</option><option value="ready">en forme</option><option value="fatigued">fatigué</option></select>
           <select aria-label="blessure" className="rounded-md border bg-background p-1" value={a.injuryScreen} onChange={(e) => set({ injuryScreen: e.target.value as CoachAnswers["injuryScreen"] })}><option value="">Blessure / douleur (à demander)…</option><option value="cleared_by_coach">aucune, vérifié avec l'athlète</option><option value="contraindication">oui, présente</option></select>
         </div>
-        {req?.strengthRpe && <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.strengthLoadAndRpeConfirmed} onCheckedChange={(v) => set({ strengthLoadAndRpeConfirmed: v === true })} />Charges et RPE de force maîtrisés par l'athlète</label>}
+
       </section>
-      <details className="space-y-2">
-        <summary className="text-sm font-medium cursor-pointer">Disponibilités horaires par sport — {sports.length} sport(s)</summary>
+      <details id="det-step-clock" tabIndex={-1} className="space-y-2 scroll-mt-4">
+        <summary className="text-sm font-medium cursor-pointer">3. Disponibilités horaires par sport — {sports.length} sport(s)</summary>
         <p className="text-xs text-muted-foreground">Le nombre de séances vient déjà de la configuration. Les heures exactes servent à vérifier les récupérations ; un volume hebdomadaire ne fournit pas ces horaires.</p>
         <Input aria-label="fuseau" value={a.clock.timeZone} onChange={(e) => set({ clock: { ...a.clock, timeZone: e.target.value } })} />
         <p className="text-xs text-muted-foreground">Fuseau proposé : celui de votre navigateur — à corriger si l'athlète vit ailleurs.</p>
@@ -268,8 +307,9 @@ export function AthleteDetSimplePanel(props: {
           </div>; })}
         {sports.includes("brick") && <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.bricksConfirmed} onCheckedChange={(v) => set({ bricksConfirmed: v === true })} />Horaires des enchaînements vélo-course possibles pour l'athlète (ne vaut pas revue des enchaînements)</label>}
       </details>
-      <details className="space-y-2">
-        <summary className="text-sm font-medium cursor-pointer">Vérifications du coach pour cet athlète</summary>
+      <details id="det-step-review" tabIndex={-1} className="space-y-2 scroll-mt-4">
+        <summary className="text-sm font-medium cursor-pointer">4. Revue du coach pour cet athlète</summary>
+        {req?.strengthRpe && <label className="flex items-center gap-2 text-sm"><Checkbox checked={a.strengthLoadAndRpeConfirmed} onCheckedChange={(v) => set({ strengthLoadAndRpeConfirmed: v === true })} />Charges et RPE de force maîtrisés par l'athlète</label>}
         {confKeys.map((k) => <label key={k} className="flex items-center gap-2 text-sm"><Checkbox checked={a.general[k as keyof CoachAnswers["general"]] === true} onCheckedChange={(v) => set({ general: { ...a.general, [k]: v === true } })} />
           {(GENERAL_CONFIRMATIONS as Record<string, string>)[k] ?? CONDITIONAL_CONFIRMATIONS[k as keyof typeof CONDITIONAL_CONFIRMATIONS].label}</label>)}
         {list && <details><summary className="text-sm cursor-pointer">Prérequis des séances ({list.prerequisites.length}) — décocher ceux non remplis</summary>
@@ -285,7 +325,7 @@ export function AthleteDetSimplePanel(props: {
       {libraryProblems.map((p) => <p key={p} className="text-sm text-destructive">{p}</p>)}
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}
       {bridge.sourceReview.status === "reviewed" && <p className="text-xs text-muted-foreground">Revue des séances reprise : votre revue du {bridge.sourceReview.reviewedAt.slice(0, 10)} ({bridge.sourceReview.reviewedIds} séances).</p>}
-      {bridge.missing.length > 0 && <details className="text-sm"><summary className="font-medium cursor-pointer">Voir les points encore nécessaires ({bridge.missing.length})</summary><ul className="list-disc pl-5">{bridge.missing.map((m) => <li key={m.key}>{m.label} — {m.why}</li>)}</ul></details>}
+
       <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Détails techniques</summary>
         <p>Liste de séances : {pool!.ids.length} séances V3 du scénario {pool!.ciScenario} ; revue scientifique indépendante : non. {bridge.excludedSources.length} séance(s) écartée(s) par vos réponses.</p>
         <p>Moteur {props.engineVersion?.slice(0, 12) ?? "?"} · séances {props.sourcesVersion?.slice(0, 12) ?? "?"}</p></details>
