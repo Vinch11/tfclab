@@ -60,8 +60,8 @@ export function AthleteDetSimplePanel(props: {
   const profileKey = `${props.record.athleteId}|${JSON.stringify(props.form)}|${fp ?? props.appInputStatus}|${props.engine}`;
   const ctxKey = `${profileKey}|${canonicalJson(a)}|${props.sourcesVersion}|${props.engineVersion}`;
   const onOutcomeRef=useRef(props.onOutcome);onOutcomeRef.current=props.onOutcome;
-  const live = useRef({ fp, engine: props.engine });
-  live.current = { fp, engine: props.engine };
+  const live = useRef({ fp, engine: props.engine, ctxKey });
+  live.current = { fp, engine: props.engine, ctxKey };
   useEffect(() => { epoch.current++; setBusy(false); onOutcomeRef.current(null, null); setMsg([]); }, [ctxKey]);
   // Revue RÉELLE par séance déjà enregistrée (grille « Avancé ») pour ce coach + athlète : seule autorité de revue des séances.
   const [genuine, setGenuine] = useState<GenuineSourceReviews | null>(null);
@@ -100,9 +100,9 @@ export function AthleteDetSimplePanel(props: {
 
   const generate = async () => {
     const my = ++epoch.current; setBusy(true); props.onOutcome(null, null);
-    const app = props.appInput, fpAt = fp, engineAt = props.engine;
+    const app = props.appInput, fpAt = fp, engineAt = props.engine, keyAt = ctxKey;
     // Toute réponse tardive (autre athlète, profil, ordre, dates ou moteur) est ignorée.
-    const current = () => my === epoch.current && live.current.fp === fpAt && live.current.engine === engineAt;
+    const current = () => my === epoch.current && live.current.fp === fpAt && live.current.engine === engineAt && live.current.ctxKey === keyAt;
     try {
       if (!app || !fpAt) { setMsg([props.appInputStatus === "pending" ? "Profil de planification en cours de préparation : patientez." : "Profil de planification de l'athlète indisponible (diagnostic ou formulaire incomplet) : rien n'est reconstruit ici."]); return; }
       const v = await props.guard(); if (!v || !current()) return;
