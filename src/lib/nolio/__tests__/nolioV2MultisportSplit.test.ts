@@ -39,10 +39,16 @@ describe('explicit two-activity Nolio export, with transition preserved outside 
     }
   });
   it('uses the actual instant across DST and midnight, keeping the neutral gap exact',async()=>{
-    const p=plan();p._planStartDate='2026-10-25';Object.assign(p.weeks[0].sessions[0].coachStart,{localDate:'2026-10-25',minuteOfDay:60,utcOffsetMinutes:120});
-    const q=await chosen(p);expect(q._nolioV2MultisportSplits['S1-J0-0'].runStart).toMatchObject({minuteOfDay:145,utcOffsetMinutes:60});
+    const p=plan();p._planStartDate='2026-03-29';Object.assign(p.weeks[0].sessions[0].coachStart,{localDate:'2026-03-29',minuteOfDay:60,utcOffsetMinutes:60});
+    const q=await chosen(p);expect(q._nolioV2MultisportSplits['S1-J0-0'].runStart).toMatchObject({minuteOfDay:265,utcOffsetMinutes:120});
     const midnight=plan();midnight.weeks[0].sessions[0].coachStart.minuteOfDay=23*60;
     const r=await preparePlan(await chosen(midnight),refs,id);expect(r.ops[1].body).toMatchObject({date_start:'2026-11-10',time:'01:25'});
+  });
+  it('refuses an ambiguous provider time even when the archive records a chosen UTC offset',async()=>{
+    const p=plan();p._planStartDate='2026-10-25';Object.assign(p.weeks[0].sessions[0].coachStart,{localDate:'2026-10-25',minuteOfDay:60,utcOffsetMinutes:120});
+    expect(await previewMultisportSplit(sessionsFromPlanJson(p).sessions[0])).toEqual({reason:'split_provider_time_ambiguous'});
+    Object.assign(p.weeks[0].sessions[0].coachStart,{minuteOfDay:145,utcOffsetMinutes:60});
+    expect(await previewMultisportSplit(sessionsFromPlanJson(p).sessions[0])).toEqual({reason:'split_provider_time_ambiguous'});
   });
   it('stops on a lost bike response; exact reconciliation resumes the run without a second bike POST',async()=>{
     const p=await preparePlan(await chosen(),refs,id),entries=new Map<string,LedgerEntry>(),remote=new Map<string,Record<string,unknown>>();

@@ -1,7 +1,7 @@
 /** Explicit export representation: two linked activities and a timed transition gap.
  * The saved prescription remains a single brick. No network or approval defaults. */
 import { canonicalJson, detWorkoutProblems, type DetWorkout, type PlanSessionInput } from './plannedMapper.ts';
-import { startProblems, utcOffsetMinutesAt, type CoachSessionStart } from './localTime.ts';
+import { startProblems, utcOffsetMinutesAt, resolveLocalInstant, type CoachSessionStart } from './localTime.ts';
 
 export type SplitChoice = { schema: 'nolio-reviewed-split-v1'; parentSha256: string; coachConfirmed: true; runStart: CoachSessionStart };
 type Composition = { schema: 'det-reviewed-brick-v1'; bike: DetWorkout; run: DetWorkout; transitionSeconds: number };
@@ -25,12 +25,16 @@ export async function previewMultisportSplit(s: PlanSessionInput): Promise<{ pre
   const expectedNodes = [...c.bike.nodes, { kind: 'step', role: 'main', label: 'Transition confirmée par le coach — hors exercice', domain: null, target: null, dose: { seconds: c.transitionSeconds } }, ...c.run.nodes];
   if (canonicalJson(w.nodes) !== canonicalJson(expectedNodes)) return no('split_parent_components_differ');
   if (!s.coachStart || startProblems(s.coachStart, s.date).length) return no('split_start_requires_coach_confirmation');
+  // The provider body carries local date/time, not the chosen UTC offset.
+  // An explicit offset in our archive cannot select the provider's DST fold.
+  if (resolveLocalInstant(s.coachStart.timeZone,s.date,s.coachStart.minuteOfDay).status === 'ambiguous') return no('split_provider_time_ambiguous');
   const at = new Date(instant(s.coachStart) + (bs + c.transitionSeconds) * 1000);
   const offset = utcOffsetMinutesAt(s.coachStart.timeZone, at);
   if (offset === null) return no('split_run_timezone_invalid');
   const wall = new Date(at.getTime() + offset * 60000);
   const runStart: CoachSessionStart = { provenance: 'coach_confirmed', localDate: wall.toISOString().slice(0, 10),
     minuteOfDay: wall.getUTCHours() * 60 + wall.getUTCMinutes(), timeZone: s.coachStart.timeZone, utcOffsetMinutes: offset };
+  if (resolveLocalInstant(runStart.timeZone,runStart.localDate,runStart.minuteOfDay).status === 'ambiguous') return no('split_provider_time_ambiguous');
   const parentSha256 = await hash(canonicalJson(s));
   const shared = `Enchaînement TFCLab ${s.sessionKey} (${parentSha256}). Vélo puis transition de ${c.transitionSeconds} s hors activité, puis course. Deux activités liées ; transition conservée comme intervalle horaire, pas comme exercice.\n${s.details ?? ''}`;
   const child = (part: 'bike' | 'run', source: DetWorkout, start: CoachSessionStart, order: number): PlanSessionInput => ({

@@ -8,6 +8,7 @@ import { previewMultisportSplit, type SplitChoice, type SplitPreview } from '../
 
 const splitProblem = (reason?: string) => reason === 'split_start_requires_coach_confirmation'
   ? 'Un horaire de départ confirmé par le coach est nécessaire dans le programme.'
+  : reason === 'split_provider_time_ambiguous' ? 'Cet horaire se produit deux fois lors du changement d’heure. Nolio ne permet pas de transmettre le choix exact ; un autre horaire confirmé est nécessaire.'
   : reason === 'split_run_timezone_invalid' ? 'Le fuseau horaire de la course doit être vérifié.'
   : 'Les durées, la transition ou les blocs sauvegardés ne permettent pas cette représentation. Une correction du programme est nécessaire.';
 
