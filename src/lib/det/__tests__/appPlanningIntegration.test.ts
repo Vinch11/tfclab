@@ -6,6 +6,9 @@
  * La revue des séances est SYNTHÉTIQUE (test uniquement) ; elle n'est pas une revue scientifique.
  */
 import { describe, it, expect, vi, beforeAll } from "vitest";
+// Pure pipeline test: effectiveRefs imports the live client for unrelated hooks.
+// Never initialize a backend client or require deployment settings in this suite.
+vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
 import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from "@/lib/plan/appPlanningPipeline";
 import { freezeAppPlanningInput, planningInputFor, semanticPlanningPayload, explicitCoachLimiterOverride } from "../appPlanningInput";
