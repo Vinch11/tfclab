@@ -439,9 +439,13 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
           const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType }).eligible
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
+          const raceEvents=declaredRaceSlotsForWeek(planConfig,w);
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             availableSports,
-            raceEvents: declaredRaceSlotsForWeek(planConfig,w),
+            raceEvents,
+            // The official triathlon is not an extra training brick. Reserve
+            // its date even when race-week training-brick quota is zero.
+            ...(weekType==='race'&&entry.quota.brick.max===0&&raceEvents.some(e=>e.sport==='brick')?{officialRaceOutsideTrainingQuota:true as const}:{}),
             dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });

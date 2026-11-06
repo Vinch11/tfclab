@@ -4033,7 +4033,7 @@ export default function AITrainingPlanPage() {
                 return <details open={detReviewOpen} onToggle={e=>setDetReviewOpen(e.currentTarget.open)} className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel onProfilePlan={async(plan,fp)=>{
                   const cur=appPlanningRef.current,ep=qaActionEpoch.current;if(!cur||!isLatest(fp))return;
                   const ins=planningInputFor(cur,"det");const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);
-                  if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante");return;}
+                  if(preview.status==="blocked"){toast.error("Prévalidation bloquée : "+preview.issues.filter(i=>i.severity==='blocking').map(i=>`${i.week?`S${i.week} : `:''}${i.code==='declared_event_unplaced'?'épreuve officielle non placée dans le calendrier':i.code}`).join(' ; '));setDetReviewOpen(true);return;}
                   const owner=await verifyQaCoach({surface:"planning"});
                   if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
                   setPlanOverride(bindAppPlanMetadata(plan,cur));setIsSaved(false);setResponse("");

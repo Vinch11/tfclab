@@ -1,3 +1,4 @@
+import {prevalidateTrainingPlan} from '@/lib/plan/prevalidateTrainingPlan';
 import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolioV2/planSessions';
 import {mapPlanToNolioV2,requiredExerciseLabels} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import { appProfileDetArchiveSummary } from '../appProfileDetArchive';
@@ -193,4 +194,20 @@ it('preserves exact chosen structures for V2 preparation without admission or an
  expect(extracted.sessions.some(s=>s.detStructureRefusal?.reason==='multisport_composition_and_transition_unreviewed')).toBe(true);
  expect(blocksLegacyNolioExport(plan)).toBe(true);
  expect((JSON.parse(JSON.stringify(plan)))._provenance.prescriptionAllowed).toBe(false);
+});
+
+it('reserves the official 70.3 outside the zero training-brick quota before common prevalidation',async()=>{
+ const app=await shared('Ironman 70.3',12,10),ins=planningInputFor(app,'det');
+ const checked=prevalidateTrainingPlan(ins.athlete,ins.config),report=checked.report;
+ const week=checked.preparation.weeklyQuotas[12];expect(week.quota.brick.max).toBe(0);
+ expect(week.layout.officialRaceOutsideTrainingQuota).toBe(true);
+ expect(week.layout.days.flatMap(d=>d.slots).filter(s=>s.sport==='brick'&&s.isRaceEvent)).toHaveLength(1);
+ expect(week.layout.days.flatMap(d=>d.slots).filter(s=>s.sport==='brick'&&!s.isRaceEvent)).toHaveLength(0);
+ expect(report.issues.filter(i=>i.severity==='blocking')).toEqual([]);
+});
+
+it('still refuses a declared triathlon on a banned bike day',async()=>{
+ const app=await shared('Ironman 70.3',12,10,undefined,{constraints:'Pas de vélo le dimanche'}),ins=planningInputFor(app,'det');
+ const report=prevalidateTrainingPlan(ins.athlete,ins.config).report;
+ expect(report.status).toBe('blocked');expect(report.issues.some(i=>i.severity==='blocking'&&i.code==='declared_event_unplaced')).toBe(true);
 });
