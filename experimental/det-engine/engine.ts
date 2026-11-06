@@ -190,6 +190,9 @@ export interface ExperimentalAssemblyContract {
   /** Native catalogue only: infer key status from the existing source intensity,
    * including activation slots. No source dose or placement is changed. */
   classifyNativeSourceKeySessions?:true;
+  /** Native metadata study only: prioritize quality then easy-share margins.
+   * Search order only; no source, dose, eligibility or validator changes. */
+  prioritizeNativeQualityAndEasyMargin?:true;
   /** V322 isolated: enforce native non-deload/non-race A/B category presence
    * in candidate selection even during the peak/taper phase, not just LOAD.
    * Requires genuine Z4+ source on an existing key slot; no invented dose. */
@@ -1085,6 +1088,13 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         return (!!session.isKeySession||experimentalContract?.classifyNativeSourceKeySessions===true)&&
           session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
       };
+      // Native metadata is only a search estimate, never V3 source proof.
+      // Visit the required quality slot before combinatorial easy alternatives.
+      if(qualityRequired&&experimentalContract?.prioritizeNativeQualityAndEasyMargin===true){
+        const hasQuality=(item:typeof order[number])=>item.domain.some(isQuality);
+        order.sort((a,b)=>Number(hasQuality(b))-Number(hasQuality(a))||
+          a.domain.length-b.domain.length||a.slot.dayIndex-b.slot.dayIndex);
+      }
       // V343: prioritize truly verified intensity on existing key slots.
       // Source, dose, frequency, clocks and every validator remain unchanged.
       if(runningQualityRequired)for(const item of order){
@@ -1204,6 +1214,21 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         nativeProfiles.set(session,dose);
         return dose;
       })):[];
+      if(requireStrictNativeZones&&!requireStructuredZones&&
+         experimentalContract?.prioritizeNativeQualityAndEasyMargin===true){
+        for(let slotIndex=0;slotIndex<order.length;slotIndex++){
+          const pairs=order[slotIndex].domain.map((session,index)=>({
+            session,dose:zoneDomains[slotIndex][index],index,
+          }));
+          const margin=(dose:NativeZoneDose|null)=>
+            dose?dose.low-3*dose.nonLow-0.01*dose.unknown:-Infinity;
+          pairs.sort((a,b)=>
+            (qualityRequired&&slotIndex===0?Number(isQuality(b.session))-Number(isQuality(a.session)):0)||
+            margin(b.dose)-margin(a.dose)||a.index-b.index);
+          order[slotIndex].domain=pairs.map(p=>p.session);
+          zoneDomains[slotIndex]=pairs.map(p=>p.dose);
+        }
+      }
       let structuredDomains=requireStructuredZones?
         order.map(({domain},slotIndex)=>domain.map((session,candidateIndex)=>{
           const dose=zoneDomains[slotIndex][candidateIndex];

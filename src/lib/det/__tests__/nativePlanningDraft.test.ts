@@ -29,6 +29,7 @@ const guards:ExperimentalAssemblyContract={
  requireRealQualityOnLoadWeeks:true,
  requireLorangQualityBeforeFinalValidation:true,
  classifyNativeSourceKeySessions:true,
+ prioritizeNativeQualityAndEasyMargin:true,
  excludeNativeForbiddenTaperCandidates:true,
  useDeclaredEventDurationEstimates:true,
 };
