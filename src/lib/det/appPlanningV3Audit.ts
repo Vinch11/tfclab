@@ -1,5 +1,6 @@
 import type { V3PlanProposal, ProposedV3Workout,ProposedV3Session } from './appPlanningV3Proposal';
 import { findSource } from './coachDetContext';
+import {library920TimingPaces} from './library920Selection';
 import { fingerprintV3SportingSource } from '../../../scripts/library-v3/sportingQualification800';
 import { evaluateV3Workout,type V3Block } from '../../../scripts/library-v3/catalogueRuntime';
 import { clockFor, type CoachConfirmedClock } from '../../../experimental/det-engine/v401-coach-inputs-core';
@@ -50,7 +51,7 @@ export function componentMinutes(component:ProposedV3Workout):number|null|'inval
   if((['minimumRecoveryHours','minimumLevel','stopRule','prerequisites','contraindications'] as const).some(key=>JSON.stringify(component.review[key])!==JSON.stringify(source[key])))return 'invalid';
   const swimPaces=Object.fromEntries(component.targets.targets.filter(t=>t.domain&&t.metric==='sec_per_100m'&&t.min!==null&&t.min===t.max).map(t=>[t.domain!,t.min!]));
   try{
-    const timing=evaluateV3Workout({...source,blocks:component.blocks},{swimPaces});
+    const timing=evaluateV3Workout({...source,blocks:component.blocks},{swimPaces:library920TimingPaces(source,swimPaces)});
     const minutes=timing.status==='confirmed'?timing.minutes:null;
     if(component.durationMinutes!==null&&(minutes===null||Math.abs(component.durationMinutes-minutes)>1e-7))return 'invalid';
     return minutes;

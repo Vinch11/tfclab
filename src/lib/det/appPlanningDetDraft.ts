@@ -40,13 +40,14 @@ function affinity(source: V3Workout, key: DetLimiterKey | null): boolean {
   return limiterSourceAffinity({primaryDomain:source.primaryDomain,limiterKeys:source.prescription.physiologicalIntent.limiterKeys},key);
 }
 
-export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string }
+export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string; currentFatigue?: 'ready'|'fatigued'|'unknown'; recentLoad?: 'low'|'moderate'|'high'|'unknown' }
 /** Shared negative restrictions for the study and the proposed V3 assembly.
  * Absence of a restriction never creates a positive athlete clearance. */
 export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAppPlanningInput['config'],'prohibitions'|'injuryRisk'>, restrictions: DraftRestrictions): V3Workout[] {
   const banned = resolveProhibitionKeys(config.prohibitions).map(key => ({key,pattern:PROHIBITION_SESSION_PATTERNS[key]})).filter(row=>!!row.pattern);
   return sources.filter(source => {
     if (restrictions.injuryScreen === 'contraindication') return false;
+    if(restrictions.currentFatigue==='fatigued'&&source.sport!=='strength'&&source.prescription.physiologicalIntent.domainIds.some(d=>!['recovery','moderate_lt1'].includes(d)))return false;
     if (source.prerequisites.some(key => restrictions.unmetPrerequisites?.includes(key)) || source.contraindications.some(key => restrictions.presentContraindications?.includes(key))) return false;
     const risk = source.sport === 'run' ? config.injuryRisk?.run?.level : source.sport === 'bike' ? config.injuryRisk?.bike?.level : null;
     if (risk === 'ELEVE' || risk === 'CRITIQUE') return false;

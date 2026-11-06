@@ -11,7 +11,7 @@ import {PLAN_PROVENANCE_SCHEMA} from '@/lib/plan/planProvenance';
  * Unknown durations remain absent; the complete source proposal is retained.
  */
 export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={},engineVersion:string){
- const proposal=await generateAppPlanningV3Proposal(app,athleteId,{...options,completeSessions:true});
+ const proposal=await generateAppPlanningV3Proposal(app,athleteId,{includeLibrary920:true,...options,completeSessions:true});
  const blocked=proposal.checks.filter(c=>c.status==='blocked');
  if(blocked.length)throw Error(blocked.map(c=>c.message).join('\n'));
  const enteredClock=options.clock?clockFor(options.clock,app.config.planStartDate!):null;

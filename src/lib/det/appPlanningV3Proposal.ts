@@ -1,9 +1,11 @@
 import {completeStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
+import {library920CandidatesForProposal,library920Problems,library920SourceMetadata,library920Manifest} from '../../../scripts/library-v3/library920Catalogue';
+import {library920ContextProblems,library920TimingPaces,resolveLibrary920Targets} from './library920Selection';
 import type { FrozenAppPlanningInput } from './appPlanningInput';
 import { planningInputFor } from './appPlanningInput';
 import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions } from './appPlanningDetDraft';
 import { familySourcePool } from './familySourcePools';
-import { findSource } from './coachDetContext';
+import { findSource,FATIGUE_LABELS,RECENT_LOAD_LABELS } from './coachDetContext';
 import { coachFamilyFor,clockFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
 import { resolveDetLimiter } from '../../../experimental/det-engine/v403-limiter-semantics';
 import { limiterSourceAffinity } from '../../../experimental/det-engine/v411-limiter-source-affinity';
@@ -52,6 +54,8 @@ export interface V3PlanProposal {
   checks: Array<{code:string;week?:number;status:'pending'|'passed'|'blocked';message:string}>;
 }
 export interface V3ProposalOptions extends DraftRestrictions {
+  /** Ordinary imported candidates only; this does not grant source authority. */
+  includeLibrary920?: boolean;
   clock?: CoachConfirmedClock;
   /** Only the normal pre-review app plan; strict reviewed pools stay unchanged. */
   completeSessions?: boolean;
@@ -93,6 +97,14 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const selectedSources=pool.ids.map(findSource).filter((s):s is V3Workout=>!!s).filter(s=>!options.completeSessions||s.sport!=='strength').filter(s=>!timedSwim||s.sport!=='swim');
   if(options.completeSessions)selectedSources.push(...completeStrengthSources);
   if(timedSwim)selectedSources.push(...timedSwimSources);
+  let librarySources:V3Workout[]=[];
+  if(options.includeLibrary920){
+    const problems=library920Problems();if(problems.length)throw Error(problems.join('; '));
+    const level=knownLevel>=0?levels[knownLevel]:undefined;
+    librarySources=filterDraftV3Sources(library920CandidatesForProposal().filter(s=>
+      library920ContextProblems(s,config.objective,level).length===0&&
+      (!options.completeSessions||s.sport!=='strength')&&(!timedSwim||s.sport!=='swim')),config,options);
+  }
   const sources=filterDraftV3Sources(selectedSources,config,options)
     .filter(source=>knownLevel<0||levels.indexOf(source.minimumLevel)<=knownLevel);
   const supplied=Object.entries(options.swimDomainPaces??{});
@@ -126,15 +138,16 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const settings=[pool.doses[source.id]??{},...brickDoses,...(min!==null?[{targetDurationMin:min,allowWorksetChange:false}]:[])];
     const out:ProposedV3Workout[]=[];
     for(const setting of settings)try{
-      const configured=previewV3SourceDose(source,setting,swimPaces),duration=evaluateV3Workout(configured,{swimPaces});
+      const timingPaces=library920TimingPaces(source,swimPaces);
+      const configured=previewV3SourceDose(source,setting,timingPaces),duration=evaluateV3Workout(configured,{swimPaces:timingPaces});
       const minutes=duration.status==='confirmed'?duration.minutes:null;
-      const dose=structuredV3ZoneDose({id:source.id,sport:source.sport,blocks:configured.blocks},swimPaces);
+      const dose=structuredV3ZoneDose({id:source.id,sport:source.sport,blocks:configured.blocks},timingPaces);
       // A long slot cannot be fulfilled using an unknown or shorter duration.
       if(min!==null&&(minutes===null||minutes+1e-7<min))continue;
       if(out.some(c=>JSON.stringify(c.blocks)===JSON.stringify(configured.blocks)))continue;
       out.push({sourceId:source.id,sourceFingerprint:fingerprintV3SportingSource(source),title:source.title,sport:source.sport,
         blocks:configured.blocks,durationMinutes:minutes,distanceM:duration.distanceM,
-        targets:resolveV3IntensityTargets(configured,anchors),limiterMatches:priorities.filter(p=>matches(source,p.raw)).map(p=>p.raw),
+        targets:resolveLibrary920Targets(configured,anchors),limiterMatches:priorities.filter(p=>matches(source,p.raw)).map(p=>p.raw),
         sourceDomain:source.primaryDomain,zoneMinutes:dose?{low:dose.low,mid:dose.mid,high:dose.high,unknown:dose.unknown}:null,
         review:{minimumRecoveryHours:source.minimumRecoveryHours,prerequisites:[...source.prerequisites],contraindications:[...source.contraindications],stopRule:source.stopRule,minimumLevel:source.minimumLevel}});
     }catch{/* A bounded source/dose that cannot be configured is ineligible. */}
@@ -258,6 +271,28 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     }
     if(!solve(0,0))throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.`),{code:'v3_proposal_search_refused',week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},noCompletePlanReturned:true});
     // Search order is internal. Restore the exact original calendar positions.
+    // Preserve the native horizon's budgets and progression. Imported recipes
+    // compete as exact-dose alternatives after assembly: same sport, primary
+    // domain, duration, zone ledger and limiter matches, explicit recovery
+    // checks and no new missing anchors. A broader pool must not shorten
+    // an early week and make a later deload/long slot impossible.
+    const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
+    for(const [selectionIndex,session] of selected.entries()){
+      if(session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      const original=session.components[0];
+      const alternatives=librarySources.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
+        (!week.phase||s.phase.includes(week.phase))&&
+        (week.weekType!=='recovery'||easy(s))).flatMap(s=>choices(s,null)).filter(c=>
+        !occupied.has(c.sourceId)&&c.durationMinutes!==null&&Math.abs(c.durationMinutes-original.durationMinutes!)<1e-7&&
+        c.targets.missing.every(key=>original.targets.missing.includes(key))&&
+        original.limiterMatches.every(key=>c.limiterMatches.includes(key))&&
+        JSON.stringify(c.zoneMinutes)===JSON.stringify(original.zoneMinutes)&&
+        proposedRecoveryStatus({...session,components:[c]},
+          {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
+        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+      const replacement=alternatives[0];
+      if(replacement){occupied.delete(original.sourceId);occupied.add(replacement.sourceId);session.components=[replacement];}
+    }
     const calendarSelected=selected.map((session,index)=>({session,index:order[index].index})).sort((a,b)=>a.index-b.index).map(row=>row.session);
     const knownMinutes=selected.reduce((n,s)=>n+s.knownMinutes,0);
     const durationMinutes=selected.every(s=>s.durationMinutes!==null)?knownMinutes:null;
@@ -280,6 +315,12 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   }
   const selected=result.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
   const missingTargets=[...new Set(selected.flatMap(s=>s.targets.missing))];
+  if(options.includeLibrary920){
+    const imported=selected.filter(s=>library920SourceMetadata(s.sourceId));
+    const eligible=library920CandidatesForProposal().length;
+    result.checks.push({code:'library920_engineering_registration',status:'passed',message:`${library920Manifest.total} fiches enregistrées : ${library920Manifest.ordinary} ordinaires (${eligible} passent les contrôles des sources, ${library920Manifest.ordinary-eligible} en réserve), ${library920Manifest.special} fiches à routage spécifique ; ${new Set(imported.map(s=>s.sourceId)).size} nouvelles sources retenues après filtres techniques, objectif, niveau, phase et calendrier. Ce contrôle ne vaut pas validation scientifique ou individuelle.`});
+    result.checks.push({code:'athlete_current_context',status:'pending',message:`Contexte actuel : fatigue ${FATIGUE_LABELS[options.currentFatigue??'unknown']}, charge qualitative ${RECENT_LOAD_LABELS[options.recentLoad??'unknown']}. Prérequis, contre-indications et tolérance de la dose à revoir pour cet athlète ; aucun accord déduit d’une donnée absente.`});
+  }
   if(missingTargets.length)result.checks.push({code:'individual_targets',status:'pending',message:'Repères encore nécessaires : '+missingTargets.join(', ')});
   for(const priority of priorities)if(!selected.some(s=>s.limiterMatches.includes(priority.raw)))result.checks.push({code:'limiter_without_source_match',status:'pending',message:`${priority.raw} : aucune source correspondante retenue ; sa couverture n’est pas validée.`});
   result.checks.push({code:'sporting_review',status:'pending',message:'Revue des doses, proportions, progression, récupération, disponibilité et situation actuelle de l’athlète nécessaire avant utilisation. Aucune approbation créée.'});
