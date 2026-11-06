@@ -265,6 +265,7 @@ export function runCoachInputsDet(input: {
   const slotClock = clockFor(input.clock, input.config.planStartDate);
   const baseFilter = contract.filterCandidate;
   const common = {
+    useSharedLimiterMesocycles:true as const,
     ...contract,
     requireReviewedAthleteContext: true as const,
     ...(multi ? {useDeclaredEventDurationEstimates:true as const,excludeNativeBaseBuildPhaseConflicts:true as const,

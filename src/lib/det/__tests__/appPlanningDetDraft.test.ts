@@ -1,3 +1,5 @@
+import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
+import { planningInputFor } from '../appPlanningInput';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
@@ -44,6 +46,20 @@ describe('pre-review DET study uses the actual shared app planning context', () 
     expect(hits(vo2).every(c=>c.primaryDomain==='vo2max')).toBe(true);
     expect(hits(tte).every(c=>c.primaryDomain==='mlss')).toBe(true);
     expect(hits(vo2).map(c=>c.id)).not.toEqual(hits(tte).map(c=>c.id));
+  },60000);
+  it('shares all six recurring priorities with the AI prompt and preserves a regenerated window', async () => {
+    const labels=['TTE','VO2max','VLamax','FTP','Économie','FatMax'];
+    const app=await shared('Marathon',40,8,labels);
+    const draft=await buildAppPlanningDetDraft(app,ATHLETE);
+    const {athlete,config}=planningInputFor(app,'det');
+    const prepared=prepareGenerationContracts(athlete,config);
+    expect(draft.limiterMesocycles).toEqual(prepared.limiterMesocycles);
+    expect(prepared.limiterMesocycles.priorities).toEqual(labels);
+    expect(prepared.limiterMesocycles.blocks.slice(0,7).map(block=>block.focus)).toEqual([...labels,labels[0]]);
+    expect(prepared.quotasByChunkText.join('\n')).toContain('focus FatMax');
+    const window=prepareGenerationContracts(athlete,{...config,weeksAvailable:8,globalTotalWeeks:40,globalWeekOffset:20});
+    for(let local=1;local<=8;local++) expect(window.limiterMesocycles.byWeek[local].focus).toBe(prepared.limiterMesocycles.byWeek[local+20].focus);
+    expect(JSON.stringify(app.config.identifiedLimitersRaw)).toBe(JSON.stringify(labels));
   },60000);
   it('retains day bans and reported contraindications without turning unknown checks into approval', async () => {
     const app = await shared('Ironman 70.3',12,10,undefined,{constraints:'Pas de vélo le mardi'});

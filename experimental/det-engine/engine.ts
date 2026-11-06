@@ -1,3 +1,6 @@
+import { synchronizeLimiterMesocycles } from "@/lib/plan/limiterMesocycles";
+import { limiterSourceAffinity } from "./v411-limiter-source-affinity";
+import { resolveDetLimiter } from "./v403-limiter-semantics";
 import type {DetLimiterKey} from './v403-limiter-semantics';
 import {EXTENDED_RUNNING_PRIMARIES,verifyPrimaryRunningSession} from './v408-primary-limiter-evidence';
 /** Experimental, pure catalogue assembly. Never imported by the application. */
@@ -64,6 +67,8 @@ export interface ExperimentalAssemblyContract {
   filterCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>boolean;
   doseRange?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>[number,number]|null;
   /** Optional review-scoped deterministic tie-breaker; never skips any validation. */
+  /** Advisory shared focus ordering only; all admission/dose/final gates remain. */
+  useSharedLimiterMesocycles?:true;
   rankCandidate?:(card:RepairWorkoutMetadata,context:{week:number;phase?:string;weekType?:string;slot:DaySlot;dayIndex:number})=>number;
   /** One V3 source cannot be used twice via two different composites in one week. */
   consumedSourceIds?:(card:RepairWorkoutMetadata)=>readonly string[];
@@ -321,6 +326,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
     }
     const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
     experimentalContract?.adapt(preparation,config);
+    synchronizeLimiterMesocycles(preparation,config.identifiedLimitersRaw??[],config.globalWeekOffset??0,config.weeksAvailable);
     // V334: adaptation is the ONLY writer of the source pools. Freeze one
     // identical, ID-deduplicated catalogue for prevalidation and every week.
     // This removes redundant 30–40-week catalogue joins and sport scans,
@@ -607,6 +613,14 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       const chosen:ParsedSession[]=[];
       const context={objective:w.objective,phase:w.phase,weekType:w.weekType};
       const runningGoal=normalizeRepairGoal(config.objective??'');
+      const sharedFocus=experimentalContract?.useSharedLimiterMesocycles===true?preparation.limiterMesocycles.byWeek[w.week]:null;
+      const focusResolution=sharedFocus?.mode==='development'&&sharedFocus.focus&&sharedFocus.focus!==config.identifiedLimitersRaw?.[0]?resolveDetLimiter(sharedFocus.focus):null;
+      const focusMatch=(session:ParsedSession)=>{
+        if(focusResolution?.status!=='supported'||!session.catalogId)return false;
+        const keys=experimentalContract?.reviewedSourceLimiterKeysForId?.(session.catalogId);
+        const domain=experimentalContract?.reviewedSourcePrimaryDomainForId?.(session.catalogId);
+        return !!keys&&typeof domain==='string'&&limiterSourceAffinity({primaryDomain:domain,limiterKeys:keys},focusResolution.key);
+      };
       const primaryLimiterKey=detPrimaryLimiterKey(config);
       const extendedPrimary=primaryLimiterKey&&EXTENDED_RUNNING_PRIMARIES.includes(primaryLimiterKey)&&experimentalContract?.prioritizeSourceVerifiedPrimaryRunning===true?primaryLimiterKey:null;
       const primaryProvider=experimentalContract?.sourceFullStructuredDoseForId&&experimentalContract.reviewedSourceLimiterKeysForId&&experimentalContract.reviewedSourcePrimaryDomainForId?{dose:experimentalContract.sourceFullStructuredDoseForId,limiterKeys:experimentalContract.reviewedSourceLimiterKeysForId,primaryDomain:experimentalContract.reviewedSourcePrimaryDomainForId}:null;
@@ -864,6 +878,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
                Number(isCertifiedTteKey(b))-Number(isCertifiedTteKey(a)):0)||
               (durabilityPreferenceEnabled&&slot.isKeySession?
                Number(isCertifiedDurabilityKey(b))-Number(isCertifiedDurabilityKey(a)):0)||
+              (slot.isKeySession?Number(focusMatch(b))-Number(focusMatch(a)):0)||
               (slot.isKeySession?rank(a)-rank(b):0)||
               dosePriority||
               (usage.get(a.catalogId!)??0)-(usage.get(b.catalogId!)??0)||
@@ -1282,6 +1297,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             (runningQualityRequired&&
              experimentalContract?.prioritizeRunningStructuredEasyMargin===true?
                score(b.dose)-score(a.dose):0)||
+            (slot.slot.isKeySession?Number(focusMatch(b.session))-Number(focusMatch(a.session)):0)||
             (slot.slot.isKeySession?rank(a.session)-rank(b.session):0)||
             (qualityRequired&&slot.slot.isKeySession?
               Number(isQuality(b.session))-Number(isQuality(a.session)):0)||

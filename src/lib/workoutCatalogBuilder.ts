@@ -795,7 +795,7 @@ export function buildWorkoutCatalog(
   for (const raw of options?.limiters ?? []) {
     const key = resolveLimiterKey(raw);
     if (key && !resolvedLimiterKeys.includes(key)) resolvedLimiterKeys.push(key);
-    if (resolvedLimiterKeys.length >= 4) break;
+
   }
   const limiterKeys = resolvedLimiterKeys.length > 0 ? resolvedLimiterKeys : undefined;
 

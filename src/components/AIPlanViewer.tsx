@@ -1,3 +1,4 @@
+import { LimiterMesocycleTimeline } from "./plan/LimiterMesocycleTimeline";
 import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
@@ -1988,6 +1989,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
             </div>
           </div>
 
+          <LimiterMesocycleTimeline plan={plan} limiterKeys={identifiedLimiterKeys ?? []} />
+
           {/* Phase overview */}
           <div className="flex flex-wrap gap-2">
             {plan.phases.map((phase, i) => {
@@ -1999,7 +2002,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
                   </Badge>
                   {focus && focus.breakdown.length > 0 && (
                     <div className="flex flex-wrap gap-1 pl-1">
-                      {focus.breakdown.slice(0, 3).map((b) => (
+                      {focus.breakdown.map((b) => (
                         <Badge key={b.key} variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-muted-foreground">
                           {limiterKeyLabel(b.key)} {b.pct}%
                         </Badge>

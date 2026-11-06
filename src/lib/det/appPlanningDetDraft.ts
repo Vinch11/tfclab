@@ -1,3 +1,5 @@
+import { limiterSourceAffinity } from "../../../experimental/det-engine/v411-limiter-source-affinity";
+import type { LimiterMesocycleSchedule, LimiterWeekFocus } from "@/lib/plan/limiterMesocycles";
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { planningFingerprint, planningInputFor, type FrozenAppPlanningInput } from './appPlanningInput';
 import { coachFamilyFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
@@ -15,10 +17,12 @@ export interface AppPlanningDetDraft {
   planningInputFingerprint: string;
   limiterOrder: string[];
   objective: string;
+  limiterMesocycles: LimiterMesocycleSchedule;
   limiterCandidates: Array<{ limiter: string; sources: Array<{ id: string; title: string; primaryDomain: string | null }> }>;
   prescriptionAllowed: false;
   validation: 'pending';
   weeks: Array<{
+    limiterFocus: LimiterWeekFocus;
     week: number; phase: string | null; weekType: string;
     days: Array<{ day: string; rest: boolean; slots: Array<{
       sport: string; role: 'race' | 'long' | 'key' | 'support';
@@ -32,14 +36,7 @@ export interface AppPlanningDetDraft {
 /** Preview affinity from the engine's existing domain/key definitions (V403,
  * V408). A match is a search lead, never exact-dose/coverage evidence. */
 function affinity(source: V3Workout, key: DetLimiterKey | null): boolean {
-  const domain = source.primaryDomain;
-  const keys = source.prescription.physiologicalIntent.limiterKeys;
-  const threshold = domain === 'mlss' && keys.includes('threshold_tolerance');
-  if (key === 'tte' || key === 'durability_race_relative' || key === 'css_threshold') return threshold;
-  if (key === 'vo2max' || key === 'vma_velocity') return domain === 'vo2max' && keys.includes('aerobic_ceiling') && keys.includes('severe_domain_tolerance');
-  if (key === 'vlamax_reduction') return threshold || (domain === 'moderate_lt1' && keys.includes('aerobic_capacity'));
-  if (key === 'ftp' || key === 'ftp_relative') return ['mlss', 'sub_threshold', 'vo2max'].includes(domain ?? '');
-  return false;
+  return limiterSourceAffinity({primaryDomain:source.primaryDomain,limiterKeys:source.prescription.physiologicalIntent.limiterKeys},key);
 }
 
 export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string }
@@ -78,6 +75,8 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
     const quota = prepared.weeklyQuotas[week];
     if (!quota?.layout) throw Error(`Le calendrier commun ne fournit pas la semaine ${week} ; aucun calendrier de remplacement n’est inventé.`);
     const phase = quota.phase ?? null;
+    const limiterFocus = prepared.limiterMesocycles.byWeek[week];
+    const focusPriority = limiterFocus.focus ? priorities.find(priority => priority.raw === limiterFocus.focus) : null;
     const days = quota.layout.days.map(day => ({ day: day.dayName, rest: day.isRest, slots: day.slots.map(slot => {
       const role = slot.isRaceEvent ? 'race' as const : slot.isLongSession ? 'long' as const : slot.isKeySession ? 'key' as const : 'support' as const;
       const easy = (source: V3Workout) => ['recovery', 'moderate_lt1'].includes(source.primaryDomain ?? '') || ['technique_economy', 'mobility_prevention'].includes(source.primaryIntent);
@@ -85,6 +84,7 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
         (quota.weekType !== 'recovery' || easy(source)) &&
         (slot.sport === 'strength' || role === 'key' || (role === 'long' ? source.primaryDomain === 'moderate_lt1' : easy(source))));
       const candidates = eligible.map(source => ({ source, hits: priorities.map(priority => affinity(source, priority.key)) })).sort((a,b) => {
+        if (focusPriority) { const difference = Number(affinity(b.source,focusPriority.key))-Number(affinity(a.source,focusPriority.key)); if (difference) return difference; }
         for (let rank = 0; rank < priorities.length; rank++) { const difference = Number(b.hits[rank]) - Number(a.hits[rank]); if (difference) return difference; }
         return a.source.id.localeCompare(b.source.id);
       }).slice(0,3).map(({ source, hits }) => ({
@@ -95,10 +95,10 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
       if (!candidates.length && role !== 'race') pending.add(`S${week} ${day.dayName} : séance ${slot.sport} à choisir lors de la revue ; aucune candidate proposée pour ce créneau.`);
       return { sport: slot.sport, role, minimumMinutes: slot.minDurationMin ?? null, candidates };
     }) }));
-    weeks.push({ week, phase, weekType: quota.weekType, days });
+    weeks.push({ limiterFocus, week, phase, weekType: quota.weekType, days });
   }
   if (sources.some(source => source.sport === 'swim')) pending.add('Allures natation par domaine et durées individualisées non calculées tant que leurs références ne sont pas disponibles.');
   const limiterCandidates = priorities.map(priority => ({ limiter: priority.raw, sources: sources.filter(source => affinity(source, priority.key)).sort((a,b) => a.id.localeCompare(b.id)).slice(0,3).map(source => ({ id: source.id, title: source.title, primaryDomain: source.primaryDomain })) }));
-  return { kind: 'planning_draft', athleteId: app.athleteId, planningInputFingerprint: app.fingerprint,
+  return { kind: 'planning_draft', limiterMesocycles:prepared.limiterMesocycles, athleteId: app.athleteId, planningInputFingerprint: app.fingerprint,
     limiterOrder: [...app.limiters.applied], limiterCandidates, objective: config.objective, prescriptionAllowed: false, validation: 'pending', weeks, pending: [...pending] };
 }
