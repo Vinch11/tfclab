@@ -594,9 +594,10 @@ export default function PilotReviewPage() {
           </div>}
           {v2Active && <div data-testid="nolio-plan-dry" className="rounded-md border p-3 space-y-1">
             <p className="font-medium">Plan complet : simulation Nolio (rien n'est ajouté au calendrier)</p>
+            {source?.kind === "owned_version" && (source.plan._provenance as {mode?:string}|undefined)?.mode === "app-profile" && <p className="text-sm text-destructive">Envoi Nolio indisponible pour cette version : des prescriptions ou compositions restent à compléter et le plan ne possède pas d’autorisation de prescription. Le contrôle ci-dessous liste les séances convertibles et celles qui bloquent ; il ne débloque pas l’envoi.</p>}
             {source?.kind !== "owned_version"
               ? <p className="text-sm">Choisissez d'abord une version DET sauvegardée (section 1). Un scénario non sauvegardé ne peut pas être simulé.</p>
-              : <p className="text-sm">Version sauvegardée {source.id.slice(0, 8)} · {String(source.plan.title ?? "")} · plan synthétique NON PRESCRIPTIF</p>}
+              : <p className="text-sm">Version sauvegardée {source.id.slice(0, 8)} · {String(source.plan.title ?? "")} · version à relire, sans autorisation d’envoi</p>}
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => onPlanDry("precheck")} disabled={busy || v2Busy !== null || !ready || source?.kind !== "owned_version"}>Contrôler la couverture (aucune requête Nolio)</Button>
               {planDry?.coachId === who?.coachId && planDry?.planVersionId === source?.id && planDry?.resp?.precheck?.complete && !planDry.confirm?.confirmed && <>

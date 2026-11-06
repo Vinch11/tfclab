@@ -208,7 +208,7 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
                     </>
                   ) : (
                     <>
-                      {(import.meta.env.DEV||window.location.origin===QA_PLANNING_ORIGIN)&&v.plan_json?._provenance?.engine&&<Button asChild variant="outline" size="sm"><Link onClick={e=>e.stopPropagation()} to={"/__qa/pilot-review?planVersionId="+encodeURIComponent(v.id)}>Exporter vers Nolio</Link></Button>}
+                      {(import.meta.env.DEV||window.location.origin===QA_PLANNING_ORIGIN)&&v.plan_json?._provenance?.engine&&<Button asChild variant="outline" size="sm"><Link onClick={e=>e.stopPropagation()} to={"/__qa/pilot-review?planVersionId="+encodeURIComponent(v.id)}>Préparer l’export Nolio</Link></Button>}
                       <Button
                         variant="ghost"
                         size="icon"

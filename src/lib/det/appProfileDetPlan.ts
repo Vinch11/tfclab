@@ -1,9 +1,8 @@
-import {coachBlocks,coachTarget,coachMissingReference} from '@/lib/plan/coachPrescriptionText';
+import {renderV3Prescription} from './v3PrescriptionText';
 import {appProfileDetStructure} from './appProfileDetStructure';
 import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
 import type {FrozenAppPlanningInput} from './appPlanningInput';
 import {generateAppPlanningV3Proposal,type V3ProposalOptions} from './appPlanningV3Proposal';
-import {getDoctrineDomain} from '@/lib/zones/tfclDoctrine';
 import {bindAppPlanMetadata} from '@/lib/plan/generatedPlanMetadata';
 import {PLAN_PROVENANCE_SCHEMA} from '@/lib/plan/planProvenance';
 /** Common plan representation, not a qualified-runner outcome or review.
@@ -16,7 +15,7 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:w.focus??'Maintien',phase:w.phase??'Préparation',coachNotes:w.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':undefined,sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
   const base={weekNumber:w.week,weekTheme:w.focus??'Maintien',phase:w.phase??'Préparation',dayName:d.day,dayIndex};
   if(d.rest)return [{...base,sport:'Repos',title:'Repos prévu',details:'',isRest:true}];
-  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?'Épreuve déclarée':s.components.map(c=>c.title).join(' + '),details:s.role==='race'?'Épreuve du calendrier ; durée non inventée.':s.components.map(c=>`${c.title}\n${coachBlocks(c.blocks)}\n${c.targets.targets.map(t=>`${t.domain?getDoctrineDomain(t.domain).label:'Force'} : ${coachTarget(t)}`).join('\n')}${c.targets.missing.length?'\nRepères à préciser : '+[...new Set(c.targets.missing.map(coachMissingReference))].join(', '):''}\nArrêt : ${c.review.stopRule}`).join('\n\n')+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s)}));
+  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?'Épreuve déclarée':s.components.map(c=>c.title).join(' + '),details:s.role==='race'?'Épreuve du calendrier ; durée non inventée.':renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s)}));
  })}));
  const phases:ParsedPlan['phases']=[];
  for(const w of proposal.weeks){const name=w.phase??'Préparation',last=phases.at(-1);if(last?.name===name){const start=last.weeks.split('-')[0];last.weeks=start===String(w.week)?start:`${start}-${w.week}`;}else phases.push({name,weeks:String(w.week)});}

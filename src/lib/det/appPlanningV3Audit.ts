@@ -44,7 +44,7 @@ function withinSourceBounds(original:readonly V3Block[],configured:readonly V3Bl
     return a.kind==='time'?bound(a.seconds!,b.seconds):a.kind==='distance'?bound(a.meters!,b.meters):bound(a.reps!,b.reps,true);
   });
 }
-function componentMinutes(component:ProposedV3Workout):number|null|'invalid'{
+export function componentMinutes(component:ProposedV3Workout):number|null|'invalid'{
   const source=findSource(component.sourceId);
   if(!source||source.sport!==component.sport||source.primaryDomain!==component.sourceDomain||fingerprintV3SportingSource(source)!==component.sourceFingerprint||!withinSourceBounds(source.blocks,component.blocks))return 'invalid';
   if((['minimumRecoveryHours','minimumLevel','stopRule','prerequisites','contraindications'] as const).some(key=>JSON.stringify(component.review[key])!==JSON.stringify(source[key])))return 'invalid';

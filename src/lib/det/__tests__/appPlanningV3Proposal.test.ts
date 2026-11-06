@@ -223,3 +223,26 @@ it('preserves race-week activation ceilings and displays grouped coach-readable 
  expect(coachDuration(33.266666666666666)).toBe('33 min 16 s');
  expect(coachTarget({domain:'mlss',metric:'sec_per_km',min:233,max:247.4,source:'athlete_reference_with_doctrine_model',confidence:'model',note:''})).toBe('3′53″ à 4′07,4″ /km');
 });
+
+it('checks saved V3 blocks against their own sources instead of the legacy catalogue',async()=>{
+ const {validateSessionCataloguePlan}=await import('@/lib/plan/sessionCatalogueValidation');
+ const plan=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{},'test-engine');
+ expect(validateSessionCataloguePlan(plan)).toEqual([]);
+ const firstRuns=plan.weeks[0].sessions.filter(s=>s.sport==='run');
+ expect(firstRuns.length).toBeGreaterThan(0);
+ expect(Math.max(...firstRuns.map(s=>s.durationMin??0))).toBeLessThanOrEqual(120);
+ expect(plan.weeks[0].sessions.some(s=>s.details.includes('Intention :')&&s.details.includes('Consigne :'))).toBe(true);
+ const session=plan.weeks[0].sessions.find(s=>s.catalogId&&s.durationMin)!;
+ expect(session).toBeDefined();
+ for(const change of [{durationMin:999},{details:'3 × 5 min inventées'},{catalogId:'V3P_RUN_UNKNOWN'},{title:'Titre divergent'}]){
+  const copy=structuredClone(session);Object.assign(copy,change);
+  const issues=validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[copy]}]});
+  expect(issues.some(i=>i.severity==='error'),JSON.stringify(change)).toBe(true);
+ }
+ const missing=structuredClone(session) as any;delete missing.detSourceComponents;
+ expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[missing]}]})[0].message).toContain('v3_saved_blocks_missing');
+ const changed=structuredClone(session) as any;changed.detSourceComponents[0].blocks[0].label='Dose sans source';
+ expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[changed]}]})[0].message).toContain('v3_source_or_dose_mismatch');
+ expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[{title:'Ancienne fiche absente',sport:'run',catalogId:'LEGACY_UNKNOWN'}]}]})[0].message).toContain('catalogue_metadata_missing');
+ expect((plan as any)._provenance.prescriptionAllowed).toBe(false);
+});
