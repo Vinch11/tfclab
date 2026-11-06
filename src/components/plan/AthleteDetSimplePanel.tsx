@@ -81,6 +81,7 @@ export function AthleteDetSimplePanel(props: {
   /** Sortie DET + empreinte du profil sur lequel elle a été calculée. */
   generationAction?: { current: (()=>Promise<void>) | null };
   onBusyChange?: (busy:boolean)=>void;
+  onNeedsAttention?: ()=>void;
   onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void | Promise<void>;
   /** Profil de planification figé de la page (même entrée que l'IA). OBLIGATOIRE : aucun recalcul ici. */
   appInput: FrozenAppPlanningInput | null;
@@ -164,6 +165,7 @@ export function AthleteDetSimplePanel(props: {
 
   const generate = async () => {
     if(busy)return;
+    let completed=false;
     const my = ++epoch.current; setBusy(true); props.onOutcome(null, null);
     const app = props.appInput, fpAt = fp, engineAt = props.engine, keyAt = ctxKey;
     // Toute réponse tardive (autre athlète, profil, ordre, dates ou moteur) est ignorée.
@@ -201,11 +203,12 @@ export function AthleteDetSimplePanel(props: {
         snapshot: b.snapshot, inputsHash, sourcesVersion: props.sourcesVersion, engineVersion: props.engineVersion, releaseId: props.releaseId, appInput: app });
       if (!current()) return;
       await props.onOutcome(out, fpAt);
+      completed=out.kind==="accepted";
       setMsg(out.kind === "accepted" ? [`Plan DET généré (${out.sessions} séances) depuis le profil de l'athlète — non prescriptif, à relire.`]
         : out.kind === "refused" ? out.refusals : [`DET n'a pas trouvé de plan conforme (l'IA n'est pas lancée à sa place).`,
             ...(out.limiterOrder.unrecognizedByDet?.length ? [`Limiteur(s) de l'app transmis mais sans définition DET : ${out.limiterOrder.unrecognizedByDet.join(", ")} — conservés tels quels, rien n'est substitué.`] : []), ...explainEngineRefusal(out.blockingIssues ?? []), `Détail technique : ${out.reason} · ${out.blockingCodes.join(", ")}`]);
     } catch(error) { if(current())setMsg([error instanceof Error?error.message:"Génération DET interrompue : aucun résultat installé."]);
-    } finally { if (my === epoch.current) setBusy(false); }
+    } finally { if (my === epoch.current) {setBusy(false);if(!completed)props.onNeedsAttention?.();} }
   };
 
   const {generationAction,onBusyChange}=props;

@@ -535,6 +535,7 @@ export default function AITrainingPlanPage() {
   const qaActionEpoch=useRef(0);
   useEffect(()=>{qaActionEpoch.current++;},[currentAthlete?.id,planningEngine]);
   useEffect(()=>{if(!qaChoice)return;let previous:string|null|undefined;const sub=supabase.auth.onAuthStateChange((_event,session)=>{const uid=session?.user.id??null;if(previous!==undefined&&previous!==uid){qaActionEpoch.current++;setPlanOverride(null);}previous=uid;});return()=>sub.data.subscription.unsubscribe();},[qaChoice]);
+  const [detReviewOpen,setDetReviewOpen]=useState(false);
   const detGenerationAction=useRef<(()=>Promise<void>)|null>(null);
   const [detGenerating,setDetGenerating]=useState(false);
   const detRelease=detEngineVersionFromRelease(typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__);
@@ -4023,7 +4024,7 @@ export default function AITrainingPlanPage() {
               {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
-                return <details className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
+                return <details open={detReviewOpen} onToggle={e=>setDetReviewOpen(e.currentTarget.open)} className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel onNeedsAttention={()=>setDetReviewOpen(true)} generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
                 onAIShared={async(f)=>{const epoch=qaActionEpoch.current;const current=()=>epoch===qaActionEpoch.current&&isLatest(f.fingerprint);if(!current()){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const ins=planningInputFor(f,"ai");
                   const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
