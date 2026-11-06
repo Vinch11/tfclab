@@ -211,7 +211,25 @@ export interface LimiterTrace {
   coach: string[] | null;
 }
 
-const hhmm = (s: string) => { const m = /^(\d{1,2}):(\d{2})$/.exec(s.trim()); if (!m) return null; const v = +m[1] * 60 + +m[2]; return v < 1440 ? v : null; };
+const hhmm = (s: string) => { const m = /^(\d{1,2}):(\d{2})$/.exec(s.trim()); if (!m || +m[1]>23 || +m[2]>59) return null; return +m[1] * 60 + +m[2]; };
+
+/** Read only explicitly entered clocks, independently of unrelated missing
+ * athlete checks. No default time or positive clearance is supplied. */
+export function readEnteredCoachClock(input:CoachAnswers['clock'],sports=Object.keys(input.bySport)):{clock:CoachConfirmedClock|null;invalidSports:string[];minutesBySport:Record<string,Array<number|null>>}{
+  const minutesBySport:Record<string,Array<number|null>>={},invalidSports:string[]=[];
+  for(const sport of sports){
+    const value=input.bySport[sport];
+    if(!value)continue;
+    const daily=value.perDay;
+    const row=daily?.length===7?daily.map(t=>t.trim()?hhmm(t):null):
+      value.days.length===7&&value.days.every(day=>typeof day==='boolean')?value.days.map(day=>day?hhmm(value.time):null):null;
+    const invalid=!!daily&&(daily.length!==7||daily.some(t=>!!t.trim()&&hhmm(t)===null))||
+      !daily&&!!value.time.trim()&&hhmm(value.time)===null||!row;
+    if(invalid){invalidSports.push(sport);continue;}
+    if(row!.some(m=>m!==null))minutesBySport[sport]=row!;
+  }
+  return {clock:input.timeZone.trim()&&Object.keys(minutesBySport).length?{timeZone:input.timeZone.trim(),minutesBySport}:null,invalidSports,minutesBySport};
+}
 export const BRICKS_703: CoachBrickApproval[] = [
   { id: V3_BASE_BRICK_ID, transitionSeconds: 300 },
   ...V32_703_BRICK_BLUEPRINTS.map((b) => ({ id: b.id, transitionSeconds: b.transitionSeconds })),
@@ -305,15 +323,11 @@ function buildAthleteDetInputsCore(record: AthleteRecordView, form: PlanFormView
   const sports = clockSportsFor(family, pool);
   let clock: CoachConfirmedClock | null = null;
   if (!a.clock.timeZone.trim()) missing.push({ key: "tz", label: "Fuseau horaire", why: "à confirmer" });
-  const minutesBySport: Record<string, Array<number | null>> = {};
+  const enteredClock=readEnteredCoachClock(a.clock,sports);
   for (const sp of sports) {
-    const c = a.clock.bySport[sp];
-    const row = !c ? null : c.perDay?.length === 7 ? c.perDay.map((t) => (t.trim() ? hhmm(t) : null)) : (() => { const m = hhmm(c.time); return m === null ? null : c.days.map((d) => (d ? m : null)); })();
-    const badPerDay = !!c?.perDay && c.perDay.some((t) => t.trim() !== "" && hhmm(t) === null);
-    if (!row || badPerDay || !row.some((m) => m !== null)) { missing.push({ key: `clock:${sp}`, label: `Horaire ${SPORTS_OF[sp] ?? sp}`, why: "heure habituelle et jours possibles à indiquer" }); continue; }
-    minutesBySport[sp] = row;
+    if (!enteredClock.minutesBySport[sp]||enteredClock.invalidSports.includes(sp)) { missing.push({ key: `clock:${sp}`, label: `Horaire ${SPORTS_OF[sp] ?? sp}`, why: "heure habituelle et jours possibles à indiquer" }); continue; }
   }
-  if (a.clock.timeZone.trim() && Object.keys(minutesBySport).length) clock = { timeZone: a.clock.timeZone.trim(), minutesBySport } as CoachConfirmedClock;
+  clock=enteredClock.clock;
   if (bricksForFamily(family.key).length && !a.bricksConfirmed) missing.push({ key: "bricks", label: "Enchaînements vélo-course", why: `confirmer les horaires des enchaînements du registre ${family.label} (ne vaut pas revue des compositions)` });
   for(const why of timeTrialProblems(a.timeTrial,record.athleteId,{...form,raceGoals:form.raceGoals})){missing.push({key:'timeTrial',label:'Revue CLM',why});}
   const ymd = form.planStartDate;

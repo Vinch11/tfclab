@@ -5,7 +5,10 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
 import { freezeAppPlanningInput } from '../appPlanningInput';
 import { filterDraftV3Sources } from '../appPlanningDetDraft';
-import { generateAppPlanningV3Proposal } from '../appPlanningV3Proposal';
+import { generateAppPlanningV3Proposal,type ProposedV3Session,type V3PlanProposal } from '../appPlanningV3Proposal';
+import { auditV3ProposalDoseIntegrity,auditV3ProposalRecovery } from '../appPlanningV3Audit';
+import { readEnteredCoachClock } from '../athleteDetBridge';
+import { V34_SAFE_RUN_BRICKS } from '../../../../experimental/det-engine/v34-v3-low-run-bricks';
 import { findSource } from '../coachDetContext';
 
 const ATHLETE = 'SYNTHETIC_DRAFT_A';
@@ -29,12 +32,26 @@ describe('full V3 source proposal from the existing app profile',()=>{
   const app=await shared(objective,weeks,hours),before=JSON.stringify(app);
   const plan=await generateAppPlanningV3Proposal(app,ATHLETE);
   expect(plan.weeks).toHaveLength(weeks);
+  expect(plan.checks.filter(c=>c.status==='blocked')).toEqual([]);
+  if(objective==='Ironman 70.3')for(const week of plan.weeks.filter(w=>w.weekType==='load'&&['base','build','peak'].includes(w.phase??'')))for(const session of week.days.flatMap(d=>d.sessions).filter(s=>s.sport==='brick'&&s.role!=='race'))expect(V34_SAFE_RUN_BRICKS.some(r=>r.phase===week.phase&&r.bikeId===session.components[0].sourceId&&r.runId===session.components[1].sourceId&&r.bikeMin===session.components[0].durationMinutes&&r.runMin===session.components[1].durationMinutes)).toBe(true);
   expect(plan.prescriptionAllowed).toBe(false);expect(plan.sourceReview).toBe('pending');
   expect(plan.limiterOrder).toEqual(app.limiters.applied);
   expect(plan.planningInputFingerprint).toBe(app.fingerprint);
   expect(plan.eventCalendar).toEqual(app.config.raceGoals??[]);
+  const quotas=prepareGenerationContracts(planningInputFor(app,'det').athlete,planningInputFor(app,'det').config).weeklyQuotas;
+  let previousLoad:number|null=null;
   for(const week of plan.weeks){
    expect(week.days).toHaveLength(7);expect(week.knownMinutes).toBeLessThanOrEqual(hours*60+1e-7);
+   const budget=quotas[week.week]?.volumeBudget;
+   if(budget)expect(week.knownMinutes).toBeLessThanOrEqual(budget.maxMinutes+1e-7);
+   if(week.durationMinutes!==null&&budget&&previousLoad!==null)expect(week.durationMinutes).toBeLessThanOrEqual(previousLoad*(week.weekType==='recovery'?0.7:1+budget.weeklyIncreasePctMax)+1e-7);
+   if(week.weekType==='load'&&!week.days.some(d=>d.sessions.some(s=>s.role==='race'))){
+    expect(week.days.some(d=>d.sessions.some(s=>s.components.some(c=>c.zoneMinutes&&c.zoneMinutes.high>0&&['mlss','vo2max'].includes(c.sourceDomain??''))))).toBe(true);
+    const check=plan.checks.find(c=>c.week===week.week&&c.code==='structured_polarization');
+    expect(check).toBeDefined();
+    if(week.durationMinutes!==null)expect(check?.status).toBe('passed');
+   }
+   if(week.weekType==='load')previousLoad=week.durationMinutes;
    const ids=week.days.flatMap(d=>d.sessions.flatMap(s=>s.components.map(c=>c.sourceId)));
    expect(new Set(ids).size).toBe(ids.length);
    for(const day of week.days)for(const session of day.sessions){
@@ -52,7 +69,8 @@ describe('full V3 source proposal from the existing app profile',()=>{
   const swims=p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components))).filter(c=>c.sport==='swim');
   expect(swims.length).toBeGreaterThan(0);expect(swims.filter(c=>c.distanceM>0).every(c=>c.durationMinutes===null)).toBe(true);
   expect(p.checks.some(c=>c.code==='individual_targets'&&c.message.includes('swim_domain_pace'))).toBe(true);
-  expect(p.weeks.every(w=>w.durationMinutes===null)).toBe(true);
+  expect(p.weeks.some(w=>w.durationMinutes===null)).toBe(true);
+  for(const week of p.weeks)if(week.days.some(d=>d.sessions.some(s=>s.durationMinutes===null)))expect(week.durationMinutes).toBeNull();
  });
  it('refuses an injured context and another athlete without inventing replacement sessions',async()=>{
   const app=await shared();
@@ -67,4 +85,48 @@ it('V3 domains prevent ordinary strength repetitions being treated as banned VO2
  const config={prohibitions:['🚫 RESTRICTION VO2max LOURD']};
  expect(filterDraftV3Sources([source,vo2],config,{}).map(s=>s.id)).toEqual([source.id]);
  expect(filterDraftV3Sources([source],config,{presentContraindications:[source.contraindications[0]]})).toEqual([]);
+});
+
+it('reuses partial clocks without supplying times, and refuses impossible clock minutes',()=>{
+ const c=readEnteredCoachClock({timeZone:'Europe/Brussels',bySport:{run:{time:'07:30',days:[true,false,true,false,false,false,false]},bike:{time:'10:99',days:[true,true,true,true,true,true,true]}}});
+ expect(c.clock?.minutesBySport.run).toEqual([450,null,450,null,null,null,null]);expect(c.clock?.minutesBySport.bike).toBeUndefined();expect(c.invalidSports).toEqual(['bike']);
+ expect(readEnteredCoachClock({timeZone:'',bySport:{run:{time:'07:30',days:[true,false,false,false,false,false,false]}}}).minutesBySport.run[0]).toBe(450);
+});
+it('does not repair a corrupted chosen dose or a changed source fingerprint',async()=>{
+ const p=await generateAppPlanningV3Proposal(await shared('Semi',8,6),ATHLETE);
+ const c=p.weeks[0].days.flatMap(d=>d.sessions.flatMap(s=>s.components)).find(c=>c.durationMinutes!==null)!;
+ c.durationMinutes!+=1;expect(auditV3ProposalDoseIntegrity(p).some(c=>c.status==='blocked')).toBe(true);
+ c.sport='bike';expect(auditV3ProposalDoseIntegrity(p).some(c=>c.status==='blocked')).toBe(true);
+ c.sourceFingerprint='changed';expect(auditV3ProposalDoseIntegrity(p).some(c=>c.status==='blocked')).toBe(true);
+});
+it('audits actual cross-week recovery and keeps missing race clocks unconfirmed',async()=>{
+ const p=await generateAppPlanningV3Proposal(await shared('Semi',8,6),ATHLETE);
+ const component=p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components))).find(c=>c.sport==='run'&&c.review.minimumRecoveryHours>=36&&c.review.minimumRecoveryHours<=48&&c.durationMinutes!==null)!;
+ expect(component).toBeDefined();
+ const session:ProposedV3Session={sport:'run',role:'key',components:[component],transitionMinutes:null,knownMinutes:component.durationMinutes!,durationMinutes:component.durationMinutes!};
+ const miniature:V3PlanProposal={...p,weeks:[{...p.weeks[0],week:1,days:Array.from({length:7},(_,i)=>({day:String(i),rest:i!==6,sessions:i===6?[session]:[]}))},{...p.weeks[0],week:2,days:Array.from({length:7},(_,i)=>({day:String(i),rest:i!==1,sessions:i===1?[session]:[]}))}]};
+ expect(auditV3ProposalRecovery(miniature,'2026-11-02').find(c=>c.week===1)?.status).toBe('pending');
+ const clock={timeZone:'Europe/Brussels',minutesBySport:{run:[null,1200,null,null,null,null,360]}};
+ expect(auditV3ProposalRecovery(miniature,'2026-11-02',clock).find(c=>c.week===1)?.status).toBe('passed');
+ expect(auditV3ProposalRecovery(miniature,'2026-11-02',{...clock,minutesBySport:{run:[null,360,null,null,null,null,1200]}}).find(c=>c.week===1)?.status).toBe('blocked');
+ miniature.weeks[1].days[1].sessions[0]={...session,role:'race'};
+ expect(auditV3ProposalRecovery(miniature,'2026-11-02',clock).find(c=>c.week===1)?.status).toBe('pending');
+});
+
+it.each([9,9.5,10])('70.3 ratios use actual exercise minutes when individual swim paces are supplied (%s h)',async hours=>{
+ const values={recovery:120,moderate_lt1:110,tempo:103,im_pace:108,'703_pace':102,marathon_pace:103,sub_threshold:98,semi_pace:98,mlss:95,vo2max:88,neuromuscular:80};
+ const p=await generateAppPlanningV3Proposal(await shared('Ironman 70.3',12,hours),ATHLETE,{swimDomainPaces:Object.fromEntries(Object.entries(values).map(([d,value])=>[d,{value,kind:'explicit_estimate' as const}]))});
+ expect(p.checks.find(c=>c.code==='sport_minute_ratios')?.status).toBe('passed');
+ expect(p.prescriptionAllowed).toBe(false);expect(p.sourceReview).toBe('pending');
+ expect(p.weeks.some(w=>w.durationMinutes===null)).toBe(true);
+},60000);
+
+it('rejects an already proved overlap even when a transition duration is unknown',async()=>{
+ const p=await generateAppPlanningV3Proposal(await shared('Semi',8,6),ATHLETE);
+ const original=p.weeks[0].days.flatMap(d=>d.sessions).find(s=>s.durationMinutes!==null)!;
+ const first={...original,sport:'brick',durationMinutes:null};
+ const second={...original,sport:'strength'};
+ p.weeks=[{...p.weeks[0],days:[{day:'Lundi',rest:false,sessions:[first,second]}]}];
+ const clock={timeZone:'Europe/Brussels',minutesBySport:{brick:[480,null,null,null,null,null,null],strength:[480,null,null,null,null,null,null]}};
+ expect(auditV3ProposalRecovery(p,'2026-11-02',clock).find(c=>c.code==='same_day_overlap')?.status).toBe('blocked');
 });

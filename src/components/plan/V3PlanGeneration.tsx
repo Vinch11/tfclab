@@ -19,6 +19,12 @@ function blocksText(blocks:readonly V3Block[],level=0):string {
     return `${prefix}${b.label} : ${dose}${domain}${reps}${rpe}`;
   }).join('\n');
 }
+const CHECK_LABELS:Record<string,string>={source_recovery:'Récupération entre séances',same_day_overlap:'Horaires et chevauchements',weekly_minutes:'Volume hebdomadaire',structured_polarization:'Répartition des intensités',source_quality:'Séances de qualité',configured_dose_integrity:'Cohérence des doses V3',sport_minute_ratios:'Proportions des disciplines',weekly_focus_unmatched:'Couverture des limiteurs',individual_targets:'Repères individuels',sporting_review:'Revue du plan'};
+function ReviewChecks({checks}:{checks:V3PlanProposal['checks']}){
+  const groups=new Map<string,V3PlanProposal['checks']>();
+  for(const check of checks)if(check.status!=='passed')groups.set(check.code,[...(groups.get(check.code)??[]),check]);
+  return <details><summary>Contrôles et points à revoir · {groups.size} thèmes</summary><div className="space-y-2 mt-2">{[...groups].map(([code,items])=><details key={code}><summary className={items.some(c=>c.status==='blocked')?'text-destructive':undefined}>{CHECK_LABELS[code]??code} · {items.length} point{items.length>1?'s':''}</summary><ul className="list-disc pl-5">{items.map((check,i)=><li key={i} className={check.status==='blocked'?'text-destructive':undefined}>{check.week?`S${check.week} : `:''}{check.message}</li>)}</ul></details>)}</div></details>;
+}
 function Workout({part}:{part:ProposedV3Workout}){
   return <article className="space-y-2 rounded border p-3">
     <h5 className="font-medium">{part.title}</h5>
@@ -55,7 +61,8 @@ export function V3PlanGeneration({app,athleteId,coachId,guard,options}:{app:Froz
         <p>Limiteurs : {plan.limiterOrder.map(raw=>LIMITER_LABELS[raw]??raw).join(' → ')}</p>
         {!!plan.eventCalendar?.length&&<details><summary>Épreuves du calendrier</summary><ul>{plan.eventCalendar.map((event,i)=><li key={i}>{event.raceDate??'Date à préciser'} · {event.raceName||event.objective} · priorité {event.priority}</li>)}</ul></details>}
         <p role="status">Proposition de séances non approuvée pour utilisation. Les durées inconnues et les contrôles sportifs encore nécessaires restent indiqués ; aucune revue n’est préremplie.</p>
-        <details><summary>Contrôles et points à revoir</summary><ul className="list-disc pl-5">{plan.checks.filter(c=>c.status==='pending').map((check,i)=><li key={i}>{check.week?`S${check.week} : `:''}{check.message}</li>)}</ul></details>
+        {plan.checks.some(c=>c.status==='blocked')&&<p role="alert" className="text-destructive">Des contrôles sportifs bloquent ce plan. Les écarts doivent être corrigés avant utilisation.</p>}
+        <ReviewChecks checks={plan.checks}/>
         {plan.weeks.map(week=><details key={week.week} open={week.week===1} className="rounded border p-3"><summary className="font-medium cursor-pointer">Semaine {week.week} · {week.phase} · {week.focus?`focus ${LIMITER_LABELS[week.focus]??week.focus}`:'maintien / intégration'} · {week.durationMinutes===null?`${number(week.knownMinutes)} min calculées, total incomplet`:duration(week.durationMinutes*60)}</summary>
           <div className="grid gap-3 sm:grid-cols-2 mt-3">{week.days.map(day=><section key={day.day} className="rounded border p-3 space-y-2"><h4 className="font-semibold capitalize">{day.day}</h4>{day.rest&&<p>Repos prévu</p>}{day.sessions.map((session,i)=><div key={i} className="space-y-2"><p className="font-medium">{SPORTS[session.sport]??session.sport}{session.role==='race'?' · Épreuve déclarée':''}</p>{session.sport==='brick'&&<p className="text-xs">Composition proposée vélo puis course ; transition et récupération à confirmer.</p>}{session.components.map(part=><Workout key={part.sourceId} part={part}/>)}</div>)}</section>)}</div>
         </details>)}

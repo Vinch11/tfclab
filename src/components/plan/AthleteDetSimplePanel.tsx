@@ -26,7 +26,7 @@ import { ATHLETE_LEVEL_LABELS, LIMITER_LABELS, SWIM_DOMAIN_LABELS, hashCoachInpu
 import type { CoachDetOutcome } from "@/lib/det/coachDetRun";
 import { runAppPlanningDetPlan } from "@/lib/det/appPlanningDetRun";
 import {
-  CONDITIONAL_CONFIRMATIONS, GENERAL_CONFIRMATIONS, athleteChecklist, explainEngineRefusal, buildAthleteDetInputs, clockSportsFor, prefillFromRecord, requiredAnchorKeys,
+  CONDITIONAL_CONFIRMATIONS, GENERAL_CONFIRMATIONS, athleteChecklist, explainEngineRefusal, buildAthleteDetInputs, readEnteredCoachClock, clockSportsFor, prefillFromRecord, requiredAnchorKeys,
   type AthleteRecordView, type CoachAnswers, type FieldKey, type PlanFormView, type GenuineSourceReviews,
 } from "@/lib/det/athleteDetBridge";
 import type { FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
@@ -93,6 +93,7 @@ export function AthleteDetSimplePanel(props: {
   const inherited = useMemo(() => sharedPlanningDetContext(props.record, props.form, props.appInputStatus === "ready" ? props.appInput : null, draft), [props.record, props.form, props.appInput, props.appInputStatus, draft]);
   const a = inherited.answers;
   const planningForm = inherited.form;
+  const proposalClock = useMemo(()=>readEnteredCoachClock(a.clock),[a.clock]);
   const [msg, setMsg] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [libraryProblems, setLibraryProblems] = useState<string[]>([]);
@@ -259,7 +260,7 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm">Cet ordre de priorités guide la sélection des séances. L’objectif précise la préparation ; les horaires, la charge et la récupération encadrent le calendrier.</p>
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
-      <V3PlanGeneration app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} options={{ presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([domain,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[domain,{value:p.value,kind:p.kind}]]:[])) }} />
+      <V3PlanGeneration app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} options={{ clock:proposalClock.clock??undefined,invalidClockSports:proposalClock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([domain,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[domain,{value:p.value,kind:p.kind}]]:[])) }} />
       <details><summary className="cursor-pointer text-sm">Examiner les autres pistes V3</summary><DetPlanningDraft app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} restrictions={{ presentContraindications: a.presentContraindications, unmetPrerequisites: a.unmetPrerequisites, injuryScreen: a.injuryScreen }} /></details>
       <details className="space-y-4" data-testid="det-final-review"><summary className="cursor-pointer text-sm font-medium">Finaliser après revue — paramètres détaillés</summary>
       <DetReadinessSummary missing={bridge.missing} />
