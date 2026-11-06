@@ -1,3 +1,6 @@
+import { resolveDetLimiter } from '../../../../experimental/det-engine/v403-limiter-semantics';
+import { structuredV3ZoneDose } from '../../../../experimental/det-engine/v310-structured-zone-dose';
+import { verifyPrimaryRunningSession } from '../../../../experimental/det-engine/v408-primary-limiter-evidence';
 import {TT_OBJECTIVE,type TimeTrialDeclaration} from '../../../../experimental/det-engine/v410-time-trial-contract';
 import {appPlanningPriorityGaps} from '@/lib/plan/dedicatedSportGoal';
 /**
@@ -91,28 +94,49 @@ async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: st
     limits: /Ironman/.test(objective)?undefined:{ maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
   return { b, out };
 }
-/** Stronger than the timeline: configured V3 MLSS time in every recurring
- * TTE focus block. This is prescription evidence, not measured adaptation. */
-function assertRecurringTtePrescription(plan:import('@/lib/aiPlanParser').ParsedPlan) {
-  const byBlock=new Map<number,typeof plan.weeks>();
+/** Exercise repeated real source prescriptions from the ORIGINAL app priorities.
+ * Rebuild only time blocks from the saved configured structure, never catalogue
+ * default doses; existing V408 rules decide whether the declared focus is met. */
+function assertRecurringRunningPrescription(plan:import('@/lib/aiPlanParser').ParsedPlan,priorities:readonly string[]) {
+  type Node=import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredNode;
+  type Workout=import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredWorkout;
+  type Block=import('../../../../scripts/library-v3/catalogueRuntime').V3Block;
+  function blocks(nodes:readonly Node[]):Block[]|null {
+    const result:Block[]=[];
+    for(const node of nodes){
+      if(node.kind==='repeat'){
+        const steps=blocks(node.steps);if(!steps)return null;
+        result.push({kind:'repeat',label:node.label,count:{min:node.count,base:node.count,max:node.count},betweenSec:node.betweenSec,steps});
+      }else{
+        if(!('seconds' in node.dose))return null;
+        result.push({kind:'time',label:node.label,role:node.role,domain:node.domain as import('@/lib/zones/tfclDoctrine').DoctrineDomainId|null,seconds:{min:node.dose.seconds,base:node.dose.seconds,max:node.dose.seconds}});
+      }
+    }
+    return result;
+  }
+  const byBlock=new Map<number,{focus:string;weeks:typeof plan.weeks}>();
   for(const week of plan.weeks){
     const focus=plan.weeklyQuotas?.[week.weekNumber]?.limiterFocus;
-    if(focus?.mode!=='development'||focus.focus!=='TTE'||focus.block===null)continue;
-    const list=byBlock.get(focus.block)??[];list.push(week);byBlock.set(focus.block,list);
+    if(focus?.mode!=='development'||!focus.focus||focus.block===null)continue;
+    expect(priorities).toContain(focus.focus);
+    const group=byBlock.get(focus.block)??{focus:focus.focus,weeks:[]};group.weeks.push(week);byBlock.set(focus.block,group);
   }
-  expect(byBlock.size).toBeGreaterThanOrEqual(2);
-  const seconds=(nodes:readonly import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredNode[]):number=>
-    nodes.reduce((n,node)=>n+(node.kind==='repeat'?node.count*seconds(node.steps):
-      node.domain==='mlss'&&'seconds' in node.dose?node.dose.seconds:0),0);
-  for(const [block,weeks] of byBlock){
-    const hits=weeks.flatMap(w=>w.sessions).filter(session=>{
-      if(!session.isKeySession||session.isRest||session.sport!=='run'||!session.catalogId)return false;
-      const source=findSource(session.catalogId),workout=(session as typeof session & {detStructuredWorkout?:import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredWorkout}).detStructuredWorkout;
-      return source?.primaryDomain==='mlss'&&source.prescription.physiologicalIntent.limiterKeys.includes('threshold_tolerance')&&
-        workout?.sourceId===session.catalogId&&workout.chosenDurationMin===session.durationMin&&
-        typeof workout.exactSeconds==='number'&&Math.abs(workout.exactSeconds-session.durationMin!*60)<1e-6&&seconds(workout.nodes)>=20*60;
+  for(const priority of priorities)expect([...byBlock.values()].filter(b=>b.focus===priority).length,'recurring focus '+priority).toBeGreaterThanOrEqual(2);
+  for(const [block,group] of byBlock){
+    const resolved=resolveDetLimiter(group.focus);
+    expect(resolved.status).toBe('supported');if(resolved.status!=='supported')continue;
+    const hits=group.weeks.flatMap(w=>w.sessions).filter(session=>{
+      const workout=(session as typeof session&{detStructuredWorkout?:Workout}).detStructuredWorkout;
+      if(!workout||workout.sourceId!==session.catalogId||workout.chosenDurationMin!==session.durationMin||workout.exactSeconds===null||Math.abs(workout.exactSeconds-session.durationMin!*60)>1e-6)return false;
+      const configured=blocks(workout.nodes);if(!configured)return false;
+      const dose=structuredV3ZoneDose({id:workout.sourceId,sport:'run',blocks:configured},{});
+      return verifyPrimaryRunningSession(session,resolved.key,{
+        dose:id=>id===workout.sourceId?dose:null,
+        limiterKeys:id=>findSource(id)?.prescription.physiologicalIntent.limiterKeys,
+        primaryDomain:id=>findSource(id)?.primaryDomain,
+      }).verified;
     });
-    expect(hits.length,'TTE focus block '+block+' has no exact configured threshold session').toBeGreaterThan(0);
+    expect(hits.length,group.focus+' focus block '+block+' has no configured session meeting its existing dose rule').toBeGreaterThan(0);
   }
 }
 
@@ -362,7 +386,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(out.kind).toBe("accepted");
     if (out.kind !== "accepted") throw new Error(JSON.stringify(out.kind === "engine_refused" ? out.blockingIssues : out));
     expect(out.plan.weeks).toHaveLength(30);
-    assertRecurringTtePrescription(out.plan);
+    assertRecurringRunningPrescription(out.plan,out.limiterOrder.applied);
     expect(out.limiterOrder.applied).toEqual(applied);
     expect(p.ctx.diagnostic).toEqual(before);
     expect(out.auditCodes).toContain("det_v358_measured_running_mesocycles_verified");
@@ -430,7 +454,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(p.ctx.diagnostic).toEqual(before);
     if (out.kind !== "accepted") return;
     expect(out.plan.weeks).toHaveLength(40);
-    assertRecurringTtePrescription(out.plan);
+    assertRecurringRunningPrescription(out.plan,out.limiterOrder.applied);
     expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
     expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
     expect(out.auditCodes).toContain("det_v316_strict_periodization_verified");
