@@ -1,3 +1,6 @@
+import { generateAppProfileDetPlan } from "@/lib/det/appProfileDetPlan";
+import { readEnteredCoachClock } from "@/lib/det/athleteDetBridge";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { DetPlanningDraft } from "./DetPlanningDraft";
 import { appRecordReferenceProblems } from "@/lib/det/appRecordReference";
 import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
@@ -82,6 +85,7 @@ export function AthleteDetSimplePanel(props: {
   generationAction?: { current: (()=>Promise<void>) | null };
   onBusyChange?: (busy:boolean)=>void;
   onNeedsAttention?: ()=>void;
+  onProfilePlan?: (plan:ParsedPlan,fp:string)=>Promise<void>;
   onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void | Promise<void>;
   /** Profil de planification figé de la page (même entrée que l'IA). OBLIGATOIRE : aucun recalcul ici. */
   appInput: FrozenAppPlanningInput | null;
@@ -178,6 +182,12 @@ export function AthleteDetSimplePanel(props: {
       if (v.athleteId !== props.record.athleteId || v.userId !== props.record.coachId || app.athleteId !== v.athleteId) { setMsg(["Session ou athlète différent : action annulée."]); return; }
       if(engineAt==='ai'&&isTimeTrial(String(app.config.objective))){setMsg(['Le CLM utilise actuellement le contrat de sources et de position de DET. Aucun appel IA n’est lancé pour ce format.']);return;}
       if (engineAt === "ai") { await props.onAIShared(app); return; }
+      if(props.onProfilePlan){
+        const clock=readEnteredCoachClock(a.clock);
+        const plan=await generateAppProfileDetPlan(app,v.athleteId,{clock:clock.clock??undefined,invalidClockSports:clock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([d,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[d,{value:p.value,kind:p.kind}]]:[]))},props.engineVersion);
+        if(!current())return;
+        await props.onProfilePlan(plan,fpAt);completed=true;return;
+      }
       const b = buildAthleteDetInputs(props.record, planningForm, { ...a,timeTrial:props.appInput?.config.timeTrialContext, coachLimiterOrder: null }, effectiveGenuine, fpAt);
       if (!b.snapshot || !b.ctx) { setMsg(b.sourceReview.status === "blocked_missing_source_review" ? [b.sourceReview.reason] : b.missing.map((m) => `${m.label} : ${m.why}`)); return; }
       const referenceProblems=appRecordReferenceProblems(b.snapshot,app);

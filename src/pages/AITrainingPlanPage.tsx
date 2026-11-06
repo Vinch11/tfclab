@@ -12,7 +12,6 @@ import { buildCoachPlanInputs } from "@/lib/det/coachDetRun";
 import { OBJECTIVE_OPTIONS, computeAppDiagnosticForAthlete, buildAppPlanConfig } from "@/lib/plan/appPlanningPipeline";
 import { buildAthleteRecordView } from "@/lib/det/appRecordView";
 import { explicitCoachLimiterOverride, freezeAppPlanningInput, planningInputFor, type FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
-import { isDetCoachInputsProvenance, isDetPlanProvenance } from "@/lib/plan/planProvenance";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { AppendOnlyPlanVersionSaver, READBACK_COLUMNS } from "@/lib/plan/appendOnlyPlanVersionSave";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
@@ -1530,7 +1529,7 @@ export default function AITrainingPlanPage() {
     if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
     const provenance=(rawParsedPlan as ParsedPlan & {_provenance?:unknown})._provenance;
     // Saved DET prescriptions are verbatim: validation below may flag, never rewrite.
-    if(isDetCoachInputsProvenance(provenance)||isDetPlanProvenance(provenance))return {plan:rawParsedPlan,taperFix:null};
+    if((provenance as {engine?:string}|undefined)?.engine==="det")return {plan:rawParsedPlan,taperFix:null};
 
 
     const clonedPlan: ParsedPlan = {
@@ -2183,6 +2182,8 @@ export default function AITrainingPlanPage() {
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
 
+    const unreviewed=(parsedPlan as ParsedPlan & {_provenance?:{mode?:string}})._provenance?.mode==='app-profile';
+    if(unreviewed){toast.error("Enregistrez cette version dans l’historique pour la relire. L’affectation au calendrier nécessite la finalisation sportive des prescriptions DET.");return;}
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
     // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
@@ -4024,7 +4025,14 @@ export default function AITrainingPlanPage() {
               {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
-                return <details open={detReviewOpen} onToggle={e=>setDetReviewOpen(e.currentTarget.open)} className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel onNeedsAttention={()=>setDetReviewOpen(true)} generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
+                return <details open={detReviewOpen} onToggle={e=>setDetReviewOpen(e.currentTarget.open)} className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel onProfilePlan={async(plan,fp)=>{
+                  const cur=appPlanningRef.current,ep=qaActionEpoch.current;if(!cur||!isLatest(fp))return;
+                  const ins=planningInputFor(cur,"det");const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);
+                  if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante");return;}
+                  const owner=await verifyQaCoach({surface:"planning"});
+                  if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
+                  setPlanOverride(bindAppPlanMetadata(plan,cur));setIsSaved(false);setResponse("");
+                }} onNeedsAttention={()=>setDetReviewOpen(true)} generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
                 onAIShared={async(f)=>{const epoch=qaActionEpoch.current;const current=()=>epoch===qaActionEpoch.current&&isLatest(f.fingerprint);if(!current()){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const ins=planningInputFor(f,"ai");
                   const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}

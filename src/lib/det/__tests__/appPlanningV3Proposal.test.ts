@@ -1,3 +1,6 @@
+import { generateAppProfileDetPlan } from '../appProfileDetPlan';
+import { blocksLegacyNolioExport } from '@/lib/nolio/legacyExportGuard';
+import { readPlanProvenance } from '@/lib/plan/planProvenance';
 import { saveLocalV3Proposal,loadLocalV3Proposal } from '../v3ProposalLocalSave';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { planningInputFor } from '../appPlanningInput';
@@ -146,4 +149,15 @@ it('round-trips full local proposals by owner, detects corruption and reports un
  await expect(loadLocalV3Proposal(store,'COACH_A',ATHLETE)).rejects.toThrow('incohérente');
  await expect(saveLocalV3Proposal({...store,setItem:()=>{throw Error('quota');}},'COACH_A',ATHLETE,p,'context')).rejects.toThrow('quota');
  await expect(saveLocalV3Proposal(store,'COACH_A','OTHER',p,'context')).rejects.toThrow('incompatible');
+});
+
+it('generates the common plan without human confirmations or absent swim paces, preserving blocks and export restrictions',async()=>{
+ const app=await shared('Ironman 70.3',12,10);
+ const p=await generateAppProfileDetPlan(app,ATHLETE,{},'test-engine');
+ expect(p.weeks).toHaveLength(12);expect(p.weeks.every(w=>w.sessions.length>0)).toBe(true);
+ expect(readPlanProvenance(p).engine).toBe('det');expect(blocksLegacyNolioExport(p)).toBe(true);
+ const saved=JSON.parse(JSON.stringify(p));expect(saved).toEqual(p);
+ expect(saved._provenance.prescriptionAllowed).toBe(false);
+ expect(saved._detSourceProposal.limiterOrder).toEqual(app.limiters.applied);
+ expect(saved._detSourceProposal.weeks[0].days.some((d:{sessions:{components:unknown[]}[]})=>d.sessions.some(s=>s.components.length>0))).toBe(true);
 });
