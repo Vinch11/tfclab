@@ -1,3 +1,5 @@
+import { appProfileDetArchiveSummary } from '../appProfileDetArchive';
+import { AppendOnlyPlanVersionSaver } from '@/lib/plan/appendOnlyPlanVersionSave';
 import { generateAppProfileDetPlan } from '../appProfileDetPlan';
 import { blocksLegacyNolioExport } from '@/lib/nolio/legacyExportGuard';
 import { readPlanProvenance } from '@/lib/plan/planProvenance';
@@ -160,4 +162,19 @@ it('generates the common plan without human confirmations or absent swim paces, 
  expect(saved._provenance.prescriptionAllowed).toBe(false);
  expect(saved._detSourceProposal.limiterOrder).toEqual(app.limiters.applied);
  expect(saved._detSourceProposal.weeks[0].days.some((d:{sessions:{components:unknown[]}[]})=>d.sessions.some(s=>s.components.length>0))).toBe(true);
+});
+
+it('archives and reopens the common partial-data plan through the existing append-only saver without granting approval',async()=>{
+ const app=await shared('Ironman 70.3',12,10),plan=await generateAppProfileDetPlan(app,ATHLETE,{},'test-engine');
+ expect(()=>appProfileDetArchiveSummary(plan,'OTHER')).toThrow('Athlète');
+ const summary=appProfileDetArchiveSummary(plan,ATHLETE);expect(summary.status).toBe('review_required');
+ const rows=new Map(),saver=new AppendOnlyPlanVersionSaver({transport:{insert:async row=>{rows.set(row.id,structuredClone(row));return {error:null};},readById:async id=>({data:rows.get(id)??null,error:null})}});
+ const payload={athlete_id:ATHLETE,coach_id:'SYNTH_COACH',plan_json:plan,objective:'Ironman 70.3',weeks_count:12,sessions_count:plan.weeks.flatMap(w=>w.sessions).filter(s=>!s.isRest).length,validator_score:null,validator_grade:null,validator_summary:summary};
+ const saved=await saver.save(payload);expect(saved.status).toBe('CONFIRMED');
+ expect((await saver.save(payload)).attemptId).toBe(saved.attemptId);expect(rows.size).toBe(1);
+ const reopened=rows.get(saved.attemptId).plan_json;expect(reopened.weeks).toEqual(JSON.parse(JSON.stringify(plan.weeks)));
+ expect(readPlanProvenance(reopened).engine).toBe('det');expect(blocksLegacyNolioExport(reopened)).toBe(true);
+ expect(appProfileDetArchiveSummary(reopened).prescriptionAllowed).toBe(false);
+ const changed=structuredClone(reopened);changed._provenance.prescriptionAllowed=true;expect(()=>appProfileDetArchiveSummary(changed)).toThrow('Provenance');
+ changed._provenance.prescriptionAllowed=false;changed._provenance.planningInput.fingerprint='other';expect(()=>appProfileDetArchiveSummary(changed)).toThrow('divergent');
 });

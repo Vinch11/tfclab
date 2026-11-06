@@ -32,3 +32,6 @@ export async function loadLocalV3Proposal(store:ProposalStore,coachId:string,ath
  if(record.coachId!==coachId||record.athleteId!==athleteId||record.plan.athleteId!==athleteId||await sha256Hex(canonicalJson(record.plan))!==record.hash)throw Error('Proposition locale incohérente : chargement refusé.');
  return {...record,plan:record.plan as unknown as V3PlanProposal};
 }
+
+/** Structural validation for the common review archive; no device write or approval. */
+export function parseV3PlanProposal(value:unknown):V3PlanProposal { return schema.parse(value) as unknown as V3PlanProposal; }

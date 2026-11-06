@@ -1,3 +1,4 @@
+import { appProfileDetArchiveSummary } from "@/lib/det/appProfileDetArchive";
 import { decodePlanningFormDraft, planningDraftStorage, planningDraftKey, readPlanningDraft, writePlanningDraft, type DraftStatus, type PlanningFormDraft } from "@/lib/plan/planningFormDraft";
 import {TimeTrialEvidenceForm} from '@/components/plan/TimeTrialEvidenceForm';
 import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
@@ -2183,7 +2184,11 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
 
     const unreviewed=(parsedPlan as ParsedPlan & {_provenance?:{mode?:string}})._provenance?.mode==='app-profile';
-    if(unreviewed){toast.error("Enregistrez cette version dans l’historique pour la relire. L’affectation au calendrier nécessite la finalisation sportive des prescriptions DET.");return;}
+    if(unreviewed){
+      try {const summary=appProfileDetArchiveSummary(parsedPlan,currentAthlete.id);await persistPlanVersion(null,null,summary,0);}
+      catch(error){toast.error(error instanceof Error?error.message:"Version DET non enregistrée.");}
+      return;
+    }
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
     // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
