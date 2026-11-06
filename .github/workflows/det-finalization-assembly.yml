@@ -1,0 +1,23 @@
+name: DET finalization assembly checks
+on:
+  pull_request:
+    branches:
+      - fix/det-minimal-integration-20261104
+jobs:
+  assembly-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Generate source declaration in runner (not a deployment attestation)
+        run: |
+          node scripts/preproduction/plan-release-source.mjs --write
+          node -e "console.log('SOURCE_DECLARATION_JSON '+JSON.stringify(require('fs').readFileSync('supabase/functions/_shared/planReleaseManifest.ts','utf8')))"
+      - name: Application typecheck
+        run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Actual assembler and existing app pipeline regressions
+        run: bunx vitest run src/lib/det/__tests__/nativePlanningDraft.test.ts src/lib/det/__tests__/appPlanningIntegration.test.ts --maxWorkers=1

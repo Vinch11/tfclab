@@ -187,6 +187,9 @@ export interface ExperimentalAssemblyContract {
   filterDeclaredSprintBanCandidates?:true;
   /** Opt-in hard condition: a non-finisher load week must select a real A/B quality stimulus. */
   requireRealQualityOnLoadWeeks?:true;
+  /** Native catalogue only: infer key status from the existing source intensity,
+   * including activation slots. No source dose or placement is changed. */
+  classifyNativeSourceKeySessions?:true;
   /** V322 isolated: enforce native non-deload/non-race A/B category presence
    * in candidate selection even during the peak/taper phase, not just LOAD.
    * Requires genuine Z4+ source on an existing key slot; no invented dose. */
@@ -1040,7 +1043,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
         experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true)&&
         entry.weekType==='load'&&!layout.days.some(day=>day.slots.some(slot=>slot.isRaceEvent));
       const qualityRequired=((sourceQualityOnLoad||nativeLorangWeekQuality) &&
-        config.ambition!=='finisher'&&(triGoal||experimentalContract?.requireReviewedEnduranceKeyQualityOnLoadWeeks===true))||runningQualityRequired;
+        config.ambition!=='finisher')||runningQualityRequired;
       const runningQualityCache=new WeakMap<ParsedSession,boolean>();
       const isQuality=(session:ParsedSession)=>{
         if(runningQualityRequired){
@@ -1079,7 +1082,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
           return verifyReviewedTaperKeyStimulus(session,card,
             experimentalContract.sourceFullStructuredDoseForId).verified;
         }
-        return !!session.isKeySession&&
+        return (!!session.isKeySession||experimentalContract?.classifyNativeSourceKeySessions===true)&&
           session.zones?.some(zone=>/z\s*[4-7]/i.test(zone))===true;
       };
       // V343: prioritize truly verified intensity on existing key slots.
@@ -1632,6 +1635,7 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
             })});
         }
       }
+      if(experimentalContract?.classifyNativeSourceKeySessions===true) for(const session of chosen) if(isQuality(session)) session.isKeySession=true;
       chosen.sort((a,b)=>a.dayIndex-b.dayIndex);
       if(durabilityPreferenceEnabled&&w.weekType==='load'){
         const covered=chosen.filter(isCertifiedDurabilityKey);
