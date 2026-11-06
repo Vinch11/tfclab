@@ -40,6 +40,23 @@ function affinity(source: V3Workout, key: DetLimiterKey | null): boolean {
 }
 
 export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string }
+/** Shared negative restrictions for the study and the proposed V3 assembly.
+ * Absence of a restriction never creates a positive athlete clearance. */
+export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAppPlanningInput['config'],'prohibitions'|'injuryRisk'>, restrictions: DraftRestrictions): V3Workout[] {
+  const banned = resolveProhibitionKeys(config.prohibitions).map(key => ({key,pattern:PROHIBITION_SESSION_PATTERNS[key]})).filter(row=>!!row.pattern);
+  return sources.filter(source => {
+    if (restrictions.injuryScreen === 'contraindication') return false;
+    if (source.prerequisites.some(key => restrictions.unmetPrerequisites?.includes(key)) || source.contraindications.some(key => restrictions.presentContraindications?.includes(key))) return false;
+    const risk = source.sport === 'run' ? config.injuryRisk?.run?.level : source.sport === 'bike' ? config.injuryRisk?.bike?.level : null;
+    if (risk === 'ELEVE' || risk === 'CRITIQUE') return false;
+    return !banned.some(({key,pattern}) => {
+      // The historical VO2 regex also matches the ordinary word "répétitions".
+      // V3 has explicit domains: strength repetitions are not a VO2 block.
+      if(key==='vo2_heavy_blocks'&&!source.prescription.physiologicalIntent.domainIds.includes('vo2max'))return false;
+      return pattern.test(`${source.id} ${source.title} ${source.focus} ${source.methodology} ${JSON.stringify(source.blocks)}`);
+    });
+  });
+}
 export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expectedAthleteId: string, restrictions: DraftRestrictions = {}): Promise<AppPlanningDetDraft> {
   if (app.athleteId !== expectedAthleteId || app.source !== 'app_planning_pipeline') throw Error('Profil partagé absent ou différent de cet athlète.');
   if (await planningFingerprint(app.athlete, app.config) !== app.fingerprint) throw Error('Profil partagé modifié : rechargez avant de préparer le brouillon.');
@@ -56,14 +73,7 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   const pool = familySourcePool(family.key);
   const poolProblems = await poolLibraryProblems(pool);
   if (poolProblems.length) throw Error(poolProblems.join(' '));
-  const bannedPatterns = resolveProhibitionKeys(config.prohibitions).map(key => PROHIBITION_SESSION_PATTERNS[key]).filter(Boolean);
-  const sources = pool.ids.map(findSource).filter((source): source is V3Workout => !!source).filter(source => {
-    if (restrictions.injuryScreen === 'contraindication') return false;
-    if (source.prerequisites.some(key => restrictions.unmetPrerequisites?.includes(key)) || source.contraindications.some(key => restrictions.presentContraindications?.includes(key))) return false;
-    const risk = source.sport === 'run' ? config.injuryRisk?.run?.level : source.sport === 'bike' ? config.injuryRisk?.bike?.level : null;
-    if (risk === 'ELEVE' || risk === 'CRITIQUE') return false;
-    return !bannedPatterns.some(pattern => pattern.test(`${source.id} ${source.title} ${source.focus} ${source.methodology} ${JSON.stringify(source.blocks)}`));
-  });
+  const sources = filterDraftV3Sources(pool.ids.map(findSource).filter((source): source is V3Workout => !!source), config, restrictions);
   const weeks: AppPlanningDetDraft['weeks'] = [];
   const pending = new Set<string>([
     'Sélection définitive et dose des séances à revoir ; les fiches ci-dessous sont des candidates, sans approbation créée.',
