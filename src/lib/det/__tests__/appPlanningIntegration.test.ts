@@ -107,10 +107,10 @@ function assertRecurringTtePrescription(plan:import('@/lib/aiPlanParser').Parsed
   for(const [block,weeks] of byBlock){
     const hits=weeks.flatMap(w=>w.sessions).filter(session=>{
       if(!session.isKeySession||session.isRest||session.sport!=='run'||!session.catalogId)return false;
-      const source=findSource(session.catalogId),workout=session.detStructuredWorkout;
+      const source=findSource(session.catalogId),workout=(session as typeof session & {detStructuredWorkout?:import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredWorkout}).detStructuredWorkout;
       return source?.primaryDomain==='mlss'&&source.prescription.physiologicalIntent.limiterKeys.includes('threshold_tolerance')&&
         workout?.sourceId===session.catalogId&&workout.chosenDurationMin===session.durationMin&&
-        workout.exactSeconds===session.durationMin!*60&&seconds(workout.nodes)>=20*60;
+        typeof workout.exactSeconds==='number'&&Math.abs(workout.exactSeconds-session.durationMin!*60)<1e-6&&seconds(workout.nodes)>=20*60;
     });
     expect(hits.length,'TTE focus block '+block+' has no exact configured threshold session').toBeGreaterThan(0);
   }
