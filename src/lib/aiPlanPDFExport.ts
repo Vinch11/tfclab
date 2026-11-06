@@ -1,3 +1,4 @@
+import {coachDuration} from '@/lib/plan/coachPrescriptionText';
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
@@ -339,7 +340,7 @@ function getSportBadgeStyle(sport: string): { bg: string; color: string; border:
 
 function getSportBadge(sport: string): string {
   const style = getSportBadgeStyle(sport);
-  return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${sport}</span>`;
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${escapeHTML(({run:'Course à pied',bike:'Vélo',swim:'Natation',strength:'Renforcement',brick:'Enchaînement vélo-course'} as Record<string,string>)[sport]??sport)}</span>`;
 }
 
 export type PlanPDFOrientation = "landscape" | "portrait";
@@ -477,7 +478,7 @@ export function buildPlanHTML(
       const fiche = (isCompact || s.isRest) ? null : getFicheForSession(s, gapContext?.objective, gapContext?.wbalRefs);
       // Dose chiffrée déjà connue : affichée telle quelle, jamais inférée.
       const durationHTML = !s.isRest && typeof s.durationMin === "number" && Number.isFinite(s.durationMin) && s.durationMin > 0
-        ? `<div class="session-duration" data-src="duration" style="font-weight:600;color:#14131A;margin-bottom:4px;">Durée : ${s.durationMin} min</div>`
+        ? `<div class="session-duration" data-src="duration" style="font-weight:600;color:#14131A;margin-bottom:4px;">Durée : ${escapeHTML(coachDuration(s.durationMin))}</div>`
         : "";
 
       const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });

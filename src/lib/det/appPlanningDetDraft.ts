@@ -27,6 +27,7 @@ export interface AppPlanningDetDraft {
     days: Array<{ day: string; rest: boolean; slots: Array<{
       sport: string; role: 'race' | 'long' | 'key' | 'support';
       minimumMinutes: number | null;
+      maximumMinutes?: number | null;
       candidates: Array<{ id: string; title: string; intent: string; primaryDomain: string | null; limiterAffinity: boolean; limiterMatches: string[] }>;
     }> }>;
   }>;
@@ -103,7 +104,7 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
         limiterMatches: priorities.filter((_,index) => hits[index]).map(priority => priority.raw),
       }));
       if (!candidates.length && role !== 'race') pending.add(`S${week} ${day.dayName} : séance ${slot.sport} à choisir lors de la revue ; aucune candidate proposée pour ce créneau.`);
-      return { sport: slot.sport, role, minimumMinutes: slot.minDurationMin ?? null, candidates };
+      return { sport: slot.sport, role, minimumMinutes: slot.minDurationMin ?? null, maximumMinutes:slot.maxDurationMin??null, candidates };
     }) }));
     weeks.push({ limiterFocus, week, phase, weekType: quota.weekType, days });
   }

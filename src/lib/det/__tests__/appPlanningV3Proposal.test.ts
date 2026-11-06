@@ -1,3 +1,4 @@
+import {coachDuration,coachTarget} from '@/lib/plan/coachPrescriptionText';
 import {prevalidateTrainingPlan} from '@/lib/plan/prevalidateTrainingPlan';
 import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolioV2/planSessions';
 import {mapPlanToNolioV2,requiredExerciseLabels} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
@@ -210,4 +211,15 @@ it('still refuses a declared triathlon on a banned bike day',async()=>{
  const app=await shared('Ironman 70.3',12,10,undefined,{constraints:'Pas de vélo le dimanche'}),ins=planningInputFor(app,'det');
  const report=prevalidateTrainingPlan(ins.athlete,ins.config).report;
  expect(report.status).toBe('blocked');expect(report.issues.some(i=>i.severity==='blocking'&&i.code==='declared_event_unplaced')).toBe(true);
+});
+
+it('preserves race-week activation ceilings and displays grouped coach-readable prescriptions',async()=>{
+ const app=await shared('Ironman 70.3',12,10),p=await generateAppProfileDetPlan(app,ATHLETE,{},'test-engine');
+ const run=p.weeks.at(-1)!.sessions.filter(s=>s.sport==='run'&&!s.isRest);
+ expect(run.length).toBeGreaterThan(0);expect(run.every(s=>s.durationMin!==undefined&&s.durationMin<=30)).toBe(true);
+ expect(run.some(s=>s.durationMin===157)).toBe(false);
+ expect(p.phases.map(s=>s.weeks)).toEqual(['1-4','5-8','9-10','11-12']);
+ expect(p.weeks.flatMap(w=>w.sessions).some(s=>/sec_per_km|sec_per_100m|coach_verified_rpe_and_load/.test(s.details))).toBe(false);
+ expect(coachDuration(33.266666666666666)).toBe('33 min 16 s');
+ expect(coachTarget({domain:'mlss',metric:'sec_per_km',min:233,max:247.4,source:'athlete_reference_with_doctrine_model',confidence:'model',note:''})).toBe('3′53″ à 4′07,4″ /km');
 });

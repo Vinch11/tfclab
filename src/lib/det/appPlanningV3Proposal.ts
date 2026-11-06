@@ -165,7 +165,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         const hits=row.components.flatMap(c=>c.limiterMatches);
         return (slot.role==='key'||slot.role==='long'?priorities.reduce((n,p,index)=>n+(hits.includes(p.raw)?10/(index+1):0),0)+(week.limiterFocus.focus&&hits.includes(week.limiterFocus.focus)?20:0):0);
       };
-      return rows.filter(row=>proposedRecoveryStatus(row,{week:week.week,dayIndex,sport:slot.sport},allSlots,start)!=='blocked').sort((a,b)=>score(b)-score(a)||
+      return rows.filter(row=>!slot.maximumMinutes||(row.durationMinutes!==null&&row.durationMinutes<=slot.maximumMinutes+1e-7)).filter(row=>proposedRecoveryStatus(row,{week:week.week,dayIndex,sport:slot.sport},allSlots,start)!=='blocked').sort((a,b)=>score(b)-score(a)||
         Number(a.durationMinutes===null)-Number(b.durationMinutes===null)||a.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)-b.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)||
         a.knownMinutes-b.knownMinutes||a.components.map(c=>c.sourceId).join().localeCompare(b.components.map(c=>c.sourceId).join()));
     });
@@ -187,7 +187,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     for(const [index,item] of order.entries())item.domain.sort((a,b)=>
       requiresQuality&&index===0?Number(quality(b))-Number(quality(a))||
         (trajectory?Number(b.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))-Number(a.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))||distance(a,item.index)-distance(b,item.index):0):
-        distance(a,item.index)-distance(b,item.index)||margin(b)-margin(a));
+        distance(a,item.index)-distance(b,item.index)||(week.weekType==='load'?margin(b)-margin(a):a.knownMinutes-b.knownMinutes));
     const selected:ProposedV3Session[]=[];
     const weekSources=new Set<string>();
     const suffix=Array(order.length+1).fill(0) as number[];

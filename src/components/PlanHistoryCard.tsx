@@ -1,3 +1,5 @@
+import {Link} from 'react-router-dom';
+import {QA_PLANNING_ORIGIN} from '@/lib/plan/engineDispatch';
 /**
  * PlanHistoryCard — Affiche l'historique des plans IA sauvegardés pour l'athlète courant.
  * Cliquer sur une version la charge dans la vue (sans toucher au planning).
@@ -206,6 +208,7 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
                     </>
                   ) : (
                     <>
+                      {(import.meta.env.DEV||window.location.origin===QA_PLANNING_ORIGIN)&&v.plan_json?._provenance?.engine&&<Button asChild variant="outline" size="sm"><Link onClick={e=>e.stopPropagation()} to={"/__qa/pilot-review?planVersionId="+encodeURIComponent(v.id)}>Exporter vers Nolio</Link></Button>}
                       <Button
                         variant="ghost"
                         size="icon"

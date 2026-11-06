@@ -1,3 +1,6 @@
+vi.mock('@/components/plan/HumanCoachReview',()=>({HumanCoachReview:()=>null}));
+vi.mock('@/components/plan/NolioMultisportPreparation',()=>({NolioMultisportPreparation:()=>null}));
+vi.mock('@/components/plan/RealVerificationHistory',()=>({RealVerificationHistory:()=>null}));
 /**
  * Vraie page /__qa/pilot-review rendue avec un client Supabase SIMULÉ (aucun réseau, aucune
  * session réelle, aucun appel Nolio). Couvre premier clic (who=null), lien start sans 2e clic,
@@ -18,6 +21,7 @@ const m = vi.hoisted(() => ({
   authCbs: [] as ((ev: string, s: unknown) => void)[],
   sessionDelay: 0, userDelay: 0, athleteDelay: 0,
   receipt: null as unknown,
+  version:null as unknown,
   invoke: null as unknown as import("vitest").Mock<(...a: unknown[]) => unknown>,
 }));
 const later = <T,>(ms: number, v: () => T) => (ms ? new Promise<T>((r) => setTimeout(() => r(v()), ms)) : Promise.resolve(v()));
@@ -30,7 +34,7 @@ vi.mock("@/integrations/supabase/client", () => ({
       onAuthStateChange: (cb: (ev: string, s: unknown) => void) => { m.authCbs.push(cb); return { data: { subscription: { unsubscribe() {} } } }; },
     },
     from: (t: string) => ({ select: () => ({ eq: (_c: string, id: string) => {
-      const q = { eq: () => q, maybeSingle: () => t === "qa_nolio_v2_dry_run_receipts" ? Promise.resolve({ data: m.receipt, error: null }) : later(m.athleteDelay, () => ({ data: { id, coach_id: m.user.id }, error: null })) };
+      const q = { eq: () => q, maybeSingle: () => t === "plan_versions" ? Promise.resolve({data:m.version,error:null}) : t === "qa_nolio_v2_dry_run_receipts" ? Promise.resolve({ data: m.receipt, error: null }) : later(m.athleteDelay, () => ({ data: { id, coach_id: m.user.id }, error: null })) };
       return q; } }) }),
     functions: { invoke: (...a: unknown[]) => m.invoke(...a) },
   },
@@ -192,4 +196,18 @@ describe("PilotReviewPage — Nolio V2 (page réelle, client simulé)", () => {
     expect(screen.getByTestId("stage-simulation").textContent).not.toContain("confirmée par reçu");
     expect(screen.getByTestId("stage-calendar").textContent).toContain("ABSENT");
   });
+});
+
+it('opens the requested owned version for Nolio preparation without invoking a sender',async()=>{
+ const id='11111111-1111-4111-8111-111111111111';
+ m.version={id,plan_json:{title:'VERSION_DEEPLINK',totalWeeks:1,phases:[],weeks:[{weekNumber:1,theme:'Base',phase:'base',sessions:[]}],_planStartDate:'2026-11-02',_provenance:{engine:'det',mode:'app-profile',prescriptionAllowed:false}}};
+ render(<MemoryRouter initialEntries={['/__qa/pilot-review?planVersionId='+id]}><PilotReviewPage/></MemoryRouter>);await flush();await flush();
+ expect(screen.getByText('VERSION_DEEPLINK')).toBeTruthy();
+ expect(m.invoke).not.toHaveBeenCalled();m.version=null;
+});
+
+it('refuses a divergent version response on the Nolio history link',async()=>{
+ m.version={id:'22222222-2222-4222-8222-222222222222',plan_json:{title:'WRONG_VERSION',weeks:[],_provenance:{engine:'det'}}};
+ render(<MemoryRouter initialEntries={['/__qa/pilot-review?planVersionId=11111111-1111-4111-8111-111111111111']}><PilotReviewPage/></MemoryRouter>);await flush();await flush();
+ expect(screen.queryByText('WRONG_VERSION')).toBeNull();expect(screen.getByTestId('pilot-blocked').textContent).toContain('Version absente');expect(m.invoke).not.toHaveBeenCalled();m.version=null;
 });
