@@ -1,0 +1,103 @@
+{
+ "schema": "tfcl-qa-proof-v1",
+ "date": "2026-11-02",
+ "project": "QA c3941303 (non publié)",
+ "session": "Coach B, session légitime injectée ; Coach A indisponible, non retenté",
+ "releaseDeclaration": {
+  "releaseId": "182f26e7a43407e1a8fe4f88027d5c4661cde3b8e28e077fca8596b18e37c11d",
+  "attested": false,
+  "deploymentAttested": false
+ },
+ "1_immutable_edit": {
+  "fix": "Renommer (PlanHistoryCard) n'UPDATE plus plan_versions : nouvelle version via AppendOnlyPlanVersionSaver ; plan_json copié tel quel (provenance/generatedAt stockés conservés) + _label",
+  "browser": {
+   "toast": "Nouvelle version enregistrée (l'ancienne est conservée)",
+   "versions": "6 -> 7",
+   "newId": "9acbf02c-25e9-8ffd-b139-883337b32328",
+   "sourceId": "1e2d1b05-025e-8b01-9067-edeee234575a",
+   "sourceUnchanged": true,
+   "provenanceEqual": true,
+   "newMinusLabelEqualsSource": true
+  },
+  "unitTests": "titre/dose/ordre/engineVersion => nouvel id ; seul generatedAt => même id",
+  "alsoFixed": "refreshPlanAbsoluteValues refuse explicitement un plan à séances detStructuredWorkout (aucune actualisation muette)"
+ },
+ "2_restore_as_current": {
+  "path": "PlanHistoryCard 'Définir comme plan courant' -> archive append-only de l'ancien courant puis upsert plans (PK athlete_id) avec reçu + relecture",
+  "realHttpB": {
+   "nominal_no_previous_current": "Version définie comme plan courant (relue et confirmée).",
+   "failure_before_archive": "Archivage de l'ancien plan courant non confirmé : le plan courant n'a pas été modifié.",
+   "archive_ok_current_refused": "Ancien plan archivé, mais la mise à jour du plan courant a échoué : l'ancien plan courant est conservé.",
+   "current_committed_response_lost": "Version définie comme plan courant (relue et confirmée).",
+   "readback_unavailable": "Ancien plan archivé ; état du plan courant incertain. Rechargez avant de réessayer.",
+   "retry_same_content": "Cette version est déjà le plan courant."
+  },
+  "currentPreservedWhenNotUpdated": true,
+  "archivesDeduplicatedByContent": true
+ },
+ "3_coach_inputs_browser": {
+  "profile": "220 s/km, TTE seul, SYNTHÉTIQUE/non prescriptif/non attesté ; 87 sources qualifiées une par une par clics de recette",
+  "detected": [
+   "Limiteurs détectés (ordre automatique) : Durabilité au seuil (TTE)"
+  ],
+  "review": [
+   "Revue enregistrée (nouvelle ligne). 87 source(s) qualifiée(s) pour cet athlète — ce n'est pas une approbation du plan."
+  ],
+  "reviewId": "027c94b7-1968-4999-b49e-f888982e4f3f",
+  "generate": [
+   "Plan DET généré depuis les entrées coach (75 séances), NON PRESCRIPTIF.\nPriorité coach : Durabilité au seuil (TTE)"
+  ],
+  "save": "CONFIRMED — Version enregistrée et relue à l'identique. (readback_match_after_ok)",
+  "versionId": "042b1ca6-0c4c-85d8-9288-21cab56099a9",
+  "sessionsWithCoachStart": 75,
+  "stale": {
+   "order_mode_changed": [
+    "profil/ancres modifiés depuis la revue : revue périmée, à reconfirmer"
+   ],
+   "anchor_220_to_221": [
+    "profil/ancres modifiés depuis la revue : revue périmée, à reconfirmer"
+   ],
+   "back_to_reviewed": [
+    "Plan DET généré depuis les entrées coach (75 séances), NON PRESCRIPTIF.\nPriorité coach : Durabilité au seuil (TTE)"
+   ]
+  },
+  "limits": [
+   "un seul limiteur détecté (TTE) : un réordonnancement à 2+ limiteurs n'est pas exercé en navigateur (couvert par tests)",
+   "profil 240 s/km : refus Lorang vérifié par tests, non rejoué en navigateur",
+   "aucune revue sportive humaine"
+  ]
+ },
+ "4_patch_B_to_A_plan": {
+  "request": "PATCH plans?athlete_id=eq.<A> body {athlete_id:<même valeur>} Prefer return=representation, JWT B",
+  "http": 200,
+  "rows": 0,
+  "A_plan_md5_before_after": "34230fb711707b19d9766814105f0a33 / identique",
+  "A_versions_md5": "543e381a32500dfcf59bc1e384d3e752 / identique (4 lignes)"
+ },
+ "5_close_reopen": {
+  "method": "profil Chromium persistant fermé puis relancé, aucune réinjection",
+  "sessionKind": "same_session_no_refresh",
+  "getUser": {
+   "status": 200,
+   "isB": true
+  },
+  "reopenViewer": {
+   "coachPriority": true,
+   "engineLabel": true,
+   "nonPrescriptive": true
+  },
+  "restoreCoachVersionAsCurrent": "plans B = contenu exact de 042b1ca6 (md5 égal, provenance coach-inputs, ordre coach, engineVersion égale)",
+  "toastCaptured": false
+ },
+ "data": {
+  "coachA": "4 versions + 1 plan inchangés",
+  "coachB_versions": 10,
+  "coachB_current": 1,
+  "deleted": 0
+ },
+ "notDone": [
+  "usePlanAdaptation.archive garde un id aléatoire (insert + reçu, pas d'UPDATE) — non migré vers l'identité déterministe",
+  "Nolio authentifié",
+  "Coach A en écriture"
+ ]
+}

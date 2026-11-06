@@ -1,0 +1,75 @@
+{
+  "date": "2026-11-03",
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1 (QA, non publié)",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "sources": {
+    "contract": "docs/qa/nolio-v2/read-contract-2026-11-02.json (info.description, securitySchemes.oauth2)",
+    "openapiPublic": "https://www.nolio.io/api/v2/openapi.json lu 2026-11-03, sha256 64e5307d69e440e289f2ce5373ff4180d4396c14479378b6ea91b3285fd8b5a1 : schémas App (type personal|multi_user|team, scopes), Me (id), MeAthleteList (data[{id,name,has_api_access}], has_more, starting_after)",
+    "tokenEndpoint": "aucun schéma publié : seuls access_token/token_type/expires_in/refresh_token/scope lus ; expires_in absent ⇒ 24 h documentées, signalé"
+  },
+  "code": {
+    "pure": "supabase/functions/_shared/nolioV2/oauth.ts",
+    "store": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+    "edgeStartStatusSelect": "supabase/functions/nolio-v2-oauth/index.ts (getClaims → coach QA A/B → athlète possédé via client appelant → service-role)",
+    "edgeCallback": "supabase/functions/nolio-v2-oauth-callback/index.ts (sans JWT ; state 256 bits, digest SHA-256, TTL 10 min, consommation unique atomique UPDATE…consumed_at IS NULL AND expires_at>now)",
+    "ui": "src/pages/__qa/PilotReviewPage.tsx carte « Connexion Nolio V2 (QA) » (clic délibéré seulement)",
+    "migration": "drizzle/migrations/0010_nolio_v2_oauth_qa.sql : nolio_v2_oauth_states, nolio_v2_oauth_grants ; REVOKE ALL PUBLIC/anon/authenticated, service_role seul, RLS sans policy",
+    "tests": "src/lib/nolio/__tests__/nolioV2OAuth.test.ts (13)"
+  },
+  "callbackUrl": "https://lkjesdacgpolrwfxulbo.supabase.co/functions/v1/nolio-v2-oauth-callback",
+  "returnRoute": "https://id-preview--c3941303-40d2-447e-9b87-867d82727fd1.lovable.app/__qa/pilot-review?nolio_v2=<code énuméré>",
+  "secrets": {
+    "NOLIO_V2_CLIENT_ID": "à ajouter par l'utilisateur dans Paramètres du projet → Secrets",
+    "NOLIO_V2_CLIENT_SECRET": "idem ; jamais V1, jamais frontend/logs/chat",
+    "inspectedBySAgent": false
+  },
+  "nolioAppReadiness": [
+    "NOUVELLE application V2 partenaire (type multi_user) ou équipe ; app V1 refusée (wrong_api_version), app personnelle refusée",
+    "Scopes de l'app incluant planned:read et planned:write",
+    "Callback ci-dessus enregistré dans l'app Nolio",
+    "Partenaire : demande de mode développement (≤5 comptes) acceptée par Nolio"
+  ],
+  "flow": [
+    "Clic « Démarrer » → state+PKCE S256 stockés (digest) → navigation vers /api/authorize/",
+    "Callback : échange de code serveur → GET /api/v2/app/ (type, scopes) → /api/v2/me/ → /api/v2/me/athletes/ paginé → grant pending_athlete_selection",
+    "Clic « Associer » : athlète usr_ choisi parmi la liste vérifiée, has_api_access=true, consentement coché, CAS → pending_refs",
+    "Jamais de ligne nolio_v2_connections : refs sports spt_ non confirmées ⇒ expéditeur reste BLOCKED"
+  ],
+  "deferred": [
+    "Rafraîchissement du jeton (refresh_token stocké, non utilisé) : reconnexion après 24 h",
+    "Confirmation des sports spt_… et promotion vers nolio_v2_connections active",
+    "dry_run serveur / envoi"
+  ],
+  "liveChecks": {
+    "callbackBogusState": "303 → ?nolio_v2=state_invalid_or_replayed",
+    "callbackNoState+evilNext": "303 → ?nolio_v2=invalid_request (route fixe)",
+    "startWithoutJwt": "401 unauthorized",
+    "privileges": "anon/authenticated : aucun droit sur les 2 tables OAuth",
+    "counts": "nolio_v2_connections 0, grants 0, states 0",
+    "signedOutBrowser": "2 boutons inactifs, 0 appel de fonction"
+  },
+  "tests": "123/123 (Nolio + revue) ; tsgo OK ; lint 0 erreur",
+  "denoCheck": "deno présent mais plante (panique Rust, comme précédemment) : sources conservées pour CI indépendante",
+  "releaseId": "98270a6fc584c6f1b479c1984de54490432d8822b8c6d3b3e9cced76b953c5bb (non attesté)",
+  "reviewAndGrantFixesIncluded": [
+    "0008 liaison version/athlète qualifiée",
+    "0009 droits rapports SELECT/INSERT authenticated seulement",
+    "nolioOfflinePreview = sessionsFromPlanJson",
+    "avis lié à la provenance du plan",
+    "libellés FR, structure exacte, relecture complète"
+  ],
+  "unexercised": [
+    "Aucune requête Nolio authentifiée, aucune navigation authorize, aucun échange de jeton réel",
+    "Flux A/B authentifié de la carte non exercé par l'agent",
+    "Pilote reste désactivé ; aucune revue sportive"
+  ],
+  "independentDenoCheck": {
+    "runId": 41619663409,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41619663409",
+    "conclusion": "success",
+    "snapshotCommit": "87b11fcc39e4b1f25b178f48c030731c88f133b4",
+    "sourceCommit": "5e87411535aa028e609a10194d4edfcfb41c0cfb",
+    "files": 13,
+    "method": "Exact raw files read at immutable Lovable ref; Deno check only in isolated read-only CI, no execution/deployment or Nolio call"
+  }
+}

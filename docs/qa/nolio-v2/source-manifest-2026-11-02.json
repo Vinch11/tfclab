@@ -1,0 +1,37 @@
+{
+  "retrievedAt": "2026-11-02T16:01:56.280117+00:00",
+  "authenticatedRequests": false,
+  "nolioAccountAccessed": false,
+  "nolioWrites": 0,
+  "openapiVersion": "3.1.0",
+  "sources": [
+    {
+      "file": "openapi.json",
+      "url": "https://www.nolio.io/api/v2/openapi.json",
+      "bytes": 6867873,
+      "sha256": "bc43cbcd9298e6190237680024c4d969654e47b60bd646cf45d6d02b9b4a1965"
+    },
+    {
+      "file": "migration-v1-to-v2.md",
+      "url": "https://media.cdn.nolio.io/api/migration-v1-to-v2.md",
+      "bytes": 46677,
+      "sha256": "7dcea57aebae5da3bd1aef0aa59028d33a2ebf69e1c36656d7b2b9f5aaa7a48d"
+    }
+  ],
+  "apiVersion": "2.0.0",
+  "workflowRunId": 41477388821,
+  "artifactId": 13156674594,
+  "pathCount": 181,
+  "operationCount": 301,
+  "workoutSchemaCount": 21,
+  "retainedSchemaCount": 38,
+  "subsetFile": "planning-contract-2026-11-02.json",
+  "subsetSha256": "b9e13127dd9e61ef91d871dfd1f12cd844c112dc0a6102f3aa09fae117cf033a",
+  "excluded": [
+    "descriptions",
+    "summaries",
+    "examples"
+  ],
+  "notAProofOfNolioServerValidation": true,
+  "propertyNamesPreserved": true
+}
