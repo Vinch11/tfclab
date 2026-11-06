@@ -31,7 +31,7 @@ import { realSendGate, sendPreview, PLAN_SEND_BATCH, type DryJob, type DryReceip
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ALLOWED = new Set(["planVersionId", "action", "expected", "consent", "fromIndex"]);
+const ALLOWED = new Set(["planVersionId", "action", "expected", "consent", "fromIndex", "scope"]);
 const SIM_JOBS = "qa_nolio_v2_plan_dry_run_jobs";
 const SIM_RECEIPTS = "qa_nolio_v2_plan_dry_run_receipts";
 
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
   if (!loaded.ok) return json(200, { status: "BLOCKED", reason: loaded.reason, network: "none", gate: [] });
   const conn = loaded.value;
   const planJson = pv.plan_json as Record<string, unknown> | null;
-  const prepared = await preparePlan(planJson, conn.refs, pv.id);
+  const prepared = await preparePlan(planJson, conn.refs, pv.id,b.scope);
 
   // Preuve de simulation : job du MÊME plan + empreintes ; reçus relus (service-role, coach lié).
   let job: DryJob = null, receipts: DryReceipt[] = [];
@@ -96,7 +96,8 @@ Deno.serve(async (req) => {
     }
   }
   const reviewRead = await admin.from("qa_plan_coach_reviews").select("*").eq("coach_id",sub).eq("plan_version_id",pv.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
-  const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:prepared.planSha256,refsSha256:prepared.refsSha256,opsSha256:prepared.opsSha256});
+  const fullReviewPrepared=b.scope===undefined?prepared:await preparePlan(planJson,conn.refs,pv.id);
+  const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:fullReviewPrepared.planSha256,refsSha256:fullReviewPrepared.refsSha256,opsSha256:fullReviewPrepared.opsSha256});
   const gate = await realSendGate({ planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
     consent: b.consent, job, receipts, provenance: planJson?._provenance ?? null, attestation: reviewOk ? {planVersionId:pv.id,planSha256:prepared.planSha256,reviewer:sub} : null });
   if (!reviewOk) gate.push("coach_review_absent_or_stale");

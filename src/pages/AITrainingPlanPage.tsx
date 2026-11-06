@@ -549,6 +549,7 @@ export default function AITrainingPlanPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [savedPlanVersionId,setSavedPlanVersionId]=useState<string|null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   /**
@@ -2160,7 +2161,7 @@ export default function AITrainingPlanPage() {
       // Ne journaliser que statut + code, jamais le plan.
       console.info("[plan_version_save]", result.status, result.reason);
       if (result.status === "CONFIRMED") {
-        if (latestParsedPlanRef.current === planAtStart) setIsSaved(true);
+        if (latestParsedPlanRef.current === planAtStart) {setIsSaved(true);setSavedPlanVersionId(result.attemptId);}
         setHistoryRefreshKey(k => k + 1);
         toast.success("Plan sauvegardé et relu dans l'historique.");
       } else if (result.status === "UNKNOWN") {
@@ -2421,7 +2422,8 @@ export default function AITrainingPlanPage() {
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 
-  const applyLoadedVersion = useCallback((version: { plan_json: any }, startDate: Date) => {
+  const applyLoadedVersion = useCallback((version: { plan_json: any;id?:string }, startDate: Date) => {
+    setSavedPlanVersionId(version.id??null);
     const pj = version.plan_json || {};
     let md: string | null = pj._markdown || null;
     if (!md && Array.isArray(pj.weeks) && pj.weeks.length > 0) {
@@ -4480,6 +4482,7 @@ export default function AITrainingPlanPage() {
                       {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
                         plan={parsedPlan}
+                        savedPlanVersionId={savedPlanVersionId}
                         startDate={planStartDate}
                         raceGoals={[
                           {

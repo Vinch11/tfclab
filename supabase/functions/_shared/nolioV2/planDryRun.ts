@@ -17,6 +17,7 @@
  */
 import { mapPlanToNolioV2, type NolioV2Refs, type V2Operation, requiredExerciseLabels, raceIdentityOf } from "./plannedMapper.ts";
 import { sessionsFromPlanJson } from "./planSessions.ts";
+import {selectExportScope} from './exportScope.ts';
 import { expandReviewedMultisport } from "./multisportSplit.ts";
 import { bodyToSend, operationKey } from "./marker.ts";
 import { canonical, forceDryRun, sha256Hex, DRY_RUN_PATHS, type DryRunCode, type DryRunKind, type DryRunOutcome } from "./dryRun.ts";
@@ -69,10 +70,16 @@ export const manifestOf = (ops: FrozenOp[]): ManifestEntry[] =>
  * planVersionId lie le marqueur d'origine au corps figé : la simulation valide le corps
  * marqué exact (bodySha256 = payloadSha256 du journal d'envoi), jamais un corps voisin.
  */
-export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVersionId: string): Promise<Prepared> {
+export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVersionId: string,scope?:unknown): Promise<Prepared> {
   const raw = sessionsFromPlanJson(planJson);
-  const expanded = await expandReviewedMultisport(raw.sessions, (planJson as Record<string, unknown> | null)?._nolioV2MultisportSplits);
-  const ex = { sessions: expanded.sessions, problems: [...raw.problems, ...expanded.problems] };
+  const selected=selectExportScope(raw.sessions,scope);
+  const choices=(planJson as Record<string, unknown> | null)?._nolioV2MultisportSplits;
+  const fullKeys=new Set(raw.sessions.map(s=>s.sessionKey)),selectedKeys=new Set(selected.sessions.map(s=>s.sessionKey));
+  // A selected parent keeps BOTH linked activities. Choices on other real
+  // parents do not become unknown-parent errors; genuinely invalid keys do.
+  const scopedChoices=scope!==undefined&&choices&&typeof choices==='object'&&!Array.isArray(choices)?Object.fromEntries(Object.entries(choices).filter(([key])=>selectedKeys.has(key)||!fullKeys.has(key))):choices;
+  const expanded = await expandReviewedMultisport(selected.sessions, scopedChoices);
+  const ex = { sessions: expanded.sessions, problems: [...raw.problems,...selected.problems, ...expanded.problems] };
   const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs);
   const refusedBy = new Map<string, string>();
   for (const r of m.refusals) refusedBy.set(r.sessionKey, r.reason);
@@ -105,7 +112,7 @@ export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVers
   const refused = rows.filter((r) => r.status === "refused").length;
   const excludedRest = rows.filter((r) => r.status === "excluded_rest").length;
   const dates = rows.map((r) => r.date).filter((d): d is string => !!d).sort();
-  const weeks = Array.isArray((planJson as { weeks?: unknown[] })?.weeks) ? (planJson as { weeks: unknown[] }).weeks.length : 0;
+  const weeks = new Set(selected.sessions.map(s=>/^S(\d+)-/.exec(s.sessionKey)?.[1]).filter(Boolean)).size;
   const precheck: Precheck = {
     totalSessions: rows.length, operations: ops.length, excludedRest, refused,
     planProblems, rows, missingExercises, missingSports,

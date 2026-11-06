@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 
   let b: Record<string, unknown>;
   try { b = (await req.json()) ?? {}; } catch { return json(400, { status: "BLOCKED", code: "body_not_json" }); }
-  if (Object.keys(b).some((k) => !["planVersionId", "action"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
+  if (Object.keys(b).some((k) => !["planVersionId", "action", "scope"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "BLOCKED", code: "plan_version_id_invalid" });
   if (b.action !== "precheck" && b.action !== "run") return json(400, { status: "BLOCKED", code: "action_unknown" });
   const pv = await userClient.from("plan_versions").select("id,athlete_id,plan_json").eq("id", b.planVersionId).eq("coach_id", sub).maybeSingle();
@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), now: Date.now,
       fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) return json(200, { status: "BLOCKED", code: (loaded as { reason: string }).reason, precheck: null, progress: null });
-  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs, b.planVersionId);
+  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs, b.planVersionId,b.scope);
   const planVersionId = b.planVersionId;
   const store: PlanDryRunStore = {
     async freezeJob(p) {

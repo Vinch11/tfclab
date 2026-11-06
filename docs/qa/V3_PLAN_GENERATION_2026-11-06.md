@@ -70,3 +70,20 @@ The common legacy catalogue validator cannot resolve V3P source IDs. Native sess
 Selection no longer maximizes easy-minute margin before searching: retain limiter focus, cumulative-ratio trajectory, source rotation and shortest bounded dose first. The existing polarization/weekly ceilings/source recovery constraints still reject proven violations. Unknown swim timing remains unknown. This addresses the observed overlong runs; it does not certify complete training quality, minimum weekly volume, missing swim references or complete strength sessions.
 
 Nolio history action is labelled “Préparer l’export Nolio”. Its destination states app-profile plans cannot currently be sent, rather than suggesting the preparation link is a successful export. No sender/provenance/release gates changed and no real send was attempted.
+
+### Complete strength and available-data swimming
+
+Normal app-profile generation now selects supplemental full-session sources rather than single exercise cards. Eight strength sources cover A/B circuits across base/build/peak/taper, each with six named movements, timeboxes, repetition caps, movement/rest windows and RPE instructions. Bodyweight and assistance are explicit, with no invented kilograms/1RM or attested athlete load. Taper uses one easy circuit. The original 800 snapshot and the qualified family pools remain unchanged; these supplemental candidates do not imply scientific or human approval.
+
+Twelve timed swimming sources provide easy technical sessions with warmup, work, recovery, cooldown and qualitative effort cues. Normal mode uses them if recovery/moderate paces are absent; explicit references retain distance-based individual prescriptions. Source-defined duration is exact, but distance and individual LT1/MLSS/pace are not predicted. CSS is never converted. The unreviewed structural preview preserves source-defined RPE and intended domains for these timed swims, with no numerical pace target. The unchanged V2 mapper can represent their RPE instructions. The qualified builder still refuses missing numeric domain targets; preview serialization grants no admission or real-send permission. This is not completion of live Nolio export. Existing brick transition/recovery/time checks and false prescription/release flags remain.
+
+The strength RPE confirmation already entered in the panel is now forwarded, rather than dropped. It does not become a source review or blanket clearance. New bodyweight prescriptions use their own source instructions and need no guessed external load.
+
+
+### Common-viewer Nolio selections
+
+DET now has direct plan/week/session actions in the common viewer, including week ranges and multi-session selection. The old QA history shortcut is removed. The saved version ID comes from exact archive readback or history reopening, not a best-effort search. Every action rereads that owned version, compares its full prescription (only generatedAt and duplicate Markdown excluded), rechecks identity and discards stale responses. No client workout body is accepted. IA keeps its existing actions unchanged.
+
+V2 preparePlan and both dry-run/send endpoints now accept an optional strict scope. Filtering precedes multisport expansion; selecting a brick retains both linked activities. Full plan SHA and version ID remain fixed; scoped operation digests bind simulation receipts, and the same operation retains its durable dedup key across session/week/full-plan sends. The ordinary human review remains bound to the full saved plan. No prescription, review, source or sporting-release gate was removed.
+
+Deployment/validation limitation: the scoped Edge Functions must be active on the connected backend before partial exports can run. Repository and frontend synchronization alone do not prove that deployment or a successful Nolio send. The existing isolated QA sender still unconditionally refuses missing sporting release authority. No actual send or fabricated review was performed.

@@ -88,7 +88,7 @@ const refused = (sourceId: string, reason: string): DetStructureResult => ({ sta
 const finiteBase = (b: { base: number } | undefined) =>
   b && Number.isFinite(b.base) ? b.base : null;
 
-function convert(blocks: readonly V3Block[], targets: readonly V3IntensityTarget[], path: string): DetStructuredNode[] | string {
+function convert(blocks: readonly V3Block[], targets: readonly V3IntensityTarget[], path: string,qualitativeDomains:readonly string[]=[]): DetStructuredNode[] | string {
   const out: DetStructuredNode[] = [];
   for (let i = 0; i < blocks.length; i++) {
     const b = blocks[i]; const p = path ? `${path}.${i}` : String(i);
@@ -96,7 +96,7 @@ function convert(blocks: readonly V3Block[], targets: readonly V3IntensityTarget
       const count = finiteBase(b.count);
       if (count === null || !Number.isSafeInteger(count) || count < 1) return `repeat_count_invalid:${p}`;
       if (!Number.isFinite(b.betweenSec) || b.betweenSec < 0) return `repeat_rest_invalid:${p}`;
-      const steps = convert(b.steps, targets, p);
+      const steps = convert(b.steps, targets, p,qualitativeDomains);
       if (typeof steps === 'string') return steps;
       if (!steps.length) return `repeat_empty:${p}`;
       out.push({ kind: 'repeat', label: b.label, count, betweenSec: b.betweenSec, restAfterLast: false, steps });
@@ -111,9 +111,10 @@ function convert(blocks: readonly V3Block[], targets: readonly V3IntensityTarget
     let target: DetStructuredTarget | null = null;
     if (b.domain !== null) {
       const hits = targets.filter((t) => t.domain === b.domain);
-      if (hits.length !== 1) return `${hits.length ? 'ambiguous' : 'missing'}_target_for_domain:${b.domain}:${p}`;
+      if (hits.length !== 1 && !(hits.length===0&&qualitativeDomains.includes(b.domain)&&b.rpeRange)) return `${hits.length ? 'ambiguous' : 'missing'}_target_for_domain:${b.domain}:${p}`;
       const t = hits[0];
-      target = { metric: t.metric, min: t.min, max: t.max, source: t.source, confidence: t.confidence };
+      if(t)target = { metric: t.metric, min: t.min, max: t.max, source: t.source, confidence: t.confidence };
+      // Explicit source RPE stays in leaf.rpe. No numerical pace or measured threshold is manufactured.
     }
     const leaf: DetStructuredLeaf = { kind: 'step', role: b.role, label: b.label, domain: b.domain, dose, target };
     if (b.repsTarget) { const r = finiteBase(b.repsTarget); if (r === null) return `reps_target_invalid:${p}`; leaf.repsTarget = r; }
@@ -173,11 +174,11 @@ export function buildDetStructuredWorkout(input: {
 /** Exact structural preview for an UNREVIEWED app plan. This is deliberately
  * not a DetStructureResult and cannot claim source admission or plan approval.
  * The reviewed builder above retains its original admission gate. */
-export function previewDetStructuredWorkout(input:{sourceId:string;sport:string;blocks:readonly V3Block[];targets:readonly V3IntensityTarget[];durationMinutes:number|null}):
+export function previewDetStructuredWorkout(input:{sourceId:string;sport:string;blocks:readonly V3Block[];targets:readonly V3IntensityTarget[];durationMinutes:number|null;qualitativeDomains?:readonly string[]}):
  {status:'preview';sourceAdmission:'pending';workout:DetStructuredWorkout}|{status:'refused';reason:string}{
  const d=input.durationMinutes;
  if(d===null||!Number.isFinite(d)||d<=0)return {status:'refused',reason:'configured_duration_unresolved'};
- const nodes=convert(input.blocks,input.targets,'');
+ const nodes=convert(input.blocks,input.targets,'',input.qualitativeDomains);
  if(typeof nodes==='string')return {status:'refused',reason:nodes};
  const seconds=exactSeconds(nodes);
  if(seconds!==null&&Math.abs(seconds-d*60)>1e-6)return {status:'refused',reason:'configured_seconds_mismatch'};

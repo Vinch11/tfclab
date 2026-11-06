@@ -189,7 +189,7 @@ it('preserves exact chosen structures for V2 preparation without admission or an
  const structured=extracted.sessions.filter(s=>!!s.detStructuredWorkout);expect(structured.length).toBeGreaterThan(0);
  expect(structured.every(s=>s.sport===s.detStructuredWorkout!.sport)).toBe(true);
  const refs={synthetic:true,athleteId:'usr_SYNTH1',sportIds:{run:'spt_SYNTHRUN',bike:'spt_SYNTHBIKE',swim:'spt_SYNTHSWIM',strength:'spt_SYNTHSTRENGTH'},exerciseIds:Object.fromEntries(requiredExerciseLabels(structured).map((label,i)=>[label,'exf_SYNTH'+i])),competition:null};
- const mapped=mapPlanToNolioV2(structured,refs);expect(mapped.operations.length,JSON.stringify(mapped.refusals)).toBeGreaterThan(0);
+ const mapped=mapPlanToNolioV2(structured,refs);expect(mapped.operations.length,JSON.stringify(mapped.refusals)).toBeGreaterThan(0);expect(mapped.refusals).toEqual([]);
  expect(structured.every(s=>s.durationMin===s.detStructuredWorkout!.chosenDurationMin)).toBe(true);
  expect(JSON.stringify(plan)).toContain('"detStructureAdmission":"pending"');
  expect(extracted.sessions.some(s=>s.detStructureRefusal?.reason==='multisport_composition_and_transition_unreviewed')).toBe(true);
@@ -246,3 +246,42 @@ it('checks saved V3 blocks against their own sources instead of the legacy catal
  expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[{title:'Ancienne fiche absente',sport:'run',catalogId:'LEGACY_UNKNOWN'}]}]})[0].message).toContain('catalogue_metadata_missing');
  expect((plan as any)._provenance.prescriptionAllowed).toBe(false);
 });
+
+it('uses complete strength circuits and timed swim prescriptions when domain paces are absent',async()=>{
+ const app=await shared('Ironman 70.3',12,10),plan=await generateAppProfileDetPlan(app,ATHLETE,{},'complete-engine');
+ const sessions=plan.weeks.flatMap(w=>w.sessions).filter(s=>!s.isRest);
+ const strength=sessions.filter(s=>s.sport==='strength'),swims=sessions.filter(s=>s.sport==='swim');
+ expect(strength.length).toBeGreaterThan(0);expect(swims.length).toBeGreaterThan(0);
+ for(const s of strength){
+  const parts=(s as any).detSourceComponents;expect(parts).toHaveLength(1);
+  const circuit=parts[0].blocks.find((b:any)=>b.kind==='repeat');expect(circuit.steps).toHaveLength(6);
+  expect(s.durationMin).toBeGreaterThan(0);expect(s.details).not.toContain('Charges et RPE de renforcement à confirmer');
+  expect((s as any).detStructuredWorkout).toBeDefined();
+ }
+ for(const s of swims){
+  expect(s.durationMin).toBeGreaterThan(0);expect(s.details).toContain('aucune allure calculée depuis CSS');
+  expect(s.details).not.toContain('Repères à préciser');
+  expect((s as any).detSourceComponents[0].targets.targets).toEqual([]);
+  expect((s as any).detStructuredWorkout).toBeDefined();
+  expect((s as any).detStructureAdmission).toBe('pending');
+ }
+ const lastStrength=plan.weeks.at(-1)!.sessions.filter(s=>s.sport==='strength');
+ expect(lastStrength.every(s=>(s as any).detSourceComponents[0].blocks.find((b:any)=>b.kind==='repeat').count.base===1)).toBe(true);
+ const summary=appProfileDetArchiveSummary(plan,ATHLETE);expect(summary.prescriptionAllowed).toBe(false);
+});
+
+it('keeps explicit swimming domain references instead of switching to timed fallback',async()=>{
+ const values={recovery:120,moderate_lt1:110,tempo:103,im_pace:108,'703_pace':102,marathon_pace:103,sub_threshold:98,semi_pace:98,mlss:95,vo2max:88,neuromuscular:80};
+ const plan=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{swimDomainPaces:Object.fromEntries(Object.entries(values).map(([d,value])=>[d,{value,kind:'explicit_estimate' as const}]))},'complete-engine');
+ const swims=plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='swim');
+ expect(swims.length).toBeGreaterThan(0);
+ expect(swims.every(s=>!(s.title??'').includes('Natation au temps'))).toBe(true);
+ expect(swims.some(s=>(s as any).detSourceComponents[0].targets.targets.some((t:any)=>t.metric==='sec_per_100m'))).toBe(true);
+});
+
+it.each([['Semi',8,6],['Marathon',16,8],['Ironman',16,14]] as const)('complete-session supplements retain the common %s calendar',async(objective,weeks,hours)=>{
+ const plan=await generateAppProfileDetPlan(await shared(objective,weeks,hours),ATHLETE,{},'complete-engine');
+ expect(plan.weeks).toHaveLength(weeks);
+ expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>(s as any).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_20[1-8]/))).toBe(true);
+ expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
+},60000);

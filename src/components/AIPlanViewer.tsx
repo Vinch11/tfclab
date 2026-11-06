@@ -1,3 +1,4 @@
+import {NolioV2ExportProvider,NolioV2ScopeButton} from '@/components/plan/NolioV2PlanExport';
 import { LimiterMesocycleTimeline } from "./plan/LimiterMesocycleTimeline";
 import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
@@ -342,11 +343,12 @@ interface SessionCardProps {
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
   sessionIndex?: number;
+  nolioSourceKey?:string;
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
 }
 
-function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
+function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, nolioSourceKey, objectifEffectif, planTotalWeeks }: SessionCardProps) {
 
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
@@ -494,6 +496,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
           </Button>
         )}
+        {nolioSourceKey&&!session.isRest&&<NolioV2ScopeButton scope={{kind:"sessions",keys:[nolioSourceKey]}} label="Exporter la séance vers Nolio"/>}
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
@@ -822,6 +825,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
                 🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
               </Badge>
             ))}
+            <NolioV2ScopeButton scope={{kind:"weeks",from:week.weekNumber,to:week.weekNumber}} label="Exporter la semaine vers Nolio"/>
             {!hideQualityScore && <WeekQualityBadge week={week} />}
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
@@ -863,7 +867,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} nolioSourceKey={`S${session.weekNumber}-J${session.dayIndex}-${idx}`} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
         })}
 
         {week.coachNotes && (
@@ -881,6 +885,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
 
 interface AIPlanViewerProps {
   plan: ParsedPlan;
+  savedPlanVersionId?:string|null;
   startDate?: Date;
   raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
@@ -916,7 +921,7 @@ interface AIPlanViewerProps {
   identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, savedPlanVersionId, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -1535,6 +1540,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
   return (
+    <NolioV2ExportProvider plan={plan} athleteId={athleteId} planVersionId={savedPlanVersionId} enabled={legacyNolioBlocked}>
     <TargetTableProvider value={targetTable}>
     <WbalAthleteRefsProvider value={wbalAthleteRefs}>
     <div className="space-y-4">
@@ -1741,7 +1747,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
 
-      {legacyNolioBlocked && <Alert data-testid="det-legacy-nolio-blocked"><AlertDescription>{DET_LEGACY_EXPORT_BLOCKED}</AlertDescription></Alert>}
+      {legacyNolioBlocked && <div data-testid="det-legacy-nolio-blocked" className="flex gap-2 items-center flex-wrap"><NolioV2ScopeButton scope={{kind:"all"}} label="Exporter le plan vers Nolio"/><span className="text-xs text-muted-foreground">Même sélection : plan, semaine ou séance. Les prescriptions sauvegardées sont conservées.</span></div>}
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <CollapsibleCard
@@ -2305,6 +2311,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     </div>
     </WbalAthleteRefsProvider>
     </TargetTableProvider>
+    </NolioV2ExportProvider>
   );
 }
 

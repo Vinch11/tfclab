@@ -9,7 +9,7 @@ import {PLAN_PROVENANCE_SCHEMA} from '@/lib/plan/planProvenance';
  * Unknown durations remain absent; the complete source proposal is retained.
  */
 export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={},engineVersion:string){
- const proposal=await generateAppPlanningV3Proposal(app,athleteId,options);
+ const proposal=await generateAppPlanningV3Proposal(app,athleteId,{...options,completeSessions:true});
  const blocked=proposal.checks.filter(c=>c.status==='blocked');
  if(blocked.length)throw Error(blocked.map(c=>c.message).join('\n'));
  const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:w.focus??'Maintien',phase:w.phase??'Préparation',coachNotes:w.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':undefined,sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{

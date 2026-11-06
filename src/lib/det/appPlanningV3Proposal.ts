@@ -1,3 +1,4 @@
+import {completeStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import type { FrozenAppPlanningInput } from './appPlanningInput';
 import { planningInputFor } from './appPlanningInput';
 import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions } from './appPlanningDetDraft';
@@ -52,6 +53,9 @@ export interface V3PlanProposal {
 }
 export interface V3ProposalOptions extends DraftRestrictions {
   clock?: CoachConfirmedClock;
+  /** Only the normal pre-review app plan; strict reviewed pools stay unchanged. */
+  completeSessions?: boolean;
+  strengthLoadAndRpeConfirmed?: boolean;
   invalidClockSports?: string[];
   /** Explicit references entered by the coach, never inferred from CSS. */
   swimDomainPaces?: Record<string,{value:number;kind:'field_measurement'|'explicit_estimate'}>;
@@ -85,7 +89,11 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const levels=['untrained','light','trained','highly_trained'];
   const signal=config.ambitionMeta;
   const knownLevel=signal&&['manual','auto-tss'].includes(signal.trainingLevelSource)?levels.indexOf(signal.trainingLevel):-1;
-  const sources=filterDraftV3Sources(pool.ids.map(findSource).filter((s):s is V3Workout=>!!s),config,options)
+  const timedSwim=options.completeSessions&&(!options.swimDomainPaces?.recovery||!options.swimDomainPaces?.moderate_lt1);
+  const selectedSources=pool.ids.map(findSource).filter((s):s is V3Workout=>!!s).filter(s=>!options.completeSessions||s.sport!=='strength').filter(s=>!timedSwim||s.sport!=='swim');
+  if(options.completeSessions)selectedSources.push(...completeStrengthSources);
+  if(timedSwim)selectedSources.push(...timedSwimSources);
+  const sources=filterDraftV3Sources(selectedSources,config,options)
     .filter(source=>knownLevel<0||levels.indexOf(source.minimumLevel)<=knownLevel);
   const supplied=Object.entries(options.swimDomainPaces??{});
   if(supplied.some(([,p])=>!Number.isFinite(p.value)||p.value<=0||!['field_measurement','explicit_estimate'].includes(p.kind)))throw Error('Référence natation invalide.');
@@ -94,6 +102,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     bikeFtpWatts:athlete.ftp??undefined,runThresholdPaceSecPerKm:athlete.paceThresholdSecPerKm??undefined,
     runVvo2SpeedMps:typeof athlete.vma==='number'?athlete.vma/3.6:undefined,
     anchorReferenceKinds:{bikeFtpWatts:'app_reference',runThresholdPaceSecPerKm:'app_reference',runVvo2SpeedMps:'app_reference'},
+    ...(options.strengthLoadAndRpeConfirmed===true?{coachValidatedStrengthLoadAndRpe:true as const}:{}),
     swimDomainPacesSecPer100m:swimPaces,swimDomainPaceKinds:Object.fromEntries(supplied.map(([d,p])=>[d,p.kind])),
   };
   const priorities=study.limiterOrder.map(raw=>({raw,resolution:resolveDetLimiter(raw)}));

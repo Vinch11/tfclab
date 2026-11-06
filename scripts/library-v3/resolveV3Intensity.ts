@@ -54,7 +54,9 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
   const modelNote=(keys:string[],text:string)=>modelSource(keys)==="athlete_reference_with_doctrine_model"?text.replace(/mesurée?/g,"de référence")+" Référence du profil : aucune mesure attestée par cette seule valeur.":text;
   const domainList=w.prescription.physiologicalIntent.domainIds;
   if(w.sport==="strength") {
-    if(a.coachValidatedStrengthLoadAndRpe!==true)missing.push("coach_verified_rpe_and_load");
+    if(w.prescription.individualization.strengthLoadSelection==="bodyweight_only_source_rpe_no_external_load") {
+      // RPE/reps are source instructions in each block, not verified athlete loads.
+    } else if(a.coachValidatedStrengthLoadAndRpe!==true)missing.push("coach_verified_rpe_and_load");
     else targets.push({domain:null,metric:"coach_rpe_load",min:null,max:null,
       source:"coach_confirmed_load",confidence:"coach_confirmed",
       note:"RPE/charge adaptés à la technique et aux reps cibles; jamais de poids présumé"});
@@ -120,6 +122,7 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
         note:modelNote(["runThresholdPaceSecPerKm"],"Allure calculée par fraction de vitesse seuil; pace rapide = min secondes/km. LT1 non attesté")});
     }else if(w.sport==="swim"){
       const measured=a.swimDomainPacesSecPer100m?.[domain];
+      if(w.prescription.individualization.swimCssPolicy==="qualitative_timeboxed_no_pace_conversion")continue;
       if(valid(measured)){
         targets.push({domain,metric:"sec_per_100m",min:measured,max:measured,
           source:"direct_athlete_pace",confidence:a.swimDomainPaceKinds?.[domain]==="explicit_estimate"?"model":"measured",note:a.swimDomainPaceKinds?.[domain]==="explicit_estimate"?"Allure estimée par le coach, incertitude conservée dans la revue":"Allure propre à ce domaine fournie par le coach"});
