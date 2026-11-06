@@ -121,3 +121,15 @@ Engineering evidence: a complete normally generated 12-week 70.3, including stre
 Validation: 201 tests passed across 19 targeted files; an additional common-dialog regression verifies that every later operation uses the newly saved preparation version, not its parent. The latest three-file rerun covers generation, normal brick UI persistence/access and shared split integrity. Application TypeScript passed. Actual server deployment, external sporting authority and provider readback remain separate unverified release requirements. The prior normal-brick preparation gap is now implemented; it is no longer an open code feature.
 
 Operational access: the connected Lovable database reports enabled/Supabase. Available Lovable connector tools do not deploy individual Edge Functions; publish_project only publishes the frontend. Direct editor inspection was blocked by the cloud browser's URL security policy, and no workaround was attempted. No paid Lovable AI message, real sporting authorization or provider send was performed.
+
+
+## User-requested correction: normal coach journey
+
+The user explicitly rejected the complex QA/release activation workflow and asked to preserve IA's simple product journey. The common DET export now uses `workflow: coach`: one deliberate Export action automatically archives if necessary, validates Nolio, sends bounded lots and confirms exact unique readbacks. The normal screen no longer exposes signed-release/7-day activation, QA review forms, manual brick preparation or simulation batches. No human review/scientific flags are fabricated. Advanced QA flows remain separate. Historical plans retain their stored engine/source versions and exact native blocks; current engine identity is not a requirement to export an intact saved version.
+
+Source-timed strength circuits map losslessly to timed steps with movement labels, RPE and repetition objectives. Normal bricks become two linked dated activities, leaving unknown transition/run time unknown. Existing confirmed splits remain intact. The manifest parser now accepts the exact linked `~bike`/`~run` operation keys. Normal competitions use declared source identities; a missing Triathlon association may use only a fresh unique active official sport ID from the same provider athlete. Export refreshes that read automatically.
+
+The actual current QA archive was evaluated offline using its saved native components and provider-reference snapshot: 101 operations, 23 rests, zero refusals, no native/profile correspondence errors. This is conversion evidence only, not a provider delivery claim. No token was read or session borrowed. No migration or release-signing secret is needed for the corrected normal coach path.
+
+
+Verification of the simplified implementation: 216 tests passed across 19 targeted files; the final three-file workflow/UI/reference rerun passed 24 tests. Application TypeScript and the new workflow modules' ESLint passed. QA production build passed. These are engineering checks and offline conversion evidence; actual provider delivery still requires the coach's intentional export action and exact readback.

@@ -1,6 +1,6 @@
 export const NOLIO_EXPORT_REVISION='tfcl.nolio-scoped-export.v2';
 export function exportCapabilities(functionName:'nolio-v2-plan-dry-run'|'nolio-v2-send-plan',releaseId:string){
- return {status:'CAPABILITIES',revision:NOLIO_EXPORT_REVISION,functionName,releaseId,scopes:['all','weeks','sessions'],serverOwnedPlanOnly:true,simulationReceiptsRequired:true};
+ return {status:'CAPABILITIES',revision:NOLIO_EXPORT_REVISION,functionName,releaseId,scopes:['all','weeks','sessions'],serverOwnedPlanOnly:true,simulationReceiptsRequired:true,coachWorkflow:true};
 }
 export function sameExportCapabilities(value:unknown,functionName:string,releaseId:string):boolean{
  const v=value as ReturnType<typeof exportCapabilities>|null;

@@ -1,3 +1,4 @@
+import {expandCoachBricks} from './coachMultisport.ts';
 /**
  * Nolio V2 — simulation (dry_run) d'un PLAN COMPLET sauvegardé (QA). DRY-RUN ONLY.
  *
@@ -79,8 +80,12 @@ export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVers
   // parents do not become unknown-parent errors; genuinely invalid keys do.
   const scopedChoices=scope!==undefined&&choices&&typeof choices==='object'&&!Array.isArray(choices)?Object.fromEntries(Object.entries(choices).filter(([key])=>selectedKeys.has(key)||!fullKeys.has(key))):choices;
   const expanded = await expandReviewedMultisport(selected.sessions, scopedChoices);
-  const ex = { sessions: expanded.sessions, problems: [...raw.problems,...selected.problems, ...expanded.problems] };
-  const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs);
+  const provenance=(planJson as {_provenance?:{engine?:string;mode?:string;syntheticFixture?:boolean}})?._provenance;
+  const auto=provenance?.engine==='det'&&provenance.mode==='app-profile'&&provenance.syntheticFixture===false?await expandCoachBricks(expanded.sessions):{sessions:expanded.sessions,problems:[]};
+  const ex = { sessions: auto.sessions, problems: [...auto.problems,...raw.problems,...selected.problems, ...expanded.problems] };
+  const options={timedCoachStrength:provenance?.engine==='det'&&provenance.mode==='app-profile'&&provenance.syntheticFixture===false};
+  const mappingOptions={...options,declaredCompetitions:options.timedCoachStrength};
+  const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs,mappingOptions);
   const refusedBy = new Map<string, string>();
   for (const r of m.refusals) refusedBy.set(r.sessionKey, r.reason);
   const opIdx = new Map<string, number>();
@@ -104,7 +109,7 @@ export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVers
     ops.push({ opIndex: ops.length, sessionKey: r.sessionKey, date: String(op.body.date_start), kind, path: op.path, bodySha256: (await operationKey(planVersionId, op)).payloadSha256, body: marked, source: op });
     r.opIndex = ops.length - 1;
   }
-  const missingExercises = requiredExerciseLabels(ex.sessions).filter((l) => !refs.exerciseIds[l]);
+  const missingExercises = requiredExerciseLabels(ex.sessions,options).filter((l) => !refs.exerciseIds[l]);
   const missingSports = [...new Set(ex.sessions.filter((s) => !s.isRest && (s.catalogId || raceIdentityOf(s)) && !refs.sportIds[s.sport]).map((s) => s.sport))];
   const races = ex.sessions.map(raceIdentityOf).filter((x): x is NonNullable<typeof x> => !!x);
   const raceKeys = new Set(races.map((r) => r.sessionKey));

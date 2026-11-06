@@ -32,6 +32,7 @@ export type GateInput = {
   planVersionId: string; prepared: Prepared; expected: Expected; consent: unknown;
   job: DryJob; receipts: DryReceipt[]; provenance: unknown; attestation: HumanAttestation;
   /** Server-computed authority only; never copied from request JSON. */
+  coachExportBinding?:{planVersionId:string;planSha256:string};
   serverPrescriptionAuthorization?:{planVersionId:string;planSha256:string;releaseId:string};
 };
 
@@ -66,12 +67,14 @@ export async function realSendGate(g: GateInput): Promise<string[]> {
     if (g.receipts.some((x) => x.outcome !== "DRY_RUN_VALID")) r.push("dry_run_has_non_valid_receipts");
   }
   const prov = g.provenance as { prescriptionAllowed?: unknown; syntheticFixture?: unknown } | null | undefined;
+  const normal=g.coachExportBinding;
+  const coach=!!normal&&normal.planVersionId===g.planVersionId&&normal.planSha256===p.planSha256&&(g.provenance as {engine?:string;mode?:string;syntheticFixture?:boolean})?.engine==='det'&&(g.provenance as {mode?:string})?.mode==='app-profile'&&(g.provenance as {syntheticFixture?:boolean})?.syntheticFixture===false;
   const authority=g.serverPrescriptionAuthorization;
   const authorized=authority?.planVersionId===g.planVersionId&&authority.planSha256===p.planSha256&&HEX64.test(authority.releaseId);
-  if (!prov || (prov.prescriptionAllowed !== true&&!authorized)) r.push("plan_not_prescription_allowed");
+  if (!prov || (prov.prescriptionAllowed !== true&&!authorized&&!coach)) r.push("plan_not_prescription_allowed");
   if (prov?.syntheticFixture === true) r.push("plan_is_synthetic_non_prescriptive");
   const a = g.attestation;
-  if (!a || a.planVersionId !== g.planVersionId || a.planSha256 !== p.planSha256) r.push("human_plan_attestation_absent");
+  if (!coach&&(!a || a.planVersionId !== g.planVersionId || a.planSha256 !== p.planSha256)) r.push("human_plan_attestation_absent");
   return r;
 }
 

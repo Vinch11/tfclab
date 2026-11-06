@@ -2173,6 +2173,7 @@ export default function AITrainingPlanPage() {
       } else if (result.status === "NOT_SENT") {
         toast.error("Sauvegarde non envoyée (" + result.reason + ") : contenu invalide ou empreinte indisponible. Aucune version créée.");
       }
+      return result.status === "CONFIRMED" && latestParsedPlanRef.current === planAtStart ? result.attemptId : null;
     } catch (err: any) {
       console.error("Save plan error:", err?.code ?? err?.message ?? "unknown");
       toast.error("Erreur avant envoi de la sauvegarde : " + (err?.message || "Inconnu"));
@@ -2390,7 +2391,7 @@ export default function AITrainingPlanPage() {
       console.warn("[F-16] validator failed, persisting plan without score:", vErr);
     }
 
-    const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
+    const doSave = async () => { await persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length); };
 
     // Consigne coach : une incohérence FONDAMENTALE objectif/contenu
     // (NON_DEROGABLE_RULES) bloque réellement la sauvegarde — aucun
@@ -4028,7 +4029,7 @@ export default function AITrainingPlanPage() {
             {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
               <Label>Moteur de génération</Label>
               <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
-              <p className="text-xs text-muted-foreground">Les deux moteurs utilisent la configuration et le profil de cette page. DET reprend les réglages existants et demande uniquement les informations absentes et les vérifications du coach. Un refus DET est expliqué et ne lance jamais l’IA.</p>
+              <p className="text-xs text-muted-foreground">Les deux moteurs utilisent le même profil et les mêmes réglages. Choisissez le moteur, générez votre plan, puis exportez-le vers Nolio.</p>
               {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
@@ -4483,6 +4484,12 @@ export default function AITrainingPlanPage() {
                       <AIPlanViewer
                         plan={parsedPlan}
                         savedPlanVersionId={savedPlanVersionId}
+                        onEnsureSavedForExport={async () => {
+                          if (!parsedPlan || !currentAthlete) return null;
+                          if ((parsedPlan as ParsedPlan & {_provenance?:{mode?:string}})._provenance?.mode !== 'app-profile') return savedPlanVersionId;
+                          const summary = appProfileDetArchiveSummary(parsedPlan,currentAthlete.id);
+                          return (await persistPlanVersion(null,null,summary,0)) ?? null;
+                        }}
                         startDate={planStartDate}
                         raceGoals={[
                           {

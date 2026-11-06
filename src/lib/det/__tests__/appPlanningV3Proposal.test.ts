@@ -1,3 +1,5 @@
+import {coachPlanProblems,nativeCoachPlanProblems} from '../../../../supabase/functions/_shared/nolioV2/coachWorkflow';
+import {parsePlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import {prepareAppBrickExport} from '@/lib/nolio/appBrickPreparation';
 import {preparePlan} from '../../../../supabase/functions/_shared/nolioV2/planDryRun';
 import {raceIdentityOf} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
@@ -337,3 +339,19 @@ it('requires explicit brick schedule/transition, rejects changed source blocks a
  const changed=structuredClone(p);changed.weeks.flatMap(w=>w.sessions).find(s=>s.sport==='brick')!.details+=' modifié';await expect(prepareAppBrickExport(changed,input)).rejects.toThrow('blocs');
  const scheduled=structuredClone(p);const brick=scheduled.weeks.flatMap(w=>w.sessions).find(s=>s.sport==='brick')!;Object.assign(brick,{coachStart:{provenance:'coach_confirmed',localDate:sessionsFromPlanJson(p).sessions.find(s=>s.detStructuredComponents)!.date,timeZone:'Europe/Brussels',minuteOfDay:600,utcOffsetMinutes:60}});await expect(prepareAppBrickExport(scheduled,input)).rejects.toThrow('créneau déjà confirmé');
 });
+
+it('exports the normal complete 70.3 without QA forms, manual brick transitions, exercise mappings or a release signature',async()=>{
+ const plan=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{},'test-engine');
+ const before=structuredClone(plan);expect(coachPlanProblems(plan,ATHLETE,'test-engine')).toEqual([]);expect(nativeCoachPlanProblems(plan)).toEqual([]);
+ const refs={synthetic:true,athleteId:'usr_SYNTH1',sportIds:{run:'spt_SYNTHRUN',bike:'spt_SYNTHBIKE',swim:'spt_SYNTHSWIM',strength:'spt_SYNTHSTR',brick:'spt_SYNTHTRI'},exerciseIds:{},competition:null};
+ const id='22222222-2222-4222-8222-222222222222';const result=await preparePlan(plan,refs,id);
+ expect(result.precheck.complete,JSON.stringify(result.precheck)).toBe(true);expect(result.precheck.refused).toBe(0);expect(result.precheck.missingExercises).toEqual([]);
+ const original=sessionsFromPlanJson(plan).sessions;const bricks=original.filter(s=>s.detStructuredComponents);
+ expect(result.ops.length).toBe(original.filter(s=>!s.isRest).length+bricks.length);
+ const key=bricks[0].sessionKey;const selected=await preparePlan(plan,refs,id,{kind:'sessions',keys:[key]});expect(selected.ops.map(o=>o.sessionKey)).toEqual([key+'~bike',key+'~run']);
+ expect(selected.ops.every(o=>!o.body.time)).toBe(true);expect(selected.ops[0].body.description).toContain('transition non minutée');
+ const response=parsePlanDryResp({status:'PRECHECK',code:'ok',precheck:result.precheck,manifest:result.ops.map(({opIndex,sessionKey,date,kind,path,bodySha256})=>({opIndex,sessionKey,date,kind,path,bodySha256})),planSha256:result.planSha256,refsSha256:result.refsSha256,opsSha256:result.opsSha256});expect(response?.manifest).toHaveLength(result.ops.length);
+ expect(result.ops.some(o=>JSON.stringify(o.body.workout).includes('objectif'))).toBe(true);expect(plan).toEqual(before);expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
+ const changed=structuredClone(plan);const cached=changed.weeks.flatMap(w=>w.sessions).find(s=>(s as unknown as {detStructuredWorkout?:unknown}).detStructuredWorkout) as unknown as {detStructuredWorkout:{nodes:unknown[]}};cached.detStructuredWorkout.nodes=[];expect(nativeCoachPlanProblems(changed)).toEqual(['coach_plan_native_prescription_changed']);
+ expect(coachPlanProblems(plan,'OTHER','test-engine')).toContain('coach_plan_profile_binding_invalid');expect(coachPlanProblems(plan,ATHLETE,'different-engine')).toEqual([]); // saved native plans remain exportable after an engine update
+},60000);

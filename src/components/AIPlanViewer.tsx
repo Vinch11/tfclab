@@ -886,6 +886,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
 interface AIPlanViewerProps {
   plan: ParsedPlan;
   savedPlanVersionId?:string|null;
+  onEnsureSavedForExport?:()=>Promise<string|null>;
   startDate?: Date;
   raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
@@ -921,7 +922,7 @@ interface AIPlanViewerProps {
   identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, savedPlanVersionId, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, savedPlanVersionId, onEnsureSavedForExport, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -1540,7 +1541,7 @@ export function AIPlanViewer({ plan: planProp, savedPlanVersionId, onPlanChange,
 
 
   return (
-    <NolioV2ExportProvider plan={plan} athleteId={athleteId} planVersionId={savedPlanVersionId} enabled={legacyNolioBlocked}>
+    <NolioV2ExportProvider plan={plan} athleteId={athleteId} athleteName={athleteName} planVersionId={savedPlanVersionId} ensureSaved={onEnsureSavedForExport} enabled={legacyNolioBlocked}>
     <TargetTableProvider value={targetTable}>
     <WbalAthleteRefsProvider value={wbalAthleteRefs}>
     <div className="space-y-4">

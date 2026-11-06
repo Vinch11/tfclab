@@ -1,3 +1,4 @@
+import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
 import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
 import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
@@ -57,7 +58,9 @@ Deno.serve(async (req) => {
     (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), now: Date.now,
       fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) return json(200, { status: "BLOCKED", code: (loaded as { reason: string }).reason, precheck: null, progress: null });
-  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs, b.planVersionId,b.scope);
+  const planJson=(pv.data as {plan_json:unknown}).plan_json;
+  const effectiveRefs=await coachRefsForPlan(admin,{coachId:sub,athleteId,plan:planJson,refs:loaded.value.refs,now:Date.now()});
+  const prepared = await preparePlan(planJson, effectiveRefs, b.planVersionId,b.scope);
   const planVersionId = b.planVersionId;
   const store: PlanDryRunStore = {
     async freezeJob(p) {
