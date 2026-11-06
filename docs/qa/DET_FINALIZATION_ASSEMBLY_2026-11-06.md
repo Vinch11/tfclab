@@ -11,3 +11,5 @@ Local probes before the workspace became unavailable:
 - A proposed source-composition experiment was interrupted before execution and is NOT validated or deployed.
 
 The local environment then disconnected. New branch verification is performed by GitHub Actions; no unfinished local experiment is deployed to QA. Source declaration is emitted as public source metadata, not deployment/scientific attestation. No AI calls, athlete changes, review writes or Nolio sends are authorized by this diagnostic workflow.
+
+Remote CI on fc39d45f verified both native running candidates and the existing 33 real-app/real-engine tests. The next test is explicitly diagnostic only: a synthetic 180-minute base composition is inserted into the test's source domain to identify downstream 70.3 constraints. It is not a source admission, athlete default or runtime fallback. The composition is never imported by application code.
