@@ -535,6 +535,8 @@ export default function AITrainingPlanPage() {
   const qaActionEpoch=useRef(0);
   useEffect(()=>{qaActionEpoch.current++;},[currentAthlete?.id,planningEngine]);
   useEffect(()=>{if(!qaChoice)return;let previous:string|null|undefined;const sub=supabase.auth.onAuthStateChange((_event,session)=>{const uid=session?.user.id??null;if(previous!==undefined&&previous!==uid){qaActionEpoch.current++;setPlanOverride(null);}previous=uid;});return()=>sub.data.subscription.unsubscribe();},[qaChoice]);
+  const detGenerationAction=useRef<(()=>Promise<void>)|null>(null);
+  const [detGenerating,setDetGenerating]=useState(false);
   const detRelease=detEngineVersionFromRelease(typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__);
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -1667,7 +1669,10 @@ export default function AITrainingPlanPage() {
   };
 
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
-    if(qaChoice && planningEngine==="det"){toast.error("Confirmez les entrées et sources DET ci-dessous ; aucune bascule vers l’IA.");return;}
+    if(qaChoice && planningEngine==="det"){
+      if(!detGenerationAction.current){toast.error("Profil DET indisponible : vérifiez l’athlète et la configuration.");return;}
+      await detGenerationAction.current();return;
+    }
     // Une génération complète invalide toute régénération ciblée précédente.
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
@@ -4012,14 +4017,13 @@ export default function AITrainingPlanPage() {
             )}
 
             {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
-              <Label>Moteur de génération — QA</Label>
+              <Label>Moteur de génération</Label>
               <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
               <p className="text-xs text-muted-foreground">Les deux moteurs utilisent la configuration et le profil de cette page. DET reprend les réglages existants et demande uniquement les informations absentes et les vérifications du coach. Un refus DET est expliqué et ne lance jamais l’IA.</p>
-              <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
               {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
-                return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
+                return <details className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
                 onAIShared={async(f)=>{const epoch=qaActionEpoch.current;const current=()=>epoch===qaActionEpoch.current&&isLatest(f.fingerprint);if(!current()){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const ins=planningInputFor(f,"ai");
                   const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
@@ -4029,18 +4033,18 @@ export default function AITrainingPlanPage() {
                 form={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:Number(weeksAvailable??0),weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition}}
                 sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
                 guard={async()=>{const v=await verifyQaCoach({ surface: "planning" });if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
-                onOutcome={(o,fp)=>{if(o?.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
+                onOutcome={(o,fp)=>{if(!o){qaActionEpoch.current++;return;}if(o.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
                   const cur=appPlanningRef.current;
                   if(pin?.source!=="app_planning_pipeline"||pin.fingerprint!==fp||!cur||!isLatest(fp)){toast.error("Profil de l'athlète modifié pendant le calcul : candidat non installé");return;}
                   const ins=planningInputFor(cur,"det");
                   const ep=qaActionEpoch.current;
-                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                  return dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(ep!==qaActionEpoch.current||!isLatest(fp))return;
                     const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
                     setPlanOverride(bindAppPlanMetadata(o.plan,cur));setIsSaved(false);setResponse("");
                   }});
-                }}/>;})()}
+                }}/></details>;})()}
               {planningEngine === "det" && <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>
               {currentAthlete && <CoachDetInputsPanel key={currentAthlete.id+objective+format(planStartDate,"yyyy-MM-dd")+raceDate+weeklyHours+sessionsPerWeek+coachLimiterOrder.join(",")} engine={planningEngine}
                 shared={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:weeksAvailable??undefined,weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition,coachLimiterOrder:coachLimiterOrder.length?coachLimiterOrder:null,...(appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?{planningInputFingerprint:appPlanningInput.fingerprint}:{})}}
@@ -4052,7 +4056,7 @@ export default function AITrainingPlanPage() {
                 }});}}
                 onOutcome={o=>{if(o?.kind!=="accepted")return;const ins=buildCoachPlanInputs(o.provenance.coachInputs as never);
                   const epoch=qaActionEpoch.current;
-                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                  return dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(epoch!==qaActionEpoch.current)return;
                     const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||epoch!==qaActionEpoch.current)return;
@@ -4065,13 +4069,13 @@ export default function AITrainingPlanPage() {
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
-              !(qaChoice && planningEngine === "det") && <Button
+              <Button
                 onClick={() => { void handleGenerate(); }}
-                disabled={isLoading || !hasData || (qaChoice && planningEngine==="det")}
+                disabled={isLoading || detGenerating || !hasData}
                 className="w-full"
                 size="lg"
               >
-                {isLoading ? (
+                {(isLoading || detGenerating) ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     {chunkProgress && chunkProgress.totalChunks > 1
@@ -4081,7 +4085,7 @@ export default function AITrainingPlanPage() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer le Plan TFCL™ avec l’IA
+                    {planningEngine === "det" && qaChoice ? "Générer le Plan TFCL™ avec DET Engine" : "Générer le Plan TFCL™ avec l’IA"}
                   </>
                 )}
               </Button>

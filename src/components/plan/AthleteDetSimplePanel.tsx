@@ -1,5 +1,4 @@
 import { DetPlanningDraft } from "./DetPlanningDraft";
-import { V3PlanGeneration } from "./V3PlanGeneration";
 import { appRecordReferenceProblems } from "@/lib/det/appRecordReference";
 import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
 import { detInputDraft, detDraftSignature, restoreDetInputDraft } from "@/lib/det/detInputDraft";
@@ -26,7 +25,7 @@ import { ATHLETE_LEVEL_LABELS, LIMITER_LABELS, SWIM_DOMAIN_LABELS, hashCoachInpu
 import type { CoachDetOutcome } from "@/lib/det/coachDetRun";
 import { runAppPlanningDetPlan } from "@/lib/det/appPlanningDetRun";
 import {
-  CONDITIONAL_CONFIRMATIONS, GENERAL_CONFIRMATIONS, athleteChecklist, explainEngineRefusal, buildAthleteDetInputs, readEnteredCoachClock, clockSportsFor, prefillFromRecord, requiredAnchorKeys,
+  CONDITIONAL_CONFIRMATIONS, GENERAL_CONFIRMATIONS, athleteChecklist, explainEngineRefusal, buildAthleteDetInputs, clockSportsFor, prefillFromRecord, requiredAnchorKeys,
   type AthleteRecordView, type CoachAnswers, type FieldKey, type PlanFormView, type GenuineSourceReviews,
 } from "@/lib/det/athleteDetBridge";
 import type { FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
@@ -80,7 +79,9 @@ export function AthleteDetSimplePanel(props: {
   guard: () => Promise<Verified | null>;
   sourcesVersion: string | null; engineVersion: string | null; releaseId: string | null;
   /** Sortie DET + empreinte du profil sur lequel elle a été calculée. */
-  onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void;
+  generationAction?: { current: (()=>Promise<void>) | null };
+  onBusyChange?: (busy:boolean)=>void;
+  onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void | Promise<void>;
   /** Profil de planification figé de la page (même entrée que l'IA). OBLIGATOIRE : aucun recalcul ici. */
   appInput: FrozenAppPlanningInput | null;
   appInputStatus: "ready" | "pending" | "missing";
@@ -93,7 +94,6 @@ export function AthleteDetSimplePanel(props: {
   const inherited = useMemo(() => sharedPlanningDetContext(props.record, props.form, props.appInputStatus === "ready" ? props.appInput : null, draft), [props.record, props.form, props.appInput, props.appInputStatus, draft]);
   const a = inherited.answers;
   const planningForm = inherited.form;
-  const proposalClock = useMemo(()=>readEnteredCoachClock(a.clock),[a.clock]);
   const [msg, setMsg] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [libraryProblems, setLibraryProblems] = useState<string[]>([]);
@@ -163,6 +163,7 @@ export function AthleteDetSimplePanel(props: {
   const set = (patch: Partial<CoachAnswers>) => setA((x) => ({ ...x, ...patch }));
 
   const generate = async () => {
+    if(busy)return;
     const my = ++epoch.current; setBusy(true); props.onOutcome(null, null);
     const app = props.appInput, fpAt = fp, engineAt = props.engine, keyAt = ctxKey;
     // Toute réponse tardive (autre athlète, profil, ordre, dates ou moteur) est ignorée.
@@ -199,12 +200,18 @@ export function AthleteDetSimplePanel(props: {
       const out = runAppPlanningDetPlan({ reviewContextId: data.id, ctx: { ...b.ctx, inputsHash, sourcesVersion: props.sourcesVersion }, coachId: v.userId, athleteId: v.athleteId,
         snapshot: b.snapshot, inputsHash, sourcesVersion: props.sourcesVersion, engineVersion: props.engineVersion, releaseId: props.releaseId, appInput: app });
       if (!current()) return;
-      props.onOutcome(out, fpAt);
+      await props.onOutcome(out, fpAt);
       setMsg(out.kind === "accepted" ? [`Plan DET généré (${out.sessions} séances) depuis le profil de l'athlète — non prescriptif, à relire.`]
         : out.kind === "refused" ? out.refusals : [`DET n'a pas trouvé de plan conforme (l'IA n'est pas lancée à sa place).`,
             ...(out.limiterOrder.unrecognizedByDet?.length ? [`Limiteur(s) de l'app transmis mais sans définition DET : ${out.limiterOrder.unrecognizedByDet.join(", ")} — conservés tels quels, rien n'est substitué.`] : []), ...explainEngineRefusal(out.blockingIssues ?? []), `Détail technique : ${out.reason} · ${out.blockingCodes.join(", ")}`]);
+    } catch(error) { if(current())setMsg([error instanceof Error?error.message:"Génération DET interrompue : aucun résultat installé."]);
     } finally { if (my === epoch.current) setBusy(false); }
   };
+
+  const {generationAction,onBusyChange}=props;
+  if(generationAction)generationAction.current=generate;
+  useEffect(()=>{onBusyChange?.(busy);},[busy,onBusyChange]);
+  useEffect(()=>()=>{if(generationAction)generationAction.current=null;onBusyChange?.(false);},[generationAction,onBusyChange]);
 
   const provRow = (k: FieldKey) => {
     const p = prefill.find((x) => x.key === k); if (!p) return null;
@@ -260,7 +267,7 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm">Cet ordre de priorités guide la sélection des séances. L’objectif précise la préparation ; les horaires, la charge et la récupération encadrent le calendrier.</p>
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
-      <V3PlanGeneration app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} options={{ clock:proposalClock.clock??undefined,invalidClockSports:proposalClock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([domain,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[domain,{value:p.value,kind:p.kind}]]:[])) }} />
+
       <details><summary className="cursor-pointer text-sm">Examiner les autres pistes V3</summary><DetPlanningDraft app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} restrictions={{ presentContraindications: a.presentContraindications, unmetPrerequisites: a.unmetPrerequisites, injuryScreen: a.injuryScreen }} /></details>
       <details className="space-y-4" data-testid="det-final-review"><summary className="cursor-pointer text-sm font-medium">Finaliser après revue — paramètres détaillés</summary>
       <DetReadinessSummary missing={bridge.missing} />
@@ -332,9 +339,9 @@ export function AthleteDetSimplePanel(props: {
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}
       {bridge.sourceReview.status === "reviewed" && <p className="text-xs text-muted-foreground">Revue des séances reprise : votre revue du {bridge.sourceReview.reviewedAt.slice(0, 10)} ({bridge.sourceReview.reviewedIds} séances).</p>}
 
-    <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
+    {!props.generationAction && <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
       {props.engine === "det" ? "Générer avec DET Engine" : "Générer avec l'IA"}
-    </Button>
+    </Button>}
       </details>
       <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Détails techniques</summary>
         <p>Liste de séances : {pool!.ids.length} séances V3 du scénario {pool!.ciScenario} ; revue scientifique indépendante : non. {bridge.excludedSources.length} séance(s) écartée(s) par vos réponses.</p>
