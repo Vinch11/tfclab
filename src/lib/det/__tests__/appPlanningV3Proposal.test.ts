@@ -1,3 +1,5 @@
+import type {ParsedSession} from '@/lib/aiPlanParser';
+import type {DetStructuredWorkout} from '../../../../experimental/det-engine/v400-structured-workout';
 import {coachPlanProblems,nativeCoachPlanProblems} from '../../../../supabase/functions/_shared/nolioV2/coachWorkflow';
 import {parsePlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import {prepareAppBrickExport} from '@/lib/nolio/appBrickPreparation';
@@ -20,10 +22,14 @@ vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
 import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
 import { freezeAppPlanningInput } from '../appPlanningInput';
 import { filterDraftV3Sources } from '../appPlanningDetDraft';
-import { generateAppPlanningV3Proposal,type ProposedV3Session,type V3PlanProposal } from '../appPlanningV3Proposal';
+import { generateAppPlanningV3Proposal,type ProposedV3Session,type ProposedV3Workout,type V3PlanProposal } from '../appPlanningV3Proposal';
 import { auditV3ProposalDoseIntegrity,auditV3ProposalRecovery } from '../appPlanningV3Audit';
 import { readEnteredCoachClock } from '../athleteDetBridge';
 import { V34_SAFE_RUN_BRICKS } from '../../../../experimental/det-engine/v34-v3-low-run-bricks';
+type NativeSession=ParsedSession & {detSourceComponents?:ProposedV3Workout[];detStructuredWorkout?:DetStructuredWorkout;detStructureAdmission?:string};
+const native=(s:ParsedSession)=>s as NativeSession;
+const repeatOf=(c:ProposedV3Workout)=>{const b=c.blocks.find(b=>b.kind==='repeat');if(!b||b.kind!=='repeat')throw Error('Source sans circuit répété');return b;};
+
 import { findSource } from '../coachDetContext';
 
 const ATHLETE = 'SYNTHETIC_DRAFT_A';
@@ -244,12 +250,12 @@ it('checks saved V3 blocks against their own sources instead of the legacy catal
   const issues=validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[copy]}]});
   expect(issues.some(i=>i.severity==='error'),JSON.stringify(change)).toBe(true);
  }
- const missing=structuredClone(session) as any;delete missing.detSourceComponents;
+ const missing=native(structuredClone(session));delete missing.detSourceComponents;
  expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[missing]}]})[0].message).toContain('v3_saved_blocks_missing');
- const changed=structuredClone(session) as any;changed.detSourceComponents[0].blocks[0].label='Dose sans source';
+ const changed=native(structuredClone(session));changed.detSourceComponents[0].blocks[0].label='Dose sans source';
  expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[changed]}]})[0].message).toContain('v3_source_or_dose_mismatch');
  expect(validateSessionCataloguePlan({weeks:[{weekNumber:1,phase:'base',sessions:[{title:'Ancienne fiche absente',sport:'run',catalogId:'LEGACY_UNKNOWN'}]}]})[0].message).toContain('catalogue_metadata_missing');
- expect((plan as any)._provenance.prescriptionAllowed).toBe(false);
+ expect((plan as unknown as {_provenance:{prescriptionAllowed:boolean}})._provenance.prescriptionAllowed).toBe(false);
 });
 
 it('uses complete strength circuits and timed swim prescriptions when domain paces are absent',async()=>{
@@ -258,20 +264,20 @@ it('uses complete strength circuits and timed swim prescriptions when domain pac
  const strength=sessions.filter(s=>s.sport==='strength'),swims=sessions.filter(s=>s.sport==='swim');
  expect(strength.length).toBeGreaterThan(0);expect(swims.length).toBeGreaterThan(0);
  for(const s of strength){
-  const parts=(s as any).detSourceComponents;expect(parts).toHaveLength(1);
-  const circuit=parts[0].blocks.find((b:any)=>b.kind==='repeat');expect(circuit.steps).toHaveLength(6);
+  const parts=native(s).detSourceComponents;expect(parts).toHaveLength(1);
+  const circuit=repeatOf(parts[0]);expect(circuit.steps).toHaveLength(6);
   expect(s.durationMin).toBeGreaterThan(0);expect(s.details).not.toContain('Charges et RPE de renforcement à confirmer');
-  expect((s as any).detStructuredWorkout).toBeDefined();
+  expect(native(s).detStructuredWorkout).toBeDefined();
  }
  for(const s of swims){
   expect(s.durationMin).toBeGreaterThan(0);expect(s.details).toContain('aucune allure calculée depuis CSS');
   expect(s.details).not.toContain('Repères à préciser');
-  expect((s as any).detSourceComponents[0].targets.targets).toEqual([]);
-  expect((s as any).detStructuredWorkout).toBeDefined();
-  expect((s as any).detStructureAdmission).toBe('pending');
+  expect(native(s).detSourceComponents[0].targets.targets).toEqual([]);
+  expect(native(s).detStructuredWorkout).toBeDefined();
+  expect(native(s).detStructureAdmission).toBe('pending');
  }
  const lastStrength=plan.weeks.at(-1)!.sessions.filter(s=>s.sport==='strength');
- expect(lastStrength.every(s=>(s as any).detSourceComponents[0].blocks.find((b:any)=>b.kind==='repeat').count.base===1)).toBe(true);
+ expect(lastStrength.every(s=>repeatOf(native(s).detSourceComponents[0]).count.base===1)).toBe(true);
  const summary=appProfileDetArchiveSummary(plan,ATHLETE);expect(summary.prescriptionAllowed).toBe(false);
 });
 
@@ -281,13 +287,13 @@ it('keeps explicit swimming domain references instead of switching to timed fall
  const swims=plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='swim');
  expect(swims.length).toBeGreaterThan(0);
  expect(swims.every(s=>!(s.title??'').includes('Natation au temps'))).toBe(true);
- expect(swims.some(s=>(s as any).detSourceComponents[0].targets.targets.some((t:any)=>t.metric==='sec_per_100m'))).toBe(true);
+ expect(swims.some(s=>native(s).detSourceComponents[0].targets.targets.some(t=>t.metric==='sec_per_100m'))).toBe(true);
 });
 
 it.each([['Semi',8,6],['Marathon',16,8],['Ironman',16,14]] as const)('complete-session supplements retain the common %s calendar',async(objective,weeks,hours)=>{
  const plan=await generateAppProfileDetPlan(await shared(objective,weeks,hours),ATHLETE,{},'complete-engine');
  expect(plan.weeks).toHaveLength(weeks);
- expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>(s as any).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_20[1-8]/))).toBe(true);
+ expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>native(s).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_20[1-8]/))).toBe(true);
  expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
 },60000);
 
