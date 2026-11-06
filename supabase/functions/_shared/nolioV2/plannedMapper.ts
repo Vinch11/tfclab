@@ -42,7 +42,8 @@ export type DetWorkout = { schema: "det-structured-workout-v1"; sourceId: string
 export type PlanSessionInput = {
   sessionKey: string; date: string; title: string; details?: string; sport: string;
   isRest?: boolean; catalogId?: string | null; durationMin?: number;
-  detStructuredWorkout?: DetWorkout; detStructureRefusal?: { reason: string };
+  detStructuredWorkout?: DetWorkout;
+  detStructuredComponents?: {schema:'det-brick-components-preview-v1';bike:DetWorkout;run:DetWorkout}; detStructureRefusal?: { reason: string };
   /** Début confirmé par le coach (date/heure locale + fuseau + offset réel). Absent ⇒ aucune heure envoyée. */
   coachStart?: CoachSessionStart;
 };

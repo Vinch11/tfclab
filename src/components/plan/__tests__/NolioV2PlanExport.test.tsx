@@ -6,6 +6,7 @@ import {NolioV2ExportProvider,NolioV2ScopeButton} from '../NolioV2PlanExport';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 const mock=vi.hoisted(()=>({invoke:vi.fn(),getUser:vi.fn(),row:null as any}));
 vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getUser},from:()=>{const q:any={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:mock.row,error:null})};return q;},functions:{invoke:mock.invoke}}}));
+vi.mock('../NolioAppBrickPreparation',()=>({NolioAppBrickPreparation:({plan,onSaved}:{plan:ParsedPlan;onSaved:(id:string,p:ParsedPlan)=>void})=><button onClick={()=>{const next={...plan,_nolioV2MultisportSplits:{syntheticTestOnly:true}} as ParsedPlan;mock.row={...mock.row,id:'33333333-3333-4333-8333-333333333333',plan_json:next};onSaved(mock.row.id,next);}}>Préparation simulée</button>}));
 const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'2026-11-02',_provenance:{engine:'det',prescriptionAllowed:false}} as unknown as ParsedPlan;
 const version='22222222-2222-4222-8222-222222222222';
 beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(fn,{body})=>body.action==='capabilities'?{data:{...exportCapabilities(fn,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),sportingReleaseAuthorized:false},error:null}:{data:{status:'BLOCKED',code:'connection_absent',precheck:null,progress:null},error:null});});
@@ -33,4 +34,14 @@ describe('common viewer Nolio V2 scopes',()=>{
   await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('ne sont pas synchronisés'));
   expect(mock.invoke).toHaveBeenCalledTimes(2);expect(mock.invoke.mock.calls.every(c=>c[1].body.action==='capabilities')).toBe(true);
  });
+});
+
+it('switches every later export to the exact newly saved preparation version instead of the unchanged parent',async()=>{
+ setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Préparer la version sauvegardée'}));
+ await waitFor(()=>expect(screen.getByRole('button',{name:'Préparation simulée'})).toBeInTheDocument());expect(mock.invoke).not.toHaveBeenCalled();
+ fireEvent.click(screen.getByRole('button',{name:'Préparation simulée'}));await waitFor(()=>expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+ fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Contrôler cette sélection'}));
+ await waitFor(()=>expect(mock.invoke).toHaveBeenCalledTimes(3));
+ expect(mock.invoke).toHaveBeenCalledWith('nolio-v2-plan-dry-run',{body:{planVersionId:'33333333-3333-4333-8333-333333333333',action:'precheck'}});
+ expect(mock.invoke.mock.calls.every(([,a])=>a.body.planVersionId!=='22222222-2222-4222-8222-222222222222')).toBe(true);
 });

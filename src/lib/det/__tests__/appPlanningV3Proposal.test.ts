@@ -1,3 +1,6 @@
+import {prepareAppBrickExport} from '@/lib/nolio/appBrickPreparation';
+import {preparePlan} from '../../../../supabase/functions/_shared/nolioV2/planDryRun';
+import {raceIdentityOf} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import {coachDuration,coachTarget} from '@/lib/plan/coachPrescriptionText';
 import {prevalidateTrainingPlan} from '@/lib/plan/prevalidateTrainingPlan';
 import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolioV2/planSessions';
@@ -309,3 +312,28 @@ it('does not replace the quality work of dedicated swimming with technical-only 
  expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>!s.isRest&&s.sport==='swim'&&(s as unknown as {detSourceComponents?:unknown[]}).detSourceComponents?.length).every(s=>s.durationMin!==undefined&&!(s.details??'').includes('Repères à préciser'))).toBe(true);
  expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
 },60000);
+
+it('prepares every normal-app brick for exact full-plan and selected V2 exports without changing source prescriptions or approval',async()=>{
+ const plan=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{},'test-engine'),before=structuredClone(plan);
+ const original=sessionsFromPlanJson(plan).sessions,keys=original.filter(s=>s.detStructuredComponents).map(s=>s.sessionKey);expect(keys.length).toBeGreaterThan(0);
+ const next=await prepareAppBrickExport(plan,{keys,timeZone:'Europe/Brussels',time:'09:00',transitionMinutes:5,confirmed:true});
+ expect(plan).toEqual(before);expect(next.weeks).toEqual(before.weeks);expect(appProfileDetArchiveSummary(next,ATHLETE).prescriptionAllowed).toBe(false);
+ const race=original.map(raceIdentityOf).find(r=>r!==null)!;
+ const refs={synthetic:true,athleteId:'usr_SYNTH1',calendarTimeZone:'Europe/Brussels',sportIds:{run:'spt_SYNTHRUN',bike:'spt_SYNTHBIKE',swim:'spt_SYNTHSWIM',strength:'spt_SYNTHSTRENGTH',brick:'spt_SYNTHTRI'},exerciseIds:Object.fromEntries(requiredExerciseLabels(original).map((label,i)=>[label,'exf_SYNTH'+i])),competition:{date:race.date,name:race.name,sport:race.sport}};
+ const id='22222222-2222-4222-8222-222222222222';
+ const full=await preparePlan(next,refs,id);expect(full.precheck.complete,JSON.stringify(full.precheck)).toBe(true);expect(full.precheck.refused).toBe(0);
+ const selected=await preparePlan(next,refs,id,{kind:'sessions',keys:[keys[0]]});expect(selected.precheck.complete,JSON.stringify(selected.precheck)).toBe(true);expect(selected.ops).toHaveLength(2);
+ expect(selected.ops.map(o=>o.sessionKey)).toEqual([keys[0]+'~bike',keys[0]+'~run']);
+ for(const o of selected.ops)expect(o.body).toEqual(full.ops.find(f=>f.sessionKey===o.sessionKey)!.body);
+ const altered=structuredClone(next) as typeof next;const source=altered.weeks.flatMap(w=>w.sessions).find(s=>s.sport==='brick'&&!s.title.startsWith('COURSE :'))!;source.title+=' changé';
+ const stale=await preparePlan(altered,refs,id,{kind:'sessions',keys:[keys[0]]});expect(stale.precheck.complete).toBe(false);expect(stale.ops).toEqual([]);
+},60000);
+
+it('requires explicit brick schedule/transition, rejects changed source blocks and preserves the original',async()=>{
+ const p=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{},'test-engine');
+ const key=sessionsFromPlanJson(p).sessions.find(s=>s.detStructuredComponents)!.sessionKey;
+ const input={keys:[key],timeZone:'Europe/Brussels',time:'09:00',transitionMinutes:5,confirmed:true};
+ for(const bad of [{...input,confirmed:false},{...input,time:''},{...input,transitionMinutes:0},{...input,keys:['S99-J0-0']},{...input,timeZone:'Unknown/Zone'}])await expect(prepareAppBrickExport(p,bad)).rejects.toThrow();
+ const changed=structuredClone(p);changed.weeks.flatMap(w=>w.sessions).find(s=>s.sport==='brick')!.details+=' modifié';await expect(prepareAppBrickExport(changed,input)).rejects.toThrow('blocs');
+ const scheduled=structuredClone(p);const brick=scheduled.weeks.flatMap(w=>w.sessions).find(s=>s.sport==='brick')!;Object.assign(brick,{coachStart:{provenance:'coach_confirmed',localDate:sessionsFromPlanJson(p).sessions.find(s=>s.detStructuredComponents)!.date,timeZone:'Europe/Brussels',minuteOfDay:600,utcOffsetMinutes:60}});await expect(prepareAppBrickExport(scheduled,input)).rejects.toThrow('créneau déjà confirmé');
+});

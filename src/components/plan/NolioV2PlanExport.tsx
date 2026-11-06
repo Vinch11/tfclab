@@ -1,3 +1,4 @@
+import {NolioAppBrickPreparation} from './NolioAppBrickPreparation';
 import {HumanCoachReview} from '@/components/plan/HumanCoachReview';
 import {NolioV2ProgressPanel,type V2StatusView} from '@/qa/pilot-review/NolioV2ProgressPanel';
 import {sessionsFromPlanJson} from '../../../supabase/functions/_shared/nolioV2/planSessions';
@@ -39,7 +40,10 @@ const explanations:Record<string,string>={
 };
 /** Common viewer actions, backed only by the owned saved version and V2.
  * No legacy catalogue replacement, no implicit send or fabricated review. */
-export function NolioV2ExportProvider({plan,athleteId,planVersionId,enabled,children}:{plan:ParsedPlan;athleteId?:string;planVersionId?:string|null;enabled:boolean;children:ReactNode}){
+export function NolioV2ExportProvider({plan:inputPlan,athleteId,planVersionId:inputVersionId,enabled,children}:{plan:ParsedPlan;athleteId?:string;planVersionId?:string|null;enabled:boolean;children:ReactNode}){
+ const [preparedVersion,setPreparedVersion]=useState<{id:string;plan:ParsedPlan}|null>(null);
+ useEffect(()=>{setPreparedVersion(null);},[inputPlan,inputVersionId,athleteId]);
+ const plan=preparedVersion?.plan??inputPlan,planVersionId=preparedVersion?.id??inputVersionId;
  const [scope,setScope]=useState<NolioExportScope|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[dry,setDry]=useState<PlanDryResp|null>(null),[consent,setConsent]=useState(false),[ready,setReady]=useState(false);
  const [simulationConfirmed,setSimulationConfirmed]=useState(false),[releaseReady,setReleaseReady]=useState<boolean|null>(null),[verifyFrom,setVerifyFrom]=useState(0);
  const [reviewPlan,setReviewPlan]=useState<unknown|null>(null),[showReview,setShowReview]=useState(false),[refsView,setRefsView]=useState<V2StatusView|null>(null);
@@ -97,6 +101,16 @@ export function NolioV2ExportProvider({plan,athleteId,planVersionId,enabled,chil
    }
   }catch(e){if(current()){setMessage((e as Error).message);setReady(false);}}finally{lock.current=false;setBusy(false);}
  }
+ async function loadOwnedVersion(){
+  if(lock.current||!planVersionId||!athleteId)return;lock.current=true;setBusy(true);const token=epoch.current;
+  try{
+   const u=await bounded(supabase.auth.getUser());const uid=u.data.user?.id;if(u.error||!uid)throw Error('Session expirée.');
+   const r=await bounded(supabase.from('plan_versions').select('id,athlete_id,coach_id,plan_json').eq('id',planVersionId).eq('coach_id',uid).eq('athlete_id',athleteId).maybeSingle());
+   const again=await bounded(supabase.auth.getUser());if(token!==epoch.current)return;
+   if(again.error||again.data.user?.id!==uid||r.error||!r.data||r.data.id!==planVersionId||r.data.coach_id!==uid||r.data.athlete_id!==athleteId||!samePrescription(r.data.plan_json,plan))throw Error('Version sauvegardée ou identité différente.');
+   setReviewPlan(r.data.plan_json);setMessage('Version sauvegardée relue. Vous pouvez préparer ses enchaînements et relire la revue coach.');
+  }catch(e){if(token===epoch.current)setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
+ }
  async function refsAction(body:Record<string,unknown>){
   if(lock.current||!athleteId||!planVersionId||!['status','load_refs','update_refs'].includes(String(body.action)))return;
   lock.current=true;setBusy(true);const token=epoch.current;
@@ -112,7 +126,7 @@ export function NolioV2ExportProvider({plan,athleteId,planVersionId,enabled,chil
   }catch(e){if(token===epoch.current)setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
  }
  const extracted=sessionsFromPlanJson(reviewPlan??plan).sessions;
- const sports=[...new Set(extracted.filter(s=>!s.isRest).flatMap(s=>s.detStructuredWorkout?.sport==='brick'?['bike','run']:[s.sport]))];
+ const sports=[...new Set(extracted.filter(s=>!s.isRest).flatMap(s=>s.sport==='brick'&&(s.detStructuredWorkout||s.detStructuredComponents)?['bike','run']:[s.sport]))];
  const races=extracted.map(raceIdentityOf).filter((r):r is NonNullable<typeof r>=>!!r);
  const title=scope?.kind==='all'?'le plan entier':scope?.kind==='weeks'?scope.from===scope.to?`la semaine ${scope.from}`:`les semaines ${scope.from} à ${scope.to}`:`${scope?.keys.length??0} séance(s)`;
  return <Context.Provider value={enabled?open:null}>{children}
@@ -122,6 +136,9 @@ export function NolioV2ExportProvider({plan,athleteId,planVersionId,enabled,chil
     {scope.kind==='weeks'&&<div className="flex gap-2"><label>De S<input aria-label="Première semaine Nolio" type="number" min={1} max={104} value={scope.from} disabled={busy} className="w-16 border rounded" onChange={e=>open({...scope,from:Number(e.target.value)})}/></label><label>à S<input aria-label="Dernière semaine Nolio" type="number" min={scope.from} max={104} value={scope.to} disabled={busy} className="w-16 border rounded" onChange={e=>open({...scope,to:Number(e.target.value)})}/></label></div>}
     {scope.kind==='sessions'&&<div className="max-h-48 overflow-auto space-y-1">{plan.weeks.flatMap(w=>w.sessions.map((s,i)=>({s,key:`S${s.weekNumber}-J${s.dayIndex}-${i}`}))).filter(({s})=>!s.isRest).map(({s,key})=><label className="flex gap-2" key={key}><input type="checkbox" disabled={busy} checked={scope.keys.includes(key)} onChange={e=>open({kind:'sessions',keys:e.target.checked?[...scope.keys,key]:scope.keys.filter(k=>k!==key)})}/><span>S{s.weekNumber} · {s.dayName} · {s.title}</span></label>)}</div>}
    </div>}
+   <Button disabled={busy||!planVersionId} variant="outline" onClick={()=>void loadOwnedVersion()}>Préparer la version sauvegardée</Button>
+   {preparedVersion&&<p className="text-sm">Version préparée sauvegardée dans l’historique. Les exports suivants utilisent cette nouvelle version ; le plan d’origine est conservé.</p>}
+   {reviewPlan&&planVersionId&&athleteId&&<NolioAppBrickPreparation plan={reviewPlan as ParsedPlan} planVersionId={planVersionId} athleteId={athleteId} onSaved={(id,next)=>{epoch.current++;setPreparedVersion({id,plan:next});}}/>}
    <Button disabled={busy||!planVersionId} variant="outline" onClick={()=>void refsAction({action:"status"})}>Corriger les associations Nolio</Button>
    {refsView&&<NolioV2ProgressPanel status={refsView} busy={busy} ready={!!planVersionId} identityKey={`${athleteId}|${planVersionId}`} planSports={sports} exerciseLabels={requiredExerciseLabels(extracted)} raceSource={races.length===1?races[0]:null} act={refsAction} simulation={simulationConfirmed?"CONFIRMED":"NONE"}/>}
    {reviewPlan&&<Button disabled={busy} variant="outline" onClick={()=>setShowReview(v=>!v)}>Relire ma revue coach</Button>}
