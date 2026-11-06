@@ -169,3 +169,17 @@ export function buildDetStructuredWorkout(input: {
     chosenDurationMin: d, nodes, exactSeconds: secs,
   } };
 }
+
+/** Exact structural preview for an UNREVIEWED app plan. This is deliberately
+ * not a DetStructureResult and cannot claim source admission or plan approval.
+ * The reviewed builder above retains its original admission gate. */
+export function previewDetStructuredWorkout(input:{sourceId:string;sport:string;blocks:readonly V3Block[];targets:readonly V3IntensityTarget[];durationMinutes:number|null}):
+ {status:'preview';sourceAdmission:'pending';workout:DetStructuredWorkout}|{status:'refused';reason:string}{
+ const d=input.durationMinutes;
+ if(d===null||!Number.isFinite(d)||d<=0)return {status:'refused',reason:'configured_duration_unresolved'};
+ const nodes=convert(input.blocks,input.targets,'');
+ if(typeof nodes==='string')return {status:'refused',reason:nodes};
+ const seconds=exactSeconds(nodes);
+ if(seconds!==null&&Math.abs(seconds-d*60)>1e-6)return {status:'refused',reason:'configured_seconds_mismatch'};
+ return {status:'preview',sourceAdmission:'pending',workout:{schema:DET_STRUCTURED_SCHEMA,sourceId:input.sourceId,sport:input.sport,chosenDurationMin:d,nodes,exactSeconds:seconds}};
+}

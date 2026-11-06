@@ -1,3 +1,5 @@
+import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolioV2/planSessions';
+import {mapPlanToNolioV2,requiredExerciseLabels} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import { appProfileDetArchiveSummary } from '../appProfileDetArchive';
 import { AppendOnlyPlanVersionSaver } from '@/lib/plan/appendOnlyPlanVersionSave';
 import { generateAppProfileDetPlan } from '../appProfileDetPlan';
@@ -177,4 +179,18 @@ it('archives and reopens the common partial-data plan through the existing appen
  expect(appProfileDetArchiveSummary(reopened).prescriptionAllowed).toBe(false);
  const changed=structuredClone(reopened);changed._provenance.prescriptionAllowed=true;expect(()=>appProfileDetArchiveSummary(changed)).toThrow('Provenance');
  changed._provenance.prescriptionAllowed=false;changed._provenance.planningInput.fingerprint='other';expect(()=>appProfileDetArchiveSummary(changed)).toThrow('divergent');
+});
+
+it('preserves exact chosen structures for V2 preparation without admission or an actual send',async()=>{
+ const plan=await generateAppProfileDetPlan(await shared('Ironman 70.3',12,10),ATHLETE,{},'test-engine');
+ const extracted=sessionsFromPlanJson(JSON.parse(JSON.stringify(plan)));expect(extracted.problems).toEqual([]);
+ const structured=extracted.sessions.filter(s=>!!s.detStructuredWorkout);expect(structured.length).toBeGreaterThan(0);
+ expect(structured.every(s=>s.sport===s.detStructuredWorkout!.sport)).toBe(true);
+ const refs={synthetic:true,athleteId:'usr_SYNTH1',sportIds:{run:'spt_SYNTHRUN',bike:'spt_SYNTHBIKE',swim:'spt_SYNTHSWIM',strength:'spt_SYNTHSTRENGTH'},exerciseIds:Object.fromEntries(requiredExerciseLabels(structured).map((label,i)=>[label,'exf_SYNTH'+i])),competition:null};
+ const mapped=mapPlanToNolioV2(structured,refs);expect(mapped.operations.length,JSON.stringify(mapped.refusals)).toBeGreaterThan(0);
+ expect(structured.every(s=>s.durationMin===s.detStructuredWorkout!.chosenDurationMin)).toBe(true);
+ expect(JSON.stringify(plan)).toContain('"detStructureAdmission":"pending"');
+ expect(extracted.sessions.some(s=>s.detStructureRefusal?.reason==='multisport_composition_and_transition_unreviewed')).toBe(true);
+ expect(blocksLegacyNolioExport(plan)).toBe(true);
+ expect((JSON.parse(JSON.stringify(plan)))._provenance.prescriptionAllowed).toBe(false);
 });

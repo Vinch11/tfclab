@@ -436,7 +436,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         {getSportIcon(session.sport)}
         <span className="text-sm font-medium">{session.dayName}</span>
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
-        <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
+        <Badge variant="outline" className="text-[10px] ml-auto">{({run:'Course à pied',bike:'Vélo',swim:'Natation',strength:'Renforcement',brick:'Enchaînement vélo-course'} as Record<string,string>)[session.sport]??session.sport}</Badge>
         {fiche && (
           <Badge variant="secondary" className="text-[9px] gap-1" title={`Fiche bibliothèque : ${fiche.id}`}>
             <FileText className="h-2.5 w-2.5" /> Fiche
