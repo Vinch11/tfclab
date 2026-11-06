@@ -1,0 +1,29 @@
+import {findSource} from '@/lib/det/coachDetContext';
+import {fireEvent,render,screen,waitFor,cleanup} from '@testing-library/react';
+import {afterEach,beforeEach,it,expect,vi} from 'vitest';
+const db=vi.hoisted(()=>({row:null as Record<string,unknown>|null,insert:vi.fn(),tamper:false}));
+vi.mock('@/integrations/supabase/client',()=>({supabase:{from:()=>{let writing=false;const q={insert:(row:Record<string,unknown>)=>{writing=true;db.insert(row);db.row=structuredClone(row);return q;},select:()=>q,eq:()=>q,single:async()=>({data:writing?{id:'review-1'}:{...db.row,id:'review-1',created_at:'2026-11-05T08:00:00Z',...(db.tamper?{inputs_hash:'wrong'}:{})},error:null})};return q;}}}));
+vi.mock('@/lib/det/librarySourceReview',async importOriginal=>{const actual=await importOriginal<typeof import('@/lib/det/librarySourceReview')>();return {...actual,prepareLibraryReview:async(pool)=>{const {sourceReviewSheet,findSource}=await import('@/lib/det/coachDetContext');return {hash:'manifest-1',manifest:{schema:'tfcl.det.library-review.v1',family:'marathon',poolFingerprint:'pool-1',sources:pool.ids.map(id=>sourceReviewSheet(findSource(id)!)),doses:{},scientificAttestation:false,prescriptionAllowed:false}};}};});
+import {AthleteSourceReview} from '../AthleteSourceReview';
+import {snap,runClock,triClock,est} from '@/lib/det/__tests__/coachDetFamilies.test.shared';
+import {familySourcePool} from '@/lib/det/familySourcePools';
+import {GENERAL_CONFIRMATIONS,CONDITIONAL_CONFIRMATIONS,type CoachAnswers} from '@/lib/det/athleteDetBridge';
+const answers:CoachAnswers={provenance:{},entered:{},swimPaces:{},athleteLevel:'trained',recentLoad:'moderate',fatigue:'ready',injuryScreen:'cleared_by_coach',general:Object.fromEntries(Object.keys({...GENERAL_CONFIRMATIONS,...CONDITIONAL_CONFIRMATIONS}).map(k=>[k,true])),prerequisitesAllMet:true,unmetPrerequisites:[],contraindicationsAllAbsent:true,presentContraindications:[],strengthLoadAndRpeConfirmed:true,clock:{timeZone:'UTC',bySport:{}},bricksConfirmed:false,coachLimiterOrder:null};
+const pool={...familySourcePool('marathon'),ids:['V3P_RUN_001'],doses:{}};
+function props(){const snapshot=snap('Marathon',16,7,'2027-02-14');return {pool,snapshot,answers,sourcesVersion:'b'.repeat(64),fingerprint:'fp',coachId:snapshot.coachId,athleteId:snapshot.athleteId,clock:runClock,guard:async()=>({userId:snapshot.coachId,athleteId:snapshot.athleteId}),onResolved:vi.fn()};}
+async function humanReview(){const button=await screen.findByRole('button',{name:'Enregistrer ma revue des séances'});expect(button).toBeDisabled();const details=(await screen.findByText(findSource('V3P_RUN_001')!.title)).closest('details')!;details.open=true;fireEvent(details,new Event('toggle'));await waitFor(()=>expect(screen.getByRole('checkbox')).toBeEnabled());fireEvent.click(screen.getByRole('checkbox'));fireEvent.change(screen.getByRole('textbox'),{target:{value:'Lecture et dose vérifiées pour cet athlète.'}});await waitFor(()=>expect(button).toBeEnabled());return button;}
+beforeEach(()=>{db.row=null;db.tamper=false;db.insert.mockClear();});afterEach(cleanup);
+it('requires opening, explicit reading and notes, then exact persisted readback before source reuse',async()=>{const p=props();render(<AthleteSourceReview {...p}/>);const button=await humanReview();expect(db.insert).not.toHaveBeenCalled();fireEvent.click(button);await waitFor(()=>expect(p.onResolved).toHaveBeenCalledOnce());expect(db.insert).toHaveBeenCalledOnce();expect(p.onResolved.mock.calls[0][0]).toMatchObject({reviewContextId:'review-1',planningInputFingerprint:'fp',athleteId:p.athleteId,coachId:p.coachId});});
+it('a changed receipt supplies no genuine review and cannot be retried silently',async()=>{db.tamper=true;const p=props();render(<AthleteSourceReview {...p}/>);fireEvent.click(await humanReview());await screen.findByText(/relecture exacte n’est pas confirmée/);expect(p.onResolved).not.toHaveBeenCalled();expect(screen.getByRole('button')).toBeDisabled();});
+
+it('short triathlon needs explicit composition review after both component doses, persisted separately',async()=>{
+ const p={...props(),snapshot:{...snap('Sprint',8,8,'2026-12-20'),anchors:{...snap('Sprint',8,8,'2026-12-20').anchors,cssSecPer100m:est(95,'SYNTHETIC paired swim test')}},clock:triClock,pool:{...familySourcePool('triathlon_sprint'),ids:['V3P_BIKE_001','V3P_RUN_001'],doses:{}}};
+ render(<AthleteSourceReview {...p}/>);
+ const button=await screen.findByRole('button',{name:'Enregistrer ma revue des séances'});
+ for(const id of p.pool.ids){const title=await screen.findByText(findSource(id)!.title);const details=title.closest('details')!;details.open=true;fireEvent(details,new Event('toggle'));}
+ const checkboxes=screen.getAllByRole('checkbox');await waitFor(()=>expect(checkboxes[0]).toBeEnabled());fireEvent.click(checkboxes[0]);fireEvent.click(checkboxes[1]);
+ fireEvent.change(screen.getByRole('textbox'),{target:{value:'Composants et transition vérifiés pour cet athlète.'}});
+ expect(button).toBeDisabled();fireEvent.click(checkboxes[2]);await waitFor(()=>expect(button).toBeEnabled());fireEvent.click(button);
+ await waitFor(()=>expect(p.onResolved).toHaveBeenCalledOnce());
+ expect(db.row?.brick_approvals).toEqual([{id:'V3B_SPRINT_EASY_001',transitionSeconds:180}]);
+});

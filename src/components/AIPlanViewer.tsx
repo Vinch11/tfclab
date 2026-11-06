@@ -1,3 +1,5 @@
+import { LimiterMesocycleTimeline } from "./plan/LimiterMesocycleTimeline";
+import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -22,6 +24,7 @@ import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 import { getFicheForSession, isRunOnlyHighIntensityBikeSession } from "@/lib/aiPlanWorkoutEnricher";
 import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
+import { readableV3Prescription } from "@/lib/plan/readableV3Prescription";
 import { mapSessionsToDates } from "@/lib/aiPlanParser";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { exportAIPlanToPDF, isQaNonPrescriptivePlan, QA_NON_PRESCRIPTIVE_BANNER } from "@/lib/aiPlanPDFExport";
@@ -372,8 +375,8 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
     [session.title, session.sport, targetTable]
   );
   const displayDetails = useMemo(
-    () => enrichWithAbsoluteValues(session.details ?? "", targetTable, session.sport as SportKind),
-    [session.details, session.sport, targetTable]
+    () => enrichWithAbsoluteValues(readableV3Prescription({details:session.details,catalogId:session.catalogId}), targetTable, session.sport as SportKind),
+    [session.details, session.catalogId, session.sport, targetTable]
   );
 
   const trailAlts = useMemo(
@@ -1210,8 +1213,9 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     });
   }, []);
 
+  const legacyNolioBlocked = blocksLegacyNolioExport(plan);
   const nolioCtx: NolioCtx | null = useMemo(() => {
-    if (!athleteId || nolioId == null || !startDate) return null;
+    if (legacyNolioBlocked || !athleteId || nolioId == null || !startDate) return null;
     return {
       athleteId,
       nolioId,
@@ -1223,7 +1227,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       toggleSelected,
       setManySelected,
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+  }, [legacyNolioBlocked, athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
 
   // Bulk send state
   const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
@@ -1358,6 +1362,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   }, [targetSessions, sentKeys, nolioCtx, planSlotMap]);
 
   async function handleBulkSend() {
+    if (blocksLegacyNolioExport(plan)) { toast.error(DET_LEGACY_EXPORT_BLOCKED); return; }
     if (!nolioCtx || targetSessions.length === 0) return;
     setBulkSending(true);
     setBulkProgress({ done: 0, total: targetSessions.length });
@@ -1736,6 +1741,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
 
+      {legacyNolioBlocked && <Alert data-testid="det-legacy-nolio-blocked"><AlertDescription>{DET_LEGACY_EXPORT_BLOCKED}</AlertDescription></Alert>}
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (
         <CollapsibleCard
@@ -1983,6 +1989,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
             </div>
           </div>
 
+          <LimiterMesocycleTimeline plan={plan} limiterKeys={identifiedLimiterKeys ?? []} />
+
           {/* Phase overview */}
           <div className="flex flex-wrap gap-2">
             {plan.phases.map((phase, i) => {
@@ -1994,7 +2002,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
                   </Badge>
                   {focus && focus.breakdown.length > 0 && (
                     <div className="flex flex-wrap gap-1 pl-1">
-                      {focus.breakdown.slice(0, 3).map((b) => (
+                      {focus.breakdown.map((b) => (
                         <Badge key={b.key} variant="outline" className="text-[9px] px-1.5 py-0 font-normal text-muted-foreground">
                           {limiterKeyLabel(b.key)} {b.pct}%
                         </Badge>
@@ -2167,7 +2175,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       )}
 
       {/* Bulk confirmation dialog */}
-      <Dialog open={bulkConfirmOpen} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
+      <Dialog open={bulkConfirmOpen && !legacyNolioBlocked} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Confirmer l'envoi vers Nolio</DialogTitle>

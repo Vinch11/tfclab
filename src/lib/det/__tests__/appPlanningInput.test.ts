@@ -125,9 +125,9 @@ describe("[frontière moquée — solveur capturé, pas une preuve d'acceptation
     expect((calls.det[0].athlete as Record<string, unknown>).runEconomyScore).toBe(71);
     expect((calls.det[0].athlete as Record<string, unknown>).runHrDriftPct).toBe(4.2);
     expect(out.kind).toBe("engine_refused");
-    if (out.kind === "engine_refused") { expect(out.limiterOrder).toMatchObject({ mode: "automatic", source: "app_planning_pipeline", automatic: ["TTE", "VLamax", "VO2max"], coachConfirmed: null, applied: ["VO2max", "TTE", "VLamax"], unrecognizedByDet: ["VLamax"] });
+    if (out.kind === "engine_refused") { expect(out.limiterOrder).toMatchObject({ mode: "automatic", source: "app_planning_pipeline", automatic: ["TTE", "VLamax", "VO2max"], coachConfirmed: null, applied: ["VO2max", "TTE", "VLamax"], unrecognizedByDet: [] });
       expect(out.limiterOrder.semantics!.rawPriorities).toEqual(["VO2max", "TTE", "VLamax"]);
-      expect(out.limiterOrder.semantics!.resolutions.find((r) => r.raw === "VLamax")!.policy).toBe("retained_unsupported_secondary"); }
+      expect(out.limiterOrder.semantics!.resolutions.find((r) => r.raw === "VLamax")!.policy).toBe("native_validators_only"); }
   });
   it("témoin : l'ancien chemin manuel recalcule (prepareTrainingPlanContext appelé) et perd fatigue/charge", async () => {
     await runWith(null, runner(), {}, true);

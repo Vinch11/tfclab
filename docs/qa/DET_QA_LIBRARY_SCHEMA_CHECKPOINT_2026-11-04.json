@@ -1,0 +1,27 @@
+{
+  "checked_at": "2026-11-04T18:10:04.458226+00:00",
+  "project_id": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "environment": "isolated_unpublished_QA",
+  "applied_sql_sha256": "d3566254c863261ac6c59c01bea323c8d5e38b14a68d7813998d09e0e9b75b28",
+  "table": "public.det_library_source_reviews",
+  "created": true,
+  "rls_enabled": true,
+  "authenticated_grants": [
+    "SELECT",
+    "INSERT"
+  ],
+  "anonymous_select": false,
+  "authenticated_update": false,
+  "authenticated_delete": false,
+  "policies": {
+    "SELECT": "coach_id = auth.uid()",
+    "INSERT": "coach_id = auth.uid() AND is_staff_coach(auth.uid())"
+  },
+  "review_count_after_creation": 0,
+  "authenticated_recipe_verified": false,
+  "human_reviews_created": false,
+  "production_modified": false,
+  "preview_source_commit_observed": "ac891ceb5e293298b276dfde9d28435c1d9e673a",
+  "preview_authentication": "Secure browser authentication request and subsequent state inspection timed out; final login state unknown",
+  "candidate_loaded_in_preview": false
+}

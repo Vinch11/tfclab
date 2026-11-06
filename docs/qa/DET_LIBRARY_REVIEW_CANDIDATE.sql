@@ -1,4 +1,5 @@
--- Candidate only. Not executed against QA or production.
+-- Applied to isolated QA c3941303 on 2026-11-04; not applied to production.
+-- Verified grants/RLS: DET_QA_LIBRARY_SCHEMA_CHECKPOINT_2026-11-04.json.
 -- Human content review, separate from athlete checks and sporting/release authority.
 CREATE TABLE public.det_library_source_reviews (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

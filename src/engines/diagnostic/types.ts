@@ -145,6 +145,8 @@ export interface CheckinData {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface AthleteDiagnostic {
+  /** Separate coach programme goal; the physiological profile below remains unchanged. */
+  planningGoalAnalysis?:import('@/lib/plan/dedicatedSportGoal').DedicatedSportGoalAnalysis;
   // ─── Identité ─────────────────────────────────────
   athleteId: string;
   objectif: string;

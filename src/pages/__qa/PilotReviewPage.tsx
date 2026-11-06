@@ -1,3 +1,4 @@
+import { NolioMultisportPreparation } from "@/components/plan/NolioMultisportPreparation";
 import { RealVerificationHistory } from "@/components/plan/RealVerificationHistory";
 /**
  * DEV + QA uniquement — /__qa/pilot-review. Revue des étapes restantes sur
@@ -149,7 +150,7 @@ export default function PilotReviewPage() {
     return { who: g, blocked: null, data: error ? { status: "BLOCKED", reason: "appel_fonction_echoue" } : (data as Record<string, unknown>) };
   };
   const planSports = useMemo(() => {
-    const ss = source ? sessionsFromPlanJson(source.plan).sessions.filter((x) => !x.isRest).map((x) => x.sport).filter(Boolean) : [];
+    const ss = source ? sessionsFromPlanJson(source.plan).sessions.filter((x) => !x.isRest).flatMap((x) => x.detStructuredWorkout?.sport === "brick" ? ["bike", "run"] : [x.sport]).filter(Boolean) : [];
     return ss.length ? [...new Set(ss)] : ["run", "bike", "swim", "strength"];
   }, [source]);
   // Toutes les feuilles force de la structure sauvegardée (pas seulement le 1er refus par séance).
@@ -457,7 +458,7 @@ export default function PilotReviewPage() {
             <CardContent className="space-y-2">
               <p className="font-semibold text-destructive">QA — PLAN FICTIF / NON PRESCRIPTIF</p>
               <p className="text-xs">Empreinte canonique : {sha ?? "calcul…"}</p>
-              {source.kind === "owned_version" && <><HumanCoachReview key={source.id} planVersionId={source.id} plan={source.plan}/><RealVerificationHistory planVersionId={source.id}/></>}
+              {source.kind === "owned_version" && <><NolioMultisportPreparation key={source.id+"-nolio"} planVersionId={source.id} plan={source.plan} onSaved={(id,plan)=>setSource({kind:"owned_version",id,plan:plan as ParsedPlan & Record<string,unknown>})}/><HumanCoachReview key={source.id} planVersionId={source.id} plan={source.plan}/><RealVerificationHistory planVersionId={source.id}/></>}
               <p data-testid="pilot-engine-binding" className="text-xs">{binding?.ok ? `Moteur ayant généré ce plan : ${binding.engineVersion.slice(0, 12)} · release ${binding.releaseId?.slice(0, 12) ?? "non renseignée"}` : `Moteur du plan : REFUSÉ — ${binding && binding.ok === false ? binding.reason : "?"} (avis impossible)`} · code chargé : {release.engineVersion?.slice(0, 12) ?? "indisponible"}</p>
               <p>{limiterEvidence(source.plan) ?? "Preuve limiteur/spécifique : non portée par ce plan (non affichée, jamais inventée)."}</p>
               <div className="overflow-auto"><table className="w-full text-xs"><thead><tr><th className="text-left">Sem.</th><th className="text-left">Phase</th><th>Séances</th><th>Min. prévues</th><th className="text-left">Récupération nommée</th><th className="text-left">Minutes par domaine (calculées depuis la structure)</th></tr></thead>

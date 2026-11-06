@@ -3823,7 +3823,7 @@ export function deriveLimiterKeysFromGapAnalysis(
   for (const gap of rankedGaps) {
     const key = detectLimiterKeyFromMetric(gap.metric);
     if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-    if (limiterKeys.length >= 4) break;
+
   }
 
   return limiterKeys;
@@ -3978,7 +3978,7 @@ export function computePhaseLimiterFocus(
   limiterKeys: string[] | undefined
 ): PhaseLimiterFocus[] {
   if (!limiterKeys || limiterKeys.length === 0 || plan.weeks.length === 0) return [];
-  const rankedKeys = limiterKeys.slice(0, 4);
+  const rankedKeys = [...limiterKeys];
 
   const groups: { name: string; weeks: ParsedWeek[] }[] = [];
   for (const w of plan.weeks) {
@@ -4035,14 +4035,12 @@ function validateLimiterCoherence(
   if (identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
     for (const key of identifiedLimiterKeys) {
       if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
     }
   } else if (identifiedLimiters) {
     // Fallback for legacy callers: extract from prompt text
     for (const limText of identifiedLimiters) {
       const key = detectLimiterKeyFromText(limText);
       if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
     }
   }
 
@@ -6009,4 +6007,22 @@ export function formatValidationReport(result: PlanValidationResult): string {
   }
 
   return lines.join("\n");
+}
+
+/** Planned focus versus observed textual correspondences, block by block.
+ * This reuses the native matcher; it is deliberately NOT exact-dose evidence. */
+export function computeMesocycleLimiterFocus(plan: ParsedPlan, limiterKeys: string[] = []) {
+  const groups = new Map<number, {focus:string;weeks:ParsedWeek[]}>();
+  for (const week of plan.weeks) {
+    const intention = plan.weeklyQuotas?.[week.weekNumber]?.limiterFocus;
+    if (intention?.mode !== 'development' || intention.block === null || !intention.focus) continue;
+    const group = groups.get(intention.block) ?? {focus:intention.focus,weeks:[]};
+    group.weeks.push(week); groups.set(intention.block,group);
+  }
+  return [...groups].map(([block,group]) => {
+    const counts = computeLimiterHitsForWeeks(group.weeks,limiterKeys);
+    return { block, plannedFocus:group.focus,startWeek:group.weeks[0].weekNumber,endWeek:group.weeks[group.weeks.length-1].weekNumber,
+      totalKeySessions:counts.totalKeySessions,breakdown:limiterKeys.map(key=>({key,hits:counts.limiterHits[key]??0})),
+      basis:'native_text_correspondence' as const,doseCoverageVerified:false as const };
+  });
 }

@@ -1,3 +1,7 @@
+import { appRecordReferenceProblems } from "./appRecordReference";
+import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
+import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
+import {primaryRunningInputProblems} from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 /**
  * Chemin « entrées coach » → VRAI moteur DET. Aucun import de fixture ou de
  * helper synthétique (vérifié par test). Les valeurs absentes restent nulles :
@@ -39,6 +43,7 @@ export function buildCoachPlanInputs(s: CoachDetInputSnapshot): { athlete: PlanA
   // Famille canonique : l'objectif moteur est celui du scénario CI, jamais le titre libre.
   const family = coachFamilyFor(s.objective);
   const objective = family?.engineObjective ?? s.objective;
+  if(family?.sportFocus==="swim"||family?.sportFocus==="bike")throw Error("dedicated_programme_requires_shared_app_input");
   const sportFocus = family?.sportFocus ?? "run";
   const diagnosticInput = {
     athleteId: s.athleteId, athleteName: athlete.nom, age: s.age, sex: s.sex ?? null, weightKg,
@@ -57,7 +62,7 @@ export function buildCoachPlanInputs(s: CoachDetInputSnapshot): { athlete: PlanA
     coachLimiterOrder: s.coachLimiterOrder ? [...s.coachLimiterOrder] : undefined,
     formConfig: {
       objective, raceDate: s.raceDate, planStartDate: s.planStartDate,
-      raceGoals: [{ objective, raceDate: s.raceDate, priority: "A" }],
+      raceGoals: s.raceGoals?.length ? structuredClone(s.raceGoals) : [{ objective, raceDate: s.raceDate, priority: "A" }],
       weeksAvailable: s.weeksAvailable, weeklyHours: s.weeklyHours, sessionsPerWeek: s.sessionsPerWeek,
       maxSessionsPerDay: s.maxSessionsPerDay, strengthSessionsPerWeek: s.strengthSessionsPerWeek, ambition: s.ambition,
     },
@@ -125,6 +130,8 @@ export function runCoachDetPlan(input: {
   appInput?: FrozenAppPlanningInput | null;
 }): CoachDetOutcome {
   if (!input.engineVersion || !/^[a-f0-9]{64}$/.test(input.engineVersion)) return { kind: "refused", refusals: ["version moteur DET indisponible"] };
+  const referenceProblems=appRecordReferenceProblems(input.snapshot,input.appInput);
+  if(referenceProblems.length)return {kind:"refused",refusals:referenceProblems};
   const check = checkCoachReviewContext({
     ctx: input.ctx,
     current: { coachId: input.coachId, athleteId: input.athleteId, snapshot: input.snapshot, inputsHash: input.inputsHash, sourcesVersion: input.sourcesVersion },
@@ -139,6 +146,7 @@ export function runCoachDetPlan(input: {
     if (input.snapshot.planningInputFingerprint !== app.fingerprint) return { kind: "refused", refusals: ["vérifications enregistrées pour un autre état du profil de planification : refaire les vérifications"] };
     if (app.config.planStartDate !== input.snapshot.planStartDate) return { kind: "refused", refusals: [`date de début incohérente (profil ${String(app.config.planStartDate)} ≠ vérifications ${input.snapshot.planStartDate})`] };
     if (input.snapshot.coachLimiterOrder) return { kind: "refused", refusals: ["l'ordre des limiteurs se règle dans la page (il est déjà inclus dans le profil partagé IA/DET)"] };
+    if(isTimeTrial(String(app.config.objective))&&canonicalJson(input.snapshot.timeTrial)!==canonicalJson(app.config.timeTrialContext))return {kind:'refused',refusals:['Revue CLM différente du profil partagé.']};
     const mism = anchorMismatches(app, input.snapshot.anchors as never);
     if (mism.length) return { kind: "refused", refusals: mism };
     ({ athlete, config } = planningInputFor(app, "det"));
@@ -148,6 +156,7 @@ export function runCoachDetPlan(input: {
       applied: [...app.limiters.applied],
     };
   } else {
+    if(["bike","swim"].includes(coachFamilyFor(input.snapshot.objective)?.sportFocus??""))return {kind:"refused",refusals:["Les programmes dédiés utilisent le profil partagé de la page et une cible explicite ; la saisie manuelle QA ne reconstruit pas leur diagnostic."]};
     const automatic = eligibleLimiterMetrics(input.snapshot);
     const orderProblems = limiterOrderProblems(input.snapshot, automatic);
     if (orderProblems.length) return { kind: "refused", refusals: orderProblems };
@@ -164,7 +173,11 @@ export function runCoachDetPlan(input: {
   limiterOrder.semantics = semantics;
   limiterOrder.unrecognizedByDet = semantics.resolutions.filter((r) => r.status === "unsupported").map((r) => r.raw);
   if (semantics.blocking) return { kind: "refused", refusals: [`Limiteur principal « ${semantics.blocking.raw} » sans définition DET pour cette famille : ${semantics.blocking.reason}. Rien n'est remplacé ; DET ne génère pas (code blocked_unsupported_limiter).`, ...semantics.blocking.missingItems.map((m) => `Manquant : ${m}`)], blockedUnsupportedLimiter: semantics.blocking, limiterOrder };
-  const run = runCoachInputsDet({ athlete, config, reviews: check.reviews, clock: input.ctx!.clock!, brickApprovals: input.ctx!.brickApprovals, limits: input.limits });
+  const primaryProblems=primaryRunningInputProblems(config);
+  if(primaryProblems.length)return {kind:"refused",refusals:primaryProblems,limiterOrder};
+  let run:ReturnType<typeof runCoachInputsDet>;
+  try { run=runCoachInputsDet({ athlete,athleteId:input.athleteId, config, reviews: check.reviews, clock: input.ctx!.clock!, trail: input.snapshot.trail,timeTrial:input.snapshot.timeTrial, brickApprovals: input.ctx!.brickApprovals, limits: input.limits }); }
+  catch(error){if(!isTimeTrial(String(config.objective)))throw error;return {kind:'refused',refusals:[error instanceof Error&&error.message.startsWith('CLM :')?error.message:'Contrat CLM non exécuté : erreur technique, aucune génération acceptée.'],limiterOrder};}
   const out = run.out;
   const hard = out.issues.filter((i) => ["critical", "blocking", "error"].includes(i.severity)).map((i) => i.code);
   if (!out.constraintsSatisfied || !out.candidate || run.contextProblems.length) {

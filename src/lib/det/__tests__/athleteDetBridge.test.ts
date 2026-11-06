@@ -1,3 +1,4 @@
+import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
 import { describe, it, expect, vi, beforeAll } from "vitest";
 import { explainEngineRefusal, buildAthleteDetInputs, prefillFromRecord, initialLimiterOrder, athleteChecklist, clockSportsFor, requiredAnchorKeys, GENERAL_CONFIRMATIONS, CONDITIONAL_CONFIRMATIONS, type AthleteRecordView, type CoachAnswers, type PlanFormView, type GenuineSourceReviews, BRICKS_703 } from "../athleteDetBridge";
 import { findSource } from "../coachDetContext";
@@ -102,7 +103,7 @@ describe("pont fiche athlète → DET", () => {
     expect(familySourcePool("marathon").independentScientificReview).toBe(false);
   });
   it("objectif non raccordé ⇒ message clair, aucun appel moteur", () => {
-    const b = buildAthleteDetInputs(runner(), form("10 km", 10, 6), answers("Semi-marathon"));
+    const b = buildAthleteDetInputs(runner(), form("5 km", 10, 6), answers("Semi-marathon"));
     expect(b.family).toBeNull(); expect(b.missing[0].why).toMatch(/pas encore pris en charge/);
   });
   it("limiteurs : ordre du diagnostic de l'app, restreint aux éligibles, non-guidants signalés", () => {
@@ -115,6 +116,15 @@ describe("pont fiche athlète → DET", () => {
 });
 
 describe("revue des séances : pool CI ≠ revue humaine", () => {
+  it('a changed athlete answer invalidates a newly bound individual source review',()=>{
+    const a=answers('Semi-marathon'),r=runner(),f=form('Semi-marathon',8,6);
+    const genuine=genuineFor(r,'Semi-marathon',{athleteChecksKey:canonicalJson(a)});
+    expect(buildAthleteDetInputs(r,f,a,genuine).sourceReview.status).toBe('reviewed');
+    const changed={...a,fatigue:'fatigued' as const};
+    const blocked=buildAthleteDetInputs(r,f,changed,genuine);
+    expect(blocked.sourceReview.status).toBe('blocked_missing_source_review');expect(blocked.ctx).toBeNull();
+  });
+
   const f = () => form("Semi-marathon", 8, 6);
   const deepHasTrue = (x: unknown): boolean => JSON.stringify(x ?? null).includes('"coachReviewedSource":true');
   it("liste simplifiée seule : aucun drapeau de revue humaine, blocage nommé + tâche amont", () => {
@@ -174,11 +184,11 @@ describe("pont → VRAI solveur → validateurs finaux", () => {
     run: { time: "", days, perDay: [1080, 360, 540, 720, 900, 1020, 1140].map(toHm) },
     strength: { time: "", days, perDay: [900, 900, 1080, 1200, 540, 600, 720].map(toHm) },
     bike: { time: "", days, perDay: [660, 660, 840, 1020, 720, 780, 900].map(toHm) } } };
-  it("semi 8 sem./6 h avec une heure fixe par sport : refus moteur réel (créneau de récupération semaine 7), nommé", async () => {
+  it("semi 8 sem./6 h, horaires fixes : refus nommé lorsque deux créneaux ne disposent que d’une source distincte", async () => {
     const { out } = await generate(semiRec(), form("Semi-marathon", 8, 6), answers("Semi-marathon"), { maxNodes: 25000, maxMilliseconds: 15000 });
-    expect(out?.kind === "engine_refused" && out.blockingCodes).toContain("det_v3_recovery_safe_slot_unfillable");
+    expect(out?.kind === "engine_refused" && out.blockingCodes).toContain("det_v336_root_source_matching_conflict");
     const fr = explainEngineRefusal(out?.kind === "engine_refused" ? out.blockingIssues ?? [] : []).join(" | ");
-    expect(fr).toMatch(/Semaine 7 .*ne peut pas être placée.*récupération/);
+    expect(fr).toMatch(/Semaine 7 .*séances distinctes.*seulement 1 source/);
     expect(fr).not.toMatch(/\d{1,2}:\d{2}/);
   }, 60000);
   const semiRec = () => runner({ birthDate: "1991-01-01", sex: "M",
@@ -234,10 +244,10 @@ describe("pont → VRAI solveur → validateurs finaux", () => {
     expect(weeks).toHaveLength(16);
     for (const s of weeks.flatMap((w) => w.sessions)) if (!s.isRest && !s.title.startsWith("COURSE : ")) expect(pool.has(s.catalogId!)).toBe(true);
   }, 120000);
-  it("marathon : VLamax d'abord (diagnostic automatique) ⇒ blocage nommé avant solveur (aucune branche primaire VLamax marathon) ; le coach met TTE d'abord ⇒ ACCEPTÉ, ordre coach tracé", async () => {
+  it("marathon : VLamax et TTE ont des branches distinctes ; ordre automatique et ordre coach conservés", async () => {
     const r1 = await generate(marathonRec(230), mForm(), answers("Marathon", { clock: variedClock }), fast);
-    expect(r1.out?.kind).toBe("refused");
-    expect(r1.out?.kind === "refused" && r1.out.blockedUnsupportedLimiter).toMatchObject({ code: "blocked_unsupported_limiter", raw: "VLamax" });
+    expect(r1.out?.kind).toBe("accepted");
+    expect(r1.out?.kind === "accepted" && r1.out.limiterOrder.applied[0]).toBe("VLamax");
     const r2 = await generate(marathonRec(230), mForm(), answers("Marathon", { clock: variedClock, coachLimiterOrder: ["TTE", "VLamax"] }), fast);
     expect(r2.out?.kind).toBe("accepted");
     expect(r2.out?.kind === "accepted" && r2.out.limiterOrder).toMatchObject({ mode: "coach", coachConfirmed: ["TTE", "VLamax"] });
@@ -287,5 +297,13 @@ describe("pont → VRAI solveur → validateurs finaux", () => {
     const ai = vi.fn();
     await expect(dispatchCoachEngine("det", { ai, det: async () => { throw new Error("det_refused"); } } as never)).rejects.toThrow();
     expect(ai).not.toHaveBeenCalled();
+  });
+  it("une source obligatoire manquante nomme la semaine et la revue à compléter", () => {
+    const message = explainEngineRefusal([{ code: "det_required_horizon_source_missing", week: 13,
+      message: JSON.stringify({ day: "Saturday", sport: "brick", phase: "peak", quotaMin: 1 }) }]).join(" ");
+    expect(message).toMatch(/Semaine 13/);
+    expect(message).toMatch(/enchaînement vélo-course/);
+    expect(message).toMatch(/compléter la revue/);
+    expect(message).toMatch(/augmenter le temps de calcul ne suffit pas/);
   });
 });

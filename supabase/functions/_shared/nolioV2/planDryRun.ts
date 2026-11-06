@@ -17,6 +17,7 @@
  */
 import { mapPlanToNolioV2, type NolioV2Refs, type V2Operation, requiredExerciseLabels, raceIdentityOf } from "./plannedMapper.ts";
 import { sessionsFromPlanJson } from "./planSessions.ts";
+import { expandReviewedMultisport } from "./multisportSplit.ts";
 import { bodyToSend, operationKey } from "./marker.ts";
 import { canonical, forceDryRun, sha256Hex, DRY_RUN_PATHS, type DryRunCode, type DryRunKind, type DryRunOutcome } from "./dryRun.ts";
 
@@ -69,7 +70,9 @@ export const manifestOf = (ops: FrozenOp[]): ManifestEntry[] =>
  * marqué exact (bodySha256 = payloadSha256 du journal d'envoi), jamais un corps voisin.
  */
 export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVersionId: string): Promise<Prepared> {
-  const ex = sessionsFromPlanJson(planJson);
+  const raw = sessionsFromPlanJson(planJson);
+  const expanded = await expandReviewedMultisport(raw.sessions, (planJson as Record<string, unknown> | null)?._nolioV2MultisportSplits);
+  const ex = { sessions: expanded.sessions, problems: [...raw.problems, ...expanded.problems] };
   const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs);
   const refusedBy = new Map<string, string>();
   for (const r of m.refusals) refusedBy.set(r.sessionKey, r.reason);

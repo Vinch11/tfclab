@@ -20,6 +20,7 @@ import {
 import { DET_LAB_SCENARIOS, DET_LAB_PLAN_START, runDetLabScenario, type DetLabOutcome } from "@/qa/det-lab/detLab";
 import { CoachDetInputsPanel } from "@/pages/__qa/CoachDetInputsPanel";
 import type { CoachDetOutcome } from "@/lib/det/coachDetRun";
+import { qaEngineChoiceEnabled } from "@/lib/plan/engineDispatch";
 
 type Verified = { coach: QaCoachKey; userId: string; athleteId: string };
 
@@ -33,8 +34,12 @@ export function detEngineVersionFromRelease(info: unknown): { engineVersion: str
 }
 
 /** Vérification serveur de l'identité avant toute génération / lecture / écriture. */
-export async function verifyQaCoach(): Promise<Verified | { blocked: string }> {
-  if (!import.meta.env.DEV) return { blocked: "Build non DEV." };
+export async function verifyQaCoach(options?: { surface: "planning" }): Promise<Verified | { blocked: string }> {
+  // The lab remains DEV-only. Only the ordinary planning panel may run in
+  // the exact compiled QA preview, with every identity/ownership check below.
+  if (options?.surface === "planning") {
+    if (!qaEngineChoiceEnabled(import.meta.env.DEV, import.meta.env.VITE_SUPABASE_URL, globalThis.location?.origin)) return { blocked: "Aperçu de planification hors QA." };
+  } else if (!import.meta.env.DEV) return { blocked: "Build non DEV." };
   if (!isExpectedQaOrigin(import.meta.env.VITE_SUPABASE_URL as string | undefined)) return { blocked: "Origine backend non QA." };
   try {
     const { data: sess } = await withTimeout(supabase.auth.getSession(), "getSession");

@@ -25,8 +25,9 @@ import {
 import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
 import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
 import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-v3-low-run-bricks';
+import { composeReviewedImTaperBrick, type ImTaperBrickReview } from './v404-im-taper-brick';
 import type { ExperimentalAssemblyContract } from './engine';
-import {buildDetStructuredWorkout,type DetStructureResult} from './v400-structured-workout';
+import {buildDetStructuredWorkout,buildDetStructuredBrick,type DetStructureResult} from './v400-structured-workout';
 import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
 
 export interface V3ReviewedSettings extends DetV3Review {
@@ -132,6 +133,29 @@ function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
     [t.domain,t.min===null?'':String(t.min),t.max===null?'open':String(t.max),t.metric,
      'source='+t.source,'confiance='+t.confidence].join(' ')).join(' ; ');
 }
+/** Same configured blocks for the human source review and engine admission. No approval is created here. */
+export function previewV3SourceDose(dosing:V3Workout,settings:Pick<V3ReviewedSettings,'overrides'|'targetDurationMin'|'allowWorksetChange'>,swimPaces:Record<string,number>={}){
+  if (settings.overrides && settings.targetDurationMin !== undefined)
+    throw Error('v3_conflicting_recipe_controls');
+  let overrides=settings.overrides??{};
+  if (settings.targetDurationMin !== undefined) {
+    // Fitting cannot change the load-bearing work unless coach explicitly opts in.
+    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
+      swimPaces,toleranceSeconds:0,
+      allowWorksetChange:settings.allowWorksetChange===true,
+    });
+    if(!fit.fitsSlot || fit.computed.status!=='confirmed')
+      throw Error('v3_target_duration_unreachable:'+fit.code);
+    overrides=fit.overrides;
+  }
+  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
+  const seen=new Set<string>();
+  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
+  if(seen.size!==Object.keys(overrides).length)
+    throw Error('v3_override_unknown_path');
+  return configured;
+}
+
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   const terrain=settings.athleteAnchors?.runTerrainReview;
   if(terrain||settings.expectedRunTerrainContextId){
@@ -156,24 +180,7 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
     if(!repeat||repeat.kind!=='repeat'||repeat.betweenSec<90)
       throw Error('v3_sprint_25m_recovery_not_sufficient');
   }
-  if (settings.overrides && settings.targetDurationMin !== undefined)
-    throw Error('v3_conflicting_recipe_controls');
-  let overrides=settings.overrides??{};
-  if (settings.targetDurationMin !== undefined) {
-    // Fitting cannot change the load-bearing work unless coach explicitly opts in.
-    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
-      swimPaces,toleranceSeconds:0,
-      allowWorksetChange:settings.allowWorksetChange===true,
-    });
-    if(!fit.fitsSlot || fit.computed.status!=='confirmed')
-      throw Error('v3_target_duration_unreachable:'+fit.code);
-    overrides=fit.overrides;
-  }
-  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
-  const seen=new Set<string>();
-  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
-  if(seen.size!==Object.keys(overrides).length)
-    throw Error('v3_override_unknown_path');
+  const configured=previewV3SourceDose(dosing,settings,swimPaces);
   const result=evaluateV3Workout(configured,{swimPaces});
   // For historical strength, the weekly prescription is a count of reviewed
   // sessions, not a fabricated appointment duration. Other sports still
@@ -203,7 +210,8 @@ function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Worko
 export function buildDetV3ContractFromCatalogue(
   reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[],
   specificBrickReviews:readonly V32SpecificBrickReview[]=[],
-  lowRunBrickReviews:readonly V34SafeBrickReview[]=[]
+  lowRunBrickReviews:readonly V34SafeBrickReview[]=[],
+  imBrickReviews:readonly ImTaperBrickReview[]=[]
 ) {
   // Supplemental doses enter only through an explicit review of their ID.
   // Historical 800-source contracts retain their exact source cohort/counts.
@@ -282,10 +290,11 @@ export function buildDetV3ContractFromCatalogue(
   const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
   const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
   const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
-  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted];
+  const imBrickReport=composeReviewedImTaperBrick(report.accepted,imBrickReviews);
+  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted,...imBrickReport.accepted];
   const brickById=new Map(allBricks.map(card=>[card.id,card]));
   const approvedBrickTransitions=new Map<string,number>(
-    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
+    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
       .map(r=>[r.id,r.transitionSeconds] as const));
   for(const brick of allBricks){
     const transition=approvedBrickTransitions.get(brick.id);
@@ -305,7 +314,7 @@ export function buildDetV3ContractFromCatalogue(
       transition,brick.durationMin[0]);
     if(combined)verifiedZoneDoses.set(brick.id,combined);
   }
-  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews]
+  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
     .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
     .map(review=>review.id));
   const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
@@ -351,6 +360,17 @@ export function buildDetV3ContractFromCatalogue(
       return problems;
     },
     verifiedBrickCompositions:allBricks,
+    reviewedBrickComponentsForId(id){
+      const brick=brickById.get(id),transition=approvedBrickTransitions.get(id);
+      if(!brick||transition===undefined)return null;
+      const ids=contract.consumedSourceIds?.(brick)??[];
+      const components=ids.flatMap(sourceId=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return card&&['bike','run'].includes(card.sport)&&card.durationMin[0]===card.durationMin[1]?
+          [{sourceId,sport:card.sport as 'bike'|'run',durationMin:card.durationMin[0]}]:[];
+      });
+      return components.length===2?{sourceId:id,transitionSeconds:transition,components}:null;
+    },
     adapt(preparation,config){
       planLimiters=new Set((config.identifiedLimitersRaw??[])
         .filter((x):x is string=>typeof x==='string').map(canonicalLimiter));
@@ -371,9 +391,12 @@ export function buildDetV3ContractFromCatalogue(
         if(!brick.phases.includes(ctx.phase??''))return false;
         // A short, entirely easy brick must not masquerade as an intensity key.
         if(ctx.slot.isKeySession && !ctx.slot.isLongSession && brick.mainZoneMax<3)return false;
-        // Composite bricks require a genuine loading week, never a nominal
-        // taper, race, or recovery week even if the phase metadata is stale.
-        if(ctx.weekType!=='load')return false;
+        // Existing 70.3 compositions remain load-only. The distinct IM
+        // composition has two individually reviewed taper sources at their
+        // exact lighter doses, and is admissible only in a taper week.
+        if(imBrickReport.accepted.some(b=>b.id===brick.id)) {
+          if(ctx.weekType!=='taper')return false;
+        } else if(ctx.weekType!=='load')return false;
       }
       return sourceContract.filterCandidate?.(card,ctx)??true;
     },
@@ -494,11 +517,27 @@ export function buildDetV3ContractFromCatalogue(
   // V400: serialisable structure from the CONFIGURED + admitted blocks only.
   const structuredWorkoutForId=(id:string,chosenDurationMin:number|undefined):DetStructureResult=>{
     const admitted=report.accepted.find(card=>card.id===id);
+    const brick=brickById.get(id);
+    if(brick){
+      const sourceIds=contract.consumedSourceIds?.(brick)??[];
+      const bikeId=sourceIds.find(x=>x.startsWith('V3P_BIKE_'));
+      const runId=sourceIds.find(x=>x.startsWith('V3P_RUN_'));
+      if(sourceIds.length!==2||!bikeId||!runId||brick.durationMin[0]!==brick.durationMin[1])
+        return {status:'refused',sourceId:id,reason:'brick_reviewed_composition_incomplete'};
+      const component=(sourceId:string):DetStructureResult=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return buildDetStructuredWorkout({sourceId,configured:configuredById.get(sourceId),targets:resolvedTargets.get(sourceId),
+          admitted:!!card,isBrick:false,chosenDurationMin:card?.durationMin[0],
+          exactDurationMin:card&&card.durationMin[0]===card.durationMin[1]?card.durationMin[0]:null});
+      };
+      return buildDetStructuredBrick({sourceId:id,bike:component(bikeId),run:component(runId),
+        transitionSeconds:approvedBrickTransitions.get(id)??NaN,chosenDurationMin});
+    }
     return buildDetStructuredWorkout({
       sourceId:id,configured:configuredById.get(id),targets:resolvedTargets.get(id),
       admitted:!!admitted,isBrick:brickById.has(id),chosenDurationMin,
       exactDurationMin:admitted&&admitted.durationMin[0]===admitted.durationMin[1]?admitted.durationMin[0]:null,
     });
   };
-  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts,structuredWorkoutForId};
+  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,imBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts,structuredWorkoutForId};
 }

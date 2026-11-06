@@ -11,6 +11,11 @@ import {
 } from '../../supabase/functions/_shared/repairSportingEquivalence';
 
 export const V34_SAFE_RUN_BRICKS=[
+ // Existing individually configured endurance components, also permitted in
+ // base. A distinct composition review is required; build approval does not
+ // approve this base prescription.
+ {id:'V3B_703_BASE_EASY_180',bikeId:'V3P_BIKE_016',runId:'V3P_RUN_001',
+   phase:'base',bikeMin:139,runMin:35,transitionSeconds:360,totalMin:180},
   {id:'V3B_703_BUILD_EASY_173',bikeId:'V3P_BIKE_090',runId:'V3P_RUN_001',
     phase:'build',bikeMin:132,runMin:35,transitionSeconds:360,totalMin:173},
   {id:'V3B_703_BUILD_EASY_120',bikeId:'V3P_BIKE_017',runId:'V3P_RUN_001',

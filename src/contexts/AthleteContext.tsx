@@ -98,6 +98,11 @@ export function AthleteProvider({ children }: { children: ReactNode }) {
       const refs = normalizeRefs(a.refs as any);
       return {
         id: a.id,
+        // Keep canonical database identity/profile fields alongside legacy UI aliases.
+        // Planning drafts and the DET bridge must not lose ownership or age/sex here.
+        coach_id: a.coach_id,
+        birth_date: a.birth_date ?? null,
+        sex: a.sex ?? refs.sexe ?? null,
         nom: a.name,
         objectif: a.goal || "IM",
         refs,

@@ -1,3 +1,4 @@
+import { buildLimiterMesocycles, limiterMesocyclePrompt, limiterScheduleWindow } from "./limiterMesocycles";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -460,6 +461,18 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
       }
 
 
+      // Reconstruct ONLY the existing global load/recovery calendar, so a
+      // regenerated window cannot restart limiter #1 at its local week 1.
+      const limiterCalendar: Record<number, {weekType:string;phase?:string}> = {};
+      for (let global = 1; global <= effTotalWeeks; global++) {
+        const local = global - weekOffset;
+        const existing = weeklyQuotas[local];
+        const regen = !!cycleSegmentsForRegen && !cycleSegmentsForRegen.some(segment=>global>=segment.startWeek&&global<=segment.endWeek);
+        limiterCalendar[global] = existing ? {weekType:existing.weekType,phase:existing.phase} : {weekType:regen?'recovery':inferWeekType(global,effTotalWeeks,objectiveForQuota,athleteData.age,planConfig.deloadCadenceWeeks)};
+      }
+      const limiterMesocycles = limiterScheduleWindow(buildLimiterMesocycles(planConfig.identifiedLimitersRaw ?? [], limiterCalendar),weekOffset,totalWeeks);
+      for (const [week, entry] of Object.entries(weeklyQuotas)) entry.limiterFocus = limiterMesocycles.byWeek[Number(week)];
+
       // Bloc texte par chunk (uniquement les semaines du chunk concerné).
       const chunksForQuota: Array<{ start: number; end: number }> = [];
       if (needsChunking) {
@@ -480,9 +493,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const layoutBlock = Object.keys(layoutMap).length > 0
           ? buildLayoutPromptBlock(scope, layoutMap)
           : "";
-        quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
+        quotasByChunkText.push([quotaBlock, layoutBlock, limiterMesocyclePrompt(limiterMesocycles, scope)].filter(Boolean).join("\n\n"));
       }
 
 
- return {beginnerIntensitySignal,dayBans:rulesForQuota.dayBans,phaseCalendar,phaseCatalogs,phaseRepairCatalogs,chunkCatalogs,chunkRepairCatalogs,chunkRegenCatalogs,chunkRegenRepairCatalogs,chunkRegenWeeks,catalogDurationStats,weeklyQuotas,quotasByChunkText,allowedCatalogIds,historicalUsage,chunksForQuota,catalogObjective};
+ return {limiterCalendar,limiterMesocycles,beginnerIntensitySignal,dayBans:rulesForQuota.dayBans,phaseCalendar,phaseCatalogs,phaseRepairCatalogs,chunkCatalogs,chunkRepairCatalogs,chunkRegenCatalogs,chunkRegenRepairCatalogs,chunkRegenWeeks,catalogDurationStats,weeklyQuotas,quotasByChunkText,allowedCatalogIds,historicalUsage,chunksForQuota,catalogObjective};
 }

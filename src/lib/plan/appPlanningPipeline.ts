@@ -1,3 +1,6 @@
+import {isTimeTrial,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
+import {dedicatedGoalMetric,compareDedicatedProgrammeGoal,appPlanningPriorityGaps} from './dedicatedSportGoal';
+import {rankPrescriptionGaps} from '@/lib/limiterPrescription';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Pipeline de planification de la page /plan-ia, extrait TEL QUEL de
@@ -20,6 +23,11 @@ import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceT
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 
 export const OBJECTIVE_OPTIONS = [
+  {value:"Sprint",label:"Triathlon sprint"},
+  {value:"Olympic",label:"Triathlon olympique"},
+  {value:"Cyclisme contre-la-montre",label:"Cyclisme contre-la-montre"},
+  {value:"Cyclisme FTP",label:"Cyclisme FTP"},
+  {value:"Natation 1500m",label:"Natation 1500m"},
   { value: "IM", label: "Ironman" },
   { value: "703", label: "Ironman 70.3" },
   { value: "Marathon", label: "Marathon" },
@@ -40,10 +48,18 @@ function calculateAge(birthDate: string): number {
   return age;
 }
 
-export interface AppAthleteSources { snapshots: any[]; tests: any[]; checkins: any[] | null | undefined }
+export interface AppAthleteSources { programmeTarget?:number|null; snapshots: any[]; tests: any[]; checkins: any[] | null | undefined }
 export interface AppAthleteContext { data: PlanAthleteData; diagnostic: AthleteDiagnostic }
 
 export function buildAppDiagnosticInput(athlete: any, obj: string, amb: string, src: AppAthleteSources): DiagnosticInput {
+    // Dedicated programmes reuse the athlete's actual existing profile reference.
+    // No unknown new objective is allowed to normalize silently to 70.3.
+    if(dedicatedGoalMetric(obj)||isTimeTrial(obj)){
+      const reference=athlete.objectif;
+      const known=new Set(['IM','703','Sprint','Olympic','Marathon','Semi','5K','10K','Trail','TrailShort','TrailMountain','TrailUltra']);
+      if(!known.has(reference))throw Error('existing_physiological_profile_reference_required');
+      obj=reference;
+    }
     const athleteSnapshots = src.snapshots;
     const athleteTests = src.tests;
     const refs = getEffectiveRefs(athlete, athleteSnapshots);
@@ -77,8 +93,8 @@ export function buildAppDiagnosticInput(athlete: any, obj: string, amb: string, 
       "StartToRun", "starttorun",
       "Trail", "TrailShort", "TrailMountain", "TrailLong", "TrailUltra", "Ultra",
     ]);
-    const sportFocus: "run" | "bike" =
-      RUNNING_OBJECTIVES.has(obj) || activeSnap.sport_main === "run"
+    const sportFocus: "run" | "bike" | "tri" =
+      ["Sprint","Olympic"].includes(obj)?"tri":RUNNING_OBJECTIVES.has(obj) || activeSnap.sport_main === "run"
         ? "run"
         : "bike";
 
@@ -192,7 +208,7 @@ export function buildAppDiagnosticInput(athlete: any, obj: string, amb: string, 
 }
 
 export function computeAppAthleteContext(athlete: any, obj: string, amb: string, src: AppAthleteSources): AppAthleteContext | null {
-  const diagnostic = computeDiagnostic(buildAppDiagnosticInput(athlete, obj, amb, src));
+  const diagnostic = computeAppDiagnosticForAthlete(athlete,obj,amb,src);
   if (!diagnostic) return null;
   const data = buildPlanAthleteDataFromDiagnostic(diagnostic);
   const refs = getEffectiveRefs(athlete, src.snapshots);
@@ -202,8 +218,9 @@ export function computeAppAthleteContext(athlete: any, obj: string, amb: string,
 }
 
 export interface AppPlanFormState {
+  timeTrialContext?:TimeTrialDeclaration;
   objective: string; ambition: string; planStartDate: Date;
-  raceName: string; raceDate: string; raceFormat: any; raceGoals: Array<{ objective: string; raceName?: string; raceDate?: string; priority: any }>;
+  raceName: string; raceDate: string; raceTargetMinutes?: string; raceFormat: any; raceGoals: Array<{ objective: string; raceName?: string; raceDate?: string; priority: any; targetTimeMinutes?: number | null }>;
   trailDistanceKm: string; trailElevationM: string; trailTargetTimeH: string; trailMaxAltitudeM: string;
   weeksAvailable: number | null | undefined; weeklyHours: string; sessionsPerWeek: string; maxSessionsPerDay: string; strengthSessionsPerWeek: string;
   deloadCadence: string; constraints: string; trainingLevel: string; terrainAvailability: string; lockAmbition: boolean;
@@ -264,7 +281,7 @@ export function buildAppPlanFormConfig(st: AppPlanFormState, athleteAmbition?: s
       raceFormat: (objEff === "703" || objEff === "70.3") ? raceFormat : "continuous",
       distanceKm: trailDistKm,
       elevationGainM: trailDPlus,
-      targetTimeMinutes: trailTargetMin,
+      targetTimeMinutes: isTrailPrimary ? trailTargetMin : (st.raceTargetMinutes?.trim() ? Number(st.raceTargetMinutes) : null),
       maxAltitudeM: trailMaxAlt,
     });
     // Additional goals
@@ -275,6 +292,7 @@ export function buildAppPlanFormConfig(st: AppPlanFormState, athleteAmbition?: s
         raceDate: g.raceDate || undefined,
         weeksUntilRace: computeWeeksUntilRace(g.raceDate),
         priority: g.priority,
+        ...(g.targetTimeMinutes !== undefined ? { targetTimeMinutes: g.targetTimeMinutes } : {}),
       });
     }
 
@@ -359,5 +377,26 @@ export function buildAppPlanConfig(
       coachLimiterOrder: coachLimiterOrder.length > 0 ? coachLimiterOrder : undefined,
     }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
-    return { ...built, athleteId: athleteIdOverride ?? currentAthleteId };
+    if(diagnostic.planningGoalAnalysis){
+      const goal=diagnostic.planningGoalAnalysis;
+      if(goal.current===null||goal.target===null||!(goal.metric==='FTP'?goal.target>goal.current:goal.target<goal.current))throw Error('explicit_improving_programme_target_required');
+      const priorities=rankPrescriptionGaps(appPlanningPriorityGaps(diagnostic)).map(g=>g.metric);
+      const applied=coachLimiterOrder.length?coachLimiterOrder.filter(m=>priorities.includes(m)):priorities;
+      if(coachLimiterOrder.some(m=>!priorities.includes(m)))throw Error('programme_priority_not_in_explicit_goal');
+      return {...built,athleteId:athleteIdOverride??currentAthleteId,planningGoalContext:structuredClone(goal),identifiedLimitersRaw:applied,
+        activeLevers:applied.map(m=>`Cible de programme ${m} déclarée par le coach : référence ${goal.current} ${goal.units}, cible ${goal.target} ${goal.units}. Comparaison de programme, sans diagnostic causal ni adaptation garantie.`),
+        strategyContext:{source:'diagnostic_fallback',primaryAction:'Cible de programme déclarée par le coach',confidence:'unknown',levers:[],trainingFocus:{do:[],avoid:[]},recommendedWeekType:null},
+        // Keep the genuine physiological diagnosis and executed decision intact.
+        // The explicit programme comparison lives separately in planningGoalContext;
+        // it must never overwrite the reference profile's measured/estimated limiters.
+        physiologicalTrace:{...built.physiologicalTrace!,diagnostic:{...built.physiologicalTrace!.diagnostic,uncertainty:[...built.physiologicalTrace!.diagnostic.uncertainty,'Profil de référence conservé. Cible de programme distincte déclarée par le coach, sans nouveau diagnostic causal.']}},
+      };
+    }
+    return { ...built, athleteId: athleteIdOverride ?? currentAthleteId,...(isTimeTrial(String(formConfig.objective))?{planningProfileReference:diagnostic.objectif,timeTrialContext:st.timeTrialContext?structuredClone(st.timeTrialContext):undefined}:{}) };
+}
+
+export function computeAppDiagnosticForAthlete(athlete:any,obj:string,amb:string,src:AppAthleteSources):AthleteDiagnostic{
+ const diagnostic=computeDiagnostic(buildAppDiagnosticInput(athlete,obj,amb,src));
+ const goal=compareDedicatedProgrammeGoal(obj,diagnostic,src.programmeTarget??null);
+ return goal?{...diagnostic,planningGoalAnalysis:goal}:diagnostic;
 }

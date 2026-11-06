@@ -29,12 +29,18 @@ describe("familles : clés canoniques strictes", () => {
     expect(coachObjectiveKey("Ironman")).toBe("triathlon_ironman");
     expect(coachObjectiveKey("Ironman 70.3 Nice")).toBe("unsupported");
     expect(coachObjectiveKey("Semi-marathon de trail")).toBe("unsupported");
-    expect(coachObjectiveKey("Trail court")).toBe("trail");
+    expect(coachObjectiveKey("Trail court")).toBe("trail_short");
     expect(coachObjectiveKey("10 km")).toBe("10k");
-    expect(coachFamilyFor("10 km")).toBeNull();
-    expect(coachFamilyFor("Trail court")).toBeNull();
+    expect(coachFamilyFor("10 km")?.key).toBe("10k");
+    expect(coachFamilyFor("10 km route")?.key).toBe("10k");
+    expect(coachFamilyFor("Sprint")?.key).toBe("triathlon_sprint");
+    expect(coachFamilyFor("Olympic")?.key).toBe("triathlon_olympic");
+    expect(coachFamilyFor("Cyclisme contre-la-montre")?.key).toBe("cycling_tt");
+    expect(coachFamilyFor("Cyclisme FTP")?.key).toBe("cycling_ftp");
+    expect(coachFamilyFor("Natation CSS")?.key).toBe("swimming_css");
+    expect(coachFamilyFor("Trail court")?.key).toBe("trail_short");
   });
-  it.each([["10 km", /acceptation stricte/], ["Trail court", /generateTrailPlan/], ["Triathlon olympique", /sprint\/olympique/], ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
+  it.each([["Trail", /Préciser trail/],  ["5 km", /5 km/]])("%s refusé avec la raison exacte", async (o, re) => {
     const s = snap(o, 12, 6, ymd(12));
     const r = await run(s, await ctx(s, RUN332, {}, runClock));
     expect(r.kind).toBe("refused");
@@ -42,7 +48,7 @@ describe("familles : clés canoniques strictes", () => {
   });
   it("le moteur refuse lui-même une famille non raccordée (aucun contournement par l'adaptateur)", () => {
     const { athlete, config } = buildCoachPlanInputs(snap("Marathon", 16, 7, ymd(16)));
-    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Trail court" }, reviews: [], clock: runClock })).toThrow(/objective_not_qualified:trail/);
+    expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Trail" }, reviews: [], clock: runClock })).toThrow(/objective_not_qualified:trail/);
     expect(() => runCoachInputsDet({ athlete, config: { ...config, objective: "Semi" }, reviews: [], clock: runClock, brickApprovals: [{ id: V3_BASE_BRICK_ID, transitionSeconds: 300 }] })).toThrow(/bricks_not_qualified/);
   });
 });
@@ -113,7 +119,7 @@ describe("familles : formulaire coach → solveur réel → validateurs finaux",
     const r = await run(s, context, c.limits);
     const ms = Date.now() - t0;
     results[c.id] = r.kind === "accepted" ? { kind: r.kind, sessions: r.sessions, weeks: (r.plan.weeks as unknown[]).length, ms }
-      : r.kind === "engine_refused" ? { kind: r.kind, reason: r.reason, blockingCodes: r.blockingCodes, ms } : { kind: r.kind, refusals: r.refusals, ms };
+      : r.kind === "engine_refused" ? { kind: r.kind, reason: r.reason, blockingCodes: r.blockingCodes, blockingIssues: r.blockingIssues, ms } : { kind: r.kind, refusals: r.refusals, ms };
     process.stdout.write(`DET_COACH_FAMILY ${c.id} ${JSON.stringify(results[c.id])}\n`);
     // Jamais de repli : un refus moteur reste un refus, sans plan.
     expect(["accepted", "engine_refused"]).toContain(r.kind);
@@ -170,11 +176,18 @@ describe("familles : formulaire coach → solveur réel → validateurs finaux",
 
 describe("familles : acceptations réellement obtenues (V3 seul, entrées coach)", () => {
   // Résultats consignés par les exécutions réelles ci-dessus (même fichier, ordre séquentiel).
-  it.each(["semi-8w-6h", "703-12w-9h", "703-12w-9.5h", "703-12w-10h"])("%s : ACCEPTÉ par le solveur et les validateurs finaux", (id) => {
+  it.each(["semi-8w-6h", "semi-30w-6h", "703-12w-9h", "703-12w-9.5h", "703-12w-10h"])("%s : ACCEPTÉ par le solveur et les validateurs finaux", (id) => {
     expect((results[id] as { kind?: string } | undefined)?.kind).toBe("accepted");
   });
-  it.each(["semi-30w-6h", "IM-16w-13h", "IM-16w-14h"])("%s : refus moteur réel consigné (pas présenté comme accepté)", (id) => {
-    expect((results[id] as { kind?: string } | undefined)?.kind).toBe("engine_refused");
+  it.each(["IM-16w-13h", "IM-16w-14h"])("%s : refus moteur réel consigné (pas présenté comme accepté)", (id) => {
+    const r = results[id] as { kind: string; reason: string; blockingCodes: string[]; blockingIssues: Array<{ code: string; week: number; message: string }> };
+    expect(r.kind).toBe("engine_refused");
+    expect(r.reason).toBe("required_reviewed_horizon_source_missing_week_13");
+    expect(r.blockingCodes).toContain("det_required_horizon_source_missing");
+    expect(r.blockingCodes).not.toContain("det_v315_bounded_multiweek_replays_unresolved");
+    const gap = r.blockingIssues.find(i => i.code === "det_required_horizon_source_missing")!;
+    expect(gap.week).toBe(13);
+    expect(JSON.parse(gap.message)).toMatchObject({ sport: "brick", quotaMin: 1, reviewedSportPhaseCandidates: 0, noGlobalImpossibilityClaim: true });
   });
   it("semi-marathon 8 sem./6 h : ACCEPTÉ, rappel allure semi revu à 25 min, cross-training V3", async () => {
     const s = snap("Semi-marathon", 8, 6, ymd(8));

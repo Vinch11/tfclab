@@ -284,6 +284,9 @@ export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs
     const w = s.detStructuredWorkout;
     if (!w) { refuse(s.sessionKey, `det_structure_absent:${s.detStructureRefusal?.reason ?? "unknown"}`); continue; }
     if (w.schema !== "det-structured-workout-v1") { refuse(s.sessionKey, "det_structure_schema_unknown"); continue; }
+    // V2 has one sport per training and no confirmed sport on workout nodes.
+    // Never flatten a reviewed bike/transition/run structure or split it into unlinked sends.
+    if (w.sport === "brick" || "composition" in w) { refuse(s.sessionKey, "multisport_contract_unconfirmed"); continue; }
     const inP = detWorkoutProblems(w);
     if (inP.length) { refuse(s.sessionKey, `input:${inP[0]}`); continue; }
     if (w.sourceId !== s.catalogId) { refuse(s.sessionKey, "det_structure_source_mismatch"); continue; }

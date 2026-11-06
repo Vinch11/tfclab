@@ -1,3 +1,7 @@
+import {timeTrialProblems,timeTrialPhysiologyProblems,isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
+import {canonicalJson} from '@/lib/plan/appendOnlyPlanVersionSave';
+import {dedicatedProgrammeProblems} from '@/lib/plan/dedicatedSportGoal';
+import { multiGoalProblems } from '../../../experimental/det-engine/v406-multi-goal-contract';
 import type { FrozenAppPlanningInput } from "./appPlanningInput";
 import { runCoachDetPlan, type CoachDetOutcome } from "./coachDetRun";
 
@@ -13,6 +17,14 @@ export function runAppPlanningDetPlan(input: AppPlanningDetRunInput): CoachDetOu
       "Profil de planification de l'app absent : génération DET annulée, aucun diagnostic n'est reconstruit.",
     ] };
   }
+  const ttProblems=timeTrialProblems(input.appInput.config.timeTrialContext,input.appInput.athleteId,input.appInput.config);
+  ttProblems.push(...timeTrialPhysiologyProblems(input.appInput.config,input.appInput.athlete));
+  if(ttProblems.length)return {kind:'refused',refusals:ttProblems};
+  if(isTimeTrial(String(input.appInput.config.objective))&&canonicalJson(input.snapshot.timeTrial)!==canonicalJson(input.appInput.config.timeTrialContext))return {kind:'refused',refusals:['Revue CLM différente du profil partagé : aucune substitution permise.']};
+  const dedicatedProblems=dedicatedProgrammeProblems(input.appInput.config,input.appInput.athlete);
+  if(dedicatedProblems.length)return {kind:'refused',refusals:dedicatedProblems};
+  const multiProblems = multiGoalProblems(input.appInput.config);
+  if(multiProblems.length)return {kind:'refused',refusals:['Calendrier multi-objectifs incomplet : '+multiProblems.join(', ')+'. Renseignez les dates, les priorités et les durées prévues de chaque épreuve.']};
   const applied = input.appInput.config.identifiedLimitersRaw ?? [];
   if (JSON.stringify(applied) !== JSON.stringify(input.appInput.limiters.applied)) {
     return { kind: "refused", refusals: [

@@ -57,6 +57,7 @@ describe("AITrainingPlanPage — garde-fou anti-régression : les objectifs seco
       body,
       "persistPlanVersion ne sauvegarde plus _raceGoals — les objectifs secondaires (multi-objectif A/B/C) resteraient perdus dès qu'on change d'appareil/navigateur, exactement le bug réel constaté sur le plan de Manu.",
     ).toContain("_raceGoals: raceGoals");
+    expect(body).toContain("...archiveMetadata");
   });
 
   it("applyLoadedVersion restaure raceGoals depuis pj._raceGoals au chargement d'une version", () => {

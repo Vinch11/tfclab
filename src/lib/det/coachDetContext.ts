@@ -1,3 +1,7 @@
+import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
+import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
+import { v3ExtendedCatalogue } from '../../../scripts/library-v3/supplementalCatalogue';
+import type { RaceGoal } from '@/hooks/useAITrainingPlan';
 /**
  * Contexte de revue coach pour DET (QA). Pur, sérialisable, sans réseau.
  *
@@ -14,7 +18,7 @@ import { v3FullCatalogue, type V3Workout } from "../../../scripts/library-v3/cat
 import { fingerprintV3SportingSource, type V3IndividualSportingEvidence } from "../../../scripts/library-v3/sportingQualification800";
 import { resolveV3IntensityTargets, type V3AthleteAnchors } from "../../../scripts/library-v3/resolveV3Intensity";
 import type { V3ReviewedSettings } from "../../../experimental/det-engine/v31-v3-catalogue";
-import { clockProblems, coachObjectiveKey, coachFamilyFor, isRealYmd, COACH_BLOCKED_OBJECTIVES, COACH_FAMILIES, COACH_703_BRICK_IDS, type CoachBrickApproval, type CoachConfirmedClock } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { clockProblems, coachObjectiveKey, coachFamilyFor, isRealYmd, COACH_BLOCKED_OBJECTIVES, COACH_FAMILIES, COACH_703_BRICK_IDS, coachBrickIdsFor, type CoachBrickApproval, type CoachConfirmedClock } from "../../../experimental/det-engine/v401-coach-inputs-core";
 import { canonicalJson, sha256Hex } from "@/lib/plan/appendOnlyPlanVersionSave";
 
 export const COACH_INPUTS_SCHEMA = "tfcl.det.coach-inputs.v1" as const;
@@ -76,8 +80,13 @@ export const LIMITER_LABELS: Record<string, string> = {
 
 export interface AnchorEntry {
   value: number | [number, number];
-  /** Mesure terrain réelle ou estimation explicitement identifiée. */
-  kind: "field_measurement" | "explicit_estimate";
+  /** A recorded app reference preserves unknown nature; it is never upgraded to measurement. */
+  kind: "field_measurement" | "explicit_estimate" | "app_reference";
+  recordReference?: {
+    athleteId:string; coachId:string; field:string; origin:"snapshot"|"profile"; recordId:string;
+    recordedOn:string|null; source:string|null; planningInputFingerprint:string;
+    declaredNature:"field_measurement"|"explicit_estimate"|"undocumented";
+  };
   /** Protocole de mesure ou méthode d'estimation (obligatoire). */
   method: string;
   measuredOn: string | null;
@@ -89,6 +98,10 @@ export interface CoachDetInputSnapshot {
   schema: typeof COACH_INPUTS_SCHEMA;
   /** Empreinte du profil de planification complet de l'app (IA = DET) auquel ces vérifications se rapportent. */
   planningInputFingerprint?: string;
+  sourceContentReview?:{notes:string;manifestHash:string;athleteChecksKey:string};
+  raceGoals?: RaceGoal[];
+  trail?: TrailPlanningDeclaration;
+  timeTrial?:TimeTrialDeclaration;
   athleteId: string;
   coachId: string;
   objective: string;
@@ -173,8 +186,11 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     p.push(why ? `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach — ${why}`
       : `objectif « ${s.objective} » hors du périmètre qualifié du mode entrées coach (choisir exactement : ${supported})`);
   }
+  p.push(...timeTrialProblems(s.timeTrial,s.athleteId,{objective:s.objective,planStartDate:s.planStartDate,raceDate:s.raceDate,weeksAvailable:s.weeksAvailable,raceGoals:s.raceGoals}));
+  if (family?.sportFocus === "trail" && !s.trail) p.push("revue trail terrain/parcours/historique requise");
+  if (s.trail && (s.trail.review.athleteId !== s.athleteId || s.trail.routes.some(r => r.athleteId !== s.athleteId))) p.push("revue terrain d’un autre athlète");
   if (family) {
-    const [w0, w1] = family.testedEnvelope.weeks, [h0, h1] = family.testedEnvelope.weeklyHours;
+    const [w0, w1] = family.testedEnvelope.weeks, [h0, h1] = (s.raceGoals?.length ?? 0) > 1 && family.sportFocus === "run" ? [8,8] : family.testedEnvelope.weeklyHours;
     if (Number.isInteger(s.weeksAvailable) && (s.weeksAvailable < w0 || s.weeksAvailable > w1))
       p.push(`${family.label} : ${s.weeksAvailable} semaines hors de la plage testée du moteur (${w0 === w1 ? w0 : `${w0}–${w1}`} semaines)`);
     if (pos(s.weeklyHours) && (s.weeklyHours < h0 || s.weeklyHours > h1))
@@ -198,6 +214,7 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     ...(Object.entries(s.physiology ?? {}) as [PhysioKey, AnchorEntry][]).map(([k, a]) => [PHYSIO_LABELS[k], a] as [string, AnchorEntry]),
     ...(Object.entries(s.swimDomainPaces ?? {}) as [SwimDomain, AnchorEntry][]).map(([k, a]) => [`Allure natation ${SWIM_DOMAIN_LABELS[k] ?? k} (s/100 m)`, a] as [string, AnchorEntry]),
   ];
+  if ([...Object.values(s.physiology??{}),...Object.values(s.swimDomainPaces??{})].some(value=>value?.kind==="app_reference")) p.push("référence de l’app hors des ancres liées au profil partagé");
   for (const k of Object.keys(s.swimDomainPaces ?? {})) if (!(SWIM_DOMAINS as readonly string[]).includes(k)) p.push(`domaine d'allure natation inconnu « ${k} »`);
   if (s.coachConfirmsCssAsMlssProxy && !s.anchors.cssSecPer100m) p.push("proxy CSS→seuil confirmé sans CSS saisie");
   for (const [label, a] of entries) {
@@ -207,7 +224,10 @@ export function snapshotProblems(s: CoachDetInputSnapshot): string[] {
     if (!ok) p.push(`${k} : valeur invalide`);
     if (!a.method?.trim()) p.push(`${k} : méthode/protocole manquant`);
     if (a.kind === "explicit_estimate" && !a.uncertainty?.trim()) p.push(`${k} : estimation sans incertitude`);
-    if (a.kind !== "field_measurement" && a.kind !== "explicit_estimate") p.push(`${k} : provenance inconnue`);
+    if (a.kind === "app_reference") {
+      const r=a.recordReference;
+      if(!r || r.athleteId!==s.athleteId || r.coachId!==s.coachId || !r.recordId?.trim() || !["snapshot","profile"].includes(r.origin) || !["field_measurement","explicit_estimate","undocumented"].includes(r.declaredNature) || r.planningInputFingerprint!==s.planningInputFingerprint || !/^[a-f0-9]{64}$/.test(r.planningInputFingerprint) || !a.uncertainty?.trim()) p.push(`${k} : référence de l’app non liée au profil courant`);
+    } else if (a.kind !== "field_measurement" && a.kind !== "explicit_estimate") p.push(`${k} : provenance inconnue`);
   }
   return p;
 }
@@ -219,16 +239,20 @@ export async function hashCoachInputs(s: CoachDetInputSnapshot): Promise<string>
 export function anchorsFromSnapshot(s: CoachDetInputSnapshot): V3AthleteAnchors {
   const out: Record<string, unknown> = {};
   for (const [k, a] of Object.entries(s.anchors)) if (a) out[k] = Array.isArray(a.value) ? [...a.value] : a.value;
+  out.anchorReferenceKinds = Object.fromEntries(Object.entries(s.anchors).filter(([,value])=>value).map(([key,value])=>[key,value!.kind]));
   if (s.coachValidatedStrengthLoadAndRpe) out.coachValidatedStrengthLoadAndRpe = true;
   const swim: Record<string, number> = {};
   for (const [k, a] of Object.entries(s.swimDomainPaces ?? {})) if (a && typeof a.value === "number") swim[k] = a.value;
-  if (Object.keys(swim).length) out.swimDomainPacesSecPer100m = swim;
+  if (Object.keys(swim).length) {
+    out.swimDomainPacesSecPer100m = swim;
+    out.swimDomainPaceKinds = Object.fromEntries(Object.entries(s.swimDomainPaces??{}).filter(([,value])=>value).map(([key,value])=>[key,value!.kind]));
+  }
   if (s.coachConfirmsCssAsMlssProxy === true) out.coachConfirmsCssAsMlssProxy = true;
   return out as V3AthleteAnchors;
 }
 
 export function findSource(id: string): V3Workout | undefined {
-  return v3FullCatalogue.workouts.find((w) => w.id === id);
+  return v3ExtendedCatalogue.workouts.find((w) => w.id === id);
 }
 
 /** Recherche lisible : titre, sport, intention ou focus. L'identifiant reste secondaire. */
@@ -237,7 +261,7 @@ export function searchSources(query: string, limit = 12): Array<{ id: string; ti
   const terms = norm(query).split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   const out: Array<{ id: string; title: string; sport: string; intent: string; phases: string[] }> = [];
-  for (const w of v3FullCatalogue.workouts) {
+  for (const w of v3ExtendedCatalogue.workouts) {
     const hay = norm([w.title, SPORT_LABELS[w.sport] ?? w.sport, INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, w.focus, w.id].join(" "));
     if (terms.every((t) => hay.includes(t))) out.push({ id: w.id, title: w.title, sport: SPORT_LABELS[w.sport] ?? w.sport, intent: INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, phases: [...w.phase] });
     if (out.length >= limit) break;
@@ -314,15 +338,17 @@ export function checkCoachReviewContext(input: {
     for (const pre of w.prerequisites) if (!checked.has(pre)) r.push(`source ${q.id} : prérequis non vérifié « ${pre} »`);
     const ci = new Set(q.evidence.checkedContraindications);
     for (const c of w.contraindications) if (!ci.has(c)) r.push(`source ${q.id} : contre-indication non vérifiée « ${c} »`);
-    const res = resolveV3IntensityTargets(w, anchors);
+    const route=current.snapshot.trail?.routes.find(r=>r.sourceId===w.id);
+    const terrain=route?{athleteId:current.athleteId,sourceId:w.id,terrainContextId:route.routeId,fieldReviewReference:current.snapshot.trail!.fieldReviewReference,coachConfirmsFieldEffortReview:true as const,domainRpe:current.snapshot.trail!.domainRpe}:undefined;
+    const res = resolveV3IntensityTargets(w, {...anchors,...(terrain?{runTerrainReview:terrain}:{})});
     if (res.status !== "resolved") r.push(`source ${q.id} : ancres manquantes (${res.missing.join(", ")})`);
     if (q.overrides && Object.keys(q.overrides).length && !q.allowWorksetChange && q.targetDurationMin === undefined)
       r.push(`source ${q.id} : modification de dose sans permission explicite`);
   }
   const fam = coachFamilyFor(current.snapshot.objective);
   for (const b of ctx.brickApprovals ?? []) {
-    if (fam?.key !== "triathlon_703") r.push(`brick ${b.id} : enchaînements validés uniquement pour le triathlon 70.3`);
-    else if (!COACH_703_BRICK_IDS.includes(b.id)) r.push(`brick ${b.id} inconnu du registre`);
+    if (COACH_703_BRICK_IDS.includes(b.id) && fam?.key !== "triathlon_703") r.push(`brick ${b.id} : enchaînements validés uniquement pour le triathlon 70.3`);
+    else if (!coachBrickIdsFor(fam?.key ?? "").includes(b.id)) r.push(`brick ${b.id} inconnu du registre de cette famille`);
     if (!(Number.isInteger(b.transitionSeconds) && b.transitionSeconds >= 180 && b.transitionSeconds <= 600)) r.push(`brick ${b.id} : transition non confirmée (3–10 min)`);
   }
   if (ctx.clock && fam) for (const sp of fam.requiredClockSports) {
@@ -347,7 +373,8 @@ export function checkCoachReviewContext(input: {
       ...(w.sport === "strength" && s.coachValidatedStrengthLoadAndRpe ? { verifiedStrengthLoadAndRpe: true as const } : {}),
       expectedAthleteId: current.athleteId,
       sportingReview: { ...q.evidence, athleteId: current.athleteId, sourceFingerprint: q.sourceFingerprint },
-      athleteAnchors: structuredClone(anchors),
+      athleteAnchors: {...structuredClone(anchors),...(s.trail&&w.sport==='run'?{runTerrainReview:{athleteId:s.athleteId,sourceId:w.id,terrainContextId:s.trail.routes.find(r=>r.sourceId===w.id)?.routeId??'',fieldReviewReference:s.trail.fieldReviewReference,coachConfirmsFieldEffortReview:true as const,domainRpe:s.trail.domainRpe}}:{})},
+      ...(s.trail&&w.sport==='run'?{expectedRunTerrainContextId:s.trail.routes.find(r=>r.sourceId===w.id)?.routeId??''}:{}),
       ...(q.overrides ? { overrides: { ...q.overrides } } : {}),
       ...(q.targetDurationMin !== undefined ? { targetDurationMin: q.targetDurationMin } : {}),
       ...(q.allowWorksetChange ? { allowWorksetChange: true as const } : {}),

@@ -226,7 +226,7 @@ function weeksForLimiterAtRank(rank: number, status: string | undefined): number
  * Calcule le nombre minimal de semaines pour donner à chaque limiteur
  * identifié (classé par impact, ou par `coachLimiterOrder` si fourni — même
  * logique que `deriveLimiterKeysFromGapAnalysis`) une fenêtre de travail
- * réelle, jusqu'à 4 limiteurs (même plafond que le reste du pipeline).
+ * réelle, pour toutes les priorités connues.
  * Retourne `null` si aucun limiteur n'est identifié (pas de contrainte).
  */
 export function computeMinPlanWeeksForLimiters(
@@ -250,7 +250,6 @@ export function computeMinPlanWeeksForLimiters(
     });
   }
 
-  ranked = ranked.slice(0, 4);
   if (ranked.length === 0) return null;
 
   const breakdown: LimiterDurationRequirement[] = ranked.map((g, i) => ({
