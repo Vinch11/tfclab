@@ -13,3 +13,7 @@ Local probes before the workspace became unavailable:
 The local environment then disconnected. New branch verification is performed by GitHub Actions; no unfinished local experiment is deployed to QA. Source declaration is emitted as public source metadata, not deployment/scientific attestation. No AI calls, athlete changes, review writes or Nolio sends are authorized by this diagnostic workflow.
 
 Remote CI on fc39d45f verified both native running candidates and the existing 33 real-app/real-engine tests. The next test is explicitly diagnostic only: a synthetic 180-minute base composition is inserted into the test's source domain to identify downstream 70.3 constraints. It is not a source admission, athlete default or runtime fallback. The composition is never imported by application code.
+
+Remote search-order experiment on 33f974a: unchanged strict app integration 33/33 and native study 4/4 (including a diagnostic-only test). Native quality-first/easy-margin ordering constructs the entire synthetic 70.3 domain probe; final sport ratios correctly REFUSE it (swim42%, bike22%). It is not an accepted scenario and no application fallback is enabled.
+
+Next checks add actual configured MLSS prescription evidence in each recurring TTE block of the existing strict Semi30/Marathon40 integrations. The native long-horizon probes report diagnostics separately; executing a diagnostic is not scenario acceptance.

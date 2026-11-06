@@ -91,6 +91,31 @@ async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: st
     limits: /Ironman/.test(objective)?undefined:{ maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
   return { b, out };
 }
+/** Stronger than the timeline: configured V3 MLSS time in every recurring
+ * TTE focus block. This is prescription evidence, not measured adaptation. */
+function assertRecurringTtePrescription(plan:import('@/lib/aiPlanParser').ParsedPlan) {
+  const byBlock=new Map<number,typeof plan.weeks>();
+  for(const week of plan.weeks){
+    const focus=plan.weeklyQuotas?.[week.weekNumber]?.limiterFocus;
+    if(focus?.mode!=='development'||focus.focus!=='TTE'||focus.block===null)continue;
+    const list=byBlock.get(focus.block)??[];list.push(week);byBlock.set(focus.block,list);
+  }
+  expect(byBlock.size).toBeGreaterThanOrEqual(2);
+  const seconds=(nodes:readonly import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredNode[]):number=>
+    nodes.reduce((n,node)=>n+(node.kind==='repeat'?node.count*seconds(node.steps):
+      node.domain==='mlss'&&'seconds' in node.dose?node.dose.seconds:0),0);
+  for(const [block,weeks] of byBlock){
+    const hits=weeks.flatMap(w=>w.sessions).filter(session=>{
+      if(!session.isKeySession||session.isRest||session.sport!=='run'||!session.catalogId)return false;
+      const source=findSource(session.catalogId),workout=session.detStructuredWorkout;
+      return source?.primaryDomain==='mlss'&&source.prescription.physiologicalIntent.limiterKeys.includes('threshold_tolerance')&&
+        workout?.sourceId===session.catalogId&&workout.chosenDurationMin===session.durationMin&&
+        workout.exactSeconds===session.durationMin!*60&&seconds(workout.nodes)>=20*60;
+    });
+    expect(hits.length,'TTE focus block '+block+' has no exact configured threshold session').toBeGreaterThan(0);
+  }
+}
+
 beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyOn(console, "warn").mockImplementation(() => {});
   vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
 
@@ -337,6 +362,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(out.kind).toBe("accepted");
     if (out.kind !== "accepted") throw new Error(JSON.stringify(out.kind === "engine_refused" ? out.blockingIssues : out));
     expect(out.plan.weeks).toHaveLength(30);
+    assertRecurringTtePrescription(out.plan);
     expect(out.limiterOrder.applied).toEqual(applied);
     expect(p.ctx.diagnostic).toEqual(before);
     expect(out.auditCodes).toContain("det_v358_measured_running_mesocycles_verified");
@@ -404,6 +430,7 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
     expect(p.ctx.diagnostic).toEqual(before);
     if (out.kind !== "accepted") return;
     expect(out.plan.weeks).toHaveLength(40);
+    assertRecurringTtePrescription(out.plan);
     expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
     expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
     expect(out.auditCodes).toContain("det_v316_strict_periodization_verified");
