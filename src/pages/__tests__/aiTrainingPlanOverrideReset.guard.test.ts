@@ -82,7 +82,8 @@ describe("AITrainingPlanPage — garde-fou anti-régression : l'affichage ne res
 
   it("applyLoadedVersion (chargement d'une version sauvegardée) efface l'état JSON du hook ET planOverride avant setResponse", () => {
     const body = sliceBetween(
-      "const applyLoadedVersion = useCallback((version: { plan_json: any }, startDate: Date) => {",
+      // Optional saved-version metadata must not break the state-reset guard.
+      "const applyLoadedVersion = useCallback(",
       "setResponse(md);",
     );
     expect(

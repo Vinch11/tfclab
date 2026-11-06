@@ -6,6 +6,7 @@
  */
 import raw from "./v33SportingReview800.json";
 import supplemental from "./v3SupplementSportingReview20261103.json";
+import library920RegistryText from "./library920EngineeringRegistry.json?raw";
 import {v3FullCatalogue, type V3Workout, type V3Block} from "./catalogueRuntime";
 
 export type V3SportingSourceStatus="source_blocked"|"source_prequalified_pending_individual_review";
@@ -65,7 +66,9 @@ export interface V3SportingGateResult {
  sourceFingerprint:string;
 }
 const RECORDS:ReadonlyArray<V3SportingSourceRecord>=raw.records as V3SportingSourceRecord[];
-const REGISTRY=new Map([...RECORDS,...supplemental.records as V3SportingSourceRecord[]].map(r=>[r.id,r]));
+const library920Registry=JSON.parse(library920RegistryText) as {records:V3SportingSourceRecord[]};
+const REGISTRY=new Map([...RECORDS,...supplemental.records as V3SportingSourceRecord[],
+ ...library920Registry.records].map(r=>[r.id,r]));
 const HIGH=new Set(["mlss","sub_threshold","mixed_intensity","vo2max","neuromuscular","test"]);
 const PLAN_CHECKS=[
  "weekly_volume_within_coach_limit","load_progression_and_true_deload",
@@ -92,7 +95,7 @@ export function fingerprintV3SportingSource(w:V3Workout):string {
 function mainLeaves(blocks:readonly V3Block[]):Exclude<V3Block,{kind:"repeat"}>[] {
  return blocks.flatMap(b=>b.kind==="repeat"?mainLeaves(b.steps):b.role==="main"?[b]:[]);
 }
-function recomputeSourceBlockers(w:V3Workout):string[]{
+export function recomputeSourceBlockers(w:V3Workout):string[]{
  const codes:string[]=[];
  const add=(s:string)=>{if(!codes.includes(s))codes.push(s);};
  const main=mainLeaves(w.blocks),domains=new Set(main.map(m=>m.domain).filter(Boolean));
@@ -105,9 +108,13 @@ function recomputeSourceBlockers(w:V3Workout):string[]{
   // New timeboxed sprint candidates require at least five times as much easy recovery.
   if(Number(w.id.slice(-3))>100){
    const recovered=w.blocks.some(b=>b.kind==="repeat"&&
-     b.steps.some(step=>step.kind==="time"&&step.domain==="neuromuscular"&&
+     b.steps.some(step=>step.kind==="time"&&step.domain==="neuromuscular"&&(
        b.steps.some(rest=>rest.kind==="time"&&rest.domain==="recovery"&&
-         rest.seconds!.base>=5*step.seconds!.base)));
+         rest.seconds!.base>=5*step.seconds!.base)||
+       // Inter-repetition recovery is an explicit duration too. It can
+       // cover one burst per repetition, never multiple unseparated bursts.
+       b.count.base>1&&b.steps.filter(s=>s.kind==='time'&&s.domain==='neuromuscular').length===1&&
+         b.betweenSec>=5*step.seconds!.base)));
    if(!recovered)add("short_sprint_recovery_less_than_five_to_one");
   }
   if(main.some(m=>m.kind==="time"&&m.domain==="neuromuscular"&&m.seconds!.base>45))

@@ -184,7 +184,7 @@ export function AthleteDetSimplePanel(props: {
       if (engineAt === "ai") { await props.onAIShared(app); return; }
       if(props.onProfilePlan){
         const clock=readEnteredCoachClock(a.clock);
-        const plan=await generateAppProfileDetPlan(app,v.athleteId,{strengthLoadAndRpeConfirmed:a.strengthLoadAndRpeConfirmed===true,clock:clock.clock??undefined,invalidClockSports:clock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([d,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[d,{value:p.value,kind:p.kind}]]:[]))},props.engineVersion);
+        const plan=await generateAppProfileDetPlan(app,v.athleteId,{currentFatigue:a.fatigue||'unknown',recentLoad:a.recentLoad||'unknown',strengthLoadAndRpeConfirmed:a.strengthLoadAndRpeConfirmed===true,clock:clock.clock??undefined,invalidClockSports:clock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([d,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[d,{value:p.value,kind:p.kind}]]:[]))},props.engineVersion);
         if(!current())return;
         await props.onProfilePlan(plan,fpAt);completed=true;return;
       }
