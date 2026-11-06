@@ -1,3 +1,5 @@
+import { saveLocalV3Proposal,loadLocalV3Proposal } from '@/lib/det/v3ProposalLocalSave';
+import { auditV3ProposalDoseIntegrity } from '@/lib/det/appPlanningV3Audit';
 import { useEffect,useRef,useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog,DialogContent,DialogHeader,DialogTitle } from '@/components/ui/dialog';
@@ -36,9 +38,10 @@ function Workout({part}:{part:ProposedV3Workout}){
   </article>;
 }
 export function V3PlanGeneration({app,athleteId,coachId,guard,options}:{app:FrozenAppPlanningInput|null;athleteId:string;coachId:string;guard:()=>Promise<{userId:string;athleteId:string}|null>;options:V3ProposalOptions}){
+  const [saved,setSaved]=useState('');
   const [plan,setPlan]=useState<V3PlanProposal|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[open,setOpen]=useState(false);
   const key=JSON.stringify([coachId,athleteId,app?.fingerprint,options]),live=useRef(key);live.current=key;
-  useEffect(()=>{setPlan(null);setOpen(false);setError('');setBusy(false);},[key]);
+  useEffect(()=>{setSaved('');setPlan(null);setOpen(false);setError('');setBusy(false);},[key]);
   async function generate(){
     if(!app||busy)return;const started=key;setBusy(true);setError('');
     try{
@@ -51,15 +54,38 @@ export function V3PlanGeneration({app,athleteId,coachId,guard,options}:{app:Froz
     }catch(e){if(started===live.current)setError(e instanceof Error?e.message:'Génération V3 interrompue.');}
     finally{if(started===live.current)setBusy(false);}
   }
+  async function localAction(restore:boolean){
+    if(busy||!app)return;const started=key;setBusy(true);setError('');setSaved('');
+    try{
+      const owner=await guard();if(started!==live.current)return;
+      if(owner?.userId!==coachId||owner.athleteId!==athleteId)throw Error('Connexion et athlète à vérifier.');
+      const record=restore?await loadLocalV3Proposal(window.localStorage,coachId,athleteId):plan?await saveLocalV3Proposal(window.localStorage,coachId,athleteId,plan,key):null;
+      if(started!==live.current)return;
+      const after=await guard();if(started!==live.current)return;
+      if(after?.userId!==coachId||after.athleteId!==athleteId)throw Error('Connexion modifiée : résultat écarté.');
+      if(!record)throw Error('Aucune proposition conservée sur ce navigateur pour cet athlète.');
+      if(record.context!==key||record.plan.planningInputFingerprint!==app.fingerprint)throw Error('Profil, configuration ou restrictions modifiés : régénérez une proposition.');
+      if(auditV3ProposalDoseIntegrity(record.plan).some(c=>c.status==='blocked'))throw Error('Sources V3 modifiées : régénérez une proposition.');
+      if(restore){setPlan(record.plan);setOpen(true);}
+      setSaved(restore?'Proposition retrouvée sur ce navigateur, toujours à revoir.':'Proposition conservée et relue sur ce navigateur.');
+    }catch(e){if(started===live.current)setError(e instanceof Error?e.message:'Stockage local indisponible.');}
+    finally{if(started===live.current)setBusy(false);}
+  }
   return <section className="rounded border p-3 space-y-2" aria-label="Génération du plan V3">
     <p className="font-medium">Plan V3 depuis le profil existant</p>
     <p className="text-sm">Une séance retenue par créneau, avec ses blocs. Les priorités et le calendrier viennent de la configuration commune.</p>
     <Button disabled={!app||busy} onClick={()=>{void generate();}}>{busy?'Assemblage V3…':'Générer le plan V3 à revoir'}</Button>
-    {error&&<p role="alert" className="text-sm text-destructive">{error}</p>}
+    <Button variant="outline" disabled={!app||busy} onClick={()=>{void localAction(true);}}>Retrouver la proposition locale</Button>
+    <p className="text-xs text-muted-foreground">Conservation sur ce navigateur uniquement, sans synchronisation entre appareils.</p>
+    {saved&&<p className="text-sm">{saved}</p>}
+    {error&&!open&&<p role="alert" className="text-sm text-destructive">{error}</p>}
     <Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto"><DialogHeader><DialogTitle>Plan V3 assemblé — à revoir</DialogTitle></DialogHeader>
       {plan&&<div className="space-y-4 text-sm"><p><b>{plan.objective}</b> · {plan.weeks.length} semaines</p>
         <p>Limiteurs : {plan.limiterOrder.map(raw=>LIMITER_LABELS[raw]??raw).join(' → ')}</p>
         {!!plan.eventCalendar?.length&&<details><summary>Épreuves du calendrier</summary><ul>{plan.eventCalendar.map((event,i)=><li key={i}>{event.raceDate??'Date à préciser'} · {event.raceName||event.objective} · priorité {event.priority}</li>)}</ul></details>}
+        <Button variant="outline" disabled={busy} onClick={()=>{void localAction(false);}}>Conserver la proposition sur cet appareil</Button>
+        {saved&&<p role="status">{saved}</p>}
+        {error&&<p role="alert" className="text-destructive">{error}</p>}
         <p role="status">Proposition de séances non approuvée pour utilisation. Les durées inconnues et les contrôles sportifs encore nécessaires restent indiqués ; aucune revue n’est préremplie.</p>
         {plan.checks.some(c=>c.status==='blocked')&&<p role="alert" className="text-destructive">Des contrôles sportifs bloquent ce plan. Les écarts doivent être corrigés avant utilisation.</p>}
         <ReviewChecks checks={plan.checks}/>

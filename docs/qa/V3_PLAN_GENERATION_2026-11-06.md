@@ -32,3 +32,7 @@ The UI checks authenticated coach and athlete before and after generation and di
 Verification: seven app/real-assembler regression files passed 95 tests; the final three-file targeted rerun passed 47 after two added regressions, covering 97 unique tests. Complete source proposals were verified for 70.3 at 9/9.5/10 h, semi 8 weeks and marathon 16/40 weeks. Existing strict integration scenarios retain their separate reviewed-source test evidence. Application TypeScript, changed-file ESLint, QA TypeScript and QA production build passed. Engineering source declarations were regenerated separately for candidate and QA source trees; neither is a scientific or production attestation.
 
 Remaining: a dedicated approval-bound save/reopen/finalization lifecycle for `v3_plan_proposal`, actual sporting review, effective limiter coverage evidence and independent scientific validation. This action still cannot archive an approved plan or send it to Nolio. No real athlete, review or training-calendar write was performed.
+
+## Device-only proposal preservation
+
+Explicit Conserver/Retrouver actions preserve the unreviewed proposal in a separate browser-local coach/athlete namespace. Strict schema, SHA-256, immediate readback, context binding and authentication rechecks protect reopening. Changed profile/settings/restrictions or source integrity refuse restoration. Storage failures are visible. This does not synchronize devices, enter approved-plan history or authorize Nolio. Backend synchronization and approval-bound finalization remain open.

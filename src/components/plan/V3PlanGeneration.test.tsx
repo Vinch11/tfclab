@@ -1,3 +1,4 @@
+vi.mock('@/lib/det/appPlanningV3Audit',()=>({auditV3ProposalDoseIntegrity:()=>[]}));
 import { afterEach,describe,expect,it,vi } from 'vitest';
 import { cleanup,fireEvent,render,screen,waitFor } from '@testing-library/react';
 import { V3PlanGeneration } from './V3PlanGeneration';

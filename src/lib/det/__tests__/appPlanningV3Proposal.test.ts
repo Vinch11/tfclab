@@ -1,3 +1,4 @@
+import { saveLocalV3Proposal,loadLocalV3Proposal } from '../v3ProposalLocalSave';
 import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
 import { planningInputFor } from '../appPlanningInput';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
@@ -129,4 +130,20 @@ it('rejects an already proved overlap even when a transition duration is unknown
  p.weeks=[{...p.weeks[0],days:[{day:'Lundi',rest:false,sessions:[first,second]}]}];
  const clock={timeZone:'Europe/Brussels',minutesBySport:{brick:[480,null,null,null,null,null,null],strength:[480,null,null,null,null,null,null]}};
  expect(auditV3ProposalRecovery(p,'2026-11-02',clock).find(c=>c.code==='same_day_overlap')?.status).toBe('blocked');
+});
+
+it('round-trips full local proposals by owner, detects corruption and reports unavailable storage',async()=>{
+ const p=await generateAppPlanningV3Proposal(await shared('Semi',8,6),ATHLETE);
+ const values=new Map<string,string>(),store={getItem:(k:string)=>values.get(k)??null,setItem:(k:string,v:string)=>{values.set(k,v);}};
+ const saved=await saveLocalV3Proposal(store,'COACH_A',ATHLETE,p,'context');
+ expect(saved.plan).toEqual(p);expect(saved.plan.prescriptionAllowed).toBe(false);
+ expect((await loadLocalV3Proposal(store,'COACH_A',ATHLETE))?.hash).toBe(saved.hash);
+ expect(await loadLocalV3Proposal(store,'COACH_B',ATHLETE)).toBeNull();
+ expect(await loadLocalV3Proposal(store,'COACH_A','OTHER')).toBeNull();
+ const [k,v]=[...values][0],changed=JSON.parse(v);changed.plan.prescriptionAllowed=true;values.set(k,JSON.stringify(changed));
+ await expect(loadLocalV3Proposal(store,'COACH_A',ATHLETE)).rejects.toThrow();
+ changed.plan.prescriptionAllowed=false;changed.plan.objective='tampered';values.set(k,JSON.stringify(changed));
+ await expect(loadLocalV3Proposal(store,'COACH_A',ATHLETE)).rejects.toThrow('incohérente');
+ await expect(saveLocalV3Proposal({...store,setItem:()=>{throw Error('quota');}},'COACH_A',ATHLETE,p,'context')).rejects.toThrow('quota');
+ await expect(saveLocalV3Proposal(store,'COACH_A','OTHER',p,'context')).rejects.toThrow('incompatible');
 });
