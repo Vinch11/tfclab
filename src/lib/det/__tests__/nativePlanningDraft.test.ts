@@ -34,7 +34,7 @@ const guards:ExperimentalAssemblyContract={
  useDeclaredEventDurationEstimates:true,
 };
 describe('actual native assembly before any athlete/source approval',()=>{
- it.each([{objective:'Semi',weeks:8,hours:6,target:'95'},{objective:'Marathon',weeks:16,hours:8,target:'195'}])('$objective: selected complete candidate passes every unchanged final gate',async c=>{
+ it.each([{objective:'Semi',weeks:8,hours:6,target:'95'},{objective:'Marathon',weeks:16,hours:8,target:'195'},{objective:'Marathon',weeks:40,hours:9,target:'195'}])('$objective: selected complete candidate passes every unchanged final gate',async c=>{
   const app=await shared(c.objective,c.weeks,c.hours,undefined,{raceTargetMinutes:c.target});
   const input=planningInputFor(app,'det'),before=JSON.stringify(app);
   const out=constructDeterministicPlan(input.athlete,input.config,{maxNodes:150000,maxMilliseconds:30000},guards);
@@ -56,7 +56,7 @@ describe('actual native assembly before any athlete/source approval',()=>{
  },30000);
 });
 
-it('DIAGNOSTIC ONLY — source-domain probe for 70.3, no athlete/source approval',async()=>{
+it('refuses native count-ratio failures even after the synthetic 70.3 source-gap probe completes',async()=>{
  const app=await shared('Ironman 70.3',12,10,undefined,{raceTargetMinutes:'330'}),input=planningInputFor(app,'det');
  const proposed:import('../../../../supabase/functions/_shared/repairSportingEquivalence').RepairWorkoutMetadata={
   metadataVersion:1,complete:true,id:'SYNTHETIC_STUDY_703_BASE_180',sport:'brick',
@@ -75,12 +75,17 @@ it('DIAGNOSTIC ONLY — source-domain probe for 70.3, no athlete/source approval
   },
  });
  process.stdout.write('ASSEMBLY_SOURCE_DOMAIN_DIAGNOSTIC '+JSON.stringify({objective:'703',status:out.status,reason:out.reason,constraintsSatisfied:out.constraintsSatisfied,constructed:out.technicallyConstructed,weeks:out.candidate?.weeks.length,hard:out.issues.filter(i=>['critical','blocking','error'].includes(i.severity)).slice(0,10),trace:out.trace.slice(-2),syntheticSourceOnly:true,sourceOrAthleteApprovalCreated:false})+'\n');
+ expect(out.technicallyConstructed).toBe(true);
+ expect(out.constraintsSatisfied).toBe(false);
+ expect(out.issues.some(issue=>issue.code==='sport_ratio'&&issue.severity==='error')).toBe(true);
  expect(out.humanReviewRequired).toBe(true);expect(out.sportingRelevance).toBe('not_attested');
 },60000);
 
-it.each([{objective:'Semi',weeks:30,hours:6,target:'95'},{objective:'Marathon',weeks:40,hours:9,target:'195'}])('DIAGNOSTIC ONLY — native long $objective $weeks weeks',async c=>{
- const app=await shared(c.objective,c.weeks,c.hours,undefined,{raceTargetMinutes:c.target}),input=planningInputFor(app,'det');
+it('refuses a technically assembled native semi30 with five consecutive non-deload weeks',async()=>{
+ const app=await shared('Semi',30,6,undefined,{raceTargetMinutes:'95'}),input=planningInputFor(app,'det');
  const out=constructDeterministicPlan(input.athlete,input.config,{maxNodes:150000,maxMilliseconds:30000},guards);
- process.stdout.write('ASSEMBLY_LONG_DIAGNOSTIC '+JSON.stringify({...c,status:out.status,reason:out.reason,constraintsSatisfied:out.constraintsSatisfied,constructed:out.technicallyConstructed,weeks:out.candidate?.weeks.length,hard:out.issues.filter(i=>['error','critical','blocking'].includes(i.severity)).slice(0,8)})+'\n');
+ expect(out.technicallyConstructed).toBe(true);
+ expect(out.constraintsSatisfied).toBe(false);
+ expect(out.issues.some(issue=>issue.code==='load_pattern'&&issue.severity==='error')).toBe(true);
  expect(out.humanReviewRequired).toBe(true);expect(out.sportingRelevance).toBe('not_attested');
 },60000);
