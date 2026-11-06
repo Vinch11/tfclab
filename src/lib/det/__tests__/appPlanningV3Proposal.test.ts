@@ -23,9 +23,9 @@ import { findSource } from '../coachDetContext';
 
 const ATHLETE = 'SYNTHETIC_DRAFT_A';
 async function shared(objective = 'Ironman 70.3', weeks = 12, hours = 10, limiters?: string[], overrides: Partial<AppPlanFormState> = {}) {
-  const athlete = { id: ATHLETE, name: 'SYNTHETIC DRAFT ONLY', birth_date: '1991-01-01', sex: 'M', active_snapshot_id: 'SYNTH_SNAP', refs: {} };
+  const athlete = { id: ATHLETE, name: 'SYNTHETIC DRAFT ONLY', objectif:'703', birth_date: '1991-01-01', sex: 'M', active_snapshot_id: 'SYNTH_SNAP', refs: {} };
   const snapshots = [{ id: 'SYNTH_SNAP', athlete_id: ATHLETE, date: '2026-11-04', source: 'manual', sport_main: 'tri', vma: 18, ftp: 300, css: 95, pace_threshold_sec_per_km: 240, tss_7d: 380, fatigue_state: 'ok', vo2max: 58, weight_kg: 72, fc_max: 188 }];
-  const ctx = computeAppAthleteContext(athlete, objective, 'age_group', { snapshots, tests: [], checkins: [] })!;
+  const ctx = computeAppAthleteContext(athlete, objective, 'age_group', { snapshots, tests: [], checkins: [],...(objective==='Natation 1500m'?{programmeTarget:90}:{}) })!;
   const st: AppPlanFormState = { objective, ambition: 'age_group', planStartDate: new Date(2026,10,2), raceName: '', raceDate: new Date(Date.UTC(2026,10,2 + weeks * 7 - 1)).toISOString().slice(0,10), raceFormat: 'continuous', raceGoals: [], trailDistanceKm: '', trailElevationM: '', trailTargetTimeH: '', trailMaxAltitudeM: '', weeksAvailable: weeks, weeklyHours: String(hours), sessionsPerWeek: /Ironman/.test(objective) ? '8' : '4', maxSessionsPerDay: '2', strengthSessionsPerWeek: '1', deloadCadence: 'auto', constraints: '', trainingLevel: 'auto', terrainAvailability: 'auto', lockAmbition: false, crossTrainingVelo: false, crossTrainingNatation: false, chronicWeeklyHours: '', recentWeeklyHours: '', recentWeeksCount: '', maxDoubleDaysPerWeek: '', coachLimiterOrder: [], currentAthleteId: ATHLETE, ...overrides };
   const config = buildAppPlanConfig(ctx.diagnostic, st);
   if (limiters) {
@@ -283,5 +283,29 @@ it.each([['Semi',8,6],['Marathon',16,8],['Ironman',16,14]] as const)('complete-s
  const plan=await generateAppProfileDetPlan(await shared(objective,weeks,hours),ATHLETE,{},'complete-engine');
  expect(plan.weeks).toHaveLength(weeks);
  expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>(s as any).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_20[1-8]/))).toBe(true);
+ expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
+},60000);
+
+it('preserves explicitly entered clocks in the common archive without supplying unentered or race clocks',async()=>{
+ const app=await shared('Ironman 70.3',12,10);
+ const plan=await generateAppProfileDetPlan(app,ATHLETE,{clock:{timeZone:'Europe/Brussels',minutesBySport:{strength:[600,600,600,600,600,600,600]}}},'test-engine');
+ const force=plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength');
+ expect(force.length).toBeGreaterThan(0);
+ const startOf=(s:unknown)=>(s as {coachStart?:{minuteOfDay:number;timeZone:string}}).coachStart;
+ expect(force.every(s=>startOf(s)?.minuteOfDay===600&&startOf(s)?.timeZone==='Europe/Brussels')).toBe(true);
+ expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport!=='strength').every(s=>!startOf(s))).toBe(true);
+ expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
+});
+
+it('does not replace the quality work of dedicated swimming with technical-only fallback',async()=>{
+ const app=await shared('Natation 1500m',8,4,undefined,{sessionsPerWeek:'4'});
+ const sharedInput=planningInputFor(app,'det');const pre=prevalidateTrainingPlan(sharedInput.athlete,sharedInput.config);
+ expect(pre.report.issues.filter(i=>i.severity==='blocking')).toEqual([]);
+ const plan=await generateAppProfileDetPlan(app,ATHLETE,{},'test-engine');
+ expect(plan.weeks).toHaveLength(8);
+ const loadWeeks=(plan as unknown as {_detSourceProposal:V3PlanProposal})._detSourceProposal.weeks.filter(w=>w.weekType==='load');
+ expect(loadWeeks.length).toBeGreaterThan(0);
+ for(const w of loadWeeks)expect(w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)).some(c=>c.sourceDomain==='mlss'&&c.zoneMinutes.high>0)).toBe(true);
+ expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>!s.isRest&&s.sport==='swim'&&(s as unknown as {detSourceComponents?:unknown[]}).detSourceComponents?.length).every(s=>s.durationMin!==undefined&&!(s.details??'').includes('Repères à préciser'))).toBe(true);
  expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
 },60000);

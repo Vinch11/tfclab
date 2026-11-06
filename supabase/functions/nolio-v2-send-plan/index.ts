@@ -1,3 +1,6 @@
+import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
+import {verifySportingRelease,authorizesReviewedPlan} from '../_shared/nolioV2/sportingRelease.ts';
+import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
  * Nolio V2 — envoi RÉEL planifié d'un plan complet (QA). SÉPARÉ de V1.
  *
@@ -22,7 +25,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { sendPlannedV2 } from "../_shared/nolioV2/plannedClient.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
-import { loadConfig } from "../_shared/nolioV2/oauth.ts";
+import { loadConfig,QA_COACHES } from "../_shared/nolioV2/oauth.ts";
 import { supabaseNolioV2Ledger } from "../_shared/nolioV2/ledgerSupabase.ts";
 import { fetchNolioV2Http } from "../_shared/nolioV2/httpFetch.ts";
 import { preparePlan } from "../_shared/nolioV2/planDryRun.ts";
@@ -49,8 +52,10 @@ Deno.serve(async (req) => {
   const sub = claims?.claims?.sub;
   if (claimsErr || typeof sub !== "string" || !UUID.test(sub)) return json(401, { status: "REFUSED", reason: "unauthorized" });
 
-  const staff = await userClient.rpc("is_staff_coach",{_user_id:sub});
-  if(staff.error||staff.data!==true)return json(403,{status:"BLOCKED",reason:"staff_coach_required"});
+  if(!QA_COACHES.has(sub)){
+    const staff = await userClient.rpc("is_staff_coach",{_user_id:sub});
+    if(staff.error||staff.data!==true)return json(403,{status:"BLOCKED",reason:"staff_coach_required"});
+  }
   let body: unknown;
   try { body = await req.json(); } catch { return json(400, { status: "REFUSED", reason: "body_not_json" }); }
   const b = (body ?? {}) as Record<string, unknown>;
@@ -58,7 +63,7 @@ Deno.serve(async (req) => {
   if (extra.length) return json(400, { status: "REFUSED", reason: `unknown_fields:${extra.join(",")}` });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
   const action = b.action ?? "precheck";
-  if (action !== "precheck" && action !== "send" && action !== "verify") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities") return json(400, { status: "REFUSED", reason: "action_unknown" });
   const ex = (b.expected ?? null) as Record<string, unknown> | null;
   const expected = ex && typeof ex === "object" ? { planSha256: String(ex.planSha256 ?? ""), refsSha256: String(ex.refsSha256 ?? ""), opsSha256: String(ex.opsSha256 ?? ""), jobId: String(ex.jobId ?? "") } : null;
 
@@ -70,6 +75,10 @@ Deno.serve(async (req) => {
   if (athErr) return json(502, { status: "REFUSED", reason: "athlete_read_failed" });
   if (!ath) return json(403, { status: "REFUSED", reason: "athlete_not_owned" });
 
+  if(b.action==='capabilities'){
+    const a=await verifySportingRelease({proofJson:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PROOF'),publicKey:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PUBLIC_KEY'),releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,engineVersion:CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine'],now:Date.now()});
+    return json(200,{...exportCapabilities('nolio-v2-send-plan',CHECKED_IN_PLAN_RELEASE_INFO.releaseId),sportingReleaseAuthorized:a.ok,blockers:a.ok?[]:[a.reason]});
+  }
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return json(500, { status: "REFUSED", reason: "server_misconfigured" });
   // Service-role créé SEULEMENT après getClaims + propriété plan/athlète vérifiées.
@@ -98,12 +107,14 @@ Deno.serve(async (req) => {
   const reviewRead = await admin.from("qa_plan_coach_reviews").select("*").eq("coach_id",sub).eq("plan_version_id",pv.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
   const fullReviewPrepared=b.scope===undefined?prepared:await preparePlan(planJson,conn.refs,pv.id);
   const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:fullReviewPrepared.planSha256,refsSha256:fullReviewPrepared.refsSha256,opsSha256:fullReviewPrepared.opsSha256});
-  const gate = await realSendGate({ planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
+  const authority=await verifySportingRelease({proofJson:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PROOF'),publicKey:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PUBLIC_KEY'),releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,engineVersion:CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine'],now:Date.now()});
+  const serverAuthorized=authorizesReviewedPlan(authority,planJson?._provenance,reviewOk,fullReviewPrepared.precheck.complete);
+  const gate = await realSendGate({...(serverAuthorized&&authority.ok?{serverPrescriptionAuthorization:{planVersionId:pv.id,planSha256:prepared.planSha256,releaseId:authority.release.releaseId}}:{}), planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
     consent: b.consent, job, receipts, provenance: planJson?._provenance ?? null, attestation: reviewOk ? {planVersionId:pv.id,planSha256:prepared.planSha256,reviewer:sub} : null });
   if (!reviewOk) gate.push("coach_review_absent_or_stale");
-  // A source manifest (even archived/attested) is NOT a sporting release attestation.
-  // No verified sporting release authority is installed in this isolated QA copy.
-  gate.push("release_sporting_attestation_absent");
+  // A checked-in manifest cannot authorize release. The external signature
+  // is verified against an operator-installed key and this exact source release.
+  if(!authority.ok)gate.push(authority.reason);
   const preview = sendPreview(prepared);
 
   if (action === "precheck") return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, network: "none" });

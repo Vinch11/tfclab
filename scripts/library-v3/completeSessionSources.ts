@@ -65,3 +65,23 @@ export const timedSwimSources:V3Workout[]=swimThemes.flatMap(([theme,cue],i)=>[f
  w.prerequisites=['Nage autonome et aisée en bassin surveillé'];w.contraindications=['Douleur ou gêne respiratoire à la nage','Nage non maîtrisée ou absence de surveillance'];w.prescription.admissibility.prerequisites=[...w.prerequisites];w.prescription.admissibility.contraindications=[...w.contraindications];
  return w;
 }));
+
+// Dedicated swimming still needs a genuine sustained-work prescription;
+// technical/easy fallback must not replace every quality slot.
+const sustainedBase=swimRaw.workouts.find(w=>w.id==='V3P_SWIM_156') as unknown as V3Workout;
+for(let i=0;i<2;i++){
+ const w=finish(sustainedBase,`V3P_SWIM_${213+i}`,`Natation au temps — efforts soutenus réguliers ${i?'B':'A'}`,['base','build','peak'],[
+  {...time(600,'Nager facilement, puis augmenter progressivement le rythme sans essoufflement marqué','warmup',[1,3]),domain:'recovery'},
+  {kind:'repeat',label:'Efforts soutenus de qualité technique',count:fixed(4+i),betweenSec:0,steps:[{...time(120,'Nage soutenue régulière, RPE indicatif 6 à 7/10 ; conserver la technique, sans sprint ni recherche d’épuisement','main',[6,7]),domain:'mlss'},{...time(90,'Nage très facile ou récupération au mur ; reprendre une respiration confortable','main',[1,2]),domain:'recovery'}]},
+  {...time(480,'Nager très facilement, relâcher les épaules et terminer confortablement','cooldown',[1,2]),domain:'recovery'}
+ ],24,TIMED_SWIM_POLICY);
+ w.focus='Soutenir un effort régulier en conservant la technique ; domaine de travail prévu, sans seuil biologique déclaré mesuré';w.primaryIntent='mlss';w.primaryDomain='mlss';
+ w.prescription.physiologicalIntent={...w.prescription.physiologicalIntent,statement:w.focus,primaryIntent:w.primaryIntent,primaryDomain:w.primaryDomain,domainIds:['recovery','mlss']};
+ w.minimumLevel='trained';w.prerequisites=['Nage autonome et efforts soutenus déjà pratiqués en bassin surveillé'];w.contraindications=['Douleur ou gêne respiratoire à la nage','Fatigue ou technique incompatibles avec un effort soutenu'];
+ Object.assign(w,{equipment:['bassin surveillé','horloge visible depuis le bassin']});
+ w.prescription.admissibility={...w.prescription.admissibility,minimumLevel:w.minimumLevel,prerequisites:[...w.prerequisites],contraindications:[...w.contraindications]};
+ w.prescription.individualization.anchors=['recovery','mlss'].map(domain=>({domain:domain as 'recovery'|'mlss',key:'source_qualitative_effort',transform:'no_pace_conversion_or_measured_threshold_claim',missing:'unresolved'}));
+ w.evidence.referenceIds=['SWIM2021'];
+ w.methodology='Séance originale TFCLab au temps, avec effort prescrit par ressenti et récupération explicite ; aucune allure calculée depuis CSS. Le domaine est une intention de planification, pas une mesure du MLSS ; le RPE ne démontre pas que ce seuil est atteint. Réduire le rythme ou interrompre si la technique ou la respiration se dégradent. Cette dose exacte reste candidate et non validée scientifiquement.';
+ timedSwimSources.push(w);
+}

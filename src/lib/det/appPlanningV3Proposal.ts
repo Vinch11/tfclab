@@ -192,12 +192,16 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // enforced by the solver, not by maximizing long easy sessions up front.
     const order=domains.map((domain,index)=>({domain,index})).sort((a,b)=>
       Number(slots[a.index].slot.sport==='strength')-Number(slots[b.index].slot.sport==='strength')||Number(slots[b.index].slot.role==='key'&&b.domain.some(quality))-Number(slots[a.index].slot.role==='key'&&a.domain.some(quality))||a.domain.length-b.domain.length||a.index-b.index);
+    const programmeCardioSlots=slots.filter(s=>!['strength'].includes(s.slot.sport)&&s.slot.role!=='race').length;
+    const programmeStrengthMinimum=domains.reduce((n,rows,index)=>n+(slots[index].slot.sport==='strength'?Math.min(...rows.map(r=>r.knownMinutes)):0),0);
+    const programmeTarget=config.planningGoalContext&&programmeCardioSlots?Math.max(0,(ceiling-programmeStrengthMinimum)/programmeCardioSlots):null;
+    const programmeDistance=(s:ProposedV3Session)=>programmeTarget!==null&&s.sport!=='strength'&&s.durationMinutes!==null?Math.abs(s.durationMinutes-programmeTarget):0;
     const margin=(session:ProposedV3Session)=>session.components.filter(c=>c.sport!=='strength')
       .reduce((n,c)=>n+(c.zoneMinutes?c.zoneMinutes.low-3*(c.zoneMinutes.mid+c.zoneMinutes.high+c.zoneMinutes.unknown):0),0);
     for(const [index,item] of order.entries())item.domain.sort((a,b)=>
       requiresQuality&&index===0?Number(quality(b))-Number(quality(a))||
         (trajectory?Number(b.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))-Number(a.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))||distance(a,item.index)-distance(b,item.index):0):
-        distance(a,item.index)-distance(b,item.index)||
+        distance(a,item.index)-distance(b,item.index)||programmeDistance(a)-programmeDistance(b)||
         Number(b.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))-Number(a.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))||
         a.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)-b.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)||a.knownMinutes-b.knownMinutes);
     const selected:ProposedV3Session[]=[];

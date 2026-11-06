@@ -427,6 +427,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           sessionsPerWeek: targetSpw,
           maxSessionsPerDay: planConfig.maxSessionsPerDay,
           bannedSports: bannedSportsForQuota,
+          strengthSessionsPerWeek:planConfig.strengthSessionsPerWeek,
         });
         if (entry) {
           const individualized = applySlFloorIndividualization(

@@ -1,3 +1,5 @@
+import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
+import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
  * Nolio V2 — simulation dry_run d'un plan COMPLET sauvegardé (QA). DRY-RUN ONLY :
  * n'importe ni sendPlannedV2, ni ledger de création, ni trialSession.
@@ -38,7 +40,7 @@ Deno.serve(async (req) => {
   try { b = (await req.json()) ?? {}; } catch { return json(400, { status: "BLOCKED", code: "body_not_json" }); }
   if (Object.keys(b).some((k) => !["planVersionId", "action", "scope"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "BLOCKED", code: "plan_version_id_invalid" });
-  if (b.action !== "precheck" && b.action !== "run") return json(400, { status: "BLOCKED", code: "action_unknown" });
+  if (b.action !== "precheck" && b.action !== "run" && b.action !== "capabilities") return json(400, { status: "BLOCKED", code: "action_unknown" });
   const pv = await userClient.from("plan_versions").select("id,athlete_id,plan_json").eq("id", b.planVersionId).eq("coach_id", sub).maybeSingle();
   if (pv.error) return json(502, { status: "BLOCKED", code: "plan_read_failed" });
   if (!pv.data) return json(403, { status: "BLOCKED", code: "plan_not_owned" });
@@ -46,6 +48,7 @@ Deno.serve(async (req) => {
   const ath = await userClient.from("athletes").select("id").eq("id", athleteId).eq("coach_id", sub).maybeSingle();
   if (ath.error || !ath.data) return json(403, { status: "BLOCKED", code: "athlete_not_owned" });
 
+  if(b.action==='capabilities')return json(200,exportCapabilities('nolio-v2-plan-dry-run',CHECKED_IN_PLAN_RELEASE_INFO.releaseId));
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return json(500, { status: "BLOCKED", code: "server_misconfigured" });
   const admin = createClient(url, serviceKey); // seulement après getClaims + propriété

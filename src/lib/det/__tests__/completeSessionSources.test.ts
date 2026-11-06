@@ -7,7 +7,7 @@ const all=[...completeStrengthSources,...timedSwimSources];
 const leaves=(blocks:V3Block[]):V3Leaf[]=>blocks.flatMap(b=>b.kind==='repeat'?leaves(b.steps):[b]);
 describe('complete candidate prescriptions, without athlete approvals',()=>{
  it('audits every complete source and keeps the original 800 unchanged',()=>{
-  expect(auditV3Catalogue({...v3FullCatalogue,count:all.length,counts:{strength:8,swim:12,run:0,bike:0},workouts:all})).toEqual([]);
+  expect(auditV3Catalogue({...v3FullCatalogue,count:all.length,counts:{strength:8,swim:14,run:0,bike:0},workouts:all})).toEqual([]);
   expect(v3FullCatalogue.workouts.length).toBe(800);
   expect(all.every(w=>w.automaticSelection===false&&w.evidence.sessionSpecificValidation===false)).toBe(true);
  });

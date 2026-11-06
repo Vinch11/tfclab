@@ -8,6 +8,7 @@ vi.mock("@/contexts/CloudDataContext", () => ({ useCloudDataContext: () => ({ at
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { nolio_id: 42 } }) }) }) }),
   functions: { invoke },
+  auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }) },
 } }));
 import { AIPlanViewer } from "../AIPlanViewer";
 import { NolioSendPlanCard } from "../NolioSendPlanCard";

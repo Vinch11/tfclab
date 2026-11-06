@@ -14,9 +14,9 @@ export function coachTarget(t:V3IntensityTarget):string{
  const unit={watts:'W',sec_per_km:'/km',sec_per_100m:'/100 m',m_per_sec:'m/s',coach_rpe_load:'RPE / charge',coach_field_effort:'RPE'}[t.metric];
  return `${format(t.min)}${t.max!==null&&t.max!==t.min?` à ${format(t.max)}`:''} ${unit}`;
 }
-export function coachBlocks(blocks:readonly V3Block[],indent=''):string{
+export function coachBlocks(blocks:readonly V3Block[],indent='',legacyRepeatLabels=false):string{
  return blocks.map(b=>{
-  if(b.kind==='repeat')return `${indent}${b.count.base} répétitions :\n${coachBlocks(b.steps,indent+'  ')}${b.betweenSec?`\n${indent}Récupération entre répétitions : ${coachDuration(b.betweenSec/60)}`:''}`;
+  if(b.kind==='repeat')return `${indent}${legacyRepeatLabels?`${b.count.base} répétitions`:`${b.label} — ${b.count.base} fois`} :\n${coachBlocks(b.steps,indent+'  ',legacyRepeatLabels)}${b.betweenSec?`\n${indent}Récupération entre répétitions : ${coachDuration(b.betweenSec/60)}`:''}`;
   const role={warmup:'Échauffement',main:'Travail',cooldown:'Retour au calme'}[b.role];
   const dose=b.kind==='time'?coachDuration(b.seconds!.base/60):b.kind==='distance'?`${number(b.meters!.base)} m`:`${b.reps!.base} répétitions`;
   return `${indent}${role} — ${b.label} : ${dose}${b.domain?` · ${getDoctrineDomain(b.domain).label}`:''}${b.repsTarget?` · cible ${b.repsTarget.base} répétitions`:''}${b.sides?` · ${b.sides} côtés`:''}${b.rpeRange?` · RPE ${b.rpeRange.min} à ${b.rpeRange.max}`:''}`;
