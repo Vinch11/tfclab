@@ -142,8 +142,8 @@ Deno.serve(async (req) => {
   // A server-side bounded history read also catches known old remote IDs whose
   // descriptions have since lost their origin marker. Never expose those IDs.
   async function calendarContext(){
-    const history=await admin.from('nolio_v2_operations').select('remote_id,state').eq('coach_id',sub).eq('athlete_ref',effectiveRefs.athleteId).neq('plan_version_id',savedVersionId).limit(1001);
-    if(history.error||!Array.isArray(history.data)||history.data.length>1000)throw Error('previous_exports_read_failed');
+    const history=await admin.from('nolio_v2_operations').select('remote_id,state',{count:'exact'}).eq('coach_id',sub).eq('athlete_ref',effectiveRefs.athleteId).neq('plan_version_id',savedVersionId).limit(1001);
+    if(history.error||!Array.isArray(history.data)||history.data.length>1000||history.count!==history.data.length)throw Error('previous_exports_read_failed');
     if(history.data.some(x=>['sending','sent_unconfirmed','ambiguous'].includes(x.state)&&!x.remote_id))throw Error('previous_export_unresolved');
     const full=b.scope===undefined?prepared:await preparePlan(planJson,effectiveRefs,savedVersionId);
     return {currentMarkers:await markersForVersion(savedVersionId,full.ops.map(o=>o.source)),priorRemoteIds:new Set<string>(history.data.flatMap(x=>typeof x.remote_id==='string'?[x.remote_id]:[]))};
@@ -179,8 +179,8 @@ Deno.serve(async (req) => {
     // lease spans versions, unlike the existing per-operation idempotency key.
     try{return await withCalendarWriteLock({client:admin,coachId:sub,athleteRef:effectiveRefs.athleteId,planVersionId:pv.id,run:async()=>{
     const context=await calendarContext();
-    const attempted=await admin.from('nolio_v2_operations').select('session_key,path').eq('coach_id',sub).eq('plan_version_id',pv.id).limit(1001);
-    if(attempted.error||!Array.isArray(attempted.data)||attempted.data.length>1000)throw Error('previous_exports_read_failed');
+    const attempted=await admin.from('nolio_v2_operations').select('session_key,path',{count:'exact'}).eq('coach_id',sub).eq('plan_version_id',pv.id).limit(1001);
+    if(attempted.error||!Array.isArray(attempted.data)||attempted.data.length>1000||attempted.count!==attempted.data.length)throw Error('previous_exports_read_failed');
     const attemptedKeys=new Set(attempted.data.map(x=>`${x.path}|${x.session_key}`));
     const http=fetchNolioV2Http({fetch:(u,i)=>fetch(u,i),accessToken:conn.accessToken,deadline:requestDeadline});
     const report = await sendPlannedV2({
