@@ -1,3 +1,4 @@
+import {isNumericString,workoutReadbackDifferences,type ReadbackDifference} from './readbackDifferences.ts';
 /**
  * Expéditeur Nolio V2 (planned) — utilise EXACTEMENT les opérations produites
  * par `mapPlanToNolioV2`. Séparé de V1 : connexion, jetons, ids opaques propres.
@@ -69,6 +70,14 @@ function normalize(v: unknown, top = false): unknown {
   if (!v || typeof v !== "object") return v;
   const o = v as Record<string, unknown>;
   const keys = Object.keys(o);
+  // Raw W and m/s targets explicitly allow number|string in Nolio's schema.
+  // Convert only finite numeric strings in these unambiguous physical units;
+  // formatted paces, percentages and all other fields remain untouched.
+  if(o.type==='raw'&&(o.unit==='W'||o.unit==='m/s')){
+    const next={...o};let changed=false;
+    for(const key of ['value','value_max'])if(isNumericString(next[key])){next[key]=Number(next[key]);changed=true;}
+    if(changed)return normalize(next,top);
+  }
   if (keys.length === 2 && typeof o.value === "number" && typeof o.unit === "string" && o.unit in UNIT) {
     const dim = ["s", "min", "h"].includes(o.unit) ? "s" : "m";
     return { value: o.value * UNIT[o.unit], unit: dim };
@@ -136,7 +145,7 @@ const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>,
   (typeof it.description === "string" && it.description.includes(marker)) ||
   (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
 
-type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string; diagnostic?: { candidates: number; exact: number; fields: string[] } } | { kind: "read_failed"; detail: string };
+type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string; diagnostic?: { candidates: number; exact: number; fields: string[]; workout?: ReadbackDifference[] } } | { kind: "read_failed"; detail: string };
 export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string, budget?: {deadline:number;now:()=>number}): Promise<Reconcile> {
   const expired=()=>!!budget && budget.now()>=budget.deadline;
   const candidates: Array<Record<string, unknown>> = [];
@@ -156,6 +165,7 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
   if (!candidates.length) return { kind: "absent" };
   const exact: string[] = [];
   const fields = new Set<string>();
+  const workout:ReadbackDifference[]=[];
   for (const c of candidates) {
     if (typeof c.id !== "string") return { kind: "ambiguous", detail: "candidate_without_id" };
     if(expired())return {kind:"read_failed",detail:"deadline"};
@@ -164,10 +174,13 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
     if (!d.ok) return { kind: "read_failed", detail: `detail:${(d as { detail: string }).detail}` };
     if (d.item.id !== c.id) return { kind: "ambiguous", detail: "detail_id_mismatch" };
     if (exactRemoteMatch(d.item, sent)) exact.push(c.id);
-    else for (const field of remoteMismatchFields(d.item, sent)) fields.add(field);
+    else {
+      for (const field of remoteMismatchFields(d.item, sent)) fields.add(field);
+      if(workout.length<5)workout.push(...workoutReadbackDifferences(normalize(d.item.workout),normalize(sent.workout),deepEqualTol).slice(0,5-workout.length));
+    }
   }
   if (exact.length === 1 && candidates.length === 1) return { kind: "exact", id: exact[0] };
-  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)`, diagnostic: { candidates: candidates.length, exact: exact.length, fields: [...fields].sort() } };
+  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)`, diagnostic: { candidates: candidates.length, exact: exact.length, fields: [...fields].sort(), ...(workout.length?{workout}:{}) } };
 }
 
 const REMOTE_ID = { "/api/v2/planned/trainings/": /^ptrn_[A-Za-z0-9]+$/, "/api/v2/planned/competitions/": /^pcmp_[A-Za-z0-9]+$/ } as Record<string, RegExp>;
