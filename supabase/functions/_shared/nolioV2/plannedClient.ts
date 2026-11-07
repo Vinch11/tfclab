@@ -1,4 +1,5 @@
 import {isNumericString,workoutReadbackDifferences,rawTargetEvidence,type ReadbackDifference,type RawTargetEvidence} from './readbackDifferences.ts';
+import {alignSpeedReadPrecision} from './speedReadPrecision.ts';
 /**
  * Expéditeur Nolio V2 (planned) — utilise EXACTEMENT les opérations produites
  * par `mapPlanToNolioV2`. Séparé de V1 : connexion, jetons, ids opaques propres.
@@ -132,12 +133,15 @@ export function stripReadDefaults(remote: Record<string, unknown>, sent: Record<
 }
 /** Égalité exacte des champs significatifs (nom, date, heure, sport, audience, durée, description+marqueur, structure complète). */
 export function exactRemoteMatch(remote: Record<string, unknown>, sent: Record<string, unknown>): boolean {
-  return deepEqualTol(normalize(stripReadDefaults(remote, sent), true), normalize(sent, true));
+  const a=normalize(stripReadDefaults(remote,sent),true) as Record<string,unknown>,b=normalize(sent,true) as Record<string,unknown>;
+  if('workout' in a&&'workout' in b)a.workout=alignSpeedReadPrecision(a.workout,b.workout);
+  return deepEqualTol(a,b);
 }
 /** Diagnostic restricted to contract field names; never expose provider values. */
 export function remoteMismatchFields(remote: Record<string, unknown>, sent: Record<string, unknown>): string[] {
   const a = normalize(stripReadDefaults(remote, sent), true) as Record<string, unknown>;
   const b = normalize(sent, true) as Record<string, unknown>;
+  if('workout' in a&&'workout' in b)a.workout=alignSpeedReadPrecision(a.workout,b.workout);
   const allowed = new Set(['name','sport','description','description_html','date_start','date_end','time','moment','athletes','group','duration','distance','elevation_gain','elevation_loss','tonnage','rpe','show_rpe','coggan_load','color','tags','workout','recurrence','recurrence_result','recurrence_preview','parts','total_duration','total_distance','event','location','goal_type']);
   return [...new Set([...Object.keys(a), ...Object.keys(b)].filter(k => !deepEqualTol(a[k], b[k])).map(k => allowed.has(k) ? k : 'other_field'))].sort();
 }
@@ -178,7 +182,7 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
     else {
       for (const field of remoteMismatchFields(d.item, sent)) fields.add(field);
       if(targets.length<5)targets.push(...rawTargetEvidence(d.item.workout,sent.workout).slice(0,5-targets.length));
-      if(workout.length<5)workout.push(...workoutReadbackDifferences(normalize(d.item.workout),normalize(sent.workout),deepEqualTol).slice(0,5-workout.length));
+      if(workout.length<5)workout.push(...workoutReadbackDifferences(alignSpeedReadPrecision(normalize(d.item.workout),normalize(sent.workout)),normalize(sent.workout),deepEqualTol).slice(0,5-workout.length));
     }
   }
   if (exact.length === 1 && candidates.length === 1) return { kind: "exact", id: exact[0] };

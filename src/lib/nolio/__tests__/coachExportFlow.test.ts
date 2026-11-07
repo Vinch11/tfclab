@@ -15,6 +15,11 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('shows running target mismatches in min/km while retaining a read-only stop',async()=>{
+  const {p,invoke,dry}=fixture(1);dry.precheck.rows[0].sport='run';const original=invoke.getMockImplementation()!;
+  invoke.mockImplementation(async(name,b)=>b.action==='verify'?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'ambiguous',diagnostic:{candidates:1,exact:0,fields:['workout'],targets:[{path:'workout[0].targets[0]',unit:'m/s',sent:{value:2.0833333333333335,value_max:3.125},read:{value:2.08,value_max:3.20},resolved:{}}]}}]}:original(name,b));
+  await expect(runCoachExport(p,true)).rejects.toThrow('envoyé 5:20–8:00 min/km');expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
  it('automatically validates, sends bounded lots and verifies each before continuing',async()=>{
   const {p,invoke}=fixture();expect(await runCoachExport(p)).toEqual({verified:10,total:10});
   expect(invoke.mock.calls.map(([,b])=>b.action)).toEqual(['precheck','run','precheck','send','verify','send','verify']);

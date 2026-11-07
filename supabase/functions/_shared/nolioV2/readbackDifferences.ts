@@ -51,12 +51,17 @@ export function rawTargetEvidence(read:unknown,sent:unknown):RawTargetEvidence[]
  }
  walk(read,sent,'workout',0);return out;
 }
-export function formatRawTargetEvidence(value:unknown):string{
+export function formatRawTargetEvidence(value:unknown,sport?:string):string{
  if(!Array.isArray(value))return '';
  return value.slice(0,5).filter((e):e is RawTargetEvidence=>!!e&&typeof e==='object'&&typeof e.path==='string'&&e.path.length<=200&&/^workout(?:\[\d+\]|\.(?:steps|sets|targets))*$/.test(e.path)&&(e.unit==='W'||e.unit==='m/s')&&e.sent&&finite(e.sent.value)&&(!('value_max' in e.sent)||finite(e.sent.value_max))&&e.read&&(!('value' in e.read)||finite(e.read.value))&&(!('value_max' in e.read)||finite(e.read.value_max))).map(e=>{
   const sent=e.sent.value_max===undefined?String(e.sent.value):`${e.sent.value}–${e.sent.value_max}`;
   const read=e.read.value===undefined?'valeur absente':e.read.value_max===undefined?`${e.read.value}${e.sent.value_max!==undefined?' (borne max absente)':''}`:`${e.read.value}–${e.read.value_max}`;
   const resolved=e.resolved&&typeof e.resolved==='object'?Object.entries(e.resolved).slice(0,16).filter(([k,v])=>k.split('.').every(x=>RESOLVED_KEYS.has(x))&&(finite(v)||typeof v==='boolean'||v===null||(typeof v==='string'&&PHYSICAL_ENUMS.has(v)))).map(([k,v])=>`${k}=${v}`).join(', '):'';
+  if(e.unit==='m/s'&&sport==='run'){
+   const pace=(v:number)=>{const hundredths=Math.round(100000/v),minutes=Math.floor(hundredths/6000),seconds=(hundredths%6000)/100;return `${minutes}:${seconds.toFixed(2).padStart(5,'0').replace(/\.00$/,'').replace('.',',')}`;};
+   const range=(t:{value?:number;value_max?:number})=>t.value===undefined?'valeur absente':t.value<=0?'borne de vitesse nulle (allure non finie)':t.value_max===undefined?pace(t.value):t.value_max<=0?'borne de vitesse non positive':`${pace(t.value_max)}–${pace(t.value)}`;
+   return `${e.path} : envoyé ${range(e.sent)} min/km ; lu ${range(e.read)} min/km${e.sent.value_max!==undefined&&e.read.value_max===undefined?' (borne absente)':''}`;
+  }
   return `${e.path} : envoyé ${sent} ${e.unit} ; lu ${read} ${e.unit}${resolved?' ; résolu '+resolved:''}`;
  }).join(' ; ');
 }
