@@ -7,6 +7,7 @@ import { calendarOrConfirmedClockRecoverySafe, type ScheduledSport,type Confirme
 import { normalizeRepairGoal } from '../../../supabase/functions/_shared/repairSportingEquivalence';
 import { hasExactStrictTriathlonRatio, TRIATHLON_STRICT_MINUTE_RANGES } from '../../../experimental/det-engine/v314-cumulative-ratio-search';
 import { parseAthleteConstraints } from '@/lib/plan/constraintRules';
+import { canonicalJson } from '@/lib/plan/appendOnlyPlanVersionSave';
 
 type Check=V3PlanProposal['checks'][number];
 const absolute=(slot:ScheduledSport)=>(slot.week-1)*7+slot.dayIndex;
@@ -38,7 +39,9 @@ function withinSourceBounds(original:readonly V3Block[],configured:readonly V3Bl
     if(a.kind==='repeat'&&b.kind==='repeat')return bound(a.count,b.count,true)&&
       (a.betweenSecBounds?bound(a.betweenSecBounds,b.betweenSecBounds,true)&&b.betweenSec===b.betweenSecBounds!.base:b.betweenSec===a.betweenSec)&&withinSourceBounds(a.steps,b.steps);
     if(a.kind==='repeat'||b.kind==='repeat'||a.domain!==b.domain||a.role!==b.role)return false;
-    if(JSON.stringify(a.rpeRange)!==JSON.stringify(b.rpeRange)||a.sides!==b.sides||a.secPerRep!==b.secPerRep)return false;
+    // PostgreSQL jsonb may reorder object keys. Compare the source values,
+    // retaining the distinction between an absent RPE and a supplied object.
+    if((a.rpeRange===undefined)!==(b.rpeRange===undefined)||canonicalJson(a.rpeRange)!==canonicalJson(b.rpeRange)||a.sides!==b.sides||a.secPerRep!==b.secPerRep)return false;
     if(a.repsTarget?!bound(a.repsTarget,b.repsTarget,true):b.repsTarget!==undefined)return false;
     if([b.seconds,b.meters,b.reps].filter(Boolean).length!==1)return false;
     return a.kind==='time'?bound(a.seconds!,b.seconds):a.kind==='distance'?bound(a.meters!,b.meters):bound(a.reps!,b.reps,true);
