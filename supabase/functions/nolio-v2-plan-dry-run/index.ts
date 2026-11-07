@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) return json(200, { status: "BLOCKED", code: (loaded as { reason: string }).reason, precheck: null, progress: null });
   const planJson=(pv.data as {plan_json:unknown}).plan_json;
-  const effectiveRefs=await coachRefsForPlan(admin,{coachId:sub,athleteId,plan:planJson,refs:loaded.value.refs,now:Date.now()});
+  const effectiveRefs=await coachRefsForPlan(admin as unknown as Parameters<typeof coachRefsForPlan>[0],{coachId:sub,athleteId,plan:planJson,refs:loaded.value.refs,now:Date.now()});
   const prepared = await preparePlan(planJson, effectiveRefs, b.planVersionId,b.scope);
   const planVersionId = b.planVersionId;
   const store: PlanDryRunStore = {

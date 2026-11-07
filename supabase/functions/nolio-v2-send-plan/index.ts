@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
   const normal=b.workflow==='coach';
   const normalProblems=normal?[...coachPlanProblems(planJson,pv.athlete_id,CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine']),...nativeCoachPlanProblems(planJson)]:[];
   if(normalProblems.length)return json(200,{status:'BLOCKED',reason:normalProblems[0],gate:normalProblems,network:'none'});
-  const effectiveRefs=await coachRefsForPlan(admin,{coachId:sub,athleteId:pv.athlete_id,plan:planJson,refs:conn.refs,now:Date.now()});
+  const effectiveRefs=await coachRefsForPlan(admin as unknown as Parameters<typeof coachRefsForPlan>[0],{coachId:sub,athleteId:pv.athlete_id,plan:planJson,refs:conn.refs,now:Date.now()});
   const prepared = await preparePlan(planJson, effectiveRefs, pv.id,b.scope);
 
   // Preuve de simulation : job du MÊME plan + empreintes ; reçus relus (service-role, coach lié).
