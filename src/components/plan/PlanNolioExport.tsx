@@ -81,6 +81,19 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
    setMessage(`${result.verified}/${result.total} activités confirmées dans Nolio. Export terminé.`);
   }catch(e){if(current())setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
  }
+ async function readZones(){
+  const id=savedId.current??planVersionId;if(lock.current||!id||!athleteId)return;
+  lock.current=true;setBusy(true);const token=epoch.current;
+  try{
+   setMessage('Lecture des zones de travail Nolio de cet athlète…');
+   const u=await bounded(supabase.auth.getUser());if(u.error||!u.data.user)throw Error('Reconnectez-vous.');
+   const row=await owned(id,u.data.user.id);if(token!==epoch.current)return;
+   if(row.error||!row.data||row.data.id!==id||row.data.coach_id!==u.data.user.id||row.data.athlete_id!==athleteId||!samePrescription(row.data.plan_json,plan))throw Error('Version sauvegardée différente : lecture annulée.');
+   const r=await bounded(supabase.functions.invoke('nolio-v2-send-plan',{body:{workflow:'coach',action:'zones',planVersionId:id}}));if(token!==epoch.current)return;
+   if(r.error||r.data?.status!=='ZONES_READ'||typeof r.data.summary!=='string'||r.data.summary.length>16000)throw Error(r.data?.reason==='zones_settings_read_scope_missing'?'La connexion Nolio n’autorise pas encore la lecture des zones (settings:read). Aucune séance modifiée.':'Lecture des zones indisponible : '+String(r.data?.reason??'service indisponible'));
+   setMessage(r.data.summary);
+  }catch(e){if(token===epoch.current)setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
+ }
  async function refsAction(body:Record<string,unknown>){
   if(lock.current||!athleteId||!['status','load_refs','update_refs'].includes(String(body.action)))return;lock.current=true;setBusy(true);const token=epoch.current;
   try{const u=await bounded(supabase.auth.getUser());if(u.error||!u.data.user)throw Error('Reconnectez-vous.');const r=await bounded(supabase.functions.invoke('nolio-v2-oauth',{body:{...body,athleteId}}));if(token!==epoch.current)return;if(r.error||!r.data||r.data.status==='BLOCKED')throw Error('Connexion Nolio à vérifier : '+String(r.data?.reason??'service indisponible'));setRefsView(r.data);setMessage('Correspondances Nolio relues.');}catch(e){if(token===epoch.current)setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
@@ -98,6 +111,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
   <Button disabled={busy||!athleteId||(scope?.kind==='sessions'&&!scope.keys.length)} onClick={()=>void run(false)}>Exporter vers Nolio</Button>
   {busy&&<Button variant="outline" onClick={()=>{stop.current=true;setMessage('Arrêt demandé ; vérification du lot en cours…');}}>Arrêter après l’opération en cours</Button>}
   {structured&&!busy&&<Button disabled={!savedId.current&&!planVersionId} variant="outline" onClick={()=>void run(true)}>Vérifier dans Nolio sans renvoyer</Button>}
+  {structured&&<Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void readZones()}>Lire les zones de travail Nolio</Button>}
   <p role="status" className="text-sm whitespace-pre-wrap">{message}</p>
   {structured&&<details><summary>Correspondances Nolio</summary><Button variant="outline" disabled={busy} onClick={()=>void refsAction({action:'status'})}>Vérifier la connexion et les correspondances</Button>{refsView&&<NolioV2ProgressPanel status={refsView} busy={busy} ready={!!athleteId} identityKey={`${athleteId}|${savedId.current}`} planSports={sports} exerciseLabels={requiredExerciseLabels(extracted,{timedCoachStrength:true})} raceSource={races.length===1?races[0]:null} act={refsAction} simulation="NONE"/>}</details>}
  </DialogContent></Dialog></Context.Provider>;

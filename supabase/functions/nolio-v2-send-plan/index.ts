@@ -1,4 +1,5 @@
 import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
+import {readAthleteZones,powerZoneSummary} from '../_shared/nolioV2/athleteZones.ts';
 import {coachPlanProblems,nativeCoachPlanProblems} from '../_shared/nolioV2/coachWorkflow.ts';
 import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
 import {verifySportingRelease,authorizesReviewedPlan} from '../_shared/nolioV2/sportingRelease.ts';
@@ -66,7 +67,8 @@ Deno.serve(async (req) => {
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
   if(b.workflow!==undefined&&b.workflow!=='coach')return json(400,{status:'REFUSED',reason:'workflow_unknown'});
   const action = b.action ?? "precheck";
-  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities" && action !== "zones") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if(action==='zones'&&(b.workflow!=='coach'||Object.keys(b).some(k=>!['workflow','action','planVersionId'].includes(k))))return json(400,{status:'REFUSED',reason:'zones_request_invalid'});
   const ex = (b.expected ?? null) as Record<string, unknown> | null;
   const expected = ex && typeof ex === "object" ? { planSha256: String(ex.planSha256 ?? ""), refsSha256: String(ex.refsSha256 ?? ""), opsSha256: String(ex.opsSha256 ?? ""), jobId: String(ex.jobId ?? "") } : null;
 
@@ -93,6 +95,14 @@ Deno.serve(async (req) => {
   if (!loaded.ok) return json(200, { status: "BLOCKED", reason: loaded.reason, network: "none", gate: [] });
   const conn = loaded.value;
   const planJson = pv.plan_json as Record<string, unknown> | null;
+  // Authenticated owner only. This branch cannot reach simulation, send,
+  // ledger, verification-receipt writes or mutate remote zone settings.
+  if(action==='zones'){
+    const zones=await readAthleteZones({fetch:(u,i)=>fetch(u,i),accessToken:conn.accessToken,athleteRef:conn.refs.athleteId,scopes:conn.connection.grantedScopes});
+    if(!zones.ok)return json(200,{status:'ZONES_UNAVAILABLE',reason:zones.reason});
+    try{return json(200,{status:'ZONES_READ',summary:powerZoneSummary(planJson,conn.refs,zones.wrappers)});}
+    catch{return json(200,{status:'ZONES_UNAVAILABLE',reason:'zones_plan_structure_invalid'});}
+  }
   const normal=b.workflow==='coach';
   const normalProblems=normal?[...coachPlanProblems(planJson,pv.athlete_id,CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine']),...nativeCoachPlanProblems(planJson)]:[];
   if(normalProblems.length)return json(200,{status:'BLOCKED',reason:normalProblems[0],gate:normalProblems,network:'none'});
