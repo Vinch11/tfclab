@@ -1,4 +1,4 @@
-import {isNumericString,workoutReadbackDifferences,type ReadbackDifference} from './readbackDifferences.ts';
+import {isNumericString,workoutReadbackDifferences,rawTargetEvidence,type ReadbackDifference,type RawTargetEvidence} from './readbackDifferences.ts';
 /**
  * Expéditeur Nolio V2 (planned) — utilise EXACTEMENT les opérations produites
  * par `mapPlanToNolioV2`. Séparé de V1 : connexion, jetons, ids opaques propres.
@@ -145,7 +145,7 @@ const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>,
   (typeof it.description === "string" && it.description.includes(marker)) ||
   (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
 
-type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string; diagnostic?: { candidates: number; exact: number; fields: string[]; workout?: ReadbackDifference[] } } | { kind: "read_failed"; detail: string };
+type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string; diagnostic?: { candidates: number; exact: number; fields: string[]; workout?: ReadbackDifference[]; targets?: RawTargetEvidence[] } } | { kind: "read_failed"; detail: string };
 export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string, budget?: {deadline:number;now:()=>number}): Promise<Reconcile> {
   const expired=()=>!!budget && budget.now()>=budget.deadline;
   const candidates: Array<Record<string, unknown>> = [];
@@ -166,6 +166,7 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
   const exact: string[] = [];
   const fields = new Set<string>();
   const workout:ReadbackDifference[]=[];
+  const targets:RawTargetEvidence[]=[];
   for (const c of candidates) {
     if (typeof c.id !== "string") return { kind: "ambiguous", detail: "candidate_without_id" };
     if(expired())return {kind:"read_failed",detail:"deadline"};
@@ -176,11 +177,12 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
     if (exactRemoteMatch(d.item, sent)) exact.push(c.id);
     else {
       for (const field of remoteMismatchFields(d.item, sent)) fields.add(field);
+      if(targets.length<5)targets.push(...rawTargetEvidence(d.item.workout,sent.workout).slice(0,5-targets.length));
       if(workout.length<5)workout.push(...workoutReadbackDifferences(normalize(d.item.workout),normalize(sent.workout),deepEqualTol).slice(0,5-workout.length));
     }
   }
   if (exact.length === 1 && candidates.length === 1) return { kind: "exact", id: exact[0] };
-  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)`, diagnostic: { candidates: candidates.length, exact: exact.length, fields: [...fields].sort(), ...(workout.length?{workout}:{}) } };
+  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)`, diagnostic: { candidates: candidates.length, exact: exact.length, fields: [...fields].sort(), ...(workout.length?{workout}:{}), ...(targets.length?{targets}:{}) } };
 }
 
 const REMOTE_ID = { "/api/v2/planned/trainings/": /^ptrn_[A-Za-z0-9]+$/, "/api/v2/planned/competitions/": /^pcmp_[A-Za-z0-9]+$/ } as Record<string, RegExp>;
