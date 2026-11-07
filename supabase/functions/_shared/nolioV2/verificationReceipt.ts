@@ -15,5 +15,10 @@ export async function verifyAndPersist(i:{coachId:string;athleteId:string;planVe
   const ok=await i.ledger.transition(key.opKey,i.ledgerState,'confirmed',{remoteId:r.id,detail:'exact_unique_durable_receipt'}).catch(()=>false);
   if(!ok)return {result:'ledger_reconciliation_unknown',receiptId:saved.id};
  }
- return {result:exact?'verified_unique':String(row.outcome).toLowerCase(),receiptId:saved.id};
+ // Only transient GET failures may be read again automatically. An unknown
+ // receipt never permits another create, nor counts as a successful read.
+ const retryableRead=row.outcome==='UNKNOWN'&&(now()>=i.deadline||r.kind==='read_failed'&&/^(?:detail:)?(?:deadline|timeout|network_error|body_unreadable|http_50[0234])$/.test(r.detail));
+ const failure=r.kind==='read_failed'?r.detail.replace(/^detail:/,''):null;
+ const readFailure=row.outcome!=='UNKNOWN'?null:now()>=i.deadline||failure==='deadline'?'deadline':failure==='http_429'?'rate_limited':failure==='http_401'||failure==='http_403'?'authorization':failure==='timeout'||failure==='network_error'||failure==='body_unreadable'?'network_unavailable':failure&&/^http_5\d\d$/.test(failure)?'provider_error':'unclassified';
+ return {result:exact?'verified_unique':String(row.outcome).toLowerCase(),receiptId:saved.id,...(readFailure?{readFailure}:{}),...(retryableRead?{retryableRead:true}:{}),...(r.kind==='ambiguous'&&r.diagnostic?{diagnostic:r.diagnostic}:{})};
 }

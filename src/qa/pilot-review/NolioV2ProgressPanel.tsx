@@ -70,6 +70,7 @@ export function NolioV2ProgressPanel(p: {
   const exPending = canSaveMappings(exRows, reviewed).pending;
   const canUpdate = !!refs && !!active && g?.status === "active" && Object.keys(chosenSports).length > 0 && consent && compSportOk && exPending.length === 0 && !p.busy && p.ready;
 
+  const sportsFor=(key:string)=>refs?refs.sports.filter(s=>s.isActive&&(s.structuredEnabled||(key===p.raceSource?.sport&&['brick','triathlon'].includes(key)))):[];
   const run = (body: Record<string, unknown>) => { void p.act(body).catch(() => {}); };
 
   return (
@@ -95,7 +96,7 @@ export function NolioV2ProgressPanel(p: {
               <span className="w-24">{k}</span>
               <select aria-label={`Sport Nolio pour ${k}`} className="flex-1 rounded-md border bg-background p-1" value={sportMap[k] ?? ""} onChange={(e) => setSportMap({ ...sportMap, [k]: e.target.value })}>
                 <option value="">— non associé —</option>
-                {usable.map((s) => <option key={s.sport} value={s.sport}>{s.name} · {s.sport}</option>)}
+                {sportsFor(k).map((s) => <option key={s.sport} value={s.sport}>{s.name} · {s.sport}</option>)}
               </select>
             </label>
           ))}
@@ -131,7 +132,7 @@ export function NolioV2ProgressPanel(p: {
               <span className="w-24">{k}</span>
               <select aria-label={`Sport Nolio pour ${k}`} className="flex-1 rounded-md border bg-background p-1" value={sportMap[k] ?? ""} onChange={(e) => setSportMap({ ...sportMap, [k]: e.target.value })}>
                 <option value="">— non associé —</option>
-                {usable.map((s) => <option key={s.sport} value={s.sport}>{s.name} · {s.sport}</option>)}
+                {sportsFor(k).map((s) => <option key={s.sport} value={s.sport}>{s.name} · {s.sport}</option>)}
               </select>
             </label>
           ))}

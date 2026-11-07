@@ -108,6 +108,9 @@ export function isDetPlanProvenance(v: unknown): v is DetPlanProvenance {
 /** Lecture affichable ; jamais d'inférence depuis le titre, le contenu ou la date. */
 export function readPlanProvenance(planJson: unknown): ProvenanceView {
   const p = isObj(planJson) ? planJson._provenance : undefined;
+  if (isObj(p) && p.schema===PLAN_PROVENANCE_SCHEMA && p.engine==='det' && p.mode==='app-profile' && p.prescriptionAllowed===false && p.sportingAttestation===false && p.syntheticFixture===false) {
+    return {engine:'det',label:'DET Engine',detail:'Profil de l’app · données disponibles · plan à relire, sans attestation sportive'};
+  }
   if (isDetPlanProvenance(p)) {
     return {
       engine: "det",

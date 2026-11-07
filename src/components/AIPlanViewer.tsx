@@ -1,5 +1,6 @@
+import { PlanNolioExportProvider, PlanNolioScopeButton } from '@/components/plan/PlanNolioExport';
 import { LimiterMesocycleTimeline } from "./plan/LimiterMesocycleTimeline";
-import { blocksLegacyNolioExport, DET_LEGACY_EXPORT_BLOCKED } from "@/lib/nolio/legacyExportGuard";
+
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -11,12 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CollapsibleCard } from "@/components/ui/collapsible-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
-  Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
-} from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike, Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2, RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { ParsedPlan, ParsedWeek, ParsedSession, StrategicRecap } from "@/lib/aiPlanParser";
@@ -25,13 +22,13 @@ import { getFicheForSession, isRunOnlyHighIntensityBikeSession } from "@/lib/aiP
 import { extractContextLines } from "@/lib/plan/sessionContextDelta";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
 import { readableV3Prescription } from "@/lib/plan/readableV3Prescription";
-import { mapSessionsToDates } from "@/lib/aiPlanParser";
+
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { exportAIPlanToPDF, isQaNonPrescriptivePlan, QA_NON_PRESCRIPTIVE_BANNER } from "@/lib/aiPlanPDFExport";
 import { readPlanProvenance } from "@/lib/plan/planProvenance";
 import { AIPlanVolumeChart } from "@/components/AIPlanVolumeChart";
 import { GapAmbitionPanel } from "@/components/GapAmbitionPanel";
-import { formatTime as formatRaceTime } from "@/lib/raceAnalysis";
+
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import type { RaceGoal } from "@/hooks/useAITrainingPlan";
 import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
@@ -48,35 +45,26 @@ import { TargetTableProvider, useTargetTable } from "@/components/plan/TargetTab
 import { WbalAthleteRefsProvider, useWbalAthleteRefs } from "@/components/plan/WbalAthleteRefsContext";
 import { NolioSessionButton, sessionKey, type NolioCtx } from "@/components/NolioSessionButton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
+
+
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { Send, Repeat } from "lucide-react";
+
+import { Repeat } from "lucide-react";
 import { toast } from "sonner";
-import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+
 import { SessionReplaceDialog } from "@/components/SessionReplaceDialog";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
-import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
+
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
 import { RegenerationConstraintsDialog, type RegenerationScope } from "@/components/plan/RegenerationConstraintsDialog";
 
 
 
-type NolioScope = "selected" | "single" | "range" | "all";
+
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase().trim();
@@ -342,11 +330,12 @@ interface SessionCardProps {
   nolioCtx?: NolioCtx | null;
   onReplaceClick?: (session: ParsedSession) => void;
   sessionIndex?: number;
+  nolioSourceKey?:string;
   objectifEffectif?: string | null;
   planTotalWeeks?: number;
 }
 
-function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, objectifEffectif, planTotalWeeks }: SessionCardProps) {
+function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sessionIndex = 0, nolioSourceKey, objectifEffectif, planTotalWeeks }: SessionCardProps) {
 
   const [expanded, setExpanded] = useState(false);
   const targetTable = useTargetTable();
@@ -436,7 +425,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         {getSportIcon(session.sport)}
         <span className="text-sm font-medium">{session.dayName}</span>
         {date && <span className="text-xs text-muted-foreground">{format(date, "d MMM", { locale: fr })}</span>}
-        <Badge variant="outline" className="text-[10px] ml-auto">{session.sport}</Badge>
+        <Badge variant="outline" className="text-[10px] ml-auto">{({run:'Course à pied',bike:'Vélo',swim:'Natation',strength:'Renforcement',brick:'Enchaînement vélo-course'} as Record<string,string>)[session.sport]??session.sport}</Badge>
         {fiche && (
           <Badge variant="secondary" className="text-[9px] gap-1" title={`Fiche bibliothèque : ${fiche.id}`}>
             <FileText className="h-2.5 w-2.5" /> Fiche
@@ -494,6 +483,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             <Repeat className="h-3.5 w-3.5 mr-1" /> Remplacer
           </Button>
         )}
+        {nolioSourceKey&&!session.isRest&&<PlanNolioScopeButton scope={{kind:"sessions",keys:[nolioSourceKey]}} label="Exporter la séance vers Nolio"/>}
         {nolioCtx && <NolioSessionButton session={session} ctx={nolioCtx} sessionIndex={sessionIndex} />}
       </div>
 
@@ -822,6 +812,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
                 🏁 Course {g.priority} · {g.raceName || g.objective} · {format(d, "EEE d MMM", { locale: fr })}
               </Badge>
             ))}
+            <PlanNolioScopeButton scope={{kind:"weeks",from:week.weekNumber,to:week.weekNumber}} label="Exporter la semaine vers Nolio"/>
             {!hideQualityScore && <WeekQualityBadge week={week} />}
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
@@ -863,7 +854,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
         {week.sessions.map((session, idx) => {
           const date = weekDates && session.dayIndex >= 0 ? weekDates[session.dayIndex] : undefined;
           const slot = slotMap.get(session) ?? 0;
-          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
+          return <SessionCard key={idx} session={session} date={date} nolioCtx={nolioCtx} onReplaceClick={onReplaceClick} sessionIndex={slot} nolioSourceKey={`S${session.weekNumber}-J${session.dayIndex}-${idx}`} objectifEffectif={objectifEffectif} planTotalWeeks={planTotalWeeks} />;
         })}
 
         {week.coachNotes && (
@@ -881,6 +872,8 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
 
 interface AIPlanViewerProps {
   plan: ParsedPlan;
+  savedPlanVersionId?:string|null;
+  onEnsureSavedForExport?:()=>Promise<string|null>;
   startDate?: Date;
   raceGoals?: RaceGoal[];
   onSaveToPlan?: () => void;
@@ -916,7 +909,7 @@ interface AIPlanViewerProps {
   identifiedLimiterKeys?: string[];
 }
 
-export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
+export function AIPlanViewer({ plan: planProp, savedPlanVersionId, onEnsureSavedForExport, onPlanChange, startDate, raceGoals, onSaveToPlan, isSaving, isSaved, onRegenerateWeek, onRegenerateFutureWeeks, onRegenerateAll, isRegenerating, athleteName, athleteId, currentWeekNumber, loadedFromCacheAt, adaptationProjections, gapContext, identifiedLimiterKeys }: AIPlanViewerProps) {
   // Régénération avec contraintes ponctuelles (imprévus : piscine fermée, etc.)
   const [regenDialog, setRegenDialog] = useState<null | { scope: RegenerationScope; label: string; run: (extra: string) => void }>(null);
   // Persist selected week per athlete (restored on mount/athlete change)
@@ -1006,8 +999,6 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // --- Nolio per-session sending context ---
   const { athletes, snapshots } = useCloudDataContext();
   const [nolioId, setNolioId] = useState<number | null>(null);
-  const [sentKeys, setSentKeys] = useState<Set<string>>(() => new Set());
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     if (!athleteId) { setNolioId(null); return; }
@@ -1025,7 +1016,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     return () => { cancelled = true; };
   }, [athleteId]);
 
-  useEffect(() => { setSentKeys(new Set()); setSelectedKeys(new Set()); }, [athleteId, planProp]);
+
 
   const handleReplaceClick = useCallback((s: ParsedSession) => {
     setReplaceTarget(s);
@@ -1058,20 +1049,9 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     }));
     setReplacementCount((c) => c + 1);
 
-    // Reset "sent" badge for any slot on this (week, day) — replacement targets all matching sessions
-    if (athleteId) {
-      const prefix = `${athleteId}:${target.weekNumber}:${target.dayIndex}:`;
-      setSentKeys((prev) => {
-        let changed = false;
-        const next = new Set(prev);
-        prev.forEach((k) => { if (k.startsWith(prefix)) { next.delete(k); changed = true; } });
-        return changed ? next : prev;
-      });
-    }
-
     toast.success(`Séance remplacée par ${w.id}`);
     setReplaceTarget(null);
-  }, [replaceTarget, athleteId, setPlan]);
+  }, [replaceTarget, setPlan]);
 
 
 
@@ -1182,277 +1162,6 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   }, [plan, currentPhysioRefs, setPlan]);
 
 
-  const markSent = useCallback((key: string) => {
-    setSentKeys((prev) => {
-      const next = new Set(prev);
-      next.add(key);
-      return next;
-    });
-    setSelectedKeys((prev) => {
-      if (!prev.has(key)) return prev;
-      const next = new Set(prev);
-      next.delete(key);
-      return next;
-    });
-  }, []);
-
-  const toggleSelected = useCallback((key: string) => {
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
-  }, []);
-
-  const setManySelected = useCallback((keys: string[], value: boolean) => {
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      if (value) keys.forEach((k) => next.add(k));
-      else keys.forEach((k) => next.delete(k));
-      return next;
-    });
-  }, []);
-
-  const legacyNolioBlocked = blocksLegacyNolioExport(plan);
-  const nolioCtx: NolioCtx | null = useMemo(() => {
-    if (legacyNolioBlocked || !athleteId || nolioId == null || !startDate) return null;
-    return {
-      athleteId,
-      nolioId,
-      planStartDate: startDate,
-      refs: nolioRefs,
-      isSent: (k: string) => sentKeys.has(k),
-      markSent,
-      isSelected: (k: string) => selectedKeys.has(k),
-      toggleSelected,
-      setManySelected,
-    };
-  }, [legacyNolioBlocked, athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
-
-  // Bulk send state
-  const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
-    const today = new Date();
-    const mon = startOfWeek(today, { weekStartsOn: 1 });
-    const nextMon = mon <= today ? addDays(mon, 7) : mon;
-    return format(nextMon, "yyyy-MM-dd");
-  });
-  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
-  const [bulkSending, setBulkSending] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
-
-  // Scope selector
-  const allWeekNums = useMemo(
-    () => Array.from(new Set(plan.weeks.map((w) => w.weekNumber))).sort((a, b) => a - b),
-    [plan.weeks],
-  );
-  const [scope, setScope] = useState<NolioScope>("all");
-  const [scopeWeek, setScopeWeek] = useState<number>(() => allWeekNums[0] ?? 1);
-  const [scopeFrom, setScopeFrom] = useState<number>(() => allWeekNums[0] ?? 1);
-  const [scopeTo, setScopeTo] = useState<number>(() => allWeekNums[allWeekNums.length - 1] ?? 1);
-  useEffect(() => {
-    if (allWeekNums.length === 0) return;
-    if (!allWeekNums.includes(scopeWeek)) setScopeWeek(allWeekNums[0]);
-    if (!allWeekNums.includes(scopeFrom)) setScopeFrom(allWeekNums[0]);
-    if (!allWeekNums.includes(scopeTo)) setScopeTo(allWeekNums[allWeekNums.length - 1]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allWeekNums.join(",")]);
-
-  // Per-week slot map: ParsedSession → occurrence index within its dayIndex.
-  // Lets us disambiguate the selection/sent key when 2+ sessions share the same day.
-  const planSlotMap = useMemo(() => {
-    const map = new Map<ParsedSession, number>();
-    for (const w of plan.weeks) {
-      const counters = new Map<number, number>();
-      for (const s of w.sessions) {
-        if (s.isRest || s.dayIndex < 0) continue;
-        const c = counters.get(s.dayIndex) ?? 0;
-        map.set(s, c);
-        counters.set(s.dayIndex, c + 1);
-      }
-    }
-    return map;
-  }, [plan]);
-
-  // Map selected keys → ParsedSession objects from current plan
-  const selectedSessions = useMemo(() => {
-    if (!nolioCtx) return [] as ParsedSession[];
-    const out: ParsedSession[] = [];
-    for (const w of plan.weeks) {
-      for (const s of w.sessions) {
-        if (s.isRest || s.dayIndex < 0) continue;
-        const slot = planSlotMap.get(s) ?? 0;
-        const k = sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot);
-        if (selectedKeys.has(k)) out.push(s);
-      }
-    }
-    return out;
-  }, [plan, selectedKeys, nolioCtx, planSlotMap]);
-
-  // Sessions effectively targeted by the current scope (used for top panel + confirm modal + send)
-  const targetSessions = useMemo(() => {
-    if (!nolioCtx) return [] as ParsedSession[];
-    if (scope === "selected") return selectedSessions;
-    const lo = Math.min(scopeFrom, scopeTo);
-    const hi = Math.max(scopeFrom, scopeTo);
-    const inScope = (n: number) => {
-      if (scope === "all") return true;
-      if (scope === "single") return n === scopeWeek;
-      return n >= lo && n <= hi;
-    };
-    const out: ParsedSession[] = [];
-    for (const w of plan.weeks) {
-      if (!inScope(w.weekNumber)) continue;
-      for (const s of w.sessions) {
-        if (s.isRest || s.dayIndex < 0) continue;
-        out.push(s);
-      }
-    }
-    return out;
-  }, [scope, scopeWeek, scopeFrom, scopeTo, plan, selectedSessions, nolioCtx]);
-
-  const targetWeekNumbers = useMemo(
-    () => Array.from(new Set(targetSessions.map((s) => s.weekNumber))).sort((a, b) => a - b),
-    [targetSessions],
-  );
-
-  // Première séance du périmètre (par semaine puis dayIndex) → ancrage de la date saisie
-  const anchorSession = useMemo(() => {
-    if (targetSessions.length === 0) return null;
-    return [...targetSessions].sort(
-      (a, b) => (a.weekNumber - b.weekNumber) || (a.dayIndex - b.dayIndex),
-    )[0];
-  }, [targetSessions]);
-
-  const anchorWeek = anchorSession?.weekNumber
-    ?? (plan.weeks.length > 0 ? Math.min(...plan.weeks.map((w) => w.weekNumber)) : 1);
-  const anchorDay = anchorSession?.dayIndex ?? 0;
-
-  // bulkStartDate = lundi de la semaine `anchorWeek` choisi par le coach.
-  // Lundi semaine 1 = bulkStartDate - (anchorWeek-1)*7.
-  const computedPlanStart = useMemo(() => {
-    try {
-      const dt = new Date(`${bulkStartDate}T00:00:00Z`);
-      dt.setUTCDate(dt.getUTCDate() - (anchorWeek - 1) * 7);
-      return dt.toISOString().slice(0, 10);
-    } catch { return bulkStartDate; }
-  }, [bulkStartDate, anchorWeek]);
-
-  const bulkAnchorMonday = useMemo(() => {
-    const [y, m, d] = bulkStartDate.split("-").map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1);
-  }, [bulkStartDate]);
-
-  const planStartMondayDate = useMemo(() => {
-    const [y, m, d] = computedPlanStart.split("-").map(Number);
-    return new Date(y, (m ?? 1) - 1, d ?? 1);
-  }, [computedPlanStart]);
-
-  const setBulkAnchorFromDate = useCallback((d: Date) => {
-    const mon = mondayOf(d);
-    const iso = `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, "0")}-${String(mon.getDate()).padStart(2, "0")}`;
-    setBulkStartDate(iso);
-  }, []);
-
-  const alreadySentInScope = useMemo(() => {
-    if (!nolioCtx) return 0;
-    return targetSessions.filter((s) => {
-      const slot = planSlotMap.get(s) ?? 0;
-      return sentKeys.has(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, slot));
-    }).length;
-  }, [targetSessions, sentKeys, nolioCtx, planSlotMap]);
-
-  async function handleBulkSend() {
-    if (blocksLegacyNolioExport(plan)) { toast.error(DET_LEGACY_EXPORT_BLOCKED); return; }
-    if (!nolioCtx || targetSessions.length === 0) return;
-    setBulkSending(true);
-    setBulkProgress({ done: 0, total: targetSessions.length });
-
-    const dayCounters = new Map<string, number>();
-    const enriched = targetSessions.map((s) => {
-      const dayKey = `${s.weekNumber}:${s.dayIndex}`;
-      const sessionIndex = dayCounters.get(dayKey) ?? 0;
-      dayCounters.set(dayKey, sessionIndex + 1);
-      const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
-      const alternatives = getTrailSessionAlternatives({
-        sport: s.sport ?? lib?.sport ?? "",
-        title: s.title,
-        details: s.details,
-      }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
-      return {
-        weekNumber: s.weekNumber,
-        dayIndex: s.dayIndex,
-        sessionIndex,
-        sport: s.sport ?? lib?.sport ?? null,
-        title: s.title,
-        id: lib?.id ?? null,
-        details: s.details,
-        isRest: false,
-        structure: lib?.structure ?? null,
-        wbalProfile: lib?.wbalProfile ?? null,
-        avoid: lib?.avoid ?? undefined,
-        notes: lib?.notes ?? undefined,
-        objectif: lib?.objectif ?? undefined,
-        alternatives: alternatives.length > 0 ? alternatives : undefined,
-      };
-    });
-
-    // bulkStartDate = lundi de la semaine `anchorWeek`. planStart = bulkStartDate - (anchorWeek-1)*7.
-    const anchorDt = new Date(`${bulkStartDate}T00:00:00Z`);
-    const planStartDt = new Date(anchorDt);
-    planStartDt.setUTCDate(planStartDt.getUTCDate() - (anchorWeek - 1) * 7);
-    const computedStart = planStartDt.toISOString().slice(0, 10);
-
-    const interval = setInterval(() => {
-      setBulkProgress((p) => {
-        if (p.done >= p.total - 1) return p;
-        return { ...p, done: p.done + 1 };
-      });
-    }, 350);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
-        body: {
-          athlete_id: nolioCtx.athleteId,
-          nolio_athlete_id: nolioCtx.nolioId,
-          planStartDate: computedStart,
-          sessions: enriched,
-          refs: nolioCtx.refs,
-        },
-      });
-      clearInterval(interval);
-      if (error) throw error;
-      const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
-      const sentCount = result?.sent ?? 0;
-      const errs = result?.errors ?? [];
-      setBulkProgress({ done: sentCount, total: targetSessions.length });
-
-      if (sentCount > 0) {
-        enriched.slice(0, sentCount).forEach((s) => {
-          markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, s.sessionIndex ?? 0));
-        });
-      }
-
-      if (errs.length === 0) {
-        toast.success(`${sentCount} séances envoyées avec succès`);
-      } else if (sentCount > 0) {
-        toast.warning(
-          `${sentCount} envoyées · ${errs.length} échec(s) — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
-        );
-      } else {
-        toast.error(
-          `Aucune séance envoyée — ${errs.slice(0, 2).map((e) => `${e.status} ${e.detail ?? ""}`).join(" | ")}`.slice(0, 240),
-        );
-      }
-      setBulkConfirmOpen(false);
-    } catch (e) {
-      clearInterval(interval);
-      toast.error(`Erreur Nolio : ${(e as Error).message ?? "inconnue"}`);
-    } finally {
-      setBulkSending(false);
-    }
-  }
-
-
   // `selectedWeek` est un index numérique restauré depuis localStorage
   // (potentiellement laissé par un plan plus long avant régénération) et
   // jamais borné ailleurs quand `plan.weeks.length` change — une
@@ -1535,6 +1244,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
   return (
+    <PlanNolioExportProvider plan={plan} athleteId={athleteId} athleteName={athleteName} planVersionId={savedPlanVersionId} ensureSaved={onEnsureSavedForExport} enabled={!!athleteId} legacy={{nolioId,startDate:startDate?format(startOfWeek(startDate,{weekStartsOn:1}),"yyyy-MM-dd"):"",refs:nolioRefs}}>
     <TargetTableProvider value={targetTable}>
     <WbalAthleteRefsProvider value={wbalAthleteRefs}>
     <div className="space-y-4">
@@ -1741,120 +1451,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
 
 
-      {legacyNolioBlocked && <Alert data-testid="det-legacy-nolio-blocked"><AlertDescription>{DET_LEGACY_EXPORT_BLOCKED}</AlertDescription></Alert>}
-      {/* Nolio — Top sending panel (unified scopes) */}
-      {nolioCtx && (
-        <CollapsibleCard
-          className="border-primary/30"
-          defaultOpen={false}
-          storageKey="ai_plan_nolio_send"
-          icon={<Send className="h-4 w-4 text-primary" />}
-          title={<span className="text-sm">Envoyer vers Nolio</span>}
-          rightSlot={
-            <Badge variant="secondary" className="text-[10px]">
-              athlète lié #{nolioCtx.nolioId}
-            </Badge>
-          }
-        >
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs">
-                  Quand commence la semaine S{anchorWeek} ?
-                </Label>
-                <WeekPicker
-                  selectedMonday={bulkAnchorMonday}
-                  onChange={setBulkAnchorFromDate}
-                  planStartDate={anchorWeek > 1 ? planStartMondayDate : null}
-                  anchorLabel={`📅 Cette semaine du plan (S${anchorWeek}) commence le :`}
-                  planStartLabel="→ Le plan complet débute donc le :"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs">Périmètre d'envoi</Label>
-                <RadioGroup
-                  value={scope}
-                  onValueChange={(v) => setScope(v as NolioScope)}
-                  className="grid grid-cols-2 gap-1.5 text-xs"
-                >
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <RadioGroupItem value="selected" id="scope-selected" />
-                    <span>Séances sélectionnées ({selectedSessions.length})</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <RadioGroupItem value="single" id="scope-single" />
-                    <span>Une semaine</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <RadioGroupItem value="range" id="scope-range" />
-                    <span>Plage de semaines</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <RadioGroupItem value="all" id="scope-all" />
-                    <span>Plan complet ({allWeekNums.length} sem.)</span>
-                  </label>
-                </RadioGroup>
-              </div>
-            </div>
-
-            {scope === "single" && (
-              <div className="flex items-center gap-2">
-                <Label className="text-xs whitespace-nowrap">Semaine :</Label>
-                <Select value={String(scopeWeek)} onValueChange={(v) => setScopeWeek(Number(v))}>
-                  <SelectTrigger className="h-9 w-[140px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {allWeekNums.map((n) => (
-                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {scope === "range" && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <Label className="text-xs whitespace-nowrap">De :</Label>
-                <Select value={String(scopeFrom)} onValueChange={(v) => setScopeFrom(Number(v))}>
-                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {allWeekNums.map((n) => (
-                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Label className="text-xs whitespace-nowrap">jusqu'à :</Label>
-                <Select value={String(scopeTo)} onValueChange={(v) => setScopeTo(Number(v))}>
-                  <SelectTrigger className="h-9 w-[130px]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {allWeekNums.map((n) => (
-                      <SelectItem key={n} value={String(n)}>Semaine {n}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-border">
-              <p className="text-xs text-muted-foreground">
-                {targetSessions.length} séance(s) à envoyer
-                {targetWeekNumbers.length > 0 && ` · semaines ${targetWeekNumbers.join(", ")}`}
-                {alreadySentInScope > 0 && ` · ${alreadySentInScope} déjà envoyée(s)`}
-              </p>
-              <Button
-                size="sm"
-                onClick={() => setBulkConfirmOpen(true)}
-                disabled={targetSessions.length === 0 || bulkSending}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Envoyer vers Nolio
-              </Button>
-            </div>
-        </CollapsibleCard>
-
-      )}
-
-      {/* Plan Header */}
+      <div data-testid="common-nolio-export" className="flex gap-2 items-center flex-wrap"><PlanNolioScopeButton scope={{kind:"all"}} label="Exporter le plan vers Nolio"/><span className="text-xs text-muted-foreground">Plan, semaine ou séance · dates et prescriptions du plan sauvegardé.</span></div>
       <Card>
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -2124,168 +1721,17 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               Suivante <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
-          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
+          <WeekView week={currentWeek} raceGoals={raceGoals} startDate={startDate} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
         </>
       ) : (
         <div className="space-y-4">
           {plan.weeks.map((week, i) => (
-            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} nolioCtx={nolioCtx} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
+            <WeekView key={i} week={week} raceGoals={raceGoals} startDate={startDate} onReplaceClick={handleReplaceClick} objectifEffectif={gapContext?.objective} planTotalWeeks={plan.totalWeeks} phaseLabelMap={phaseLabelMap} hideQualityScore={isQaFixture} />
           ))}
 
         </div>
       )}
 
-      {/* Floating Nolio bulk-send bar */}
-      {nolioCtx && selectedSessions.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 shadow-lg">
-          <div className="mx-auto max-w-5xl px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                {selectedSessions.length} séance(s) sélectionnée(s)
-              </Badge>
-              <div className="text-xs text-muted-foreground whitespace-nowrap hidden sm:block">
-                S{anchorWeek} : {format(bulkAnchorMonday, "EEE d MMM", { locale: fr })}
-                {anchorWeek > 1 && (
-                  <span className="ml-1 opacity-70">
-                    (plan : {format(planStartMondayDate, "d MMM", { locale: fr })})
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedKeys(new Set())}
-                disabled={bulkSending}
-              >
-                Tout désélectionner
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setBulkConfirmOpen(true)}
-                disabled={bulkSending}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Envoyer {selectedSessions.length} séances vers Nolio
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bulk confirmation dialog */}
-      <Dialog open={bulkConfirmOpen && !legacyNolioBlocked} onOpenChange={(v) => !bulkSending && setBulkConfirmOpen(v)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Confirmer l'envoi vers Nolio</DialogTitle>
-            <DialogDescription>
-              Périmètre :{" "}
-              <span className="font-medium text-foreground">
-                {scope === "selected" && `Séances sélectionnées (${selectedSessions.length})`}
-                {scope === "single" && `Semaine ${scopeWeek}`}
-                {scope === "range" && `Semaines ${Math.min(scopeFrom, scopeTo)} à ${Math.max(scopeFrom, scopeTo)}`}
-                {scope === "all" && `Plan complet (${allWeekNums.length} semaines)`}
-              </span>
-              {" · "}Semaine S{anchorWeek} commence le :{" "}
-              <span className="font-medium text-foreground">
-                {format(bulkAnchorMonday, "EEEE d MMMM yyyy", { locale: fr })}
-              </span>
-              {anchorWeek > 1 && (
-                <>
-                  {" · "}
-                  <span className="text-muted-foreground">
-                    → Le plan complet débute le{" "}
-                    <span className="font-medium text-foreground">
-                      {format(planStartMondayDate, "EEEE d MMMM yyyy", { locale: fr })}
-                    </span>
-                  </span>
-                </>
-              )}
-              .
-            </DialogDescription>
-          </DialogHeader>
-
-          {targetWeekNumbers.length > 0 && (
-            <div className="text-xs text-muted-foreground">
-              Semaines concernées :{" "}
-              {targetWeekNumbers.map((n) => {
-                const ps = parseISO(`${computedPlanStart}T00:00:00Z`);
-                const dt = addDays(ps, (n - 1) * 7);
-                return `S${n} (lun ${format(dt, "d MMM", { locale: fr })})`;
-              }).join(" · ")}
-            </div>
-          )}
-
-          <div className="text-sm">
-            <span className="font-medium">{targetSessions.length}</span> séance(s) à envoyer (hors repos).
-          </div>
-
-          {alreadySentInScope > 0 && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                {alreadySentInScope} séance(s) de ce périmètre ont déjà été envoyées sur Nolio.
-                Elles seront supprimées et recréées côté Nolio.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <div className="max-h-[260px] overflow-y-auto space-y-1 border rounded-md p-2 text-xs">
-            {targetSessions.map((s) => {
-              const ps = parseISO(`${computedPlanStart}T00:00:00Z`);
-              const dt = addDays(ps, (s.weekNumber - 1) * 7 + s.dayIndex);
-              return (
-                <div
-                  key={`${s.weekNumber}-${s.dayIndex}-${s.title}`}
-                  className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-muted-foreground whitespace-nowrap">S{s.weekNumber}</span>
-                    <span className="font-medium truncate">{(() => {
-                      const p = parseSessionTitle(s.title);
-                      const c = p.cleanTitle.trim();
-                      const isId = c.length >= 4 && !/\s/.test(c) && /^[A-Z0-9_]+$/.test(c);
-                      if (isId) {
-                        const w = findLibraryWorkoutForSession({ title: s.title, details: s.details });
-                        if (w?.objectif) return w.objectif;
-                      }
-                      return c || s.title;
-                    })()}</span>
-                  </div>
-                  <span className="text-muted-foreground whitespace-nowrap">
-                    {format(dt, "EEE d MMM", { locale: fr })}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {bulkSending && (
-            <div className="space-y-2">
-              <Progress value={(bulkProgress.done / Math.max(1, bulkProgress.total)) * 100} />
-              <p className="text-xs text-center text-muted-foreground">
-                {bulkProgress.done}/{bulkProgress.total} séances envoyées…
-              </p>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkConfirmOpen(false)} disabled={bulkSending}>
-              Annuler
-            </Button>
-            <Button onClick={handleBulkSend} disabled={bulkSending || targetSessions.length === 0}>
-              {bulkSending ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Envoi…</>
-              ) : (
-                <><Send className="h-4 w-4 mr-2" /> Confirmer l'envoi</>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Replace session dialog */}
       <SessionReplaceDialog
         open={!!replaceTarget}
         onOpenChange={(o) => { if (!o) setReplaceTarget(null); }}
@@ -2305,6 +1751,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     </div>
     </WbalAthleteRefsProvider>
     </TargetTableProvider>
+    </PlanNolioExportProvider>
   );
 }
 

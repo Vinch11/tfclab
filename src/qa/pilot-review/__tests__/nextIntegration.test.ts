@@ -5,7 +5,7 @@ import {dispatchCoachEngine} from '@/lib/plan/engineDispatch';
 import {aiProvenance} from '@/lib/plan/aiProvenance';
 import {readPlanProvenance} from '@/lib/plan/planProvenance';
 import {restoreStructuredPlan} from '@/lib/plan/restoreStructuredPlan';
-import {reconcileExact} from '../../../../supabase/functions/_shared/nolioV2/plannedClient';
+import {reconcileExact,remoteMismatchFields} from '../../../../supabase/functions/_shared/nolioV2/plannedClient';
 import type {Prepared,FrozenOp} from '../../../../supabase/functions/_shared/nolioV2/planDryRun';
 const binding={coachId:'A',athleteId:'ath',planVersionId:'pv',planSha256:'a'.repeat(64),refsSha256:'b'.repeat(64),opsSha256:'c'.repeat(64)};
 const decisions=Object.fromEntries(REVIEW_CATEGORIES.map(k=>[k,'accepted']));
@@ -13,6 +13,18 @@ const row={coach_id:'A',athlete_id:'ath',plan_version_id:'pv',plan_sha256:bindin
 const op={opIndex:0,sessionKey:'s',date:'2026-11-05',kind:'training',path:'/api/v2/planned/trainings/',bodySha256:'d'.repeat(64),body:{date_start:'2026-11-05',athletes:['usr_SYNTH'],description:'marker'},source:{kind:'training',sourceId:'SYNTH',precisionNotes:[],sessionKey:'s',path:'/api/v2/planned/trainings/',body:{date_start:'2026-11-05',athletes:['usr_SYNTH'],description:'marker'}}} as FrozenOp;
 const prepared={...binding,ops:[op],precheck:{}} as unknown as Prepared;
 describe('QA next integration',()=>{
+ it.each(['network_error','timeout','deadline','http_500','detail:http_503'])('marks only transient %s GET failure as readable again, without confirming delivery',async(detail)=>{
+  const transition=vi.fn(),post=vi.fn();let saved:Record<string,unknown>|null=null;
+  const r=await verifyAndPersist({...binding,prepared,op,http:{post,listPage:async()=>({ok:false as const,detail}),getDetail:vi.fn()},ledger:{claim:vi.fn(),transition},ledgerState:'confirmed',deadline:100,now:()=>1,store:{insert:async row=>{saved={...row,id:'receipt'};return saved;}}});
+  expect(r).toMatchObject({result:'unknown',retryableRead:true});expect(saved?.['outcome']).toBe('UNKNOWN');expect(transition).not.toHaveBeenCalled();expect(post).not.toHaveBeenCalled();
+ });
+ it.each(['http_401','http_403','http_429','json_invalid','list_shape_invalid'])('keeps %s unverified without an automatic retry hint',async(detail)=>{
+  const r=await verifyAndPersist({...binding,prepared,op,http:{post:vi.fn(),listPage:async()=>({ok:false as const,detail}),getDetail:vi.fn()},ledger:{claim:vi.fn(),transition:vi.fn()},ledgerState:'confirmed',deadline:100,now:()=>1,store:{insert:async row=>({...row,id:'receipt'})}});
+  expect(r.result).toBe('unknown');expect(r).not.toHaveProperty('retryableRead');
+ });
+ it('diagnoses exact mismatch by closed field names without exposing provider data',()=>{expect(remoteMismatchFields({description:'PRIVATE',name:'PRIVATE',privateSecretField:'TOKEN'}, {description:'marker',name:'Test'})).toEqual(['description','name','other_field']);});
+ it('ambiguous readback returns counts and field names, never values or positive proof',async()=>{const http={post:vi.fn(),listPage:async()=>({ok:true as const,items:[{...op.body,id:'ptrn_SYNTH'}],hasMore:false}),getDetail:async()=>({ok:true as const,item:{...op.body,id:'ptrn_SYNTH',description:'PRIVATE marker'}})};let saved:Record<string,unknown>|null=null;const r=await verifyAndPersist({...binding,prepared,op,http,ledger:{claim:vi.fn(),transition:vi.fn()},ledgerState:'confirmed',deadline:100,now:()=>1,store:{insert:async row=>{saved={...row,id:'receipt'};return saved;}}});expect(r.result).toBe('ambiguous');expect(r.diagnostic).toEqual({candidates:1,exact:0,fields:['description']});expect(JSON.stringify(r)).not.toContain('PRIVATE');expect(saved?.['outcome']).toBe('AMBIGUOUS');});
+
  it('review exact readback and crosscoach/stale hashes fail closed',()=>{expect(reviewAccepted(row,binding)).toBe(true);for(const change of [{coachId:'B'},{athleteId:'other'},{planSha256:'e'.repeat(64)},{refsSha256:'e'.repeat(64)},{opsSha256:'e'.repeat(64)}])expect(matchingCoachReview(row,{...binding,...change})).toBe(false);});
  it('per category decision and blockers required; never accepts a grant or NULL',()=>{expect(parseReview({decisions,blockers:[],reviewedByCoach:true})).not.toBeNull();expect(parseReview({decisions:{...decisions,safety:'blocked'},blockers:[],reviewedByCoach:true})).toBeNull();expect(matchingCoachReview({...row,scientific_attestation:true},binding)).toBe(false);expect(matchingCoachReview({...row,reviewed_by_coach:null},binding)).toBe(false);});
  it('real dispatch DET refusal never invokes AI',async()=>{const ai=vi.fn();expect(await dispatchCoachEngine('det',{ai,det:async()=>({kind:'refused'})})).toEqual({kind:'refused'});expect(ai).not.toHaveBeenCalled();await dispatchCoachEngine('ai',{ai:async()=>{ai();return null;},det:async()=>null});expect(ai).toHaveBeenCalledTimes(1);});

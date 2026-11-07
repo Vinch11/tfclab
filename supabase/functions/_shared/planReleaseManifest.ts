@@ -2,15 +2,15 @@
 export const CHECKED_IN_PLAN_RELEASE_INFO = {
   "manifestVersion": 2,
   "components": {
-    "frontend": "6037403ae5f0b9cba2682a87bc1f5c755dee8339eddcd2b5fea6f6b95c31ea68",
-    "det-engine": "124d7bdb08959cc11d009250ef93bc83311f1e19996a065beae73dc5bacd74d2",
-    "ai-training-plan": "4b2e795d2533684f02819619cb898de78a1f10266747b7e41c723dafcf183dc9",
-    "ai-training-plan-test": "6739ec2e9bd27648489b0021b6e8c9cc362b61d79382edf8a83ca59dd2411595"
+    "frontend": "3fc863e1f0fc8544b685c1f80aedb6b2f78cddb7b347b42ad6c26d6fe8428a77",
+    "det-engine": "2c6e7dc3e3aebdb31cb8842cc2a7c14502699739c5719a61a014f4ffc150eb3b",
+    "ai-training-plan": "352d2ab4a4be8b6645796858db6a84f45680fed5aa7812a6f6faa30b84b8c4c0",
+    "ai-training-plan-test": "462848c62c48024a2bf47d2ac8bd9c5f14daf1b2ae2e9d4cc31eff4b251c4025"
   },
-  "contractHash": "94b4c95870f63b70cd6bc727ef8408f4178bab69928dd5ea6ff25c64ef8e0a86",
+  "contractHash": "35c37912442d7aefb6fe6f7e7c73120b9f908d0dd81f5ef75ea254254e60313f",
   "catalogueHash": "81bcb1b2556b9bc1ed1e2f625dff9344cc6f2bd12141dd4796e8cd5dfb9d4b03",
   "lockHash": "43e54e8dc3084150720a2ffdf7cb508a4559e40f79afa6c0ddc0d1964251f719",
-  "releaseId": "a318cb48a532e4917a9134128acc5294aa2bb8a675a4e4f435efd82802187726",
+  "releaseId": "2194bff26f195b23919e1e050e4dc2570f1fdb940608e258eb641b770782e457",
   "attested": false,
   "deploymentAttested": false,
   "provenance": "declared-source",

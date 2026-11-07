@@ -160,3 +160,26 @@ describe("envoi réel borné (HTTP injecté)", () => {
     expect(r.status).toBe("BLOCKED"); expect(r.reason).toMatch(/^ledger_divergence:/); expect(c.posts.length).toBe(8);
   });
 });
+
+it('accepts only exact server-derived prescription authority and keeps all other gates',async()=>{
+ const server={planVersionId:PV,planSha256:P.planSha256,releaseId:'a'.repeat(64)};
+ const candidate={prescriptionAllowed:false,syntheticFixture:false};
+ expect(await realSendGate(gateIn({provenance:candidate,serverPrescriptionAuthorization:server}))).toEqual([]);
+ for(const change of [{planVersionId:'other'},{planSha256:'b'.repeat(64)},{releaseId:'invalid'}])expect(await realSendGate(gateIn({provenance:candidate,serverPrescriptionAuthorization:{...server,...change}}))).toContain('plan_not_prescription_allowed');
+ expect(await realSendGate(gateIn({provenance:null,serverPrescriptionAuthorization:server}))).toContain('plan_not_prescription_allowed');
+ expect(await realSendGate(gateIn({provenance:{...candidate,syntheticFixture:true},serverPrescriptionAuthorization:server}))).toContain('plan_is_synthetic_non_prescriptive');
+ expect(await realSendGate(gateIn({provenance:candidate,serverPrescriptionAuthorization:server,attestation:null}))).toContain('human_plan_attestation_absent');
+ expect(await realSendGate(gateIn({provenance:candidate,serverPrescriptionAuthorization:server,consent:false}))).toContain('coach_consent_for_this_plan_absent');
+});
+
+it('normal coach export uses the deliberate export consent without a fabricated QA review or sporting signature',async()=>{
+ const provenance={engine:'det',mode:'app-profile',prescriptionAllowed:false,sportingAttestation:false,syntheticFixture:false};
+ const coachExportBinding={planVersionId:PV,planSha256:P.planSha256};
+ const normal=gateIn({provenance,attestation:null,coachExportBinding});expect(await realSendGate(normal)).toEqual([]);
+ expect(await realSendGate({...normal,consent:false})).toContain('coach_consent_for_this_plan_absent');
+ expect(await realSendGate({...normal,receipts:[]})).toContain('dry_run_not_validated_for_all_ops:'+P.ops.length);
+ expect(await realSendGate({...normal,provenance:{...provenance,syntheticFixture:true}})).toContain('plan_is_synthetic_non_prescriptive');
+ expect(await realSendGate({...normal,coachExportBinding:{...coachExportBinding,planSha256:'d'.repeat(64)}})).toContain('plan_not_prescription_allowed');
+ expect(await realSendGate({...normal,provenance:{...provenance,mode:'synthetic-lab'}})).toContain('human_plan_attestation_absent');
+ expect(provenance.prescriptionAllowed).toBe(false);expect(provenance.sportingAttestation).toBe(false);
+});

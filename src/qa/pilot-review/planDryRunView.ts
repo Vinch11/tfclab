@@ -30,7 +30,7 @@ export type PlanDryResp = {
 const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 const int = (x: unknown): x is number => Number.isSafeInteger(x) && (x as number) >= 0;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const HEX = /^[0-9a-f]{64}$/, YMD = /^\d{4}-\d{2}-\d{2}$/, KEY = /^S[0-9]+-J[0-6]-[0-9]+$/;
+const HEX = /^[0-9a-f]{64}$/, YMD = /^\d{4}-\d{2}-\d{2}$/, KEY = /^S[0-9]+-J[0-6]-[0-9]+(?:~(?:bike|run))?$/;
 const hexOrNull = (x: unknown) => (typeof x === "string" && HEX.test(x) ? x : null);
 
 function parseManifest(x: unknown): ManifestEntry[] | null {
@@ -160,6 +160,33 @@ export async function runPlanDrySequence(a: {
 }
 
 export const REASON_FR: Record<string, string> = {
+  recreation_resource_moved_or_changed: "l’activité existe encore mais a été déplacée ou modifiée : elle ne sera pas recréée",
+  recreation_uncertain_operation: "l’ancien envoi reste incertain : vérifiez-le dans Nolio, sans le renvoyer",
+  recreation_read_unknown: "la suppression ne peut pas être confirmée par une lecture complète de Nolio",
+  recreation_ledger_divergent: "le journal d’envoi ne correspond plus à cette prescription",
+  recreation_decision_stale: "la situation a changé depuis le contrôle : contrôlez à nouveau les activités manquantes",
+  recreation_unconfirmed: "la recréation ou son verrou n’est pas confirmé",
+  previous_version_calendar_conflict: "une ancienne activité TFCLab est encore présente au même jour et dans le même sport",
+  previous_exports_read_failed: "l’historique des anciens exports ne peut pas être relu intégralement",
+  previous_export_unresolved: "un ancien export reste incertain et doit être vérifié dans Nolio",
+  calendar_write_busy_or_unavailable: "un autre export est en cours ou le verrou du calendrier est indisponible",
+  calendar_read_failed: "le calendrier Nolio ne peut pas être relu intégralement",
+  calendar_read_timeout: "le délai de lecture du calendrier Nolio est dépassé",
+  coach_plan_provenance_invalid: "origine du plan indisponible : régénérez-le depuis la fiche de l’athlète",
+  coach_plan_profile_binding_invalid: "le plan ne correspond plus au profil sauvegardé",
+  coach_plan_sporting_violation: "une incohérence sportive du plan doit être corrigée",
+  coach_plan_blocking_issue: "une incohérence bloquante du plan doit être corrigée",
+  coach_plan_native_sources_missing: "les prescriptions détaillées sont absentes de cette ancienne version du plan",
+  coach_plan_native_prescription_changed: "la prescription affichée diffère de ses blocs sauvegardés : corrigez le plan avant l’export",
+  response_lost: "réponse Nolio non reçue ; présence des activités à vérifier",
+  unconfirmed_response: "réponse Nolio non confirmée ; présence des activités à vérifier",
+  rate_limited: "quota Nolio atteint ; reprendre après vérification",
+  no_retry_after_429: "quota Nolio atteint ; aucune nouvelle tentative automatique",
+  no_authorized_v2_connection: "connexion Nolio de l’athlète à vérifier",
+  brick_run_date_requires_transition: "le vélo traverse minuit : la date de la course doit être précisée",
+
+  sport_reference_missing: "sport Nolio non associé : vérifiez les correspondances de la connexion",
+  athlete_reference_not_opaque: "connexion Nolio de l’athlète invalide",
   exercise_reference_missing: "exercice Nolio non confirmé (renforcement)",
   competition_identity_unconfirmed: "course objectif : compétition non confirmée par le coach sur la connexion active",
   competition_date_mismatch: "course objectif : date confirmée différente de la séance source",

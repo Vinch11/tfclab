@@ -8,6 +8,7 @@ vi.mock("@/contexts/CloudDataContext", () => ({ useCloudDataContext: () => ({ at
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { nolio_id: 42 } }) }) }) }),
   functions: { invoke },
+  auth: { onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }) },
 } }));
 import { AIPlanViewer } from "../AIPlanViewer";
 import { NolioSendPlanCard } from "../NolioSendPlanCard";
@@ -39,11 +40,11 @@ describe("legacy Nolio cannot rebuild saved DET prescriptions", () => {
     expect(requiresStructuredNolioExport({ title: "DET endurance" })).toBe(false);
   });
 
-  it("removes bulk and per-session sending when the current linked athlete's plan changes from IA to DET", async () => {
+  it("keeps the same common export controls when the plan changes from IA to DET", async () => {
     const view = render(<AIPlanViewer plan={plan()} athleteId="qa" startDate={new Date(2026, 10, 9)} />);
-    await waitFor(() => expect(screen.getByText("Envoyer vers Nolio")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId("common-nolio-export")).toBeInTheDocument());
     view.rerender(<AIPlanViewer plan={detPlan()} athleteId="qa" startDate={new Date(2026, 10, 9)} />);
-    await waitFor(() => expect(screen.getByTestId("det-legacy-nolio-blocked")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByTestId("common-nolio-export")).toBeInTheDocument());
     expect(screen.queryByText("Envoyer vers Nolio")).not.toBeInTheDocument();
     expect(invoke).not.toHaveBeenCalled();
   });

@@ -162,12 +162,14 @@ export function validateActivationRefs(a: { remote: RemoteRefs; selectedRef: str
   const keys = Object.keys(a.sportIds);
   if (!keys.length || keys.length > 12) return { ok: false, reason: "sport_ids_count_invalid" };
   const usable = new Set(a.remote.sports.filter((s) => s.isActive && s.structuredEnabled).map((s) => s.sport));
+  const active=new Set(a.remote.sports.filter(s=>s.isActive).map(s=>s.sport));
+  const competitionKey=isObj(a.competition)?a.competition.sport:null;
   const sportIds: Record<string, string> = {};
   for (const k of keys) {
     const v = (a.sportIds as Record<string, unknown>)[k];
     if (!SPORT_KEY.test(k)) return { ok: false, reason: `sport_key_invalid:${k.slice(0, 24)}` };
     if (typeof v !== "string" || !SPT.test(v)) return { ok: false, reason: `sport_ref_invalid:${k}` };
-    if (!usable.has(v)) return { ok: false, reason: `sport_ref_not_allowed_for_athlete:${k}` };
+    if (!usable.has(v)&&!(k===competitionKey&&['brick','triathlon'].includes(k)&&active.has(v))) return { ok: false, reason: `sport_ref_not_allowed_for_athlete:${k}` };
     sportIds[k] = v;
   }
   const exerciseIds: Record<string, string> = {};
@@ -180,7 +182,7 @@ export function validateActivationRefs(a: { remote: RemoteRefs; selectedRef: str
     if (exKeys.length > 200) return { ok: false, reason: "exercise_ids_count_invalid" };
     for (const k of exKeys) {
       const v = (ex as Record<string, unknown>)[k];
-      if (!k || k.length > 120) return { ok: false, reason: "exercise_label_invalid" };
+      if (!k || k.length > 512) return { ok: false, reason: "exercise_label_invalid" };
       if (typeof v !== "string" || !EXF.test(v) || !known.has(v)) return { ok: false, reason: `exercise_ref_not_in_library:${k.slice(0, 40)}` };
       exerciseIds[k] = v;
     }

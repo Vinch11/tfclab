@@ -1,3 +1,6 @@
+import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
+import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
+import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
  * Nolio V2 — simulation dry_run d'un plan COMPLET sauvegardé (QA). DRY-RUN ONLY :
  * n'importe ni sendPlannedV2, ni ledger de création, ni trialSession.
@@ -8,7 +11,7 @@
  * Journaux : codes/compteurs seulement.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/nolioV2/cors.ts";
 import { loadConfig, qaBackendOk, QA_COACHES } from "../_shared/nolioV2/oauth.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
@@ -36,9 +39,9 @@ Deno.serve(async (req) => {
 
   let b: Record<string, unknown>;
   try { b = (await req.json()) ?? {}; } catch { return json(400, { status: "BLOCKED", code: "body_not_json" }); }
-  if (Object.keys(b).some((k) => !["planVersionId", "action"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
+  if (Object.keys(b).some((k) => !["planVersionId", "action", "scope"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "BLOCKED", code: "plan_version_id_invalid" });
-  if (b.action !== "precheck" && b.action !== "run") return json(400, { status: "BLOCKED", code: "action_unknown" });
+  if (b.action !== "precheck" && b.action !== "run" && b.action !== "capabilities") return json(400, { status: "BLOCKED", code: "action_unknown" });
   const pv = await userClient.from("plan_versions").select("id,athlete_id,plan_json").eq("id", b.planVersionId).eq("coach_id", sub).maybeSingle();
   if (pv.error) return json(502, { status: "BLOCKED", code: "plan_read_failed" });
   if (!pv.data) return json(403, { status: "BLOCKED", code: "plan_not_owned" });
@@ -46,6 +49,7 @@ Deno.serve(async (req) => {
   const ath = await userClient.from("athletes").select("id").eq("id", athleteId).eq("coach_id", sub).maybeSingle();
   if (ath.error || !ath.data) return json(403, { status: "BLOCKED", code: "athlete_not_owned" });
 
+  if(b.action==='capabilities')return json(200,exportCapabilities('nolio-v2-plan-dry-run',CHECKED_IN_PLAN_RELEASE_INFO.releaseId));
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return json(500, { status: "BLOCKED", code: "server_misconfigured" });
   const admin = createClient(url, serviceKey); // seulement après getClaims + propriété
@@ -54,7 +58,9 @@ Deno.serve(async (req) => {
     (grantId, generation, scopes) => refreshGrantToken({ grantId, generation, currentScopes: scopes, config: cfg, store: supabaseRefreshStore(admin), now: Date.now,
       fetch: async (u, i) => { const res = await fetch(u, i); return { status: res.status, json: () => res.json() }; } }));
   if (!loaded.ok) return json(200, { status: "BLOCKED", code: (loaded as { reason: string }).reason, precheck: null, progress: null });
-  const prepared = await preparePlan((pv.data as { plan_json: unknown }).plan_json, loaded.value.refs, b.planVersionId);
+  const planJson=(pv.data as {plan_json:unknown}).plan_json;
+  const effectiveRefs=await coachRefsForPlan(admin as unknown as Parameters<typeof coachRefsForPlan>[0],{coachId:sub,athleteId,plan:planJson,refs:loaded.value.refs,now:Date.now()});
+  const prepared = await preparePlan(planJson, effectiveRefs, b.planVersionId,b.scope);
   const planVersionId = b.planVersionId;
   const store: PlanDryRunStore = {
     async freezeJob(p) {

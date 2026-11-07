@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - fix/det-minimal-integration-20261104
+      - fix/det-finalization-assembly-20261106
 jobs:
   assembly-regression:
     runs-on: ubuntu-latest
@@ -20,4 +21,4 @@ jobs:
       - name: Application typecheck
         run: bunx tsc --noEmit -p tsconfig.app.json
       - name: Actual assembler and existing app pipeline regressions
-        run: bunx vitest run src/lib/det/__tests__/nativePlanningDraft.test.ts src/lib/det/__tests__/appPlanningIntegration.test.ts --maxWorkers=1
+        run: bunx vitest run src/lib/det/__tests__/athleteDetBridge.test.ts src/lib/det/__tests__/nativePlanningDraft.test.ts src/lib/det/__tests__/appPlanningIntegration.test.ts src/lib/det/__tests__/appPlanningV3Proposal.test.ts src/lib/det/__tests__/appPlanningDetDraft.test.ts src/components/plan/V3PlanGeneration.test.tsx src/components/plan/DetPlanningDraft.test.tsx --maxWorkers=1
