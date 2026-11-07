@@ -103,3 +103,15 @@ describe("migration 0019", () => {
     expect(sql).toMatch(/REVOKE ALL ON FUNCTION public\.nolio_v2_update_active_refs\([^)]*\) FROM PUBLIC, anon, authenticated/);
   });
 });
+
+it('keeps exact long V3 instructions as mapping keys and permits an active non-structured triathlon sport only for its confirmed competition',async()=>{
+ const {validateActivationRefs}=await import('../../../../supabase/functions/_shared/nolioV2/refs');
+ const label='Squat vers une chaise : descendre en contrôle, genoux dans l’axe. Faire au plus 8 répétitions pendant la fenêtre de mouvement puis récupérer, sans rechercher l’échec ni perdre la qualité technique.';
+ expect(label.length).toBeGreaterThan(120);
+ const remote={...REMOTE,sports:[...REMOTE.sports,{id:'spu_TRI',sport:'spt_TRI',name:'Triathlon',isActive:true,structuredEnabled:false}]};
+ const input={remote,selectedRef:'usr_T1',sportIds:{strength:'spt_STR',brick:'spt_TRI'},exerciseIds:{[label]:'exf_SQ'},calendarTimeZone:null,competition:{date:'2027-01-31',name:'Ironman 70.3',sport:'brick'}};
+ const ok=validateActivationRefs(input);expect(ok.ok).toBe(true);if(ok.ok)expect(ok.refs.exerciseIds[label]).toBe('exf_SQ');
+ expect(validateActivationRefs({...input,competition:null}).ok).toBe(false);
+ expect(validateActivationRefs({...input,remote:{...remote,sports:remote.sports.map(s=>s.sport==='spt_TRI'?{...s,isActive:false}:s)}}).ok).toBe(false);
+ expect(validateActivationRefs({...input,exerciseIds:{['x'.repeat(513)]:'exf_SQ'}}).ok).toBe(false);
+});

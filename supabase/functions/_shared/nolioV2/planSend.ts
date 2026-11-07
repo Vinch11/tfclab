@@ -9,7 +9,7 @@
  * - job de simulation du MÊME plan_version, MÊMES empreintes, et un reçu DRY_RUN_VALID
  *   (HTTP 2xx non NULL) pour CHAQUE opération avec le même index, séance, date et
  *   empreinte de corps MARQUÉ ;
- * - plan autorisé à la prescription (provenance prescriptionAllowed === true) ;
+ * - plan autorisé à la prescription (provenance ou autorité externe vérifiée et liée au plan) ;
  * - revue coach ordinaire chargée et vérifiée ; elle ne vaut PAS attestation scientifique.
  * Le endpoint ajoute les gardes non prescriptif et release sportive non attestée.
  * Puis `sendPlannedV2` (journal durable, réservation avant POST, aucune relance d'une
@@ -31,6 +31,9 @@ export type HumanAttestation = { planVersionId: string; planSha256: string; revi
 export type GateInput = {
   planVersionId: string; prepared: Prepared; expected: Expected; consent: unknown;
   job: DryJob; receipts: DryReceipt[]; provenance: unknown; attestation: HumanAttestation;
+  /** Server-computed authority only; never copied from request JSON. */
+  coachExportBinding?:{planVersionId:string;planSha256:string};
+  serverPrescriptionAuthorization?:{planVersionId:string;planSha256:string;releaseId:string};
 };
 
 const HEX64 = /^[0-9a-f]{64}$/;
@@ -64,10 +67,14 @@ export async function realSendGate(g: GateInput): Promise<string[]> {
     if (g.receipts.some((x) => x.outcome !== "DRY_RUN_VALID")) r.push("dry_run_has_non_valid_receipts");
   }
   const prov = g.provenance as { prescriptionAllowed?: unknown; syntheticFixture?: unknown } | null | undefined;
-  if (!prov || prov.prescriptionAllowed !== true) r.push("plan_not_prescription_allowed");
+  const normal=g.coachExportBinding;
+  const coach=!!normal&&normal.planVersionId===g.planVersionId&&normal.planSha256===p.planSha256&&(g.provenance as {engine?:string;mode?:string;syntheticFixture?:boolean})?.engine==='det'&&(g.provenance as {mode?:string})?.mode==='app-profile'&&(g.provenance as {syntheticFixture?:boolean})?.syntheticFixture===false;
+  const authority=g.serverPrescriptionAuthorization;
+  const authorized=authority?.planVersionId===g.planVersionId&&authority.planSha256===p.planSha256&&HEX64.test(authority.releaseId);
+  if (!prov || (prov.prescriptionAllowed !== true&&!authorized&&!coach)) r.push("plan_not_prescription_allowed");
   if (prov?.syntheticFixture === true) r.push("plan_is_synthetic_non_prescriptive");
   const a = g.attestation;
-  if (!a || a.planVersionId !== g.planVersionId || a.planSha256 !== p.planSha256) r.push("human_plan_attestation_absent");
+  if (!coach&&(!a || a.planVersionId !== g.planVersionId || a.planSha256 !== p.planSha256)) r.push("human_plan_attestation_absent");
   return r;
 }
 

@@ -15,5 +15,5 @@ export async function verifyAndPersist(i:{coachId:string;athleteId:string;planVe
   const ok=await i.ledger.transition(key.opKey,i.ledgerState,'confirmed',{remoteId:r.id,detail:'exact_unique_durable_receipt'}).catch(()=>false);
   if(!ok)return {result:'ledger_reconciliation_unknown',receiptId:saved.id};
  }
- return {result:exact?'verified_unique':String(row.outcome).toLowerCase(),receiptId:saved.id};
+ return {result:exact?'verified_unique':String(row.outcome).toLowerCase(),receiptId:saved.id,...(r.kind==='ambiguous'&&r.diagnostic?{diagnostic:r.diagnostic}:{})};
 }

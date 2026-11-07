@@ -42,7 +42,8 @@ export type DetWorkout = { schema: "det-structured-workout-v1"; sourceId: string
 export type PlanSessionInput = {
   sessionKey: string; date: string; title: string; details?: string; sport: string;
   isRest?: boolean; catalogId?: string | null; durationMin?: number;
-  detStructuredWorkout?: DetWorkout; detStructureRefusal?: { reason: string };
+  detStructuredWorkout?: DetWorkout;
+  detStructuredComponents?: {schema:'det-brick-components-preview-v1';bike:DetWorkout;run:DetWorkout}; detStructureRefusal?: { reason: string };
   /** Début confirmé par le coach (date/heure locale + fuseau + offset réel). Absent ⇒ aucune heure envoyée. */
   coachStart?: CoachSessionStart;
 };
@@ -126,7 +127,9 @@ function leafTargets(l: DetLeaf, notes: string[]): V2Target[] | string {
  * Une phase warmup/cooldown temporisée ou en distance, sans répétitions, reste un step V2
  * (durée, intensité, cibles et libellé conservés), sans exerciseId.
  */
-export function nodeRequiresExercise(n: DetLeaf, sport: string): boolean {
+export type MappingOptions={timedCoachStrength?:boolean;declaredCompetitions?:boolean};
+export function nodeRequiresExercise(n: DetLeaf, sport: string,options:MappingOptions={}): boolean {
+  if(options.timedCoachStrength&&sport==='strength'&&'seconds' in n.dose)return false;
   if ("reps" in n.dose || n.repsTarget !== undefined) return true;
   return sport === "strength" && n.role === "main";
 }
@@ -136,11 +139,11 @@ export function nodeRequiresExercise(n: DetLeaf, sport: string): boolean {
  * uniquement depuis detStructuredWorkout des séances fournies — aucun texte,
  * catalogue ni nom deviné. Séance sans structure ⇒ ignorée (refus mapper explicite).
  */
-export function requiredExerciseLabels(sessions: PlanSessionInput[]): string[] {
+export function requiredExerciseLabels(sessions: PlanSessionInput[],options:MappingOptions={}): string[] {
   const out = new Set<string>();
   const walk = (ns: DetNode[], sport: string) => { for (const n of ns) {
     if (n.kind === "repeat") { if (Array.isArray(n.steps)) walk(n.steps, sport); }
-    else if (nodeRequiresExercise(n, sport) && typeof n.label === "string" && n.label) out.add(n.label);
+    else if (nodeRequiresExercise(n, sport,options) && typeof n.label === "string" && n.label) out.add(n.label);
   } };
   for (const s of sessions) {
     if (s.isRest) continue;
@@ -154,7 +157,7 @@ export function requiredExerciseLabels(sessions: PlanSessionInput[]): string[] {
 /** Guide v1→v2 §8.2 : « Up to 3 levels of nesting » pour repeat. */
 export const MAX_REPEAT_DEPTH = 3;
 
-function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string[], depth = 0): V2Node[] | string {
+function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string[], depth = 0,options:MappingOptions={}): V2Node[] | string {
   const out: V2Node[] = [];
   for (const n of ns) {
     if (n.kind === "repeat") {
@@ -164,7 +167,7 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
       if (depth + 1 > MAX_REPEAT_DEPTH) return `repeat_nesting_too_deep:${n.label}`;
       // WorkoutRepeat.steps accepte tout type de nœud, mélangés (OpenAPI courant) : un exercice
       // répété N fois avec repos entre séries reste fidèle (repos = step rest + skip_last).
-      const inner = mapNodes(n.steps, sport, refs, notes, depth + 1);
+      const inner = mapNodes(n.steps, sport, refs, notes, depth + 1,options);
       if (typeof inner === "string") return inner;
       if (n.betweenSec > 0) {
         // Repos ENTRE répétitions : skip_last omet le repos après la dernière (contrat V2).
@@ -175,7 +178,7 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
     }
     const tg = leafTargets(n, notes);
     if (typeof tg === "string") return tg;
-    const isStrength = nodeRequiresExercise(n, sport);
+    const isStrength = nodeRequiresExercise(n, sport,options);
     if (isStrength) {
       const ex = refs.exerciseIds[n.label];
       if (!ex) return `exercise_reference_missing:${n.label}`;
@@ -192,8 +195,8 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
       out.push({ kind: "exercise", exercise: ex, sets: [set], comment: n.label });
       continue;
     }
-    if (n.role === "main" && n.domain === null) return `main_step_without_domain:${n.label}`;
-    const step: V2Step = { kind: "step", targets: tg, intensity: n.role === "warmup" ? "warmup" : n.role === "cooldown" ? "cooldown" : "work", comment: n.label };
+    if (n.role === "main" && n.domain === null && !(options.timedCoachStrength&&sport==="strength"&&"seconds" in n.dose)) return `main_step_without_domain:${n.label}`;
+    const step: V2Step = { kind: "step", targets: tg, intensity: n.role === "warmup" ? "warmup" : n.role === "cooldown" ? "cooldown" : "work", comment: n.label+(n.repsTarget!==undefined?` · objectif ${n.repsTarget} répétitions dans la fenêtre`:"")+(n.sides!==undefined?` · ${n.sides} côté(s)`:"") };
     if ("seconds" in n.dose) step.duration = { value: n.dose.seconds, unit: "s" };
     else if ("meters" in n.dose) step.distance = { value: n.dose.meters, unit: "m" };
     else return `reps_dose_outside_strength:${n.label}`;
@@ -241,7 +244,7 @@ export function raceIdentityOf(s: PlanSessionInput): RaceIdentity | null {
   return { sessionKey: s.sessionKey, date: s.date, name, sport: s.sport, goalType: null };
 }
 
-export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs): MapResult {
+export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs,options:MappingOptions={}): MapResult {
   const operations: V2Operation[] = []; const refusals: MapRefusal[] = [];
   const refuse = (sessionKey: string, reason: string) => { refusals.push({ sessionKey, reason }); };
   if (!OPAQUE.usr.test(refs.athleteId)) return { operations, refusals: [{ sessionKey: "*", reason: "athlete_reference_not_opaque" }] };
@@ -263,8 +266,8 @@ export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs
     if (!s.catalogId) {
       // Course objectif : uniquement sur identité d'événement confirmée par le coach ET identique
       // à la séance source (date, nom, sport ; priorité seulement si la source en porte une).
-      const c = refs.competition;
       const src = raceIdentityOf(s);
+      const c = options.declaredCompetitions ? src : refs.competition;
       if (!src) { refuse(s.sessionKey, "session_without_source_not_a_race"); continue; }
       if (!c) { refuse(s.sessionKey, "competition_identity_unconfirmed"); continue; }
       if (c.date !== src.date) { refuse(s.sessionKey, "competition_date_mismatch"); continue; }
@@ -294,7 +297,7 @@ export function mapPlanToNolioV2(sessions: PlanSessionInput[], refs: NolioV2Refs
     if (w.sport !== s.sport) { refuse(s.sessionKey, "det_structure_sport_mismatch"); continue; }
     const sport = refs.sportIds[w.sport];
     if (!sport || !OPAQUE.spt.test(sport)) { refuse(s.sessionKey, `sport_reference_missing:${w.sport}`); continue; }
-    const nodes = mapNodes(w.nodes, w.sport, refs, notes);
+    const nodes = mapNodes(w.nodes, w.sport, refs, notes,0,options);
     if (typeof nodes === "string") { refuse(s.sessionKey, nodes); continue; }
     const sem = semanticViolations(nodes);
     if (sem.length) { refuse(s.sessionKey, `semantic:${sem.join(",")}`); continue; }

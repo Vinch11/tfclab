@@ -7,7 +7,7 @@ import { RealVerificationHistory } from "@/components/plan/RealVerificationHisto
  */
 import { HumanCoachReview } from "@/components/plan/HumanCoachReview";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,6 +63,8 @@ type Source = { kind: "scenario"; id: string; plan: ParsedPlan & Record<string, 
 const MODES = [["portrait", "full"], ["portrait", "compact"], ["landscape", "full"], ["landscape", "compact"]] as const;
 
 export default function PilotReviewPage() {
+  const [searchParams]=useSearchParams();
+  const requestedVersionId=searchParams.get("planVersionId");
   const [status, setStatus] = useState<SessionStatus>({ kind: "checking" });
   const [who, setWho] = useState<Who | null>(null);
   const [blocked, setBlocked] = useState<string | null>(null);
@@ -106,6 +108,25 @@ export default function PilotReviewPage() {
       return ((prov?.engine === "det" && structured) || prov?.engine === "ai") && !p._qaRecipe ? [{ id: r.id, created_at: r.created_at, plan: p as ParsedPlan & Record<string, unknown> }] : [];
     }));
   };
+
+  useEffect(()=>{
+    if(!requestedVersionId||!ready)return;
+    let active=true;setSource(null);setBlocked(null);
+    void (async()=>{
+      try{
+        if(!/^[0-9a-f-]{36}$/i.test(requestedVersionId))throw Error('Version demandée invalide');
+        const g=await pilotGuard();if('blocked' in g)throw Error(g.blocked);
+        const {data,error}=await withTimeout(supabase.from('plan_versions').select('id,plan_json').eq('id',requestedVersionId).eq('athlete_id',g.athleteId).eq('coach_id',g.coachId).maybeSingle(),'version demandée');
+        const after=await pilotGuard();if(!active)return;
+        if('blocked' in after||after.coachId!==g.coachId||after.athleteId!==g.athleteId)throw Error('Connexion modifiée : version non chargée');
+        const p=data?.plan_json as Record<string,unknown>|undefined;
+        const provenance=p?._provenance as {engine?:string}|undefined;
+        if(error||data?.id!==requestedVersionId||!p||!Array.isArray(p.weeks)||!['ai','det'].includes(provenance?.engine??'')||p._qaRecipe)throw Error('Version absente, non autorisée ou non exploitable');
+        setWho(g);setBlocked(null);setSource({kind:'owned_version',id:data!.id,plan:p as ParsedPlan & Record<string,unknown>});
+      }catch(error){if(active){setSource(null);setBlocked(error instanceof Error?error.message:'Chargement impossible');}}
+    })();
+    return ()=>{active=false;};
+  },[requestedVersionId,ready]);
 
   const start = typeof source?.plan._planStartDate === "string" ? source.plan._planStartDate : DET_LAB_PLAN_START;
   const pdfChecks = useMemo(() => {
@@ -456,7 +477,7 @@ export default function PilotReviewPage() {
           <Card>
             <CardHeader><CardTitle>{String(source.plan.title ?? "")}</CardTitle></CardHeader>
             <CardContent className="space-y-2">
-              <p className="font-semibold text-destructive">QA — PLAN FICTIF / NON PRESCRIPTIF</p>
+              <p className="font-semibold text-destructive">{source.kind==="scenario"?"QA — PLAN FICTIF / NON PRESCRIPTIF":"Version sauvegardée à relire — aucun consentement d’envoi"}</p>
               <p className="text-xs">Empreinte canonique : {sha ?? "calcul…"}</p>
               {source.kind === "owned_version" && <><NolioMultisportPreparation key={source.id+"-nolio"} planVersionId={source.id} plan={source.plan} onSaved={(id,plan)=>setSource({kind:"owned_version",id,plan:plan as ParsedPlan & Record<string,unknown>})}/><HumanCoachReview key={source.id} planVersionId={source.id} plan={source.plan}/><RealVerificationHistory planVersionId={source.id}/></>}
               <p data-testid="pilot-engine-binding" className="text-xs">{binding?.ok ? `Moteur ayant généré ce plan : ${binding.engineVersion.slice(0, 12)} · release ${binding.releaseId?.slice(0, 12) ?? "non renseignée"}` : `Moteur du plan : REFUSÉ — ${binding && binding.ok === false ? binding.reason : "?"} (avis impossible)`} · code chargé : {release.engineVersion?.slice(0, 12) ?? "indisponible"}</p>
@@ -573,9 +594,10 @@ export default function PilotReviewPage() {
           </div>}
           {v2Active && <div data-testid="nolio-plan-dry" className="rounded-md border p-3 space-y-1">
             <p className="font-medium">Plan complet : simulation Nolio (rien n'est ajouté au calendrier)</p>
+            {source?.kind === "owned_version" && (source.plan._provenance as {mode?:string}|undefined)?.mode === "app-profile" && <p className="text-sm text-destructive">Envoi Nolio indisponible pour cette version : des prescriptions ou compositions restent à compléter et le plan ne possède pas d’autorisation de prescription. Le contrôle ci-dessous liste les séances convertibles et celles qui bloquent ; il ne débloque pas l’envoi.</p>}
             {source?.kind !== "owned_version"
               ? <p className="text-sm">Choisissez d'abord une version DET sauvegardée (section 1). Un scénario non sauvegardé ne peut pas être simulé.</p>
-              : <p className="text-sm">Version sauvegardée {source.id.slice(0, 8)} · {String(source.plan.title ?? "")} · plan synthétique NON PRESCRIPTIF</p>}
+              : <p className="text-sm">Version sauvegardée {source.id.slice(0, 8)} · {String(source.plan.title ?? "")} · version à relire, sans autorisation d’envoi</p>}
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="outline" onClick={() => onPlanDry("precheck")} disabled={busy || v2Busy !== null || !ready || source?.kind !== "owned_version"}>Contrôler la couverture (aucune requête Nolio)</Button>
               {planDry?.coachId === who?.coachId && planDry?.planVersionId === source?.id && planDry?.resp?.precheck?.complete && !planDry.confirm?.confirmed && <>

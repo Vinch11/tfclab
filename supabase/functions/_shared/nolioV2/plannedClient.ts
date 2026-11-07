@@ -117,11 +117,18 @@ export function stripReadDefaults(remote: Record<string, unknown>, sent: Record<
 export function exactRemoteMatch(remote: Record<string, unknown>, sent: Record<string, unknown>): boolean {
   return deepEqualTol(normalize(stripReadDefaults(remote, sent), true), normalize(sent, true));
 }
+/** Diagnostic restricted to contract field names; never expose provider values. */
+export function remoteMismatchFields(remote: Record<string, unknown>, sent: Record<string, unknown>): string[] {
+  const a = normalize(stripReadDefaults(remote, sent), true) as Record<string, unknown>;
+  const b = normalize(sent, true) as Record<string, unknown>;
+  const allowed = new Set(['name','sport','description','description_html','date_start','date_end','time','moment','athletes','group','duration','distance','elevation_gain','elevation_loss','tonnage','rpe','show_rpe','coggan_load','color','tags','workout','recurrence','recurrence_result','recurrence_preview']);
+  return [...new Set([...Object.keys(a), ...Object.keys(b)].filter(k => !deepEqualTol(a[k], b[k])).map(k => allowed.has(k) ? k : 'other_field'))].sort();
+}
 const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>, marker: string) =>
   (typeof it.description === "string" && it.description.includes(marker)) ||
   (it.name === body.name && it.date_start === body.date_start && it.sport === body.sport);
 
-type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string } | { kind: "read_failed"; detail: string };
+type Reconcile = { kind: "exact"; id: string } | { kind: "absent" } | { kind: "ambiguous"; detail: string; diagnostic?: { candidates: number; exact: number; fields: string[] } } | { kind: "read_failed"; detail: string };
 export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete: string, sent: Record<string, unknown>, marker: string, budget?: {deadline:number;now:()=>number}): Promise<Reconcile> {
   const expired=()=>!!budget && budget.now()>=budget.deadline;
   const candidates: Array<Record<string, unknown>> = [];
@@ -140,6 +147,7 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
   }
   if (!candidates.length) return { kind: "absent" };
   const exact: string[] = [];
+  const fields = new Set<string>();
   for (const c of candidates) {
     if (typeof c.id !== "string") return { kind: "ambiguous", detail: "candidate_without_id" };
     if(expired())return {kind:"read_failed",detail:"deadline"};
@@ -148,9 +156,10 @@ export async function reconcileExact(http: NolioV2Http, op: V2Operation, athlete
     if (!d.ok) return { kind: "read_failed", detail: `detail:${(d as { detail: string }).detail}` };
     if (d.item.id !== c.id) return { kind: "ambiguous", detail: "detail_id_mismatch" };
     if (exactRemoteMatch(d.item, sent)) exact.push(c.id);
+    else for (const field of remoteMismatchFields(d.item, sent)) fields.add(field);
   }
   if (exact.length === 1 && candidates.length === 1) return { kind: "exact", id: exact[0] };
-  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)` };
+  return { kind: "ambiguous", detail: `${candidates.length} candidat(s), ${exact.length} exact(s)`, diagnostic: { candidates: candidates.length, exact: exact.length, fields: [...fields].sort() } };
 }
 
 const REMOTE_ID = { "/api/v2/planned/trainings/": /^ptrn_[A-Za-z0-9]+$/, "/api/v2/planned/competitions/": /^pcmp_[A-Za-z0-9]+$/ } as Record<string, RegExp>;

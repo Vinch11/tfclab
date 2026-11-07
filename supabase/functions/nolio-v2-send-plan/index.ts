@@ -1,3 +1,8 @@
+import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
+import {coachPlanProblems,nativeCoachPlanProblems} from '../_shared/nolioV2/coachWorkflow.ts';
+import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
+import {verifySportingRelease,authorizesReviewedPlan} from '../_shared/nolioV2/sportingRelease.ts';
+import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
  * Nolio V2 — envoi RÉEL planifié d'un plan complet (QA). SÉPARÉ de V1.
  *
@@ -22,7 +27,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { sendPlannedV2 } from "../_shared/nolioV2/plannedClient.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
-import { loadConfig } from "../_shared/nolioV2/oauth.ts";
+import { loadConfig,QA_COACHES } from "../_shared/nolioV2/oauth.ts";
 import { supabaseNolioV2Ledger } from "../_shared/nolioV2/ledgerSupabase.ts";
 import { fetchNolioV2Http } from "../_shared/nolioV2/httpFetch.ts";
 import { preparePlan } from "../_shared/nolioV2/planDryRun.ts";
@@ -31,7 +36,7 @@ import { realSendGate, sendPreview, PLAN_SEND_BATCH, type DryJob, type DryReceip
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ALLOWED = new Set(["planVersionId", "action", "expected", "consent", "fromIndex"]);
+const ALLOWED = new Set(["workflow","planVersionId", "action", "expected", "consent", "fromIndex", "scope"]);
 const SIM_JOBS = "qa_nolio_v2_plan_dry_run_jobs";
 const SIM_RECEIPTS = "qa_nolio_v2_plan_dry_run_receipts";
 
@@ -49,16 +54,19 @@ Deno.serve(async (req) => {
   const sub = claims?.claims?.sub;
   if (claimsErr || typeof sub !== "string" || !UUID.test(sub)) return json(401, { status: "REFUSED", reason: "unauthorized" });
 
-  const staff = await userClient.rpc("is_staff_coach",{_user_id:sub});
-  if(staff.error||staff.data!==true)return json(403,{status:"BLOCKED",reason:"staff_coach_required"});
+  if(!QA_COACHES.has(sub)){
+    const staff = await userClient.rpc("is_staff_coach",{_user_id:sub});
+    if(staff.error||staff.data!==true)return json(403,{status:"BLOCKED",reason:"staff_coach_required"});
+  }
   let body: unknown;
   try { body = await req.json(); } catch { return json(400, { status: "REFUSED", reason: "body_not_json" }); }
   const b = (body ?? {}) as Record<string, unknown>;
   const extra = Object.keys(b).filter((k) => !ALLOWED.has(k));
   if (extra.length) return json(400, { status: "REFUSED", reason: `unknown_fields:${extra.join(",")}` });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
+  if(b.workflow!==undefined&&b.workflow!=='coach')return json(400,{status:'REFUSED',reason:'workflow_unknown'});
   const action = b.action ?? "precheck";
-  if (action !== "precheck" && action !== "send" && action !== "verify") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities") return json(400, { status: "REFUSED", reason: "action_unknown" });
   const ex = (b.expected ?? null) as Record<string, unknown> | null;
   const expected = ex && typeof ex === "object" ? { planSha256: String(ex.planSha256 ?? ""), refsSha256: String(ex.refsSha256 ?? ""), opsSha256: String(ex.opsSha256 ?? ""), jobId: String(ex.jobId ?? "") } : null;
 
@@ -70,6 +78,10 @@ Deno.serve(async (req) => {
   if (athErr) return json(502, { status: "REFUSED", reason: "athlete_read_failed" });
   if (!ath) return json(403, { status: "REFUSED", reason: "athlete_not_owned" });
 
+  if(b.action==='capabilities'){
+    const a=await verifySportingRelease({proofJson:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PROOF'),publicKey:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PUBLIC_KEY'),releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,engineVersion:CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine'],now:Date.now()});
+    return json(200,{...exportCapabilities('nolio-v2-send-plan',CHECKED_IN_PLAN_RELEASE_INFO.releaseId),coachWorkflow:true,sportingReleaseAuthorized:a.ok,blockers:a.ok?[]:[a.reason]});
+  }
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!serviceKey) return json(500, { status: "REFUSED", reason: "server_misconfigured" });
   // Service-role créé SEULEMENT après getClaims + propriété plan/athlète vérifiées.
@@ -81,7 +93,11 @@ Deno.serve(async (req) => {
   if (!loaded.ok) return json(200, { status: "BLOCKED", reason: loaded.reason, network: "none", gate: [] });
   const conn = loaded.value;
   const planJson = pv.plan_json as Record<string, unknown> | null;
-  const prepared = await preparePlan(planJson, conn.refs, pv.id);
+  const normal=b.workflow==='coach';
+  const normalProblems=normal?[...coachPlanProblems(planJson,pv.athlete_id,CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine']),...nativeCoachPlanProblems(planJson)]:[];
+  if(normalProblems.length)return json(200,{status:'BLOCKED',reason:normalProblems[0],gate:normalProblems,network:'none'});
+  const effectiveRefs=await coachRefsForPlan(admin,{coachId:sub,athleteId:pv.athlete_id,plan:planJson,refs:conn.refs,now:Date.now()});
+  const prepared = await preparePlan(planJson, effectiveRefs, pv.id,b.scope);
 
   // Preuve de simulation : job du MÊME plan + empreintes ; reçus relus (service-role, coach lié).
   let job: DryJob = null, receipts: DryReceipt[] = [];
@@ -95,22 +111,32 @@ Deno.serve(async (req) => {
       receipts = r.data as DryReceipt[];
     }
   }
-  const reviewRead = await admin.from("qa_plan_coach_reviews").select("*").eq("coach_id",sub).eq("plan_version_id",pv.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
-  const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:prepared.planSha256,refsSha256:prepared.refsSha256,opsSha256:prepared.opsSha256});
-  const gate = await realSendGate({ planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
+  const reviewRead = normal?{data:null,error:null}:await admin.from("qa_plan_coach_reviews").select("*").eq("coach_id",sub).eq("plan_version_id",pv.id).order("created_at",{ascending:false}).limit(1).maybeSingle();
+  const fullReviewPrepared=normal||b.scope===undefined?prepared:await preparePlan(planJson,effectiveRefs,pv.id);
+  const reviewOk = !reviewRead.error && reviewAccepted(reviewRead.data,{coachId:sub,athleteId:pv.athlete_id,planVersionId:pv.id,planSha256:fullReviewPrepared.planSha256,refsSha256:fullReviewPrepared.refsSha256,opsSha256:fullReviewPrepared.opsSha256});
+  const authority=await verifySportingRelease({proofJson:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PROOF'),publicKey:Deno.env.get('NOLIO_V2_SPORTING_RELEASE_PUBLIC_KEY'),releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,engineVersion:CHECKED_IN_PLAN_RELEASE_INFO.components['det-engine'],now:Date.now()});
+  const serverAuthorized=authorizesReviewedPlan(authority,planJson?._provenance,reviewOk,fullReviewPrepared.precheck.complete);
+  const gate = await realSendGate({...(normal?{coachExportBinding:{planVersionId:pv.id,planSha256:prepared.planSha256}}:{}),...(serverAuthorized&&authority.ok?{serverPrescriptionAuthorization:{planVersionId:pv.id,planSha256:prepared.planSha256,releaseId:authority.release.releaseId}}:{}), planVersionId: pv.id, prepared, expected: expected ?? { planSha256: "", refsSha256: "", opsSha256: "", jobId: "" },
     consent: b.consent, job, receipts, provenance: planJson?._provenance ?? null, attestation: reviewOk ? {planVersionId:pv.id,planSha256:prepared.planSha256,reviewer:sub} : null });
-  if (!reviewOk) gate.push("coach_review_absent_or_stale");
-  // A source manifest (even archived/attested) is NOT a sporting release attestation.
-  // No verified sporting release authority is installed in this isolated QA copy.
-  gate.push("release_sporting_attestation_absent");
+  if (!normal&&!reviewOk) gate.push("coach_review_absent_or_stale");
+  // A checked-in manifest cannot authorize release. The external signature
+  // is verified against an operator-installed key and this exact source release.
+  if(!normal&&!authority.ok)gate.push(authority.reason);
   const preview = sendPreview(prepared);
 
-  if (action === "precheck") return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, network: "none" });
+  if (action === "precheck") {
+    const prior = await admin.from("nolio_v2_operations").select("session_key,payload_sha256,path").eq("coach_id", sub).eq("plan_version_id", pv.id);
+    if (prior.error || !Array.isArray(prior.data)) return json(502, {status:"BLOCKED",reason:"ledger_read_failed",network:"none"});
+    // Re-read every previously attempted operation before any new batch. A
+    // deleted/edited earlier activity must not cause eight more creates on retry.
+    const existingThroughIndex = prepared.ops.reduce((end, op) => prior.data.some((row: {session_key:string;payload_sha256:string;path:string}) => row.session_key===op.sessionKey && row.path===op.path && row.payload_sha256===op.bodySha256) ? Math.max(end,op.opIndex+1) : end, 0);
+    return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, existingThroughIndex, network: "none" });
+  }
   const ledger = supabaseNolioV2Ledger(admin, sub);
   if (action === "send") {
     if (gate.length) return json(200, { status: "BLOCKED", reason: gate[0], gate, preview, network: "none" });
     const report = await sendPlannedV2({
-      connection: conn.connection, refs: conn.refs, planVersionId: pv.id, operations: prepared.ops.map((o) => o.source),
+      connection: conn.connection, refs: effectiveRefs, planVersionId: pv.id, operations: prepared.ops.map((o) => o.source),
       ledger, http: fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken,deadline:requestDeadline }),
       maxNewPosts: PLAN_SEND_BATCH, stopOnRejected: true, noRetry: true,
     });

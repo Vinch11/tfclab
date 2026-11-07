@@ -1,3 +1,4 @@
+import { appProfileDetArchiveSummary } from "@/lib/det/appProfileDetArchive";
 import { decodePlanningFormDraft, planningDraftStorage, planningDraftKey, readPlanningDraft, writePlanningDraft, type DraftStatus, type PlanningFormDraft } from "@/lib/plan/planningFormDraft";
 import {TimeTrialEvidenceForm} from '@/components/plan/TimeTrialEvidenceForm';
 import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
@@ -12,7 +13,6 @@ import { buildCoachPlanInputs } from "@/lib/det/coachDetRun";
 import { OBJECTIVE_OPTIONS, computeAppDiagnosticForAthlete, buildAppPlanConfig } from "@/lib/plan/appPlanningPipeline";
 import { buildAthleteRecordView } from "@/lib/det/appRecordView";
 import { explicitCoachLimiterOverride, freezeAppPlanningInput, planningInputFor, type FrozenAppPlanningInput } from "@/lib/det/appPlanningInput";
-import { isDetCoachInputsProvenance, isDetPlanProvenance } from "@/lib/plan/planProvenance";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { AppendOnlyPlanVersionSaver, READBACK_COLUMNS } from "@/lib/plan/appendOnlyPlanVersionSave";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
@@ -535,6 +535,9 @@ export default function AITrainingPlanPage() {
   const qaActionEpoch=useRef(0);
   useEffect(()=>{qaActionEpoch.current++;},[currentAthlete?.id,planningEngine]);
   useEffect(()=>{if(!qaChoice)return;let previous:string|null|undefined;const sub=supabase.auth.onAuthStateChange((_event,session)=>{const uid=session?.user.id??null;if(previous!==undefined&&previous!==uid){qaActionEpoch.current++;setPlanOverride(null);}previous=uid;});return()=>sub.data.subscription.unsubscribe();},[qaChoice]);
+  const [detReviewOpen,setDetReviewOpen]=useState(false);
+  const detGenerationAction=useRef<(()=>Promise<void>)|null>(null);
+  const [detGenerating,setDetGenerating]=useState(false);
   const detRelease=detEngineVersionFromRelease(typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__);
   const [copied, setCopied] = useState(false);
   const [resultView, setResultView] = useState<"interactive" | "markdown" | "compare">(() => {
@@ -546,6 +549,7 @@ export default function AITrainingPlanPage() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [savedPlanVersionId,setSavedPlanVersionId]=useState<string|null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [isRegenerating, setIsRegenerating] = useState(false);
   /**
@@ -1527,7 +1531,7 @@ export default function AITrainingPlanPage() {
     if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
     const provenance=(rawParsedPlan as ParsedPlan & {_provenance?:unknown})._provenance;
     // Saved DET prescriptions are verbatim: validation below may flag, never rewrite.
-    if(isDetCoachInputsProvenance(provenance)||isDetPlanProvenance(provenance))return {plan:rawParsedPlan,taperFix:null};
+    if((provenance as {engine?:string}|undefined)?.engine==="det")return {plan:rawParsedPlan,taperFix:null};
 
 
     const clonedPlan: ParsedPlan = {
@@ -1667,7 +1671,10 @@ export default function AITrainingPlanPage() {
   };
 
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
-    if(qaChoice && planningEngine==="det"){toast.error("Confirmez les entrées et sources DET ci-dessous ; aucune bascule vers l’IA.");return;}
+    if(qaChoice && planningEngine==="det"){
+      if(!detGenerationAction.current){toast.error("Profil DET indisponible : vérifiez l’athlète et la configuration.");return;}
+      await detGenerationAction.current();return;
+    }
     // Une génération complète invalide toute régénération ciblée précédente.
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
@@ -2154,7 +2161,7 @@ export default function AITrainingPlanPage() {
       // Ne journaliser que statut + code, jamais le plan.
       console.info("[plan_version_save]", result.status, result.reason);
       if (result.status === "CONFIRMED") {
-        if (latestParsedPlanRef.current === planAtStart) setIsSaved(true);
+        if (latestParsedPlanRef.current === planAtStart) {setIsSaved(true);setSavedPlanVersionId(result.attemptId);}
         setHistoryRefreshKey(k => k + 1);
         toast.success("Plan sauvegardé et relu dans l'historique.");
       } else if (result.status === "UNKNOWN") {
@@ -2166,6 +2173,7 @@ export default function AITrainingPlanPage() {
       } else if (result.status === "NOT_SENT") {
         toast.error("Sauvegarde non envoyée (" + result.reason + ") : contenu invalide ou empreinte indisponible. Aucune version créée.");
       }
+      return result.status === "CONFIRMED" && latestParsedPlanRef.current === planAtStart ? result.attemptId : null;
     } catch (err: any) {
       console.error("Save plan error:", err?.code ?? err?.message ?? "unknown");
       toast.error("Erreur avant envoi de la sauvegarde : " + (err?.message || "Inconnu"));
@@ -2177,6 +2185,12 @@ export default function AITrainingPlanPage() {
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
 
+    const unreviewed=(parsedPlan as ParsedPlan & {_provenance?:{mode?:string}})._provenance?.mode==='app-profile';
+    if(unreviewed){
+      try {const summary=appProfileDetArchiveSummary(parsedPlan,currentAthlete.id);await persistPlanVersion(null,null,summary,0);}
+      catch(error){toast.error(error instanceof Error?error.message:"Version DET non enregistrée.");}
+      return;
+    }
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
     // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
@@ -2377,7 +2391,7 @@ export default function AITrainingPlanPage() {
       console.warn("[F-16] validator failed, persisting plan without score:", vErr);
     }
 
-    const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
+    const doSave = async () => { await persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length); };
 
     // Consigne coach : une incohérence FONDAMENTALE objectif/contenu
     // (NON_DEROGABLE_RULES) bloque réellement la sauvegarde — aucun
@@ -2409,7 +2423,8 @@ export default function AITrainingPlanPage() {
 
   const [pendingVersion, setPendingVersion] = useState<{ plan_json: any } | null>(null);
 
-  const applyLoadedVersion = useCallback((version: { plan_json: any }, startDate: Date) => {
+  const applyLoadedVersion = useCallback((version: { plan_json: any;id?:string }, startDate: Date) => {
+    setSavedPlanVersionId(version.id??null);
     const pj = version.plan_json || {};
     let md: string | null = pj._markdown || null;
     if (!md && Array.isArray(pj.weeks) && pj.weeks.length > 0) {
@@ -4012,14 +4027,20 @@ export default function AITrainingPlanPage() {
             )}
 
             {qaChoice && !isMultiMode && <section className="space-y-3 border-t pt-3">
-              <Label>Moteur de génération — QA</Label>
+              <Label>Moteur de génération</Label>
               <Select value={planningEngine} onValueChange={v=>{qaActionEpoch.current++;setPlanningEngine(v as CoachEngine);}}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="ai">IA</SelectItem><SelectItem value="det">DET Engine</SelectItem></SelectContent></Select>
-              <p className="text-xs text-muted-foreground">Les deux moteurs utilisent la configuration et le profil de cette page. DET reprend les réglages existants et demande uniquement les informations absentes et les vérifications du coach. Un refus DET est expliqué et ne lance jamais l’IA.</p>
-              <Button variant="outline" onClick={()=>navigate("/__qa/pilot-review")}>Export commun DET / IA · corriger les associations · revue coach</Button>
+              <p className="text-xs text-muted-foreground">Les deux moteurs utilisent le même profil et les mêmes réglages. Choisissez le moteur, générez votre plan, puis exportez-le vers Nolio.</p>
               {planningEngine === "det" && currentAthlete && qaUserId && currentAthlete.coach_id === qaUserId && (()=>{const record:AthleteRecordView=buildAthleteRecordView(currentAthlete,getSnapshotsForAthlete(currentAthlete.id),qaUserId,athleteContext?.diagnostic??null);
                 const appIn=appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?appPlanningInput:null;
                 const isLatest=(fp:string)=>appPlanningRef.current?.fingerprint===fp&&appPlanningRef.current.athleteId===currentAthlete.id;
-                return <AthleteDetSimplePanel key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
+                return <details open={detReviewOpen} onToggle={e=>setDetReviewOpen(e.currentTarget.open)} className="rounded border p-3"><summary className="cursor-pointer text-sm">Données et vérifications DET</summary><AthleteDetSimplePanel onProfilePlan={async(plan,fp)=>{
+                  const cur=appPlanningRef.current,ep=qaActionEpoch.current;if(!cur||!isLatest(fp))return;
+                  const ins=planningInputFor(cur,"det");const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);
+                  if(preview.status==="blocked"){toast.error("Prévalidation bloquée : "+preview.issues.filter(i=>i.severity==='blocking').map(i=>`${i.week?`S${i.week} : `:''}${i.code==='declared_event_unplaced'?'épreuve officielle non placée dans le calendrier':i.code}`).join(' ; '));setDetReviewOpen(true);return;}
+                  const owner=await verifyQaCoach({surface:"planning"});
+                  if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
+                  setPlanOverride(bindAppPlanMetadata(plan,cur));setIsSaved(false);setResponse("");
+                }} onNeedsAttention={()=>setDetReviewOpen(true)} generationAction={detGenerationAction} onBusyChange={setDetGenerating} key={currentAthlete.id+objective} engine={planningEngine} record={record} appInput={appIn} appInputStatus={appIn?"ready":appPlanningStatus==="ready"?"missing":appPlanningStatus}
                 onAIShared={async(f)=>{const epoch=qaActionEpoch.current;const current=()=>epoch===qaActionEpoch.current&&isLatest(f.fingerprint);if(!current()){toast.error("Profil modifié : relancez");return;}await dispatchCoachEngine("ai",{det:async()=>{throw Error("fallback forbidden");},ai:async()=>{
                   const ins=planningInputFor(f,"ai");
                   const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation bloquante");return;}
@@ -4029,18 +4050,18 @@ export default function AITrainingPlanPage() {
                 form={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:Number(weeksAvailable??0),weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition}}
                 sourcesVersion={detRelease.engineVersion} engineVersion={detRelease.engineVersion} releaseId={detRelease.releaseId}
                 guard={async()=>{const v=await verifyQaCoach({ surface: "planning" });if("blocked" in v || v.athleteId!==currentAthlete.id){toast.error("Session QA ou athlète non autorisé");return null;}return v;}}
-                onOutcome={(o,fp)=>{if(o?.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
+                onOutcome={(o,fp)=>{if(!o){qaActionEpoch.current++;return;}if(o.kind!=="accepted"||!fp)return;const pin=o.provenance.planningInput;
                   const cur=appPlanningRef.current;
                   if(pin?.source!=="app_planning_pipeline"||pin.fingerprint!==fp||!cur||!isLatest(fp)){toast.error("Profil de l'athlète modifié pendant le calcul : candidat non installé");return;}
                   const ins=planningInputFor(cur,"det");
                   const ep=qaActionEpoch.current;
-                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                  return dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(ep!==qaActionEpoch.current||!isLatest(fp))return;
                     const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||ep!==qaActionEpoch.current||!isLatest(fp))return;
                     setPlanOverride(bindAppPlanMetadata(o.plan,cur));setIsSaved(false);setResponse("");
                   }});
-                }}/>;})()}
+                }}/></details>;})()}
               {planningEngine === "det" && <details className="text-xs"><summary className="cursor-pointer">Avancé — saisie manuelle QA (ancienne grille)</summary>
               {currentAthlete && <CoachDetInputsPanel key={currentAthlete.id+objective+format(planStartDate,"yyyy-MM-dd")+raceDate+weeklyHours+sessionsPerWeek+coachLimiterOrder.join(",")} engine={planningEngine}
                 shared={{objective,planStartDate:format(planStartDate,"yyyy-MM-dd"),raceDate,weeksAvailable:weeksAvailable??undefined,weeklyHours:Number(weeklyHours),sessionsPerWeek:Number(sessionsPerWeek),strengthSessionsPerWeek:Number(strengthSessionsPerWeek),maxSessionsPerDay:Number(maxSessionsPerDay),ambition,coachLimiterOrder:coachLimiterOrder.length?coachLimiterOrder:null,...(appPlanningInput&&appPlanningInput.athleteId===currentAthlete.id?{planningInputFingerprint:appPlanningInput.fingerprint}:{})}}
@@ -4052,7 +4073,7 @@ export default function AITrainingPlanPage() {
                 }});}}
                 onOutcome={o=>{if(o?.kind!=="accepted")return;const ins=buildCoachPlanInputs(o.provenance.coachInputs as never);
                   const epoch=qaActionEpoch.current;
-                  void dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
+                  return dispatchCoachEngine("det",{ai:async()=>{throw Error("fallback forbidden");},det:async()=>{
                     const preview=await prevalidateTrainingPlan(ins.athlete,ins.config);if(preview.status==="blocked"){toast.error("Prévalidation commune bloquante : candidat non installé");return;}
                     if(epoch!==qaActionEpoch.current)return;
                     const owner=await verifyQaCoach({ surface: "planning" });if("blocked" in owner||owner.athleteId!==currentAthlete.id||epoch!==qaActionEpoch.current)return;
@@ -4065,13 +4086,13 @@ export default function AITrainingPlanPage() {
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
-              !(qaChoice && planningEngine === "det") && <Button
+              <Button
                 onClick={() => { void handleGenerate(); }}
-                disabled={isLoading || !hasData || (qaChoice && planningEngine==="det")}
+                disabled={isLoading || detGenerating || !hasData}
                 className="w-full"
                 size="lg"
               >
-                {isLoading ? (
+                {(isLoading || detGenerating) ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     {chunkProgress && chunkProgress.totalChunks > 1
@@ -4081,7 +4102,7 @@ export default function AITrainingPlanPage() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer le Plan TFCL™ avec l’IA
+                    {planningEngine === "det" && qaChoice ? "Générer le Plan TFCL™ avec DET Engine" : "Générer le Plan TFCL™ avec l’IA"}
                   </>
                 )}
               </Button>
@@ -4462,6 +4483,13 @@ export default function AITrainingPlanPage() {
                       {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
                         plan={parsedPlan}
+                        savedPlanVersionId={savedPlanVersionId}
+                        onEnsureSavedForExport={async () => {
+                          if (!parsedPlan || !currentAthlete) return null;
+                          if ((parsedPlan as ParsedPlan & {_provenance?:{mode?:string}})._provenance?.mode !== 'app-profile') return savedPlanVersionId;
+                          const summary = appProfileDetArchiveSummary(parsedPlan,currentAthlete.id);
+                          return (await persistPlanVersion(null,null,summary,0)) ?? null;
+                        }}
                         startDate={planStartDate}
                         raceGoals={[
                           {

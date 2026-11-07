@@ -30,7 +30,7 @@ export type PlanDryResp = {
 const isObj = (x: unknown): x is Record<string, unknown> => !!x && typeof x === "object" && !Array.isArray(x);
 const int = (x: unknown): x is number => Number.isSafeInteger(x) && (x as number) >= 0;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const HEX = /^[0-9a-f]{64}$/, YMD = /^\d{4}-\d{2}-\d{2}$/, KEY = /^S[0-9]+-J[0-6]-[0-9]+$/;
+const HEX = /^[0-9a-f]{64}$/, YMD = /^\d{4}-\d{2}-\d{2}$/, KEY = /^S[0-9]+-J[0-6]-[0-9]+(?:~(?:bike|run))?$/;
 const hexOrNull = (x: unknown) => (typeof x === "string" && HEX.test(x) ? x : null);
 
 function parseManifest(x: unknown): ManifestEntry[] | null {
@@ -160,6 +160,21 @@ export async function runPlanDrySequence(a: {
 }
 
 export const REASON_FR: Record<string, string> = {
+  coach_plan_provenance_invalid: "origine du plan indisponible : régénérez-le depuis la fiche de l’athlète",
+  coach_plan_profile_binding_invalid: "le plan ne correspond plus au profil sauvegardé",
+  coach_plan_sporting_violation: "une incohérence sportive du plan doit être corrigée",
+  coach_plan_blocking_issue: "une incohérence bloquante du plan doit être corrigée",
+  coach_plan_native_sources_missing: "les prescriptions détaillées sont absentes de cette ancienne version du plan",
+  coach_plan_native_prescription_changed: "la prescription affichée diffère de ses blocs sauvegardés : corrigez le plan avant l’export",
+  response_lost: "réponse Nolio non reçue ; présence des activités à vérifier",
+  unconfirmed_response: "réponse Nolio non confirmée ; présence des activités à vérifier",
+  rate_limited: "quota Nolio atteint ; reprendre après vérification",
+  no_retry_after_429: "quota Nolio atteint ; aucune nouvelle tentative automatique",
+  no_authorized_v2_connection: "connexion Nolio de l’athlète à vérifier",
+  brick_run_date_requires_transition: "le vélo traverse minuit : la date de la course doit être précisée",
+
+  sport_reference_missing: "sport Nolio non associé : vérifiez les correspondances de la connexion",
+  athlete_reference_not_opaque: "connexion Nolio de l’athlète invalide",
   exercise_reference_missing: "exercice Nolio non confirmé (renforcement)",
   competition_identity_unconfirmed: "course objectif : compétition non confirmée par le coach sur la connexion active",
   competition_date_mismatch: "course objectif : date confirmée différente de la séance source",

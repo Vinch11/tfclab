@@ -1,3 +1,6 @@
+import { generateAppProfileDetPlan } from "@/lib/det/appProfileDetPlan";
+import { readEnteredCoachClock } from "@/lib/det/athleteDetBridge";
+import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { DetPlanningDraft } from "./DetPlanningDraft";
 import { appRecordReferenceProblems } from "@/lib/det/appRecordReference";
 import { planningDraftKey, planningDraftStorage, readPlanningDraft, writePlanningDraft, type DraftStatus } from "@/lib/plan/planningFormDraft";
@@ -79,7 +82,11 @@ export function AthleteDetSimplePanel(props: {
   guard: () => Promise<Verified | null>;
   sourcesVersion: string | null; engineVersion: string | null; releaseId: string | null;
   /** Sortie DET + empreinte du profil sur lequel elle a été calculée. */
-  onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void;
+  generationAction?: { current: (()=>Promise<void>) | null };
+  onBusyChange?: (busy:boolean)=>void;
+  onNeedsAttention?: ()=>void;
+  onProfilePlan?: (plan:ParsedPlan,fp:string)=>Promise<void>;
+  onOutcome: (o: CoachDetOutcome | null, planningFingerprint: string | null) => void | Promise<void>;
   /** Profil de planification figé de la page (même entrée que l'IA). OBLIGATOIRE : aucun recalcul ici. */
   appInput: FrozenAppPlanningInput | null;
   appInputStatus: "ready" | "pending" | "missing";
@@ -161,6 +168,8 @@ export function AthleteDetSimplePanel(props: {
   const set = (patch: Partial<CoachAnswers>) => setA((x) => ({ ...x, ...patch }));
 
   const generate = async () => {
+    if(busy)return;
+    let completed=false;
     const my = ++epoch.current; setBusy(true); props.onOutcome(null, null);
     const app = props.appInput, fpAt = fp, engineAt = props.engine, keyAt = ctxKey;
     // Toute réponse tardive (autre athlète, profil, ordre, dates ou moteur) est ignorée.
@@ -173,6 +182,12 @@ export function AthleteDetSimplePanel(props: {
       if (v.athleteId !== props.record.athleteId || v.userId !== props.record.coachId || app.athleteId !== v.athleteId) { setMsg(["Session ou athlète différent : action annulée."]); return; }
       if(engineAt==='ai'&&isTimeTrial(String(app.config.objective))){setMsg(['Le CLM utilise actuellement le contrat de sources et de position de DET. Aucun appel IA n’est lancé pour ce format.']);return;}
       if (engineAt === "ai") { await props.onAIShared(app); return; }
+      if(props.onProfilePlan){
+        const clock=readEnteredCoachClock(a.clock);
+        const plan=await generateAppProfileDetPlan(app,v.athleteId,{strengthLoadAndRpeConfirmed:a.strengthLoadAndRpeConfirmed===true,clock:clock.clock??undefined,invalidClockSports:clock.invalidSports,presentContraindications:a.presentContraindications,unmetPrerequisites:a.unmetPrerequisites,injuryScreen:a.injuryScreen,swimDomainPaces:Object.fromEntries(Object.entries(a.swimPaces).flatMap(([d,p])=>p&&p.value>0&&(p.kind==='field_measurement'||p.kind==='explicit_estimate')?[[d,{value:p.value,kind:p.kind}]]:[]))},props.engineVersion);
+        if(!current())return;
+        await props.onProfilePlan(plan,fpAt);completed=true;return;
+      }
       const b = buildAthleteDetInputs(props.record, planningForm, { ...a,timeTrial:props.appInput?.config.timeTrialContext, coachLimiterOrder: null }, effectiveGenuine, fpAt);
       if (!b.snapshot || !b.ctx) { setMsg(b.sourceReview.status === "blocked_missing_source_review" ? [b.sourceReview.reason] : b.missing.map((m) => `${m.label} : ${m.why}`)); return; }
       const referenceProblems=appRecordReferenceProblems(b.snapshot,app);
@@ -197,12 +212,19 @@ export function AthleteDetSimplePanel(props: {
       const out = runAppPlanningDetPlan({ reviewContextId: data.id, ctx: { ...b.ctx, inputsHash, sourcesVersion: props.sourcesVersion }, coachId: v.userId, athleteId: v.athleteId,
         snapshot: b.snapshot, inputsHash, sourcesVersion: props.sourcesVersion, engineVersion: props.engineVersion, releaseId: props.releaseId, appInput: app });
       if (!current()) return;
-      props.onOutcome(out, fpAt);
+      await props.onOutcome(out, fpAt);
+      completed=out.kind==="accepted";
       setMsg(out.kind === "accepted" ? [`Plan DET généré (${out.sessions} séances) depuis le profil de l'athlète — non prescriptif, à relire.`]
         : out.kind === "refused" ? out.refusals : [`DET n'a pas trouvé de plan conforme (l'IA n'est pas lancée à sa place).`,
             ...(out.limiterOrder.unrecognizedByDet?.length ? [`Limiteur(s) de l'app transmis mais sans définition DET : ${out.limiterOrder.unrecognizedByDet.join(", ")} — conservés tels quels, rien n'est substitué.`] : []), ...explainEngineRefusal(out.blockingIssues ?? []), `Détail technique : ${out.reason} · ${out.blockingCodes.join(", ")}`]);
-    } finally { if (my === epoch.current) setBusy(false); }
+    } catch(error) { if(current())setMsg([error instanceof Error?error.message:"Génération DET interrompue : aucun résultat installé."]);
+    } finally { if (my === epoch.current) {setBusy(false);if(!completed)props.onNeedsAttention?.();} }
   };
+
+  const {generationAction,onBusyChange}=props;
+  if(generationAction)generationAction.current=generate;
+  useEffect(()=>{onBusyChange?.(busy);},[busy,onBusyChange]);
+  useEffect(()=>()=>{if(generationAction)generationAction.current=null;onBusyChange?.(false);},[generationAction,onBusyChange]);
 
   const provRow = (k: FieldKey) => {
     const p = prefill.find((x) => x.key === k); if (!p) return null;
@@ -258,7 +280,8 @@ export function AthleteDetSimplePanel(props: {
         <p className="text-sm">Cet ordre de priorités guide la sélection des séances. L’objectif précise la préparation ; les horaires, la charge et la récupération encadrent le calendrier.</p>
         <ol className="space-y-1">{order.map((m, i) => <li key={m} className="flex items-center gap-2 text-sm">{i + 1}. {LIMITER_LABELS[m] ?? m}</li>)}</ol>
       </section>
-      <DetPlanningDraft app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} restrictions={{ presentContraindications: a.presentContraindications, unmetPrerequisites: a.unmetPrerequisites, injuryScreen: a.injuryScreen }} />
+
+      <details><summary className="cursor-pointer text-sm">Examiner les autres pistes V3</summary><DetPlanningDraft app={props.appInputStatus === "ready" ? props.appInput : null} athleteId={props.record.athleteId} coachId={props.record.coachId} guard={props.guard} restrictions={{ presentContraindications: a.presentContraindications, unmetPrerequisites: a.unmetPrerequisites, injuryScreen: a.injuryScreen }} /></details>
       <details className="space-y-4" data-testid="det-final-review"><summary className="cursor-pointer text-sm font-medium">Finaliser après revue — paramètres détaillés</summary>
       <DetReadinessSummary missing={bridge.missing} />
       <section id="det-step-data" tabIndex={-1} className="space-y-2 scroll-mt-4">
@@ -329,9 +352,9 @@ export function AthleteDetSimplePanel(props: {
       {bridge.sourceReview.status === "blocked_missing_source_review" && <p className="text-sm text-destructive" data-testid="source-review-blocked">{bridge.sourceReview.reason}</p>}
       {bridge.sourceReview.status === "reviewed" && <p className="text-xs text-muted-foreground">Revue des séances reprise : votre revue du {bridge.sourceReview.reviewedAt.slice(0, 10)} ({bridge.sourceReview.reviewedIds} séances).</p>}
 
-    <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
+    {!props.generationAction && <Button disabled={busy || !fp || (props.engine === "det" && (!family || bridge.missing.length > 0 || libraryProblems.length > 0 || !bridge.ctx))} onClick={() => { void generate(); }}>
       {props.engine === "det" ? "Générer avec DET Engine" : "Générer avec l'IA"}
-    </Button>
+    </Button>}
       </details>
       <details className="text-xs text-muted-foreground"><summary className="cursor-pointer">Détails techniques</summary>
         <p>Liste de séances : {pool!.ids.length} séances V3 du scénario {pool!.ciScenario} ; revue scientifique indépendante : non. {bridge.excludedSources.length} séance(s) écartée(s) par vos réponses.</p>

@@ -46,16 +46,39 @@ export async function previewMultisportSplit(s: PlanSessionInput): Promise<{ pre
     sessions: [child('bike', c.bike, s.coachStart, 1), child('run', c.run, runStart, 2)] } };
 }
 
+/** Explicit export confirmation only. Component previews retain pending source
+ * admission; no missing pace, dose, transition or start is supplied by default. */
+export type AppBrickSplitChoice={schema:'nolio-app-brick-split-v1';parentSha256:string;coachConfirmed:true;transitionSeconds:number;bikeStart:CoachSessionStart};
+export async function previewAppBrickSplit(s:PlanSessionInput,input:{transitionSeconds:number;bikeStart:CoachSessionStart}):Promise<{preview:SplitPreview}|{reason:string}>{
+ const c=s.detStructuredComponents;
+ if(s.sport!=='brick'||s.detStructuredWorkout||!c||c.schema!=='det-brick-components-preview-v1'||c.bike?.sport!=='bike'||c.run?.sport!=='run')return {reason:'split_app_components_missing'};
+ if(detWorkoutProblems(c.bike).length||detWorkoutProblems(c.run).length||c.bike.sourceId===c.run.sourceId||'composition' in c.bike||'composition' in c.run)return {reason:'split_component_structure_invalid'};
+ const bs=c.bike.exactSeconds,rs=c.run.exactSeconds;
+ if(bs===null||rs===null||!Number.isFinite(bs)||!Number.isFinite(rs))return {reason:'split_component_duration_unknown'};
+ const sourceId='DET_APP_BRICK_'+await hash(canonicalJson(c));
+ const total=bs+rs+input.transitionSeconds;
+ const virtual:PlanSessionInput={...s,catalogId:sourceId,durationMin:total/60,coachStart:input.bikeStart,detStructuredWorkout:{schema:'det-structured-workout-v1',sourceId,sport:'brick',chosenDurationMin:total/60,exactSeconds:total,nodes:[...structuredClone(c.bike.nodes),{kind:'step',role:'main',label:'Transition confirmée par le coach — hors exercice',domain:null,target:null,dose:{seconds:input.transitionSeconds}},...structuredClone(c.run.nodes)],composition:{schema:'det-reviewed-brick-v1',bike:c.bike,run:c.run,transitionSeconds:input.transitionSeconds}} as DetWorkout};
+ const r=await previewMultisportSplit(virtual);
+ return 'reason' in r?r:{preview:{...r.preview,parentSha256:await hash(canonicalJson(s))}};
+}
+
 export async function expandReviewedMultisport(sessions: PlanSessionInput[], choices: unknown): Promise<{ sessions: PlanSessionInput[]; problems: string[] }> {
   if (choices === undefined) return { sessions, problems: [] };
   if (!choices || typeof choices !== 'object' || Array.isArray(choices)) return { sessions: [], problems: ['split_choices_invalid'] };
   const out: PlanSessionInput[] = [], problems: string[] = [];
-  const supplied = choices as Record<string, SplitChoice>;
+  const supplied = choices as Record<string, SplitChoice | AppBrickSplitChoice>;
   const keys = new Set(sessions.map(s => s.sessionKey));
   for (const k of Object.keys(supplied)) if (!keys.has(k)) problems.push(`split_unknown_parent:${k}`);
   for (const s of sessions) {
     if (!Object.prototype.hasOwnProperty.call(supplied, s.sessionKey)) { out.push(s); continue; }
-    const choice = supplied[s.sessionKey], r = await previewMultisportSplit(s);
+    const choice = supplied[s.sessionKey];
+    if(choice?.schema==='nolio-app-brick-split-v1'){
+      const r=await previewAppBrickSplit(s,choice);
+      if('reason' in r){problems.push(`${s.sessionKey}:${r.reason}`);continue;}
+      if(choice.coachConfirmed!==true||choice.parentSha256!==r.preview.parentSha256){problems.push(`${s.sessionKey}:split_choice_missing_or_stale`);continue;}
+      out.push(...r.preview.sessions);continue;
+    }
+    const r = await previewMultisportSplit(s);
     if ('reason' in r) { problems.push(`${s.sessionKey}:${r.reason}`); continue; }
     if (!choice || choice.schema !== 'nolio-reviewed-split-v1' || choice.coachConfirmed !== true || choice.parentSha256 !== r.preview.parentSha256 ||
         canonicalJson(choice.runStart) !== canonicalJson(r.preview.runStart)) { problems.push(`${s.sessionKey}:split_choice_missing_or_stale`); continue; }

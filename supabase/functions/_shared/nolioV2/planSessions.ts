@@ -35,6 +35,7 @@ export function sessionsFromPlanJson(plan: unknown): PlanExtraction {
       };
       if (typeof s.details === "string" && s.details) out.details = s.details;
       if (typeof s.durationMin === "number") out.durationMin = s.durationMin;
+      if (s.detStructuredComponents) out.detStructuredComponents = s.detStructuredComponents as PlanSessionInput["detStructuredComponents"];
       if (s.detStructuredWorkout) out.detStructuredWorkout = s.detStructuredWorkout as PlanSessionInput["detStructuredWorkout"];
       if (s.detStructureRefusal) out.detStructureRefusal = s.detStructureRefusal as { reason: string };
       if (s.coachStart) out.coachStart = s.coachStart as PlanSessionInput["coachStart"];
