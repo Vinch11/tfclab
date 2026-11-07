@@ -16,6 +16,35 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('rereads a transient GET failure without repeating the create, then completes',async()=>{
+  const {p,invoke}=fixture(2),original=invoke.getMockImplementation()!;let reads=0;
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'&&reads++===0?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'unknown',retryableRead:true}]}:original(n,b));
+  expect(await runCoachExport(p)).toEqual({verified:2,total:2});
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='send')).toHaveLength(1);
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='verify')).toHaveLength(2);
+ });
+ it('bounds transient read retries and stops without sending a later batch',async()=>{
+  const {p,invoke}=fixture(10),original=invoke.getMockImplementation()!;
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'unknown',retryableRead:true}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Export arrêté');
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='verify')).toHaveLength(3);
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='send')).toHaveLength(1);
+ });
+ it('reports a provider rate limit precisely without another create or an immediate retry',async()=>{
+  const {p,invoke}=fixture(2),original=invoke.getMockImplementation()!;
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'unknown',readFailure:'rate_limited'}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Nolio limite les requêtes');
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='verify')).toHaveLength(1);expect(invoke.mock.calls.filter(([,b])=>b.action==='send')).toHaveLength(1);
+ });
+ it('does not reread an ambiguous, absent or unclassified result automatically',async()=>{
+  for(const result of ['ambiguous','absent','unknown']){
+   const {p,invoke}=fixture(2),original=invoke.getMockImplementation()!;
+   invoke.mockImplementation(async(n,b)=>b.action==='verify'?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result}]}:original(n,b));
+   await expect(runCoachExport(p)).rejects.toThrow('Export arrêté');
+   expect(invoke.mock.calls.filter(([,b])=>b.action==='verify')).toHaveLength(1);
+   expect(invoke.mock.calls.filter(([,b])=>b.action==='send')).toHaveLength(1);
+  }
+ });
  it('automatically inspects a deleted prior activity and resumes the same export after one contextual decision',async()=>{
   const {p,invoke,dry,setSent}=fixture(2),original=invoke.getMockImplementation()!;setSent(2);let deleted=true;
   p.confirmRecreation=vi.fn(async()=>true);

@@ -1,7 +1,7 @@
 import {completeStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import type { FrozenAppPlanningInput } from './appPlanningInput';
 import { planningInputFor } from './appPlanningInput';
-import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions } from './appPlanningDetDraft';
+import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions, type AppPlanningDetDraft } from './appPlanningDetDraft';
 import { familySourcePool } from './familySourcePools';
 import { findSource } from './coachDetContext';
 import { coachFamilyFor,clockFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
@@ -80,6 +80,26 @@ function exerciseMinutes(session:ProposedV3Session):TriContribution|null{
   return out;
 }
 
+function minimumDistinctExerciseMinutes(domains:ProposedV3Session[][]):number{
+  const ordered=domains.map(rows=>[...rows].sort((a,b)=>a.knownMinutes-b.knownMinutes)).sort((a,b)=>a.length-b.length);
+  const suffix=Array(ordered.length+1).fill(0) as number[];
+  for(let i=ordered.length-1;i>=0;i--)suffix[i]=suffix[i+1]+Math.min(...ordered[i].map(s=>s.knownMinutes));
+  let best=Infinity,nodes=0,exhausted=false;const used=new Set<string>();
+  function visit(index:number,total:number){
+    if(++nodes>50000){exhausted=true;return;}
+    if(total+suffix[index]>=best-1e-7)return;
+    if(index===ordered.length){best=total;return;}
+    for(const s of ordered[index]){
+      const ids=s.components.map(c=>c.sourceId);if(ids.some(id=>used.has(id)))continue;
+      for(const id of ids)used.add(id);visit(index+1,total+s.knownMinutes);for(const id of ids)used.delete(id);
+      if(exhausted)return;
+    }
+  }
+  visit(0,0);
+  // A bounded search must never present its best upper bound as a minimum.
+  return exhausted||!Number.isFinite(best)?suffix[0]:best;
+}
+
 export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={}):Promise<V3PlanProposal> {
   // Reuse the existing identity, fingerprint, family and negative-input guards.
   const study=await buildAppPlanningDetDraft(app,athleteId,options);
@@ -148,7 +168,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const ratioObjective=parseAthleteConstraints(config.constraints).bannedSports.length?undefined:triObjective;
   const minuteLedger={swim:0,bike:0,run:0};let minuteLedgerKnown=true;
   const finalLoad=study.weeks.filter(w=>w.weekType==='load'&&!w.days.some(d=>d.slots.some(s=>s.role==='race'))).at(-1)?.week;
-  for(const week of study.weeks){
+  function weekDomains(week:AppPlanningDetDraft['weeks'][number]){
     const eligible=sources.filter(s=>(!week.phase||s.phase.includes(week.phase))&&(week.weekType!=='recovery'||easy(s)));
     const slots=week.days.flatMap((day,dayIndex)=>day.slots.map(slot=>({slot,dayIndex})));
     const domains=slots.map(({slot,dayIndex})=>{
@@ -180,9 +200,20 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     });
     const missing=domains.findIndex(domain=>!domain.length);
     if(missing>=0)throw Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : aucune dose V3 compatible pour ${slots[missing].slot.sport}. Aucun créneau vide ni remplacement historique n’est produit.`);
+    return {eligible,slots,domains};
+  }
+  for(const week of study.weeks){
+    const {eligible,slots,domains}=weekDomains(week);
     const budget=preparation.weeklyQuotas[week.week]?.volumeBudget;
     const baseCeiling=Math.min(config.weeklyHours!*60,budget?.maxMinutes??Infinity);
-    const ceiling=priorLoad!==null&&budget?Math.min(baseCeiling,priorLoad*(week.weekType==='recovery'?0.7:1+budget.weeklyIncreasePctMax)):baseCeiling;
+    const ceiling=Math.min(baseCeiling,priorLoad===null?Infinity:week.weekType==='recovery'?priorLoad*0.7:budget?priorLoad*(1+budget.weeklyIncreasePctMax):Infinity);
+    // Do not greedily choose a small load week that makes the next recovery
+    // week's existing slot floors impossible. This is an exercise-dose lower
+    // bound only; unknown transitions/totals remain explicitly unknown.
+    const next=study.weeks.find(w=>w.week===week.week+1);
+    const nextDomains=week.weekType==='load'&&next?.weekType==='recovery'?weekDomains(next).domains:null;
+    const floor=nextDomains&&nextDomains.every(rows=>rows.every(s=>s.components.every(c=>c.durationMinutes!==null)))?
+      minimumDistinctExerciseMinutes(nextDomains)/0.7:0;
     const requiresQuality=week.weekType==='load'&&config.ambition!=='finisher'&&!slots.some(s=>s.slot.role==='race');
     const trajectory=ratioObjective&&minuteLedgerKnown&&week.weekType==='load'?planTriathlonRatioTrajectory(ratioObjective,
       domains.flatMap((domain,index)=>slots[index].slot.sport==='strength'||slots[index].slot.role==='race'?[]:[{id:String(index),choices:domain.map(exerciseMinutes)}]),minuteLedger,ceiling):null;
@@ -231,11 +262,10 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         }
       }
       if(index===order.length){
-        const exact=selected.every(s=>s.durationMinutes!==null);
         const zones=polarization(selected);
         const parts=selected.filter(s=>s.sport!=='strength').map(exerciseMinutes);
         if(ratioObjective&&minuteLedgerKnown&&week.week===finalLoad&&parts.every(p=>p!==null)&&!hasExactStrictTriathlonRatio(ratioObjective,minuteLedger,parts))return false;
-        return !(week.weekType==='recovery'&&exact&&priorLoad!==null&&total>priorLoad*0.7+1e-7)&&
+        return total+1e-7>=floor&&!(week.weekType==='recovery'&&priorLoad!==null&&total>priorLoad*0.7+1e-7)&&
           !(requiresQuality&&!selected.some(quality))&&!(week.weekType==='load'&&zones&&!zones.admissible);
       }
       for(const choice of order[index].domain){
@@ -256,7 +286,27 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       }
       return false;
     }
-    if(!solve(0,0))throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.`),{code:'v3_proposal_search_refused',week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},noCompletePlanReturned:true});
+    if(!solve(0,0))throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.`),{code:'v3_proposal_search_refused',week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,noCompletePlanReturned:true});
+    // Rotate whole source prescriptions AFTER solving the weekly dose ledger.
+    // A feasible ratio target must not repeatedly select the same recipe just
+    // because its duration wins by a fraction. Alternatives must retain the
+    // exact sport/domain/minutes/zone dose and every limiter match; their own
+    // recovery and missing anchors are checked. This preserves future budgets.
+    const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
+    for(const [selectionIndex,session] of selected.entries()){
+      if(session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      const original=session.components[0];
+      const alternatives=eligible.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
+        (session.role==='key'||s.sport==='strength'||easy(s))).flatMap(s=>choices(s,original.durationMinutes)).filter(c=>
+        (!occupied.has(c.sourceId)||c.sourceId===original.sourceId)&&c.durationMinutes!==null&&Math.abs(c.durationMinutes-original.durationMinutes!)<1e-7&&
+        c.targets.missing.every(key=>original.targets.missing.includes(key))&&original.limiterMatches.every(key=>c.limiterMatches.includes(key))&&
+        c.zoneMinutes?.low===original.zoneMinutes?.low&&c.zoneMinutes?.mid===original.zoneMinutes?.mid&&c.zoneMinutes?.high===original.zoneMinutes?.high&&c.zoneMinutes?.unknown===original.zoneMinutes?.unknown&&
+        proposedRecoveryStatus({...session,components:[c]},
+          {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
+        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+      const replacement=alternatives[0];
+      if(replacement){occupied.delete(original.sourceId);occupied.add(replacement.sourceId);session.components=[replacement];}
+    }
     // Search order is internal. Restore the exact original calendar positions.
     const calendarSelected=selected.map((session,index)=>({session,index:order[index].index})).sort((a,b)=>a.index-b.index).map(row=>row.session);
     const knownMinutes=selected.reduce((n,s)=>n+s.knownMinutes,0);
@@ -271,7 +321,9 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       if(requiresQuality)result.checks.push({code:'source_quality',week:week.week,status:'passed',message:'Une dose positive de seuil ou VO₂max est présente dans les blocs configurés ; ce contrôle ne vaut pas preuve de couverture du limiteur.'});
     }
     if(week.limiterFocus.focus&&!selected.some(s=>s.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus!))))result.checks.push({code:'weekly_focus_unmatched',week:week.week,status:'pending',message:`Focus ${week.limiterFocus.focus} : aucune correspondance source retenue cette semaine ; ne vaut pas couverture physiologique.`});
-    if(week.weekType==='load')priorLoad=durationMinutes;
+    // Unknown transitions keep the TOTAL pending. They must not disable
+    // exercise-volume progression and deloads for the known component doses.
+    if(week.weekType==='load')priorLoad=selected.every(s=>s.role!=='race'&&s.components.every(c=>c.durationMinutes!==null))?knownMinutes:null;
     if(week.weekType==='load'&&!selected.some(s=>s.role==='race')){
       const contributions=selected.filter(s=>s.sport!=='strength').map(exerciseMinutes);
       if(contributions.some(c=>c===null))minuteLedgerKnown=false;

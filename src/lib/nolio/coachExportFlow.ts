@@ -79,23 +79,33 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
  const expected={...frozen,jobId:dry.progress!.jobId};
  let verified=0,nextIndex=0;
  async function verifyThrough(target:number){
-  for(let n=0;verified<target&&n<=total;n++){
+  let readRetries=0;
+  for(let n=0;verified<target&&n<=total*3+2;n++){
    p.progress(`Vérification dans Nolio : ${verified}/${total} activités confirmées.`);
    const r=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'verify',expected,fromIndex:nextIndex});
    if(r.status==='NOTHING_SENT')throw Error('Aucune activité envoyée pour cette sélection.');
    if(r.status!=='VERIFY'||!same(r.preview as typeof frozen))throw Error('Résultat Nolio non confirmé. Vérifiez les activités avant de reprendre.');
    const read=await p.verifyReceipts(dry);checkpoint(p);
    const failed=Array.isArray(r.results)?r.results.find((x:{result?:string})=>x.result!=='verified_unique'):null;
+   if(read.total===total&&read.verified>=verified&&failed?.result==='unknown'&&failed.retryableRead===true&&readRetries<2){
+    // Retry only a bounded read. Keep the exact frozen binding and resume at
+    // the first unverified operation; never return to send on uncertainty.
+    verified=read.verified;nextIndex=read.nextIndex;readRetries++;
+    p.progress(`Nolio répond lentement. Nouvelle vérification des activités déjà envoyées (${verified}/${total})…`);
+    await (p.sleep??(ms=>new Promise(resolve=>setTimeout(resolve,ms))))(readRetries*1500);checkpoint(p);continue;
+   }
    if(read.total!==total||read.verified<=verified||failed){
     const entry=dry.manifest?.find(x=>x.opIndex===failed?.opIndex);
     const d=failed?.diagnostic;
     const sport=dry.precheck?.rows.find(x=>x.opIndex===failed?.opIndex)?.sport;
     const targetDetail=formatRawTargetEvidence(d?.targets,sport);
-    const detail=failed?.result==='not_sent'?'Cette séance n’a pas encore été envoyée. Utilisez « Exporter vers Nolio » pour poursuivre le plan.':failed?.result==='absent'?'Séance absente de Nolio (supprimée ou déplacée).':failed?.result==='ambiguous'&&d&&Number.isSafeInteger(d.candidates)&&Number.isSafeInteger(d.exact)?`${d.candidates} correspondance(s), ${d.exact} identique(s). Champs différents : ${Array.isArray(d.fields)?d.fields.filter((x:unknown)=>typeof x==='string'&&/^[a-z_]{1,30}$/.test(x)).join(', '):'non précisés'}.`:'Présence exacte dans Nolio non confirmée.';
+    const readFailure=failed?.result==='unknown'?({rate_limited:'Nolio limite les requêtes. La vérification pourra reprendre sans renvoyer les séances.',authorization:'Nolio refuse la lecture des séances. Vérifiez la connexion Nolio.',deadline:'Le délai de lecture Nolio est dépassé.',network_unavailable:'La lecture Nolio est momentanément indisponible.',provider_error:'Nolio rencontre une erreur pendant la lecture.'} as Record<string,string>)[failed.readFailure]:null;
+    const detail=failed?.result==='not_sent'?'Cette séance n’a pas encore été envoyée. Utilisez « Exporter vers Nolio » pour poursuivre le plan.':failed?.result==='absent'?'Séance absente de Nolio (supprimée ou déplacée).':failed?.result==='ambiguous'&&d&&Number.isSafeInteger(d.candidates)&&Number.isSafeInteger(d.exact)?`${d.candidates} correspondance(s), ${d.exact} identique(s). Champs différents : ${Array.isArray(d.fields)?d.fields.filter((x:unknown)=>typeof x==='string'&&/^[a-z_]{1,30}$/.test(x)).join(', '):'non précisés'}.`:readFailure||'Présence exacte dans Nolio non confirmée.';
     const message=`${entry?entry.sessionKey+' · '+entry.date+' : ':''}${detail}${targetDetail?' Cibles : '+targetDetail+'.':''}${formatWorkoutReadbackDifferences(d?.workout)?' Détail : '+formatWorkoutReadbackDifferences(d.workout)+'.':''} Export arrêté ; les activités déjà envoyées sont conservées.`;
     throw failed?.result==='absent'?new MissingNolioActivity(message):Error(message);
    }
    verified=read.verified;nextIndex=read.nextIndex;
+   readRetries=0;
   }
   if(verified<target)throw Error('Vérification incomplète.');
  }

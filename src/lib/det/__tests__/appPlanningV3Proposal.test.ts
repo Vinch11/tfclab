@@ -48,6 +48,46 @@ async function shared(objective = 'Ironman 70.3', weeks = 12, hours = 10, limite
 }
 beforeAll(() => { vi.spyOn(console,'log').mockImplementation(() => {}); vi.spyOn(console,'warn').mockImplementation(() => {}); vi.spyOn(globalThis,'fetch').mockImplementation(() => { throw Error('NETWORK_FORBIDDEN'); }); });
 
+it('rotates admissible 70.3 prescriptions and deloads the exercise doses even with an unknown brick transition',async()=>{
+ const app=await shared('Ironman 70.3',12,10,['VLamax'],{deloadCadence:'3'});
+ const plan=await generateAppProfileDetPlan(app,ATHLETE,{},'regression-engine');
+ const p=(plan as unknown as {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+ let load:number|null=null;
+ for(const week of p.weeks){
+  if(week.weekType==='recovery'&&load!==null)expect(week.knownMinutes).toBeLessThanOrEqual(load*0.7+1e-7);
+  if(week.weekType==='load')load=week.knownMinutes;
+ }
+ const longRun=(week:number)=>p.weeks[week-1].days.flatMap(d=>d.sessions).find(s=>s.sport==='run'&&s.role==='long')!.components[0];
+ const first=longRun(1),second=longRun(2);
+ expect(first.durationMinutes).toBe(second.durationMinutes);
+ const dose=(c:ProposedV3Workout)=>JSON.stringify(c.blocks,(key,value)=>key==='label'?undefined:value);
+ expect(dose(first)).not.toBe(dose(second));
+ const signatures=p.weeks.map(w=>JSON.stringify(w.days.map(d=>d.sessions.map(s=>s.components.map(c=>({sport:c.sport,blocks:c.blocks,targets:c.targets}))))));
+ expect(new Set(signatures).size).toBe(p.weeks.length);
+ const original=sessionsFromPlanJson(plan).sessions,race=original.map(raceIdentityOf).find(r=>r!==null)!;
+ const prepared=await preparePlan(JSON.parse(JSON.stringify(plan)),{synthetic:true,athleteId:'usr_SYNTH1',sportIds:{run:'spt_SYNTHRUN',bike:'spt_SYNTHBIKE',swim:'spt_SYNTHSWIM',strength:'spt_SYNTHSTRENGTH',brick:'spt_SYNTHTRI'},exerciseIds:{},competition:{date:race.date,name:race.name,sport:race.sport}},'SYNTHETIC_VERSION');
+ expect(prepared.precheck.complete).toBe(true);expect(prepared.precheck.refused).toBe(0);
+ const outgoing=Array.from({length:12},(_,i)=>JSON.stringify(prepared.ops.filter(o=>o.sessionKey.startsWith(`S${i+1}-`)).map(o=>({sport:o.body.sport,workout:o.body.workout,duration:o.body.duration}))));
+ expect(new Set(outgoing).size).toBe(12);
+},60000);
+
+it.each([
+ ['10 km',10,7,{}],
+] as const)('retains the dedicated %s calendar while enforcing known exercise deloads',async(objective,weeks,hours,overrides)=>{
+ const p=await generateAppPlanningV3Proposal(await shared(objective,weeks,hours,undefined,overrides),ATHLETE,{completeSessions:true});
+ expect(p.weeks).toHaveLength(weeks);expect(p.checks.filter(c=>c.status==='blocked')).toEqual([]);
+ let load:number|null=null;
+ for(const w of p.weeks){
+  expect(w.knownMinutes).toBeLessThanOrEqual(hours*60+1e-7);
+  if(w.weekType==='recovery'&&load!==null)expect(w.knownMinutes).toBeLessThanOrEqual(load*0.7+1e-7);
+  if(w.weekType==='load')load=w.days.flatMap(d=>d.sessions).every(s=>s.components.every(c=>c.durationMinutes!==null))?w.knownMinutes:null;
+ }
+},60000);
+
+it('keeps the unsupported 5 km family refused instead of borrowing a 10 km plan',async()=>{
+ await expect(generateAppPlanningV3Proposal(await shared('5 km',8,6),ATHLETE,{completeSessions:true})).rejects.toThrow('famille');
+});
+
 describe('full V3 source proposal from the existing app profile',()=>{
  it.each([['Ironman 70.3',12,10],['Marathon',16,8],['Marathon',40,9],['Semi',8,6]] as const)('%s / %s weeks: a chosen bounded V3 prescription in every non-race slot',async(objective,weeks,hours)=>{
   const app=await shared(objective,weeks,hours),before=JSON.stringify(app);
