@@ -23,7 +23,7 @@ import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 import { verifyAndPersist } from "../_shared/nolioV2/verificationReceipt.ts";
 import { reviewAccepted } from "../_shared/nolioV2/coachReview.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/nolioV2/cors.ts";
 import { sendPlannedV2 } from "../_shared/nolioV2/plannedClient.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";

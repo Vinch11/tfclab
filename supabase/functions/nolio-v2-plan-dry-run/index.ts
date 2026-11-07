@@ -11,7 +11,7 @@ import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
  * Journaux : codes/compteurs seulement.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { corsHeaders } from "../_shared/nolioV2/cors.ts";
 import { loadConfig, qaBackendOk, QA_COACHES } from "../_shared/nolioV2/oauth.ts";
 import { loadV2ConnectionWithRefresh, type ConnectionStoreClient } from "../_shared/nolioV2/connectionStore.ts";
 import { refreshGrantToken, supabaseRefreshStore } from "../_shared/nolioV2/tokenRefresh.ts";
