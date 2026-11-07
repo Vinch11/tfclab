@@ -160,6 +160,12 @@ export async function runPlanDrySequence(a: {
 }
 
 export const REASON_FR: Record<string, string> = {
+  recreation_resource_moved_or_changed: "l’activité existe encore mais a été déplacée ou modifiée : elle ne sera pas recréée",
+  recreation_uncertain_operation: "l’ancien envoi reste incertain : vérifiez-le dans Nolio, sans le renvoyer",
+  recreation_read_unknown: "la suppression ne peut pas être confirmée par une lecture complète de Nolio",
+  recreation_ledger_divergent: "le journal d’envoi ne correspond plus à cette prescription",
+  recreation_decision_stale: "la situation a changé depuis le contrôle : contrôlez à nouveau les activités manquantes",
+  recreation_unconfirmed: "la recréation ou son verrou n’est pas confirmé",
   previous_version_calendar_conflict: "une ancienne activité TFCLab est encore présente au même jour et dans le même sport",
   previous_exports_read_failed: "l’historique des anciens exports ne peut pas être relu intégralement",
   previous_export_unresolved: "un ancien export reste incertain et doit être vérifié dans Nolio",

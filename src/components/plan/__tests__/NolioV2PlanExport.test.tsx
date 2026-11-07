@@ -12,14 +12,39 @@ const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'202
 const version='22222222-2222-4222-8222-222222222222';
 beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(name)=>({data:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));mock.flow.mockResolvedValue({verified:2,total:2});});
 function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} legacy={{nolioId:42,startDate:"2026-11-09",refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
+function openAdvanced(){fireEvent.click(screen.getByRole('button',{name:'Options avancées'}));}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('shows one export action with technical tools hidden by default',()=>{
+  setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));
+  expect(screen.getByRole('button',{name:'Exporter vers Nolio'})).toBeInTheDocument();expect(screen.getByRole('button',{name:'Options avancées'})).toHaveAttribute('aria-expanded','false');
+  for(const name of ['Vérifier dans Nolio sans renvoyer','Rapprocher les anciens exports sans envoyer','Lire les zones de travail Nolio','Contrôler les activités manquantes'])expect(screen.queryByRole('button',{name})).not.toBeInTheDocument();
+ });
+ it('asks only a contextual deletion decision inside the ordinary Export flow',async()=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Synthetic deleted session',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  const save=vi.fn();setup(version,plan,save);exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument());
+  expect(mock.flow).toHaveBeenCalledOnce();expect(posted).not.toHaveBeenCalled();expect(save).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button',{name:'Recréer et continuer'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('2/2 activités confirmées'));expect(posted).toHaveBeenCalledOnce();expect(mock.flow).toHaveBeenCalledOnce();expect(save).not.toHaveBeenCalled();
+ });
+ it('cancels the contextual recreation without any creation',async()=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Deleted',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  setup();exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Annuler l’export'})).toBeInTheDocument());fireEvent.click(screen.getByRole('button',{name:'Annuler l’export'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('Export annulé'));expect(posted).not.toHaveBeenCalled();
+ });
+ it('invalidates a pending recreation decision when athlete/plan context changes',async()=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Deleted',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  const v=setup();exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument());
+  v.rerender(<NolioV2ExportProvider plan={{...plan,title:'Other'}} athleteId="other" planVersionId={null} enabled><NolioV2ScopeButton label="Other plan" scope={{kind:'all'}}/></NolioV2ExportProvider>);
+  await waitFor(()=>expect(screen.queryByRole('button',{name:'Recréer et continuer'})).not.toBeInTheDocument());expect(posted).not.toHaveBeenCalled();
+ });
  it('offers standalone read-only reconciliation without archiving or claiming delivery',async()=>{
-  const save=vi.fn();setup(version,plan,save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Rapprocher les anciens exports sans envoyer'}));
+  const save=vi.fn();setup(version,plan,save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Rapprocher les anciens exports sans envoyer'}));
   await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.flow.mock.calls[0].slice(1)).toEqual([false,true]);expect(save).not.toHaveBeenCalled();expect(screen.getByRole('status')).toHaveTextContent('Aucun envoi effectué');expect(screen.getByRole('status')).not.toHaveTextContent('Export terminé');
  });
  it('does not archive a changed visible plan during standalone reconciliation',async()=>{
-  const save=vi.fn();setup(version,{...plan,title:'Changed'},save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Rapprocher les anciens exports sans envoyer'}));
+  const save=vi.fn();setup(version,{...plan,title:'Changed'},save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Rapprocher les anciens exports sans envoyer'}));
   await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('version sauvegardée'));expect(save).not.toHaveBeenCalled();expect(mock.flow).not.toHaveBeenCalled();expect(mock.invoke).not.toHaveBeenCalled();
  });
  it('never sends or rewrites an old zero-ceiling archive as if it had new guided prescriptions',async()=>{
@@ -29,19 +54,19 @@ describe('normal coach Nolio journey',()=>{
  });
  it('reads owned athlete zones without running export, saving or granting consent',async()=>{
   const save=vi.fn();mock.invoke.mockResolvedValue({data:{status:'ZONES_READ',summary:'Recovery : 0–165 W. Aucune séance modifiée.'},error:null});
-  setup(version,plan,save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Lire les zones de travail Nolio'}));
+  setup(version,plan,save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Lire les zones de travail Nolio'}));
   await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('Recovery : 0–165 W'));
   expect(mock.invoke).toHaveBeenCalledOnce();expect(mock.invoke).toHaveBeenCalledWith('nolio-v2-send-plan',{body:{workflow:'coach',action:'zones',planVersionId:version}});expect(mock.flow).not.toHaveBeenCalled();expect(save).not.toHaveBeenCalled();
  });
  it('refuses zone inspection of a different saved owner before any provider operation',async()=>{
-  mock.row={...mock.row!,coach_id:'OTHER'};setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Lire les zones de travail Nolio'}));
+  mock.row={...mock.row!,coach_id:'OTHER'};setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Lire les zones de travail Nolio'}));
   await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('lecture annulée'));expect(mock.invoke).not.toHaveBeenCalled();
  });
  it('offers read-only verification immediately after opening a saved plan, without exporting first',async()=>{
-  setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.flow.mock.calls[0][1]).toBe(true);
+  setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.flow.mock.calls[0][1]).toBe(true);
  });
  it('read-only verification never archives changed content',async()=>{
-  const save=vi.fn();setup(version,{...plan,title:'Changed'},save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('version sauvegardée'));expect(save).not.toHaveBeenCalled();expect(mock.flow).not.toHaveBeenCalled();
+  const save=vi.fn();setup(version,{...plan,title:'Changed'},save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));openAdvanced();fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('version sauvegardée'));expect(save).not.toHaveBeenCalled();expect(mock.flow).not.toHaveBeenCalled();
  });
 
  it('uses the same modal and saver for IA, with its existing transport and no V2 fallback',async()=>{

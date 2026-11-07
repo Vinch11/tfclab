@@ -1,6 +1,8 @@
 import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
 import {checkCalendarConflict,markersForVersion} from '../_shared/nolioV2/calendarConflicts.ts';
 import {withCalendarWriteLock} from '../_shared/nolioV2/calendarWriteLock.ts';
+import {inspectDeletedOperation,recreationLedger} from '../_shared/nolioV2/deletedRecreation.ts';
+import type {LedgerEntry} from '../_shared/nolioV2/plannedClient.ts';
 import {readAthleteZones,powerZoneSummary} from '../_shared/nolioV2/athleteZones.ts';
 import {coachPlanProblems,nativeCoachPlanProblems} from '../_shared/nolioV2/coachWorkflow.ts';
 import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
@@ -39,7 +41,7 @@ import { realSendGate, sendPreview, PLAN_SEND_BATCH, type DryJob, type DryReceip
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const ALLOWED = new Set(["workflow","planVersionId", "action", "expected", "consent", "fromIndex", "scope"]);
+const ALLOWED = new Set(["workflow","planVersionId", "action", "expected", "consent", "fromIndex", "scope","repair"]);
 const SIM_JOBS = "qa_nolio_v2_plan_dry_run_jobs";
 const SIM_RECEIPTS = "qa_nolio_v2_plan_dry_run_receipts";
 
@@ -69,7 +71,9 @@ Deno.serve(async (req) => {
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
   if(b.workflow!==undefined&&b.workflow!=='coach')return json(400,{status:'REFUSED',reason:'workflow_unknown'});
   const action = b.action ?? "precheck";
-  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities" && action !== "zones" && action !== "conflicts") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if (!['precheck','send','verify','capabilities','zones','conflicts','repair_check','repair'].includes(String(action))) return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if((action==='repair_check'||action==='repair')&&b.workflow!=='coach')return json(400,{status:'REFUSED',reason:'recreation_request_invalid'});
+  if(b.repair!==undefined&&action!=='repair')return json(400,{status:'REFUSED',reason:'recreation_request_invalid'});
   if(action==='conflicts'&&(b.workflow!=='coach'||!Number.isSafeInteger(b.fromIndex)||Number(b.fromIndex)<0))return json(400,{status:'REFUSED',reason:'calendar_request_invalid'});
   if(action==='zones'&&(b.workflow!=='coach'||Object.keys(b).some(k=>!['workflow','action','planVersionId'].includes(k))))return json(400,{status:'REFUSED',reason:'zones_request_invalid'});
   const ex = (b.expected ?? null) as Record<string, unknown> | null;
@@ -162,6 +166,38 @@ Deno.serve(async (req) => {
       if(result.status!=='clear')break;
     }
     return json(200,{status:'CALENDAR_CHECK',preview,fromIndex:from,nextIndex:from+rows.length,total:prepared.ops.length,rows});
+  }
+  if(action==='repair_check'||action==='repair'){
+    if(!expected||expected.planSha256!==prepared.planSha256||expected.refsSha256!==prepared.refsSha256||expected.opsSha256!==prepared.opsSha256||!prepared.precheck.complete)return json(200,{status:'BLOCKED',reason:'verification_hashes_stale',preview});
+    const history=await admin.from('nolio_v2_operations').select('*',{count:'exact'}).eq('coach_id',sub).eq('plan_version_id',pv.id).limit(1001);
+    if(history.error||!Array.isArray(history.data)||history.data.length>1000||history.count!==history.data.length)return json(200,{status:'BLOCKED',reason:'ledger_read_failed',preview});
+    const entries:LedgerEntry[]=history.data.map(e=>({opKey:e.op_key,planVersionId:e.plan_version_id,sessionKey:e.session_key,path:e.path,athleteRef:e.athlete_ref,payloadSha256:e.payload_sha256,apiVersion:'v2',state:e.state,remoteId:e.remote_id,detail:e.detail}));
+    const attempted=prepared.ops.flatMap(op=>{const entry=entries.find(e=>e.sessionKey===op.sessionKey&&e.path===op.path);return entry?[{op,entry}]:[];});
+    const http=fetchNolioV2Http({fetch:(u,i)=>fetch(u,i),accessToken:conn.accessToken,deadline:requestDeadline});
+    if(action==='repair_check'){
+      const from=Number(b.fromIndex);if(!Number.isSafeInteger(from)||from<0||from>attempted.length)return json(400,{status:'REFUSED',reason:'recreation_request_invalid'});
+      const rows=[];
+      for(const {op,entry} of attempted.slice(from,from+PLAN_SEND_BATCH)){
+        const result=await inspectDeletedOperation({http,entry,op,prepared,planVersionId:pv.id,athleteRef:effectiveRefs.athleteId,deadline:requestDeadline});
+        rows.push({opIndex:op.opIndex,sessionKey:op.sessionKey,date:op.date,...result});
+        if(result.status==='blocked')break;
+      }
+      return json(200,{status:'RECREATION_CHECK',preview,fromIndex:from,nextIndex:from+rows.length,total:attempted.length,rows});
+    }
+    if(gate.length)return json(200,{status:'BLOCKED',reason:gate[0],gate,preview});
+    const repair=b.repair as Record<string,unknown>|null;
+    if(!repair||Object.keys(repair).some(k=>!['opIndex','binding'].includes(k))||!Number.isSafeInteger(repair.opIndex)||typeof repair.binding!=='string'||!/^[a-f0-9]{64}$/.test(repair.binding))return json(400,{status:'REFUSED',reason:'recreation_request_invalid'});
+    const selected=attempted.find(x=>x.op.opIndex===repair.opIndex);if(!selected)return json(200,{status:'BLOCKED',reason:'recreation_ledger_divergent',preview});
+    try{return await withCalendarWriteLock({client:admin,coachId:sub,athleteRef:effectiveRefs.athleteId,planVersionId:pv.id,run:async requestId=>{
+      const context=await calendarContext();
+      const fresh=await inspectDeletedOperation({http,...selected,prepared,planVersionId:pv.id,athleteRef:effectiveRefs.athleteId,deadline:requestDeadline});
+      if(fresh.status!=='deleted'||fresh.binding!==repair.binding)return json(200,{status:'BLOCKED',reason:fresh.status==='blocked'?fresh.reason:'recreation_decision_stale',preview});
+      const conflict=await checkCalendarConflict({...context,http,athleteRef:effectiveRefs.athleteId,op:selected.op.source,deadline:requestDeadline});
+      if(conflict.status!=='clear')return json(200,{status:'BLOCKED',reason:conflict.reason,preview});
+      const ordinary=supabaseNolioV2Ledger(admin,sub);
+      const report=await sendPlannedV2({connection:conn.connection,refs:effectiveRefs,planVersionId:pv.id,operations:[selected.op.source],ledger:recreationLedger({client:admin,ledger:ordinary,entry:selected.entry,coachId:sub,requestId,prepared,binding:fresh.binding!}),http,maxNewPosts:1,stopOnRejected:true,noRetry:true});
+      return json(200,{...report,preview,opIndex:selected.op.opIndex});
+    }});}catch{return json(200,{status:'BLOCKED',reason:'recreation_unconfirmed',preview});}
   }
 
   if (action === "precheck") {

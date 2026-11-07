@@ -16,6 +16,46 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('automatically inspects a deleted prior activity and resumes the same export after one contextual decision',async()=>{
+  const {p,invoke,dry,setSent}=fixture(2),original=invoke.getMockImplementation()!;setSent(2);let deleted=true;
+  p.confirmRecreation=vi.fn(async()=>true);
+  invoke.mockImplementation(async(n,b)=>{
+   if(b.action==='verify'&&deleted)return {status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'absent'}]};
+   if(b.action==='repair_check')return {status:'RECREATION_CHECK',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},fromIndex:0,nextIndex:2,total:2,rows:dry.manifest.map((e,i)=>({...e,status:i?'present':'deleted',reason:i?'exact_unique':'known_resource_404_and_complete_day_absence',...(i?{}:{binding:'d'.repeat(64)})}))};
+   if(b.action==='repair'){deleted=false;return {status:'DONE',opIndex:0,preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{sessionKey:dry.manifest[0].sessionKey,state:'confirmed'}]};}
+   return original(n,b);
+  });
+  expect(await runCoachExport(p)).toEqual({verified:2,total:2});expect(p.confirmRecreation).toHaveBeenCalledOnce();expect(invoke.mock.calls.filter(([,b])=>b.action==='repair')).toHaveLength(1);expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
+ it('cancelling the contextual recreation decision creates nothing',async()=>{
+  const {p,invoke,dry,setSent}=fixture(1),original=invoke.getMockImplementation()!;setSent(1);p.confirmRecreation=vi.fn(async()=>false);
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'absent'}]}:b.action==='repair_check'?{status:'RECREATION_CHECK',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},fromIndex:0,nextIndex:1,total:1,rows:[{...dry.manifest[0],status:'deleted',reason:'known_resource_404_and_complete_day_absence',binding:'d'.repeat(64)}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Export annulé');expect(p.confirmRecreation).toHaveBeenCalledOnce();expect(invoke.mock.calls.some(([,b])=>['repair','send'].includes(String(b.action)))).toBe(false);
+ });
+ it('inspects missing activities without simulation, consent, reservation or creation',async()=>{
+  const {p,invoke,dry}=fixture(2),original=invoke.getMockImplementation()!;
+  invoke.mockImplementation(async(n,b)=>b.action==='repair_check'?{status:'RECREATION_CHECK',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},fromIndex:0,nextIndex:2,total:2,rows:dry.manifest.map((e,i)=>({...e,status:i?'present':'deleted',reason:i?'exact_unique':'known_resource_404_and_complete_day_absence',...(i?{}:{binding:'d'.repeat(64)})}))}:original(n,b));
+  const result=await runCoachExport(p,false,false,{kind:'inspect'});expect(result.recreationDecision?.rows).toHaveLength(1);expect(invoke.mock.calls.map(([,b])=>b.action)).toEqual(['precheck','repair_check']);expect(invoke.mock.calls.some(([,b])=>b.consent===true)).toBe(false);expect(p.confirmSimulation).not.toHaveBeenCalled();expect(p.verifyReceipts).not.toHaveBeenCalled();
+ });
+ it.each(['recreation_resource_moved_or_changed','recreation_read_unknown','recreation_uncertain_operation'])('refuses a %s before offering recreation',async reason=>{
+  const {p,invoke,dry}=fixture(1),original=invoke.getMockImplementation()!;invoke.mockImplementation(async(n,b)=>b.action==='repair_check'?{status:'RECREATION_CHECK',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},fromIndex:0,nextIndex:1,total:1,rows:[{...dry.manifest[0],status:'blocked',reason}]}:original(n,b));
+  await expect(runCoachExport(p,false,false,{kind:'inspect'})).rejects.toThrow('Aucune recréation');expect(invoke.mock.calls.some(([,b])=>['repair','run','send'].includes(String(b.action)))).toBe(false);
+ });
+ it('recreates only the explicitly selected deleted activity then verifies prior sends before continuing',async()=>{
+  const {p,invoke,setSent,dry}=fixture(10),original=invoke.getMockImplementation()!;setSent(8);
+  const decision={planSha256:hash,refsSha256:refs,opsSha256:ops,rows:[{...dry.manifest[0],title:'Deleted',binding:'d'.repeat(64)}]};
+  invoke.mockImplementation(async(n,b)=>b.action==='repair'?{status:'DONE',opIndex:0,preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{sessionKey:decision.rows[0].sessionKey,state:'confirmed'}]}:original(n,b));
+  expect(await runCoachExport(p,false,false,{kind:'apply',decision})).toEqual({verified:10,total:10});
+  const repair=invoke.mock.calls.filter(([,b])=>b.action==='repair');expect(repair).toHaveLength(1);expect(repair[0][1]).toMatchObject({consent:true,repair:{opIndex:0,binding:'d'.repeat(64)},expected:{jobId:job}});
+  const actions=invoke.mock.calls.map(([,b])=>b.action);expect(actions.indexOf('repair')).toBeLessThan(actions.indexOf('verify'));expect(actions.indexOf('verify')).toBeLessThan(actions.indexOf('send'));
+ });
+ it('never applies a stale decision or retries an uncertain recreation',async()=>{
+  const {p,invoke,dry}=fixture(1),original=invoke.getMockImplementation()!;
+  const decision={planSha256:hash,refsSha256:'e'.repeat(64),opsSha256:ops,rows:[{...dry.manifest[0],title:'Deleted',binding:'d'.repeat(64)}]};
+  await expect(runCoachExport(p,false,false,{kind:'apply',decision})).rejects.toThrow('périmée');expect(invoke.mock.calls.some(([,b])=>b.action==='repair')).toBe(false);
+  decision.refsSha256=refs;invoke.mockClear();invoke.mockImplementation(async(n,b)=>b.action==='repair'?{status:'STOPPED_UNCONFIRMED',reason:'response_lost',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops}}:original(n,b));
+  await expect(runCoachExport(p,false,false,{kind:'apply',decision})).rejects.toThrow('aucune relance automatique');expect(invoke.mock.calls.filter(([,b])=>b.action==='repair')).toHaveLength(1);expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
  it('checks the complete selection and blocks a late previous-version conflict before any simulation or create',async()=>{
   const {p,invoke}=fixture(20),original=invoke.getMockImplementation()!;
   invoke.mockImplementation(async(n,b)=>{const r=await original(n,b);if(b.action==='conflicts'&&b.fromIndex===16)(r.rows as Array<Record<string,unknown>>)[0]={...(r.rows as Array<Record<string,unknown>>)[0],status:'conflict',count:1,reason:'previous_version_calendar_conflict'};return r;});
