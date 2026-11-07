@@ -46,6 +46,47 @@ function makeConfig(overrides: Partial<PlanGenerationConfig>): PlanGenerationCon
 }
 
 describe("anchorRaceDays/dedupRaceDays — détection Jour J alignée sur planValidator (plus de faux 'déjà présent')", () => {
+  it("S33 : conserve l'épreuve nommée une seule fois et le rappel d'activation du même dimanche, y compris après réouverture", () => {
+    const named = makeSession({ weekNumber: 33, dayIndex: 6, dayName: "Dimanche", sport: "Triathlon",
+      title: "COURSE : Ironman test synthétique", details: "3,8 km natation, 180 km vélo, 42,2 km course. Nutrition revue par le coach." });
+    const generic = makeSession({ weekNumber: 33, dayIndex: 6, dayName: "Dimanche", title: "🏁 COURSE OBJECTIF — IM", details: "Jour J — Ironman." });
+    const activation = makeSession({ weekNumber: 33, dayIndex: 6, dayName: "Dimanche", title: "Activation neuromusculaire",
+      details: "10min activation avant la compétition, mobilité légère." });
+    const weeks = Array.from({ length: 32 }, (_, i) => makeWeek(i + 1, [makeSession({ weekNumber: i + 1 })]));
+    weeks.push(makeWeek(33, [generic, named, activation]));
+    const config = makeConfig({ objective: "IM", weeksAvailable: 33, planStartDate: "2026-01-05",
+      raceGoals: [{ objective: "IM", priority: "A", raceDate: "2026-08-23" }] });
+    let result = postProcessParsedPlan(makePlan(weeks), config).plan;
+    for (let pass = 0; pass < 2; pass++) {
+      const week = result.weeks.find(w => w.weekNumber === 33)!;
+      expect(week.sessions.filter(isRaceDaySession)).toHaveLength(1);
+      expect(week.sessions.find(isRaceDaySession)).toMatchObject({ title: named.title, details: named.details, dayIndex: 6, weekNumber: 33 });
+      expect(week.sessions.find(s => s.title === activation.title)?.details).toBe(activation.details);
+      expect(week.sessions).toHaveLength(2);
+      expect(result.weeks.filter(w => w.sessions.some(isRaceDaySession)).map(w => w.weekNumber)).toEqual([33]);
+      result = postProcessParsedPlan(result, config).plan;
+    }
+  });
+
+  it("S33 multi-objectifs : un marathon futur hors calendrier ne détourne pas le rattachement de l'épreuve 10 km présente", () => {
+    const race = makeSession({ weekNumber: 33, dayIndex: 6, dayName: "Dimanche", title: "COURSE : 10 km test synthétique",
+      details: "10 km chronométrés. Allure marathon cible 4:00/km. Consigne propre à la course présente." });
+    const weeks = Array.from({ length: 32 }, (_, i) => makeWeek(i + 1, [makeSession({ weekNumber: i + 1 })]));
+    weeks.push(makeWeek(33, [race]));
+    const config = makeConfig({ objective: "10K", weeksAvailable: 33, planStartDate: "2026-01-05",
+      raceGoals: [
+        { objective: "Marathon", priority: "A", raceDate: "2026-10-11" },
+        { objective: "10K", priority: "B", raceDate: "2026-08-23" },
+      ] });
+    const result = postProcessParsedPlan(makePlan(weeks), config).plan;
+    const event = result.weeks.find(w => w.weekNumber === 33)!.sessions.filter(isRaceDaySession);
+    expect(event).toHaveLength(1);
+    expect(event[0].title).toBe(race.title);
+    // Existing micro-coherence rule must read the actual 10 km goal, not the future marathon.
+    expect(event[0].details).not.toMatch(/allure marathon/i);
+    expect(event[0].details).toContain("Consigne propre à la course présente");
+  });
+
   it("[TEST OBLIGATOIRE] semaine finale avec seulement un rappel d'activation (pas un vrai Jour J) → un vrai Jour J est fabriqué, le rappel est conservé", () => {
     const planStartDate = "2027-01-04"; // lundi
     const raceDate = "2027-03-28"; // dimanche, fin de S12 (diffDays=83 → semaine 12)
