@@ -124,7 +124,14 @@ Deno.serve(async (req) => {
   if(!normal&&!authority.ok)gate.push(authority.reason);
   const preview = sendPreview(prepared);
 
-  if (action === "precheck") return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, network: "none" });
+  if (action === "precheck") {
+    const prior = await admin.from("nolio_v2_operations").select("session_key,payload_sha256,path").eq("coach_id", sub).eq("plan_version_id", pv.id);
+    if (prior.error || !Array.isArray(prior.data)) return json(502, {status:"BLOCKED",reason:"ledger_read_failed",network:"none"});
+    // Re-read every previously attempted operation before any new batch. A
+    // deleted/edited earlier activity must not cause eight more creates on retry.
+    const existingThroughIndex = prepared.ops.reduce((end, op) => prior.data.some((row: {session_key:string;payload_sha256:string;path:string}) => row.session_key===op.sessionKey && row.path===op.path && row.payload_sha256===op.bodySha256) ? Math.max(end,op.opIndex+1) : end, 0);
+    return json(200, { status: gate.length ? "BLOCKED" : "READY", reason: gate[0] ?? null, gate, preview, existingThroughIndex, network: "none" });
+  }
   const ledger = supabaseNolioV2Ledger(admin, sub);
   if (action === "send") {
     if (gate.length) return json(200, { status: "BLOCKED", reason: gate[0], gate, preview, network: "none" });

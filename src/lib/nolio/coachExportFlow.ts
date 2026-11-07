@@ -35,7 +35,13 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false){
    if(r.status==='NOTHING_SENT')throw Error('Aucune activité envoyée pour cette sélection.');
    if(r.status!=='VERIFY'||!same(r.preview as typeof frozen))throw Error('Résultat Nolio non confirmé. Vérifiez les activités avant de reprendre.');
    const read=await p.verifyReceipts(dry);checkpoint(p);
-   if(read.total!==total||read.verified<=verified)throw Error('Présence exacte dans Nolio non confirmée. L’export est arrêté, sans renvoi des activités incertaines.');
+   if(read.total!==total||read.verified<=verified){
+    const failed=Array.isArray(r.results)?r.results.find((x:{result?:string})=>x.result!=='verified_unique'):null;
+    const entry=dry.manifest?.find(x=>x.opIndex===failed?.opIndex);
+    const d=failed?.diagnostic;
+    const detail=failed?.result==='absent'?'Séance absente de Nolio (supprimée ou déplacée).':failed?.result==='ambiguous'&&d&&Number.isSafeInteger(d.candidates)&&Number.isSafeInteger(d.exact)?`${d.candidates} correspondance(s), ${d.exact} identique(s). Champs différents : ${Array.isArray(d.fields)?d.fields.filter((x:unknown)=>typeof x==='string'&&/^[a-z_]{1,30}$/.test(x)).join(', '):'non précisés'}.`:'Présence exacte dans Nolio non confirmée.';
+    throw Error(`${entry?entry.sessionKey+' · '+entry.date+' : ':''}${detail} Export arrêté ; les activités déjà envoyées sont conservées.`);
+   }
    verified=read.verified;nextIndex=read.nextIndex;
   }
   if(verified<target)throw Error('Vérification incomplète.');
@@ -43,6 +49,10 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false){
  if(verifyOnly){await verifyThrough(total);return {verified,total};}
  const check=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'precheck',expected,consent:true});
  if(check.status!=='READY'||!Array.isArray(check.gate)||check.gate.length||!same(check.preview as typeof frozen))throw Error('Export bloqué : '+String((check.gate as string[]|undefined)?.map(reasonFr).join(', ')||check.reason||'contrôle serveur incomplet'));
+ const prior=check.existingThroughIndex;
+ if(!Number.isSafeInteger(prior)||Number(prior)<0||Number(prior)>total)throw Error('État des envois précédents inconnu : export arrêté.');
+ if(Number(prior)>0)await verifyThrough(Number(prior));
+ if(verified===total)return {verified,total};
  for(let batch=0;batch<=total;batch++){
   p.progress(`Export vers Nolio : ${verified}/${total} activités confirmées.`);
   const r=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'send',expected,consent:true});
