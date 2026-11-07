@@ -31,13 +31,13 @@ function samePrescription(a:unknown,b:unknown){
  * No QA checklist, release installation, fabricated review or scientific flag. */
 export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionId,ensureSaved,enabled,legacy,children}:{plan:ParsedPlan;athleteId?:string;athleteName?:string;planVersionId?:string|null;ensureSaved?:()=>Promise<string|null>;enabled:boolean;legacy?:LegacyExportContext;children:ReactNode}){
  const structured=blocksLegacyNolioExport(plan);
- const [scope,setScope]=useState<NolioExportScope|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[hasAttempt,setHasAttempt]=useState(false),[refsView,setRefsView]=useState<V2StatusView|null>(null);
+ const [scope,setScope]=useState<NolioExportScope|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[refsView,setRefsView]=useState<V2StatusView|null>(null);
  const epoch=useRef(0),lock=useRef(false),stop=useRef(false),savedId=useRef(planVersionId),incomingId=useRef(planVersionId);
  incomingId.current=planVersionId;
- useEffect(()=>{const token=++epoch.current;stop.current=true;setScope(null);setMessage('');setHasAttempt(false);setRefsView(null);savedId.current=incomingId.current;return()=>{epoch.current=token+1;stop.current=true;};},[plan,athleteId,legacy?.nolioId,legacy?.startDate,legacy?.refs]);
+ useEffect(()=>{const token=++epoch.current;stop.current=true;setScope(null);setMessage('');setRefsView(null);savedId.current=incomingId.current;return()=>{epoch.current=token+1;stop.current=true;};},[plan,athleteId,legacy?.nolioId,legacy?.startDate,legacy?.refs]);
  useEffect(()=>{if(!lock.current)savedId.current=planVersionId;},[planVersionId]);
  useEffect(()=>{const s=supabase.auth.onAuthStateChange?.(event=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION')return;epoch.current++;stop.current=true;setMessage('Session modifiée : action arrêtée.');});return()=>s?.data.subscription.unsubscribe();},[]);
- const open=(s:NolioExportScope)=>{if(lock.current)return;epoch.current++;stop.current=false;setScope(s);setMessage('');setHasAttempt(false);setRefsView(null);};
+ const open=(s:NolioExportScope)=>{if(lock.current)return;epoch.current++;stop.current=false;setScope(s);setMessage('');setRefsView(null);};
  async function owned(id:string,uid:string){return bounded(supabase.from('plan_versions').select('id,athlete_id,coach_id,plan_json').eq('id',id).eq('coach_id',uid).eq('athlete_id',athleteId).maybeSingle());}
  async function run(verifyOnly=false){
   if(lock.current||!scope)return;lock.current=true;setBusy(true);stop.current=false;const token=epoch.current;
@@ -49,6 +49,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
    let id=savedId.current;
    let row=id?await owned(id,uid):null;guard();
    if(!row||row.error||!row.data||!samePrescription(row.data.plan_json,plan)){
+    if(verifyOnly)throw Error('Ouvrez la version sauvegardée de ce plan pour vérifier Nolio sans nouvel envoi.');
     if(!ensureSaved)throw Error('Enregistrez ce plan avant l’export.');
     setMessage('Enregistrement du plan…');id=await ensureSaved();guard();
     if(!id)throw Error('Sauvegarde non confirmée : aucun envoi.');row=await owned(id,uid);guard();
@@ -76,7 +77,6 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
     return !job.error&&!receipts.error&&(await confirmFullPlanDryRun({planVersionId:id!,coachId:uid,resp:r,job:job.data,receipts:receipts.data,localPlanSha256:hash})).confirmed;
    };
    const verifyReceipts=async(r:PlanDryResp)=>{const receipts=await bounded(supabase.from('qa_nolio_v2_plan_verify_receipts').select('*').eq('coach_id',uid).eq('plan_version_id',id).eq('plan_sha256',r.planSha256).eq('refs_sha256',r.refsSha256).eq('ops_sha256',r.opsSha256).order('created_at',{ascending:false}).limit(1000));guard();if(receipts.error)throw Error('Relecture Nolio indisponible : résultat non confirmé.');return currentExportVerification({coachId:uid,planVersionId:id!,resp:r,receipts:receipts.data});};
-   setHasAttempt(true);
    const result=await runCoachExport({planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,progress:m=>{if(current())setMessage(m);}},verifyOnly);guard();
    setMessage(`${result.verified}/${result.total} activités confirmées dans Nolio. Export terminé.`);
   }catch(e){if(current())setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
@@ -97,7 +97,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
   {summary&&summary.count>0&&!summary.problems.length&&<div className="rounded-lg border bg-muted/30 p-3 space-y-1 text-sm" aria-label="Résumé de l’export"><p className="font-medium">{summary.count} séance{summary.count>1?'s':''} · {summary.weeks} semaine{summary.weeks>1?'s':''}</p><p>{summary.firstDate===summary.lastDate?coachCalendarDate(summary.firstDate!):`Du ${coachCalendarDate(summary.firstDate!)} au ${coachCalendarDate(summary.lastDate!)}`}</p><p className="text-muted-foreground">Les jours de repos sont exclus. Les séances conservent leurs dates et leur contenu.</p></div>}
   <Button disabled={busy||!athleteId||(scope?.kind==='sessions'&&!scope.keys.length)} onClick={()=>void run(false)}>Exporter vers Nolio</Button>
   {busy&&<Button variant="outline" onClick={()=>{stop.current=true;setMessage('Arrêt demandé ; vérification du lot en cours…');}}>Arrêter après l’opération en cours</Button>}
-  {structured&&hasAttempt&&!busy&&<Button variant="outline" onClick={()=>void run(true)}>Vérifier dans Nolio sans renvoyer</Button>}
+  {structured&&!busy&&<Button disabled={!savedId.current&&!planVersionId} variant="outline" onClick={()=>void run(true)}>Vérifier dans Nolio sans renvoyer</Button>}
   <p role="status" className="text-sm whitespace-pre-wrap">{message}</p>
   {structured&&<details><summary>Correspondances Nolio</summary><Button variant="outline" disabled={busy} onClick={()=>void refsAction({action:'status'})}>Vérifier la connexion et les correspondances</Button>{refsView&&<NolioV2ProgressPanel status={refsView} busy={busy} ready={!!athleteId} identityKey={`${athleteId}|${savedId.current}`} planSports={sports} exerciseLabels={requiredExerciseLabels(extracted,{timedCoachStrength:true})} raceSource={races.length===1?races[0]:null} act={refsAction} simulation="NONE"/>}</details>}
  </DialogContent></Dialog></Context.Provider>;

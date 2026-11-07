@@ -14,6 +14,13 @@ beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'at
 function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} legacy={{nolioId:42,startDate:"2026-11-09",refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('offers read-only verification immediately after opening a saved plan, without exporting first',async()=>{
+  setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.flow.mock.calls[0][1]).toBe(true);
+ });
+ it('read-only verification never archives changed content',async()=>{
+  const save=vi.fn();setup(version,{...plan,title:'Changed'},save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Vérifier dans Nolio sans renvoyer'}));await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('version sauvegardée'));expect(save).not.toHaveBeenCalled();expect(mock.flow).not.toHaveBeenCalled();
+ });
+
  it('uses the same modal and saver for IA, with its existing transport and no V2 fallback',async()=>{
   const ai={...plan,_provenance:{engine:'ai'},weeks:[{weekNumber:1,sessions:[{weekNumber:1,dayIndex:1,sport:'run',title:'Séance IA',details:'Prescription existante',isRest:false}]}]} as unknown as ParsedPlan;
   mock.row={...mock.row!,plan_json:ai};mock.invoke.mockResolvedValue({data:{sent:1,total:1,errors:[]},error:null});setup(version,ai);exportNow();
