@@ -204,6 +204,9 @@ export async function sendPlannedV2(input: {
   /** Plan complet : un refus 400/404/409/422 ARRÊTE le lot (aucun état partiel silencieux). */
   stopOnRejected?: boolean;
   noRetry?: boolean;
+  /** Fresh read-only cross-version calendar check before a real reservation.
+   * The endpoint holds the provider-calendar write lease while this runs. */
+  beforeClaim?:(op:V2Operation)=>Promise<string|null>;
 }): Promise<SendReport> {
   const blocked = (reason: string): SendReport => ({ status: "BLOCKED", reason, results: [] });
   const c = input.connection;
@@ -237,6 +240,11 @@ export async function sendPlannedV2(input: {
       athleteRef: input.refs.athleteId, payloadSha256, apiVersion: "v2", state: "sending", remoteId: null, detail: null };
     // Lot borné : vérifié AVANT toute réservation (aucune opération réservée sans POST).
     if (input.maxNewPosts !== undefined && newPosts >= input.maxNewPosts) return stop("STOPPED_BATCH_LIMIT", "batch_limit");
+    if(input.beforeClaim){
+      let reason:string|null;
+      try{reason=await input.beforeClaim(op);}catch{reason='calendar_read_failed';}
+      if(reason)return stop('BLOCKED',reason);
+    }
     let claim: Awaited<ReturnType<NolioV2Ledger["claim"]>>;
     try { claim = await ledger.claim(entry); } catch { return stop("STOPPED_LEDGER_UNAVAILABLE", `claim_failed:${op.sessionKey}`); }
 

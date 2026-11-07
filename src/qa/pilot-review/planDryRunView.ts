@@ -160,6 +160,12 @@ export async function runPlanDrySequence(a: {
 }
 
 export const REASON_FR: Record<string, string> = {
+  previous_version_calendar_conflict: "une ancienne activité TFCLab est encore présente au même jour et dans le même sport",
+  previous_exports_read_failed: "l’historique des anciens exports ne peut pas être relu intégralement",
+  previous_export_unresolved: "un ancien export reste incertain et doit être vérifié dans Nolio",
+  calendar_write_busy_or_unavailable: "un autre export est en cours ou le verrou du calendrier est indisponible",
+  calendar_read_failed: "le calendrier Nolio ne peut pas être relu intégralement",
+  calendar_read_timeout: "le délai de lecture du calendrier Nolio est dépassé",
   coach_plan_provenance_invalid: "origine du plan indisponible : régénérez-le depuis la fiche de l’athlète",
   coach_plan_profile_binding_invalid: "le plan ne correspond plus au profil sauvegardé",
   coach_plan_sporting_violation: "une incohérence sportive du plan doit être corrigée",

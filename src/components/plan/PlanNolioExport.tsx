@@ -40,7 +40,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
  useEffect(()=>{const s=supabase.auth.onAuthStateChange?.(event=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION')return;epoch.current++;stop.current=true;setMessage('Session modifiée : action arrêtée.');});return()=>s?.data.subscription.unsubscribe();},[]);
  const open=(s:NolioExportScope)=>{if(lock.current)return;epoch.current++;stop.current=false;setScope(s);setMessage('');setRefsView(null);};
  async function owned(id:string,uid:string){return bounded(supabase.from('plan_versions').select('id,athlete_id,coach_id,plan_json').eq('id',id).eq('coach_id',uid).eq('athlete_id',athleteId).maybeSingle());}
- async function run(verifyOnly=false){
+ async function run(verifyOnly=false,calendarOnly=false){
   if(lock.current||!scope)return;lock.current=true;setBusy(true);stop.current=false;const token=epoch.current;
   const current=()=>token===epoch.current;
   const guard=()=>{if(!current()||stop.current)throw Error('Action arrêtée. Les activités déjà envoyées restent vérifiables.');};
@@ -50,14 +50,14 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
    let id=savedId.current;
    let row=id?await owned(id,uid):null;guard();
    if(!row||row.error||!row.data||!samePrescription(row.data.plan_json,plan)){
-    if(verifyOnly)throw Error('Ouvrez la version sauvegardée de ce plan pour vérifier Nolio sans nouvel envoi.');
+    if(verifyOnly||calendarOnly)throw Error('Ouvrez la version sauvegardée de ce plan pour vérifier Nolio sans nouvel envoi.');
     if(!ensureSaved)throw Error('Enregistrez ce plan avant l’export.');
     setMessage('Enregistrement du plan…');id=await ensureSaved();guard();
     if(!id)throw Error('Sauvegarde non confirmée : aucun envoi.');row=await owned(id,uid);guard();
    }
    if(row.error||!row.data||row.data.id!==id||row.data.coach_id!==uid||row.data.athlete_id!==athleteId||!samePrescription(row.data.plan_json,plan))throw Error('Version sauvegardée différente : export annulé.');
    savedId.current=id;
-   if(structured&&!verifyOnly&&hasRetiredRecoveryGuidance(row.data.plan_json))throw Error('Ce plan sauvegardé utilise les anciens plafonds de récupération. Régénérez-le avec les plages guidées. Les séances déjà présentes dans Nolio doivent être rapprochées avant tout nouvel export aux mêmes dates ; elles ne seront pas remplacées automatiquement.');
+   if(structured&&!verifyOnly&&!calendarOnly&&hasRetiredRecoveryGuidance(row.data.plan_json))throw Error('Ce plan sauvegardé utilise les anciens plafonds de récupération. Régénérez-le avec les plages guidées. Les séances déjà présentes dans Nolio doivent être rapprochées avant tout nouvel export aux mêmes dates ; elles ne seront pas remplacées automatiquement.');
    const snapshot=row.data.plan_json,hash=await sha256Hex(canonical(snapshot));guard();
    async function invoke(name:string,body:Record<string,unknown>){
     guard();const auth=await bounded(supabase.auth.getUser());guard();if(auth.error||auth.data.user?.id!==uid)throw Error('Identité modifiée : action annulée.');
@@ -79,8 +79,8 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
     return !job.error&&!receipts.error&&(await confirmFullPlanDryRun({planVersionId:id!,coachId:uid,resp:r,job:job.data,receipts:receipts.data,localPlanSha256:hash})).confirmed;
    };
    const verifyReceipts=async(r:PlanDryResp)=>{const receipts=await bounded(supabase.from('qa_nolio_v2_plan_verify_receipts').select('*').eq('coach_id',uid).eq('plan_version_id',id).eq('plan_sha256',r.planSha256).eq('refs_sha256',r.refsSha256).eq('ops_sha256',r.opsSha256).order('created_at',{ascending:false}).limit(1000));guard();if(receipts.error)throw Error('Relecture Nolio indisponible : résultat non confirmé.');return currentExportVerification({coachId:uid,planVersionId:id!,resp:r,receipts:receipts.data});};
-   const result=await runCoachExport({planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,progress:m=>{if(current())setMessage(m);}},verifyOnly);guard();
-   setMessage(`${result.verified}/${result.total} activités confirmées dans Nolio. Export terminé.`);
+   const result=await runCoachExport({planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,progress:m=>{if(current())setMessage(m);}},verifyOnly,calendarOnly);guard();
+   setMessage(calendarOnly?`${result.total}/${result.total} activités contrôlées : aucun ancien export TFCLab en conflit. Aucun envoi effectué.`:`${result.verified}/${result.total} activités confirmées dans Nolio. Export terminé.`);
   }catch(e){if(current())setMessage((e as Error).message);}finally{lock.current=false;setBusy(false);}
  }
  async function readZones(){
@@ -113,6 +113,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
   <Button disabled={busy||!athleteId||(scope?.kind==='sessions'&&!scope.keys.length)} onClick={()=>void run(false)}>Exporter vers Nolio</Button>
   {busy&&<Button variant="outline" onClick={()=>{stop.current=true;setMessage('Arrêt demandé ; vérification du lot en cours…');}}>Arrêter après l’opération en cours</Button>}
   {structured&&!busy&&<Button disabled={!savedId.current&&!planVersionId} variant="outline" onClick={()=>void run(true)}>Vérifier dans Nolio sans renvoyer</Button>}
+  {structured&&<Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void run(false,true)}>Rapprocher les anciens exports sans envoyer</Button>}
   {structured&&<Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void readZones()}>Lire les zones de travail Nolio</Button>}
   <p role="status" className="text-sm whitespace-pre-wrap">{message}</p>
   {structured&&<details><summary>Correspondances Nolio</summary><Button variant="outline" disabled={busy} onClick={()=>void refsAction({action:'status'})}>Vérifier la connexion et les correspondances</Button>{refsView&&<NolioV2ProgressPanel status={refsView} busy={busy} ready={!!athleteId} identityKey={`${athleteId}|${savedId.current}`} planSports={sports} exerciseLabels={requiredExerciseLabels(extracted,{timedCoachStrength:true})} raceSource={races.length===1?races[0]:null} act={refsAction} simulation="NONE"/>}</details>}

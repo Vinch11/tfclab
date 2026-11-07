@@ -13,7 +13,7 @@ export type CoachFlowPorts={
 function checkpoint(p:CoachFlowPorts){if(!p.current()||p.stopRequested())throw Error('Action interrompue. Les activités déjà envoyées restent vérifiables ; aucune relance automatique.');}
 /** One deliberate export consent, then bounded automatic technical checks.
  * No invented review, prescription/scientific flag or re-POST of uncertainty. */
-export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false){
+export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarOnly=false){
  const common={planVersionId:p.planVersionId,...(p.scope.kind==='all'?{}:{scope:p.scope})};
  async function call(name:string,body:Record<string,unknown>){checkpoint(p);const r=await p.invoke(name,body);checkpoint(p);return r as Record<string,unknown>;}
  p.progress('Vérification du plan et des correspondances Nolio…');
@@ -22,12 +22,29 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false){
  if(dry.planSha256!==p.planSha256||!dry.refsSha256||!dry.opsSha256)throw Error('Version du plan divergente : export annulé.');
  const frozen={planSha256:dry.planSha256,refsSha256:dry.refsSha256,opsSha256:dry.opsSha256};
  const same=(value:unknown)=>{const r=value as {planSha256?:string;refsSha256?:string;opsSha256?:string}|null;return !!r&&r.planSha256===frozen.planSha256&&r.refsSha256===frozen.refsSha256&&r.opsSha256===frozen.opsSha256;};
+ const total=dry.manifest?.length??0;if(!total)throw Error('Sélection vide.');
+ // Read the entire selection before the first create. A regeneration changes
+ // per-version operation keys, so prior-version conflicts need a separate check.
+ if(!verifyOnly||calendarOnly){
+  for(let from=0;from<total;){
+   p.progress(`Rapprochement des anciens exports : ${from}/${total} activités contrôlées.`);
+   const r=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'conflicts',expected:frozen,fromIndex:from});
+   if(r.status!=='CALENDAR_CHECK'||!same(r.preview as typeof frozen)||r.fromIndex!==from||r.total!==total||!Array.isArray(r.rows)||!r.rows.length||r.rows.length>8||r.nextIndex!==from+r.rows.length||Number(r.nextIndex)>total)throw Error('Rapprochement Nolio incomplet : '+reasonFr(String(r.reason??'calendar_read_failed'))+'. Aucun nouvel envoi.');
+   for(let i=0;i<r.rows.length;i++){
+    const row=r.rows[i],entry=dry.manifest![from+i];
+    if(row.opIndex!==entry.opIndex||row.sessionKey!==entry.sessionKey||row.date!==entry.date)throw Error('Rapprochement Nolio divergent : aucun nouvel envoi.');
+    if(row.status==='conflict'&&Number.isSafeInteger(row.count)&&row.count>0)throw Error(`${entry.sessionKey} · ${entry.date} : ${row.count} ancienne(s) activité(s) TFCLab présente(s) pour ce sport. Export bloqué pour éviter les doublons. Vérifiez ces séances dans Nolio ; aucune suppression ni modification automatique.`);
+    if(row.status!=='clear'||row.count!==0||row.reason!=='calendar_clear')throw Error(`${entry.sessionKey} · ${entry.date} : lecture du calendrier non confirmée. Aucun nouvel envoi.`);
+   }
+   from=Number(r.nextIndex);
+  }
+  if(calendarOnly)return {verified:0,total};
+ }
  const sequence=await runPlanDrySequence({runBatch:async()=>{const r=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'run'}));if(!r||!same(r))throw Error('Plan ou correspondances modifiés : export arrêté.');return r;},isCurrent:p.current,stopRequested:p.stopRequested,now:p.now??Date.now,sleep:p.sleep??(ms=>new Promise(resolve=>setTimeout(resolve,ms))),onProgress:r=>{p.onDry?.(r);p.progress(`Vérification Nolio : ${r.progress?.valid??0}/${r.progress?.totalOps??0} séances.`);}});
  if(sequence.stop!=='complete'||!sequence.last)throw Error(stopFr(sequence.stop));
  dry=sequence.last;checkpoint(p);
  if(!await p.confirmSimulation(dry))throw Error('Vérification des reçus impossible : aucun envoi supplémentaire.');checkpoint(p);
  const expected={...frozen,jobId:dry.progress!.jobId};
- const total=dry.manifest?.length??0;if(!total)throw Error('Sélection vide.');
  let verified=0,nextIndex=0;
  async function verifyThrough(target:number){
   for(let n=0;verified<target&&n<=total;n++){

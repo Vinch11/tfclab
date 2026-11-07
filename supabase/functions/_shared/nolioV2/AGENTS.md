@@ -1,4 +1,5 @@
 # Full-plan QA evidence
+- Regenerated versions use calendarConflicts.ts before creation: full-day list/detail reads, foreign TFCLab markers and older-version ledger IDs; unknown fails closed. The normal endpoint holds the request-bound service-only calendar write lease (migration 0025) across fresh reads and POSTs. Never convert a conflict into deletion, adoption or a successful delivery receipt.
 - Real verification receipts are append-only, bind owner/version/plan/refs/operation/body/resource, and require exact readback before reconciling lost acknowledgement; unknown never permits another POST. Why: the mutable ledger and returned create ID do not prove unique provider readback.
 - The real-send endpoint loads ordinary coach reviews server-side and still refuses synthetic/nonprescriptive plans and absence of sporting release authority; source manifest attestation is not sporting attestation. Why: review, export consent and scientific/release authority are distinct.
 

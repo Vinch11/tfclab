@@ -1,4 +1,6 @@
 import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
+import {checkCalendarConflict,markersForVersion} from '../_shared/nolioV2/calendarConflicts.ts';
+import {withCalendarWriteLock} from '../_shared/nolioV2/calendarWriteLock.ts';
 import {readAthleteZones,powerZoneSummary} from '../_shared/nolioV2/athleteZones.ts';
 import {coachPlanProblems,nativeCoachPlanProblems} from '../_shared/nolioV2/coachWorkflow.ts';
 import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
@@ -67,7 +69,8 @@ Deno.serve(async (req) => {
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
   if(b.workflow!==undefined&&b.workflow!=='coach')return json(400,{status:'REFUSED',reason:'workflow_unknown'});
   const action = b.action ?? "precheck";
-  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities" && action !== "zones") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if (action !== "precheck" && action !== "send" && action !== "verify" && action !== "capabilities" && action !== "zones" && action !== "conflicts") return json(400, { status: "REFUSED", reason: "action_unknown" });
+  if(action==='conflicts'&&(b.workflow!=='coach'||!Number.isSafeInteger(b.fromIndex)||Number(b.fromIndex)<0))return json(400,{status:'REFUSED',reason:'calendar_request_invalid'});
   if(action==='zones'&&(b.workflow!=='coach'||Object.keys(b).some(k=>!['workflow','action','planVersionId'].includes(k))))return json(400,{status:'REFUSED',reason:'zones_request_invalid'});
   const ex = (b.expected ?? null) as Record<string, unknown> | null;
   const expected = ex && typeof ex === "object" ? { planSha256: String(ex.planSha256 ?? ""), refsSha256: String(ex.refsSha256 ?? ""), opsSha256: String(ex.opsSha256 ?? ""), jobId: String(ex.jobId ?? "") } : null;
@@ -133,6 +136,33 @@ Deno.serve(async (req) => {
   // is verified against an operator-installed key and this exact source release.
   if(!normal&&!authority.ok)gate.push(authority.reason);
   const preview = sendPreview(prepared);
+  const savedVersionId=pv.id;
+
+  // All information comes from the owned saved version and its provider link.
+  // A server-side bounded history read also catches known old remote IDs whose
+  // descriptions have since lost their origin marker. Never expose those IDs.
+  async function calendarContext(){
+    const history=await admin.from('nolio_v2_operations').select('remote_id,state').eq('coach_id',sub).eq('athlete_ref',effectiveRefs.athleteId).neq('plan_version_id',savedVersionId).limit(1001);
+    if(history.error||!Array.isArray(history.data)||history.data.length>1000)throw Error('previous_exports_read_failed');
+    if(history.data.some(x=>['sending','sent_unconfirmed','ambiguous'].includes(x.state)&&!x.remote_id))throw Error('previous_export_unresolved');
+    const full=b.scope===undefined?prepared:await preparePlan(planJson,effectiveRefs,savedVersionId);
+    return {currentMarkers:await markersForVersion(savedVersionId,full.ops.map(o=>o.source)),priorRemoteIds:new Set<string>(history.data.flatMap(x=>typeof x.remote_id==='string'?[x.remote_id]:[]))};
+  }
+  if(action==='conflicts'){
+    if(!expected||expected.planSha256!==prepared.planSha256||expected.refsSha256!==prepared.refsSha256||expected.opsSha256!==prepared.opsSha256||!prepared.precheck.complete)return json(200,{status:'BLOCKED',reason:'verification_hashes_stale',preview});
+    const from=Number(b.fromIndex);
+    if(from>=prepared.ops.length)return json(400,{status:'REFUSED',reason:'calendar_request_invalid'});
+    let context;
+    try{context=await calendarContext();}catch(e){return json(200,{status:'BLOCKED',reason:(e as Error).message,preview});}
+    const http=fetchNolioV2Http({fetch:(u,i)=>fetch(u,i),accessToken:conn.accessToken,deadline:requestDeadline});
+    const rows=[];
+    for(const o of prepared.ops.slice(from,from+PLAN_SEND_BATCH)){
+      const result=await checkCalendarConflict({...context,http,athleteRef:effectiveRefs.athleteId,op:o.source,deadline:requestDeadline});
+      rows.push({opIndex:o.opIndex,sessionKey:o.sessionKey,date:o.date,...result});
+      if(result.status!=='clear')break;
+    }
+    return json(200,{status:'CALENDAR_CHECK',preview,fromIndex:from,nextIndex:from+rows.length,total:prepared.ops.length,rows});
+  }
 
   if (action === "precheck") {
     const prior = await admin.from("nolio_v2_operations").select("session_key,payload_sha256,path").eq("coach_id", sub).eq("plan_version_id", pv.id);
@@ -145,12 +175,22 @@ Deno.serve(async (req) => {
   const ledger = supabaseNolioV2Ledger(admin, sub);
   if (action === "send") {
     if (gate.length) return json(200, { status: "BLOCKED", reason: gate[0], gate, preview, network: "none" });
+    // Hold across history+calendar reads, reservations and provider POSTs. The
+    // lease spans versions, unlike the existing per-operation idempotency key.
+    try{return await withCalendarWriteLock({client:admin,coachId:sub,athleteRef:effectiveRefs.athleteId,planVersionId:pv.id,run:async()=>{
+    const context=await calendarContext();
+    const attempted=await admin.from('nolio_v2_operations').select('session_key,path').eq('coach_id',sub).eq('plan_version_id',pv.id).limit(1001);
+    if(attempted.error||!Array.isArray(attempted.data)||attempted.data.length>1000)throw Error('previous_exports_read_failed');
+    const attemptedKeys=new Set(attempted.data.map(x=>`${x.path}|${x.session_key}`));
+    const http=fetchNolioV2Http({fetch:(u,i)=>fetch(u,i),accessToken:conn.accessToken,deadline:requestDeadline});
     const report = await sendPlannedV2({
       connection: conn.connection, refs: effectiveRefs, planVersionId: pv.id, operations: prepared.ops.map((o) => o.source),
-      ledger, http: fetchNolioV2Http({ fetch: (u, i) => fetch(u, i), accessToken: conn.accessToken,deadline:requestDeadline }),
+      ledger, http,
+      beforeClaim:async op=>{if(attemptedKeys.has(`${op.path}|${op.sessionKey}`))return null;const r=await checkCalendarConflict({...context,http,athleteRef:effectiveRefs.athleteId,op,deadline:requestDeadline});return r.status==='clear'?null:r.reason;},
       maxNewPosts: PLAN_SEND_BATCH, stopOnRejected: true, noRetry: true,
     });
     return json(200, { ...report, gate, preview });
+    }});}catch(e){const reason=(e as Error).message;return json(200,{status:'BLOCKED',reason:['previous_exports_read_failed','previous_export_unresolved','calendar_write_busy_or_unavailable'].includes(reason)?reason:'calendar_read_failed',gate,preview,network:'no_create'});}
   }
   // verify : LECTURE SEULE des opérations confirmées du journal (aucun POST).
   const ops = await admin.from("nolio_v2_operations").select("session_key,state,payload_sha256,path").eq("coach_id", sub).eq("plan_version_id", pv.id);
