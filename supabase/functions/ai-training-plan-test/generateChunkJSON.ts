@@ -18,7 +18,7 @@ import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import type { z } from "npm:zod@3.23.8";
+import type { z } from "npm:zod@3.25.76";
 import {
   buildPlanChunkSchema,
   collectZodIssues,
