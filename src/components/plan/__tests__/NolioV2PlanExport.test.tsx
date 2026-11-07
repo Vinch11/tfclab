@@ -11,9 +11,16 @@ vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getU
 const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'2026-11-02',_provenance:{engine:'det',prescriptionAllowed:false}} as unknown as ParsedPlan;
 const version='22222222-2222-4222-8222-222222222222';
 beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(name)=>({data:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));mock.flow.mockResolvedValue({verified:2,total:2});});
-function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
+function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} legacy={{nolioId:42,startDate:"2026-11-09",refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('uses the same modal and saver for IA, with its existing transport and no V2 fallback',async()=>{
+  const ai={...plan,_provenance:{engine:'ai'},weeks:[{weekNumber:1,sessions:[{weekNumber:1,dayIndex:1,sport:'run',title:'Séance IA',details:'Prescription existante',isRest:false}]}]} as unknown as ParsedPlan;
+  mock.row={...mock.row!,plan_json:ai};mock.invoke.mockResolvedValue({data:{sent:1,total:1,errors:[]},error:null});setup(version,ai);exportNow();
+  await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('1/1 séances acceptées par Nolio. Export terminé.'));
+  expect(mock.flow).not.toHaveBeenCalled();expect(mock.invoke).toHaveBeenCalledOnce();expect(mock.invoke.mock.calls[0][0]).toBe('nolio-send-plan');
+ });
+
  it.each([['Plan',{kind:'all'}],['Semaine',{kind:'weeks',from:2,to:2}],['Séance',{kind:'sessions',keys:['S2-J1-0']}]] as const)('exports %s with one deliberate action and automatic technical checks',async(label,scope)=>{
   setup();expect(mock.invoke).not.toHaveBeenCalled();exportNow(label);
   await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());const p=mock.flow.mock.calls[0][0] as CoachFlowPorts;expect(p.scope).toEqual(scope);expect(p.planVersionId).toBe(version);expect(mock.invoke).toHaveBeenCalledTimes(2);

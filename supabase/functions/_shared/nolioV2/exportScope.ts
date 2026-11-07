@@ -1,7 +1,7 @@
 import type {PlanSessionInput} from './plannedMapper.ts';
 export type NolioExportScope={kind:'all'}|{kind:'weeks';from:number;to:number}|{kind:'sessions';keys:string[]};
 /** Selector only, never a client workout body or a replacement saved plan. */
-export function selectExportScope(sessions:PlanSessionInput[],input:unknown):{sessions:PlanSessionInput[];problems:string[]} {
+export function selectExportScope<T extends Pick<PlanSessionInput,'sessionKey'|'isRest'>>(sessions:T[],input:unknown):{sessions:T[];problems:string[]} {
  if(input===undefined)return {sessions,problems:[]};
  const s=input as Record<string,unknown>|null;
  const bad=()=>({sessions:[],problems:['export_scope_invalid']});
