@@ -198,6 +198,24 @@ export function getFicheForSession(
  * verbalement en Z2 dans le texte affiché et on logge l'événement.
  * Ne modifie pas la structure sous-jacente de la bibliothèque.
  */
+/**
+ * Prédicat sans effet : séance vélo à intensité Z3+ dans un objectif running pur.
+ * Les voies d'affichage (lecteur, historique, PDF) l'utilisent pour AVERTIR,
+ * jamais pour réécrire la séance sauvegardée.
+ */
+export function isRunOnlyHighIntensityBikeSession(
+  session: { sport?: string; title?: string; details?: string },
+  objectifEffectif?: string | null,
+): boolean {
+  if (!isRunOnlyObjective(objectifEffectif)) return false;
+  const sport = (session.sport || "").toLowerCase();
+  const title = session.title || "";
+  const details = session.details || "";
+  const isBike = /bike|v[ée]lo|cycl/.test(sport) || /BIKE|VÉLO|VELO/i.test(title);
+  return isBike && (/Z[3-7]\b/i.test(details) || /Z[3-7]\b/i.test(title));
+}
+
+/** @deprecated Réécrit le texte : ne plus utiliser dans une voie d'affichage. */
 export function maybeDowngradeBikeSession<T extends { sport?: string; title?: string; details?: string }>(
   session: T,
   objectifEffectif?: string | null,

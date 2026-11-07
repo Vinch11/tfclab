@@ -1,6 +1,14 @@
-import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
+// Bootstrap précoce : AUCUN import statique lourd ici. App/React/CSS sont chargés
+// dynamiquement et bornés par bootApp ; le watchdog d'index.html couvre le cas où
+// ce module lui-même n'arrive jamais.
+import { bootApp, safeSession, type BootHost } from "./bootstrap/boot";
+
+declare global { interface Window { __tfclBoot?: BootHost } }
+const host: BootHost = window.__tfclBoot ?? {
+  done: () => document.getElementById("splash-screen")?.remove(),
+  fail: (msg) => { const r = document.getElementById("root"); if (r) r.textContent = msg; },
+  isFailed: () => false,
+};
 
 // --- Stale chunk recovery -------------------------------------------------
 // After a new deploy, cached HTML/JS may reference chunk files that no longer
@@ -9,8 +17,8 @@ import "./index.css";
 const RELOAD_FLAG = "chunk-reload-attempt";
 
 const recoverFromStaleChunk = async () => {
-  if (sessionStorage.getItem(RELOAD_FLAG)) return;
-  sessionStorage.setItem(RELOAD_FLAG, "1");
+  // Stockage indisponible ⇒ pas de garde anti-boucle ⇒ pas de rechargement automatique.
+  if (safeSession.get(RELOAD_FLAG) || !safeSession.set(RELOAD_FLAG, "1")) return;
   try {
     if ("serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -42,7 +50,7 @@ window.addEventListener("unhandledrejection", (e) => {
   if (isChunkError((e.reason as Error)?.message)) void recoverFromStaleChunk();
 });
 // After a stable period, clear the guard so a future stale deploy can recover.
-window.setTimeout(() => sessionStorage.removeItem(RELOAD_FLAG), 20000);
+window.setTimeout(() => safeSession.remove(RELOAD_FLAG), 20000);
 
 // --- PWA update checks ------------------------------------------------------
 // iOS home-screen apps are rarely killed, so the service worker almost never
@@ -83,16 +91,16 @@ if (import.meta.env.PROD && !isInIframe && "serviceWorker" in navigator) {
 
 
 
-// Hide splash screen when React is ready
-const hideSplashScreen = () => {
-  const splash = document.getElementById("splash-screen");
-  if (splash) {
-    splash.style.opacity = "0";
-    setTimeout(() => splash.remove(), 500);
-  }
-};
-
-createRoot(document.getElementById("root")!).render(<App />);
-
-// Hide splash after a short delay to ensure app is rendered
-setTimeout(hideSplashScreen, 800);
+// Démarrage borné : rejet ou délai ⇒ erreur lisible + bouton Recharger (manuel).
+const BOOT_TIMEOUT_MS = 25_000;
+void bootApp({
+  timeoutMs: BOOT_TIMEOUT_MS,
+  host,
+  load: async () => {
+    const [{ createRoot }, { default: App }] = await Promise.all([
+      import("react-dom/client"), import("./App.tsx"), import("./index.css"),
+    ]);
+    return { createRoot, App };
+  },
+  render: ({ createRoot, App }) => { createRoot(document.getElementById("root")!).render(<App />); },
+});

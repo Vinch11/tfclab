@@ -7,7 +7,10 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 vi.mock("@/contexts/CloudDataContext", () => ({ useCloudDataContext: () => ({ athletes: [], snapshots: [] }) }));
-vi.mock("@/lib/aiPlanPDFExport", () => ({ exportAIPlanToPDF: vi.fn() }));
+vi.mock("@/lib/aiPlanPDFExport", async importOriginal => ({
+  ...await importOriginal<typeof import("@/lib/aiPlanPDFExport")>(),
+  exportAIPlanToPDF: vi.fn(),
+}));
 vi.mock("@/components/SessionReplaceDialog", async importOriginal => ({
  ...await importOriginal<object>(),
  SessionReplaceDialog: ({ open, onChoose }: { open: boolean; onChoose: (value: unknown) => void }) => open ?

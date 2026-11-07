@@ -42,7 +42,8 @@ const THEME_DEFAULT_VERSION = "bevel-v2";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
+    // Stockage indisponible (bloqué/mode privé) ⇒ thème par défaut, jamais d'exception au rendu.
+    if (typeof window !== "undefined") try {
       // One-time migration: force the new default theme once per version bump
       if (localStorage.getItem("theme_default_version") !== THEME_DEFAULT_VERSION) {
         localStorage.setItem("theme_default_version", THEME_DEFAULT_VERSION);
@@ -51,7 +52,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       }
       const stored = localStorage.getItem("theme") as Theme;
       if (stored && THEME_ORDER.includes(stored)) return stored;
-    }
+    } catch { /* stockage indisponible */ }
     return "bevel";
   });
 
@@ -65,7 +66,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else {
       root.classList.add(theme);
     }
-    localStorage.setItem("theme", theme);
+    try { localStorage.setItem("theme", theme); } catch { /* stockage indisponible */ }
   }, [theme]);
 
   const setTheme = (newTheme: Theme) => setThemeState(newTheme);

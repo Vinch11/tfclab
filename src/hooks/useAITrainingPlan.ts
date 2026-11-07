@@ -1,3 +1,5 @@
+import { aiProvenance } from "@/lib/plan/aiProvenance";
+import { qaEngineChoiceEnabled } from "@/lib/plan/engineDispatch";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { assessPreparedGeneration, prevalidateTrainingPlan } from "@/lib/plan/prevalidateTrainingPlan";
 import { assertPlanPrevalidation, prevalidateDeclaredCalendar, withPrevalidationIssues, type PlanPrevalidation } from "../../supabase/functions/_shared/planPrevalidation";
@@ -704,6 +706,7 @@ export function useAITrainingPlan() {
   const generationInFlightRef=useRef(false);
   const batchInFlightRef=useRef(false);
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }, frozenOptions?:Parameters<typeof prepareGenerationContracts>[2]) => {
+    if(qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL))planConfig={...planConfig,_outputFormat:"json"};
     // Guard against double-fire
     if (isLoading || generationInFlightRef.current) {
       console.warn("Plan generation already in progress — ignoring duplicate call");
@@ -1275,6 +1278,7 @@ export function useAITrainingPlan() {
             // recalcul depuis le formulaire vivant lors de l'affichage.
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
+            if(qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL)) Object.assign(parsed,{_provenance:aiProvenance(athleteData,planConfig,typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__)});
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);
@@ -1682,6 +1686,7 @@ export function useAITrainingPlan() {
           ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
         ];
+        if(qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL)) Object.assign(assembled,{_provenance:aiProvenance(athleteData,planConfig,typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__)});
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);

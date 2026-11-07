@@ -9,18 +9,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Archive, Trash2, Loader2, Calendar, FileText, Pencil, Check, X } from "lucide-react";
+import { Archive, Trash2, Loader2, Calendar, FileText, Pencil, Check, X, RotateCcw } from "lucide-react";
+import { AppendOnlyPlanVersionSaver, READBACK_COLUMNS, type PlanVersionRow } from "@/lib/plan/appendOnlyPlanVersionSave";
+import { RESTORE_MESSAGES, restoreVersionAsCurrent, saveRenamedVersion, supabaseCurrentPlanPorts, supabasePlanVersionTransport } from "@/lib/plan/planVersionEdits";
 import { Input } from "@/components/ui/input";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 
-interface PlanVersion {
-  id: string;
+interface PlanVersion extends PlanVersionRow {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   plan_json: any;
-  objective: string | null;
-  weeks_count: number | null;
-  sessions_count: number | null;
   created_at: string;
 }
 
@@ -37,6 +36,8 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [savingRename, setSavingRename] = useState(false);
+  const [restoring, setRestoring] = useState<string | null>(null);
+  const [saver] = useState(() => new AppendOnlyPlanVersionSaver({ transport: supabasePlanVersionTransport(supabase) }));
 
   useEffect(() => {
     if (!currentAthlete) return;
@@ -44,7 +45,7 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
       setLoading(true);
       const { data, error } = await supabase
         .from("plan_versions")
-        .select("id, plan_json, objective, weeks_count, sessions_count, created_at")
+        .select(`${READBACK_COLUMNS},created_at`)
         .eq("athlete_id", currentAthlete.id)
         .order("created_at", { ascending: false });
       if (error) console.error(error);
@@ -78,23 +79,38 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
     setEditValue("");
   };
 
+  // Versions IMMUABLES : renommer crée une nouvelle version (append-only),
+  // l'ancienne ligne et sa provenance stockée restent intactes.
   const saveRename = async (v: PlanVersion, e: React.MouseEvent) => {
     e.stopPropagation();
     setSavingRename(true);
-    const newJson = { ...(v.plan_json || {}), _label: editValue.trim() || null };
-    const { error } = await supabase
-      .from("plan_versions")
-      .update({ plan_json: newJson })
-      .eq("id", v.id);
-    if (error) {
-      toast.error("Erreur renommage");
-    } else {
-      setVersions(prev => prev.map(p => p.id === v.id ? { ...p, plan_json: newJson } : p));
-      toast.success("Version renommée");
-      setEditingId(null);
-      setEditValue("");
-    }
-    setSavingRename(false);
+    try {
+      const { created_at: _c, ...stored } = v;
+      const r = await saveRenamedVersion(saver, stored, editValue.trim() || null);
+      if (r.status === "CONFIRMED") {
+        toast.success("Nouvelle version enregistrée (l'ancienne est conservée)");
+        setEditingId(null); setEditValue("");
+        const { data } = await supabase.from("plan_versions").select(`${READBACK_COLUMNS},created_at`).eq("athlete_id", v.athlete_id).order("created_at", { ascending: false });
+        if (data) setVersions(data as unknown as PlanVersion[]);
+      } else if (r.status === "UNKNOWN") toast.warning("Enregistrement incertain : rechargez l'historique avant de réessayer.");
+      else toast.error(`Nouvelle version non enregistrée (${r.status})`);
+    } finally { setSavingRename(false); }
+  };
+
+  const restoreAsCurrent = async (v: PlanVersion, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (restoring) return;
+    setRestoring(v.id);
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user || u.user.id !== v.coach_id) { toast.error("Session non vérifiée : rien n'a été modifié."); return; }
+      const { created_at: _c, ...stored } = v;
+      const r = await restoreVersionAsCurrent({ ports: supabaseCurrentPlanPorts(supabase), saver, coachId: u.user.id, athleteId: v.athlete_id, version: stored });
+      const msg = RESTORE_MESSAGES[r.status];
+      if (r.status === "CONFIRMED" || r.status === "ALREADY_CURRENT") toast.success(msg);
+      else if (r.status === "PARTIAL_CURRENT_UNKNOWN" || r.status === "NOT_STARTED") toast.warning(msg);
+      else toast.error(msg);
+    } finally { setRestoring(null); }
   };
 
   if (!currentAthlete) return null;
@@ -143,8 +159,8 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
                         onChange={(e) => setEditValue(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") saveRename(v, e as any);
-                          if (e.key === "Escape") cancelEdit(e as any);
+                          if (e.key === "Enter") saveRename(v, e as unknown as React.MouseEvent);
+                          if (e.key === "Escape") cancelEdit(e as unknown as React.MouseEvent);
                         }}
                         placeholder="Nom de la version…"
                         className="h-7 text-sm"
@@ -190,6 +206,17 @@ export function PlanHistoryCard({ refreshKey = 0, onLoadVersion }: Props) {
                     </>
                   ) : (
                     <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => restoreAsCurrent(v, e)}
+                        disabled={restoring !== null}
+                        title="Définir comme plan courant"
+                        aria-label="Définir comme plan courant"
+                      >
+                        {restoring === v.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

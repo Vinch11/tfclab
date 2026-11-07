@@ -1,0 +1,3 @@
+# Full-plan QA evidence
+- Real verification receipts are append-only, bind owner/version/plan/refs/operation/body/resource, and require exact readback before reconciling lost acknowledgement; unknown never permits another POST. Why: the mutable ledger and returned create ID do not prove unique provider readback.
+- The real-send endpoint loads ordinary coach reviews server-side and still refuses synthetic/nonprescriptive plans and absence of sporting release authority; source manifest attestation is not sporting attestation. Why: review, export consent and scientific/release authority are distinct.

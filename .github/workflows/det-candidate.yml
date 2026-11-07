@@ -1,0 +1,14 @@
+name: DET candidate offline contracts
+on:
+  pull_request:
+jobs:
+  det-contracts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx vitest run -c vitest.experimental.config.ts experimental/det-engine/v35 experimental/det-engine/v359 experimental/det-engine/v360
+      - run: node scripts/preproduction/plan-release-source.mjs

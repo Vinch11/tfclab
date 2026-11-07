@@ -226,6 +226,45 @@
     </div>
     
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Watchdog de démarrage, indépendant du module principal. Si l'application n'a pas
+      // signalé son démarrage dans le délai, ou si main lui-même ne se charge pas, un message
+      // lisible + bouton « Recharger » (manuel) remplace le chargement. Aucun rechargement
+      // automatique, aucun effacement de stockage/cookies/session/service worker.
+      (function () {
+        var state = "pending";
+        function splash() { return document.getElementById("splash-screen"); }
+        function show(msg) {
+          if (state !== "pending") return;
+          state = "failed";
+          var s = splash(); if (!s) return;
+          s.style.opacity = "1";
+          s.innerHTML = "";
+          var box = document.createElement("div");
+          box.setAttribute("role", "alert");
+          box.id = "boot-error";
+          box.style.cssText = "max-width:520px;padding:24px;text-align:center;color:#fff;font-family:system-ui,sans-serif";
+          var h = document.createElement("h1"); h.textContent = "L'application n'a pas pu démarrer";
+          h.style.cssText = "font-size:20px;margin:0 0 12px";
+          var p = document.createElement("p"); p.textContent = msg; p.style.cssText = "font-size:14px;opacity:.85;margin:0 0 20px;word-break:break-word";
+          var b = document.createElement("button"); b.type = "button"; b.textContent = "Recharger";
+          b.style.cssText = "min-height:44px;padding:0 24px;border-radius:8px;border:0;background:#3b82f6;color:#fff;font-size:15px;cursor:pointer";
+          b.onclick = function () { window.location.reload(); };
+          box.appendChild(h); box.appendChild(p); box.appendChild(b); s.appendChild(box);
+        }
+        window.__tfclBoot = {
+          done: function () {
+            if (state !== "pending") return;
+            state = "done";
+            setTimeout(function () { var s = splash(); if (s) { s.style.opacity = "0"; setTimeout(function () { s.remove(); }, 500); } }, 300);
+          },
+          fail: show,
+          isFailed: function () { return state === "failed"; }
+        };
+        window.__tfclBootMainError = function () { show("Le module principal de l'application n'a pas pu être chargé."); };
+        setTimeout(function () { show("Le démarrage de l'application a dépassé 35 s."); }, 35000);
+      })();
+    </script>
+    <script type="module" src="/src/main.tsx" onerror="window.__tfclBootMainError &amp;&amp; window.__tfclBootMainError()"></script>
   </body>
 </html>

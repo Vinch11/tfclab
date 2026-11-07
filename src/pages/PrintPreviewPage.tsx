@@ -11,30 +11,61 @@ import { useSearchParams } from "react-router-dom";
  * détail du raisonnement.
  *
  * Volontairement hors `ProtectedRoute` (même traitement que `/mini-rapport`) :
- * le contenu provient uniquement de `sessionStorage` (relayé par l'onglet
- * qui a ouvert celui-ci), aucun appel Supabase n'est nécessaire — exiger une
- * session authentifiée ici ne ferait que retarder l'impression sans rien
- * protéger de plus.
+ * le contenu provient uniquement du `sessionStorage` de CET onglet (écrit
+ * directement dans la fenêtre enfant, ou dans l'onglet courant en repli),
+ * aucun appel Supabase n'est nécessaire.
+ *
+ * Lecture unique : le document est lu puis SUPPRIMÉ du sessionStorage
+ * (aucune donnée de plan ne persiste). Le cache mémoire ci-dessous absorbe
+ * la double exécution des effets en React StrictMode ; il disparaît avec
+ * l'onglet.
  */
+const consumedDocuments = new Map<string, string>();
+
+export function consumePrintDocument(key: string | null): string | null {
+  if (!key) return null;
+  const cached = consumedDocuments.get(key);
+  if (cached !== undefined) return cached;
+  let html: string | null = null;
+  try {
+    html = sessionStorage.getItem(key);
+  } catch {
+    html = null;
+  }
+  if (!html) return null;
+  consumedDocuments.set(key, html);
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // best effort
+  }
+  return html;
+}
+
+const RETURN_BAR_HTML =
+  '<div id="tfc-print-return" class="no-print" style="position:fixed;top:8px;left:8px;z-index:99999;">' +
+  '<style>@media print{#tfc-print-return{display:none!important}}</style>' +
+  '<button type="button" onclick="history.back()" style="padding:8px 14px;font:600 13px system-ui,sans-serif;border:1px solid #ccc;border-radius:6px;background:#fff;cursor:pointer;">← Retour au plan</button>' +
+  "</div>";
+
 export default function PrintPreviewPage() {
   const [params] = useSearchParams();
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
-    const key = params.get("d");
-    const html = key ? sessionStorage.getItem(key) : null;
+    const html = consumePrintDocument(params.get("d"));
     if (!html) {
       setMissing(true);
       return;
     }
     const autoPrint = params.get("autoPrint") === "1";
-    // Remplace entièrement le document actuel par celui déjà généré
-    // (même mécanisme que `doc.write` utilisé historiquement dans l'iframe
-    // de surcouche, ici appliqué à la fenêtre top-level elle-même — plus
-    // besoin d'iframe ni de synchronisation de hauteur/échelle).
+    const sameTab = params.get("sameTab") === "1";
     document.open();
     document.write(html);
     document.close();
+    if (sameTab && document.body) {
+      document.body.insertAdjacentHTML("afterbegin", RETURN_BAR_HTML);
+    }
     if (autoPrint) {
       setTimeout(() => {
         try {
@@ -52,8 +83,8 @@ export default function PrintPreviewPage() {
     <div style={{ padding: 32, fontFamily: "system-ui, -apple-system, sans-serif", maxWidth: 560, margin: "40px auto", color: "#333" }}>
       <h1 style={{ fontSize: 18, marginBottom: 8 }}>Document introuvable</h1>
       <p style={{ fontSize: 14, lineHeight: 1.5 }}>
-        Ce document d'impression n'est plus disponible dans cet onglet (fermé, rechargé après
-        expiration, ou ouvert dans un autre navigateur). Retournez à l'onglet d'origine et
+        Ce document d'impression n'est plus disponible dans cet onglet (déjà affiché puis
+        rechargé, fermé, ou ouvert dans un autre navigateur). Retournez à l'onglet d'origine et
         relancez l'export.
       </p>
     </div>

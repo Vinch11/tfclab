@@ -1,0 +1,255 @@
+{
+ "_note": "Copie lecture seule des 4 versions QA fictives (NON PRESCRIPTIVES) de Coach A, relevé 2026-11-02, pour tests de présentation.",
+ "rows": [
+  {
+   "id": "30909fcd-c421-4e35-b6ed-cbf1436fe77e",
+   "athlete_id": "c155204f-43e2-4367-9b66-6d068ef89212",
+   "coach_id": "573e045a-bbea-4e37-a30f-33183b9fbe13",
+   "objective": "QA_P0_STORAGE_V2",
+   "weeks_count": 1,
+   "sessions_count": 1,
+   "validator_score": null,
+   "validator_grade": null,
+   "validator_summary": null,
+   "plan_json": {
+    "title": "TFCLAB QA — stockage uniquement, NON PRESCRIPTIF",
+    "weeks": [
+     {
+      "phase": "base",
+      "number": 1,
+      "sessions": [
+       {
+        "day": 1,
+        "zone": "Z2",
+        "title": "QA stockage — ne pas prescrire",
+        "custom": true,
+        "isRest": false,
+        "dayName": "Lundi",
+        "details": "Fixture fictive de persistance",
+        "dayIndex": 0,
+        "catalogId": null,
+        "durationMin": 45
+       }
+      ]
+     }
+    ],
+    "_recipeId": "TFCL_QA_P0_STORAGE_20261101",
+    "_revision": 2,
+    "_objective": "70.3",
+    "_raceGoals": [
+     {
+      "date": "2027-05-09",
+      "priority": "A",
+      "objective": "70.3"
+     }
+    ],
+    "_planStartDate": "2026-11-02",
+    "_generationMode": "QA_STORAGE_ONLY",
+    "_coachLimiterOrder": [
+     "aerobic_ceiling",
+     "fractional_utilization"
+    ]
+   }
+  },
+  {
+   "id": "b50e51e4-f89b-4e77-b92a-123894163ab4",
+   "athlete_id": "c155204f-43e2-4367-9b66-6d068ef89212",
+   "coach_id": "573e045a-bbea-4e37-a30f-33183b9fbe13",
+   "objective": "QA_UI_V3",
+   "weeks_count": 1,
+   "sessions_count": 1,
+   "validator_score": null,
+   "validator_grade": null,
+   "validator_summary": null,
+   "plan_json": {
+    "title": "QA — restauration V3 NON PRESCRIPTIVE",
+    "weeks": [
+     {
+      "phase": "base",
+      "theme": "Semaine synthétique QA",
+      "sessions": [
+       {
+        "phase": "base",
+        "sport": "run",
+        "title": "QA TEST TECHNIQUE — NE PAS PRESCRIRE",
+        "zones": [],
+        "custom": true,
+        "isRest": false,
+        "dayName": "Lundi",
+        "details": "Séance fictive de test de sauvegarde.",
+        "dayIndex": 0,
+        "catalogId": null,
+        "weekTheme": "Semaine synthétique QA",
+        "weekNumber": 1,
+        "durationMin": 40,
+        "isKeySession": false
+       }
+      ],
+      "coachNotes": "FICTIF, NE PAS PRESCRIRE",
+      "weekNumber": 1,
+      "phaseObjective": "Contrôle d'affichage",
+      "computedVolumeMin": 40,
+      "computedVolumeStr": "40min"
+     }
+    ],
+    "phases": [
+     {
+      "name": "base",
+      "weeks": "1",
+      "objective": "Recette technique uniquement"
+     }
+    ],
+    "_markdown": "# QA V3\nNE PAS TRANSMETTRE",
+    "_recipeId": "TFCL_QA_UI_20261101",
+    "_revision": 3,
+    "_objective": "70.3",
+    "_qaFixture": true,
+    "_raceGoals": [
+     {
+      "date": "2027-05-09",
+      "priority": "A",
+      "raceDate": "2027-05-09",
+      "objective": "70.3"
+     }
+    ],
+    "diagnostic": "Test technique de stockage, non destiné à un entraînement.",
+    "totalWeeks": 1,
+    "_planStartDate": "2026-11-02",
+    "strategicRecap": {
+     "limiters": [],
+     "synergies": []
+    },
+    "_coachLimiterOrder": [
+     "aerobic_ceiling",
+     "fractional_utilization"
+    ],
+    "_qaNonPrescriptive": true
+   }
+  },
+  {
+   "id": "dbef1593-d86d-4f23-a587-29bd67e6936f",
+   "athlete_id": "c155204f-43e2-4367-9b66-6d068ef89212",
+   "coach_id": "573e045a-bbea-4e37-a30f-33183b9fbe13",
+   "objective": "QA_UI_V4",
+   "weeks_count": 1,
+   "sessions_count": 1,
+   "validator_score": null,
+   "validator_grade": null,
+   "validator_summary": null,
+   "plan_json": {
+    "title": "QA — restauration V4 NON PRESCRIPTIVE",
+    "weeks": [
+     {
+      "phase": "base",
+      "theme": "Semaine synthétique QA",
+      "sessions": [
+       {
+        "phase": "base",
+        "sport": "run",
+        "title": "QA TEST TECHNIQUE — NE PAS PRESCRIRE",
+        "zones": [],
+        "custom": true,
+        "isRest": false,
+        "dayName": "Lundi",
+        "details": "Séance fictive de test de sauvegarde.",
+        "dayIndex": 0,
+        "catalogId": null,
+        "weekTheme": "Semaine synthétique QA",
+        "weekNumber": 1,
+        "durationMin": 45,
+        "isKeySession": false
+       }
+      ],
+      "coachNotes": "FICTIF, NE PAS PRESCRIRE",
+      "weekNumber": 1,
+      "phaseObjective": "Contrôle d'affichage",
+      "computedVolumeMin": 45,
+      "computedVolumeStr": "45min"
+     }
+    ],
+    "phases": [
+     {
+      "name": "base",
+      "weeks": "1",
+      "objective": "Recette technique uniquement"
+     }
+    ],
+    "_markdown": "# QA V4\nNE PAS TRANSMETTRE",
+    "_recipeId": "TFCL_QA_UI_20261101",
+    "_revision": 4,
+    "_objective": "70.3",
+    "_qaFixture": true,
+    "_raceGoals": [
+     {
+      "date": "2027-05-09",
+      "priority": "A",
+      "raceDate": "2027-05-09",
+      "objective": "70.3"
+     }
+    ],
+    "diagnostic": "Test technique de stockage, non destiné à un entraînement.",
+    "totalWeeks": 1,
+    "_planStartDate": "2026-11-02",
+    "strategicRecap": {
+     "limiters": [],
+     "synergies": []
+    },
+    "_coachLimiterOrder": [
+     "aerobic_ceiling",
+     "fractional_utilization"
+    ],
+    "_qaNonPrescriptive": true
+   }
+  },
+  {
+   "id": "f49326ef-528d-4f75-9d64-047a9c705585",
+   "athlete_id": "c155204f-43e2-4367-9b66-6d068ef89212",
+   "coach_id": "573e045a-bbea-4e37-a30f-33183b9fbe13",
+   "objective": "QA_P0_STORAGE_V1",
+   "weeks_count": 1,
+   "sessions_count": 1,
+   "validator_score": null,
+   "validator_grade": null,
+   "validator_summary": null,
+   "plan_json": {
+    "title": "TFCLAB QA — stockage uniquement, NON PRESCRIPTIF",
+    "weeks": [
+     {
+      "phase": "base",
+      "number": 1,
+      "sessions": [
+       {
+        "day": 1,
+        "zone": "Z2",
+        "title": "QA stockage — ne pas prescrire",
+        "custom": true,
+        "isRest": false,
+        "dayName": "Lundi",
+        "details": "Fixture fictive de persistance",
+        "dayIndex": 0,
+        "catalogId": null,
+        "durationMin": 40
+       }
+      ]
+     }
+    ],
+    "_recipeId": "TFCL_QA_P0_STORAGE_20261101",
+    "_revision": 1,
+    "_objective": "70.3",
+    "_raceGoals": [
+     {
+      "date": "2027-05-09",
+      "priority": "A",
+      "objective": "70.3"
+     }
+    ],
+    "_planStartDate": "2026-11-02",
+    "_generationMode": "QA_STORAGE_ONLY",
+    "_coachLimiterOrder": [
+     "aerobic_ceiling",
+     "fractional_utilization"
+    ]
+   }
+  }
+ ]
+}

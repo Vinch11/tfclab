@@ -8,6 +8,7 @@
 export type RepairIntentFamily =
   | "endurance_fondamentale"
   | "seuil"
+  | "mixed_intensity"
   | "vo2"
   | "sprint"
   | "technique"
@@ -64,7 +65,7 @@ export interface RepairCompatibilityResult {
 
 const VERIFIED_REPAIR_INTENTS = new Set<RepairIntentFamily>([
   "endurance_fondamentale", "seuil", "vo2", "sprint", "technique", "force",
-  "recuperation", "test", "race_pace", "brick", "fatmax",
+  "recuperation", "test", "race_pace", "brick", "fatmax", "mixed_intensity",
 ]);
 
 export function isCompleteRepairWorkoutMetadata(value: unknown): value is RepairWorkoutMetadata {
@@ -120,6 +121,8 @@ export function normalizeRepairSport(raw: unknown): string {
 export function normalizeRepairGoal(raw: unknown): string | null {
   const value = normalizeToken(raw).replace(/\s+/g, " ");
   if (!value) return null;
+  if (/^(?:cycling|bike|velo|cyclisme)(?:\b|$)|contre.la.montre/.test(value)) return "cycling";
+  if (/^(?:swimming|swim|natation)(?:\b|$)/.test(value)) return "swimming";
   if (value === "half") return "half";
   if (value === "olympic") return "olympic";
   if (/start.?to.?run|debut.*cour|repris.*cour/.test(value)) return "start_to_run";
@@ -201,7 +204,7 @@ export function evaluateRepairSportingEquivalence(
 
   if (isRecoveryWeekType(context.weekType)) {
     if (candidate.mainZoneMax > 2) reasons.push(`recovery_zone:z${candidate.mainZoneMax}`);
-    if (["seuil", "vo2", "sprint", "race_pace", "test", "fatmax"].includes(candidate.intentFamily)) {
+    if (["seuil", "vo2", "sprint", "race_pace", "test", "fatmax", "mixed_intensity"].includes(candidate.intentFamily)) {
       reasons.push(`recovery_intent:${candidate.intentFamily}`);
     }
   }

@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServer as createHttpServer } from "node:http";
 
+export const detRuntimeFolders = ["experimental/det-engine", "scripts/library-v3"];
 export const manifestPath = "supabase/functions/_shared/planReleaseManifest.ts";
 const hash = value => createHash("sha256").update(value).digest("hex");
 const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === "object"
@@ -45,8 +46,14 @@ export async function calculatePlanRelease(root) {
   finally { console.log = oldLog; await ssr.close(); }
   const catalogJSON = JSON.stringify(canonical([...catalog].sort((a, b) => a.id.localeCompare(b.id, "en"))));
   const common = runtimeFiles(root, "supabase/functions/_shared");
+  // DET runtime actually bundled by the DEV QA lab: engine modules, pure
+  // fixture setup and the V3 catalogue. Tests, vitest configs, historical
+  // reports (docs/) and generator scripts (.mjs) stay excluded.
+  const det = [...runtimeFiles(root, "experimental/det-engine"), ...runtimeFiles(root, "scripts/library-v3")]
+    .filter(file => !/(^|\/)vitest\.[^/]*\.ts$/.test(file) && file !== "experimental/det-engine/tsconfig.json");
   const components = {
-    frontend: sourceHash(root, [...runtimeFiles(root, "src"), ...common, "vite.config.ts", "scripts/preproduction/plan-release-source.mjs"]),
+    frontend: sourceHash(root, [...runtimeFiles(root, "src"), ...common, ...det, "vite.config.ts", "scripts/preproduction/plan-release-source.mjs"]),
+    "det-engine": sourceHash(root, det),
     "ai-training-plan": sourceHash(root, [...common, ...runtimeFiles(root, "supabase/functions/ai-training-plan")]),
     "ai-training-plan-test": sourceHash(root, [...common, ...runtimeFiles(root, "supabase/functions/ai-training-plan-test")]),
   };
