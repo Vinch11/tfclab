@@ -346,7 +346,7 @@ function DataCompleteness({ completeness }: { completeness: { measured: number; 
   const total = completeness.measured + completeness.missing;
   const pct = total > 0 ? Math.round((completeness.measured / total) * 100) : 0;
   const data = [
-    { name: "Mesuré", value: completeness.measured, fill: COLORS.ok },
+    { name: "Disponible", value: completeness.measured, fill: COLORS.ok },
     { name: "Manquant", value: completeness.missing, fill: COLORS.muted },
   ];
 
@@ -368,7 +368,7 @@ function DataCompleteness({ completeness }: { completeness: { measured: number; 
       </div>
       <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-3 text-[10px]">
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-emerald-500" /> {completeness.measured} mesurées
+          <span className="w-2 h-2 rounded-full bg-emerald-500" /> {completeness.measured} disponibles
         </span>
         <span className="flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-muted-foreground/50" /> {completeness.missing} manquantes

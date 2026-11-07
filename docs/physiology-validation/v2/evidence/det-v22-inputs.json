@@ -1,0 +1,39 @@
+{
+  "version":"det-v22-preregistered-1",
+  "registeredAt":"2026-10-29T13:23:00Z",
+  "syntheticOnly":true,
+  "clock":"2026-10-29T12:00:00Z",
+  "seed":"QA_PROFILES:B-IM (raw input helper only; no desired output supplied)",
+  "common":{
+    "objective":"IM","ambition":"finisher","trainingLevel":"trained","weeklyHours":10,"weeksAvailable":16,
+    "planStartDate":"2026-11-02","raceDate":"2027-02-21","sessionsPerWeek":7,"maxSessionsPerDay":2,
+    "strengthSessionsPerWeek":1,"deloadCadenceWeeks":4,
+    "constraints":"SYNTHETIC V22. Lundi repos complet. Disponible mardi à dimanche. Maximum deux séances par jour. Piscine et home-trainer disponibles. Aucune blessure déclarée.",
+    "availableDays":[1,2,3,4,5,6],"maxDaily":2,"minRest":1,
+    "normalCaps":{"swim":75,"bike":120,"run":75,"strength":40},"longCaps":{"bike":180,"run":90},
+    "history":{"recentWeeklyHours":10,"chronicWeeklyHours":10,"recentWeeksCount":8},
+    "historyProvenance":"Synthetic coach envelope: eight mock weeks at 600 min, bike180/run90 max, no pain, recovery reported; not inferred from qualitative level or physiological markers.",
+    "defaultFocusSport":"bike",
+    "coachDomainBindings":{"Z1":"recovery","Z2":"moderate_lt1"},
+    "bindingScope":"Explicit candidate interpretation for moderate/recovery recipes only, not proof of measured LT1. Technique/strength do not become metabolic intensity.",
+    "noAutomaticApproval":true
+  },
+  "cases":[
+    {"id":"A_aerobic","targetDescription":"Relatively low aerobic capacity, preserved observed threshold-maintenance; target is a test hypothesis, not a required diagnostic output.",
+     "rawOverrides":{"age":35,"weightKg":72,"vo2max":40,"ftp":265,"vma":15,"paceThresholdSecPerKm":290,"css":115,"vlamax":0.3,"vlamaxRun":0.3,"tteObservedMin":65,"tteObservedMinRun":null,"tteMode":"observed","pmax5s":800,"p30sW":550,"p60sW":420,"map5minW":320,"runEconomyScore":3},
+     "fieldEvidence":{"date":"2026-10-27","aerobicTest":"Synthetic measured VO2max on bike ramp; no new formula","thresholdTest":"Synthetic bike FTP reference, 65-min maintained intensity in comparable independent mock observation; not LT2/CP equivalence","crawlTest":"Synthetic crawl CSS115s/100m; not backstroke or breaststroke reference","durability":"not measured by the fresh tests"}},
+    {"id":"B_sustainability","targetDescription":"Observed short duration of maintaining cycling threshold intensity, not an inferred long-event durability score.",
+     "rawOverrides":{"age":35,"weightKg":72,"vo2max":60,"ftp":265,"vma":18,"paceThresholdSecPerKm":235,"css":105,"vlamax":0.3,"vlamaxRun":0.3,"tteObservedMin":28,"tteObservedMinRun":null,"tteMode":"observed","pmax5s":800,"p30sW":550,"p60sW":420,"map5minW":350,"runEconomyScore":3},
+     "fieldEvidence":{"date":"2026-10-27","aerobicTest":"Synthetic measured bike ramp VO2max","thresholdTest":"Synthetic bike reference maintained28min at target under documented repeatable mock conditions; not a fresh-test durability measure","crawlTest":"Synthetic crawl CSS105s/100m only","durability":"no Ironman durability acquired or measured; TTE limitation is the documented target"}},
+    {"id":"C_uncertain","targetDescription":"Missing individual anchors and source-dose evidence must retain explicit refusals.",
+     "rawOverrides":{"age":35,"weightKg":72,"vo2max":null,"ftp":null,"ftpKg":null,"vma":null,"paceThresholdSecPerKm":null,"css":null,"vlamax":null,"vlamaxRun":null,"tteObservedMin":null,"tteObservedMinRun":null,"tteMode":null,"pmax5s":null,"p30sW":null,"p60sW":null,"map5minW":null,"runEconomyScore":null},
+     "fieldEvidence":{"date":"2026-10-27","aerobicTest":null,"thresholdTest":null,"crawlTest":null,"durability":null}}
+  ],
+  "feedbackCases":[
+    {"id":"unknown","quality":"missing","felt":"not_reported","recovered":"unknown","source":"Preregistered synthetic missing response; no capacity gain."},
+    {"id":"pain","quality":"usable","felt":"harder_than_expected","recovered":"no","pain":true,"source":"Preregistered synthetic pain and incomplete recovery; hold."},
+    {"id":"recovered","quality":"usable","felt":"as_expected","recovered":"yes","source":"Preregistered synthetic comparable dose recovered; maintenance, not capacity increase."}
+  ],
+  "futureResponsesNotAssumed":true,
+  "noNewDoseFormula":true
+}

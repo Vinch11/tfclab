@@ -1,0 +1,35 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+2:58:12 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/__tests__/physiologyValidationV2.provenance.test.ts (28 tests | 4 failed) 20ms
+     × does not assign a linked bike laboratory VLamax to running 6ms
+     × does not assign a linked tri laboratory VLamax to running 1ms
+     × does not assign a linked swim laboratory VLamax to running 1ms
+     × does not assign a linked unknown laboratory VLamax to running 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/physiologyValidationV2.provenance.test.ts > V2 — invalid/unknown provenance must not manufacture a physiological input > does not assign a linked bike laboratory VLamax to running
+ FAIL  src/lib/__tests__/physiologyValidationV2.provenance.test.ts > V2 — invalid/unknown provenance must not manufacture a physiological input > does not assign a linked tri laboratory VLamax to running
+ FAIL  src/lib/__tests__/physiologyValidationV2.provenance.test.ts > V2 — invalid/unknown provenance must not manufacture a physiological input > does not assign a linked swim laboratory VLamax to running
+ FAIL  src/lib/__tests__/physiologyValidationV2.provenance.test.ts > V2 — invalid/unknown provenance must not manufacture a physiological input > does not assign a linked unknown laboratory VLamax to running
+AssertionError: expected 0.8 not to be 0.8 // Object.is equality
+ ❯ src/lib/__tests__/physiologyValidationV2.provenance.test.ts:60:30
+     58|     const test = mapTestToV2({ athlete_id: "synthetic", vlamax: 0.8, d…
+     59|     const result = computeVLamaxEffectif({ athleteId: "synthetic", obj…
+     60|     expect(result.value).not.toBe(0.8);
+       |                              ^
+     61|   });
+     62| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 24 passed (28)
+   Start at  14:58:12
+   Duration  1.09s (transform 438ms, setup 69ms, import 510ms, tests 20ms, environment 320ms)

@@ -1,0 +1,384 @@
+{
+  "profiles": 37,
+  "all_stable_blocks_equal": true,
+  "changed_run_mlss": [
+    {
+      "id": "B-70.3",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-SEMI",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-SPRINT",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-IM",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-MARATHON",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-10K",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-5K",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-OLYMPIC",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-STARTTORUN",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-TRAIL-SHORT",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-TRAIL-MOUNTAIN",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-TRAIL-ULTRA",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "B-5K-BEGINNER",
+      "before_prediction": {
+        "mlssPct": 92,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 18.54,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-01",
+      "before_prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 10.78,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-03",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-05",
+      "before_prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 15.5,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-07",
+      "before_prediction": {
+        "mlssPct": 87.6,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 22.92,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-09",
+      "before_prediction": {
+        "mlssPct": 86.2,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 24.26,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-11",
+      "before_prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 10.78,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-13",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-15",
+      "before_prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 15.5,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-17",
+      "before_prediction": {
+        "mlssPct": 87.6,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 22.92,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-19",
+      "before_prediction": {
+        "mlssPct": 86.2,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 24.26,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-EXTRA-MARATHON",
+      "before_prediction": {
+        "mlssPct": 95,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 10.78,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    },
+    {
+      "id": "V2-EXTRA-ULTRA",
+      "before_prediction": {
+        "mlssPct": 93.7,
+        "confidence": 0.75,
+        "trace": {
+          "formula": "MLSS_pct = 100\u00b7(1 \u2212 0.337\u00b7VLa \u2212 0.0021\u00b7(CE\u2212200))",
+          "vlamaxContribution": 16.85,
+          "ceContribution": -10.5,
+          "rmseExpected": 2.64
+        }
+      },
+      "after_prediction": null,
+      "observed_preserved": true
+    }
+  ],
+  "alerts_changed": [
+    "B-5K-BEGINNER"
+  ]
+}

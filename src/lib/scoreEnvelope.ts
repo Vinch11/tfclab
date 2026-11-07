@@ -1,3 +1,4 @@
+import type { ScientificQualification } from "@/lib/scientificQualification";
 // =============================================
 // SCORE ENVELOPE — FORMAT UNIVERSEL STAFF-GRADE
 // Supprime l'illusion de précision, renforce la crédibilité scientifique
@@ -24,6 +25,7 @@ export type ConfidenceLabel = "FAIBLE" | "MODÉRÉE" | "ÉLEVÉE";
  * Enveloppe universelle pour tous les scores
  */
 export interface ScoreEnvelope {
+  scientificQualification?: ScientificQualification;
   metricId: string;
   label: string;
   value: number | null;

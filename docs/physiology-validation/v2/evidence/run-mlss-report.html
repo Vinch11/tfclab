@@ -1,0 +1,41 @@
+
+    <section id="run-mlss-coherence" class="section pagebreakAvoid">
+      <h2>🎯 Run MLSS — Cohérence Modèle C <span style="font-size:11px;font-weight:400;color:#6E6B78;">(RMSE 2.64% sur N=14 run)</span></h2>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;color:#6E6B78;">% MLSS effectif (utilisé pour ancrage Z5)</div>
+            <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
+              85.8% VMA
+            </div>
+          </div>
+          <span class="badge badgeWarning" style="font-size:11px;padding:5px 12px;">🧪 Prédit (Modèle C ; confiance heuristique)</span>
+        </div>
+
+        <div class="grid2">
+
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#6E6B78;">Observé terrain</div>
+      <div style="font-size:12px;color:#97949F;">Pas de test seuil</div>
+    </div>
+
+    <div class="card" style="padding:10px;">
+      <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
+      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">85.8% VMA</div>
+      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE historique 2.64 points ; pas une marge individuelle</div>
+    </div>
+        </div>
+
+
+      </div>
+
+      <div class="alert alertInfo mt" style="font-size:10px;">
+        <b>📚 Modèle C (TFCL™ N=14 run) :</b> <code>MLSS_pct = 1 − 0.337·VLa_run − 0.0021·(CE − 200)</code>.
+        Quand un test seuil 30 min est disponible, l'observé prime. Sinon, la prédiction Modèle C ancre Z5 dans le plan IA (à confirmer par un test terrain).
+      </div>
+      <div class="card" style="font-size:11px;">
+    <b>Coût O₂ course :</b> 200 ml O2/kg/km.<br>
+    Date du test : 2026-10-20 ; méthode : inconnue ; origine scientifique : unknown ; stockage : lab_import.<br>Confiance : 0.9 (extraction) ; marge : inconnue.
+  </div>
+    </section>

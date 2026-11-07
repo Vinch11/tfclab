@@ -1,0 +1,9 @@
+{
+  "detSha": "ec72f8808f47c64f9f7361ac8e31108351348fdc",
+  "v25ConsumerBlob": "e1a570ebe2fd12863c3c0f6c4e4e6bd76f5a7880",
+  "v25ConsumerSha256": "7b4a4531112acb6955db0c52c551b649c3fd845da54dd597dd96019ef5879846",
+  "registeredClaimArtifactActuallyChecked": true,
+  "pr424FixtureSha256": "27a2c18a57cf3c292c46d0092bc83458231a0dafcb4b37248426b34d3c187e5a",
+  "noDetFilesChanged": true,
+  "noNewPhysiologicalObservation": true
+}

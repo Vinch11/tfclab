@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, scientificReferenceLabel, type ScientificQualification } from "@/lib/scientificQualification";
 /**
  * VLamax TFCL V2 Engine — Staff-Grade
  * 
@@ -28,6 +29,7 @@ export type VLamaxV2Source =
 export type SportContext = "velo" | "cap" | "natation";
 
 export interface VLamaxV2Result {
+  scientificQualification?: ScientificQualification;
   /** Valeur brute issue du calcul (interne uniquement) */
   raw: number | null;
   /** Valeur effective: clampée + lissée (seule valeur affichée) */
@@ -332,7 +334,7 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxV2Result {
   // 7. Labels
   const isLocked = source === "test_labo";
   const sourceLabelsMap: Record<VLamaxV2Source, string> = {
-    test_labo:          "VLamax (mesurée labo)",
+    test_labo:          UNKNOWN_VLAMAX_LABEL,
     semaine_reference:  "VLamax (semaine ref.)",
     test_terrain:       "VLamax (test terrain)",
     estimation:         "VLamax (estimée)",
@@ -360,10 +362,10 @@ export function computeVLamaxV2(input: VLamaxV2Input): VLamaxV2Result {
   if (smooth && previousEffective !== null) {
     detailParts.push(`EWMA α=${EWMA_ALPHA} appliqué`);
   }
-  detailParts.push(`Effectif: ${effective.toFixed(2)} ± ${errorMargin.toFixed(2)}`);
-  detailParts.push(`Fiabilité: ${confidence >= 0.8 ? 'Élevée' : confidence >= 0.6 ? 'Modérée' : confidence >= 0.4 ? 'Limitée' : 'Exploratoire'}`);
+  detailParts.push(`Effectif: ${effective.toFixed(2)} ; marge heuristique interne ± ${errorMargin.toFixed(2)} (pas une précision expérimentale)`);
+  detailParts.push(`Score heuristique interne: ${confidence >= 0.8 ? 'Élevée' : confidence >= 0.6 ? 'Modérée' : confidence >= 0.4 ? 'Limitée' : 'Exploratoire'}`);
   if (sourceLabels.length > 0) {
-    detailParts.push(`Sources: ${sourceLabels.join(", ")}`);
+    detailParts.push(`Sources internes déclarées (non vérifiées): ${sourceLabels.join(", ")}`);
   }
 
   return {
@@ -401,7 +403,7 @@ export function formatVLamaxAthlete(result: VLamaxV2Result): string {
  */
 export function formatVLamaxStaff(result: VLamaxV2Result): string {
   if (result.effective === null) return "— (données insuffisantes)";
-  return `${result.effective.toFixed(2)} ± ${result.errorMargin.toFixed(2)}`;
+  return `${result.effective.toFixed(2)} ; marge heuristique interne ± ${result.errorMargin.toFixed(2)}`;
 }
 
 /**
@@ -409,7 +411,7 @@ export function formatVLamaxStaff(result: VLamaxV2Result): string {
  */
 export function formatVLamaxRange(result: VLamaxV2Result): string {
   if (result.effective === null || !result.range) return "—";
-  return `${result.effective.toFixed(2)} [${result.range.low.toFixed(2)}–${result.range.high.toFixed(2)}]`;
+  return `${result.effective.toFixed(2)} [${result.range.low.toFixed(2)}–${result.range.high.toFixed(2)}] (plage heuristique interne)`;
 }
 
 // =============================================
@@ -422,7 +424,7 @@ export const VLAMAX_V2_ACADEMY_TEXT = {
 
 TFCL affiche volontairement une valeur avec marge d'erreur et niveau de confiance, car la décision d'entraînement dépend davantage de la tendance et de la zone physiologique que d'un chiffre isolé.
 
-Une variation de ±0.02 est physiologiquement normale et ne justifie pas à elle seule un changement de stratégie.`,
+La marge interne ±0.02 ne démontre pas une précision expérimentale individuelle ; aucune validité physiologique ne se déduit du seul score interne.`,
 };
 
 // =============================================
@@ -430,9 +432,10 @@ Une variation de ±0.02 est physiologiquement normale et ne justifie pas à elle
 // =============================================
 
 /** Labels humains pour la source de la donnée */
-export function getV2SourceLabel(source: VLamaxV2Source): string {
+export function getV2SourceLabel(source: VLamaxV2Source, qualification?: ScientificQualification): string {
+  if (qualification) return scientificReferenceLabel(qualification, qualification.value);
   switch (source) {
-    case "test_labo":         return "Test labo";
+    case "test_labo":         return "Référence stockée — catégorie interne, origine inconnue";
     case "semaine_reference": return "Sem. référence";
     case "test_terrain":      return "Test terrain";
     case "estimation":        return "Estimation";
@@ -480,8 +483,8 @@ export function getV2ConfidenceColor(confidence: number): string {
 
 /** @deprecated Kept for internal use only - not displayed to coaches */
 export function getV2ConfidenceLabel(confidence: number): string {
-  if (confidence >= 0.85) return "Très fiable";
-  if (confidence >= 0.70) return "Fiable";
+  if (confidence >= 0.85) return "Score heuristique élevé";
+  if (confidence >= 0.70) return "Score heuristique élevé";
   if (confidence >= 0.50) return "Modéré";
   if (confidence >= 0.35) return "Faible";
   return "Fragile";

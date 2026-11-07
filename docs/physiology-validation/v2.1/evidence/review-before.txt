@@ -1,0 +1,163 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+3:34:59 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts (10 tests | 9 failed) 21ms
+     × does not restore stale evidence when a scalar is edited away and back 6ms
+     × explicit unknown test date overrides a shared report date 1ms
+     × explicit unknown confidence is not replaced by extraction confidence 1ms
+     × per-parameter storage origin is retained 3ms
+     × rejects a malformed replacement instead of overwriting valid provenance 2ms
+     × invalid calendar dates remain unknown 1ms
+     × unknown discipline cannot create a stored metabolic classification 1ms
+     × missing laboratory discipline is not inferred from goal Marathon 2ms
+     × missing laboratory discipline is not inferred from goal IM 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 9 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > does not restore stale evidence when a scalar is edited away and back
+AssertionError: expected '2026-10-20' to be null
+
+- Expected:
+null
+
++ Received:
+"2026-10-20"
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:21:85
+     19|     const changed = preserve(envelope(), undefined, { vma: 19 });
+     20|     const returned = preserve(changed, undefined, { vma: 18 });
+     21|     expect(snapshotPhysiologyEvidence({ vma: 18, coach_notes: returned…
+       |                                                                                     ^
+     22|   });
+     23|   it("explicit unknown test date overrides a shared report date", () =…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > explicit unknown test date overrides a shared report date
+AssertionError: expected '2026-10-20' to be null
+
+- Expected:
+null
+
++ Received:
+"2026-10-20"
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:24:101
+     22|   });
+     23|   it("explicit unknown test date overrides a shared report date", () =…
+     24|     expect(snapshotPhysiologyEvidence({ vma: 18, coach_notes: envelope…
+       |                                                                                                     ^
+     25|   });
+     26|   it("explicit unknown confidence is not replaced by extraction confid…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > explicit unknown confidence is not replaced by extraction confidence
+AssertionError: expected 0.9 to be null
+
+- Expected:
+null
+
++ Received:
+0.9
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:27:113
+     25|   });
+     26|   it("explicit unknown confidence is not replaced by extraction confid…
+     27|     expect(snapshotPhysiologyEvidence({ vma: 18, coach_notes: envelope…
+       |                                                                                                                 ^
+     28|   });
+     29|   it("per-parameter storage origin is retained", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > per-parameter storage origin is retained
+AssertionError: expected 'lab_import' to be 'coach_declared' // Object.is equality
+
+Expected: "coach_declared"
+Received: "lab_import"
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:30:131
+     28|   });
+     29|   it("per-parameter storage origin is retained", () => {
+     30|     expect(snapshotPhysiologyEvidence({ vma: 18, coach_notes: envelope…
+       |                                                                                                                                   ^
+     31|   });
+     32|   it("rejects a malformed replacement instead of overwriting valid pro…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > rejects a malformed replacement instead of overwriting valid provenance
+AssertionError: expected [Function] to throw an error
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:33:92
+     31|   });
+     32|   it("rejects a malformed replacement instead of overwriting valid pro…
+     33|     expect(() => preservePhysiologyNotes(envelope(), "edited\nTFCL_PHY…
+       |                                                                                            ^
+     34|   });
+     35|   it("invalid calendar dates remain unknown", () => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > invalid calendar dates remain unknown
+AssertionError: expected '2026-02-31' to be null
+
+- Expected:
+null
+
++ Received:
+"2026-02-31"
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:36:109
+     34|   });
+     35|   it("invalid calendar dates remain unknown", () => {
+     36|     expect(snapshotPhysiologyEvidence({ vma: 18, coach_notes: envelope…
+       |                                                                                                             ^
+     37|   });
+     38|   it("unknown discipline cannot create a stored metabolic classificati…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > unknown discipline cannot create a stored metabolic classification
+AssertionError: expected 66 to be null
+
+- Expected:
+null
+
++ Received:
+66
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:42:37
+     40|     extract.performance.vo2max_ml_kg_min = 60; extract.vlamax.value = …
+     41|     const payload = mapExtractToSnapshot(extract, "Marathon");
+     42|     expect(payload.metabolic_score).toBeNull();
+       |                                     ^
+     43|     expect(payload.metabolic_profile).toBe("Données insuffisantes");
+     44|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/9]⎯
+
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > missing laboratory discipline is not inferred from goal Marathon
+ FAIL  src/lib/__tests__/physiologyReviewV21.test.ts > V2.1 — confirmed provenance boundaries > missing laboratory discipline is not inferred from goal IM
+AssertionError: expected 0.8 to be null
+
+- Expected:
+null
+
++ Received:
+0.8
+
+ ❯ src/lib/__tests__/physiologyReviewV21.test.ts:47:26
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/9]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  9 failed | 1 passed (10)
+   Start at  15:34:59
+   Duration  897ms (transform 339ms, setup 59ms, import 374ms, tests 21ms, environment 258ms)

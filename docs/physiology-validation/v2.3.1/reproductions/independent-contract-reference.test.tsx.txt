@@ -1,0 +1,88 @@
+import {appendFileSync} from 'node:fs';
+import {it,expect,vi,afterEach} from 'vitest';
+import {render,cleanup} from '@testing-library/react';
+import {qualifyReference,requalifyReference,qualifyScoreEnvelope} from '@/lib/scientificQualification';
+import {resolveVlamaxForGoal} from '@/lib/vlamaxResolver';
+import {computeDiagnostic} from '@/engines/diagnostic/computeDiagnostic';
+import {diagnosticPhysiologicalEvidence} from '@/lib/physiologyEvidence';
+import {buildPilotDiagnosticInput} from '@/lib/plan/qa/preparePilotTrainingPlanContext';
+import {QA_PROFILES} from '@/lib/plan/qa/syntheticProfiles';
+import {VLamaxUnifiedCard} from '@/components/VLamaxUnifiedCard';
+import {toVLamaxEnvelope} from '@/lib/vlamaxEffectif';
+import {computeVLamaxV2 as legacyEngine} from '@/lib/v2/vlamaxV2';
+vi.mock('@/integrations/supabase/client',()=>({supabase:{}}));
+vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN')});
+afterEach(cleanup);
+const print=(...args:unknown[])=>appendFileSync('/tmp/tfclab-c8-independent/observed.jsonl', JSON.stringify(args)+'\n');
+const ctx={subjectId:'synthetic:A',quantity:'vlamax',discipline:'bike',value:0.42,unit:'mmol/L/s'};
+const proof={...ctx,method:'Synthetic model method',date:'2026-10-20',sourceRef:'fixture:model-A',nature:'estimated' as const,methodKind:'physiological_model' as const};
+const base=()=>({...buildPilotDiagnosticInput(QA_PROFILES.find(p=>p.id==='B-IM')!),athleteId:ctx.subjectId,vlamax:0.42,vlamaxSource:null});
+it('I1 negative wording alone selects lab branch and higher confidence without evidence',()=>{
+ const s={sport_main:'run',vlamax_run:0.7,vma:18,pace_threshold_sec_per_km:235};
+ const plain=resolveVlamaxForGoal(s,{goal:'10 km'});
+ const denial=resolveVlamaxForGoal({...s,vlamax_protocol:'Aucune mesure labo, valeur coach inconnue'},{goal:'10 km'});
+ print('I1',JSON.stringify({plain,denial}));
+ expect(denial.value).toBe(0.7);expect(denial.confidence).toBe(plain.confidence);expect(denial).not.toHaveProperty('scientificQualification');
+});
+it('I2 a qualification from A remains documented when UnifiedCard is rendering athlete B',()=>{
+ const d=computeDiagnostic(base());const q=qualifyReference(proof,ctx);
+ const v={...d.effectifs.vlamax,scientificQualification:q};
+ const r=render(<VLamaxUnifiedCard athleteId="synthetic:B" objectif="Ironman" vlamaxEffectif={v} />);
+ print('I2',r.container.textContent?.slice(0,650));
+ expect(r.container.textContent).toContain('provenance scientifique inconnue');
+ expect(requalifyReference(q,0.42).status).toBe('documented_context');
+});
+it('I3 estimated model inference becomes field_estimate in planning handoff',()=>{
+ const input=base();input.physiologicalEvidence={vlamax:{...proof,scientificOrigin:'model_inference',storageSource:'fixture',confidence:null,confidenceBasis:'unknown',errorMargin:null}};
+ const d=computeDiagnostic(input);const e=diagnosticPhysiologicalEvidence(d);
+ print('I3',JSON.stringify({qualification:e.vlamaxEffective.scientificQualification,rawOrigin:e.vlamax.scientificOrigin,effectiveOrigin:e.vlamaxEffective.scientificOrigin}));
+ expect(e.vlamaxEffective.scientificQualification?.evidence?.methodKind).toBe('physiological_model');expect(e.vlamaxEffective.scientificOrigin).toBe('model_inference');
+});
+it('I4 malformed cached reasons crash presentation overlay',()=>{
+ const env=toVLamaxEnvelope(computeDiagnostic(base()).effectifs.vlamax,'IM');
+ for(const why of [null,{},[null],123]){
+  expect(()=>qualifyScoreEnvelope({...env,why} as any)).not.toThrow();
+ }
+ print('I4 unguarded why.map / text.startsWith throws for JSON null, object, null element, number');
+});
+it('I5 exported legacy engine still promotes scalar input to measured lactate',()=>{
+ const d=legacyEngine({vlamax_labo:0.42} as any);
+ print('I5',JSON.stringify(d));expect(d.sourceLabel).not.toContain('Mesuré');expect(d.isLocked).toBe(true);
+});
+it('I6 arbitrary non-URI identifiers are rejected while bare lab text alone is unknown',()=>{
+ expect(qualifyReference({...proof,sourceRef:'labo'},ctx).status).toBe('unknown');
+ expect(qualifyReference({...proof,subjectId:'synthetic:B'},ctx).status).toBe('unknown');
+ expect(qualifyReference({...proof,nature:'measured'},ctx).status).toBe('unknown');
+});
+
+import {LabAthleteValidator} from '@/components/calibration/LabAthleteValidator';
+import {ScoreEnvelopeDisplay} from '@/components/ScoreEnvelopeDisplay';
+it('I7 reachable laboratory form still describes VLamax as measured in laboratory',()=>{
+ const r=render(<LabAthleteValidator/>);print('I7',r.container.textContent);
+ expect(r.container.textContent).not.toContain('mesurées en laboratoire');expect(r.container.textContent).toContain('(VLamax + MLSS');
+});
+it('I8 athlete envelope calls unknown historical reference reliable without heuristic disclaimer',()=>{
+ const env=toVLamaxEnvelope(computeDiagnostic(base()).effectifs.vlamax,'IM');
+ const r=render(<ScoreEnvelopeDisplay envelope={env} mode="athlete"/>);print('I8',r.container.textContent);
+ expect(r.container.textContent).toContain('inconnue');expect(r.container.textContent).not.toContain('Données fiables');expect(r.container.textContent).not.toContain('heuristique');
+});
+import {readFileSync} from 'node:fs';
+import {gunzipSync} from 'node:zlib';
+import {snapshotToEngineData} from '@/lib/v2/cycleIntelligence';
+it('I9 independent traversal preserves every historical numeric and boolean leaf of all 37 diagnostics',()=>{
+ vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-10-29T14:00:00Z'));
+ try {
+ const ref=JSON.parse(gunzipSync(readFileSync('docs/physiology-validation/v2.3/evidence/qa-reference-4d8c788f.json.gz')).toString());
+ let numeric=0,boolean=0,missing=0;
+ function walk(old:any,now:any,path:string){if(typeof old==='number'||typeof old==='boolean'){if(typeof old==='number')numeric++;else boolean++;expect(now,path).toBe(old);}else if(old&&typeof old==='object'){for(const key of Object.keys(old)){if(now==null||!(key in now))missing++;expect(now!=null&&key in now,path+'.'+key).toBe(true);walk(old[key],now[key],path+'.'+key);}}}
+ expect(QA_PROFILES.length).toBe(37);expect(ref.length).toBe(37);
+ for(let i=0;i<37;i++){const p=QA_PROFILES[i],d=computeDiagnostic(buildPilotDiagnosticInput(p));expect(ref[i].id).toBe(p.id);walk(ref[i],{id:p.id,effectifs:d.effectifs,limiter:d.limiter,readiness:d.readiness,targets:d.targets,runMLSS:d.runMLSS,synthesis:d.synthesis},p.id);}
+ print('I9',{profiles:37,numericLeavesCompared:numeric,booleanLeavesCompared:boolean,missingHistoricalFields:missing});
+ }finally{vi.useRealTimers();}
+});
+it('I10 live cycle mapper changes its physiological input solely because of denied lab wording',()=>{
+ const s={id:'synthetic:C',date:'2026-10-20',sport_main:'run',objectif:'10 km',vlamax_run:0.7,vma:18,pace_threshold_sec_per_km:235};
+ const plain=snapshotToEngineData(s),denial=snapshotToEngineData({...s,vlamax_protocol:'Aucune mesure labo, valeur coach inconnue'});
+ print('I10',{plainVLamax:plain.vlamax,denialVLamax:denial.vlamax,plainHasQualification:'scientificQualification' in plain,denialHasQualification:'scientificQualification' in denial});
+ expect(plain.vlamax).toBe(0.42);expect(denial.vlamax).toBe(plain.vlamax);
+});

@@ -1,0 +1,21 @@
+import {it,expect,vi} from 'vitest';
+import {render,fireEvent,screen,waitFor} from '@testing-library/react';
+import {writeFileSync} from 'node:fs';
+import Page from '@/pages/VlamaxCapCohortPage';
+import {buildAnchorEntry,buildAnchorReport} from '@/lib/v2/vlamaxCapAnchorCalibration';
+const state=vi.hoisted(()=>({rows:[] as any[]}));
+vi.mock('@/contexts/AuthContext',()=>({useAuth:()=>({user:{id:'synthetic:coach'}})}));
+vi.mock('@/contexts/AthleteContext',()=>({useAthletes:()=>({athletes:[{id:'synthetic:A',name:'Synthetic A'}]})}));
+vi.mock('@/components/SidebarLayout',()=>({SidebarLayout:({children}:any)=><>{children}</>}));
+vi.mock('@/integrations/supabase/client',()=>({supabase:{from:()=>{const q={select:()=>q,eq:()=>q,order:()=>q,limit:async()=>({data:state.rows,error:null})};return q;}}}));
+it('capture immutable reference statistics, UI and actual legacy export',async()=>{
+ state.rows=Array.from({length:15},(_,i)=>({id:'synthetic:baseline-'+i,athlete_id:'synthetic:A',date:'2026-10-20',protocol_quality:i%5+1,notes:'Declared "labo" note, not evidence\nsynthetic only',raw_values:{vlamaxRunMeasured:0.3+i*0.025,sprint15sDistance:i%3===1?null:65+i*2,runningPowerMax:i%3===0?null:350+i*12,vma:18,paceThresholdSecPerKm:235}}));
+ const entries=state.rows.map(r=>buildAnchorEntry(r,'Synthetic A'));expect(entries.every(Boolean)).toBe(true);
+ const out='/workspace/tfclab-v2/docs/physiology-validation/v2.3.2/evidence/';
+ writeFileSync(out+'cohort-before.json',JSON.stringify({syntheticOnly:true,rawRows:state.rows,entries,report:buildAnchorReport(entries)},null,2)+'\n');
+ const r=render(<Page/>);await waitFor(()=>expect(screen.getByRole('button',{name:'Export CSV'})).not.toBeDisabled());
+ fireEvent.change(r.container.querySelector('input[placeholder="0.45"]')!,{target:{value:'0.70'}});fireEvent.change(r.container.querySelector('input[placeholder="85"]')!,{target:{value:'85'}});
+ writeFileSync(out+'render-before.txt',r.container.textContent!+'\n');
+ let blob:Blob|undefined;vi.spyOn(URL,'createObjectURL').mockImplementation(b=>{blob=b as Blob;return 'blob:synthetic'});vi.spyOn(URL,'revokeObjectURL').mockImplementation(()=>{});vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+ fireEvent.click(screen.getByRole('button',{name:'Export CSV'}));writeFileSync(out+'export-v1.csv',await blob!.text());
+});

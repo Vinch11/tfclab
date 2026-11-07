@@ -8,7 +8,7 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZoneSet } from "@/lib/zones/deriveTrainingZones";
-import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
+import { runningEconomyCostFromSnapshot } from "@/lib/physiologyEvidence";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
 
 export interface DerivedZonesBySport {
@@ -61,7 +61,7 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     let paceThreshold = measuredPace;
     let paceEstimated = false;
     if (!paceThreshold && effective.vma && effective.vma > 0) {
-      const ce = resolveRunningEconomyFromSnapshot(snap as any)?.mlKgKm ?? null;
+      const ce = runningEconomyCostFromSnapshot(snap);
       const mlss = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
       paceThreshold = estimateRunThresholdPaceSecPerKm(effective.vma, mlss?.mlssPct ?? null);
       paceEstimated = paceThreshold != null;

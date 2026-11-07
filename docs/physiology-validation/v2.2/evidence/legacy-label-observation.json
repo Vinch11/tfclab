@@ -1,0 +1,69 @@
+{
+  "input": {
+    "vlamax": 0.42,
+    "vlamaxSource": null
+  },
+  "effective": {
+    "value": 0.42,
+    "source": "snapshot",
+    "confidence": 0.95,
+    "label": "VLamax (mesurée labo)",
+    "details": {
+      "testType": "LACTATE_LAB",
+      "date": "2026-10-29",
+      "protocol": "Mesure lactate (Staff mode)"
+    },
+    "isLocked": true,
+    "errorMargin": 0.02,
+    "range": {
+      "low": 0.4,
+      "high": 0.44
+    },
+    "variationWarning": false,
+    "rawValue": 0.42,
+    "v2": {
+      "raw": 0.42,
+      "effective": 0.42,
+      "source": "test_labo",
+      "confidence": 0.95,
+      "errorMargin": 0.02,
+      "range": {
+        "low": 0.4,
+        "high": 0.44
+      },
+      "label": "VLamax (mesurée labo)",
+      "isLocked": true,
+      "variationWarning": false,
+      "sport": "velo",
+      "details": "Brut: 0.420 · Effectif: 0.42 ± 0.02 · Fiabilité: Élevée · Sources: Mesure lactate (Staff mode)",
+      "calibrationLog": {
+        "date": "2026-10-29T17:32:34.016Z",
+        "source": "test_labo",
+        "rawValue": 0.42,
+        "effectiveValue": 0.42,
+        "previousValue": null,
+        "variationPct": null,
+        "confidence": 0.95,
+        "errorMargin": 0.02,
+        "reason": "VLamax mesurée — valeur verrouillée",
+        "sources": [
+          "Mesure lactate (Staff mode)"
+        ],
+        "smoothingApplied": false
+      }
+    }
+  },
+  "scientificEvidence": {
+    "value": 0.42,
+    "unit": "mmol/L/s",
+    "discipline": "bike",
+    "method": "Mesure lactate (Staff mode)",
+    "date": "2026-10-29",
+    "scientificOrigin": "unknown",
+    "storageSource": null,
+    "confidence": 0.95,
+    "confidenceBasis": "heuristic",
+    "errorMargin": 0.02
+  },
+  "interpretation": "legacy display category is not proof of laboratory measurement"
+}

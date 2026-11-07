@@ -25,7 +25,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
           La VLamax est calculée automatiquement à partir des données du snapshot pour garantir la cohérence.
           {isStaffMode && (
             <span className="text-primary ml-1">
-              Mode Staff : vous pouvez renseigner une VLamax mesurée (lactate).
+              Mode Staff : vous pouvez renseigner une VLamax dérivée de lactate — source à documenter.
             </span>
           )}
         </AlertDescription>
@@ -43,7 +43,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground leading-relaxed">
-          La VLamax est une donnée physiologique complexe qui doit soit être <strong>mesurée en laboratoire</strong>, 
+          La VLamax est une donnée physiologique complexe qui doit soit être <strong>dérivée de mesures lactate documentées</strong>,
           soit <strong>estimée à partir de tests de terrain</strong>.
         </p>
 
@@ -67,7 +67,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
                   <div>
                     <p className="text-sm font-medium flex items-center gap-2">
                       <Lock className="h-3 w-3" />
-                      VLamax mesurée (lactate)
+                      VLamax dérivée de lactate — source à documenter
                     </p>
                     <p className="text-xs text-muted-foreground">
                       🧪 Référence absolue • Mode Staff uniquement • Verrouille la valeur
@@ -126,7 +126,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
             <Lock className="h-4 w-4 text-primary" />
             <AlertTitle className="text-sm text-primary">Mode Staff activé</AlertTitle>
             <AlertDescription className="text-sm">
-              Vous pouvez renseigner une <strong>VLamax mesurée (lactate)</strong> qui deviendra 
+              Vous pouvez renseigner une <strong>VLamax dérivée de lactate — source à documenter</strong> qui deviendra
               la source prioritaire. Toute estimation automatique sera désactivée.
             </AlertDescription>
           </Alert>
@@ -134,7 +134,7 @@ export function VLamaxExplanationCard({ isStaffMode = false, compact = false }: 
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              En <strong>mode Staff</strong>, il est possible de renseigner une VLamax mesurée 
+              En <strong>mode Staff</strong>, il est possible de renseigner une VLamax de référence déclarée
               qui devient alors la référence principale.
             </AlertDescription>
           </Alert>
@@ -154,11 +154,11 @@ export function VLamaxFieldExplanation({ isStaffMode = false }: { isStaffMode?: 
       </p>
       {isStaffMode ? (
         <p className="text-primary">
-          Mode Staff : renseignez une VLamax mesurée (lactate) pour verrouiller la valeur.
+          Mode Staff : renseignez une VLamax dérivée de lactate — source à documenter pour verrouiller la valeur.
         </p>
       ) : (
         <p>
-          Activez le Mode Staff pour saisir une VLamax mesurée en laboratoire.
+          Activez le Mode Staff pour saisir une VLamax dérivée de mesures lactate documentées.
         </p>
       )}
     </div>

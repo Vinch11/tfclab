@@ -1,0 +1,811 @@
+{
+  "syntheticOnly": true,
+  "rawRows": [
+    {
+      "id": "synthetic:baseline-0",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 1,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.3,
+        "sprint15sDistance": 65,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-1",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 2,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.325,
+        "sprint15sDistance": null,
+        "runningPowerMax": 362,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-2",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 3,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.35,
+        "sprint15sDistance": 69,
+        "runningPowerMax": 374,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-3",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 4,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.375,
+        "sprint15sDistance": 71,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-4",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 5,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.4,
+        "sprint15sDistance": null,
+        "runningPowerMax": 398,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-5",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 1,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.425,
+        "sprint15sDistance": 75,
+        "runningPowerMax": 410,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-6",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 2,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.45,
+        "sprint15sDistance": 77,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-7",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 3,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.475,
+        "sprint15sDistance": null,
+        "runningPowerMax": 434,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-8",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 4,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.5,
+        "sprint15sDistance": 81,
+        "runningPowerMax": 446,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-9",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 5,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.525,
+        "sprint15sDistance": 83,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-10",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 1,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.55,
+        "sprint15sDistance": null,
+        "runningPowerMax": 470,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-11",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 2,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.575,
+        "sprint15sDistance": 87,
+        "runningPowerMax": 482,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-12",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 3,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.6000000000000001,
+        "sprint15sDistance": 89,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-13",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 4,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.625,
+        "sprint15sDistance": null,
+        "runningPowerMax": 506,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    },
+    {
+      "id": "synthetic:baseline-14",
+      "athlete_id": "synthetic:A",
+      "date": "2026-10-20",
+      "protocol_quality": 5,
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "raw_values": {
+        "vlamaxRunMeasured": 0.65,
+        "sprint15sDistance": 93,
+        "runningPowerMax": 518,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235
+      }
+    }
+  ],
+  "entries": [
+    {
+      "id": "synthetic:baseline-0",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.3,
+      "sprint15sDistance": 65,
+      "runningPowerMax": null,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 1,
+      "tier": "rejected",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.39,
+      "deltaVLamax": 0.09,
+      "weight": 0
+    },
+    {
+      "id": "synthetic:baseline-1",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.325,
+      "sprint15sDistance": null,
+      "runningPowerMax": 362,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 2,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.35,
+      "deltaVLamax": 0.025,
+      "weight": 0.5
+    },
+    {
+      "id": "synthetic:baseline-2",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.35,
+      "sprint15sDistance": 69,
+      "runningPowerMax": 374,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 3,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.35,
+      "deltaVLamax": 0,
+      "weight": 0.7
+    },
+    {
+      "id": "synthetic:baseline-3",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.375,
+      "sprint15sDistance": 71,
+      "runningPowerMax": null,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 4,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.4,
+      "deltaVLamax": 0.025,
+      "weight": 1
+    },
+    {
+      "id": "synthetic:baseline-4",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.4,
+      "sprint15sDistance": null,
+      "runningPowerMax": 398,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 5,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.36,
+      "deltaVLamax": -0.04,
+      "weight": 1
+    },
+    {
+      "id": "synthetic:baseline-5",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.425,
+      "sprint15sDistance": 75,
+      "runningPowerMax": 410,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 1,
+      "tier": "rejected",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.37,
+      "deltaVLamax": -0.055,
+      "weight": 0
+    },
+    {
+      "id": "synthetic:baseline-6",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.45,
+      "sprint15sDistance": 77,
+      "runningPowerMax": null,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 2,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.42,
+      "deltaVLamax": -0.03,
+      "weight": 0.5
+    },
+    {
+      "id": "synthetic:baseline-7",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.475,
+      "sprint15sDistance": null,
+      "runningPowerMax": 434,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 3,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.38,
+      "deltaVLamax": -0.095,
+      "weight": 0.7
+    },
+    {
+      "id": "synthetic:baseline-8",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.5,
+      "sprint15sDistance": 81,
+      "runningPowerMax": 446,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 4,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.4,
+      "deltaVLamax": -0.1,
+      "weight": 1
+    },
+    {
+      "id": "synthetic:baseline-9",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.525,
+      "sprint15sDistance": 83,
+      "runningPowerMax": null,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 5,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.43,
+      "deltaVLamax": -0.095,
+      "weight": 1
+    },
+    {
+      "id": "synthetic:baseline-10",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.55,
+      "sprint15sDistance": null,
+      "runningPowerMax": 470,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 1,
+      "tier": "rejected",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.39,
+      "deltaVLamax": -0.16,
+      "weight": 0
+    },
+    {
+      "id": "synthetic:baseline-11",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.575,
+      "sprint15sDistance": 87,
+      "runningPowerMax": 482,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 2,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.43,
+      "deltaVLamax": -0.145,
+      "weight": 0.5
+    },
+    {
+      "id": "synthetic:baseline-12",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.6000000000000001,
+      "sprint15sDistance": 89,
+      "runningPowerMax": null,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 3,
+      "tier": "field",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.45,
+      "deltaVLamax": -0.15,
+      "weight": 0.7
+    },
+    {
+      "id": "synthetic:baseline-13",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.625,
+      "sprint15sDistance": null,
+      "runningPowerMax": 506,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 4,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.4,
+      "deltaVLamax": -0.225,
+      "weight": 1
+    },
+    {
+      "id": "synthetic:baseline-14",
+      "athleteId": "synthetic:A",
+      "athleteName": "Synthetic A",
+      "date": "2026-10-20",
+      "vlamaxRunMeasured": 0.65,
+      "sprint15sDistance": 93,
+      "runningPowerMax": 518,
+      "vma": 18,
+      "paceThresholdSecPerKm": 235,
+      "protocolQuality": 5,
+      "tier": "lab",
+      "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+      "predictedVLamax": 0.45,
+      "deltaVLamax": -0.2,
+      "weight": 1
+    }
+  ],
+  "report": {
+    "total": 15,
+    "retained": 12,
+    "rejected": 3,
+    "byTier": {
+      "lab": {
+        "n": 6,
+        "rmse": 0.137,
+        "bias": -0.106,
+        "mae": 0.114,
+        "withinThreshold": {
+          "pct005": 33.3,
+          "pct010": 66.7,
+          "pct015": 66.7
+        }
+      },
+      "field": {
+        "n": 6,
+        "rmse": 0.096,
+        "bias": -0.068,
+        "mae": 0.075,
+        "withinThreshold": {
+          "pct005": 50,
+          "pct010": 66.7,
+          "pct015": 100
+        }
+      },
+      "combined": {
+        "n": 12,
+        "rmse": 0.123,
+        "bias": -0.092,
+        "mae": 0.1,
+        "withinThreshold": {
+          "pct005": 41.7,
+          "pct010": 66.7,
+          "pct015": 83.3
+        }
+      }
+    },
+    "bySource": {
+      "sprintOnly": {
+        "n": 4,
+        "rmse": 0.09,
+        "bias": -0.059,
+        "mae": 0.075,
+        "withinThreshold": {
+          "pct005": 50,
+          "pct010": 75,
+          "pct015": 100
+        }
+      },
+      "powerOnly": {
+        "n": 4,
+        "rmse": 0.136,
+        "bias": -0.1,
+        "mae": 0.107,
+        "withinThreshold": {
+          "pct005": 50,
+          "pct010": 75,
+          "pct015": 75
+        }
+      },
+      "both": {
+        "n": 4,
+        "rmse": 0.138,
+        "bias": -0.116,
+        "mae": 0.116,
+        "withinThreshold": {
+          "pct005": 25,
+          "pct010": 50,
+          "pct015": 75
+        }
+      }
+    },
+    "entries": [
+      {
+        "id": "synthetic:baseline-0",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.3,
+        "sprint15sDistance": 65,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 1,
+        "tier": "rejected",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.39,
+        "deltaVLamax": 0.09,
+        "weight": 0
+      },
+      {
+        "id": "synthetic:baseline-1",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.325,
+        "sprint15sDistance": null,
+        "runningPowerMax": 362,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 2,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.35,
+        "deltaVLamax": 0.025,
+        "weight": 0.5
+      },
+      {
+        "id": "synthetic:baseline-2",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.35,
+        "sprint15sDistance": 69,
+        "runningPowerMax": 374,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 3,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.35,
+        "deltaVLamax": 0,
+        "weight": 0.7
+      },
+      {
+        "id": "synthetic:baseline-3",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.375,
+        "sprint15sDistance": 71,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 4,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.4,
+        "deltaVLamax": 0.025,
+        "weight": 1
+      },
+      {
+        "id": "synthetic:baseline-4",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.4,
+        "sprint15sDistance": null,
+        "runningPowerMax": 398,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 5,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.36,
+        "deltaVLamax": -0.04,
+        "weight": 1
+      },
+      {
+        "id": "synthetic:baseline-5",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.425,
+        "sprint15sDistance": 75,
+        "runningPowerMax": 410,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 1,
+        "tier": "rejected",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.37,
+        "deltaVLamax": -0.055,
+        "weight": 0
+      },
+      {
+        "id": "synthetic:baseline-6",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.45,
+        "sprint15sDistance": 77,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 2,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.42,
+        "deltaVLamax": -0.03,
+        "weight": 0.5
+      },
+      {
+        "id": "synthetic:baseline-7",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.475,
+        "sprint15sDistance": null,
+        "runningPowerMax": 434,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 3,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.38,
+        "deltaVLamax": -0.095,
+        "weight": 0.7
+      },
+      {
+        "id": "synthetic:baseline-8",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.5,
+        "sprint15sDistance": 81,
+        "runningPowerMax": 446,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 4,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.4,
+        "deltaVLamax": -0.1,
+        "weight": 1
+      },
+      {
+        "id": "synthetic:baseline-9",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.525,
+        "sprint15sDistance": 83,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 5,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.43,
+        "deltaVLamax": -0.095,
+        "weight": 1
+      },
+      {
+        "id": "synthetic:baseline-10",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.55,
+        "sprint15sDistance": null,
+        "runningPowerMax": 470,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 1,
+        "tier": "rejected",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.39,
+        "deltaVLamax": -0.16,
+        "weight": 0
+      },
+      {
+        "id": "synthetic:baseline-11",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.575,
+        "sprint15sDistance": 87,
+        "runningPowerMax": 482,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 2,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.43,
+        "deltaVLamax": -0.145,
+        "weight": 0.5
+      },
+      {
+        "id": "synthetic:baseline-12",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.6000000000000001,
+        "sprint15sDistance": 89,
+        "runningPowerMax": null,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 3,
+        "tier": "field",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.45,
+        "deltaVLamax": -0.15,
+        "weight": 0.7
+      },
+      {
+        "id": "synthetic:baseline-13",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.625,
+        "sprint15sDistance": null,
+        "runningPowerMax": 506,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 4,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.4,
+        "deltaVLamax": -0.225,
+        "weight": 1
+      },
+      {
+        "id": "synthetic:baseline-14",
+        "athleteId": "synthetic:A",
+        "athleteName": "Synthetic A",
+        "date": "2026-10-20",
+        "vlamaxRunMeasured": 0.65,
+        "sprint15sDistance": 93,
+        "runningPowerMax": 518,
+        "vma": 18,
+        "paceThresholdSecPerKm": 235,
+        "protocolQuality": 5,
+        "tier": "lab",
+        "notes": "Declared \"labo\" note, not evidence\nsynthetic only",
+        "predictedVLamax": 0.45,
+        "deltaVLamax": -0.2,
+        "weight": 1
+      }
+    ],
+    "anchorSuggestions": [
+      "Bias -0.092 : estimateur sous-estime VLamax. Augmenter ancrages Sprint/Puissance d'environ 9%."
+    ],
+    "generalizationVerdict": "incoherent",
+    "notes": [
+      "RMSE 0.123 > 1.5×tolérance — réancrage Sprint/Puissance recommandé."
+    ]
+  }
+}

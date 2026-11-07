@@ -84,6 +84,9 @@ export interface DiagnosticInput {
   
   // Course à pied
   runEconomyScore: number | null;
+  /** Explicit oxygen cost, ml O2/kg/km; never the economy score. */
+  runningEconomyCostMlKgKm?: number | null;
+  physiologicalEvidence?: import("@/lib/physiologyEvidence").PhysiologicalEvidenceMap;
   runHrDriftPct: number | null;
   paceThresholdSecPerKm: number | null;
   runningPower1s: number | null;

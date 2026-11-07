@@ -1,0 +1,83 @@
+{
+  "syntheticOnly": true,
+  "noDetFileChanged": true,
+  "noPrescriptionApproved": true,
+  "rows": [
+    {
+      "id": "A_aerobic",
+      "before": {
+        "observedPct": 82.8,
+        "prediction": {
+          "mlssPct": 95,
+          "confidence": 0.75,
+          "trace": {
+            "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+            "vlamaxContribution": 10.11,
+            "ceContribution": -10.5,
+            "rmseExpected": 2.64
+          }
+        },
+        "crossValidation": {
+          "observed": 82.8,
+          "predicted": 95,
+          "deltaPct": -12.2,
+          "isCoherent": false,
+          "severity": "critical",
+          "explanation": "Écart majeur (−12.2%) : pace_threshold suspect, refaire test seuil.",
+          "predictionConfidence": 0.75
+        },
+        "effectivePct": 82.8,
+        "effectiveSource": "observed"
+      },
+      "after": {
+        "observedPct": 82.8,
+        "prediction": null,
+        "crossValidation": null,
+        "effectivePct": 82.8,
+        "effectiveSource": "observed"
+      },
+      "interpretation": "removed invalid score-to-cost comparison; not a clearance of source-dose, capacity or physiological uncertainty"
+    },
+    {
+      "id": "B_sustainability",
+      "before": {
+        "observedPct": 85.1,
+        "prediction": {
+          "mlssPct": 95,
+          "confidence": 0.75,
+          "trace": {
+            "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+            "vlamaxContribution": 10.11,
+            "ceContribution": -10.5,
+            "rmseExpected": 2.64
+          }
+        },
+        "crossValidation": {
+          "observed": 85.1,
+          "predicted": 95,
+          "deltaPct": -9.9,
+          "isCoherent": false,
+          "severity": "warning",
+          "explanation": "Seuil observé 9.9% en-dessous de la prédiction. Fatigue, VLamax sur-estimée, ou test seuil mal exécuté ?",
+          "predictionConfidence": 0.75
+        },
+        "effectivePct": 85.1,
+        "effectiveSource": "observed"
+      },
+      "after": {
+        "observedPct": 85.1,
+        "prediction": null,
+        "crossValidation": null,
+        "effectivePct": 85.1,
+        "effectiveSource": "observed"
+      },
+      "interpretation": "removed invalid score-to-cost comparison; not a clearance of source-dose, capacity or physiological uncertainty"
+    },
+    {
+      "id": "C_uncertain",
+      "before": null,
+      "after": null,
+      "interpretation": "removed invalid score-to-cost comparison; not a clearance of source-dose, capacity or physiological uncertainty"
+    }
+  ]
+}

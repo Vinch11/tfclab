@@ -1,0 +1,76 @@
+{
+  "mission": "V2.2",
+  "reference": "55fc9794f197876f2c5d35a0021dc0643b670561",
+  "detReadOnlySha": "ec72f8808f47c64f9f7361ac8e31108351348fdc",
+  "startedUtc": "2026-10-29T17:20:21Z",
+  "preparedUtc": "2026-10-29T17:38:44.854720+00:00",
+  "unitLimit": 10,
+  "unitsUsed": 10,
+  "decisions": {
+    "technical": "NO-GO; residual scientific-origin/category contract C8",
+    "scientific": "NO-GO for independent experimental-validation claim",
+    "production": "NO-GO; real persistence NON VALID\u00c9E"
+  },
+  "localFullSuite": {
+    "passedFiles": 402,
+    "passedTests": 3149,
+    "skipped": 1,
+    "todo": 6,
+    "exitCode": 0,
+    "lastAddedObservationCoveredSeparately": true
+  },
+  "independentContracts": {
+    "testsPassed": 11,
+    "exitCode": 0
+  },
+  "typescriptExit": 0,
+  "buildExit": 0,
+  "browserSyntheticExit": 0,
+  "lint": {
+    "base": 252,
+    "head": 249,
+    "noFileIncreases": true
+  },
+  "qa": {
+    "profiles": 37,
+    "sourcesUnchanged": true,
+    "stableDiagnosticBlocksUnchanged": true,
+    "oldMlssRemovals": 25,
+    "newFavourableValidation": false
+  },
+  "scientificCoreFilesUnchanged": 12,
+  "supabaseRequests": 0,
+  "paidApiCalls": 0,
+  "migrations": 0,
+  "merges": 0,
+  "deployments": 0,
+  "proofHashes": {
+    "V25_PHYSIOLOGY_CONTRACT.md": "1692cbdec99282d501d2cd94aa0e534d37f5fbeae6da706888ce660a63465832",
+    "V25_PHYSIOLOGY_SOURCE.txt": "7b4a4531112acb6955db0c52c551b649c3fd845da54dd597dd96019ef5879846",
+    "browser-synthetic.txt": "b1ab88387c2d8c6baec14858e16b9e787be09b8e69b2e708f1752296adde807d",
+    "build-final.txt": "d3a2999c65dc883cddbcc7b7949254eed1cbe25be9ef44ebfaf8999f38aa4423",
+    "build.txt": "863ed03378bafbf6faba88724e8b2cba5a7546a5a44d8226a72bb7b576d93ce3",
+    "contracts-before.txt": "4b917bc194342b9039e5a7fc5808d13cb5176a41963841870eced67355d5d60d",
+    "contracts-corrected.txt": "1de7c4b76ff15c74c82b8fb4bf28a481ae0755e3f23a9461454a889b9e18e1cf",
+    "det-v25-probe.json": "ba25f5e52fe919a264dc6585df7a6b3904679bb29feb8a8db402f5c8c63f984b",
+    "first-correction.txt": "b3eda6aa9dc98202e2f9aa2c13464407cfc2951d49d852b30f60bc6f41884fe5",
+    "full-suite.txt": "2b3693c7c71f6734691b558dfd39a0020403a9e24569e4553de66a8d8bfe52c9",
+    "github-reference-checks.json": "20e0b11bcd3ae20511a422f0617a79c139bfcbc3083b56cf3ca5bfa70e85c12a",
+    "independent-contracts-final.txt": "cfa0e5cf2924489709eec51d30f17460c096aef45116b93f0a73e84ad9320dab",
+    "independent-contracts.txt": "660e9255d0cec37c75357d5029220f1d7b7e0f7ab1b897b897cc02f6f8d91f48",
+    "insert-recovery-before.txt": "a128026682f82967bec1b434bcadb1ff2829b54bc7c64309e146a259d149a080",
+    "legacy-label-observation.json": "c0c0088a1df57f88d5b58397b7ebe7602e4b440793a0c2642b30e9621f25b988",
+    "lint-base.json": "1a6bdac053cc7ff65e871ecb18c1671fb7504a3674a86aab0d40450be52c1575",
+    "lint-head.json": "1111250c534088cebe4de511f65cc52df424cd4f3c99f0aabbb03493dd26b6d6",
+    "persistence-status.json": "10d4f7ed1460291e1800fe46597b5ee616ac95923add5bbe880d2e7aec1aecd3",
+    "preserved-scientific-core.json": "4e2f9a761194b5742ae644d3713cac4870561c8a8c2fa9ee47cbd0136e3203d8",
+    "release-refresh-final.txt": "f2b0e0e8a852ee09619e8582bc69df3e828ed604e0fc56c71c45318688f9320f",
+    "release-refresh.txt": "e525b92ea5cc6b709587eaf2d41476683ee0e835c5e86125ac244fcb5450a153",
+    "source-verification.json": "5db1a2b346fb841e0af80998d6a00c6ebc1e8a42de8842254aff0e26fe6b4d6c",
+    "types-closure.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "types-final.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "types.txt": "c5b4c1abf92bcc11f6017e39d506cdf664aad8dd6cd60d4089849df9e62dfda7",
+    "v25-physiology-fixtures.json": "94454f45ea5157446eca88094f2da7988ebd5e9682286ef462cec338399bca35",
+    "writes-before.txt": "f23c02e7a626828f522ba7de9c99a13248c0571bbe063e0131b282376fe2c036"
+  }
+}

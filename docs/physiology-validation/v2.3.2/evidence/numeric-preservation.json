@@ -1,0 +1,153 @@
+{
+  "reference": "429a84c1c35255843251a478ef3f48ab0dd907c6",
+  "unchangedFiles": [
+    {
+      "path": "src/lib/v2/maderMetabolicModel.ts",
+      "sha256": "ea8f4a76a718389555fc3c5000c5c4a54b165080e7bf747e206f9766fb2bd0b1",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/runMLSSPredictor.ts",
+      "sha256": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/profilExpressFormulas.ts",
+      "sha256": "790b378f4e6bd54741fd0eccfdc1c2a5736640d0a500007948ee2b597ac99c83",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxBikeV2Enhanced.ts",
+      "sha256": "efbfbf169153672c61df5eecc3843a40d908d38def163465c802c4fddcad74bb",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxCapEstimator.ts",
+      "sha256": "a6d8c34bc9de00699775f48bdd0dd0a71c9f94d56d21716a101ae603230d90f1",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxRunV2Enhanced.ts",
+      "sha256": "86b13a5e661184d2b20bb7fe5e799b9ac16120f33dcf7afeff85e7620e7326d9",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/fatmaxTFCL.ts",
+      "sha256": "0b75378c53be962d66e0e1aa7ed45023633660159fcc2884db8c1dc475963fdd",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/criticalPowerModel.ts",
+      "sha256": "8e17981887efdcae9e9be0cfa8125ec1ab79c1ac82355e5d8116965248bd480d",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/tteEffectif.ts",
+      "sha256": "13019a1ed9b38b35e2e142b83513ea0d7d5fc3f702d23b6ccc204c6745fae3f1",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/zones/tfclDoctrine.ts",
+      "sha256": "2a93efaf679089f74ae2065a77699b1048fa34d528ac826bd2feaa9165c24231",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/runningEconomySimple.ts",
+      "sha256": "e2a0a31520d7f4dad6bc02e2ef3d5b63c0612d69b486ec9725d5d9b39698589a",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/plan/qa/syntheticProfiles.ts",
+      "sha256": "9cd36f30c3da48d5be05c72fcb9aaf46c3faac8a505805be28c504c581206dcb",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/scenarioEngine.ts",
+      "sha256": "f1ef2828bb87ed60622d98c08eba5209afc3b5064efb5aca10c1199dee12a348",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/pacingDisciplineRules.ts",
+      "sha256": "0d5f8e338306b0068b0285d39e596fe80528d1dc72eefa00671adc986d394e12",
+      "equalReference": true
+    },
+    {
+      "path": "src/engines/plan/planValidator.ts",
+      "sha256": "9405979022de18721a1a36ed98496bb7e231d74a2d4029eed6798eb21457639c",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/physiologicalTargets.ts",
+      "sha256": "603b12aeca9bf17c7812f1fa115c685a1c7629a4d11b6c289a9ee51f9500aeb3",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/calibration/vlamaxContinuous.ts",
+      "sha256": "bc3307969c6792be148f050e9951c1624f58122f353d4abb3f19aba6c6d35f18",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/plan/qa/checks.ts",
+      "sha256": "86ae664dde3d70c8e60d51dabf2cc12bc3eddba6102742112ccc8b2613fb8fdd",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxV2Engine.ts",
+      "sha256": "d8fec65687944dc61d9169d9d6a47d2a56b42b31b6c89992df1d10bcff9c78bf",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxCapAnchorCalibration.ts",
+      "sha256": "124109295645cca7ddf7d98441b16862c39b40ada6f8afac62fc5704eba2aa64",
+      "equalReference": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxV2.ts",
+      "sha256": "8a8980d4c7bf4f3baa260844101b9d15fcaf0f7ea2141a82ac45cd6d177e4f53",
+      "equalReference": true
+    }
+  ],
+  "archivesUnchanged": true,
+  "syntheticCohortRows": 15,
+  "fullEntryAndReportEquality": true,
+  "groups": {
+    "lab": 6,
+    "field": 6,
+    "combined": 12
+  },
+  "statistics": {
+    "lab": {
+      "n": 6,
+      "rmse": 0.137,
+      "bias": -0.106,
+      "mae": 0.114,
+      "withinThreshold": {
+        "pct005": 33.3,
+        "pct010": 66.7,
+        "pct015": 66.7
+      }
+    },
+    "field": {
+      "n": 6,
+      "rmse": 0.096,
+      "bias": -0.068,
+      "mae": 0.075,
+      "withinThreshold": {
+        "pct005": 50,
+        "pct010": 66.7,
+        "pct015": 100
+      }
+    },
+    "combined": {
+      "n": 12,
+      "rmse": 0.123,
+      "bias": -0.092,
+      "mae": 0.1,
+      "withinThreshold": {
+        "pct005": 41.7,
+        "pct010": 66.7,
+        "pct015": 83.3
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import { hasDocumentedLactateReference, qualifyReference, qualifyScoreEnvelope, requalifyReference, VLA_HEURISTIC_NOTICE, type ReferenceEvidence, type ScientificQualification } from "@/lib/scientificQualification";
 // =============================================
 // VLAMAX EFFECTIF - Source unique de vérité
 // Architecture scientifique correcte - Two For Coaching Lab
@@ -79,6 +80,7 @@ export interface VLamaxDetails {
 }
 
 export interface VLamaxEffectif {
+  scientificQualification?: ScientificQualification;
   value: number | null;
   source: VLamaxSource;
   confidence: number;
@@ -100,6 +102,7 @@ export interface VLamaxEffectif {
 
 // Types pour les données cloud
 interface TestCloud {
+  sport?: string | null;
   athlete_id: string;
   vlamax: number | null;
   date?: string;
@@ -110,28 +113,15 @@ interface TestCloud {
   raw?: any;
 }
 
-/**
- * Détermine si un test VLamax provient d'une mesure laboratoire (prise de sang lactate
- * post-effort). Pour le sport CAP, seules les mesures labo doivent court-circuiter
- * `vlamaxCapEstimator` (source PRIMAIRE — voir mémoire `cap-vlamax-unified-source`).
- *
- * Tous les tests terrain (Sprint 15s CAP, dérivations Score G, saisies coach sans
- * lactate) sont reclassés en fallback : ils ne dominent l'estimateur unifié que si
- * celui-ci renvoie `insufficient`.
+/** Legacy function names: priority requires a structured lactate-derived reference,
+ * not a direct VLamax measurement, a test category or a free-text laboratory claim.
  */
 function isLabMeasuredVlamaxTest(t: TestCloud): boolean {
-  const type = (t.type || "").toUpperCase();
-  if (type === "LACTATE_LAB" || type === "VLAMAX_LAB" || type === "LAB") return true;
-  const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
-  if (/(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack)) return true;
-  return false;
+  return hasDocumentedLactateReference(t.raw?.physiologicalEvidence?.vlamax, t.athlete_id, "run", t.vlamax ?? null);
 }
 
 function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
-  const source = (s.vlamax_source || "").toLowerCase();
-  if (["lab", "labo", "lactate_lab", "vlamax_lab"].includes(source)) return true;
-  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
-  return /(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack);
+  return hasDocumentedLactateReference(s.physiologicalEvidence?.vlamax_run, s.athlete_id, "run", s.vlamax_run ?? null);
 }
 
 /**
@@ -140,7 +130,25 @@ function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
  * doivent être exclus du pipeline `sport=velo` pour éviter qu'un sprint CAP
  * récent (ex. "Sprint 15s CAP" 0.71) ne masque la VLamax vélo réelle.
  */
+function explicitTestDiscipline(t: TestCloud): "run" | "bike" | "swim" | "unassigned" | null {
+  const value = t.sport ?? t.raw?.labExtract?.performance?.sport ?? t.raw?.physiologicalEvidence?.vlamax?.discipline;
+  if (typeof value === "string" && value.trim()) {
+    const sport = value.trim().toLowerCase();
+    if (["run", "cap", "course", "course à pied", "running"].includes(sport)) return "run";
+    if (["bike", "velo", "vélo", "cyclisme", "cycling"].includes(sport)) return "bike";
+    if (["swim", "natation", "nage"].includes(sport)) return "swim";
+    return "unassigned";
+  }
+  // An identifiable historical protocol remains usable; the athlete goal is not its discipline.
+  const protocol = `${t.type ?? ""} ${t.name ?? ""} ${t.raw?.protocol ?? ""}`.toLowerCase();
+  if (/\bcap\b|\brun\b|running|course à pied/.test(protocol)) return "run";
+  if (/\bbike\b|\bvelo\b|vélo|cycling|cyclisme|wingate/.test(protocol)) return "bike";
+  if (/\bswim\b|natation|nage/.test(protocol)) return "swim";
+  return null;
+}
+
 function isCapSpecificVlamaxTest(t: TestCloud): boolean {
+  if (explicitTestDiscipline(t) === "run") return true;
   const type = (t.type || "").toLowerCase();
   if (type.includes("cap") || type.includes("run")) return true;
   const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
@@ -148,6 +156,7 @@ function isCapSpecificVlamaxTest(t: TestCloud): boolean {
 }
 
 interface SnapshotCloud {
+  physiologicalEvidence?: Record<string, ReferenceEvidence>;
   id: string;
   athlete_id: string;
   date: string;
@@ -267,9 +276,17 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   const sport: SportContext = sportOverride
     ?? snapshotSportToContext(effectiveSnapshot?.sport_main, objectif);
 
+  const wrap = (v2: VLamaxV2Result, details?: VLamaxDetails, testEvidence?: ReferenceEvidence): VLamaxEffectif => {
+    const discipline = sport === "cap" ? "run" : sport === "natation" ? "swim" : "bike";
+    const evidence = testEvidence ?? (v2.source === "test_labo" ? effectiveSnapshot?.physiologicalEvidence?.[discipline === "run" ? "vlamax_run" : "vlamax"] : effectiveSnapshot?.physiologicalEvidence?.vlamaxEffective);
+    const qualification = qualifyReference(evidence, { subjectId: athleteId, quantity: "vlamax", discipline, value: v2.effective, unit: "mmol/L/s" });
+    const result = wrapV2Result(v2, details);
+    return { ...result, label: qualification.label, scientificQualification: qualification, v2: { ...v2, scientificQualification: qualification } };
+  };
+
   // =============================================
   // A0) SOURCE CAP MESURÉE LABO (vlamax_run)
-  // Priorité absolue uniquement si la valeur est une vraie mesure lactate labo.
+  // Priorité pour une VLamax dérivée de lactate avec provenance structurée cohérente.
   // Les anciennes valeurs terrain/snapshot ne doivent pas masquer vlamaxCapEstimator.
   // =============================================
   if (
@@ -280,7 +297,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     isLabMeasuredVlamaxSnapshot(effectiveSnapshot)
   ) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);
-    const protocolLabel = effectiveSnapshot.vlamax_protocol || "Test CAP (sprint lactate)";
+    const protocolLabel = effectiveSnapshot.vlamax_protocol || "Référence CAP ; méthode scientifique à qualifier";
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax_run,
       source: "test_labo",
@@ -288,10 +305,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       previousEffective,
       factors: { sourceCount: 1, temporalStability: 0.1, dataAgeDays: ageDays },
       sourceLabels: [protocolLabel],
-      reason: `VLamax CAP mesurée (${protocolLabel}) — valeur verrouillée`,
+      reason: `Référence CAP prioritaire (${protocolLabel}) — qualification séparée`,
     };
     const v2 = computeVLamaxV2(v2Input);
-    return wrapV2Result(v2, {
+    return wrap(v2, {
       testType: "LACTATE_LAB",
       date: effectiveSnapshot.date,
       protocol: protocolLabel,
@@ -313,14 +330,14 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       sport,
       previousEffective,
       factors: { sourceCount: 1, temporalStability: 0.1, dataAgeDays: ageDays },
-      sourceLabels: ["Mesure lactate (Staff mode)"],
-      reason: "VLamax mesurée — valeur verrouillée",
+      sourceLabels: ["Référence stockée (catégorie interne héritée)"],
+      reason: "Référence verrouillée — catégorie interne, méthode à qualifier",
     };
     const v2 = computeVLamaxV2(v2Input);
-    return wrapV2Result(v2, {
+    return wrap(v2, {
       testType: "LACTATE_LAB",
       date: effectiveSnapshot.date,
-      protocol: "Mesure lactate (Staff mode)",
+      protocol: "Catégorie interne héritée ; méthode scientifique non établie",
     });
   }
 
@@ -334,10 +351,10 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // =============================================
   const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
   const athleteTests = sport === "cap"
-    ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
+    ? athleteTestsAll.filter(t => isLabMeasuredVlamaxTest(t) && explicitTestDiscipline(t) === "run")
     // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
     // qui mesurent la glycolyse en course et polluent la VLamax vélo.
-    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t));
+    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t) && explicitTestDiscipline(t) === (sport === "velo" ? "bike" : "swim"));
   
   if (athleteTests.length > 0) {
     const sortedTests = [...athleteTests].sort((a, b) => {
@@ -364,11 +381,11 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       reason: `Test terrain: ${mostRecentTest.name || mostRecentTest.type}`,
     };
     const v2 = computeVLamaxV2(v2Input);
-    return wrapV2Result(v2, {
+    return wrap(v2, {
       testType: mostRecentTest.type,
       testName: mostRecentTest.name,
       date: testDate.slice(0, 10),
-    });
+    }, mostRecentTest.raw?.physiologicalEvidence?.vlamax);
   }
 
   // =============================================
@@ -419,7 +436,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         // obsolète (ex. ancien test Score G) et masque le profil glycolytique réel.
         v2.effective = clampVLamax(capEst.value, sport);
         (v2 as any).smoothingApplied = false;
-        return wrapV2Result(v2, {
+        return wrap(v2, {
           protocol: `CAP unifié — ${capEst.sources.join(" + ") || capEst.method}`,
           date: effectiveSnapshot.date,
         });
@@ -465,7 +482,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           };
           const v2 = computeVLamaxV2(v2Input);
           v2.confidence = Math.max(v2.confidence, runV2.confidence * 0.85);
-          return wrapV2Result(v2, {
+          return wrap(v2, {
             protocol: runV2.formulaLabel,
             date: effectiveSnapshot.date,
           });
@@ -526,7 +543,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         const v2 = computeVLamaxV2(v2Input);
         // Override confidence with V2 Enhanced confidence (higher quality)
         v2.confidence = Math.max(v2.confidence, v2Enhanced.confidence * 0.9);
-        return wrapV2Result(v2, {
+        return wrap(v2, {
           protocol: v2Enhanced.formulaLabel,
           date: effectiveSnapshot.date,
         });
@@ -576,13 +593,32 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         reason: "Estimation continue FTP/kg" + (pmax_5s ? " + Pmax/kg" : ""),
       };
       const v2 = computeVLamaxV2(v2Input);
-      return wrapV2Result(v2);
+      return wrap(v2);
     }
   }
 
   // =============================================
   // D) UNKNOWN
   // =============================================
+  // A classified test or historical run scalar remains consultable as a fallback,
+  // but cannot outrank an admissible estimate without structured lactate evidence.
+  if (sport === "cap") {
+    const fallback = athleteTestsAll.filter(t => explicitTestDiscipline(t) === "run")
+      .sort((a, b) => (b.date ?? b.created_at ?? "").localeCompare(a.date ?? a.created_at ?? ""))[0];
+    if (fallback) {
+      return wrap(computeVLamaxV2({ rawValue: fallback.vlamax, source: "test_terrain", sport,
+        factors: { sourceCount: 1, dataAgeDays: computeDataAgeDays(fallback.date ?? fallback.created_at ?? "") },
+        sourceLabels: ["Référence de test classée ; méthode qualifiée séparément"],
+      }), { testType: fallback.type, testName: fallback.name, date: fallback.date ?? fallback.created_at }, fallback.raw?.physiologicalEvidence?.vlamax);
+    }
+    if (effectiveSnapshot?.vlamax_run != null && effectiveSnapshot.vlamax_run > 0) {
+      return wrap(computeVLamaxV2({ rawValue: effectiveSnapshot.vlamax_run, source: "estimation", sport,
+        factors: { sourceCount: 1, dataAgeDays: computeDataAgeDays(effectiveSnapshot.date) },
+        sourceLabels: ["Référence historique CAP — estimation de repli, pas preuve laboratoire"],
+      }), { date: effectiveSnapshot.date }, effectiveSnapshot.physiologicalEvidence?.vlamax_run);
+    }
+  }
+
   const v2 = computeVLamaxV2({
     rawValue: null,
     source: "unknown",
@@ -590,7 +626,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     sourceLabels: [],
     reason: "Aucune donnée disponible",
   });
-  return wrapV2Result(v2);
+  return wrap(v2);
 }
 
 // =============================================
@@ -722,18 +758,14 @@ import {
 
 export function toVLamaxEnvelope(
   vlamax: VLamaxEffectif, 
-  objectif: string
+  objectif: string,
+  subjectId?: string | null,
+  discipline = "unknown",
 ): ScoreEnvelope {
-  const sourceMap: Record<VLamaxSource, ScoreSource> = {
-    test: vlamax.isLocked ? "MEASURED" : "ESTIMATED",
-    snapshot: "MEASURED",
-    estimated: "MODELLED",
-    unknown: "UNKNOWN",
-  };
+  const q = requalifyReference(vlamax.scientificQualification, vlamax.value, discipline, subjectId);
+  const source: ScoreSource = q?.status !== "documented_context" ? "UNKNOWN" : q.nature === "estimated" ? "ESTIMATED" : q.nature === "declared" ? "UNKNOWN" : "MODELLED";
 
-  const source = sourceMap[vlamax.source];
-  
-  const why: string[] = [];
+  const why: string[] = [vlamax.scientificQualification?.label ?? "Provenance scientifique inconnue", VLA_HEURISTIC_NOTICE];
   const recommendations: string[] = [];
 
   if (vlamax.details?.testType) {
@@ -743,20 +775,21 @@ export function toVLamaxEnvelope(
     why.push(`Date: ${vlamax.details.date}`);
   }
   if (vlamax.isLocked) {
-    why.push("🔒 VLamax verrouillée (mesure lactate)");
+    why.push("Référence verrouillée par le calcul interne ; aucune preuve de mesure déduite");
   }
   if (vlamax.errorMargin) {
-    why.push(`Marge: ± ${vlamax.errorMargin.toFixed(2)}`);
+    why.push(`Marge heuristique interne: ± ${vlamax.errorMargin.toFixed(2)} — pas une précision expérimentale`);
   }
   if (vlamax.variationWarning && vlamax.variationMessage) {
     recommendations.push(vlamax.variationMessage);
   }
 
-  return buildVLamaxEnvelope(
+  const envelope = buildVLamaxEnvelope(
     vlamax.value,
     source,
     vlamax.confidence,
     objectif,
     { why, recommendations }
   );
+  return qualifyScoreEnvelope({ ...envelope, scientificQualification: q, uncertaintyNote: VLA_HEURISTIC_NOTICE }, subjectId, discipline);
 }

@@ -1,0 +1,89 @@
+{
+  "baseline": "e31ffaba7d1fcefff8a60910713fd1fe9f18f89b",
+  "files": [
+    {
+      "path": "src/lib/v2/maderMetabolicModel.ts",
+      "unchanged": true,
+      "sha256": "ea8f4a76a718389555fc3c5000c5c4a54b165080e7bf747e206f9766fb2bd0b1",
+      "v21Sha256": "ea8f4a76a718389555fc3c5000c5c4a54b165080e7bf747e206f9766fb2bd0b1",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/runMLSSPredictor.ts",
+      "unchanged": true,
+      "sha256": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+      "v21Sha256": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/profilExpressFormulas.ts",
+      "unchanged": true,
+      "sha256": "790b378f4e6bd54741fd0eccfdc1c2a5736640d0a500007948ee2b597ac99c83",
+      "v21Sha256": "790b378f4e6bd54741fd0eccfdc1c2a5736640d0a500007948ee2b597ac99c83",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxBikeV2Enhanced.ts",
+      "unchanged": true,
+      "sha256": "efbfbf169153672c61df5eecc3843a40d908d38def163465c802c4fddcad74bb",
+      "v21Sha256": "efbfbf169153672c61df5eecc3843a40d908d38def163465c802c4fddcad74bb",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxCapEstimator.ts",
+      "unchanged": true,
+      "sha256": "5430d5f521115909a6c6251ed1c199affb1f49a0a62fce5feb9d0e88bc5bf2d3",
+      "v21Sha256": "5430d5f521115909a6c6251ed1c199affb1f49a0a62fce5feb9d0e88bc5bf2d3",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/vlamaxRunV2Enhanced.ts",
+      "unchanged": true,
+      "sha256": "86b13a5e661184d2b20bb7fe5e799b9ac16120f33dcf7afeff85e7620e7326d9",
+      "v21Sha256": "86b13a5e661184d2b20bb7fe5e799b9ac16120f33dcf7afeff85e7620e7326d9",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/fatmaxTFCL.ts",
+      "unchanged": true,
+      "sha256": "0b75378c53be962d66e0e1aa7ed45023633660159fcc2884db8c1dc475963fdd",
+      "v21Sha256": "0b75378c53be962d66e0e1aa7ed45023633660159fcc2884db8c1dc475963fdd",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/v2/criticalPowerModel.ts",
+      "unchanged": true,
+      "sha256": "8e17981887efdcae9e9be0cfa8125ec1ab79c1ac82355e5d8116965248bd480d",
+      "v21Sha256": "8e17981887efdcae9e9be0cfa8125ec1ab79c1ac82355e5d8116965248bd480d",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/tteEffectif.ts",
+      "unchanged": true,
+      "sha256": "13019a1ed9b38b35e2e142b83513ea0d7d5fc3f702d23b6ccc204c6745fae3f1",
+      "v21Sha256": "13019a1ed9b38b35e2e142b83513ea0d7d5fc3f702d23b6ccc204c6745fae3f1",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/zones/tfclDoctrine.ts",
+      "unchanged": true,
+      "sha256": "2a93efaf679089f74ae2065a77699b1048fa34d528ac826bd2feaa9165c24231",
+      "v21Sha256": "2a93efaf679089f74ae2065a77699b1048fa34d528ac826bd2feaa9165c24231",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/runningEconomySimple.ts",
+      "unchanged": true,
+      "sha256": "e2a0a31520d7f4dad6bc02e2ef3d5b63c0612d69b486ec9725d5d9b39698589a",
+      "v21Sha256": "e2a0a31520d7f4dad6bc02e2ef3d5b63c0612d69b486ec9725d5d9b39698589a",
+      "v21Unchanged": true
+    },
+    {
+      "path": "src/lib/plan/qa/syntheticProfiles.ts",
+      "unchanged": true,
+      "sha256": "9cd36f30c3da48d5be05c72fcb9aaf46c3faac8a505805be28c504c581206dcb",
+      "v21Sha256": "9cd36f30c3da48d5be05c72fcb9aaf46c3faac8a505805be28c504c581206dcb",
+      "v21Unchanged": true
+    }
+  ]
+}

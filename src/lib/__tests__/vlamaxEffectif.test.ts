@@ -85,7 +85,7 @@ describe("computeVLamaxEffectif", () => {
         athleteId: ATHLETE_ID,
         objectif: "IM",
         tests: [
-          { athlete_id: ATHLETE_ID, vlamax: 0.35, date: "2026-03-10", type: "sprint", name: "Sprint 15s" },
+          { athlete_id: ATHLETE_ID, vlamax: 0.35, date: "2026-03-10", type: "sprint", name: "Sprint 15s", sport: "bike" },
         ],
         snapshots: [
           { id: "s1", athlete_id: ATHLETE_ID, date: "2026-03-01", ftp: 280, pmax_5s: 900, weight_kg: 70 },

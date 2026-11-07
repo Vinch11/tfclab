@@ -1,3 +1,4 @@
+import { snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL Adaptation Predictor™
@@ -305,6 +306,8 @@ function extractPhysioState(
   // ce qui faisait fallback systématique sur la VLamax vélo pour les coureurs).
   const vlamax = resolveVlamaxForGoal(
     {
+      athlete_id: snapshot.athlete_id as string | null,
+      physiologicalEvidence: snapshotPhysiologyEvidence(snapshot),
       vlamax: snapshot.vlamax as number | null,
       vlamax_run: snapshot.vlamax_run as number | null,
       sport_main: (snapshot.sport_main as string | null) ?? sportMain ?? null,
@@ -318,7 +321,7 @@ function extractPhysioState(
       vlamax_protocol: snapshot.vlamax_protocol as string | null,
       vo2max,
     },
-    { goal: objectif, objectif }
+    { id: snapshot.athlete_id as string | null, goal: objectif, objectif }
   ).value;
   const ftp = (snapshot.ftp as number) ?? null;
   const weight_kg = (snapshot.weight_kg as number) ?? null;

@@ -1,4 +1,5 @@
 import { canGuidePrescription } from "@/lib/limiterPrescription";
+import { diagnosticPhysiologicalEvidence } from "@/lib/physiologyEvidence";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL PLAN ENGINE™ — Plan Config Builder
@@ -55,6 +56,8 @@ export function buildPlanAthleteDataFromDiagnostic(
     map5min: raw.map5minW,
     paceThresholdSecPerKm: raw.paceThresholdSecPerKm ?? null,
     runEconomyScore: raw.runEconomyScore ?? null,
+    runningEconomyCostMlKgKm: raw.runningEconomyCostMlKgKm ?? null,
+    physiologicalEvidence: diagnosticPhysiologicalEvidence(diagnostic),
     // Run MLSS Modèle C — fallback effectif si pace_threshold manquant
     runMLSSEffectivePct: diagnostic.runMLSS?.effectivePct ?? null,
     runMLSSEffectiveSource: diagnostic.runMLSS?.effectiveSource ?? null,

@@ -1,0 +1,313 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (../tfclab-full/node_modules/@vitejs/plugin-react-swc/index.js:95:25). Use `import.meta.dirname` instead
+  - `__filename` (../tfclab-full/node_modules/@vitejs/plugin-react-swc/index.js:96:38). Use `import.meta.filename` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+8:52:23 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+stdout | ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I1 negative wording alone selects lab branch and higher confidence without evidence
+[sport_main] snapshot goal=10 km, plan sport=run → utilisation run
+[sport_main] snapshot goal=10 km, plan sport=run → utilisation run
+
+stdout | ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I10 live cycle mapper changes its physiological input solely because of denied lab wording
+[sport_main] snapshot goal=10 km, plan sport=run → utilisation run
+[sport_main] snapshot goal=10 km, plan sport=run → utilisation run
+
+stdout | ../../tmp/tfclab-c8-independent/desired-contract.test.tsx
+🔧 [phase_widened] 139 fiche(s) élargies (endurance/technique)
+  [phase_widened] id=A_RUN_Z2_EASY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=D_RUN_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=D_SWIM_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=A_IM_BIKE_STEADY_LONG ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_IM_AERO_HOLD ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_MAR_LONG_RUN ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_HIKE_RUN_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EASY_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_2 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BIKE_SUPPORT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY_V39 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_POLES_SESSION ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_END_ROLLING_75 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_2H ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_3H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE_Z3_FINISH ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_STEADY_CLIMB_CONTINUOUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_FLAT_SUPPORT_END ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE_8x2 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_UPHILL_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PROPRIO_ANKLE_FOOT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_SHORT_LONGRUN_2H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PACK_LONG_DESC_SKILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_LONG_LONGRUN_3H ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_EASY_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_LONG_RUN_75 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SEMI_LONG_RUN_90 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_LONG_RUN_2H30 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_EASY_DPLUS_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR50_DESCENT_SPEED ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR50_TECH_APPUIS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_OPEN_WATER_SIMU ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_EASY_TECH_1500 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_SWIM_TRI_NEGATIVE_SPLIT ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_SIGHTING_DRILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_CATCH_PULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_DRAFTING_PACK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_BILATERAL_BREATHING ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_KICK_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_AERO_POSITION_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_PLYOMETRIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_UPPER_BODY_TRI ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_DURABILITY_LONG ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_BIKE_ACCLIM_INTRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_RUN_ACCLIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=OWS_WETSUIT_SPECIFIC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ECONOMY_RUN_FATIGUE_FORM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_LONG ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_MEDIUM ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=KENYAN_RUN_DOUBLE_DAY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_EASY_45_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_LONG_PROG_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_RUN_HILL_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_END_90_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_LONG_IM_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE_SKILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DESC_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V1_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V2_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V3_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V4_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V5_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V6_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V7_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V8_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V9_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V10_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=TPL_IM_RUN_LONGUE_DURABILITE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_RUN_DESCENTE_TECHNIQUE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_TRAIL_LONGUE_DPLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_HEAT_ACCLIM_Z2 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_ALTITUDE_EASY_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_MARCHE_COURSE_ALTERNE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_PROPRIOCEPTION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_CATCH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_ROTATION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_STR_HANCHE_COUREUR ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_BIKE_SINGLE_LEG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_RUN_EDUCATIFS_TECHNIQUES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_ENDURANCE_LONG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_MTN_LONG_D_PLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_B2B_WEEKEND ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_MARCHE_COURSE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_NIGHT ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_PROGRESSIF ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_MONTAGNE_BASE ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_ULTRA_BUILD ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_PEAK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_MARCHE_COURSE_ULTRA ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EF_VALLON ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PLIO_TRAIL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_DOUBLE_TAPIS_AM_PM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_SL_OUTDOOR_VARIETE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_BATONS_TECHNIQUE_PARC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_SL_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_BACK_TO_BACK ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_NOCTURNE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BRICK_TRANSITION_DRILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_LEGS_ENDURANCE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_HEAT_ACCLIM_RUN ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=D_DELOAD_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_CONTINUOUS_2K ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_CATCH_FOCUS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_BILATERAL_BREATH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_OPEN_WATER_SKILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TURNS_STARTS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC_MULTI_NAGES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_PULL_LONG_DISTANCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_BEGINNER_FOUNDATION_FULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_LATE_RACE_FRACTIONS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_NEG_SPLIT_LR ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_703_RUN_NEG_SPLIT ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_1_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_2_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_25 ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_CONTINUOUS_30_LONG ancien=[peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_TECHNIQUE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_INTRO_TECHNIQUE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_BIKE_INTRO_SPIN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BIKE_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_WALK_RUN_4_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BREATHING_TECHNIQUE_INTRO ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_PARK_VARIANT ancien=[peak,taper] nouveau=[base,build,peak,taper]
+✅ Pro Pack: 107 | Templates: 50 | Enriched: 56 | V2: 52 | V3: 67 | Trail: 68 | V4: 19 | V5: 11 | V6: 9 | FatMax: 14 | Recovery: 28 | Swim+: 17 | SwimV2: 18 | StrengthV2: 32 | Hedgehog: 4 | IM Run Durability: 6 | 70.3 Podium: 9 | LCW: 5 | Run Hills: 4 | Short Formats: 12 | Total: 920
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx (10 tests | 8 failed) 354ms
+   × I1 negative wording alone selects lab branch and higher confidence without evidence 9ms
+   × I2 a qualification from A remains documented when UnifiedCard is rendering athlete B 76ms
+   × I3 estimated model inference becomes field_estimate in planning handoff 3ms
+   × I4 malformed cached reasons crash presentation overlay 3ms
+   × I5 exported legacy engine still promotes scalar input to measured lactate 2ms
+   × I7 reachable laboratory form still describes VLamax as measured in laboratory 10ms
+   × I8 athlete envelope calls unknown historical reference reliable without heuristic disclaimer 4ms
+   × I10 live cycle mapper changes its physiological input solely because of denied lab wording 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I1 negative wording alone selects lab branch and higher confidence without evidence
+AssertionError: expected 0.92 to be 0.4 // Object.is equality
+
+- Expected
++ Received
+
+- 0.4
++ 0.92
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:25:59
+     23|  const denial=resolveVlamaxForGoal({...s,vlamax_protocol:'Aucune mesur…
+     24|  print('I1',JSON.stringify({plain,denial}));
+     25|  expect(denial.value).toBe(0.7);expect(denial.confidence).toBe(plain.c…
+       |                                                           ^
+     26| });
+     27| it('I2 a qualification from A remains documented when UnifiedCard is r…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I2 a qualification from A remains documented when UnifiedCard is rendering athlete B
+AssertionError: expected 'VLamax calculée — inférence de modèle…' to contain 'provenance scientifique inconnue'
+
+Expected: "provenance scientifique inconnue"
+Received: "VLamax calculée — inférence de modèle documentéeScore et marge heuristiques internes ; ni probabilité de validité individuelle ni précision expérimentale démontrée. Incertitude scientifique inconnueVLamax TFCL™ÉquilibréScore heuristique Élevée≈ 0.42mmol/L/sSource : VLamax véloAu-dessusCible: 0.20–0.34Δ +0.08🎯 Confirmé0.42mmol/L/sEndurantOptimalDiesel (0.35)Équilibré (0.55)Sprinter (0.65+)Adapté 70.3 et Ironman. Bonne capacité à soutenir FTP longtemps.Profil Endurant — excellent pour IronmanActions recommandées•Maintenir le volume Z2•Éviter les séances sprint intensivesQu'est-ce que le VLamax ?Estimation Two For Coaching Lab™ — Ne remplace pas un test lactate."
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:32:34
+     30|  const r=render(<VLamaxUnifiedCard athleteId="synthetic:B" objectif="I…
+     31|  print('I2',r.container.textContent?.slice(0,650));
+     32|  expect(r.container.textContent).toContain('provenance scientifique in…
+       |                                  ^
+     33|  expect(requalifyReference(q,0.42).status).toBe('documented_context');
+     34| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I3 estimated model inference becomes field_estimate in planning handoff
+AssertionError: expected 'field_estimate' to be 'model_inference' // Object.is equality
+
+Expected: "model_inference"
+Received: "field_estimate"
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:39:145
+     37|  const d=computeDiagnostic(input);const e=diagnosticPhysiologicalEvide…
+     38|  print('I3',JSON.stringify({qualification:e.vlamaxEffective.scientific…
+     39|  expect(e.vlamaxEffective.scientificQualification?.evidence?.methodKin…
+       |                                                                                                                                                 ^
+     40| });
+     41| it('I4 malformed cached reasons crash presentation overlay',()=>{
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I4 malformed cached reasons crash presentation overlay
+AssertionError: expected [Function] to not throw an error but 'TypeError: Cannot read properties of …' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"TypeError: Cannot read properties of null (reading 'map')"
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:44:61
+     42|  const env=toVLamaxEnvelope(computeDiagnostic(base()).effectifs.vlamax…
+     43|  for(const why of [null,{},[null],123]){
+     44|   expect(()=>qualifyScoreEnvelope({...env,why} as any)).not.toThrow();
+       |                                                             ^
+     45|  }
+     46|  print('I4 unguarded why.map / text.startsWith throws for JSON null, o…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I5 exported legacy engine still promotes scalar input to measured lactate
+AssertionError: expected 'Mesuré (Lactate labo)' not to contain 'Mesuré'
+
+Expected: "Mesuré"
+Received: "Mesuré (Lactate labo)"
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:50:58
+     48| it('I5 exported legacy engine still promotes scalar input to measured …
+     49|  const d=legacyEngine({vlamax_labo:0.42} as any);
+     50|  print('I5',JSON.stringify(d));expect(d.sourceLabel).not.toContain('Me…
+       |                                                          ^
+     51| });
+     52| it('I6 arbitrary non-URI identifiers are rejected while bare lab text …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I7 reachable laboratory form still describes VLamax as measured in laboratory
+AssertionError: expected 'Valider mon athlète (mesure labo)Sais…' not to contain 'mesurées en laboratoire'
+
+Expected: "mesurées en laboratoire"
+Received: "Valider mon athlète (mesure labo)Saisis les valeurs mesurées en laboratoire (VLamax + MLSS, +CE pour la course). Le moteur calcule l'écart instantané vs les modèles TFCL.SportBikeRunAthlète (optionnel)VLamax de référence déclaréemmol/L/sMLSS observé% VO2max (50-95)Saisis VLamax + MLSS pour calculer l'écart.Seuils bike : OK ≤ 4 pts · Écart ≤ 8 pts · Critique > 8 ptsSeuils run : OK ≤ 3 pts · Écart ≤ 6 pts · Critique > 6 pts (RMSE Modèle C : 2.64%)"
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:62:38
+     60| it('I7 reachable laboratory form still describes VLamax as measured in…
+     61|  const r=render(<LabAthleteValidator/>);print('I7',r.container.textCon…
+     62|  expect(r.container.textContent).not.toContain('mesurées en laboratoir…
+       |                                      ^
+     63| });
+     64| it('I8 athlete envelope calls unknown historical reference reliable wi…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I8 athlete envelope calls unknown historical reference reliable without heuristic disclaimer
+AssertionError: expected 'VLamax — provenance scientifique inco…' not to contain 'Données fiables'
+
+Expected: "Données fiables"
+Received: "VLamax — provenance scientifique inconnue (référence consultable)✓ Données fiables0.42mmol/L/s(≈0.38–0.46)Cible IM: 0.20–0.34 — Cible VLamax IM"
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:67:92
+     65|  const env=toVLamaxEnvelope(computeDiagnostic(base()).effectifs.vlamax…
+     66|  const r=render(<ScoreEnvelopeDisplay envelope={env} mode="athlete"/>)…
+     67|  expect(r.container.textContent).toContain('inconnue');expect(r.contai…
+       |                                                                                            ^
+     68| });
+     69| import {readFileSync} from 'node:fs';
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/8]⎯
+
+ FAIL  ../../tmp/tfclab-c8-independent/desired-contract.test.tsx > I10 live cycle mapper changes its physiological input solely because of denied lab wording
+AssertionError: expected 0.7 to be 0.42 // Object.is equality
+
+- Expected
++ Received
+
+- 0.42
++ 0.7
+
+ ❯ ../../tmp/tfclab-c8-independent/desired-contract.test.tsx:87:56
+     85|  const plain=snapshotToEngineData(s),denial=snapshotToEngineData({...s…
+     86|  print('I10',{plainVLamax:plain.vlamax,denialVLamax:denial.vlamax,plai…
+     87|  expect(plain.vlamax).toBe(0.42);expect(denial.vlamax).toBe(plain.vlam…
+       |                                                        ^
+     88| });
+     89|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 2 passed (10)
+   Start at  20:52:23
+   Duration  3.56s (transform 1.97s, setup 93ms, import 2.65s, tests 354ms, environment 289ms)

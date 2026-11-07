@@ -274,7 +274,7 @@ function computeConfidence(
   const sourceLabels: Record<string, string> = {
     estimation: "Estimation modélisée",
     test_terrain: "Test terrain structuré",
-    test_labo: "Mesure lactate laboratoire",
+    test_labo: "Référence stockée — catégorie interne, méthode à documenter",
   };
   
   return {
@@ -365,12 +365,12 @@ export function calibrateVLamaxV2(input: TFCLCalibrationInput): VLamaxV2Display 
 // =============================================
 
 export const TFCL_STANDARD_TEXTS = {
-  vlamaxDisclaimer: `La VLamax présentée est une estimation modélisée, calibrée sur un référentiel TFCL spécifique à l'objectif sportif. Elle ne remplace pas une mesure lactate directe mais permet une lecture cohérente, reproductible et exploitable pour la planification.`,
+  vlamaxDisclaimer: `La VLamax présentée est une estimation modélisée, calibrée sur un référentiel TFCL spécifique à l'objectif sportif. La mesure primaire porte sur le lactate sanguin ; la VLamax en est dérivée et ne mesure pas directement le flux glycolytique. Elle ne remplace pas un protocole lactate documenté mais permet une lecture cohérente, reproductible et exploitable pour la planification.`,
   
   confidenceExplanation: {
     HIGH: "Données multiples cohérentes. Précision estimée ±0.03 mmol/L/s.",
     MEDIUM: "Données partielles. Précision estimée ±0.05 mmol/L/s.",
-    LOW: "Données limitées. Précision estimée ±0.08 mmol/L/s. Test labo recommandé.",
+    LOW: "Données limitées. Marge heuristique interne ±0.08 mmol/L/s, pas une précision expérimentale. Test labo recommandé.",
   },
   
   zoneInterpretation: {

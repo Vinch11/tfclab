@@ -1,0 +1,3 @@
+src/components/RunMLSSCoherenceCard.tsx(63,64): error TS2367: This comparison appears to be unintentional because the types '"critical" | "warning"' and '"ok"' have no overlap.
+src/lib/__tests__/physiologyReviewV22.contract.test.tsx(40,45): error TS2345: Argument of type '{ sportFocus: "run"; vlamaxRun: number; runningEconomyCostMlKgKm: number; }' is not assignable to parameter of type 'Pick<DiagnosticInput, "vma" | "vlamaxRun" | "paceThresholdSecPerKm" | "sportFocus" | "runningEconomyCostMlKgKm">'.
+  Type '{ sportFocus: "run"; vlamaxRun: number; runningEconomyCostMlKgKm: number; }' is missing the following properties from type 'Pick<DiagnosticInput, "vma" | "vlamaxRun" | "paceThresholdSecPerKm" | "sportFocus" | "runningEconomyCostMlKgKm">': vma, paceThresholdSecPerKm

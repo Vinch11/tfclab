@@ -1,0 +1,106 @@
+
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+vite v5.4.21 building for production...
+transforming...
+✓ 5144 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter]
+(!) /workspace/tfclab-v2/src/lib/sportMainDeduction.ts is dynamically imported by /workspace/tfclab-v2/src/hooks/useCloudData.ts but also statically imported by /workspace/tfclab-v2/src/components/ExportTools.tsx, /workspace/tfclab-v2/src/components/ProfileAuditDialog.tsx, /workspace/tfclab-v2/src/components/VLamaxProfileScale.tsx, /workspace/tfclab-v2/src/hooks/useAthleteRaceGoals.ts, /workspace/tfclab-v2/src/lib/essentiels/computeEssentielsData.ts, /workspace/tfclab-v2/src/lib/vlamaxResolver.ts, /workspace/tfclab-v2/src/pages/Index.tsx, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/manifest.webmanifest                                 0.49 kB
+dist/plan-release.json                                    0.73 kB │ gzip:     0.48 kB
+dist/index.html                                          10.20 kB │ gzip:     2.83 kB
+dist/assets/logo-2fc-DNykzv8c.png                       138.64 kB
+dist/assets/index-DCO3Gb1M.css                          210.71 kB │ gzip:    32.47 kB
+dist/assets/__vite-browser-external-BIHI7g3E.js           0.03 kB │ gzip:     0.05 kB
+dist/assets/_commonjs-dynamic-modules-TDtrdbi3.js         0.24 kB │ gzip:     0.19 kB
+dist/assets/cloud-Fkrq91oT.js                             0.33 kB │ gzip:     0.27 kB
+dist/assets/filter-DIsj5xBX.js                            0.33 kB │ gzip:     0.26 kB
+dist/assets/arrow-left-StJznXqI.js                        0.33 kB │ gzip:     0.26 kB
+dist/assets/search-DFN5Tvh3.js                            0.34 kB │ gzip:     0.27 kB
+dist/assets/library-CSSMEzqs.js                           0.40 kB │ gzip:     0.28 kB
+dist/assets/copy-Des4VGFf.js                              0.40 kB │ gzip:     0.31 kB
+dist/assets/history-B_5R3k1R.js                           0.41 kB │ gzip:     0.30 kB
+dist/assets/external-link-gFyATr45.js                     0.42 kB │ gzip:     0.30 kB
+dist/assets/archive-PRRycHgv.js                           0.42 kB │ gzip:     0.31 kB
+dist/assets/pencil-Cbfg-4Tm.js                            0.45 kB │ gzip:     0.32 kB
+dist/assets/printer-BB1gYR4N.js                           0.49 kB │ gzip:     0.33 kB
+dist/assets/crosshair-B2UyuQo9.js                         0.52 kB │ gzip:     0.32 kB
+dist/assets/layers-Bqc8Jwa_.js                            0.53 kB │ gzip:     0.34 kB
+dist/assets/waves-9VWbtMP-.js                             0.59 kB │ gzip:     0.31 kB
+dist/assets/rocket-C2w0y25V.js                            0.62 kB │ gzip:     0.41 kB
+dist/assets/NotFound-agxvYsMf.js                          0.63 kB │ gzip:     0.38 kB
+dist/assets/useTestFormPersistence-DaVxFCBP.js            0.68 kB │ gzip:     0.37 kB
+dist/assets/MobileNavHarness-Bf8PRLpn.js                  0.69 kB │ gzip:     0.47 kB
+dist/assets/virtual_pwa-register-97sEhUY2.js              0.78 kB │ gzip:     0.47 kB
+dist/assets/PrintPreviewPage--4mB7Hda.js                  0.84 kB │ gzip:     0.57 kB
+dist/assets/inscydPoffe2024Sensitivity-Csi1aQOK.js        1.05 kB │ gzip:     0.67 kB
+dist/assets/index-D0UyVEDn.js                             1.40 kB │ gzip:     0.76 kB
+dist/assets/AppLayout-Bigufeu1.js                         2.22 kB │ gzip:     0.99 kB
+dist/assets/vlamaxTracePersistence-AhdSZqOa.js            2.25 kB │ gzip:     1.18 kB
+dist/assets/runMLSSTracePersistence-_gmaULgL.js           2.70 kB │ gzip:     1.14 kB
+dist/assets/alert-dialog-B3nf5egy.js                      3.66 kB │ gzip:     1.23 kB
+dist/assets/PlanningPage-DqC99IFZ.js                      3.70 kB │ gzip:     1.50 kB
+dist/assets/RaceTimeEstimateCard-CisMwZmm.js              4.06 kB │ gzip:     1.31 kB
+dist/assets/PrintExportHarness-CpKLMWiK.js                4.16 kB │ gzip:     1.71 kB
+dist/assets/workbox-window.prod.es5-BqEJf4Xk.js           5.71 kB │ gzip:     2.34 kB
+dist/assets/radio-group-CPcbKfB3.js                       6.16 kB │ gzip:     2.42 kB
+dist/assets/TrainingLoadPage-xDEr2l6j.js                  8.46 kB │ gzip:     3.46 kB
+dist/assets/ThresholdPaceEstimator-BgBzyNsV.js            8.46 kB │ gzip:     2.71 kB
+dist/assets/PlanLibraryPage-CxlSZNsO.js                   9.01 kB │ gzip:     3.26 kB
+dist/assets/RunningFocusModeIndicator-DvZudruF.js        10.34 kB │ gzip:     4.08 kB
+dist/assets/TriTestDayPage-_YZCCFed.js                   11.37 kB │ gzip:     3.76 kB
+dist/assets/profilExpressSnapshot-ClEio5o9.js            11.98 kB │ gzip:     4.11 kB
+dist/assets/SwimPoolDayPage-W9NUsEf_.js                  13.61 kB │ gzip:     4.46 kB
+dist/assets/TrailSimulationPage-B18Y9FHA.js              13.93 kB │ gzip:     5.28 kB
+dist/assets/index-BdakZVvs.js                            16.16 kB │ gzip:     6.90 kB
+dist/assets/VLamaxDiagnosticPage-D89Tlpqe.js             16.17 kB │ gzip:     4.99 kB
+dist/assets/index-XHkGxTEB.js                            17.22 kB │ gzip:     5.00 kB
+dist/assets/VlamaxCapCohortPage-BZXJ042a.js              17.41 kB │ gzip:     5.90 kB
+dist/assets/LiteratureCohortPage-JerSB96u.js             18.60 kB │ gzip:     5.91 kB
+dist/assets/AthletesListPage-CUCyXZKY.js                 19.67 kB │ gzip:     6.08 kB
+dist/assets/index-BQj68aFV.js                            19.94 kB │ gzip:     5.89 kB
+dist/assets/BikeTrackDayPage-ubLvCKkj.js                 20.12 kB │ gzip:     6.55 kB
+dist/assets/PacingAuditPage-lImgUQjX.js                  20.47 kB │ gzip:     6.66 kB
+dist/assets/TrackDayPage-D2PG9Os-.js                     23.38 kB │ gzip:     7.56 kB
+dist/assets/WorkoutLibraryBrowserPage-mnn-bFV2.js        25.40 kB │ gzip:     7.91 kB
+dist/assets/RadarChart-CN49FcNJ.js                       25.99 kB │ gzip:     6.32 kB
+dist/assets/buildTestingWeekProtocolHTML-BW2nlKxp.js     28.55 kB │ gzip:     8.81 kB
+dist/assets/RunMLSSCohortPage-Dwg5XJBM.js                32.06 kB │ gzip:    10.59 kB
+dist/assets/EvolutionPage-DC3_FUxJ.js                    34.14 kB │ gzip:    10.50 kB
+dist/assets/CoachChecklistPage-BT_2J0fm.js               35.23 kB │ gzip:    11.04 kB
+dist/assets/AthleteEditPage-JvxzLr0d.js                  35.92 kB │ gzip:     9.39 kB
+dist/assets/MiniReportPage-B50BaEf9.js                   36.09 kB │ gzip:    13.05 kB
+dist/assets/capTestingWeek-C4bldtMG.js                   36.25 kB │ gzip:    10.34 kB
+dist/assets/index-D2WPURPL.js                            42.35 kB │ gzip:    10.95 kB
+dist/assets/EssentielsPage-C1xatZCQ.js                   49.00 kB │ gzip:    17.35 kB
+dist/assets/buildDiagnosticProtocolHTML-Ytte8IWi.js      57.66 kB │ gzip:    17.25 kB
+dist/assets/DiagnosticPage-DV6OdXUT.js                   69.08 kB │ gzip:    22.04 kB
+dist/assets/AcademyPage-79X6f-6j.js                      78.08 kB │ gzip:    18.77 kB
+dist/assets/PlanQAPage-BM5dTGjH.js                      109.57 kB │ gzip:    33.30 kB
+dist/assets/RunningProfilePage-BkIjh8_J.js              149.75 kB │ gzip:    43.57 kB
+dist/assets/RaceSimulationPage-CODzIfwZ.js              184.66 kB │ gzip:    51.19 kB
+dist/assets/index-CKjX6Icg.js                           302.57 kB │ gzip:    97.85 kB
+dist/assets/TestsPage-0AHgmZRR.js                       328.17 kB │ gzip:    83.03 kB
+dist/assets/prepareTrainingPlanContext-Dsdeg4LR.js      339.61 kB │ gzip:   120.36 kB
+dist/assets/pdf-B0-hbqUA.js                             349.30 kB │ gzip:   102.68 kB
+dist/assets/AITrainingPlanPage-CAUKlYot.js              402.41 kB │ gzip:   123.08 kB
+dist/assets/TemplatesPage-CFr83sy4.js                   431.85 kB │ gzip:   106.63 kB
+dist/assets/workoutLibrary-CPcRB1uM.js                  830.77 kB │ gzip:   217.01 kB
+dist/assets/index-CQ8hiv-p.js                         3,667.96 kB │ gzip: 1,038.82 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 46.78s
+
+PWA v1.3.0
+mode      generateSW
+precache  91 entries (9019.86 KiB)
+files generated
+  dist/sw.js
+  dist/workbox-63c18b4d.js

@@ -1,5 +1,7 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence, physiologyNarrative } from "@/lib/physiologyEvidence";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
-import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
+import { mapSnapshotToV2, mapTestToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 // =============================================
 // OUTILS EXPORT PDF – RAPPORT STAFF-GRADE COMPLET
@@ -513,7 +515,7 @@ function buildNutritionV2HTML(payload: ExportPayload): string {
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Confiance</div>
-            <div class="medium" style="margin:8px 0;">${Math.round(nutritionV2.confidence * 100)}%</div>
+            <div class="medium" style="margin:8px 0;">${Math.round(nutritionV2.confidence * 100)} / 100 (score interne, non précision expérimentale)</div>
             <div class="muted" style="font-size:11px;">${nutritionV2.sportLabel}</div>
           </div>
         </div>
@@ -694,7 +696,7 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
             <div style="margin:8px 0;">
               <span class="badge ${confidenceBadgeClass}" style="font-size:14px;padding:8px 16px;">${htmlEscape(fatmaxTFCL.confidenceLabel)}</span>
             </div>
-            <div class="muted" style="font-size:11px;">${Math.round(fatmaxTFCL.confidence * 100)}%</div>
+            <div class="muted" style="font-size:11px;">${Math.round(fatmaxTFCL.confidence * 100)} / 100 (score interne, non précision expérimentale)</div>
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Profil métabolique</div>
@@ -1132,7 +1134,7 @@ function buildProSimulationHTML(
           </div>
           <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
             <div class="muted" style="font-size:10px;">Succès</div>
-            <div style="font-size:16px;font-weight:700;color:${scenarioColor};">${Math.round(scenario.successProbability * 100)}%</div>
+            <div style="font-size:16px;font-weight:700;color:${scenarioColor};">${Math.round(scenario.successProbability * 100)} / 100 (score heuristique interne)</div>
           </div>
           <div style="text-align:center;background:var(--soft);padding:10px;border-radius:8px;">
             <div class="muted" style="font-size:10px;">Risque fuel</div>
@@ -1415,7 +1417,7 @@ function calculateCompletude(
     { label: "VO2max", weight: 5, fillRatio: effectiveRefs.vo2max != null ? 1 : 0 },
     { label: "TSS 7d", weight: 10, fillRatio: effectiveSnapshot?.tss_7d != null ? 1 : 0 },
     {
-      label: "VLamax (mesure ou estimation fiable)",
+      label: "VLamax (référence disponible, qualification séparée)",
       weight: 15,
       // Mesure observée = 100% ; estimation = pondérée par confiance V2 (jusqu'à 80% de crédit)
       fillRatio: vlamaxIsObserved ? 1 : Math.min(0.8, vlamaxConfidence),
@@ -1480,13 +1482,7 @@ function buildExportPayload(
     athleteId: athlete.id,
     objectif: athlete.goal || "IM",
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: athleteTests.map(t => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name
-    })),
+    tests: athleteTests.map(mapTestToV2),
     snapshots: athleteSnapshots.map(mapSnapshotToV2)
   });
   
@@ -1562,6 +1558,9 @@ function buildExportPayload(
       tss7d: effectiveSnapshot.tss_7d ?? null,
       fatigueState: effectiveSnapshot.fatigue_state ?? null,
       runEconomyScore: effectiveSnapshot.run_economy_score ?? null,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(effectiveSnapshot),
+      physiologicalEvidence: snapshotPhysiologyEvidence(effectiveSnapshot, effectiveRefs),
+      snapshotDate: effectiveSnapshot.date ?? null,
       runHrDriftPct: effectiveSnapshot.run_hr_drift_pct ?? null,
       paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
       runningPower1s: effectiveSnapshot.running_power_1s ?? null,
@@ -2523,7 +2522,7 @@ function buildPacingEnvelopeRunningHTML(payload: ExportPayload): string {
           </div>
           <div style="text-align:center;">
             <div class="muted" style="font-size:11px;">Confiance modèle</div>
-            <div style="font-size:18px;font-weight:600;">${Math.round(result.confidence * 100)}%</div>
+            <div style="font-size:18px;font-weight:600;">${Math.round(result.confidence * 100)} / 100 (score interne, non précision expérimentale)</div>
           </div>
           <div style="text-align:right;">
             <div class="muted" style="font-size:11px;">Allure seuil</div>
@@ -2628,7 +2627,7 @@ function buildPacingEnvelopeHTML(payload: ExportPayload): string {
         </div>
         <div class="card">
           <div class="muted" style="font-size:11px;">Confiance</div>
-          <div style="font-size:18px;font-weight:700;">${env.confidenceLevel} (${Math.round(env.confidence * 100)}%)</div>
+          <div style="font-size:18px;font-weight:700;">${env.confidenceLevel} (${Math.round(env.confidence * 100)} / 100 (score interne, non précision expérimentale))</div>
           <div class="muted" style="font-size:10px;margin-top:4px;">${htmlEscape(env.confidenceLabel)}</div>
         </div>
       </div>
@@ -3021,7 +3020,7 @@ function buildFacteursLimitantsHTML(payload: ExportPayload): string {
           <div>
             <div style="display:flex;gap:16px;margin-top:8px;">
               <div style="text-align:center;">
-                <div style="font-size:28px;font-weight:700;color:${ul.confidence > 0.7 ? '#1F9D6B' : ul.confidence > 0.4 ? '#C8860D' : '#D0433A'};">${Math.round(ul.confidence * 100)}%</div>
+                <div style="font-size:28px;font-weight:700;color:${ul.confidence > 0.7 ? '#1F9D6B' : ul.confidence > 0.4 ? '#C8860D' : '#D0433A'};">${Math.round(ul.confidence * 100)} / 100 (score interne, non précision expérimentale)</div>
                 <div class="muted" style="font-size:11px;">Confiance</div>
               </div>
               <div style="text-align:center;">
@@ -3433,7 +3432,7 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
             <div style="font-size:22px;font-weight:700;font-family:monospace;color:#1F9D6B;">${lt1Watts}</div>
             ${lt1Pct ? `<div style="font-size:10px;color:#6E6B78;">${lt1Pct}</div>` : ""}
             <div style="font-size:10px;margin-top:4px;">
-              <span style="color:${confColor(thresholds.lt1.confidence)};">Confiance: ${Math.round(thresholds.lt1.confidence * 100)}%</span>
+              <span style="color:${confColor(thresholds.lt1.confidence)};">Confiance: ${Math.round(thresholds.lt1.confidence * 100)} / 100 (score interne, non précision expérimentale)</span>
             </div>
           </div>
           <div style="background:#FAE6E4;border:1px solid #F2B7B2;border-radius:8px;padding:12px;text-align:center;">
@@ -3441,7 +3440,7 @@ function buildLactateCorrespondenceHTML(payload: ExportPayload): string {
             <div style="font-size:22px;font-weight:700;font-family:monospace;color:#D0433A;">${lt2Watts}</div>
             ${lt2Pct ? `<div style="font-size:10px;color:#6E6B78;">${lt2Pct}</div>` : ""}
             <div style="font-size:10px;margin-top:4px;">
-              <span style="color:${confColor(thresholds.lt2.confidence)};">Confiance: ${Math.round(thresholds.lt2.confidence * 100)}%</span>
+              <span style="color:${confColor(thresholds.lt2.confidence)};">Confiance: ${Math.round(thresholds.lt2.confidence * 100)} / 100 (score interne, non précision expérimentale)</span>
             </div>
           </div>
         </div>
@@ -3660,7 +3659,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
 // VLAMAX ZONE × CONFIANCE — SVG CHART (PDF)
 // =============================================
 
-function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
+export function buildVLamaxZoneConfidenceHTML(payload: Pick<ExportPayload, "vlamax"> & { athlete: Pick<DbAthlete, "goal"> & Partial<Pick<DbAthlete, "id">> }): string {
   const v2 = payload.vlamax.v2;
   if (!v2 || v2.effective === null) {
     return `
@@ -3715,15 +3714,12 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
   const confLevels = [
     { y: 0.0, label: "Exploratoire" },
     { y: 0.4, label: "Tendance" },
-    { y: 0.6, label: "Décision utilisable" },
-    { y: 0.8, label: "Décision robuste" },
+    { y: 0.6, label: "Score heuristique modéré" },
+    { y: 0.8, label: "Score heuristique élevé" },
   ];
 
   // Source label
-  const sourceLabel = v2.source === "test_labo" ? "Test labo" 
-    : v2.source === "test_terrain" ? "Test terrain" 
-    : v2.source === "semaine_reference" ? "Semaine référence"
-    : v2.source === "estimation" ? "Estimation continue" : "—";
+  const sourceLabel = scientificReferenceLabel(v2.scientificQualification, v2.effective, isRun ? "run" : "bike", payload.athlete.id);
 
   // Badges
   const badges: string[] = [];
@@ -3731,8 +3727,8 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
   if (v2.variationWarning) badges.push("🔄 Variation détectée");
 
   // Confidence label
-  const confLabel = v2.confidence >= 0.85 ? "Très fiable" 
-    : v2.confidence >= 0.70 ? "Fiable" 
+  const confLabel = v2.confidence >= 0.85 ? "Score heuristique élevé"
+    : v2.confidence >= 0.70 ? "Score heuristique élevé"
     : v2.confidence >= 0.50 ? "Modéré" 
     : v2.confidence >= 0.35 ? "Faible" : "Fragile";
 
@@ -3741,7 +3737,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
       <h2>⚡ VLamax = Zone physiologique × Fiabilité</h2>
       
       <div class="alert alertInfo mb" style="font-size:11px;">
-        <b>📊 Graphique signature TFCL :</b> Ce graphique positionne l'athlète selon sa zone physiologique VLamax (axe X) et le niveau de fiabilité de la mesure (axe Y). 
+        <b>📊 Graphique signature TFCL :</b> Ce graphique positionne l'athlète selon sa zone physiologique VLamax (axe X) et le niveau de score heuristique interne (axe Y), sans preuve de validité individuelle.
         La décision coaching doit reposer sur la <b>zone + source</b>, pas sur le centième.
       </div>
 
@@ -3804,7 +3800,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
             <div style="width:14px;height:14px;border-radius:50%;background:${athleteZone.textColor};opacity:${opacity};border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.2);"></div>
             <div>
               <span style="font-size:18px;font-weight:800;font-family:ui-monospace,monospace;">≈ ${v2.effective!.toFixed(2)}</span>
-              <span style="font-size:12px;color:#6E6B78;margin-left:6px;">± ${v2.errorMargin.toFixed(2)}</span>
+              <span style="font-size:12px;color:#6E6B78;margin-left:6px;">marge heuristique interne ± ${v2.errorMargin.toFixed(2)}</span>
             </div>
           </div>
           <div style="text-align:right;">
@@ -3821,11 +3817,11 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
             <div style="font-size:14px;font-weight:700;color:${athleteZone.textColor};">${athleteZone.label}</div>
           </div>
           <div class="card" style="padding:10px;">
-            <div style="font-size:10px;color:#6E6B78;">Source</div>
-            <div style="font-size:12px;font-weight:600;">${sourceLabel}</div>
+            <div style="font-size:10px;color:#6E6B78;">Qualification</div>
+            <div style="font-size:12px;font-weight:600;">${sourceLabel}<br>${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(v2.scientificQualification, v2.effective, isRun ? "run" : "bike", payload.athlete.id))}</div>
           </div>
           <div class="card" style="padding:10px;">
-            <div style="font-size:10px;color:#6E6B78;">Plage</div>
+            <div style="font-size:10px;color:#6E6B78;">Plage heuristique</div>
             <div style="font-size:12px;font-weight:600;font-family:ui-monospace,monospace;">${v2.range ? `${v2.range.low.toFixed(2)} – ${v2.range.high.toFixed(2)}` : '—'}</div>
           </div>
         </div>
@@ -3841,7 +3837,7 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
       <div class="alert alertInfo mt" style="font-size:10px;">
         <b>💡 Pourquoi ce graphique ?</b> La VLamax est une estimation continue influencée par la qualité des données, la fatigue et le type de test. 
         TFCL affiche volontairement une valeur avec marge d'erreur et niveau de fiabilité, car la décision d'entraînement dépend davantage de la <b>zone physiologique</b> que d'un chiffre isolé. 
-        Une variation de ±0.02 est physiologiquement normale et ne justifie pas un changement de stratégie.
+        La marge interne ±0.02 ne démontre ni une précision expérimentale individuelle ni une variabilité physiologique mesurée.
       </div>
     </section>
   `;
@@ -3851,8 +3847,18 @@ function buildVLamaxZoneConfidenceHTML(payload: ExportPayload): string {
 // RUN MLSS COHÉRENCE — Modèle C (RMSE 2.64% sur N=14 run)
 // Affiche % MLSS effectif (observé > prédit), source, prédiction, cross-validation
 // =============================================
-function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
+export function buildRunMLSSCoherenceHTML(payload: {
+  athlete: Pick<DbAthlete, "goal"> & Partial<Pick<DbAthlete, "id">>;
+  effectiveSnapshot: Partial<DbSnapshot> | null;
+  runMLSS: ReturnType<typeof computeDiagnostic>["runMLSS"];
+}): string {
   const runMLSS = payload.runMLSS;
+  const evidence = snapshotPhysiologyEvidence(payload.effectiveSnapshot);
+  const cost = evidence.runningEconomyCostMlKgKm;
+  const costEvidenceHTML = `<div class="card" style="font-size:11px;">
+    <b>Coût O₂ course :</b> ${cost ? `${cost.value} ${htmlEscape(cost.unit)}` : "inconnu — aucune conversion du score économie"}.<br>
+    ${cost ? `Date du test : ${htmlEscape(cost.date ?? "inconnue")} ; méthode : ${htmlEscape(cost.method ?? "inconnue")} ; origine scientifique : ${htmlEscape(cost.scientificOrigin)} ; stockage : ${htmlEscape(cost.storageSource ?? "inconnu")}.<br>Confiance : ${cost.confidence ?? "inconnue"} (${htmlEscape(cost.confidenceBasis)}) ; marge : ${cost.errorMargin ?? "inconnue"}.` : "La voie seuil/VMA reste utilisable si renseignée."}
+  </div>`;
   const goal = payload.athlete.goal || "";
   const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra") || (payload.effectiveSnapshot?.sport_main === "run");
 
@@ -3864,7 +3870,8 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <div class="card" style="font-size:11px;color:#6E6B78;">
           Section non pertinente pour cet objectif (cycliste/triathlon non-run-focus).
         </div>
-      </section>`;
+        ${costEvidenceHTML}
+    </section>`;
   }
 
   if (!runMLSS) {
@@ -3874,7 +3881,8 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <div class="alert alertWarning" style="font-size:11px;">
           <b>Données insuffisantes</b> — Ajoutez VLamax run et économie de course (CE) pour activer la prédiction Modèle C.
         </div>
-      </section>`;
+        ${costEvidenceHTML}
+    </section>`;
   }
 
   const effectivePct = runMLSS.effectivePct;
@@ -3884,9 +3892,9 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const crossValidation = runMLSS.crossValidation;
 
   const sourceLabel = effectiveSource === "observed"
-    ? "🎯 Observé (test seuil 30 min terrain)"
+    ? "🎯 Proxy vitesse seuil / VMA"
     : effectiveSource === "predicted"
-      ? "🧪 Prédit (Modèle C — RMSE 2.64 %)"
+      ? "🧪 Prédit (Modèle C ; confiance heuristique)"
       : "—";
 
   const sourceBadgeClass = effectiveSource === "observed" ? "badgeSuccess" : effectiveSource === "predicted" ? "badgeWarning" : "badgeError";
@@ -3901,8 +3909,8 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const predBlock = prediction ? `
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
-      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VMA</div>
-      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE ±${prediction.trace.rmseExpected.toFixed(2)}%</div>
+      <div style="font-size:14px;font-weight:700;font-family:ui-monospace,monospace;">${prediction.mlssPct.toFixed(1)}% VO₂max</div>
+      <div style="font-size:10px;color:#6E6B78;margin-top:2px;">RMSE historique ${prediction.trace.rmseExpected.toFixed(2)} points ; pas une marge individuelle</div>
     </div>` : `
     <div class="card" style="padding:10px;">
       <div style="font-size:10px;color:#6E6B78;">Prédit Modèle C</div>
@@ -3923,7 +3931,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
   const xvBlock = crossValidation && observedPct != null && prediction ? `
     <div class="alert ${xvAlertClass} mt" style="font-size:11px;">
       <b>🔬 Cross-validation observé vs prédit :</b> Δ = ${crossValidation.deltaPct > 0 ? "+" : ""}${crossValidation.deltaPct.toFixed(1)}% — <b>${crossValidation.severity.toUpperCase()}</b><br>
-      ${crossValidation.explanation ?? ""}
+      ${crossValidation.severity === "ok" ? "Comparaison interne ; aucune validation physiologique indépendante déduite." : crossValidation.explanation ?? ""}
     </div>` : "";
 
   return `
@@ -3935,7 +3943,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
           <div>
             <div style="font-size:10px;color:#6E6B78;">% MLSS effectif (utilisé pour ancrage Z5)</div>
             <div style="font-size:24px;font-weight:800;font-family:ui-monospace,monospace;">
-              ${effectivePct != null ? `${effectivePct.toFixed(1)}% VMA` : "—"}
+              ${effectivePct != null ? `${effectivePct.toFixed(1)}% ${effectiveSource === "observed" ? "VMA (proxy de vitesse)" : "VO₂max"}` : "—"}
             </div>
           </div>
           <span class="badge ${sourceBadgeClass}" style="font-size:11px;padding:5px 12px;">${sourceLabel}</span>
@@ -3953,6 +3961,7 @@ function buildRunMLSSCoherenceHTML(payload: ExportPayload): string {
         <b>📚 Modèle C (TFCL™ N=14 run) :</b> <code>MLSS_pct = 1 − 0.337·VLa_run − 0.0021·(CE − 200)</code>.
         Quand un test seuil 30 min est disponible, l'observé prime. Sinon, la prédiction Modèle C ancre Z5 dans le plan IA (à confirmer par un test terrain).
       </div>
+      ${costEvidenceHTML}
     </section>
   `;
 }
@@ -4462,7 +4471,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     }
   };
   
-  const vlamaxStatus = getSourceStatus(vlamax.source, vlamax.confidence);
+  const vlamaxStatus = { icon: "📋", label: scientificReferenceLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id), cssClass: "badgeWarning" };
   const tteStatus = getSourceStatus(tte.source, tte.confidence);
 
   const coverHTML = `
@@ -4669,13 +4678,13 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <tbody>
             <tr>
               <td style="padding:8px; border:1px solid var(--border);">🔬 <b>Mesurée</b></td>
-              <td style="padding:8px; border:1px solid var(--border);">Test direct (labo, lactate)</td>
-              <td style="padding:8px; border:1px solid var(--border);">Élevée (&gt; 85%)</td>
+              <td style="padding:8px; border:1px solid var(--border);">Mesure primaire documentée ; lactate sanguin distinct de VLamax calculée</td>
+              <td style="padding:8px; border:1px solid var(--border);">Confiance d’origine à documenter ; pas une probabilité</td>
             </tr>
             <tr style="background:var(--muted-bg);">
               <td style="padding:8px; border:1px solid var(--border);">🧠 <b>Estimée</b></td>
               <td style="padding:8px; border:1px solid var(--border);">Test terrain standardisé</td>
-              <td style="padding:8px; border:1px solid var(--border);">Modérée (65 – 85%)</td>
+              <td style="padding:8px; border:1px solid var(--border);">Score interne, non précision expérimentale</td>
             </tr>
             <tr>
               <td style="padding:8px; border:1px solid var(--border);">🔁 <b>Modélisée</b></td>
@@ -4776,14 +4785,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <tr>
               <td><b>FTP</b></td>
               <td>${effectiveRefs.ftp ?? "—"} W ${ftpKg ? `(${fmt(ftpKg, 2)} W/kg)` : ""}</td>
-              <td><span class="badge badgeSuccess">🔬 Mesurée</span></td>
+              <td><span class="badge badgeWarning">Référence disponible ; méthode à qualifier</span></td>
               <td><span class="badge badgeSuccess">Élevée</span></td>
               <td class="muted">Capacité fonctionnelle au seuil — base de calcul pour TTE et zones.</td>
             </tr>
             <tr>
               <td><b>VO₂max</b></td>
               <td>${effectiveRefs.vo2max ? fmt(effectiveRefs.vo2max, 1) : "—"} ml/kg/min</td>
-              <td><span class="badge ${effectiveRefs.vo2max ? 'badgeSuccess' : 'badgeWarning'}">${effectiveRefs.vo2max ? '🔬 Mesurée/Labo' : '🧠 Estimée'}</span></td>
+              <td><span class="badge ${effectiveRefs.vo2max ? 'badgeSuccess' : 'badgeWarning'}">${effectiveRefs.vo2max ? 'Référence disponible ; origine à qualifier' : 'Indisponible'}</span></td>
               <td><span class="badge ${effectiveRefs.vo2max ? 'badgeSuccess' : 'badgeWarning'}">${effectiveRefs.vo2max ? 'Élevée' : 'Modérée'}</span></td>
               <td class="muted">Plafond aérobie — l'augmentation marginale est limitée après un certain niveau.</td>
             </tr>
@@ -4829,7 +4838,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <h3>📋 Résumé automatique (Lecture < 2 min)</h3>
         <p style="font-size:14px;line-height:1.6;margin:12px 0;">${profilMessage}</p>
         <p style="font-size:12px;color:var(--muted);">
-          <b>Limiteur principal:</b> ${payload.unifiedLimiter.limiterEmoji} ${htmlEscape(payload.unifiedLimiter.limiterLabel)} (confiance ${Math.round(payload.unifiedLimiter.confidence * 100)}%).<br>
+          <b>Limiteur principal:</b> ${payload.unifiedLimiter.limiterEmoji} ${htmlEscape(payload.unifiedLimiter.limiterLabel)} (confiance ${Math.round(payload.unifiedLimiter.confidence * 100)} / 100 (score interne, non précision expérimentale)).<br>
           <b>Levier prioritaire:</b> ${payload.unifiedLimiter.leverEmoji} ${htmlEscape(payload.unifiedLimiter.leverLabel)}.<br>
           <b>Décision coaching:</b> ${htmlEscape(payload.coachingCompass.decision.recommendedBlock)} (${payload.coachingCompass.decision.durationWeeks} sem).<br>
           <b>Risques identifiés:</b> ${risquesIdentifies}.
@@ -5303,7 +5312,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="alert alertError" style="margin-bottom:16px;">
         <div style="font-size:14px;font-weight:700;margin-bottom:6px;">
           🎯 Facteur limitant principal : ${ul.limiterEmoji} ${htmlEscape(ul.limiterLabel)}
-          <span class="muted" style="font-weight:400;font-size:11px;">(confiance ${Math.round(ul.confidence * 100)}%)</span>
+          <span class="muted" style="font-weight:400;font-size:11px;">(confiance ${Math.round(ul.confidence * 100)} / 100 (score interne, non précision expérimentale))</span>
         </div>
         <div style="font-size:12px;margin-bottom:8px;">${htmlEscape(ul.limiterExplanation || "")}</div>
         <div style="font-size:11px;font-weight:600;margin-top:8px;">Hiérarchie des 3 indicateurs (par impact pondéré sur la performance) :</div>
@@ -6979,7 +6988,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                       ).join('')}
                     </div>
                   </td>
-                  <td><span class="badge ${test.confidence >= 0.7 ? 'badgeSuccess' : test.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${Math.round(test.confidence * 100)}%</span></td>
+                  <td><span class="badge ${test.confidence >= 0.7 ? 'badgeSuccess' : test.confidence >= 0.4 ? 'badgeWarning' : 'badgeError'}">${Math.round(test.confidence * 100)} / 100 (score interne, non précision expérimentale)</span></td>
                 </tr>
               `).join('')}
             </tbody>
@@ -7024,11 +7033,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                     <td><b>${item.metric}</b></td>
                     <td class="mono">
                       ${beforeVal}
-                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.before.confidence * 100)}%</span>
+                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.before.confidence * 100)} / 100 (score interne, non précision expérimentale)</span>
                     </td>
                     <td class="mono">
                       <b>${afterVal}</b>
-                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.after.confidence * 100)}%</span>
+                      <br><span class="muted" style="font-size:10px;">Conf: ${Math.round(item.after.confidence * 100)} / 100 (score interne, non précision expérimentale)</span>
                     </td>
                     <td style="color:${item.delta !== null && item.delta !== 0 ? (item.metric === 'VLamax' && item.delta < 0 ? 'var(--success)' : item.metric === 'VLamax' && item.delta > 0 ? 'var(--warning)' : 'var(--foreground)') : 'var(--muted)'}">
                       <b>${deltaVal}</b>
@@ -7516,7 +7525,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="muted" style="font-size:11px;margin-top:4px;">État déclaré : <code>${currentFatigueState}</code></div>
           </div>
         </div>
-        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(effectiveSnapshot.coach_notes)}</div>` : ''}
+        ${effectiveSnapshot.coach_notes ? `<div class="mt muted">Notes coach : ${htmlEscape(physiologyNarrative(effectiveSnapshot.coach_notes))}</div>` : ''}
       </div>
     </section>
   ` : '';
@@ -8393,7 +8402,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
             Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
-            Confiance du modèle : ${Math.round(output.confidence * 100)}%.
+            Confiance du modèle : ${Math.round(output.confidence * 100)} / 100 (score interne, non précision expérimentale).
           </div>
         </div>`}
       </section>
@@ -8411,7 +8420,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </div>
         </div>
         <div style="text-align:right;">
-          <div class="muted">VLamax: ${htmlEscape(vlamax.label)} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
+          <div class="muted">${VLA_HEURISTIC_NOTICE}<br>${htmlEscape(scientificUncertaintyLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id))}<br>VLamax: ${htmlEscape(scientificReferenceLabel(vlamax.scientificQualification, vlamax.value, resolveCompassSportFocus(payload.effectiveSnapshot, payload.athlete, "bike") === "run" ? "run" : "bike", payload.athlete.id))} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
           <div class="muted" style="margin-top:6px;">⚠️ Ce rapport guide la décision mais ne remplace pas un avis médical.</div>
         </div>
       </div>

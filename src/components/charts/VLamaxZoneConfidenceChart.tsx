@@ -1,3 +1,4 @@
+import { UNKNOWN_VLAMAX_LABEL, VLA_HEURISTIC_NOTICE, scientificReferenceLabel, scientificUncertaintyLabel } from "@/lib/scientificQualification";
 /**
  * VLamaxZoneConfidenceChart — Graphique signature TFCL
  * "VLamax = Zone physiologique × Confiance"
@@ -72,8 +73,8 @@ const VLAMAX_ZONES: VLamaxZone[] = [
 const CONFIDENCE_LEVELS = [
   { y: 0.0, label: "Exploratoire",         color: "hsl(0, 60%, 70%)" },
   { y: 0.4, label: "Tendance",             color: "hsl(35, 70%, 60%)" },
-  { y: 0.6, label: "Décision utilisable",  color: "hsl(45, 70%, 50%)" },
-  { y: 0.8, label: "Décision robuste",     color: "hsl(140, 60%, 40%)" },
+  { y: 0.6, label: "Score heuristique modéré",  color: "hsl(45, 70%, 50%)" },
+  { y: 0.8, label: "Score heuristique élevé",     color: "hsl(140, 60%, 40%)" },
 ];
 
 function getZoneForValue(vlamax: number): VLamaxZone {
@@ -82,7 +83,7 @@ function getZoneForValue(vlamax: number): VLamaxZone {
 
 function getSourceLabel(source: VLamaxV2Source): string {
   switch (source) {
-    case "test_labo": return "Test labo (mesure lactate)";
+    case "test_labo": return "Catégorie interne : référence stockée, qualification inconnue";
     case "test_terrain": return "Test terrain protocolaire";
     case "semaine_reference": return "Semaine de référence TFCL";
     case "estimation": return "Estimation continue";
@@ -91,8 +92,8 @@ function getSourceLabel(source: VLamaxV2Source): string {
 }
 
 function getDecisionLabel(confidence: number): string {
-  if (confidence >= 0.8) return "Décision robuste";
-  if (confidence >= 0.6) return "Décision utilisable";
+  if (confidence >= 0.8) return "Score heuristique élevé";
+  if (confidence >= 0.6) return "Score heuristique modéré";
   if (confidence >= 0.4) return "Tendance identifiée";
   return "Exploratoire — données insuffisantes";
 }
@@ -121,7 +122,7 @@ function ChartTooltip({ active, payload }: CustomTooltipProps) {
   return (
     <div className="bg-popover border border-border rounded-lg p-3 shadow-lg text-sm space-y-1">
       <p className="font-semibold">
-        VLamax : {data.x.toFixed(2)} ± {data.errorMargin.toFixed(2)}
+        VLamax : {data.x.toFixed(2)} ; marge heuristique ± {data.errorMargin.toFixed(2)}
       </p>
       <p>Fiabilité : {getDecisionLabel(data.y)}</p>
       <p className="text-muted-foreground text-xs">
@@ -139,6 +140,7 @@ function ChartTooltip({ active, payload }: CustomTooltipProps) {
 // =============================================
 
 interface VLamaxZoneConfidenceChartProps {
+  athleteId?: string;
   /** Résultat V2 complet */
   v2Result: VLamaxV2Result | null;
   /** Sport pour les bornes dynamiques */
@@ -150,6 +152,7 @@ interface VLamaxZoneConfidenceChartProps {
 }
 
 export function VLamaxZoneConfidenceChart({
+  athleteId,
   v2Result,
   sport = "velo",
   isStable = false,
@@ -370,6 +373,8 @@ export function VLamaxZoneConfidenceChart({
           ))}
         </div>
 
+        <p className="text-xs text-muted-foreground">{scientificReferenceLabel(v2Result.scientificQualification, v2Result.effective, sport === "cap" ? "run" : sport === "natation" ? "swim" : "bike", athleteId)}</p>
+        <p className="text-xs text-muted-foreground">{VLA_HEURISTIC_NOTICE} {scientificUncertaintyLabel(v2Result.scientificQualification, v2Result.effective, sport === "cap" ? "run" : sport === "natation" ? "swim" : "bike", athleteId)}</p>
         {/* Résumé athlète */}
         <div className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg">
           <div className="flex items-center gap-2">
@@ -385,7 +390,7 @@ export function VLamaxZoneConfidenceChart({
                 ≈ {v2Result.effective!.toFixed(2)}
               </span>
               <span className="text-xs text-muted-foreground ml-1">
-                ± {v2Result.errorMargin.toFixed(2)}
+                marge heuristique interne ± {v2Result.errorMargin.toFixed(2)}
               </span>
             </div>
           </div>

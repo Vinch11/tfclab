@@ -1,0 +1,2 @@
+src/lib/__tests__/physiologyValidationV2.provenance.test.ts(29,41): error TS2352: Conversion of type '{ id: string; refs: { ftp: number; }; }' to type 'DbAthlete' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; refs: { ftp: number; }; }' is missing the following properties from type 'DbAthlete': coach_id, name, goal, vo2max, and 5 more.

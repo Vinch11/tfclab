@@ -422,7 +422,7 @@ Le snapshot actif alimente les calculs quotidiens.`
 Tests disponibles :
 - Sprint 15s (estimation VLamax)
 - Ramp test (FTP + VLamax estimée)
-- Test lactate (VLamax mesurée - Staff)
+- Test lactate : mesures sanguines primaires ; VLamax dérivée, protocole et source à qualifier. Mode Staff ≠ preuve de mesure.
 
 Chaque test enregistré alimente les calculs :
 - La VLamax du test devient source "test" (confiance 0.75)

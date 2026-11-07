@@ -1,0 +1,151 @@
+{
+  "version": "v23-physiology-handoff-1",
+  "preparedAt": "2026-10-29T14:27:25.008844+00:00",
+  "scope": "reproducible boundary/units investigation; no scientific validation or permission to alter production",
+  "originalInputsPreserved": true,
+  "sourceSha256": {
+    "src/engines/diagnostic/computeDiagnostic.ts": "40340ceef5134c6ee3f479f006be0ead3435a89e3686ef3b9d5b38a6a74ba716",
+    "src/lib/v2/runMLSSPredictor.ts": "80246e0b0d9c8192dd9e3de65150b5e0c93cb5b665359634299aa9fd32d26459",
+    "src/lib/v2/vlamaxCapEstimator.ts": "5430d5f521115909a6c6251ed1c199affb1f49a0a62fce5feb9d0e88bc5bf2d3",
+    "src/engines/diagnostic/types.ts": "f129287dc95188efbe832bc45684b96d9a51c94209e7ad123b3cafbbb2d197dd",
+    "src/lib/plan/qa/preparePilotTrainingPlanContext.ts": "94459b8fac3e2fbbc3a63a3b2c31d473bb91fdf0bb23060032bf40ac9b4da8bc",
+    "docs/det-engine/v22/inputs.json": "c3827624e7e2db3984a95d9e3aa29bd0ada47a36bded2fab5b9f206f86effd97"
+  },
+  "cases": [
+    {
+      "caseId": "A_aerobic",
+      "conflict": {
+        "rawUnchanged": {
+          "paceThresholdSecPerKm": 290,
+          "vma": 15,
+          "vlamaxRun": 0.3,
+          "runEconomyScore": 3
+        },
+        "source": "computeDiagnostic.computeRunMLSS passes input.runEconomyScore directly into predictRunMLSSPctFromVLaCE",
+        "predictorExpectedUnit": "ml O2/kg/km per src/lib/v2/runMLSSPredictor.ts",
+        "providedFieldMeaning": "runEconomyScore; unit not declared by DiagnosticInput and no conversion at this call",
+        "directPrediction": {
+          "mlssPct": 95,
+          "confidence": 0.75,
+          "trace": {
+            "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+            "vlamaxContribution": 10.11,
+            "ceContribution": -10.5,
+            "rmseExpected": 2.64
+          }
+        },
+        "directCrossValidation": {
+          "observed": 82.8,
+          "predicted": 95,
+          "deltaPct": -12.2,
+          "isCoherent": false,
+          "severity": "critical",
+          "explanation": "Écart majeur (−12.2%) : pace_threshold suspect, refaire test seuil.",
+          "predictionConfidence": 0.75
+        },
+        "actualDiagnostic": {
+          "observedPct": 82.8,
+          "prediction": {
+            "mlssPct": 95,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 10.11,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": {
+            "observed": 82.8,
+            "predicted": 95,
+            "deltaPct": -12.2,
+            "isCoherent": false,
+            "severity": "critical",
+            "explanation": "Écart majeur (−12.2%) : pace_threshold suspect, refaire test seuil.",
+            "predictionConfidence": 0.75
+          },
+          "effectivePct": 82.8,
+          "effectiveSource": "observed"
+        },
+        "suspectedBoundaryProblem": "numeric score3 is below the predictor CE input clamp150; 3 is not established as an oxygen-cost measurement. Semantic/unit mismatch must be reviewed before interpreting a model/test disagreement.",
+        "rawReferenceChanged": false,
+        "productionFormulaChanged": false,
+        "favourableCEInvented": false,
+        "parallelPhysiologyReviewRequired": true,
+        "actualHumanApproval": false
+      }
+    },
+    {
+      "caseId": "B_sustainability",
+      "conflict": {
+        "rawUnchanged": {
+          "paceThresholdSecPerKm": 235,
+          "vma": 18,
+          "vlamaxRun": 0.3,
+          "runEconomyScore": 3
+        },
+        "source": "computeDiagnostic.computeRunMLSS passes input.runEconomyScore directly into predictRunMLSSPctFromVLaCE",
+        "predictorExpectedUnit": "ml O2/kg/km per src/lib/v2/runMLSSPredictor.ts",
+        "providedFieldMeaning": "runEconomyScore; unit not declared by DiagnosticInput and no conversion at this call",
+        "directPrediction": {
+          "mlssPct": 95,
+          "confidence": 0.75,
+          "trace": {
+            "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+            "vlamaxContribution": 10.11,
+            "ceContribution": -10.5,
+            "rmseExpected": 2.64
+          }
+        },
+        "directCrossValidation": {
+          "observed": 85.1,
+          "predicted": 95,
+          "deltaPct": -9.9,
+          "isCoherent": false,
+          "severity": "warning",
+          "explanation": "Seuil observé 9.9% en-dessous de la prédiction. Fatigue, VLamax sur-estimée, ou test seuil mal exécuté ?",
+          "predictionConfidence": 0.75
+        },
+        "actualDiagnostic": {
+          "observedPct": 85.1,
+          "prediction": {
+            "mlssPct": 95,
+            "confidence": 0.75,
+            "trace": {
+              "formula": "MLSS_pct = 100·(1 − 0.337·VLa − 0.0021·(CE−200))",
+              "vlamaxContribution": 10.11,
+              "ceContribution": -10.5,
+              "rmseExpected": 2.64
+            }
+          },
+          "crossValidation": {
+            "observed": 85.1,
+            "predicted": 95,
+            "deltaPct": -9.9,
+            "isCoherent": false,
+            "severity": "warning",
+            "explanation": "Seuil observé 9.9% en-dessous de la prédiction. Fatigue, VLamax sur-estimée, ou test seuil mal exécuté ?",
+            "predictionConfidence": 0.75
+          },
+          "effectivePct": 85.1,
+          "effectiveSource": "observed"
+        },
+        "suspectedBoundaryProblem": "numeric score3 is below the predictor CE input clamp150; 3 is not established as an oxygen-cost measurement. Semantic/unit mismatch must be reviewed before interpreting a model/test disagreement.",
+        "rawReferenceChanged": false,
+        "productionFormulaChanged": false,
+        "favourableCEInvented": false,
+        "parallelPhysiologyReviewRequired": true,
+        "actualHumanApproval": false
+      }
+    }
+  ],
+  "questions": [
+    "Is runEconomyScore a 0–100 score, another scale, or measured oxygen cost at this boundary?",
+    "Why does computeRunMLSS pass this field directly to a predictor requiring ml O2/kg/km?",
+    "Can the speed-threshold/VMA proxy and percentage-VO2 model be compared as the same measurand?",
+    "What evidence should resolve the conflict without inserting a favourable CE or changing the frozen synthetic cases?"
+  ],
+  "productionFormulaChanged": false,
+  "actualSportingHumanReviews": 0,
+  "automaticReferenceReplacement": false
+}

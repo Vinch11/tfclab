@@ -422,7 +422,7 @@ export function computeNegativeSplitDelta(
 }
 
 function sourceTag(delta: NegativeSplitDelta): string {
-  const v = delta.vlamaxSource === "observed" ? "VLamax mesurée" : "VLamax défaut";
+  const v = delta.vlamaxSource === "observed" ? "VLamax de référence, qualification séparée" : "VLamax défaut";
   const t = delta.tteSource === "observed" ? "TTE mesurée" : "TTE défaut";
   return `${v} + ${t}`;
 }

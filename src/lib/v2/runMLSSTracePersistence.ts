@@ -22,7 +22,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 
-export const RUN_MLSS_TRACE_VERSION = "tfcl_run_mlss_modele_c_v1";
+export const RUN_MLSS_TRACE_VERSION = "tfcl_run_mlss_modele_c_v2_explicit_cost";
 export const RUN_MLSS_TRACE_EVIDENCE_TYPE = "RUN_MLSS_MODEL_C_TRACE";
 
 export type RunMLSSDiagnostic = NonNullable<AthleteDiagnostic["runMLSS"]>;
@@ -30,6 +30,8 @@ export type RunMLSSDiagnostic = NonNullable<AthleteDiagnostic["runMLSS"]>;
 export interface RunMLSSTraceInputs {
   vlamaxRun: number | null;
   runningEconomy: number | null;
+  runningEconomyUnit?: "ml O2/kg/km" | "unknown";
+  physiologicalEvidence?: import("@/lib/physiologyEvidence").PhysiologicalEvidenceMap;
   paceThresholdSecPerKm: number | null;
   vmaKmh: number | null;
 }
@@ -60,6 +62,8 @@ export function buildRunMLSSSignature(
   diag: RunMLSSDiagnostic,
 ): string {
   const parts = [
+    RUN_MLSS_TRACE_VERSION,
+    inputs.runningEconomyUnit ?? "unknown",
     diag.effectiveSource,
     diag.effectivePct?.toFixed(1) ?? "n",
     diag.observedPct?.toFixed(1) ?? "n",

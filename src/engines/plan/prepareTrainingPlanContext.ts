@@ -1,4 +1,5 @@
 import { canGuidePrescription } from "@/lib/limiterPrescription";
+import { diagnosticPhysiologicalEvidence } from "@/lib/physiologyEvidence";
 import { resolvePlanningSnapshotLoad } from "@/lib/planningSnapshotLoad";
 import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from "@/engines/diagnostic";
 import { computeDecision, type DecisionInput, type TrainingPrescription } from "@/engines/decision";
@@ -21,6 +22,7 @@ export interface PhysiologicalTraceItem {
 
 export interface TrainingPlanPhysiologicalTrace {
   version: 1;
+  parameters?: import("@/lib/physiologyEvidence").PhysiologicalEvidenceMap;
   diagnostic: {
     executed: boolean;
     confidenceGlobal: number | null;
@@ -141,6 +143,7 @@ function buildTrace(
 
   return {
     version: 1,
+    parameters: diagnosticPhysiologicalEvidence(diagnostic),
     diagnostic: {
       executed: true,
       confidenceGlobal: diagnostic.meta.confidenceGlobal ?? null,

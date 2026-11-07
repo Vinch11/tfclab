@@ -1,3 +1,4 @@
+import { physiologyNarrative } from "@/lib/physiologyEvidence";
 // =============================================
 // PROFIL PHYSIOLOGIQUE MANAGER - Gestion des Profils Two For Coaching Lab™ (Cloud)
 // Anciennement "Snapshot Manager"
@@ -67,7 +68,7 @@ interface SnapshotManagerProps {
   athleteName: string;
   athleteGoal: string;
   activeSnapshotId?: string | null;
-  staffMode?: boolean; // ✅ Mode Staff pour VLamax mesurée
+  staffMode?: boolean; // ✅ Mode Staff pour référence VLamax
 }
 
 // Initial form state - used for reset
@@ -211,7 +212,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_power_60s: (s as any).running_power_60s != null ? String((s as any).running_power_60s) : "",
       run_power_5min: (s as any).running_power_5min != null ? String((s as any).running_power_5min) : "",
 
-      coach_notes: s.coach_notes || "",
+      coach_notes: physiologyNarrative(s.coach_notes),
     });
   };
 
@@ -414,7 +415,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const handleClearVlamaxRun = async (s: DbSnapshot) => {
-    if (!confirm("Effacer la VLamax CAP mesurée de ce profil ? L'estimation terrain redeviendra prioritaire.")) return;
+    if (!confirm("Effacer la référence VLamax CAP de ce profil ? L'estimation terrain redeviendra prioritaire.")) return;
 
     const success = await updateSnapshot(s.id, {
       vlamax_run: null,
@@ -571,7 +572,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         {staffMode ? (
           <div>
             <Label htmlFor="vlamax" className="flex items-center gap-1.5">
-              <span>VLamax (mesurée)</span>
+              <span>VLamax (référence saisie)</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -579,7 +580,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   </TooltipTrigger>
                   <TooltipContent className="max-w-xs">
                     <p className="text-xs">
-                      Mode Staff : VLamax mesurée en laboratoire (lactate). 
+                      Mode Staff : référence saisie. Méthode et origine scientifique à documenter séparément.
                       Cette valeur verrouille l'estimation automatique.
                     </p>
                   </TooltipContent>
@@ -596,7 +597,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               className="border-primary/50"
             />
             <p className="text-xs text-primary mt-1">
-              ✓ Verrouille la VLamax (source: test labo)
+              Verrou interne conservé ; aucune preuve labo déduite de la saisie.
             </p>
           </div>
         ) : (
@@ -621,7 +622,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               Calculée auto
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Mode Staff pour VLamax mesurée
+              Mode Staff pour référence VLamax
             </p>
           </div>
         )}
@@ -1260,7 +1261,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           {staffMode && (
             <div className="mt-4 pt-4 border-t border-border">
               <Label htmlFor="vlamax_run" className="flex items-center gap-1.5">
-                <span>VLamax CAP (mesurée)</span>
+                <span>VLamax CAP (référence saisie)</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -1268,7 +1269,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs">
                       <p className="text-xs">
-                        Mode Staff : VLamax CAP mesurée en laboratoire.
+                        Mode Staff : référence CAP saisie, méthode et origine scientifique à documenter.
                         Cette valeur verrouille l'estimation automatique.
                       </p>
                     </TooltipContent>
@@ -1285,7 +1286,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 className="border-primary/50 mt-1"
               />
               <p className="text-xs text-primary mt-1">
-                ✓ Verrouille la VLamax CAP (source: test labo)
+                Verrou CAP interne conservé ; aucune preuve labo déduite.
               </p>
             </div>
           )}
@@ -1554,6 +1555,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   </Badge>
                 )}
               </CardTitle>
+              <p className="text-xs text-muted-foreground">Valeurs stockées : qualification scientifique inconnue sans provenance structurée ; le mode Staff ne prouve pas une mesure.</p>
 
               <p className="text-sm text-muted-foreground mt-1">
                 Profil: <span className="font-medium text-foreground">{profile}</span>
@@ -1580,7 +1582,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   variant="outline"
                   onClick={() => handleClearVlamaxRun(s)}
                   className="h-9 text-xs"
-                  title="Effacer uniquement la VLamax CAP mesurée"
+                  title="Effacer uniquement la référence VLamax CAP"
                 >
                   Effacer VLamax CAP
                 </Button>
@@ -1693,7 +1695,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   </span>
                 </AccordionTrigger>
                 <AccordionContent>
-                  <p className="text-sm text-muted-foreground">{s.coach_notes}</p>
+                  <p className="text-sm text-muted-foreground">{physiologyNarrative(s.coach_notes)}</p>
                 </AccordionContent>
               </AccordionItem>
             )}

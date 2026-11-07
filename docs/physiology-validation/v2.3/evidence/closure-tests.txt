@@ -1,0 +1,379 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - `__dirname` (vitest.config.ts:14:32). Use `import.meta.dirname` instead
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+7:39:35 PM [vite] warning: `optimizeDeps.esbuildOptions` option was specified by "vite:react-swc" plugin. This option is deprecated, please use `optimizeDeps.rolldownOptions` instead.
+
+ RUN  v4.1.12 /workspace/tfclab-v2
+
+stdout | src/lib/__tests__/physiologyQualificationV23.test.tsx
+🔧 [phase_widened] 139 fiche(s) élargies (endurance/technique)
+  [phase_widened] id=A_RUN_Z2_EASY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=D_RUN_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=D_SWIM_REGEN ancien=[taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=A_IM_BIKE_STEADY_LONG ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_IM_AERO_HOLD ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_MAR_LONG_RUN ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_HIKE_RUN_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EASY_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BACK_TO_BACK_2 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_BIKE_SUPPORT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_TECH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY_V39 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_POLES_SESSION ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_END_ROLLING_75 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_2H ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_3H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_PROGRESSIVE_Z3_FINISH ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_STEADY_CLIMB_CONTINUOUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_FLAT_SUPPORT_END ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR_DESCENT_TOLERANCE_8x2 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_SKILLS_UPHILL_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PROPRIO_ANKLE_FOOT ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_SHORT_LONGRUN_2H ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PACK_LONG_DESC_SKILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_PACK_LONG_LONGRUN_3H ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DOWNHILL_EASY ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_EASY_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_10K_LONG_RUN_75 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SEMI_LONG_RUN_90 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_LONG_RUN_2H30 ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR50_EASY_DPLUS_60 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_TR50_DESCENT_SPEED ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR50_TECH_APPUIS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_OPEN_WATER_SIMU ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_TRI_EASY_TECH_1500 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_SWIM_TRI_NEGATIVE_SPLIT ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_SIGHTING_DRILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_CATCH_PULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_DRAFTING_PACK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_BILATERAL_BREATHING ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TRI_KICK_EFFICIENCY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_AERO_POSITION_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_PLYOMETRIC ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_UPPER_BODY_TRI ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_DURABILITY_LONG ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_BIKE_ACCLIM_INTRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=HEAT_RUN_ACCLIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=OWS_WETSUIT_SPECIFIC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ECONOMY_RUN_FATIGUE_FORM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_LONG ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=LYDIARD_RUN_AEROBIC_BASE_MEDIUM ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=KENYAN_RUN_DOUBLE_DAY ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_EASY_45_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_RUN_LONG_PROG_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_RUN_HILL_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_END_90_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_BIKE_LONG_IM_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BIKE_CADENCE_SKILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TECH_DRILLS_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_DPLUS_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_DESC_TECH_PRO ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V1_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V2_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V3_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V4_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V5_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V6_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V7_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V8_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V9_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_LONG_V10_PRO ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=TPL_IM_RUN_LONGUE_DURABILITE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_RUN_DESCENTE_TECHNIQUE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_TRAIL_LONGUE_DPLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_HEAT_ACCLIM_Z2 ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=ENR_ALTITUDE_EASY_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_BACK_TO_BACK_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_MARCHE_COURSE_ALTERNE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_TRAIL_PROPRIOCEPTION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_CATCH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_SWIM_TECHNIQUE_ROTATION ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_STR_HANCHE_COUREUR ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_BIKE_SINGLE_LEG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V2_RUN_EDUCATIFS_TECHNIQUES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_ENDURANCE_LONG ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_MTN_LONG_D_PLUS ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_B2B_WEEKEND ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_MARCHE_COURSE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=V3_TRAIL_ULTRA_NIGHT ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=V3_BIKE_Z2_PROGRESSIF ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_MONTAGNE_BASE ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_ULTRA_BUILD ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_SL_PEAK ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_SAM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_B2B_DIM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_MARCHE_COURSE_ULTRA ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=A_TR_EF_VALLON ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_TR_PLIO_TRAIL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_DOUBLE_TAPIS_AM_PM ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_SL_OUTDOOR_VARIETE ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=URBAN_BATONS_TECHNIQUE_PARC ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_SL_DPLUS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_BACK_TO_BACK ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=EXPE_HORS_VILLE_NOCTURNE ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_BRICK_TRANSITION_DRILL ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_LEGS_ENDURANCE ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=A_HEAT_ACCLIM_RUN ancien=[peak] nouveau=[base,build,peak]
+  [phase_widened] id=D_DELOAD_RUN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_CONTINUOUS_2K ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_CATCH_FOCUS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_BILATERAL_BREATH ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_OPEN_WATER_SKILLS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=C_SWIM_TURNS_STARTS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_AEROBIC_MULTI_NAGES ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=A_SWIM_PULL_LONG_DISTANCE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=C_STR_BEGINNER_FOUNDATION_FULL ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_LATE_RACE_FRACTIONS ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_IM_RUN_NEG_SPLIT_LR ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=B_703_RUN_NEG_SPLIT ancien=[build,peak] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_1_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_WALK_RUN_2_2 ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_25 ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_CONTINUOUS_30_LONG ancien=[peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_TECHNIQUE_CADENCE_DRILLS ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_INTRO_TECHNIQUE ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_SWIM_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_BIKE_INTRO_SPIN ancien=[base,build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BIKE_CONTINUOUS_LOW_IMPACT ancien=[build,peak,taper] nouveau=[base,build,peak,taper]
+  [phase_widened] id=S2R_WALK_RUN_4_1 ancien=[build] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_BREATHING_TECHNIQUE_INTRO ancien=[base] nouveau=[base,build,peak]
+  [phase_widened] id=S2R_CONTINUOUS_20_PARK_VARIANT ancien=[peak,taper] nouveau=[base,build,peak,taper]
+✅ Pro Pack: 107 | Templates: 50 | Enriched: 56 | V2: 52 | V3: 67 | Trail: 68 | V4: 19 | V5: 11 | V6: 9 | FatMax: 14 | Recovery: 28 | Swim+: 17 | SwimV2: 18 | StrengthV2: 32 | Hedgehog: 4 | IM Run Durability: 6 | 70.3 Podium: 9 | LCW: 5 | Run Hills: 4 | Short Formats: 12 | Total: 920
+
+ ❯ src/lib/__tests__/physiologyQualificationV23.test.tsx (29 tests | 1 failed) 260ms
+   × renders a historical ScoreEnvelope as unknown without changing or deleting its stored scalar/heuristics 64ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/__tests__/physiologyQualificationV23.test.tsx > renders a historical ScoreEnvelope as unknown without changing or deleting its stored scalar/heuristics
+TestingLibraryElementError: Found multiple elements with the text: /95 \/ 100 \(heuristique\)/
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<div[39m
+  [33mclass[39m=[32m"inline-flex items-center rounded-md border px-2 py-0.5 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-border/60 text-xs bg-green-100 text-green-800"[39m
+[36m>[39m
+  [0m95[0m
+  [0m / 100 (heuristique)[0m
+[36m</div>[39m
+
+Ignored nodes: comments, script, style
+[36m<span>[39m
+  [0m95[0m
+  [0m / 100 (heuristique)[0m
+[36m</span>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"rounded-xl border border-border/60 bg-card text-card-foreground shadow-sm transition-colors"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"flex flex-col space-y-1.5 p-6 pb-2"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-center justify-between"[39m
+        [36m>[39m
+          [36m<h3[39m
+            [33mclass[39m=[32m"font-semibold tracking-tight text-base flex items-center gap-2"[39m
+          [36m>[39m
+            [0mVLamax — provenance scientifique inconnue (référence consultable)[0m
+            [36m<button[39m
+              [33mdata-state[39m=[32m"closed"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33mclass[39m=[32m"lucide lucide-info h-4 w-4 text-muted-foreground"[39m
+                [33mfill[39m=[32m"none"[39m
+                [33mheight[39m=[32m"24"[39m
+                [33mstroke[39m=[32m"currentColor"[39m
+                [33mstroke-linecap[39m=[32m"round"[39m
+                [33mstroke-linejoin[39m=[32m"round"[39m
+                [33mstroke-width[39m=[32m"2"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"24"[39m
+                [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+              [36m>[39m
+                [36m<circle[39m
+                  [33mcx[39m=[32m"12"[39m
+                  [33mcy[39m=[32m"12"[39m
+                  [33mr[39m=[32m"10"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 16v-4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 8h.01"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+            [36m</button>[39m
+          [36m</h3>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-2"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"inline-flex items-center rounded-md border px-2 py-0.5 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground border-border/60 text-xs"[39m
+            [36m>[39m
+              [0m❔[0m
+              [0m [0m
+              [0mInconnu[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"inline-flex items-center rounded-md border px-2 py-0.5 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-border/60 text-xs bg-green-100 text-green-800"[39m
+            [36m>[39m
+              [0m95[0m
+              [0m / 100 (heuristique)[0m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"p-6 pt-0 space-y-3"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex items-baseline gap-3"[39m
+        [36m>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"text-3xl font-bold"[39m
+          [36m>[39m
+            [0m0.42[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"text-base text-muted-foreground"[39m
+          [36m>[39m
+            [0mmmol/L/s[0m
+          [36m</span>[39m
+          [36m<span[39m
+            [33mclass[39m=[32m"text-base text-muted-foreground font-medium"[39m
+          [36m>[39m
+            [0m(≈ [0m
+            [0m0.38–0.46[0m
+            [0m)[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"space-y-1"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex justify-between text-xs text-muted-foreground"[39m
+          [36m>[39m
+            [36m<span>[39m
+              [0mScore heuristique interne : [0m
+              [0mÉLEVÉE[0m
+            [36m</span>[39m
+            [36m<span>[39m
+              [0m95[0m
+              [0m / 100 (heuristique)[0m
+            [36m</span>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-valuemax[39m=[32m"100"[39m
+            [33maria-valuemin[39m=[32m"0"[39m
+            [33mclass[39m=[32m"relative w-full overflow-hidden rounded-full bg-secondary h-2"[39m
+            [33mdata-max[39m=[32m"100"[39m
+            [33mdata-state[39m=[32m"indeterminate"[39m
+            [33mrole[39m=[32m"progressbar"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"h-full w-full flex-1 bg-primary transition-all"[39m
+              [33mdata-max[39m=[32m"100"[39m
+              [33mdata-state[39m=[32m"indeterminate"[39m
+              [33mstyle[39m=[32m"transform: translateX(-5%);"[39m
+            [36m/>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"text-xs p-2 rounded-md flex items-start gap-2 bg-green-50 text-green-700"[39m
+        [36m>[39m
+          [36m<svg[39m
+            [33mclass[39m=[32m"lucide lucide-circle-check-big h-4 w-4 flex-shrink-0 mt-0.5"[39m
+            [33mfill[39m=[32m"none"[39m
+            [33mheight[39m=[32m"24"[39m
+            [33mstroke[39m=[32m"currentColor"[39m
+            [33mstroke-linecap[39m=[32m"round"[39m
+            [33mstroke-linejoin[39m=[32m"round"[39m
+            [33mstroke-width[39m=[32m"2"[39m
+            [33mviewBox[39m=[32m"0 0 24 24"[39m
+            [33mwidth[39m=[32m"24"[39m
+            [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+          [36m>[39m
+            [36m<path[39m
+              [33md[39m=[32m"M21.801 10A10 10 0 1 1 17 3.335"[39m
+            [36m/>[39m
+            [36m<path[39m
+              [33md[39m=[32m"m9 11 3 3L22 4"[39m
+            [36m/>[39m
+          [36m</svg>[39m
+          [36m<span>[39m
+            [0mScore et marge heuristiques internes ; ni probabilité de validité individuelle ni précision expérimentale démontrée. Incertitude scientifique inconnue[0m
+          [36m</span>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mdata-state[39m=[32m"closed"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-expanded[39m=[32m"false"[39m
+            [33mclass[39m=[32m"flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"[39m
+            [33mdata-state[39m=[32m"closed"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mclass[39m=[32m"lucide lucide-chevron-down h-4 w-4 transition-transform"[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"24"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"2"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"24"[39m
+              [33mxmlns[39m=[32m"http://www.w3.org/2000/svg"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"m6 9 6 6 6-6"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+            [0mVoir détails staff[0m
+          [36m</button>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"mt-3 space-y-3"[39m
+            [33mdata-state[39m=[32m"closed"[39m
+            [33mhidden[39m=[32m""[39m
+            [33mid[39m=[32m"radix-:r3:"[39m
+          [36m/>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../tfclab-full/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError ../tfclab-full/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError ../tfclab-full/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ ../tfclab-full/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ getByText ../tfclab-full/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/lib/__tests__/physiologyQualificationV23.test.tsx:115:17
+    113|   expect(screen.queryByText("VLamax mesurée labo")).toBeNull();
+    114|   expect(screen.getByText(/provenance scientifique inconnue/)).toBeTru…
+    115|   expect(screen.getByText(/95 \/ 100 \(heuristique\)/)).toBeTruthy();
+       |                 ^
+    116|   expect(JSON.stringify(historical)).toBe(before);
+    117| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 16 passed (17)
+      Tests  1 failed | 145 passed (146)
+   Start at  19:39:35
+   Duration  26.16s (transform 9.40s, setup 1.69s, import 21.26s, tests 15.40s, environment 8.28s)

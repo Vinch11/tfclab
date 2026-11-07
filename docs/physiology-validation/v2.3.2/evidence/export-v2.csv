@@ -1,0 +1,7 @@
+schema_version,record_date_declared,athlete_id,athlete_name,quality_group_declared,legacy_internal_quality_tier_NOT_scientific_method,protocol_quality_declared,vlamax_reference_declared_mmolLs,sprint15s_distance_m,running_power_max_w,vma_kmh,pace_threshold_sec_per_km,predicted_vlamax,delta_vlamax,scientific_qualification,reference_nature,scientific_method,scientific_method_kind,observation_date,source_ref,primary_measurement_source_ref,scientific_uncertainty_status,reported_scientific_uncertainty_json,individual_validity_established,individual_dose_approved,notes
+"tfclab.vlamax-cap-cohort.csv.v2","2026-10-20","synthetic:A","","Qualité déclarée 4–5","lab","4","0.7","85","","","","0.51","-0.19","unknown","unknown","","","","","","unknown","","false","false","Historical ""labo"" declaration
+not primary evidence"
+"tfclab.vlamax-cap-cohort.csv.v2","2026-10-20","synthetic:A","","Qualité déclarée 4–5","lab","5","0.7","85","","","","0.51","-0.19","documented_context","calculated","Synthetic documented post-sprint protocol","blood_lactate_protocol","2026-10-20","fixture:cohort-A","fixture:lactate-A","unknown","","false","false","Historical ""labo"" declaration
+not primary evidence"
+"tfclab.vlamax-cap-cohort.csv.v2","2026-10-20","synthetic:A","","Qualité déclarée 2–3","field","2","0.7","85","","","","0.51","-0.19","unknown","unknown","","","","","","unknown","","false","false","Historical ""labo"" declaration
+not primary evidence"

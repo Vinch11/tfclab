@@ -1,0 +1,17 @@
+import {it,vi,expect} from 'vitest';
+import {writeFileSync} from 'node:fs';
+import {resolveVlamaxForGoal} from '@/lib/vlamaxResolver';
+import {snapshotToEngineData} from '@/lib/v2/cycleIntelligence';
+import {computeDiagnostic} from '@/engines/diagnostic/computeDiagnostic';
+import {buildPlanAthleteDataFromDiagnostic} from '@/engines/plan/planConfigBuilder';
+import {buildPilotDiagnosticInput} from '@/lib/plan/qa/preparePilotTrainingPlanContext';
+import {QA_PROFILES} from '@/lib/plan/qa/syntheticProfiles';
+it('capture actual same synthetic input at all four boundaries without changing oracles',()=>{
+vi.stubGlobal('fetch',()=>{throw Error('NETWORK_FORBIDDEN')});
+const subject='synthetic:C8-compare',run={id:'synthetic:snapshot',athlete_id:subject,date:'2026-10-20',sport_main:'run',objectif:'10 km',vlamax_run:0.7,vma:18,pace_threshold_sec_per_km:235};
+const input={...buildPilotDiagnosticInput(QA_PROFILES.find(p=>p.id==='B-MARATHON')!),athleteId:subject,objectif:'10 km',sportFocus:'run' as const,vlamax:null,vlamaxRun:0.7,vma:18,paceThresholdSecPerKm:235};
+const rows=['','Aucune mesure labo, valeur coach inconnue'].map(text=>{
+const raw={...run,vlamax_protocol:text},d=computeDiagnostic({...input,vlamaxProtocol:text});
+return {text,resolver:resolveVlamaxForGoal(raw,{id:subject,goal:'10 km'}),cycle:snapshotToEngineData(raw),diagnostic:{value:d.effectifs.vlamax.value,confidence:d.effectifs.vlamax.confidence,category:d.effectifs.vlamax.v2?.source,qualification:d.effectifs.vlamax.scientificQualification,limiter:d.limiter,readiness:d.readiness},planning:buildPlanAthleteDataFromDiagnostic(d).physiologicalEvidence?.vlamaxEffective};
+});expect(rows.length).toBe(2);writeFileSync(process.env.C8_COMPARE_OUTPUT!,JSON.stringify({syntheticOnly:true,rows},null,2)+'\n');vi.unstubAllGlobals();
+});

@@ -1,0 +1,12 @@
+{
+  "status": "NON VALIDÉE",
+  "explicitlyAuthorizedTestProject": false,
+  "supabaseRequests": 0,
+  "configuredCloudIdentities": 0,
+  "configuredCloudSecrets": 0,
+  "configuredCloudRuntimeVariables": 0,
+  "supabaseConnectorAvailable": false,
+  "envSecretFilesRead": false,
+  "mockTransportIsNotLivePersistence": true,
+  "localStorageIsNotLivePersistence": true
+}

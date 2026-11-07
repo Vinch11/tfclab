@@ -130,7 +130,7 @@ export function estimateVLamaxCap(input: VLamaxCapEstimateInput): VLamaxCapEstim
   if (vlamaxRunMeasured != null && vlamaxRunMeasured > 0) {
     estimates.push({ value: clampCap(vlamaxRunMeasured), weight: 0.70, source: "Mesure labo" });
     sources.push("Mesure labo");
-    details += `VLamax mesurée: ${vlamaxRunMeasured.toFixed(2)}. `;
+    details += `Référence VLamax déclarée: ${vlamaxRunMeasured.toFixed(2)} ; méthode à qualifier. `;
     hasMeasured = true;
   }
 

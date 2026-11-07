@@ -1,3 +1,5 @@
+import { computeRunMLSSFromInput } from "@/engines/diagnostic/computeDiagnostic";
+import { runningEconomyCostFromSnapshot, snapshotPhysiologyEvidence } from "@/lib/physiologyEvidence";
 import { fatigueStateToScoreOrDefault, fatigueStateToAvailability } from "@/lib/fatigueStateMapping";
 import { type AvailabilityRun, computePotentielRun } from "@/lib/v2/potentielTypes";
 /**
@@ -65,10 +67,7 @@ import { computePacingEnvelopeRun, type RunningDistance } from "@/lib/v2/pacingE
 import { buildRaceChronosFromSnapshot } from "@/lib/v2/buildRaceChronosFromSnapshot";
 import { getAthleteAmbition } from "@/types/ambitionLevel";
 import { getVLamaxRange } from "@/lib/physiologicalTargets";
-import {
-  predictRunMLSSPctFromVLaCE,
-  crossValidateRunMLSS,
-} from "@/lib/v2/runMLSSPredictor";
+
 import {
   buildRunMLSSSignature,
   persistRunMLSSTrace,
@@ -397,35 +396,13 @@ export default function RunningProfilePage() {
 
   // Run MLSS (Modèle C calibré N=14+3) — observed + predicted + cross-validation
   const runMLSS = useMemo<AthleteDiagnostic["runMLSS"]>(() => {
-    const vlamaxRun = effectiveCloudSnapshot?.vlamax_run ?? null;
-    const ce = effectiveCloudSnapshot?.run_economy_score ?? null;
-    const paceSec = effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null;
-    const vmaKmh = effectiveCloudSnapshot?.vma ?? null;
-
-    let observedPct: number | null = null;
-    if (paceSec && paceSec > 0 && vmaKmh && vmaKmh > 0) {
-      const speedKmh = 3600 / paceSec;
-      const ratio = (speedKmh / vmaKmh) * 100;
-      if (ratio >= 50 && ratio <= 100) observedPct = Number(ratio.toFixed(1));
-    }
-    const prediction = predictRunMLSSPctFromVLaCE(vlamaxRun, ce);
-    const crossValidation =
-      observedPct !== null && prediction
-        ? crossValidateRunMLSS(observedPct, vlamaxRun, ce)
-        : null;
-
-    let effectivePct: number | null = null;
-    let effectiveSource: "observed" | "predicted" | "none" = "none";
-    if (observedPct !== null) {
-      effectivePct = observedPct;
-      effectiveSource = "observed";
-    } else if (prediction) {
-      effectivePct = prediction.mlssPct;
-      effectiveSource = "predicted";
-    }
-
-    if (observedPct === null && prediction === null) return null;
-    return { observedPct, prediction, crossValidation, effectivePct, effectiveSource };
+    return computeRunMLSSFromInput({
+      sportFocus: "run",
+      vlamaxRun: effectiveCloudSnapshot?.vlamax_run ?? null,
+      vma: effectiveCloudSnapshot?.vma ?? null,
+      paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
+      runningEconomyCostMlKgKm: runningEconomyCostFromSnapshot(effectiveCloudSnapshot),
+    });
   }, [effectiveCloudSnapshot]);
 
   // ─── Persistance auto Run MLSS Modèle C → calibration_evidence ────────────
@@ -437,7 +414,9 @@ export default function RunningProfilePage() {
 
     const inputs = {
       vlamaxRun: effectiveCloudSnapshot?.vlamax_run ?? null,
-      runningEconomy: effectiveCloudSnapshot?.run_economy_score ?? null,
+      runningEconomy: runningEconomyCostFromSnapshot(effectiveCloudSnapshot),
+      runningEconomyUnit: "ml O2/kg/km" as const,
+      physiologicalEvidence: snapshotPhysiologyEvidence(effectiveCloudSnapshot),
       paceThresholdSecPerKm: effectiveCloudSnapshot?.pace_threshold_sec_per_km ?? null,
       vmaKmh: effectiveCloudSnapshot?.vma ?? null,
     };

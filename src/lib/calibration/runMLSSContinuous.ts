@@ -24,6 +24,7 @@
  */
 
 import type { RunMLSSTracePayload } from "@/lib/v2/runMLSSTracePersistence";
+import { validRunningEconomyCost } from "@/lib/physiologyEvidence";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -379,9 +380,14 @@ export function analyzeRunMLSSDrift(
   }
 
   // Extraire 3 séries
-  const sEffective = extractSeries(inWindow, windowStart, (p) => p.effectivePct);
+  const sEffective = extractSeries(inWindow, windowStart, (p) =>
+    p.effectiveSource === "predicted" && (p.inputs?.runningEconomyUnit !== "ml O2/kg/km" || validRunningEconomyCost(p.inputs.runningEconomy) === null) ? null : p.effectivePct);
   const sVla = extractSeries(inWindow, windowStart, (p) => p.inputs?.vlamaxRun ?? null);
-  const sCe = extractSeries(inWindow, windowStart, (p) => p.inputs?.runningEconomy ?? null);
+  const sCe = extractSeries(inWindow, windowStart, (p) =>
+    p.inputs?.runningEconomyUnit === "ml O2/kg/km" ? validRunningEconomyCost(p.inputs.runningEconomy) : null);
+  if (inWindow.some(trace => trace.payload.inputs?.runningEconomyUnit !== "ml O2/kg/km")) {
+    notes.push("Anciennes traces sans unité CE explicite : coût O₂ et prédictions dépendantes exclus des dérives ; historiques conservés.");
+  }
 
   const driftEffective = analyzeMetric(
     "effectivePct",
