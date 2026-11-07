@@ -58,6 +58,7 @@ export function powerZoneSummary(plan:unknown,refs:NolioV2Refs,wrappers:AthleteZ
  }
  let count=0;
  for(const [sport,id] of Object.entries(refs.sportIds)){
+  if(typeof id!=='string')continue;
   for(const w of wrappers.filter(w=>w.stream==='watts'&&w.unit==='W'&&w.sports.includes(id))){
    for(const z of w.zones){lines.push(`${sport} · ${z.name} : ${z.min}–${z.max} W${w.active===false?' (inactive)':w.active===null?' (activation non précisée)':''}`);count++;}
   }

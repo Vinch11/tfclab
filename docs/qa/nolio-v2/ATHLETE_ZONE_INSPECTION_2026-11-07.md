@@ -22,4 +22,4 @@ Even an exact bound match does not authorize rewriting an attempted raw operatio
 
 ## Validation
 
-96 focused tests pass across zone reader/projection/matching, common export dialog, ceiling transport, exact readback, coach batching/resume and read metadata/storage. Tests use injected fetch and synthetic fixtures only. Zone reads require no calendar consent and do not invoke export or save. TypeScript and ESLint are checked separately. Runtime manifests must be regenerated and the four common plan endpoints synchronized before the new action is usable in QA; deployment alone is not evidence of a live zone read or export.
+97 focused tests pass across zone reader/projection/matching, common export dialog, ceiling transport, exact readback, coach batching/resume and read metadata/storage. Tests use injected fetch and synthetic fixtures only. Zone reads require no calendar consent and do not invoke export or save. TypeScript and ESLint are checked separately. Runtime manifests must be regenerated and the four common plan endpoints synchronized before the new action is usable in QA; deployment alone is not evidence of a live zone read or export.
