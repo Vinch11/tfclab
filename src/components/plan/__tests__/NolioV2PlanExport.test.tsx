@@ -14,6 +14,11 @@ beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'at
 function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} legacy={{nolioId:42,startDate:"2026-11-09",refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('never sends or rewrites an old zero-ceiling archive as if it had new guided prescriptions',async()=>{
+  const old={...plan,weeks:[{weekNumber:1,sessions:[{weekNumber:1,dayIndex:1,sport:'bike',title:'Old',detStructuredWorkout:{nodes:[{kind:'step',domain:'recovery',target:{metric:'watts',min:0,max:165,confidence:'model',source:'athlete_measurement_with_doctrine_model'}}]}}]}]} as unknown as ParsedPlan;
+  mock.row={...mock.row!,plan_json:old};setup(version,old);exportNow();await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('anciens plafonds'));
+  expect(mock.invoke).not.toHaveBeenCalled();expect(mock.flow).not.toHaveBeenCalled();
+ });
  it('reads owned athlete zones without running export, saving or granting consent',async()=>{
   const save=vi.fn();mock.invoke.mockResolvedValue({data:{status:'ZONES_READ',summary:'Recovery : 0–165 W. Aucune séance modifiée.'},error:null});
   setup(version,plan,save);fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Lire les zones de travail Nolio'}));

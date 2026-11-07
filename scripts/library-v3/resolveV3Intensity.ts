@@ -81,10 +81,11 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
         continue;
       }
       if(!d.bike){missing.push("tfclDoctrine.bike."+domain);continue;}
-      targets.push({domain,metric:"watts",min:+(a.bikeFtpWatts*d.bike.min).toFixed(1),
-        max:+(a.bikeFtpWatts*d.bike.max).toFixed(1),
+      const bikeRange=d.execution?.bike??d.bike;
+      targets.push({domain,metric:"watts",min:+(a.bikeFtpWatts*bikeRange.min).toFixed(1),
+        max:+(a.bikeFtpWatts*bikeRange.max).toFixed(1),
         source:modelSource(["bikeFtpWatts"]),confidence:"model",
-        note:modelNote(["bikeFtpWatts"],"Fourchette doctrine appliquée à FTP déclarée; LT1 ou MLSS non certifié par cette seule opération")});
+        note:modelNote(["bikeFtpWatts"],"Fourchette doctrine appliquée à FTP déclarée; LT1 ou MLSS non certifié par cette seule opération")+(d.execution?.bike?" Plage d’exécution de récupération active : plancher de programmation, pas une nouvelle limite physiologique.":"")});
     }else if(w.sport==="run"){
       // Presence of terrain review is an explicit mode. Invalid/missing domain
       // evidence must never fall back to a flat-road pace or % vVO2.
@@ -116,10 +117,11 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
         continue;
       }
       if(!d.run||d.run.max<=0){missing.push("tfclDoctrine.run."+domain);continue;}
-      targets.push({domain,metric:"sec_per_km",min:+(a.runThresholdPaceSecPerKm/d.run.max).toFixed(1),
-        max:d.run.min===0?null:+(a.runThresholdPaceSecPerKm/d.run.min).toFixed(1),
+      const runRange=d.execution?.run??d.run;
+      targets.push({domain,metric:"sec_per_km",min:+(a.runThresholdPaceSecPerKm/runRange.max).toFixed(1),
+        max:runRange.min===0?null:+(a.runThresholdPaceSecPerKm/runRange.min).toFixed(1),
         source:modelSource(["runThresholdPaceSecPerKm"]),confidence:"model",
-        note:modelNote(["runThresholdPaceSecPerKm"],"Allure calculée par fraction de vitesse seuil; pace rapide = min secondes/km. LT1 non attesté")});
+        note:modelNote(["runThresholdPaceSecPerKm"],"Allure calculée par fraction de vitesse seuil; pace rapide = min secondes/km. LT1 non attesté")+(d.execution?.run?" Plage d’exécution de récupération active : plancher de programmation, pas une nouvelle limite physiologique.":"")});
     }else if(w.sport==="swim"){
       const measured=a.swimDomainPacesSecPer100m?.[domain];
       if(w.prescription.individualization.swimCssPolicy==="qualitative_timeboxed_no_pace_conversion")continue;

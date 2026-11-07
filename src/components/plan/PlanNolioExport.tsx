@@ -10,6 +10,7 @@ import type {NolioExportScope} from '../../../supabase/functions/_shared/nolioV2
 import {confirmFullPlanDryRun,PLAN_DRY_JOB_COLS,PLAN_DRY_RECEIPT_COLS,type PlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import {NolioV2ProgressPanel,type V2StatusView} from '@/qa/pilot-review/NolioV2ProgressPanel';
 import {runCoachExport} from '@/lib/nolio/coachExportFlow';
+import {hasRetiredRecoveryGuidance} from '@/lib/nolio/guidedRecoveryVersion';
 import {blocksLegacyNolioExport} from '@/lib/nolio/legacyExportGuard';
 import {exportLegacyPlan,type LegacyExportContext} from '@/lib/nolio/legacyPlanExport';
 import {planExportSummary,coachCalendarDate} from '@/lib/nolio/planExportSummary';
@@ -56,6 +57,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
    }
    if(row.error||!row.data||row.data.id!==id||row.data.coach_id!==uid||row.data.athlete_id!==athleteId||!samePrescription(row.data.plan_json,plan))throw Error('Version sauvegardée différente : export annulé.');
    savedId.current=id;
+   if(structured&&!verifyOnly&&hasRetiredRecoveryGuidance(row.data.plan_json))throw Error('Ce plan sauvegardé utilise les anciens plafonds de récupération. Régénérez-le avec les plages guidées. Les séances déjà présentes dans Nolio doivent être rapprochées avant tout nouvel export aux mêmes dates ; elles ne seront pas remplacées automatiquement.');
    const snapshot=row.data.plan_json,hash=await sha256Hex(canonical(snapshot));guard();
    async function invoke(name:string,body:Record<string,unknown>){
     guard();const auth=await bounded(supabase.auth.getUser());guard();if(auth.error||auth.data.user?.id!==uid)throw Error('Identité modifiée : action annulée.');
