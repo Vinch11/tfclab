@@ -39,7 +39,7 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false){
     const failed=Array.isArray(r.results)?r.results.find((x:{result?:string})=>x.result!=='verified_unique'):null;
     const entry=dry.manifest?.find(x=>x.opIndex===failed?.opIndex);
     const d=failed?.diagnostic;
-    const detail=failed?.result==='absent'?'Séance absente de Nolio (supprimée ou déplacée).':failed?.result==='ambiguous'&&d&&Number.isSafeInteger(d.candidates)&&Number.isSafeInteger(d.exact)?`${d.candidates} correspondance(s), ${d.exact} identique(s). Champs différents : ${Array.isArray(d.fields)?d.fields.filter((x:unknown)=>typeof x==='string'&&/^[a-z_]{1,30}$/.test(x)).join(', '):'non précisés'}.`:'Présence exacte dans Nolio non confirmée.';
+    const detail=failed?.result==='not_sent'?'Cette séance n’a pas encore été envoyée. Utilisez « Exporter vers Nolio » pour poursuivre le plan.':failed?.result==='absent'?'Séance absente de Nolio (supprimée ou déplacée).':failed?.result==='ambiguous'&&d&&Number.isSafeInteger(d.candidates)&&Number.isSafeInteger(d.exact)?`${d.candidates} correspondance(s), ${d.exact} identique(s). Champs différents : ${Array.isArray(d.fields)?d.fields.filter((x:unknown)=>typeof x==='string'&&/^[a-z_]{1,30}$/.test(x)).join(', '):'non précisés'}.`:'Présence exacte dans Nolio non confirmée.';
     throw Error(`${entry?entry.sessionKey+' · '+entry.date+' : ':''}${detail} Export arrêté ; les activités déjà envoyées sont conservées.`);
    }
    verified=read.verified;nextIndex=read.nextIndex;

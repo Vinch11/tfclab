@@ -105,6 +105,14 @@ function deepEqualTol(a: unknown, b: unknown): boolean {
  */
 export function stripReadDefaults(remote: Record<string, unknown>, sent: Record<string, unknown>): Record<string, unknown> {
   const r = { ...remote };
+  // Current official read contract: [] identifies a single-part activity.
+  // Non-empty parts must remain compared: never verify just one leg while
+  // silently hiding another provider activity. Aggregate totals are read-only;
+  // the actual per-activity dose and every workout node remain compared.
+  if (!("parts" in sent) && Array.isArray(r.parts) && r.parts.length === 0) {
+    delete r.parts;
+    for (const field of ["total_duration", "total_distance"]) if (!(field in sent)) delete r[field];
+  }
   const absent = (k: string) => !(k in sent) || sent[k] === undefined;
   if (absent("workout") && Array.isArray(r.workout) && r.workout.length === 0) delete r.workout;
   if (absent("tags") && Array.isArray(r.tags) && r.tags.length === 0) delete r.tags;
@@ -121,7 +129,7 @@ export function exactRemoteMatch(remote: Record<string, unknown>, sent: Record<s
 export function remoteMismatchFields(remote: Record<string, unknown>, sent: Record<string, unknown>): string[] {
   const a = normalize(stripReadDefaults(remote, sent), true) as Record<string, unknown>;
   const b = normalize(sent, true) as Record<string, unknown>;
-  const allowed = new Set(['name','sport','description','description_html','date_start','date_end','time','moment','athletes','group','duration','distance','elevation_gain','elevation_loss','tonnage','rpe','show_rpe','coggan_load','color','tags','workout','recurrence','recurrence_result','recurrence_preview']);
+  const allowed = new Set(['name','sport','description','description_html','date_start','date_end','time','moment','athletes','group','duration','distance','elevation_gain','elevation_loss','tonnage','rpe','show_rpe','coggan_load','color','tags','workout','recurrence','recurrence_result','recurrence_preview','parts','total_duration','total_distance','event','location','goal_type']);
   return [...new Set([...Object.keys(a), ...Object.keys(b)].filter(k => !deepEqualTol(a[k], b[k])).map(k => allowed.has(k) ? k : 'other_field'))].sort();
 }
 const looselySame = (it: Record<string, unknown>, body: Record<string, unknown>, marker: string) =>

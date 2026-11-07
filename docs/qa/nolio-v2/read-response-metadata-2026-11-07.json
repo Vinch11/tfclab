@@ -1,0 +1,124 @@
+{
+  "source": "https://www.nolio.io/api/v2/openapi.json",
+  "retrievedAt": "2026-11-07T17:42:42.391760+00:00",
+  "rawFormat": "yaml",
+  "sha256": "819b96e5f9af6037fa7d8d60299a545096190878d6098ada4edd9ec94e72f519",
+  "schemaVersion": "2.0.0",
+  "properties": {
+    "PlannedTraining": {
+      "parts": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "readOnly": true
+      },
+      "total_duration": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "example": {
+          "value": 3600,
+          "unit": "s"
+        },
+        "readOnly": true
+      },
+      "total_distance": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "example": {
+          "value": 12.5,
+          "unit": "km"
+        },
+        "readOnly": true
+      }
+    },
+    "PlannedCompetition": {
+      "parts": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "readOnly": true
+      },
+      "total_duration": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "example": {
+          "value": 3600,
+          "unit": "s"
+        },
+        "readOnly": true
+      },
+      "total_distance": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "example": {
+          "value": 12.5,
+          "unit": "km"
+        },
+        "readOnly": true
+      }
+    }
+  },
+  "interpretation": {
+    "parts": "An empty list denotes one activity. A nonempty list must never be discarded in exact verification.",
+    "total_duration": "Read-only aggregate; the original duration and all configured workout blocks are still checked.",
+    "total_distance": "Read-only aggregate; the original distance and all configured workout blocks are still checked."
+  }
+}
