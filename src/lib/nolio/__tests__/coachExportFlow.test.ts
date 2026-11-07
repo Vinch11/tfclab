@@ -4,7 +4,7 @@ const hash='a'.repeat(64),refs='b'.repeat(64),ops='c'.repeat(64),job='33333333-3
 function fixture(total=10){
  const rows=Array.from({length:total},(_,i)=>({sessionKey:`S${i+1}-J1-0`,date:'2026-11-09',sport:'bike',title:'Test',status:'operation',reason:null,opIndex:i}));
  const dry={status:'PROGRESS',code:'ok',planSha256:hash,refsSha256:refs,opsSha256:ops,precheck:{totalSessions:total,operations:total,excludedRest:0,refused:0,complete:true,rows},manifest:rows.map((r,i)=>({opIndex:i,sessionKey:r.sessionKey,date:r.date,kind:'training',path:'/api/v2/planned/trainings/',bodySha256:hash})),progress:{jobId:job,totalOps:total,valid:total,refused:0,unknown:0,pending:0,stoppedOn:null,processedThisBatch:total,fullyValidated:true}};
- let sent=0,verified=0;const invoke=vi.fn(async(name:string,body:Record<string,unknown>)=>{
+ let sent=0,verified=0;const invoke=vi.fn(async(name:string,body:Record<string,unknown>):Promise<Record<string,unknown>>=>{
   if(name==='nolio-v2-plan-dry-run')return dry;
   if(body.action==='precheck')return {status:'READY',existingThroughIndex:sent,gate:[],preview:{planSha256:hash,refsSha256:refs,opsSha256:ops}};
   if(body.action==='send'){sent=Math.min(sent+8,total);return {status:sent===total?'DONE':'STOPPED_BATCH_LIMIT',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:Array.from({length:sent},()=>({state:'confirmed'}))};}
