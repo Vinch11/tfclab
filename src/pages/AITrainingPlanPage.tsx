@@ -31,6 +31,7 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
+import {readExportResume,readOwnedExportArchive} from '@/lib/nolio/exportResume';
 import { isQaNonPrescriptivePlan } from "@/lib/aiPlanPDFExport";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -514,6 +515,9 @@ export const NON_DEROGABLE_RULES = new Set([
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const exportReturn = useRef(readExportResume(location.search));
+  const exportReturnSelected = useRef(false);
+  const exportReturnLoaded = useRef(false);
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   // Audit fiabilité génération LCW — voir formulaire "Format de course" plus
   // bas : lecture seule de la fiche athlète pour avertir sans jamais écraser
@@ -2519,6 +2523,38 @@ export default function AITrainingPlanPage() {
     }
     setPendingVersion(version);
   }, [applyLoadedVersion, raceDate, raceGoals]);
+
+  // Explicit export return address only: never choose the latest plan or a
+  // cached plan body. Read the exact owned immutable archive with original dates.
+  useEffect(()=>{
+    const resume=exportReturn.current;
+    if(!resume||exportReturnLoaded.current||!qaUserId)return;
+    const athlete=athletes.find(a=>a.id===resume.athleteId&&a.coach_id===qaUserId);
+    if(!athlete)return;
+    if(!exportReturnSelected.current){
+      exportReturnSelected.current=true;
+      setIsMultiMode(false);
+      setSelectedAthleteId(resume.athleteId);
+      if(isMultiMode||currentAthlete?.id!==resume.athleteId)return;
+    }
+    if(isMultiMode||currentAthlete?.id!==resume.athleteId||formDraftReady!==formDraftKey)return;
+    let live=true;
+    void (async()=>{
+      try{
+        const row=await readOwnedExportArchive(resume,qaUserId,{
+          user:async()=>{const a=await supabase.auth.getUser();return !a.error?a.data.user?.id??null:null;},
+          read:async()=>{const r=await supabase.from('plan_versions').select('id,coach_id,athlete_id,plan_json').eq('id',resume.versionId).eq('coach_id',qaUserId).eq('athlete_id',resume.athleteId).maybeSingle();return r.error?null:r.data;},
+        });
+        if(!live)return;
+        exportReturnLoaded.current=true;
+        if(!row)throw Error('unavailable');
+        applyLoadedVersion(row,parseISO(row.startDate));
+      }catch{
+        if(live){exportReturnLoaded.current=true;toast.error('Reprise Nolio indisponible : ouvrez la version sauvegardée dans l’historique. Aucun envoi effectué.');}
+      }
+    })();
+    return()=>{live=false;};
+  },[qaUserId,athletes,currentAthlete?.id,isMultiMode,formDraftKey,formDraftReady,applyLoadedVersion,setSelectedAthleteId]);
 
 
   // Compute the current week number relative to planStartDate

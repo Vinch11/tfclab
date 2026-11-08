@@ -16,6 +16,21 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('restores an unanswered question with fresh server titles and requires a new decision before any write',async()=>{
+  const {p,invoke,dry}=fixture(1);
+  const decision={planSha256:hash,refsSha256:refs,opsSha256:ops,rows:[{...dry.manifest[0],title:'Untrusted cached title',binding:'d'.repeat(64)}]};
+  p.confirmRecreation=vi.fn(async()=>false);p.pendingRecreation=vi.fn();
+  await expect(runCoachExport(p,false,false,{kind:'resume',decision})).rejects.toThrow('Export annulé');
+  expect(p.confirmRecreation).toHaveBeenCalledWith([{...decision.rows[0],title:'Test'}]);
+  expect(invoke.mock.calls.map(([,b])=>b.action)).toEqual(['precheck']);
+  expect(p.pendingRecreation).toHaveBeenCalledWith(null);
+ });
+ it('rejects a cached question after references or selection change, before confirmation or create',async()=>{
+  const {p,invoke,dry}=fixture(1);p.confirmRecreation=vi.fn();p.pendingRecreation=vi.fn();
+  const decision={planSha256:hash,refsSha256:'e'.repeat(64),opsSha256:ops,rows:[{...dry.manifest[0],title:'Test',binding:'d'.repeat(64)}]};
+  await expect(runCoachExport(p,false,false,{kind:'resume',decision})).rejects.toThrow('contexte Nolio a changé');
+  expect(p.confirmRecreation).not.toHaveBeenCalled();expect(invoke.mock.calls.map(([,b])=>b.action)).toEqual(['precheck']);expect(p.pendingRecreation).toHaveBeenCalledWith(null);
+ });
  it('rereads a transient GET failure without repeating the create, then completes',async()=>{
   const {p,invoke}=fixture(2),original=invoke.getMockImplementation()!;let reads=0;
   invoke.mockImplementation(async(n,b)=>b.action==='verify'&&reads++===0?{status:'VERIFY',preview:{planSha256:hash,refsSha256:refs,opsSha256:ops},results:[{opIndex:0,result:'unknown',retryableRead:true}]}:original(n,b));

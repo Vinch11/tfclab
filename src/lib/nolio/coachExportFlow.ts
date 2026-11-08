@@ -11,10 +11,11 @@ export type CoachFlowPorts={
  /** Only exceptional destructive-provider history needs a contextual decision.
   * The ordinary one-click Export action performs all technical checks itself. */
  confirmRecreation?:(rows:RecreationDecision['rows'])=>Promise<boolean>;
+ pendingRecreation?:(decision:RecreationDecision|null)=>void;
  now?:()=>number;sleep?:(ms:number)=>Promise<void>;
 };
 export type RecreationDecision={planSha256:string;refsSha256:string;opsSha256:string;rows:Array<{opIndex:number;sessionKey:string;date:string;title:string;binding:string}>};
-type RecreationMode={kind:'inspect'}|{kind:'apply';decision:RecreationDecision};
+export type RecreationMode={kind:'inspect'}|{kind:'apply'|'resume';decision:RecreationDecision};
 type CoachExportResult={verified:number;total:number;recreationDecision?:RecreationDecision;inspected?:number};
 function checkpoint(p:CoachFlowPorts){if(!p.current()||p.stopRequested())throw Error('Action interrompue. Les activités déjà envoyées restent vérifiables ; aucune relance automatique.');}
 class MissingNolioActivity extends Error {}
@@ -30,6 +31,19 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
  const frozen={planSha256:dry.planSha256,refsSha256:dry.refsSha256,opsSha256:dry.opsSha256};
  const same=(value:unknown)=>{const r=value as {planSha256?:string;refsSha256?:string;opsSha256?:string}|null;return !!r&&r.planSha256===frozen.planSha256&&r.refsSha256===frozen.refsSha256&&r.opsSha256===frozen.opsSha256;};
  const total=dry.manifest?.length??0;if(!total)throw Error('Sélection vide.');
+ if(recreation?.kind==='resume'){
+  const d=recreation.decision;
+  // Cached questions cannot authorize a send or provide display prescriptions.
+  // Fresh manifest and hashes must match; titles/dates come from the server.
+  const valid=same(d)&&d.rows.length>0&&d.rows.length<=total&&new Set(d.rows.map(r=>r.opIndex)).size===d.rows.length&&d.rows.every(r=>dry!.manifest!.some(o=>o.opIndex===r.opIndex&&o.sessionKey===r.sessionKey&&o.date===r.date)&&/^[a-f0-9]{64}$/.test(r.binding));
+  if(!valid){p.pendingRecreation?.(null);throw Error('Le contexte Nolio a changé. Relancez l’export pour vérifier les activités manquantes.');}
+  const decision={...d,rows:d.rows.map(r=>({...r,title:dry!.precheck!.rows.find(o=>o.opIndex===r.opIndex)?.title??'Séance du plan'}))};
+  if(!p.confirmRecreation)throw Error('Confirmation de recréation requise.');
+  p.progress('Confirmation retrouvée. Les activités seront contrôlées à nouveau avant toute recréation.');
+  if(!await p.confirmRecreation(decision.rows)){p.pendingRecreation?.(null);checkpoint(p);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
+  checkpoint(p);p.pendingRecreation?.(null);
+  return runCoachExport(p,false,false,{kind:'apply',decision});
+ }
  if(recreation?.kind==='inspect'){
   const decision:RecreationDecision={planSha256:frozen.planSha256!,refsSha256:frozen.refsSha256!,opsSha256:frozen.opsSha256!,rows:[]};
   let from=0,attempted:number|undefined;const seen=new Set<number>();
@@ -127,8 +141,11 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
    p.progress('Vérification des activités manquantes dans Nolio…');
    const inspection=await runCoachExport(p,false,false,{kind:'inspect'}),decision=inspection.recreationDecision;checkpoint(p);
    if(!decision?.rows.length)throw Error('Le calendrier Nolio a changé. Relancez l’export pour reprendre sa vérification.');
-   if(!await p.confirmRecreation(decision.rows)){checkpoint(p);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
+   p.pendingRecreation?.(decision);
+   p.progress('Contrôle terminé. Confirmez les activités à recréer.');
+   if(!await p.confirmRecreation(decision.rows)){checkpoint(p);p.pendingRecreation?.(null);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
    checkpoint(p);
+   p.pendingRecreation?.(null);
    return runCoachExport(p,false,false,{kind:'apply',decision});
   }
  }

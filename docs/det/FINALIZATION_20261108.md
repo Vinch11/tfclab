@@ -124,3 +124,28 @@ Then exercise a newly generated DET plan's pace-v1 simulation, the saved
 preparation timeline and scoped export, and confirm watch guidance separately.
 This report does not grant sporting approval or assert completed delivery.
 
+
+## Mobile preview return correction
+
+The user's current preview now reaches the real provider verification. Its first
+activity was previously exact-unique and is now absent at the expected date. The
+normal export inspection offered 96 acknowledged deleted activities for explicit
+recreation. This does not establish a completed export.
+
+The user then reported losing the current screen/question when switching tabs.
+The correction records exact export navigation (athlete/version/scope) in the
+current URL. A reload rereads the owned immutable archive with its original date;
+it does not choose the latest plan, regenerate, change dates or send on mount.
+An unanswered recreation question is retained in session storage per coach,
+version and exact plan hash as an untrusted navigation hint, never consent or
+provider proof. After a deliberate Export click, a fresh server precheck must
+match the plan, references, operation manifest and exact selected entries. Display
+titles come from that precheck. A new confirmation remains required. The hint is
+cleared before applying, so an interrupted repair cannot automatically replay an
+approval. Every repair still performs the existing fresh deletion/conflict and
+audited server claim checks. Uncertain creations remain non-retryable.
+
+The long activity list is scrollable independently, keeping the confirmation
+buttons accessible on a phone. If session storage is unavailable, the normal
+server inspection remains the safe fallback. Browser suspension can pause work;
+this change provides recovery, not a background execution guarantee.

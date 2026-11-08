@@ -5,16 +5,36 @@ import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
 import {NolioV2ExportProvider,NolioV2ScopeButton} from '../NolioV2PlanExport';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 import type {CoachFlowPorts} from '@/lib/nolio/coachExportFlow';
+import {pendingRecreation,writeExportResume} from '@/lib/nolio/exportResume';
+import {canonical,sha256Hex} from '../../../../supabase/functions/_shared/nolioV2/dryRun';
 const mock=vi.hoisted(()=>({invoke:vi.fn(),getUser:vi.fn(),flow:vi.fn(),row:null as null|{id:string;athlete_id:string;coach_id:string;plan_json:unknown}}));
 vi.mock('@/lib/nolio/coachExportFlow',()=>({runCoachExport:mock.flow}));
 vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getUser},from:()=>{const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:mock.row,error:null})};return q;},functions:{invoke:mock.invoke}}}));
 const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'2026-11-02',_provenance:{engine:'det',prescriptionAllowed:false}} as unknown as ParsedPlan;
 const version='22222222-2222-4222-8222-222222222222';
-beforeEach(()=>{cleanup();vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(name)=>({data:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));mock.flow.mockResolvedValue({verified:2,total:2});});
+beforeEach(()=>{cleanup();sessionStorage.clear();window.history.replaceState({},'','/ai-plan');vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(name)=>({data:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));mock.flow.mockResolvedValue({verified:2,total:2});});
 function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<string|null>){return render(<NolioV2ExportProvider plan={current} athleteId="athlete" planVersionId={id} ensureSaved={ensureSaved} legacy={{nolioId:42,startDate:"2026-11-09",refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/><NolioV2ScopeButton label="Semaine" scope={{kind:'weeks',from:2,to:2}}/><NolioV2ScopeButton label="Séance" scope={{kind:'sessions',keys:['S2-J1-0']}}/></NolioV2ExportProvider>);}
 function openAdvanced(){fireEvent.click(screen.getByRole('button',{name:'Options avancées'}));}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('reopens the exact export scope after remount and restores a pending question without automatic export',async()=>{
+  const athlete='11111111-1111-4111-8111-111111111111';
+  mock.row={...mock.row!,athlete_id:athlete};
+  writeExportResume({athleteId:athlete,versionId:version,scope:{kind:'weeks',from:2,to:3}});
+  const hash=await sha256Hex(canonical(plan));
+  const decision={planSha256:hash,refsSha256:'b'.repeat(64),opsSha256:'c'.repeat(64),rows:[{opIndex:0,sessionKey:'S1-J1-0',date:'2026-11-10',title:'Test',binding:'d'.repeat(64)}]};
+  pendingRecreation('coach',version,hash,decision);
+  render(<NolioV2ExportProvider plan={plan} athleteId={athlete} planVersionId={version} enabled>Plan</NolioV2ExportProvider>);
+  await waitFor(()=>expect(screen.getByRole('dialog')).toBeInTheDocument());
+  expect(screen.getByLabelText('Première semaine Nolio')).toHaveValue(2);expect(screen.getByLabelText('Dernière semaine Nolio')).toHaveValue(3);
+  expect(mock.flow).not.toHaveBeenCalled();expect(mock.invoke).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button',{name:'Exporter vers Nolio'}));
+  await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.flow.mock.calls[0][3]).toEqual({kind:'resume',decision});
+ });
+ it('does not reopen an export for another athlete',()=>{
+  writeExportResume({athleteId:'11111111-1111-4111-8111-111111111111',versionId:version,scope:{kind:'all'}});
+  setup();expect(screen.queryByRole('dialog')).not.toBeInTheDocument();expect(mock.invoke).not.toHaveBeenCalled();
+ });
  it('shows one export action with technical tools hidden by default',()=>{
   setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));
   expect(screen.getByRole('button',{name:'Exporter vers Nolio'})).toBeInTheDocument();expect(screen.getByRole('button',{name:'Options avancées'})).toHaveAttribute('aria-expanded','false');
