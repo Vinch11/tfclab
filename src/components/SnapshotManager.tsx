@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
+import { NolioV2RecordsImporter, type NolioV2RecordsImportResult } from "@/components/NolioV2RecordsImporter";
 import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
@@ -460,6 +461,19 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     }));
   };
 
+  const handleNolioV2RecordsImport = (values: NolioV2RecordsImportResult) => {
+    setFormData((prev) => ({
+      ...prev,
+      ...(values.pmax_5s && { pmax_5s: values.pmax_5s }),
+      ...(values.p30s_w && { p30s_w: values.p30s_w }),
+      ...(values.p60s_w && { p60s_w: values.p60s_w }),
+      ...(values.map5min_w && { map5min_w: values.map5min_w }),
+      ...(values.ftp && { ftp: values.ftp }),
+      ...(values.css && { css: values.css }),
+      ...(values.fc_max && { fc_max: values.fc_max }),
+    }));
+  };
+
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
       {/* Nolio Import Button */}
@@ -482,6 +496,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           </div>
         );
       })()}
+
+      <NolioV2RecordsImporter athleteId={athleteId} onImport={handleNolioV2RecordsImport} />
 
       <div className="grid grid-cols-2 gap-4">
         <div>
