@@ -61,7 +61,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
  const open=(s:NolioExportScope)=>{if(lock.current)return;epoch.current++;stop.current=false;setScope(s);setMessage('');setRefsView(null);setRecreationPrompt(null);setAdvanced(false);};
  const answerRecreation=(value:boolean)=>{const answer=recreationAnswer.current;recreationAnswer.current=null;setRecreationPrompt(null);answer?.(value);};
  async function owned(id:string,uid:string){return bounded(supabase.from('plan_versions').select('id,athlete_id,coach_id,plan_json').eq('id',id).eq('coach_id',uid).eq('athlete_id',athleteId).maybeSingle());}
- async function run(verifyOnly=false,calendarOnly=false){
+ async function run(verifyOnly=false,calendarOnly=false,diagnoseOnly=false){
   if(lock.current||!scope)return;lock.current=true;setBusy(true);stop.current=false;const token=epoch.current;
   const current=()=>token===epoch.current;
   const guard=()=>{if(!current()||stop.current)throw Error('Action arrêtée. Les activités déjà envoyées restent vérifiables.');};
@@ -71,14 +71,14 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
    let id=savedId.current;
    let row=id?await owned(id,uid):null;guard();
    if(!row||row.error||!row.data||!samePrescription(row.data.plan_json,plan)){
-    if(verifyOnly||calendarOnly)throw Error('Ouvrez la version sauvegardée de ce plan pour vérifier Nolio sans nouvel envoi.');
+    if(verifyOnly||calendarOnly||diagnoseOnly)throw Error('Ouvrez la version sauvegardée de ce plan pour vérifier Nolio sans nouvel envoi.');
     if(!ensureSaved)throw Error('Enregistrez ce plan avant l’export.');
     setMessage('Enregistrement du plan…');id=await ensureSaved();guard();
     if(!id)throw Error('Sauvegarde non confirmée : aucun envoi.');row=await owned(id,uid);guard();
    }
    if(row.error||!row.data||row.data.id!==id||row.data.coach_id!==uid||row.data.athlete_id!==athleteId||!samePrescription(row.data.plan_json,plan))throw Error('Version sauvegardée différente : export annulé.');
    savedId.current=id;
-   if(structured&&!verifyOnly&&!calendarOnly&&hasRetiredRecoveryGuidance(row.data.plan_json))throw Error('Ce plan sauvegardé utilise les anciens plafonds de récupération. Régénérez-le avec les plages guidées. Les séances déjà présentes dans Nolio doivent être rapprochées avant tout nouvel export aux mêmes dates ; elles ne seront pas remplacées automatiquement.');
+   if(structured&&!verifyOnly&&!calendarOnly&&!diagnoseOnly&&hasRetiredRecoveryGuidance(row.data.plan_json))throw Error('Ce plan sauvegardé utilise les anciens plafonds de récupération. Régénérez-le avec les plages guidées. Les séances déjà présentes dans Nolio doivent être rapprochées avant tout nouvel export aux mêmes dates ; elles ne seront pas remplacées automatiquement.');
    const snapshot=row.data.plan_json,hash=await sha256Hex(canonical(snapshot));guard();
    if(structured)writeExportResume({athleteId,versionId:id!,scope});
    async function invoke(name:string,body:Record<string,unknown>){
@@ -101,8 +101,8 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
     return !job.error&&!receipts.error&&(await confirmFullPlanDryRun({planVersionId:id!,coachId:uid,resp:r,job:job.data,receipts:receipts.data,localPlanSha256:hash})).confirmed;
    };
    const verifyReceipts=async(r:PlanDryResp,ledgerBindings:unknown)=>{const receipts=await bounded(supabase.from('qa_nolio_v2_plan_verify_receipts').select('*').eq('coach_id',uid).eq('plan_version_id',id).eq('plan_sha256',r.planSha256).eq('refs_sha256',r.refsSha256).eq('ops_sha256',r.opsSha256).order('created_at',{ascending:false}).limit(1000));guard();if(receipts.error)throw Error('Relecture Nolio indisponible : résultat non confirmé.');return currentExportVerification({coachId:uid,planVersionId:id!,resp:r,receipts:receipts.data,ledgerBindings});};
-   const ports={planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,refreshCompetitionRefs,pendingRecreation:(d:RecreationDecision|null)=>{if(current())pendingRecreation(uid,id!,hash,d);},confirmRecreation:(rows:RecreationDecision['rows'])=>new Promise<boolean>(resolve=>{guard();recreationAnswer.current=resolve;setRecreationPrompt(rows);}),progress:(m:string)=>{if(current())setMessage(m);}};
-   const pending=!verifyOnly&&!calendarOnly?pendingRecreation(uid,id!,hash):null;
+   const ports={planVersionId:id!,planSha256:hash,scope,current,diagnoseOnly,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,refreshCompetitionRefs,pendingRecreation:(d:RecreationDecision|null)=>{if(current())pendingRecreation(uid,id!,hash,d);},confirmRecreation:(rows:RecreationDecision['rows'])=>new Promise<boolean>(resolve=>{guard();recreationAnswer.current=resolve;setRecreationPrompt(rows);}),progress:(m:string)=>{if(current())setMessage(m);}};
+   const pending=!verifyOnly&&!calendarOnly&&!diagnoseOnly?pendingRecreation(uid,id!,hash):null;
    const result=pending?await runCoachExport(ports,false,false,{kind:'resume',decision:pending}):await runCoachExport(ports,verifyOnly,calendarOnly);guard();
    if(!verifyOnly&&!calendarOnly)pendingRecreation(uid,id!,hash,null);
    setMessage(calendarOnly?`${result.total}/${result.total} activités contrôlées : aucun ancien export TFCLab en conflit. Aucun envoi effectué.`:`${result.verified}/${result.total} activités confirmées dans Nolio. Export terminé.`);
@@ -141,6 +141,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
   <p role="status" className="text-sm whitespace-pre-wrap">{message}</p>
   {structured&&<div><Button variant="ghost" disabled={busy} aria-expanded={advanced} onClick={()=>setAdvanced(v=>!v)}>Options avancées</Button>{advanced&&<div className="space-y-2 border-t pt-2">
    <Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void run(true)}>Vérifier dans Nolio sans renvoyer</Button>
+   <Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void run(false,false,true)}>Analyser le refus sans envoyer</Button>
    <Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void run(false,true)}>Rapprocher les anciens exports sans envoyer</Button>
    <Button disabled={busy||(!savedId.current&&!planVersionId)} variant="outline" onClick={()=>void readZones()}>Lire les zones de travail Nolio</Button>
    <details><summary>Correspondances Nolio</summary><Button variant="outline" disabled={busy} onClick={()=>void refsAction({action:'status'})}>Vérifier la connexion et les correspondances</Button>{refsView&&<NolioV2ProgressPanel status={refsView} busy={busy} ready={!!athleteId} identityKey={`${athleteId}|${savedId.current}`} planSports={sports} exerciseLabels={requiredExerciseLabels(extracted,{timedCoachStrength:true})} raceSource={races.length===1?races[0]:null} act={refsAction} simulation="NONE"/>}</details>

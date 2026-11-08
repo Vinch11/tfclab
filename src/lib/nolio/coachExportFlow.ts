@@ -2,9 +2,9 @@ import {formatWorkoutReadbackDifferences,formatRawTargetEvidence} from '../../..
 import {runPlanDrySequence,parsePlanDryResp,reasonFr,stopFr,type PlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import type {NolioExportScope} from '../../../supabase/functions/_shared/nolioV2/exportScope';
 import {PLAN_SEND_BATCH} from '../../../supabase/functions/_shared/nolioV2/planSend';
-import {formatValidationIssues} from '../../../supabase/functions/_shared/nolioV2/dryRunValidation';
+import {formatValidationIssues,formatPaceProbeReport} from '../../../supabase/functions/_shared/nolioV2/dryRunValidation';
 export type CoachFlowPorts={
- planVersionId:string;planSha256:string;scope:NolioExportScope;
+ planVersionId:string;planSha256:string;scope:NolioExportScope;diagnoseOnly?:boolean;
  current:()=>boolean;stopRequested:()=>boolean;
  invoke:(name:string,body:Record<string,unknown>)=>Promise<unknown>;
  confirmSimulation:(r:PlanDryResp)=>Promise<boolean>;
@@ -54,6 +54,22 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
  const frozen={planSha256:dry.planSha256,refsSha256:dry.refsSha256,opsSha256:dry.opsSha256};
  const same=(value:unknown)=>{const r=value as {planSha256?:string;refsSha256?:string;opsSha256?:string}|null;return !!r&&r.planSha256===frozen.planSha256&&r.refsSha256===frozen.refsSha256&&r.opsSha256===frozen.opsSha256;};
  const total=dry.manifest?.length??0;if(!total)throw Error('Sélection vide.');
+ const diagnosticManifest=dry.manifest;
+ async function diagnoseRefusal():Promise<never>{
+  p.progress('Analyse comparative des formats Nolio — simulations sans envoi…');
+  const d=await call('nolio-v2-plan-dry-run',{...common,action:'inspect-refusal'});
+  const refusal=d.refusal as {opIndex?:number;sessionKey?:string;date?:string;httpStatus?:number;code?:string;issues?:unknown;probes?:unknown}|undefined;
+  const entry=Number.isSafeInteger(refusal?.opIndex)?diagnosticManifest?.[refusal!.opIndex!]:null;
+  if(same(d as unknown as PlanDryResp)&&d.status==='REFUSAL_DIAGNOSTIC'&&entry&&refusal?.sessionKey===entry.sessionKey&&refusal.date===entry.date){
+   if(refusal.code==='dry_run_valid')throw Error(`${entry.sessionKey} · ${entry.date} : la simulation isolée est maintenant acceptée. Le refus initial reste enregistré ; export arrêté pour rapprochement. Aucune activité créée par cette vérification.`);
+   const report=formatPaceProbeReport(refusal.probes);
+   if(report)throw Error(`${entry.sessionKey} · ${entry.date} : diagnostic comparatif Nolio. ${report}. Simulations uniquement ; aucune activité créée. Le plan sauvegardé est conservé.`);
+   const detail=formatValidationIssues(refusal.issues);
+   throw Error(`${entry.sessionKey} · ${entry.date} : Nolio refuse la simulation${refusal.httpStatus===400?' (HTTP 400)':''}.${detail?' '+detail+'.':''} Aucune activité créée par cette vérification.`);
+  }
+  throw Error('Nolio a refusé une séance lors de la simulation. Le détail du refus n’est pas disponible ; aucun nouvel envoi.');
+ }
+ if(p.diagnoseOnly)return diagnoseRefusal();
  if(recreation?.kind==='resume'){
   const d=recreation.decision;
   // Cached questions cannot authorize a send or provide display prescriptions.
@@ -110,17 +126,7 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
   if(calendarOnly)return {verified:0,total};
  }
  const sequence=await runPlanDrySequence({runBatch:async()=>{const r=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'run'}));if(!r||!same(r))throw Error('Plan ou correspondances modifiés : export arrêté.');return r;},isCurrent:p.current,stopRequested:p.stopRequested,now:p.now??Date.now,sleep:p.sleep??(ms=>new Promise(resolve=>setTimeout(resolve,ms))),onProgress:r=>{p.onDry?.(r);p.progress(`Vérification Nolio : ${r.progress?.valid??0}/${r.progress?.totalOps??0} séances.`);}});
- if(sequence.stop==='refused_present'){
-  const d=await call('nolio-v2-plan-dry-run',{...common,action:'inspect-refusal'});
-  const refusal=d.refusal as {opIndex?:number;sessionKey?:string;date?:string;httpStatus?:number;code?:string;issues?:unknown}|undefined;
-  const entry=Number.isSafeInteger(refusal?.opIndex)?dry.manifest?.[refusal!.opIndex!]:null;
-  if(same(d as unknown as PlanDryResp)&&d.status==='REFUSAL_DIAGNOSTIC'&&entry&&refusal?.sessionKey===entry.sessionKey&&refusal.date===entry.date){
-   if(refusal.code==='dry_run_valid')throw Error(`${entry.sessionKey} · ${entry.date} : la simulation isolée est maintenant acceptée. Le refus initial reste enregistré ; export arrêté pour rapprochement. Aucune activité créée par cette vérification.`);
-   const detail=formatValidationIssues(refusal.issues);
-   throw Error(`${entry.sessionKey} · ${entry.date} : Nolio refuse la simulation${refusal.httpStatus===400?' (HTTP 400)':''}.${detail?' '+detail+'.':''} Aucune activité créée par cette vérification.`);
-  }
-  throw Error('Nolio a refusé une séance lors de la simulation. Le détail du refus n’est pas disponible ; aucun nouvel envoi.');
- }
+ if(sequence.stop==='refused_present')return diagnoseRefusal();
  if(sequence.stop!=='complete'||!sequence.last)throw Error(stopFr(sequence.stop));
  dry=sequence.last;checkpoint(p);
  if(!await p.confirmSimulation(dry))throw Error('Vérification des reçus impossible : aucun envoi supplémentaire.');checkpoint(p);

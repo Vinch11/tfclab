@@ -17,6 +17,13 @@ function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<stri
 function openAdvanced(){fireEvent.click(screen.getByRole('button',{name:'Options avancées'}));}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('offers an explicit saved-plan diagnostic without starting the normal export',async()=>{
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{expect(p.diagnoseOnly).toBe(true);throw Error('Diagnostic comparatif — simulations uniquement');});
+  setup();fireEvent.click(screen.getByRole('button',{name:'Plan'}));fireEvent.click(screen.getByRole('button',{name:'Options avancées'}));
+  fireEvent.click(screen.getByRole('button',{name:'Analyser le refus sans envoyer'}));
+  await waitFor(()=>expect(screen.getByText('Diagnostic comparatif — simulations uniquement')).toBeInTheDocument());
+  expect(mock.flow).toHaveBeenCalledTimes(1);expect(screen.queryByText(/Export terminé/)).not.toBeInTheDocument();
+ });
  it('keeps the pending question when focus recovery emits SIGNED_IN for the same verified coach',async()=>{
   const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Test',binding:'d'.repeat(64)}];
   mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});

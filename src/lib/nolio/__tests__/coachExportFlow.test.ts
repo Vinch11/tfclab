@@ -17,6 +17,12 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('runs the explicit comparative diagnostic without normal validation, calendar or send actions',async()=>{
+  const {p,invoke,dry}=fixture(1),original=invoke.getMockImplementation()!;p.diagnoseOnly=true;
+  invoke.mockImplementation(async(n,b)=>b.action==='inspect-refusal'?{status:'REFUSAL_DIAGNOSTIC',planSha256:hash,refsSha256:refs,opsSha256:ops,refusal:{opIndex:0,sessionKey:dry.manifest[0].sessionKey,date:dry.manifest[0].date,httpStatus:400,code:'validation_rejected_400',probes:[{test:'original',httpStatus:400,code:'validation_rejected_400',providerError:{code:'invalid_pace',message:'Use m:ss',fields:[]}},{test:'exact_numeric_mps',httpStatus:201,code:'dry_run_valid',providerError:null}]}}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Format numérique exact : accepté');
+  expect(invoke.mock.calls.map(([,b])=>b.action)).toEqual(['precheck','inspect-refusal']);expect(p.confirmSimulation).not.toHaveBeenCalled();expect(p.verifyReceipts).not.toHaveBeenCalled();
+ });
  it('reports the frozen rejected session and allowlisted fields without reaching creates',async()=>{
   const {p,invoke,dry}=fixture(1),original=invoke.getMockImplementation()!;
   dry.progress={...dry.progress,valid:0,refused:1,pending:0,fullyValidated:false};

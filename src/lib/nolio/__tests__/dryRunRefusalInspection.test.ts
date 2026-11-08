@@ -21,7 +21,7 @@ describe('known HTTP400 simulation diagnostics, never a send or proof',()=>{
  it('forces dry_run and provides a bound diagnostic without touching receipts',async()=>{
   const a=fixture(),before=JSON.stringify(a.receipts);
   expect(await inspectDryRunRefusal(a)).toMatchObject({status:'REFUSAL_DIAGNOSTIC',refusal:{opIndex:0,sessionKey:'S1-J1-1',httpStatus:400}});
-  expect(a.post).toHaveBeenCalledExactlyOnceWith('training',{dry_run:true,name:'SYNTHETIC'},12000);
+  expect(a.post).toHaveBeenCalledExactlyOnceWith('training',{dry_run:true,name:'SYNTHETIC'},4000);
   expect(a.release).toHaveBeenCalledTimes(1);expect(JSON.stringify(a.receipts)).toBe(before);
  });
  it.each(['UNKNOWN','DRY_RUN_VALID','AUTH','RATE','CHANGED_BODY','MIXED'])('does not retry %s evidence',async kind=>{
@@ -47,6 +47,8 @@ describe('known HTTP400 simulation diagnostics, never a send or proof',()=>{
   const fetch=vi.fn(async(_url:string)=>({status:400,text:async()=>JSON.stringify({error:{code:'validation_error',message:'PRIVATE',fields:{'workout.0.targets.0.value':['Invalid pace PRIVATE']}}})}));
   const r=await postDryRun({fetch,accessToken:'SYNTHETIC_TOKEN',body:{dry_run:true}});
   expect(r.validationIssues).toEqual([{field:'workout.0.targets.0.value',reason:'pace_format'}]);
-  expect(JSON.stringify(r)).not.toContain('PRIVATE');expect(fetch.mock.calls[0]?.[0]).toBe('https://www.nolio.io/api/v2/planned/trainings/');
+  // Standard technical errors are now visible only in this owning caller's
+  // ephemeral response; arbitrary sibling data are still absent.
+  expect(r.providerError?.message).toBe('PRIVATE');expect(fetch.mock.calls[0]?.[0]).toBe('https://www.nolio.io/api/v2/planned/trainings/');
  });
 });
