@@ -7,7 +7,7 @@ export type CoachFlowPorts={
  current:()=>boolean;stopRequested:()=>boolean;
  invoke:(name:string,body:Record<string,unknown>)=>Promise<unknown>;
  confirmSimulation:(r:PlanDryResp)=>Promise<boolean>;
- verifyReceipts:(r:PlanDryResp)=>Promise<{verified:number;total:number;fullyVerified:boolean;nextIndex:number}>;
+ verifyReceipts:(r:PlanDryResp,ledgerBindings:unknown)=>Promise<{verified:number;total:number;fullyVerified:boolean;nextIndex:number}>;
  progress:(message:string)=>void;onDry?:(r:PlanDryResp)=>void;
  /** Only exceptional destructive-provider history needs a contextual decision.
   * The ordinary one-click Export action performs all technical checks itself. */
@@ -121,7 +121,7 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
    const r=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'verify',expected,fromIndex:nextIndex});
    if(r.status==='NOTHING_SENT')throw Error('Aucune activité envoyée pour cette sélection.');
    if(r.status!=='VERIFY'||!same(r.preview as typeof frozen))throw Error('Résultat Nolio non confirmé. Vérifiez les activités avant de reprendre.');
-   const read=await p.verifyReceipts(dry);checkpoint(p);
+   const read=await p.verifyReceipts(dry,r.ledgerBindings);checkpoint(p);
    // During resume the server's read batch may extend past the acknowledged
    // prefix. A not_sent in that in-manifest tail is expected: the later send
    // phase handles it. All other failures, including any not_sent inside the

@@ -1,5 +1,6 @@
 import {describe,it,expect,vi} from 'vitest';
 import {runCoachExport,type CoachFlowPorts} from '../coachExportFlow';
+import {currentExportVerification} from '../exportVerification';
 const hash='a'.repeat(64),refs='b'.repeat(64),ops='c'.repeat(64),job='33333333-3333-4333-8333-333333333333';
 function fixture(total=10){
  const rows=Array.from({length:total},(_,i)=>({sessionKey:`S${i+1}-J1-0`,date:'2026-11-09',sport:'bike',title:'Test',status:'operation',reason:null,opIndex:i}));
@@ -16,6 +17,23 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('rereads replacements instead of completing from receipts for deleted resource IDs',async()=>{
+  const {p,invoke,dry,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(10);
+  const bindings=dry.manifest.map(o=>({opIndex:o.opIndex,sessionKey:o.sessionKey,path:o.path,bodySha256:o.bodySha256,state:'confirmed',remoteId:`ptrn_CURRENT${o.opIndex}`}));
+  const rows:Record<string,unknown>[]=dry.manifest.map(o=>({id:`11111111-1111-4111-8111-${String(o.opIndex).padStart(12,'0')}`,coach_id:'coach',plan_version_id:job,plan_sha256:hash,refs_sha256:refs,ops_sha256:ops,op_index:o.opIndex,session_key:o.sessionKey,session_date:o.date,body_sha256:o.bodySha256,kind:o.kind,path:o.path,outcome:'VERIFIED_UNIQUE',code:'exact_unique',complete_read:true,exact_matches:1,marker_matches:1,provider_resource:`ptrn_OLD${o.opIndex}`,created_at:'2026-11-07T12:00:00Z'}));
+  invoke.mockImplementation(async(n,b)=>{
+   const r=await original(n,b);
+   if(b.action==='verify'){
+    for(const o of dry.manifest.slice(Number(b.fromIndex),Number(b.fromIndex)+8))rows.push({...rows[o.opIndex],id:`22222222-2222-4222-8222-${String(o.opIndex).padStart(12,'0')}`,provider_resource:bindings[o.opIndex].remoteId,created_at:'2026-11-08T12:00:00Z'});
+    return {...r,ledgerBindings:bindings};
+   }
+   return r;
+  });
+  p.verifyReceipts=async(r,ledgerBindings)=>currentExportVerification({coachId:'coach',planVersionId:job,resp:r,receipts:rows,ledgerBindings});
+  expect(await runCoachExport(p,true)).toEqual({verified:10,total:10});
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='verify').map(([,b])=>b.fromIndex)).toEqual([0,8]);
+  expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
  it.each([1,5,7,9])('resumes %i prior activities in a 10-activity selection without treating the unsent tail of a read batch as a failed prior send',async prior=>{
   const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(prior);let sent=prior;
   invoke.mockImplementation(async(n,b)=>{
