@@ -164,3 +164,25 @@ metadata requires an owned-plan authenticated POST. No new provider actions
 were performed in this correction. The user's preview and iPhone return flow
 remain to be observed; browser policy prevents this agent inspecting that
 preview. Backend deployment is not frontend delivery evidence.
+
+## Desktop focus regression reproduced and corrected
+
+The user reported that the first return correction also failed on PC. It covered
+a reload, but two independent live-focus paths still invalidated the current
+question: Supabase's same-user SIGNED_IN notification on visibility recovery,
+and parent refetches replacing plan/reference objects with equal content. The
+installed auth client contains visibility recovery calling recoverAndRefresh
+and notifying SIGNED_IN for the current session.
+
+New regression tests reproduce three failures before correction: same-coach
+SIGNED_IN cancelled the question; equal parent objects cancelled it; a changed
+UID on TOKEN_REFRESHED was ignored. The provider now compares content for
+context invalidation, preserves same-coach focus notifications only after the
+active coach has been verified with getUser, and cancels sign-out or a changed
+UID even on token refresh. A cancelled sign-out is never revived by a later
+same-user sign-in. The same pending promise continues without another flow call
+or duplicate recreation. Ownership rechecks before every endpoint call remain.
+
+After correction all 65 targeted tests pass, including real identity-change
+cancellation, content-change cancellation and previous reload tests. The live
+user preview has not yet been observed by this agent.

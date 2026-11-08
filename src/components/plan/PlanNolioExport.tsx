@@ -36,17 +36,28 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
  const [scope,setScope]=useState<NolioExportScope|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[refsView,setRefsView]=useState<V2StatusView|null>(null);
  const [recreationPrompt,setRecreationPrompt]=useState<RecreationDecision['rows']|null>(null),[advanced,setAdvanced]=useState(false);
  const recreationAnswer=useRef<((value:boolean)=>void)|null>(null);
+ const verifiedCoach=useRef<string|null>(null);
+ // Parent refetches can rebuild equal objects when the tab regains focus.
+ // Only changed content/identity invalidates an active export question.
+ const contextKey=canonical({plan,athleteId,enabled,legacy:{nolioId:legacy?.nolioId,startDate:legacy?.startDate,refs:legacy?.refs}});
  const epoch=useRef(0),lock=useRef(false),stop=useRef(false),savedId=useRef(planVersionId),incomingId=useRef(planVersionId);
  incomingId.current=planVersionId;
- useEffect(()=>{const token=++epoch.current;stop.current=true;setScope(null);setMessage('');setRefsView(null);setRecreationPrompt(null);setAdvanced(false);savedId.current=incomingId.current;return()=>{epoch.current=token+1;stop.current=true;recreationAnswer.current?.(false);recreationAnswer.current=null;};},[plan,athleteId,legacy?.nolioId,legacy?.startDate,legacy?.refs]);
+ useEffect(()=>{const token=++epoch.current;stop.current=true;setScope(null);setMessage('');setRefsView(null);setRecreationPrompt(null);setAdvanced(false);savedId.current=incomingId.current;return()=>{epoch.current=token+1;stop.current=true;recreationAnswer.current?.(false);recreationAnswer.current=null;};},[contextKey]);
  useEffect(()=>{if(!lock.current)savedId.current=planVersionId;},[planVersionId]);
  useEffect(()=>{
   const resume=readExportResume(window.location.search);
   if(enabled&&resume&&resume.athleteId===athleteId&&resume.versionId===planVersionId){
    stop.current=false;setScope(resume.scope);setMessage('Export retrouvé. Reprenez pour relire les reçus enregistrés ; aucune activité n’est envoyée automatiquement.');
   }
- },[plan,athleteId,planVersionId,enabled]);
- useEffect(()=>{const s=supabase.auth.onAuthStateChange?.(event=>{if(event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION')return;epoch.current++;stop.current=true;recreationAnswer.current?.(false);recreationAnswer.current=null;setRecreationPrompt(null);setMessage('Session modifiée : action arrêtée.');});return()=>s?.data.subscription.unsubscribe();},[]);
+ // Stable content key also prevents a focus refetch from resetting the scope.
+ // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[contextKey,planVersionId]);
+ useEffect(()=>{const s=supabase.auth.onAuthStateChange?.((event,session)=>{
+  const sameCoach=verifiedCoach.current!==null&&session?.user.id===verifiedCoach.current;
+  if(sameCoach&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'))return;
+  if(event==='INITIAL_SESSION'&&!lock.current)return;
+  verifiedCoach.current=null;epoch.current++;stop.current=true;recreationAnswer.current?.(false);recreationAnswer.current=null;setRecreationPrompt(null);setMessage('Session modifiée : action arrêtée.');
+ });return()=>s?.data.subscription.unsubscribe();},[]);
  const open=(s:NolioExportScope)=>{if(lock.current)return;epoch.current++;stop.current=false;setScope(s);setMessage('');setRefsView(null);setRecreationPrompt(null);setAdvanced(false);};
  const answerRecreation=(value:boolean)=>{const answer=recreationAnswer.current;recreationAnswer.current=null;setRecreationPrompt(null);answer?.(value);};
  async function owned(id:string,uid:string){return bounded(supabase.from('plan_versions').select('id,athlete_id,coach_id,plan_json').eq('id',id).eq('coach_id',uid).eq('athlete_id',athleteId).maybeSingle());}
@@ -56,7 +67,7 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
   const guard=()=>{if(!current()||stop.current)throw Error('Action arrêtée. Les activités déjà envoyées restent vérifiables.');};
   try{
    if(!athleteId)throw Error('Sélectionnez un athlète.');
-   const u=await bounded(supabase.auth.getUser());const uid=u.data.user?.id;if(u.error||!uid)throw Error('Reconnectez-vous.');guard();
+   const u=await bounded(supabase.auth.getUser());const uid=u.data.user?.id;if(u.error||!uid)throw Error('Reconnectez-vous.');guard();verifiedCoach.current=uid;
    let id=savedId.current;
    let row=id?await owned(id,uid):null;guard();
    if(!row||row.error||!row.data||!samePrescription(row.data.plan_json,plan)){

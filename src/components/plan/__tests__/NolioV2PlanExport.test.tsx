@@ -1,15 +1,15 @@
 import {exportCapabilities} from '../../../../supabase/functions/_shared/nolioV2/exportCapabilities';
 import {CHECKED_IN_PLAN_RELEASE_INFO} from '../../../../supabase/functions/_shared/planReleaseManifest';
 import {beforeEach,describe,it,expect,vi} from 'vitest';
-import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
+import {render,screen,fireEvent,waitFor,cleanup,act} from '@testing-library/react';
 import {NolioV2ExportProvider,NolioV2ScopeButton} from '../NolioV2PlanExport';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 import type {CoachFlowPorts} from '@/lib/nolio/coachExportFlow';
 import {pendingRecreation,writeExportResume} from '@/lib/nolio/exportResume';
 import {canonical,sha256Hex} from '../../../../supabase/functions/_shared/nolioV2/dryRun';
-const mock=vi.hoisted(()=>({invoke:vi.fn(),getUser:vi.fn(),flow:vi.fn(),row:null as null|{id:string;athlete_id:string;coach_id:string;plan_json:unknown}}));
+const mock=vi.hoisted(()=>({invoke:vi.fn(),getUser:vi.fn(),flow:vi.fn(),authListener:null as null|((event:string,session:{user:{id:string}}|null)=>void),row:null as null|{id:string;athlete_id:string;coach_id:string;plan_json:unknown}}));
 vi.mock('@/lib/nolio/coachExportFlow',()=>({runCoachExport:mock.flow}));
-vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getUser},from:()=>{const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:mock.row,error:null})};return q;},functions:{invoke:mock.invoke}}}));
+vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getUser,onAuthStateChange:(callback:typeof mock.authListener)=>{mock.authListener=callback;return {data:{subscription:{unsubscribe:()=>{if(mock.authListener===callback)mock.authListener=null;}}}};}},from:()=>{const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:mock.row,error:null})};return q;},functions:{invoke:mock.invoke}}}));
 const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'2026-11-02',_provenance:{engine:'det',prescriptionAllowed:false}} as unknown as ParsedPlan;
 const version='22222222-2222-4222-8222-222222222222';
 beforeEach(()=>{cleanup();sessionStorage.clear();window.history.replaceState({},'','/ai-plan');vi.clearAllMocks();mock.row={id:version,athlete_id:'athlete',coach_id:'coach',plan_json:plan};mock.getUser.mockResolvedValue({data:{user:{id:'coach'}},error:null});mock.invoke.mockImplementation(async(name)=>({data:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));mock.flow.mockResolvedValue({verified:2,total:2});});
@@ -17,6 +17,29 @@ function setup(id:string|null=version,current=plan,ensureSaved?:()=>Promise<stri
 function openAdvanced(){fireEvent.click(screen.getByRole('button',{name:'Options avancées'}));}
 function exportNow(label='Plan'){fireEvent.click(screen.getByRole('button',{name:label}));fireEvent.click(screen.getByRole('button',{name:/^Exporter vers Nolio$/}));}
 describe('normal coach Nolio journey',()=>{
+ it('keeps the pending question when focus recovery emits SIGNED_IN for the same verified coach',async()=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Test',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  setup();exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument());
+  act(()=>mock.authListener!('SIGNED_IN',{user:{id:'coach'}}));
+  expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Recréer et continuer'}));await waitFor(()=>expect(posted).toHaveBeenCalledOnce());expect(mock.flow).toHaveBeenCalledOnce();
+ });
+ it('keeps a pending question across an equivalent parent rerender without repeating the inspection',async()=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Test',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  const v=setup();exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument());
+  v.rerender(<NolioV2ExportProvider plan={structuredClone(plan)} athleteId="athlete" planVersionId={version} legacy={{nolioId:42,startDate:'2026-11-09',refs:{}}} enabled><NolioV2ScopeButton label="Plan" scope={{kind:'all'}}/></NolioV2ExportProvider>);
+  expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button',{name:'Recréer et continuer'}));await waitFor(()=>expect(posted).toHaveBeenCalledOnce());expect(mock.flow).toHaveBeenCalledOnce();
+ });
+ it.each([['SIGNED_OUT',null],['SIGNED_IN',{user:{id:'other'}}],['TOKEN_REFRESHED',{user:{id:'other'}}]] as const)('cancels pending creation on a real identity change: %s',async(event,session)=>{
+  const posted=vi.fn(),rows=[{opIndex:0,sessionKey:'S1-J1-1',date:'2026-11-10',title:'Test',binding:'d'.repeat(64)}];
+  mock.flow.mockImplementationOnce(async(p:CoachFlowPorts)=>{if(!await p.confirmRecreation!(rows))throw Error('Export annulé');posted();return {verified:2,total:2};});
+  setup();exportNow();await waitFor(()=>expect(screen.getByRole('button',{name:'Recréer et continuer'})).toBeInTheDocument());
+  act(()=>mock.authListener!(event,session));
+  await waitFor(()=>expect(screen.queryByRole('button',{name:'Recréer et continuer'})).not.toBeInTheDocument());expect(posted).not.toHaveBeenCalled();
+ });
  it('reopens the exact export scope after remount and restores a pending question without automatic export',async()=>{
   const athlete='11111111-1111-4111-8111-111111111111';
   mock.row={...mock.row!,athlete_id:athlete};
