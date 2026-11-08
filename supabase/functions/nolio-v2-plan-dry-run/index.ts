@@ -90,9 +90,10 @@ Deno.serve(async (req) => {
   if(b.action==='inspect-refusal'){
     const j=await admin.from('qa_nolio_v2_plan_dry_run_jobs').select(JOB_COLS).eq('coach_id',sub).eq('plan_version_id',planVersionId).eq('refs_sha256',prepared.refsSha256).eq('ops_sha256',prepared.opsSha256).maybeSingle();
     if(j.error||!j.data)return json(200,{status:'BLOCKED',code:'refusal_context_stale',...binding});
+    const job=j.data as JobRow;
     const lock=crypto.randomUUID();
     try{
-      const out=await inspectDryRunRefusal({prepared,job:j.data as JobRow,receipts:await store.receipts(j.data.id),lease:()=>store.lease(j.data.id,lock,30),release:()=>store.release(j.data.id,lock),post:(kind,body,ms)=>postDryRun({kind,fetch:(u,i)=>fetch(u,i),accessToken:loaded.value.accessToken,body,budgetMs:ms})});
+      const out=await inspectDryRunRefusal({prepared,job,receipts:await store.receipts(job.id),lease:()=>store.lease(job.id,lock,30),release:()=>store.release(job.id,lock),post:(kind,body,ms)=>postDryRun({kind,fetch:(u,i)=>fetch(u,i),accessToken:loaded.value.accessToken,body,budgetMs:ms})});
       return json(200,{...out,...binding});
     }catch{return json(200,{status:'BLOCKED',code:'refusal_diagnostic_unavailable',...binding});}
   }
