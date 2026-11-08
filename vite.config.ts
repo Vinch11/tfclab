@@ -30,7 +30,7 @@ export default defineConfig(async ({ mode, command }) => {
       output: {
         // Keep the imported authoring data apart from executable DET code.
         // Each stays below the existing PWA asset limit; no cache-limit waiver.
-        manualChunks(id) {
+        manualChunks(id: string) {
           if (/\/scripts\/library-v3\/library920(?:Candidates|Manifest|SpecialRecords|EngineeringRegistry)\.json(?:\?raw)?$/.test(id)) return "det-library-920-data";
         },
       },
