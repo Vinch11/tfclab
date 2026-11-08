@@ -40,13 +40,14 @@ function affinity(source: V3Workout, key: DetLimiterKey | null): boolean {
   return limiterSourceAffinity({primaryDomain:source.primaryDomain,limiterKeys:source.prescription.physiologicalIntent.limiterKeys},key);
 }
 
-export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string }
+export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string; currentFatigue?: 'ready'|'fatigued'|'unknown'; recentLoad?: 'low'|'moderate'|'high'|'unknown' }
 /** Shared negative restrictions for the study and the proposed V3 assembly.
  * Absence of a restriction never creates a positive athlete clearance. */
 export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAppPlanningInput['config'],'prohibitions'|'injuryRisk'>, restrictions: DraftRestrictions): V3Workout[] {
   const banned = resolveProhibitionKeys(config.prohibitions).map(key => ({key,pattern:PROHIBITION_SESSION_PATTERNS[key]})).filter(row=>!!row.pattern);
   return sources.filter(source => {
     if (restrictions.injuryScreen === 'contraindication') return false;
+    if(restrictions.currentFatigue==='fatigued'&&source.sport!=='strength'&&source.prescription.physiologicalIntent.domainIds.some(d=>!['recovery','moderate_lt1'].includes(d)))return false;
     if (source.prerequisites.some(key => restrictions.unmetPrerequisites?.includes(key)) || source.contraindications.some(key => restrictions.presentContraindications?.includes(key))) return false;
     const risk = source.sport === 'run' ? config.injuryRisk?.run?.level : source.sport === 'bike' ? config.injuryRisk?.bike?.level : null;
     if (risk === 'ELEVE' || risk === 'CRITIQUE') return false;
@@ -63,7 +64,11 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   if (await planningFingerprint(app.athlete, app.config) !== app.fingerprint) throw Error('Profil partagé modifié : rechargez avant de préparer le brouillon.');
   if (JSON.stringify(app.limiters.applied) !== JSON.stringify(app.config.identifiedLimitersRaw ?? [])) throw Error('Ordre des limiteurs incohérent avec la configuration.');
   const { athlete, config } = planningInputFor(app, 'det');
-  if (!config.objective || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate ?? '') || !Number.isInteger(config.weeksAvailable) || config.weeksAvailable! < 1 || config.weeksAvailable! > 104 || !Number.isFinite(config.weeklyHours) || config.weeklyHours! <= 0 || !Number.isInteger(config.sessionsPerWeek) || config.sessionsPerWeek! < 1) throw Error('Complétez l’objectif, le début, la durée, les heures et les séances dans la configuration commune.');
+  // Undefined frequency is the existing IA "Auto" setting. Its actual weekly
+  // counts come from prepareGenerationContracts, including recovery/race
+  // adjustments; inventing a fixed count here would override that calendar.
+  const invalidFrequency=config.sessionsPerWeek!==undefined&&(!Number.isInteger(config.sessionsPerWeek)||config.sessionsPerWeek<1);
+  if (!config.objective || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate ?? '') || !Number.isInteger(config.weeksAvailable) || config.weeksAvailable! < 1 || config.weeksAvailable! > 104 || !Number.isFinite(config.weeklyHours) || config.weeklyHours! <= 0 || invalidFrequency) throw Error('Complétez l’objectif, le début, la durée, les heures et les séances dans la configuration commune.');
   const family = coachFamilyFor(config.objective);
   if (!family) throw Error('Cette famille ne dispose pas encore de sources DET pour un brouillon.');
   const semantics = traceLimiterSemantics(app.limiters.applied, family.key);

@@ -46,6 +46,8 @@ jobs:
       # revue). `tsconfig.app.json` est le config qui porte réellement
       # `include`/les options de compilation de `src/`.
       - run: bunx tsc --noEmit -p tsconfig.app.json
+      - name: Typecheck Vite configuration
+        run: bunx tsc --noEmit -p tsconfig.node.json
       - name: Run frontend tests
         run: bun run vitest run > vitest-output.log 2>&1
       - name: Report frontend failure

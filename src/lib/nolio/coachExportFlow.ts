@@ -1,23 +1,41 @@
 import {formatWorkoutReadbackDifferences,formatRawTargetEvidence} from '../../../supabase/functions/_shared/nolioV2/readbackDifferences';
 import {runPlanDrySequence,parsePlanDryResp,reasonFr,stopFr,type PlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import type {NolioExportScope} from '../../../supabase/functions/_shared/nolioV2/exportScope';
+import {PLAN_SEND_BATCH} from '../../../supabase/functions/_shared/nolioV2/planSend';
+import {formatValidationIssues} from '../../../supabase/functions/_shared/nolioV2/dryRunValidation';
 export type CoachFlowPorts={
  planVersionId:string;planSha256:string;scope:NolioExportScope;
  current:()=>boolean;stopRequested:()=>boolean;
  invoke:(name:string,body:Record<string,unknown>)=>Promise<unknown>;
  confirmSimulation:(r:PlanDryResp)=>Promise<boolean>;
- verifyReceipts:(r:PlanDryResp)=>Promise<{verified:number;total:number;fullyVerified:boolean;nextIndex:number}>;
+ verifyReceipts:(r:PlanDryResp,ledgerBindings:unknown)=>Promise<{verified:number;total:number;fullyVerified:boolean;nextIndex:number}>;
  progress:(message:string)=>void;onDry?:(r:PlanDryResp)=>void;
  /** Only exceptional destructive-provider history needs a contextual decision.
   * The ordinary one-click Export action performs all technical checks itself. */
  confirmRecreation?:(rows:RecreationDecision['rows'])=>Promise<boolean>;
+ pendingRecreation?:(decision:RecreationDecision|null)=>void;
+ refreshCompetitionRefs?:()=>Promise<void>;
  now?:()=>number;sleep?:(ms:number)=>Promise<void>;
 };
 export type RecreationDecision={planSha256:string;refsSha256:string;opsSha256:string;rows:Array<{opIndex:number;sessionKey:string;date:string;title:string;binding:string}>};
-type RecreationMode={kind:'inspect'}|{kind:'apply';decision:RecreationDecision};
+export type RecreationMode={kind:'inspect'}|{kind:'apply'|'resume';decision:RecreationDecision};
 type CoachExportResult={verified:number;total:number;recreationDecision?:RecreationDecision;inspected?:number};
 function checkpoint(p:CoachFlowPorts){if(!p.current()||p.stopRequested())throw Error('Action interrompue. Les activités déjà envoyées restent vérifiables ; aucune relance automatique.');}
 class MissingNolioActivity extends Error {}
+export function sportRefsFailureMessage(value:unknown):string{
+ const reason=(value as {reason?:unknown}|null)?.reason;
+ const messages:Record<string,string>={
+  sports_read_rate_limited:'Nolio limite les lectures des sports. Reprenez plus tard ; aucun nouvel envoi.',
+  sports_read_authorization:'Nolio refuse la lecture des sports. Vérifiez l’autorisation de la connexion Nolio.',
+  sports_read_provider_error:'Nolio rencontre une erreur pendant la lecture des sports. Aucun nouvel envoi.',
+  sports_read_timeout:'Le délai de lecture des sports Nolio est dépassé. Aucun nouvel envoi.',
+  sports_read_partial:'La liste des sports Nolio est incomplète. Aucun nouvel envoi.',
+  token_expired_reconnect:'L’autorisation Nolio est expirée et doit être renouvelée. Aucun nouvel envoi.',
+ };
+ if(typeof reason==='string'&&typeof messages[reason]==='string')return messages[reason];
+ if(typeof reason==='string'&&reason.startsWith('refresh:'))return 'Le renouvellement de l’autorisation Nolio n’est pas confirmé. Aucun nouvel essai ni envoi automatique.';
+ return 'Lecture des sports Nolio non confirmée. Aucun nouvel envoi ; ce résultat ne prouve pas que la connexion est rompue.';
+}
 /** One deliberate export consent, then bounded automatic technical checks.
  * No invented review, prescription/scientific flag or re-POST of uncertainty. */
 export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarOnly=false,recreation?:RecreationMode):Promise<CoachExportResult>{
@@ -25,11 +43,30 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
  async function call(name:string,body:Record<string,unknown>){checkpoint(p);const r=await p.invoke(name,body);checkpoint(p);return r as Record<string,unknown>;}
  p.progress('Vérification du plan et des correspondances Nolio…');
  let dry=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'precheck'}));
+ // Existing official refs are accepted only by the server's own athlete,
+ // freshness and uniqueness checks. Refresh only a missing competition mapping.
+ if(dry?.planSha256===p.planSha256&&!dry.precheck?.complete&&p.refreshCompetitionRefs&&dry.precheck?.rows.some(r=>r.status==='refused'&&r.sport==='brick'&&r.reason==='sport_reference_missing:brick')){
+  await p.refreshCompetitionRefs();checkpoint(p);
+  dry=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'precheck'}));
+ }
  if(!dry?.precheck?.complete)throw Error(dry?.precheck?.rows.filter(r=>r.status==='refused').map(r=>`${r.title} : ${reasonFr(r.reason)}`).join('\n')||reasonFr(dry?.code??null)||'Le plan ne peut pas être exporté avec les correspondances actuelles.');
  if(dry.planSha256!==p.planSha256||!dry.refsSha256||!dry.opsSha256)throw Error('Version du plan divergente : export annulé.');
  const frozen={planSha256:dry.planSha256,refsSha256:dry.refsSha256,opsSha256:dry.opsSha256};
  const same=(value:unknown)=>{const r=value as {planSha256?:string;refsSha256?:string;opsSha256?:string}|null;return !!r&&r.planSha256===frozen.planSha256&&r.refsSha256===frozen.refsSha256&&r.opsSha256===frozen.opsSha256;};
  const total=dry.manifest?.length??0;if(!total)throw Error('Sélection vide.');
+ if(recreation?.kind==='resume'){
+  const d=recreation.decision;
+  // Cached questions cannot authorize a send or provide display prescriptions.
+  // Fresh manifest and hashes must match; titles/dates come from the server.
+  const valid=same(d)&&d.rows.length>0&&d.rows.length<=total&&new Set(d.rows.map(r=>r.opIndex)).size===d.rows.length&&d.rows.every(r=>dry!.manifest!.some(o=>o.opIndex===r.opIndex&&o.sessionKey===r.sessionKey&&o.date===r.date)&&/^[a-f0-9]{64}$/.test(r.binding));
+  if(!valid){p.pendingRecreation?.(null);throw Error('Le contexte Nolio a changé. Relancez l’export pour vérifier les activités manquantes.');}
+  const decision={...d,rows:d.rows.map(r=>({...r,title:dry!.precheck!.rows.find(o=>o.opIndex===r.opIndex)?.title??'Séance du plan'}))};
+  if(!p.confirmRecreation)throw Error('Confirmation de recréation requise.');
+  p.progress('Confirmation retrouvée. Les activités seront contrôlées à nouveau avant toute recréation.');
+  if(!await p.confirmRecreation(decision.rows)){p.pendingRecreation?.(null);checkpoint(p);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
+  checkpoint(p);p.pendingRecreation?.(null);
+  return runCoachExport(p,false,false,{kind:'apply',decision});
+ }
  if(recreation?.kind==='inspect'){
   const decision:RecreationDecision={planSha256:frozen.planSha256!,refsSha256:frozen.refsSha256!,opsSha256:frozen.opsSha256!,rows:[]};
   let from=0,attempted:number|undefined;const seen=new Set<number>();
@@ -73,6 +110,17 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
   if(calendarOnly)return {verified:0,total};
  }
  const sequence=await runPlanDrySequence({runBatch:async()=>{const r=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'run'}));if(!r||!same(r))throw Error('Plan ou correspondances modifiés : export arrêté.');return r;},isCurrent:p.current,stopRequested:p.stopRequested,now:p.now??Date.now,sleep:p.sleep??(ms=>new Promise(resolve=>setTimeout(resolve,ms))),onProgress:r=>{p.onDry?.(r);p.progress(`Vérification Nolio : ${r.progress?.valid??0}/${r.progress?.totalOps??0} séances.`);}});
+ if(sequence.stop==='refused_present'){
+  const d=await call('nolio-v2-plan-dry-run',{...common,action:'inspect-refusal'});
+  const refusal=d.refusal as {opIndex?:number;sessionKey?:string;date?:string;httpStatus?:number;code?:string;issues?:unknown}|undefined;
+  const entry=Number.isSafeInteger(refusal?.opIndex)?dry.manifest?.[refusal!.opIndex!]:null;
+  if(same(d as unknown as PlanDryResp)&&d.status==='REFUSAL_DIAGNOSTIC'&&entry&&refusal?.sessionKey===entry.sessionKey&&refusal.date===entry.date){
+   if(refusal.code==='dry_run_valid')throw Error(`${entry.sessionKey} · ${entry.date} : la simulation isolée est maintenant acceptée. Le refus initial reste enregistré ; export arrêté pour rapprochement. Aucune activité créée par cette vérification.`);
+   const detail=formatValidationIssues(refusal.issues);
+   throw Error(`${entry.sessionKey} · ${entry.date} : Nolio refuse la simulation${refusal.httpStatus===400?' (HTTP 400)':''}.${detail?' '+detail+'.':''} Aucune activité créée par cette vérification.`);
+  }
+  throw Error('Nolio a refusé une séance lors de la simulation. Le détail du refus n’est pas disponible ; aucun nouvel envoi.');
+ }
  if(sequence.stop!=='complete'||!sequence.last)throw Error(stopFr(sequence.stop));
  dry=sequence.last;checkpoint(p);
  if(!await p.confirmSimulation(dry))throw Error('Vérification des reçus impossible : aucun envoi supplémentaire.');checkpoint(p);
@@ -85,9 +133,17 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
    const r=await call('nolio-v2-send-plan',{...common,workflow:'coach',action:'verify',expected,fromIndex:nextIndex});
    if(r.status==='NOTHING_SENT')throw Error('Aucune activité envoyée pour cette sélection.');
    if(r.status!=='VERIFY'||!same(r.preview as typeof frozen))throw Error('Résultat Nolio non confirmé. Vérifiez les activités avant de reprendre.');
-   const read=await p.verifyReceipts(dry);checkpoint(p);
-   const failed=Array.isArray(r.results)?r.results.find((x:{result?:string})=>x.result!=='verified_unique'):null;
-   if(read.total===total&&read.verified>=verified&&failed?.result==='unknown'&&failed.retryableRead===true&&readRetries<2){
+   const read=await p.verifyReceipts(dry,r.ledgerBindings);checkpoint(p);
+   // During resume the server's read batch may extend past the acknowledged
+   // prefix. A not_sent in that in-manifest tail is expected: the later send
+   // phase handles it. All other failures, including any not_sent inside the
+   // prefix or during whole-selection verification, still stop the export.
+   const expectedUnsentTail=(x:{result?:string;opIndex?:number})=>{
+    const index=x.opIndex;
+    return x.result==='not_sent'&&typeof index==='number'&&Number.isSafeInteger(index)&&index>=target&&index<total&&index>=nextIndex&&index<nextIndex+PLAN_SEND_BATCH&&dry.manifest!.some(o=>o.opIndex===index);
+   };
+   const failed=Array.isArray(r.results)?r.results.find((x:{result?:string;opIndex?:number})=>x.result!=='verified_unique'&&!expectedUnsentTail(x)):null;
+   if(read.total===total&&read.verified>=verified&&read.verified<target&&failed?.result==='unknown'&&Number.isSafeInteger(failed.opIndex)&&failed.opIndex>=nextIndex&&failed.opIndex<target&&failed.retryableRead===true&&readRetries<2){
     // Retry only a bounded read. Keep the exact frozen binding and resume at
     // the first unverified operation; never return to send on uncertainty.
     verified=read.verified;nextIndex=read.nextIndex;readRetries++;
@@ -127,8 +183,11 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
    p.progress('Vérification des activités manquantes dans Nolio…');
    const inspection=await runCoachExport(p,false,false,{kind:'inspect'}),decision=inspection.recreationDecision;checkpoint(p);
    if(!decision?.rows.length)throw Error('Le calendrier Nolio a changé. Relancez l’export pour reprendre sa vérification.');
-   if(!await p.confirmRecreation(decision.rows)){checkpoint(p);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
+   p.pendingRecreation?.(decision);
+   p.progress('Contrôle terminé. Confirmez les activités à recréer.');
+   if(!await p.confirmRecreation(decision.rows)){checkpoint(p);p.pendingRecreation?.(null);throw Error('Export annulé. Aucune activité supprimée n’a été recréée.');}
    checkpoint(p);
+   p.pendingRecreation?.(null);
    return runCoachExport(p,false,false,{kind:'apply',decision});
   }
  }

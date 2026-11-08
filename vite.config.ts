@@ -25,6 +25,17 @@ export default defineConfig(async ({ mode, command }) => {
     host: "::",
     port: 8080,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep the imported authoring data apart from executable DET code.
+        // Each stays below the existing PWA asset limit; no cache-limit waiver.
+        manualChunks(id: string) {
+          if (/\/scripts\/library-v3\/library920(?:Candidates|Manifest|SpecialRecords|EngineeringRegistry)\.json(?:\?raw)?$/.test(id)) return "det-library-920-data";
+        },
+      },
+    },
+  },
   plugins: [
     { name: "plan-release-metadata", generateBundle() { this.emitFile({ type: "asset", fileName: "plan-release.json", source: JSON.stringify(PLAN_RELEASE) }); } } satisfies Plugin,
     react(),

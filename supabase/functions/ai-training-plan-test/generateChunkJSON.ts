@@ -1,5 +1,6 @@
 import { executableCatalogueVariantsForWeeks } from "../_shared/sessionCatalogueContract.ts";
 import { restoreCatalogueTitleForExactProtocol } from "../_shared/catalogueSessionIdentity.ts";
+import {CATALOGUE_GENERATION_IDENTITY_RULES,catalogueGenerationFeedback} from '../_shared/catalogueGenerationFeedback.ts';
 import { gateway400Evidence, type SafeGatewayRejection } from "../_shared/planGatewayDiagnostics.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 /**
@@ -828,6 +829,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
 
   const tryOnce = async (userPrompt: string): Promise<{
     parsed: z.SafeParseReturnType<unknown, PlanChunk>;
+    normalizedValue:unknown;
     finishReason?: string;
     rawContent: string;
     status: number;
@@ -934,6 +936,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     const snippets = rawSnippet(result.content);
     return {
       parsed,
+      normalizedValue:normalized.value,
       finishReason: result.finishReason,
       rawContent: result.content,
       status: result.status,
@@ -981,7 +984,8 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
   };
 
   // 1ère tentative
-  const first = await tryOnceWithTransientRetry(input.userPrompt);
+  const initialPrompt=`${input.userPrompt}\n\n${CATALOGUE_GENERATION_IDENTITY_RULES}`;
+  const first = await tryOnceWithTransientRetry(initialPrompt);
   first.diagnostic.attempt = 1;
   if (first.parsed.success) {
     return {
@@ -998,11 +1002,13 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
   console.warn(
     `[SCHEMA_FAIL] chunk=${input.chunkIndex} tentative 1 — retry avec corrections :\n${JSON.stringify(sanitizeSchemaFailure(first.diagnostic))}`,
   );
-  const retryPrompt = `${input.userPrompt}
+  const feedback=catalogueGenerationFeedback(first.normalizedValue,input.schemaOptions?.catalogueContractsByWeek,first.diagnostic.zodIssues);
+  const retryPrompt = `${initialPrompt}
 
 ⚠️ CORRECTION REQUISE — Ta précédente réponse ne respecte pas le schéma JSON attendu.
 Corrige EXACTEMENT ces champs et régénère l'INTÉGRALITÉ du JSON (pas un patch) :
 ${errList}
+${feedback}
 
 Rappels non négociables :
 - Objet JSON racine uniquement, pas de Markdown, pas de texte hors JSON.

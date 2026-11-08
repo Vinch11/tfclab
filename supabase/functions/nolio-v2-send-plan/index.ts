@@ -249,5 +249,16 @@ Deno.serve(async (req) => {
     results.push({opIndex:o.opIndex,...rc});
     if(rc.result!=="verified_unique")break;
   }
-  return json(200, { status: "VERIFY", gate, preview, fromIndex: from, results, total: prepared.ops.length, ledgerStates: ops.data.map((x) => (x as { state: string }).state) });
+  // Reload after verification: a lost-ack reconciliation may have just changed
+  // the ledger. A receipt for a deleted/replaced resource must not advance the
+  // coach's progress even when plan, payload and operation keys are unchanged.
+  // Project only this owned selection; no new table grants or credential data.
+  const currentOps=await admin.from('nolio_v2_operations').select('session_key,state,payload_sha256,path,remote_id').eq('coach_id',sub).eq('plan_version_id',pv.id);
+  if(currentOps.error||!Array.isArray(currentOps.data))return json(502,{status:'BLOCKED',reason:'ledger_read_failed',preview});
+  const currentRows=currentOps.data as Array<{session_key:string;state:string;payload_sha256:string;path:string;remote_id:string|null}>;
+  const ledgerBindings=prepared.ops.map(o=>{
+    const entry=currentRows.find(x=>x.session_key===o.sessionKey&&x.path===o.path);
+    return {opIndex:o.opIndex,sessionKey:o.sessionKey,path:o.path,bodySha256:entry?.payload_sha256??null,state:entry?.state??'not_sent',remoteId:entry?.remote_id??null};
+  });
+  return json(200, { status: "VERIFY", gate, preview, fromIndex: from, results, total: prepared.ops.length, ledgerBindings, ledgerStates: currentRows.map(x=>x.state) });
 });

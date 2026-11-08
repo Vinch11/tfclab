@@ -31,6 +31,7 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
+import {readExportResume,readOwnedExportArchive} from '@/lib/nolio/exportResume';
 import { isQaNonPrescriptivePlan } from "@/lib/aiPlanPDFExport";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -213,7 +214,11 @@ export function resolveFullRegenerationStartDate(
   hadExistingActivePlan: boolean,
   currentPlanStartDate: Date,
   now: Date = new Date(),
+  sharedInput?: FrozenAppPlanningInput | null,
 ): Date {
+  // The common IA/DET form is authoritative when its frozen input is ready.
+  // Its visible selected start must not move when switching engines.
+  if(sharedInput)return parseISO(sharedInput.config.planStartDate);
   return hadExistingActivePlan ? currentPlanStartDate : startOfWeek(now, { weekStartsOn: 1 });
 }
 
@@ -514,6 +519,9 @@ export const NON_DEROGABLE_RULES = new Set([
 export default function AITrainingPlanPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const exportReturn = useRef(readExportResume(location.search));
+  const exportReturnSelected = useRef(false);
+  const exportReturnLoaded = useRef(false);
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
   // Audit fiabilité génération LCW — voir formulaire "Format de course" plus
   // bas : lecture seule de la fiche athlète pour avertir sans jamais écraser
@@ -1675,6 +1683,14 @@ export default function AITrainingPlanPage() {
       if(!detGenerationAction.current){toast.error("Profil DET indisponible : vérifiez l’athlète et la configuration.");return;}
       await detGenerationAction.current();return;
     }
+    const useSharedInput=qaChoice&&!isMultiMode&&planningEngine==='ai';
+    const sharedInput=useSharedInput?appPlanningRef.current:null;
+    if(useSharedInput&&(!sharedInput||sharedInput.athleteId!==currentAthlete?.id)){
+      toast.error('Profil de planification en cours de préparation : patientez avant de générer.');return;
+    }
+    const sharedGeneration=sharedInput?planningInputFor(sharedInput,'ai'):null;
+    const generationEpoch=qaActionEpoch.current;
+    const sharedCurrent=()=>!sharedInput||(generationEpoch===qaActionEpoch.current&&appPlanningRef.current?.fingerprint===sharedInput.fingerprint&&appPlanningRef.current.athleteId===sharedInput.athleteId);
     // Une génération complète invalide toute régénération ciblée précédente.
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
@@ -1688,7 +1704,7 @@ export default function AITrainingPlanPage() {
     // est asynchrone et `buildConfigFromDiag` ci-dessous lirait encore
     // l'ancienne valeur dans le même tick — d'où l'override direct de
     // `config.planStartDate`.
-    const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate);
+    const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate,new Date(),sharedInput);
 
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
@@ -1707,7 +1723,7 @@ export default function AITrainingPlanPage() {
     }
 
 
-    const config = buildConfigWithCoachOverrides(athleteContext.diagnostic);
+    const config = sharedGeneration?.config??buildConfigWithCoachOverrides(athleteContext.diagnostic);
     // Voir commentaire plus haut : `buildConfigFromDiag` a lu l'ancien
     // `planStartDate` (closure figée au dernier render) — on force ici la
     // valeur fraîche calculée en tête de fonction.
@@ -1736,14 +1752,17 @@ export default function AITrainingPlanPage() {
       config.constraints = [config.constraints || "", extraConstraints.trim()].filter(Boolean).join("\n");
     }
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
-    const preview=await prevalidateTrainingPlan(athleteContext.data,config);
+    const preview=await prevalidateTrainingPlan(sharedGeneration?.athlete??athleteContext.data,config);
     if(prevalidateOnly||preview.status==="blocked") {
       if(preview.status==="blocked")toast.error("Prévalidation bloquante : corrige les contraintes avant génération.");
       return;
     }
+    if(!sharedCurrent()){
+      toast.error('La configuration a changé pendant la prévalidation : génération annulée.');return;
+    }
     expressFlagRef.current = false;
     setPlanOverride(null);
-    setPlanStartDate(freshStartDate);
+    if(freshStartDate.getTime()!==planStartDate.getTime())setPlanStartDate(freshStartDate);
     // Archive current plan if this is a sync-triggered regeneration
     if (showSyncBanner && currentAthlete) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1760,7 +1779,8 @@ export default function AITrainingPlanPage() {
       setShowSyncBanner(false);
     }
 
-    generatePlanWindowed(athleteContext.data, config);
+    if(!sharedCurrent()){toast.error('La configuration a changé : génération annulée.');return;}
+    generatePlanWindowed(sharedGeneration?.athlete??athleteContext.data, config);
   };
 
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).
@@ -2519,6 +2539,38 @@ export default function AITrainingPlanPage() {
     }
     setPendingVersion(version);
   }, [applyLoadedVersion, raceDate, raceGoals]);
+
+  // Explicit export return address only: never choose the latest plan or a
+  // cached plan body. Read the exact owned immutable archive with original dates.
+  useEffect(()=>{
+    const resume=exportReturn.current;
+    if(!resume||exportReturnLoaded.current||!qaUserId)return;
+    const athlete=athletes.find(a=>a.id===resume.athleteId&&a.coach_id===qaUserId);
+    if(!athlete)return;
+    if(!exportReturnSelected.current){
+      exportReturnSelected.current=true;
+      setIsMultiMode(false);
+      setSelectedAthleteId(resume.athleteId);
+      if(isMultiMode||currentAthlete?.id!==resume.athleteId)return;
+    }
+    if(isMultiMode||currentAthlete?.id!==resume.athleteId||formDraftReady!==formDraftKey)return;
+    let live=true;
+    void (async()=>{
+      try{
+        const row=await readOwnedExportArchive(resume,qaUserId,{
+          user:async()=>{const a=await supabase.auth.getUser();return !a.error?a.data.user?.id??null:null;},
+          read:async()=>{const r=await supabase.from('plan_versions').select('id,coach_id,athlete_id,plan_json').eq('id',resume.versionId).eq('coach_id',qaUserId).eq('athlete_id',resume.athleteId).maybeSingle();return r.error?null:r.data;},
+        });
+        if(!live)return;
+        exportReturnLoaded.current=true;
+        if(!row)throw Error('unavailable');
+        applyLoadedVersion(row,parseISO(row.startDate));
+      }catch{
+        if(live){exportReturnLoaded.current=true;toast.error('Reprise Nolio indisponible : ouvrez la version sauvegardée dans l’historique. Aucun envoi effectué.');}
+      }
+    })();
+    return()=>{live=false;};
+  },[qaUserId,athletes,currentAthlete?.id,isMultiMode,formDraftKey,formDraftReady,applyLoadedVersion,setSelectedAthleteId]);
 
 
   // Compute the current week number relative to planStartDate

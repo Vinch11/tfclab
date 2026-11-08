@@ -19,6 +19,7 @@
  * Tout le reste (2xx arbitraire, ressource créée, HTML, timeout, perte) ⇒ jamais confirmé.
  */
 import { NOLIO_V2_CONTRACT } from "./plannedMapper.ts";
+import {validationIssues} from './dryRunValidation.ts';
 import { extractTeamScopeContext, type TeamScopeContext } from "./teamScopeContext.ts";
 
 export const DRY_RUN_OPENAPI_SHA256 = "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238";
@@ -118,7 +119,7 @@ function remainingHour(h: { get(name: string): string | null } | undefined): num
 
 /** Transport dédié : URL fixe (origine + route fermée selon `kind`), redirect error, budget total fetch+corps, aucun retry. */
 export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body: Record<string, unknown>; budgetMs?: number; kind?: DryRunKind }):
-  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null; teamContext?: TeamScopeContext | null; quotaRemainingHour?: number | null }> {
+  Promise<{ outcome: DryRunOutcome; code: DryRunCode; httpStatus: number | null; teamContext?: TeamScopeContext | null; quotaRemainingHour?: number | null;validationIssues?:import('./dryRunValidation.ts').ValidationIssue[] }> {
   const kind = a.kind ?? "training";
   if (!(DRY_RUN_KINDS as readonly string[]).includes(kind) || !Object.prototype.hasOwnProperty.call(DRY_RUN_PATHS, kind)) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
   if (!isObj(a.body) || a.body.dry_run !== true) return { outcome: "UNKNOWN", code: "local_guard_refused", httpStatus: null };
@@ -145,7 +146,7 @@ export async function postDryRun(a: { fetch: DryFetch; accessToken: string; body
     const cls = classifyDryRunResponse(res.status, res.text);
     // Contexte privé d'équipe : uniquement REFUSED + 403 + team_scope_forbidden ; jamais journalisé/stocké.
     const teamContext = cls.outcome === "REFUSED" && cls.code === "team_scope_forbidden" ? extractTeamScopeContext(res.status, res.text) : null;
-    return { ...cls, httpStatus: res.status, ...(res.quota !== null ? { quotaRemainingHour: res.quota } : {}), ...(teamContext ? { teamContext } : {}) };
+    return { ...cls, httpStatus: res.status, ...(res.quota !== null ? { quotaRemainingHour: res.quota } : {}), ...(teamContext ? { teamContext } : {}),...(res.status===400?{validationIssues:validationIssues(res.text)}:{}) };
   } catch (e) {
     return { outcome: "UNKNOWN", code: (e as Error)?.name === "AbortError" ? "timeout_or_lost" : "network_error", httpStatus: null };
   } finally { clearTimeout(timer); }
