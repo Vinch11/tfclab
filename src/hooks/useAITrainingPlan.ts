@@ -628,6 +628,10 @@ export interface ChunkProgress {
   currentChunk: number;
   totalChunks: number;
 }
+export type GenerationProgressScope={totalWeeks:number;totalChunks:number;weekOffset:number;chunkOffset:number};
+export function globalGenerationProgress(local:ChunkProgress,scope:GenerationProgressScope|null):ChunkProgress{
+ return scope?{currentWeek:Math.min(scope.totalWeeks,scope.weekOffset+local.currentWeek),totalWeeks:scope.totalWeeks,currentChunk:Math.min(scope.totalChunks,scope.chunkOffset+local.currentChunk),totalChunks:scope.totalChunks}:local;
+}
 
 /** Complete read-only scope: all known windows are checked before any generation. */
 export function prevalidateGenerationScope(athlete:PlanAthleteData,config:PlanConfig,options:Parameters<typeof prepareGenerationContracts>[2]={}) {
@@ -657,7 +661,12 @@ export function useAITrainingPlan() {
   // fenêtres — sans ce second flag, l'UI ("Générer" ré-activable) laisserait
   // croire que c'est fini entre deux requêtes.
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
-  const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
+  const [chunkProgress, setChunkProgressState] = useState<ChunkProgress | null>(null);
+  const progressScope=useRef<GenerationProgressScope|null>(null);
+  const setChunkProgress=useCallback((local:ChunkProgress|null)=>{
+    if(local)setChunkProgressState(globalGenerationProgress(local,progressScope.current));
+    else if(!progressScope.current)setChunkProgressState(null);
+  },[]);
   // Préparation pilote Mode B (consigne coach, "consulter la consommation") —
   // usage réel (tokens) accumulé sur TOUS les chunks de la dernière
   // génération JSON, si le gateway l'a renvoyé pour chaque chunk ; `null`
@@ -1547,7 +1556,7 @@ export function useAITrainingPlan() {
       setIsLoading(false);
       setChunkProgress(null);
     }
-  }, [isLoading, resolvePlanningOptions]);
+  }, [isLoading, resolvePlanningOptions, setChunkProgress]);
 
   // Audit coach (plan Manu 40 sem) : jsonPlanHandler.ts accumule TOUS les
   // blocs en mémoire serveur et ne les envoie au navigateur qu'à la toute fin
@@ -1583,6 +1592,9 @@ export function useAITrainingPlan() {
     planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
   ): Promise<void> => {
     if(isTimeTrial(String(planConfig.objective))){toast.error("Le CLM utilise actuellement le contrat de sources du moteur DET ; aucun appel IA n’est lancé.");return;}
+    // Resolve the SAME QA JSON mode before choosing HTTP windows. Previously
+    // generatePlan forced it only AFTER this branch could choose one request.
+    if(qaEngineChoiceEnabled(import.meta.env.DEV,import.meta.env.VITE_SUPABASE_URL))planConfig={...planConfig,_outputFormat:'json'};
     const totalWeeks = planConfig.weeksAvailable ?? 0;
     const { chunkSize } = computeChunkSizing(planConfig.objective || "", totalWeeks);
     const totalChunksForPlan = computeTotalChunks(planConfig.objective || "", totalWeeks);
@@ -1611,6 +1623,7 @@ export function useAITrainingPlan() {
       for (let wi = 0; wi < windows.length; wi++) {
         const { from, to } = windows[wi];
         const isLastWindow = wi === windows.length - 1;
+        progressScope.current={totalWeeks,totalChunks:windows.reduce((n,w)=>n+computeTotalChunks(planConfig.objective||'',w.to-w.from+1),0),weekOffset:from-1,chunkOffset:windows.slice(0,wi).reduce((n,w)=>n+computeTotalChunks(planConfig.objective||'',w.to-w.from+1),0)};
 
         toast.info(`Génération — fenêtre ${wi + 1}/${windows.length} (S${from}-S${to})…`, { duration: 6000 });
 
@@ -1707,6 +1720,8 @@ export function useAITrainingPlan() {
         toast.success(`Plan complet généré — ${windows.length} fenêtres assemblées.`);
       }
     } finally {
+      progressScope.current=null;
+      setChunkProgressState(null);
       batchInFlightRef.current=false;
       setIsBatchGenerating(false);
     }
@@ -1714,6 +1729,7 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     planningSnapshotRef.current=null;
+    progressScope.current=null;
     setPrevalidation(null);
     setResponse("");
     lastResponseRef.current = "";
@@ -1726,7 +1742,7 @@ export function useAITrainingPlan() {
     setCatalogIdIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
-  }, []);
+  }, [setChunkProgress]);
 
   return {
     response,

@@ -1,8 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { computeChunkSizing, computeTotalChunks, computeWindowRanges, computeObjectiveAwareWindows, buildAssembledPlanTitle, MAX_CHUNKS_PER_WINDOW } from "../useAITrainingPlan";
+import { computeChunkSizing, computeTotalChunks, computeWindowRanges, computeObjectiveAwareWindows, buildAssembledPlanTitle, MAX_CHUNKS_PER_WINDOW,globalGenerationProgress } from "../useAITrainingPlan";
 import { buildWindowRegenConfig } from "@/engines/plan/planWindowRegen";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { RaceGoal } from "../useAITrainingPlan";
+describe('global progress across HTTP windows',()=>{
+ it('keeps the marathon denominator at16 and continues at S13 after the12-week request',()=>{
+  expect(globalGenerationProgress({currentWeek:4,totalWeeks:12,currentChunk:1,totalChunks:3},{totalWeeks:16,totalChunks:4,weekOffset:0,chunkOffset:0})).toEqual({currentWeek:4,totalWeeks:16,currentChunk:1,totalChunks:4});
+  expect(globalGenerationProgress({currentWeek:1,totalWeeks:4,currentChunk:1,totalChunks:1},{totalWeeks:16,totalChunks:4,weekOffset:12,chunkOffset:3})).toEqual({currentWeek:13,totalWeeks:16,currentChunk:4,totalChunks:4});
+ });
+ it('preserves a direct short generation without a window scope',()=>{
+  const progress={currentWeek:2,totalWeeks:4,currentChunk:1,totalChunks:1};expect(globalGenerationProgress(progress,null)).toBe(progress);
+ });
+});
 
 // Audit coach (plan Manu 40 sem, Ironman) : jsonPlanHandler.ts accumule tous
 // les blocs en mémoire serveur et ne les envoie au navigateur qu'à la toute
