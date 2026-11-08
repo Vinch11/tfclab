@@ -64,7 +64,11 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   if (await planningFingerprint(app.athlete, app.config) !== app.fingerprint) throw Error('Profil partagé modifié : rechargez avant de préparer le brouillon.');
   if (JSON.stringify(app.limiters.applied) !== JSON.stringify(app.config.identifiedLimitersRaw ?? [])) throw Error('Ordre des limiteurs incohérent avec la configuration.');
   const { athlete, config } = planningInputFor(app, 'det');
-  if (!config.objective || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate ?? '') || !Number.isInteger(config.weeksAvailable) || config.weeksAvailable! < 1 || config.weeksAvailable! > 104 || !Number.isFinite(config.weeklyHours) || config.weeklyHours! <= 0 || !Number.isInteger(config.sessionsPerWeek) || config.sessionsPerWeek! < 1) throw Error('Complétez l’objectif, le début, la durée, les heures et les séances dans la configuration commune.');
+  // Undefined frequency is the existing IA "Auto" setting. Its actual weekly
+  // counts come from prepareGenerationContracts, including recovery/race
+  // adjustments; inventing a fixed count here would override that calendar.
+  const invalidFrequency=config.sessionsPerWeek!==undefined&&(!Number.isInteger(config.sessionsPerWeek)||config.sessionsPerWeek<1);
+  if (!config.objective || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate ?? '') || !Number.isInteger(config.weeksAvailable) || config.weeksAvailable! < 1 || config.weeksAvailable! > 104 || !Number.isFinite(config.weeklyHours) || config.weeklyHours! <= 0 || invalidFrequency) throw Error('Complétez l’objectif, le début, la durée, les heures et les séances dans la configuration commune.');
   const family = coachFamilyFor(config.objective);
   if (!family) throw Error('Cette famille ne dispose pas encore de sources DET pour un brouillon.');
   const semantics = traceLimiterSemantics(app.limiters.applied, family.key);

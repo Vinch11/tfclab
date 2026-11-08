@@ -24,6 +24,23 @@ async function shared(objective = 'Ironman 70.3', weeks = 12, hours = 10, limite
 beforeAll(() => { vi.spyOn(console,'log').mockImplementation(() => {}); vi.spyOn(console,'warn').mockImplementation(() => {}); vi.spyOn(globalThis,'fetch').mockImplementation(() => { throw Error('NETWORK_FORBIDDEN'); }); });
 
 describe('pre-review DET study uses the actual shared app planning context', () => {
+  it.each(['Marathon','Semi','10K','Ironman 70.3','Ironman'])('%s: Auto frequency uses the unchanged IA weekly calendar',async objective=>{
+    const input=await shared(objective,16,8,['TTE'],{sessionsPerWeek:'',strengthSessionsPerWeek:'2'});
+    const before=JSON.stringify(input);
+    expect(input.config.sessionsPerWeek).toBeUndefined();
+    const calendar=prepareGenerationContracts(input.athlete,input.config).weeklyQuotas;
+    const draft=await buildAppPlanningDetDraft(input,ATHLETE);
+    for(const week of draft.weeks){
+      const layout=calendar[week.week].layout!;
+      expect(week.days.map(d=>d.slots.map(s=>s.sport))).toEqual(layout.days.map(d=>d.slots.map(s=>s.sport)));
+    }
+    expect(JSON.stringify(input)).toBe(before);
+  },60000);
+  it.each([0,-1,2.5,NaN,Infinity,null])('refuses an explicitly invalid frequency %s instead of interpreting it as Auto',async value=>{
+    const base=await shared();
+    const input=await freezeAppPlanningInput({athleteId:ATHLETE,athlete:base.athlete,config:{...base.config,sessionsPerWeek:value as number},planStartDate:base.config.planStartDate!,appAutomaticLimiters:base.limiters.appAutomatic,coachOverride:null});
+    await expect(buildAppPlanningDetDraft(input,ATHLETE)).rejects.toThrow('Complétez');
+  });
   it.each([['Ironman 70.3',12,10],['Marathon',40,8],['Semi',8,6]] as const)('%s: full horizon without manual paces, clocks or review flags', async (objective,weeks,hours) => {
     const app = await shared(objective,weeks,hours), original = JSON.stringify(app);
     const draft = await buildAppPlanningDetDraft(app,ATHLETE);

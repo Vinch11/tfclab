@@ -181,8 +181,8 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const ratioObjective=parseAthleteConstraints(config.constraints).bannedSports.length?undefined:triObjective;
   const minuteLedger={swim:0,bike:0,run:0};let minuteLedgerKnown=true;
   const finalLoad=study.weeks.filter(w=>w.weekType==='load'&&!w.days.some(d=>d.slots.some(s=>s.role==='race'))).at(-1)?.week;
-  function weekDomains(week:AppPlanningDetDraft['weeks'][number]){
-    const eligible=sources.filter(s=>(!week.phase||s.phase.includes(week.phase))&&(week.weekType!=='recovery'||easy(s)));
+  function weekDomains(week:AppPlanningDetDraft['weeks'][number],includeImported=false):{eligible:V3Workout[];slots:Array<{slot:AppPlanningDetDraft['weeks'][number]['days'][number]['slots'][number];dayIndex:number}>;domains:ProposedV3Session[][]}{
+    const eligible=[...sources,...(includeImported?librarySources:[])].filter(s=>(!week.phase||s.phase.includes(week.phase))&&(week.weekType!=='recovery'||easy(s)));
     const slots=week.days.flatMap((day,dayIndex)=>day.slots.map(slot=>({slot,dayIndex})));
     const domains=slots.map(({slot,dayIndex})=>{
       if(slot.role==='race')return [{sport:slot.sport,role:slot.role,components:[],transitionMinutes:null,knownMinutes:0,durationMinutes:null} satisfies ProposedV3Session];
@@ -212,7 +212,24 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         a.knownMinutes-b.knownMinutes||a.components.map(c=>c.sourceId).join().localeCompare(b.components.map(c=>c.sourceId).join()));
     });
     const missing=domains.findIndex(domain=>!domain.length);
-    if(missing>=0)throw Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : aucune dose V3 compatible pour ${slots[missing].slot.sport}. Aucun créneau vide ni remplacement historique n’est produit.`);
+    if(missing>=0){
+      if(!includeImported&&librarySources.length)return weekDomains(week,true);
+      throw Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : aucune dose V3 compatible pour ${slots[missing].slot.sport}. Aucun créneau vide ni remplacement historique n’est produit.`);
+    }
+    // Prove a distinct-source shortage before broadening the established pool.
+    // Single-component slots form a bipartite matching problem; bricks remain
+    // with the existing composition solver, never reduced to one source here.
+    if(!includeImported&&librarySources.length&&domains.every(rows=>rows.every(s=>s.components.length<=1))){
+      const assigned=new Map<string,number>();
+      const keys=domains.map(rows=>[...new Set(rows.flatMap(s=>s.components.map(c=>c.sourceId)))]);
+      const match=(index:number,seen:Set<string>):boolean=>keys[index].some(id=>{
+        if(seen.has(id))return false;seen.add(id);
+        const previous=assigned.get(id);
+        if(previous!==undefined&&!match(previous,seen))return false;
+        assigned.set(id,index);return true;
+      });
+      if(keys.some((ids,index)=>ids.length>0&&!match(index,new Set())))return weekDomains(week,true);
+    }
     return {eligible,slots,domains};
   }
   for(const week of study.weeks){

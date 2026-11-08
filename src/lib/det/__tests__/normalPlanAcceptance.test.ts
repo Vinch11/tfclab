@@ -12,6 +12,7 @@ import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolio
 import {raceIdentityOf, semanticViolations, type V2Node} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import {exactRemoteMatch} from '../../../../supabase/functions/_shared/nolioV2/plannedClient';
 import {parsePaceSeconds} from '../../../../supabase/functions/_shared/nolioV2/paceTarget';
+import {coachPlanProblems,nativeCoachPlanProblems} from '../../../../supabase/functions/_shared/nolioV2/coachWorkflow';
 
 // Offline acceptance of the NORMAL pipeline. No private provider calls, AI
 // purchases, synthetic human approvals or replacement diagnostic are permitted.
@@ -23,6 +24,7 @@ const cases = [
   {id:'semi-trained', objective:'Semi', weeks:8, hours:6, sessions:4, ftp:300, pace:240, vma:18, level:'trained'},
   {id:'10k-empty', objective:'10K', weeks:8, hours:6, sessions:4, ftp:210, pace:270, vma:16, level:'trained'},
   {id:'10k', objective:'10K', weeks:8, hours:6, sessions:4, ftp:210, pace:270, vma:16, level:'trained'},
+  {id:'marathon-auto', objective:'Marathon', weeks:16, hours:8, sessions:4, ftp:300, pace:240, vma:18, level:'trained', ambition:'competitor', automaticSessions:true},
   {id:'marathon', objective:'Marathon', weeks:16, hours:8, sessions:4, ftp:300, pace:270, vma:16, level:'trained'},
 ] as const;
 
@@ -39,7 +41,7 @@ describe('normal IA input → DET prescriptions → frozen Nolio operations', ()
     const athlete={id:athleteId, name:'SYNTHETIC ONLY', objectif:'703', birth_date:'1991-01-01', sex:'M', active_snapshot_id:'SNAP', refs:{}};
     const snapshots=[{id:'SNAP',athlete_id:athleteId,date:'2026-11-04',source:'manual',sport_main:spec.objective==='Ironman 70.3'?'tri':'run',vma:spec.vma,ftp:spec.ftp,css:95,pace_threshold_sec_per_km:spec.pace,tss_7d:380,fatigue_state:'ok',vo2max:58,weight_kg:72,fc_max:188,...(spec.id==='10k'?{tte_observed_min_run:25}: {})}];
     const context=computeAppAthleteContext(athlete,spec.objective,'ambition' in spec?spec.ambition:'age_group',{snapshots,tests:[],checkins:[]})!;
-    const form:AppPlanFormState={objective:spec.objective,ambition:'ambition' in spec?spec.ambition:'age_group',planStartDate:new Date(2026,10,2),raceName:'SYNTHETIC ACCEPTANCE',raceDate:new Date(Date.UTC(2026,10,2+spec.weeks*7-1)).toISOString().slice(0,10),raceFormat:'continuous',raceGoals:[],trailDistanceKm:'',trailElevationM:'',trailTargetTimeH:'',trailMaxAltitudeM:'',weeksAvailable:spec.weeks,weeklyHours:String(spec.hours),sessionsPerWeek:String(spec.sessions),maxSessionsPerDay:'2',strengthSessionsPerWeek:'1',deloadCadence:'auto',constraints:'',trainingLevel:spec.level,terrainAvailability:'auto',lockAmbition:false,crossTrainingVelo:false,crossTrainingNatation:false,chronicWeeklyHours:'',recentWeeklyHours:'',recentWeeksCount:'',maxDoubleDaysPerWeek:'',coachLimiterOrder:[],currentAthleteId:athleteId};
+    const form:AppPlanFormState={objective:spec.objective,ambition:'ambition' in spec?spec.ambition:'age_group',planStartDate:new Date(2026,10,2),raceName:'SYNTHETIC ACCEPTANCE',raceDate:new Date(Date.UTC(2026,10,2+spec.weeks*7-1)).toISOString().slice(0,10),raceFormat:'continuous',raceGoals:[],trailDistanceKm:'',trailElevationM:'',trailTargetTimeH:'',trailMaxAltitudeM:'',weeksAvailable:spec.weeks,weeklyHours:String(spec.hours),sessionsPerWeek:'automaticSessions' in spec?'':String(spec.sessions),maxSessionsPerDay:'2',strengthSessionsPerWeek:'automaticSessions' in spec?'2':'1',deloadCadence:'auto',constraints:'',trainingLevel:spec.level,terrainAvailability:'auto',lockAmbition:false,crossTrainingVelo:false,crossTrainingNatation:false,chronicWeeklyHours:'',recentWeeklyHours:'',recentWeeksCount:'',maxDoubleDaysPerWeek:'',coachLimiterOrder:[],currentAthleteId:athleteId};
     const config=buildAppPlanConfig(context.diagnostic,form);
     const app=await freezeAppPlanningInput({athleteId,athlete:context.data,config,planStartDate:'2026-11-02',appAutomaticLimiters:config.identifiedLimitersRaw??[],coachOverride:null});
     const before=JSON.stringify(app);
@@ -62,6 +64,8 @@ describe('normal IA input → DET prescriptions → frozen Nolio operations', ()
       throw error;
     });
     const saved=JSON.parse(JSON.stringify(plan));
+    expect(coachPlanProblems(saved,athleteId)).toEqual([]);
+    expect(nativeCoachPlanProblems(saved)).toEqual([]);
     const proposal=(saved as {_detSourceProposal:V3PlanProposal})._detSourceProposal;
     expect(proposal.limiterOrder).toEqual(app.limiters.applied);
     expect(proposal.planningInputFingerprint).toBe(app.fingerprint);
