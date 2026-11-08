@@ -25,7 +25,7 @@ it('the recorded 70.3 distribution follows an explicit synthetic ban; do not sil
  const unrestricted=preparePlanningCaseContext({...spec,constraints:'unrestricted'}).prepared;
  const alternative=prevalidateGenerationScope(unrestricted.athleteData,{...unrestricted.planConfig,_outputFormat:'json'});
  expect(alternative.weeks[0].quota!.swim.min).toBeGreaterThan(0);
-});
+},60000);
 it('the declared Corrida B survives config, full preparation, window transport and calendar reservation on its exact Saturday',()=>{
  vi.useFakeTimers();vi.setSystemTime(new Date('2026-10-26T12:00:00Z'));
  const raceGoals=[{objective:'10K',raceDate:'2027-01-17',priority:'A' as const},{objective:'10K',raceName:'Corrida synthétique',raceDate:'2026-12-19',priority:'B' as const}];

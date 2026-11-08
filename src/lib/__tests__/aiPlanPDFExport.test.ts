@@ -134,3 +134,50 @@ describe("exportAIPlanToPDF — le HTML généré contient réellement toutes le
     expect(rule).not.toContain("break-inside");
   });
 });
+
+describe("exportAIPlanToPDF — doses chiffrées QA V3/V4 synthétiques (durée séance + volume réel calculé)", () => {
+  function qaPlan(min: number | undefined, volume: string | undefined, label: string): ParsedPlan {
+    const session: ParsedSession = {
+      ...makeSession(1, 0, "Lundi", "Course", `QA ${label} — NE PAS PRESCRIRE`),
+      details: "Séance fictive QA — NE PAS PRESCRIRE",
+      durationMin: min,
+    };
+    return {
+      title: `QA — restauration ${label} NON PRESCRIPTIVE`,
+      phases: [{ name: "Chantier", weeks: "1" }],
+      weeks: [{ weekNumber: 1, theme: "QA", phase: "Chantier", sessions: [session], computedVolumeStr: volume }],
+      totalWeeks: 1,
+    };
+  }
+  const modes = [["landscape", "full"], ["portrait", "full"], ["portrait", "compact"]] as const;
+
+  async function render(plan: ParsedPlan, o: "landscape" | "portrait", d: "full" | "compact") {
+    const { exportAIPlanToPDF } = await import("@/lib/aiPlanPDFExport");
+    const { openPrintableHTML } = await import("@/lib/openPrintableHTML");
+    exportAIPlanToPDF(plan, "QA", new Date("2026-11-02"), [], o, d);
+    const m = openPrintableHTML as unknown as ReturnType<typeof vi.fn>;
+    return m.mock.calls[m.mock.calls.length - 1][0] as string;
+  }
+
+  for (const [label, min] of [["V3", 40], ["V4", 45]] as const) {
+    for (const [o, d] of modes) {
+      it(`${label} ${o}/${d} : 1 séance, Durée : ${min} min, volume réel ${min}min, NE PAS PRESCRIRE, pas de course`, async () => {
+        const html = await render(qaPlan(min, `${min}min`, label), o, d);
+        const sessions = (html.match(o === "portrait" ? /class="session-card"/g : /class="session-row"/g) || []).length;
+        expect(sessions).toBe(1);
+        expect((html.match(/Durée : \d+ min/g) || [])).toEqual([`Durée : ${min} min`]);
+        expect(html).toContain(`Volume réel calculé : ${min}min`);
+        expect(html).toContain("NE PAS PRESCRIRE");
+        expect(html).not.toContain("COURSE OBJECTIF");
+      });
+    }
+  }
+
+  for (const [o, d] of modes) {
+    it(`${o}/${d} : sans durationMin ni computedVolumeStr, n'invente ni durée ni volume`, async () => {
+      const html = await render(qaPlan(undefined, undefined, "V4"), o, d);
+      expect(html).not.toContain("Durée :");
+      expect(html).not.toContain("Volume réel calculé");
+    });
+  }
+});
