@@ -10,7 +10,7 @@ export function LimiterMesocycleTimeline({plan,limiterKeys}:{plan:ParsedPlan;lim
     <p className="text-xs text-muted-foreground mt-2">Priorités et séances de cette version enregistrée. Les associations aux limiteurs décrivent le choix des fiches ; elles ne prouvent pas une amélioration physiologique.</p>
     <ol className="space-y-3 mt-3">{saved.map(block=><li key={block.startWeek} className="border-l-2 pl-3">
       <b>S{block.startWeek}{block.endWeek!==block.startWeek?`–S${block.endWeek}`:''} · {block.mode==='recovery'?'Récupération et assimilation':block.mode==='taper'?'Affûtage':block.mode==='race'?'Compétition':block.focus?`Priorité : ${limiterKeyLabel(block.focus)}`:'Préparation'}</b>
-      <p className="text-xs">Limiteur principal : {block.primary?limiterKeyLabel(block.primary):'non renseigné'}{block.maintenance.length?` · Maintien prévu : ${block.maintenance.map(limiterKeyLabel).join(', ')}`:''}</p>
+      <p className="text-xs">Priorité globale du profil : {block.primary?limiterKeyLabel(block.primary):'non renseigné'}{block.maintenance.length?` · Maintien prévu : ${block.maintenance.map(limiterKeyLabel).join(', ')}`:''}</p>
       <p className="text-xs">{block.associations.map(row=>`${limiterKeyLabel(row.limiter)} : ${row.sessions}/${block.keySessions} séances clés ou longues associées`).join(' · ')}</p>
       <p className="text-xs text-muted-foreground">{Math.round(block.knownMinutes)} min d’exercice connues{block.totalMinutes===null?' · durée totale à préciser':''}</p>
       <details className="mt-1 text-xs"><summary className="cursor-pointer">Séances retenues ({block.sources.length} fiches)</summary><ul className="mt-1">{block.sources.map(source=><li key={source.id}>{source.title} · {source.id}</li>)}</ul></details>

@@ -18,7 +18,7 @@ export function checkV3SessionCatalogue(session:ContractSession & {detSourceComp
   if(session.title!==components.map(c=>c.title).join(' + '))errors.push('v3_title_mismatch');
   if(session.sport!==(components.length===1?components[0].sport:'brick'))errors.push('v3_sport_mismatch');
   if(components.length===1&&session.catalogId!==components[0].sourceId)errors.push('v3_source_id_mismatch');
-  const texts=[false,true].flatMap(guidance=>[false,true].map(legacy=>renderV3Prescription(components,guidance,legacy)+(components.length>1?'\nTransition : durée à préciser.':'')));
+  const texts=[false,true].flatMap(guidance=>[false,true].flatMap(legacy=>[false,true].map(speedLegacy=>renderV3Prescription(components,guidance,legacy,speedLegacy)+(components.length>1?'\nTransition : durée à préciser.':''))));
   if(!texts.includes(session.details??''))errors.push('v3_prescription_text_mismatch');
   const minutes=components.length===1?components[0].durationMinutes:null;
   if(minutes===null?session.durationMin!==undefined:session.durationMin===undefined||Math.abs(session.durationMin-minutes)>1e-7)errors.push('v3_duration_mismatch');

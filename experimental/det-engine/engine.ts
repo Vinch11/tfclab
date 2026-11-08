@@ -330,7 +330,10 @@ export function constructDeterministicPlan(athlete:PlanAthleteData,config:PlanCo
       if(!phases.verified)return refuse('v358_running_phase_calendar_refused');
       config={...config,windowWeekPhases:phases.calendar};
     }
-    const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0});
+    // Existing reviewed family evidence binds activation-only taper layouts.
+    // Normal IA/app-profile planning opts into maintained taper dose through
+    // the same builder; it does not rewrite a previously reviewed layout.
+    const preparation=prepareGenerationContracts(athlete,config,{rotationSeed:0,runTaperMode:'activation'});
     experimentalContract?.adapt(preparation,config);
     synchronizeLimiterMesocycles(preparation,config.identifiedLimitersRaw??[],config.globalWeekOffset??0,config.weeksAvailable);
     // V334: adaptation is the ONLY writer of the source pools. Freeze one

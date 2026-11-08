@@ -21,6 +21,8 @@ export interface V3AthleteAnchors {
   bikePmaWatts?: number;
   bikeSprintPowerRangeWatts?: [number,number];
   runThresholdPaceSecPerKm?: number;
+  /** Explicit coach race goal, never a measured threshold or inferred fitness. */
+  runRacePacesSecPerKm?: Partial<Record<'marathon_pace'|'semi_pace',number>>;
   runVvo2SpeedMps?: number;
   runSprintSpeedRangeMps?: [number,number];
   swimDomainPacesSecPer100m?: Paces;
@@ -34,7 +36,7 @@ export interface V3IntensityTarget {
   min: number | null;
   max: number | null;
   source: "athlete_measurement_with_doctrine_model" | "athlete_reference_with_doctrine_model" | "direct_athlete_pace" |
-    "coach_approved_css_proxy" | "coach_confirmed_load" | "direct_athlete_range" | "coach_reviewed_terrain_effort";
+    "coach_approved_css_proxy" | "coach_confirmed_load" | "direct_athlete_range" | "coach_reviewed_terrain_effort" | "coach_race_target";
   confidence: "model" | "measured" | "proxy" | "coach_confirmed";
   note: string;
 }
@@ -54,7 +56,7 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
   const modelNote=(keys:string[],text:string)=>modelSource(keys)==="athlete_reference_with_doctrine_model"?text.replace(/mesurée?/g,"de référence")+" Référence du profil : aucune mesure attestée par cette seule valeur.":text;
   const domainList=w.prescription.physiologicalIntent.domainIds;
   if(w.sport==="strength") {
-    if(w.prescription.individualization.strengthLoadSelection==="bodyweight_only_source_rpe_no_external_load") {
+    if(["bodyweight_only_source_rpe_no_external_load","source_prescribed_rpe_load_no_measured_weight"].includes(w.prescription.individualization.strengthLoadSelection)) {
       // RPE/reps are source instructions in each block, not verified athlete loads.
     } else if(a.coachValidatedStrengthLoadAndRpe!==true)missing.push("coach_verified_rpe_and_load");
     else targets.push({domain:null,metric:"coach_rpe_load",min:null,max:null,
@@ -118,6 +120,13 @@ export function resolveV3IntensityTargets(w:V3Workout,a:V3AthleteAnchors={}):V3I
       }
       if(!d.run||d.run.max<=0){missing.push("tfclDoctrine.run."+domain);continue;}
       const runRange=d.execution?.run??d.run;
+      const racePace=(domain==='marathon_pace'||domain==='semi_pace')?a.runRacePacesSecPerKm?.[domain]:undefined;
+      if(racePace!==undefined){
+        const fraction=a.runThresholdPaceSecPerKm/racePace;
+        if(!valid(racePace)||fraction<runRange.min||fraction>runRange.max)missing.push('race_goal_outside_profile_domain.'+domain);
+        else targets.push({domain,metric:'sec_per_km',min:racePace,max:racePace,source:'coach_race_target',confidence:'model',note:'Allure de l’objectif chronométrique saisi par le coach, compatible avec la plage du modèle de référence ; ce contrôle ne prédit ni la performance ni son assimilation.'});
+        continue;
+      }
       targets.push({domain,metric:"sec_per_km",min:+(a.runThresholdPaceSecPerKm/runRange.max).toFixed(1),
         max:runRange.min===0?null:+(a.runThresholdPaceSecPerKm/runRange.min).toFixed(1),
         source:modelSource(["runThresholdPaceSecPerKm"]),confidence:"model",

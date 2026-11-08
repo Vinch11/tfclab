@@ -54,6 +54,7 @@ export function AdaptationProjectionSummary({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-3 space-y-3">
+        <p className="text-xs text-muted-foreground">Scénarios théoriques, non garantis. La présence et la dose du travail correspondant restent à vérifier dans le plan.</p>
         {/* Lever selector */}
         {projections.length > 1 && onSelectLever && (
           <Select value={active.leverId} onValueChange={onSelectLever}>

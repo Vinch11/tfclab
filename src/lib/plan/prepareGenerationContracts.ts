@@ -17,7 +17,7 @@ import { catalogueForWeek } from "../../../supabase/functions/_shared/sessionCat
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
-export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
+export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number;runTaperMode?:'activation'|'maintain'}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
  const effTotalWeeks=planConfig.globalTotalWeeks??totalWeeks,weekOffset=planConfig.globalWeekOffset??0;
@@ -442,6 +442,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const raceEvents=declaredRaceSlotsForWeek(planConfig,w);
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
+            runTaperMode:options.runTaperMode??'maintain',
             availableSports,
             raceEvents,
             // The official triathlon is not an extra training brick. Reserve

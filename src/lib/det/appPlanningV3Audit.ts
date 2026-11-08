@@ -9,8 +9,38 @@ import { normalizeRepairGoal } from '../../../supabase/functions/_shared/repairS
 import { hasExactStrictTriathlonRatio, TRIATHLON_STRICT_MINUTE_RANGES } from '../../../experimental/det-engine/v314-cumulative-ratio-search';
 import { parseAthleteConstraints } from '@/lib/plan/constraintRules';
 import { canonicalJson } from '@/lib/plan/appendOnlyPlanVersionSave';
+import type {PlanConfig} from '@/hooks/useAITrainingPlan';
+import {roadRunningPrescription,v3SourceContextProblems,demandingRun,demandingRunDaysCompatible,domainMinutes,primaryPrescriptionMatch} from './v3SportingPrescription';
+import {resolveDetLimiter} from '../../../experimental/det-engine/v403-limiter-semantics';
 
 type Check=V3PlanProposal['checks'][number];
+/** Post-selection check of the actual saved blocks, including substitutions. */
+export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfig):Check[]{
+ const checks:Check[]=[],road=roadRunningPrescription(config);
+ for(const week of plan.weeks){
+  const invalid=week.days.flatMap(d=>d.sessions.flatMap(s=>s.components)).flatMap(c=>{
+   const source=findSource(c.sourceId);
+   return source?v3SourceContextProblems(source,config,week.weekType).map(reason=>c.sourceId+':'+reason):[c.sourceId+':source_missing'];
+  });
+  checks.push({code:'source_prescription_context',week:week.week,status:invalid.length?'blocked':'passed',message:invalid.length?invalid.join(', '):'Objectif, niveau et contexte des sources retenues compatibles ; ce contrôle ne mesure pas l’assimilation.'});
+  if(!road)continue;
+  const sessions=week.days.flatMap(d=>d.sessions),primary=resolveDetLimiter(plan.limiterOrder[0]);
+  if(week.weekType==='load'&&road.ambition!=='finisher'&&primary.status==='supported'){
+   const keys=sessions.filter(s=>s.role==='long'||demandingRun(s));
+   const matched=keys.filter(s=>s.components.some(c=>{const source=findSource(c.sourceId);return !!source&&primaryPrescriptionMatch(c,source,primary.key);}));
+   checks.push({code:'primary_dose_coverage',week:week.week,status:keys.length&&matched.length/keys.length>=.3?'passed':'blocked',message:`${plan.limiterOrder[0]} : ${matched.length}/${keys.length} séances exigeantes ou longues satisfont les critères de prescription existants. Seuil interne de couverture 30 %, aucune adaptation mesurée présumée.`});
+  }
+  if(road.raceDomain&&road.ambition!=='finisher'&&(['taper','race'].includes(week.weekType)||week.weekType==='load'&&['build','peak'].includes(week.phase??''))){
+   const minutes=sessions.flatMap(s=>s.components).reduce((n,c)=>n+(c.sport==='run'?domainMinutes(c.blocks,road.raceDomain!):0),0);
+   checks.push({code:'race_specific_blocks',week:week.week,status:minutes>0?'passed':'blocked',message:`${minutes} min au domaine spécifique de l’objectif dans les blocs configurés ; une étiquette de séance ne suffit pas.`});
+  }
+ }
+ if(road){
+  const days=plan.weeks.flatMap(w=>w.days.flatMap((d,i)=>d.sessions.filter(demandingRun).map(()=>7*(w.week-1)+i)));
+  checks.push({code:'demanding_run_calendar',status:demandingRunDaysCompatible(days)?'passed':'blocked',message:'Espacement des efforts course contrôlé sur le calendrier complet, frontières de semaines comprises ; les heures exactes gardent leur contrôle distinct.'});
+ }
+ return checks;
+}
 const absolute=(slot:ScheduledSport)=>(slot.week-1)*7+slot.dayIndex;
 const serves=(sport:string,slot:ScheduledSport)=>slot.sport===sport||slot.sport==='brick'&&(['bike','run'].includes(sport)||slot.isRaceEvent&&sport==='swim');
 export function proposedRecoveryStatus(session:ProposedV3Session,here:ScheduledSport,slots:readonly ScheduledSport[],start:ConfirmedSlotStart):Check['status']{
