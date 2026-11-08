@@ -78,8 +78,9 @@ describe('coach panel with inherited configuration', () => {
   const props = () => ({ record, form, appInput: app(), appInputStatus: 'ready' as const, engine: 'det' as const,
     guard: vi.fn(async () => null), sourcesVersion: 'a'.repeat(64), engineVersion: 'a'.repeat(64), releaseId: null, onOutcome: vi.fn(), onAIShared: vi.fn(async () => {}) });
   it('labels the inherited undefined frequency as Auto rather than missing input',()=>{
-    const p=props();p.appInput.config.sessionsPerWeek=undefined;
-    render(<AthleteDetSimplePanel {...p}/>);
+    const p=props();
+    const input={...p.appInput,config:{...p.appInput.config,sessionsPerWeek:undefined}};
+    render(<AthleteDetSimplePanel {...p} appInput={input}/>);
     expect(screen.getByTestId('det-shared-config')).toHaveTextContent('Auto (calendrier commun) séances');
   });
   it('shows effective settings once and asks no duplicate level or optional metric classification', () => {
