@@ -12,6 +12,7 @@ export type CoachFlowPorts={
   * The ordinary one-click Export action performs all technical checks itself. */
  confirmRecreation?:(rows:RecreationDecision['rows'])=>Promise<boolean>;
  pendingRecreation?:(decision:RecreationDecision|null)=>void;
+ refreshCompetitionRefs?:()=>Promise<void>;
  now?:()=>number;sleep?:(ms:number)=>Promise<void>;
 };
 export type RecreationDecision={planSha256:string;refsSha256:string;opsSha256:string;rows:Array<{opIndex:number;sessionKey:string;date:string;title:string;binding:string}>};
@@ -19,6 +20,20 @@ export type RecreationMode={kind:'inspect'}|{kind:'apply'|'resume';decision:Recr
 type CoachExportResult={verified:number;total:number;recreationDecision?:RecreationDecision;inspected?:number};
 function checkpoint(p:CoachFlowPorts){if(!p.current()||p.stopRequested())throw Error('Action interrompue. Les activités déjà envoyées restent vérifiables ; aucune relance automatique.');}
 class MissingNolioActivity extends Error {}
+export function sportRefsFailureMessage(value:unknown):string{
+ const reason=(value as {reason?:unknown}|null)?.reason;
+ const messages:Record<string,string>={
+  sports_read_rate_limited:'Nolio limite les lectures des sports. Reprenez plus tard ; aucun nouvel envoi.',
+  sports_read_authorization:'Nolio refuse la lecture des sports. Vérifiez l’autorisation de la connexion Nolio.',
+  sports_read_provider_error:'Nolio rencontre une erreur pendant la lecture des sports. Aucun nouvel envoi.',
+  sports_read_timeout:'Le délai de lecture des sports Nolio est dépassé. Aucun nouvel envoi.',
+  sports_read_partial:'La liste des sports Nolio est incomplète. Aucun nouvel envoi.',
+  token_expired_reconnect:'L’autorisation Nolio est expirée et doit être renouvelée. Aucun nouvel envoi.',
+ };
+ if(typeof reason==='string'&&typeof messages[reason]==='string')return messages[reason];
+ if(typeof reason==='string'&&reason.startsWith('refresh:'))return 'Le renouvellement de l’autorisation Nolio n’est pas confirmé. Aucun nouvel essai ni envoi automatique.';
+ return 'Lecture des sports Nolio non confirmée. Aucun nouvel envoi ; ce résultat ne prouve pas que la connexion est rompue.';
+}
 /** One deliberate export consent, then bounded automatic technical checks.
  * No invented review, prescription/scientific flag or re-POST of uncertainty. */
 export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarOnly=false,recreation?:RecreationMode):Promise<CoachExportResult>{
@@ -26,6 +41,12 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
  async function call(name:string,body:Record<string,unknown>){checkpoint(p);const r=await p.invoke(name,body);checkpoint(p);return r as Record<string,unknown>;}
  p.progress('Vérification du plan et des correspondances Nolio…');
  let dry=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'precheck'}));
+ // Existing official refs are accepted only by the server's own athlete,
+ // freshness and uniqueness checks. Refresh only a missing competition mapping.
+ if(dry?.planSha256===p.planSha256&&!dry.precheck?.complete&&p.refreshCompetitionRefs&&dry.precheck?.rows.some(r=>r.status==='refused'&&r.sport==='brick'&&r.reason==='sport_reference_missing:brick')){
+  await p.refreshCompetitionRefs();checkpoint(p);
+  dry=parsePlanDryResp(await call('nolio-v2-plan-dry-run',{...common,action:'precheck'}));
+ }
  if(!dry?.precheck?.complete)throw Error(dry?.precheck?.rows.filter(r=>r.status==='refused').map(r=>`${r.title} : ${reasonFr(r.reason)}`).join('\n')||reasonFr(dry?.code??null)||'Le plan ne peut pas être exporté avec les correspondances actuelles.');
  if(dry.planSha256!==p.planSha256||!dry.refsSha256||!dry.opsSha256)throw Error('Version du plan divergente : export annulé.');
  const frozen={planSha256:dry.planSha256,refsSha256:dry.refsSha256,opsSha256:dry.opsSha256};

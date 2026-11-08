@@ -9,7 +9,7 @@ import {requiredExerciseLabels,raceIdentityOf} from '../../../supabase/functions
 import type {NolioExportScope} from '../../../supabase/functions/_shared/nolioV2/exportScope';
 import {confirmFullPlanDryRun,PLAN_DRY_JOB_COLS,PLAN_DRY_RECEIPT_COLS,type PlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import {NolioV2ProgressPanel,type V2StatusView} from '@/qa/pilot-review/NolioV2ProgressPanel';
-import {runCoachExport,type RecreationDecision} from '@/lib/nolio/coachExportFlow';
+import {runCoachExport,sportRefsFailureMessage,type RecreationDecision} from '@/lib/nolio/coachExportFlow';
 import {readExportResume,writeExportResume,pendingRecreation} from '@/lib/nolio/exportResume';
 import {hasRetiredRecoveryGuidance} from '@/lib/nolio/guidedRecoveryVersion';
 import {blocksLegacyNolioExport} from '@/lib/nolio/legacyExportGuard';
@@ -91,17 +91,17 @@ export function PlanNolioExportProvider({plan,athleteId,athleteName,planVersionI
     const result=await exportLegacyPlan({plan:snapshot as unknown as ParsedPlan,scope,athleteId,context:legacy,invoke,progress:m=>{if(current())setMessage(m);},current:()=>current()&&!stop.current});guard();
     setMessage(`${result.accepted}/${result.total} séances acceptées par Nolio. Export terminé.`);return;
    }
-   if(plan.weeks.some(w=>w.sessions.some(s=>s.sport==='brick'&&s.title.startsWith('COURSE :')))){
-    setMessage('Vérification des sports Nolio de l’athlète…');
-    const refs=await invoke('nolio-v2-oauth',{action:'load_refs',athleteId});if(refs.status!=='REFS_LOADED')throw Error('Lecture des sports Nolio impossible. Vérifiez la connexion avant de reprendre.');
-   }
+   const refreshCompetitionRefs=plan.weeks.some(w=>w.sessions.some(s=>s.sport==='brick'&&s.title.startsWith('COURSE :')))?async()=>{
+    setMessage('Actualisation des sports Nolio nécessaires à la compétition…');
+    const refs=await invoke('nolio-v2-oauth',{action:'load_refs',athleteId});if(refs.status!=='REFS_LOADED')throw Error(sportRefsFailureMessage(refs));
+   }:undefined;
    const caps=await Promise.all(['nolio-v2-plan-dry-run','nolio-v2-send-plan'].map(async name=>{const r=await invoke(name,{planVersionId:id,action:'capabilities'});if(!sameExportCapabilities(r,name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId)||r.coachWorkflow!==true)throw Error('Le serveur Nolio doit être synchronisé avec cette version de l’application.');return r;}));guard();if(caps.length!==2)throw Error('Contrôle du serveur incomplet.');
    const confirmSimulation=async(r:PlanDryResp)=>{
     const [job,receipts]=await Promise.all([bounded(supabase.from('qa_nolio_v2_plan_dry_run_jobs').select(PLAN_DRY_JOB_COLS).eq('id',r.progress!.jobId).eq('coach_id',uid).eq('plan_version_id',id).maybeSingle()),bounded(supabase.from('qa_nolio_v2_plan_dry_run_receipts').select(PLAN_DRY_RECEIPT_COLS).eq('job_id',r.progress!.jobId).eq('coach_id',uid))]);guard();
     return !job.error&&!receipts.error&&(await confirmFullPlanDryRun({planVersionId:id!,coachId:uid,resp:r,job:job.data,receipts:receipts.data,localPlanSha256:hash})).confirmed;
    };
    const verifyReceipts=async(r:PlanDryResp)=>{const receipts=await bounded(supabase.from('qa_nolio_v2_plan_verify_receipts').select('*').eq('coach_id',uid).eq('plan_version_id',id).eq('plan_sha256',r.planSha256).eq('refs_sha256',r.refsSha256).eq('ops_sha256',r.opsSha256).order('created_at',{ascending:false}).limit(1000));guard();if(receipts.error)throw Error('Relecture Nolio indisponible : résultat non confirmé.');return currentExportVerification({coachId:uid,planVersionId:id!,resp:r,receipts:receipts.data});};
-   const ports={planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,pendingRecreation:(d:RecreationDecision|null)=>{if(current())pendingRecreation(uid,id!,hash,d);},confirmRecreation:(rows:RecreationDecision['rows'])=>new Promise<boolean>(resolve=>{guard();recreationAnswer.current=resolve;setRecreationPrompt(rows);}),progress:(m:string)=>{if(current())setMessage(m);}};
+   const ports={planVersionId:id!,planSha256:hash,scope,current,stopRequested:()=>stop.current,invoke,confirmSimulation,verifyReceipts,refreshCompetitionRefs,pendingRecreation:(d:RecreationDecision|null)=>{if(current())pendingRecreation(uid,id!,hash,d);},confirmRecreation:(rows:RecreationDecision['rows'])=>new Promise<boolean>(resolve=>{guard();recreationAnswer.current=resolve;setRecreationPrompt(rows);}),progress:(m:string)=>{if(current())setMessage(m);}};
    const pending=!verifyOnly&&!calendarOnly?pendingRecreation(uid,id!,hash):null;
    const result=pending?await runCoachExport(ports,false,false,{kind:'resume',decision:pending}):await runCoachExport(ports,verifyOnly,calendarOnly);guard();
    if(!verifyOnly&&!calendarOnly)pendingRecreation(uid,id!,hash,null);

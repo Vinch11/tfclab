@@ -8,7 +8,7 @@ import type {CoachFlowPorts} from '@/lib/nolio/coachExportFlow';
 import {pendingRecreation,writeExportResume} from '@/lib/nolio/exportResume';
 import {canonical,sha256Hex} from '../../../../supabase/functions/_shared/nolioV2/dryRun';
 const mock=vi.hoisted(()=>({invoke:vi.fn(),getUser:vi.fn(),flow:vi.fn(),authListener:null as null|((event:string,session:{user:{id:string}}|null)=>void),row:null as null|{id:string;athlete_id:string;coach_id:string;plan_json:unknown}}));
-vi.mock('@/lib/nolio/coachExportFlow',()=>({runCoachExport:mock.flow}));
+vi.mock('@/lib/nolio/coachExportFlow',async importOriginal=>({...await importOriginal<typeof import('@/lib/nolio/coachExportFlow')>(),runCoachExport:mock.flow}));
 vi.mock('@/integrations/supabase/client',()=>({supabase:{auth:{getUser:mock.getUser,onAuthStateChange:(callback:typeof mock.authListener)=>{mock.authListener=callback;return {data:{subscription:{unsubscribe:()=>{if(mock.authListener===callback)mock.authListener=null;}}}};}},from:()=>{const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:mock.row,error:null})};return q;},functions:{invoke:mock.invoke}}}));
 const plan={title:'Test DET',totalWeeks:1,phases:[],weeks:[],_planStartDate:'2026-11-02',_provenance:{engine:'det',prescriptionAllowed:false}} as unknown as ParsedPlan;
 const version='22222222-2222-4222-8222-222222222222';
@@ -129,10 +129,10 @@ describe('normal coach Nolio journey',()=>{
   const next='33333333-3333-4333-8333-333333333333';const save=vi.fn(async()=>{mock.row={id:next,athlete_id:'athlete',coach_id:'coach',plan_json:plan};return next;});mock.row=null;setup(null,plan,save);exportNow();
   await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(save).toHaveBeenCalledOnce();expect((mock.flow.mock.calls[0][0] as CoachFlowPorts).planVersionId).toBe(next);
  });
- it('refreshes official sports automatically for a declared triathlon before checking export',async()=>{
+ it('lets the server precheck decide whether a declared triathlon needs another sports read',async()=>{
   const racePlan={...plan,weeks:[{weekNumber:1,sessions:[{weekNumber:1,dayIndex:6,sport:'brick',title:'COURSE : 70.3',details:'Épreuve déclarée'}]}]} as unknown as ParsedPlan;
   mock.row={...mock.row!,plan_json:racePlan};mock.invoke.mockImplementation(async(name)=>({data:name==='nolio-v2-oauth'?{status:'REFS_LOADED'}:exportCapabilities(name,CHECKED_IN_PLAN_RELEASE_INFO.releaseId),error:null}));
-  setup(version,racePlan);exportNow();await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.invoke.mock.calls[0]).toEqual(['nolio-v2-oauth',{body:{action:'load_refs',athleteId:'athlete'}}]);expect(mock.invoke.mock.calls.every(([,a])=>!['activate','update_refs','send'].includes(a.body.action))).toBe(true);
+  setup(version,racePlan);exportNow();await waitFor(()=>expect(mock.flow).toHaveBeenCalledOnce());expect(mock.invoke.mock.calls.some(([name])=>name==='nolio-v2-oauth')).toBe(false);expect(mock.flow.mock.calls[0][0].refreshCompetitionRefs).toBeTypeOf('function');expect(mock.invoke.mock.calls.every(([,a])=>!['activate','update_refs','send'].includes(a.body.action))).toBe(true);
  });
  it('refuses altered visible content without substituting a saved recipe',async()=>{
   setup(version,{...plan,title:'Different'});exportNow();await waitFor(()=>expect(screen.getByRole('status')).toHaveTextContent('Enregistrez ce plan'));expect(mock.flow).not.toHaveBeenCalled();expect(mock.invoke).not.toHaveBeenCalled();

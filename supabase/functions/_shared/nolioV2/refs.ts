@@ -82,7 +82,7 @@ function race<T>(p: Promise<T>, ms: number, ctl: AbortController): Promise<T> {
 }
 
 async function readAll<T extends { id: string }>(f: FetchLike, token: string, path: string, base: URLSearchParams, maxPages: number, validate: (j: unknown) => Page<T>, deadline: number, now: () => number):
-  Promise<{ ok: true; items: T[] } | { ok: false; reason: "partial" | "unknown" | "timeout" }> {
+  Promise<{ ok: true; items: T[] } | { ok: false; reason: "partial" | "unknown" | "timeout" | "authorization" | "rate_limited" | "provider_error" }> {
   const items: T[] = [];
   let after: string | null = null;
   for (let i = 0; ; i++) {
@@ -93,7 +93,7 @@ async function readAll<T extends { id: string }>(f: FetchLike, token: string, pa
     let page: Page<T>;
     try {
       const r = await race(Promise.resolve(f(`${NOLIO_ORIGIN}${path}?${q.toString()}`, { method: "GET", redirect: "error", signal: ctl.signal, headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } })), deadline - now(), ctl);
-      if (r.status !== 200) return { ok: false, reason: "unknown" };
+      if (r.status !== 200) return { ok: false, reason: r.status===401||r.status===403?'authorization':r.status===429?'rate_limited':r.status>=500&&r.status<600?'provider_error':'unknown' };
       const txt = await race(Promise.resolve(r.text()), deadline - now(), ctl);
       page = validate(JSON.parse(txt));
     } catch (e) { return { ok: false, reason: e instanceof Deadline ? "timeout" : "unknown" }; }
@@ -120,7 +120,7 @@ export async function fetchRemoteRefs(a: { fetch: FetchLike; accessToken: string
   if (a.scopes.includes("library:read")) {
     // Budget propre à la bibliothèque : lente/partielle ⇒ statut explicite, force bloquée, sports conservés.
     const ex = await readAll(a.fetch, a.accessToken, EXERCISES_PATH, new URLSearchParams(), MAX_EXERCISE_PAGES, validateExercisePage, now() + (a.exercisesBudgetMs ?? EXERCISES_BUDGET_MS), now);
-    exercises = ex.ok === true ? { status: "loaded", items: ex.items } : { status: ex.reason, items: [] };
+    exercises = ex.ok === true ? { status: "loaded", items: ex.items } : { status: ex.reason==='partial'||ex.reason==='timeout'?ex.reason:'unknown', items: [] };
   }
   const body = { athleteRef: a.athleteRef, sports: sp.items, exercises };
   return { ok: true, refs: { ...body, digest: await sha256Hex(canonicalJson(body)) } };
