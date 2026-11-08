@@ -102,6 +102,7 @@ import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
 import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
+import { NolioV2ExportCard } from "@/components/plan/NolioV2ExportCard";
 import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
 import { useAthleteRaceGoals } from "@/hooks/useAthleteRaceGoals";
@@ -114,6 +115,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DetRefusal, detSupportsObjective, generateDetPlanFromPageInput, readPlanningEngine, writePlanningEngine, type PlanningEngine } from "@/lib/plan/detEngineRun";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceTimePredictor";
@@ -533,6 +535,23 @@ export default function AITrainingPlanPage() {
    * génération complète n'a pas été lancée.
    */
   const [planOverride, setPlanOverride] = useState<ParsedPlan | null>(null);
+  // Choix du moteur de génération par le coach : IA (historique) ou DET (déterministe).
+  const [planningEngine, setPlanningEngineState] = useState<PlanningEngine>(() => readPlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage));
+  const setPlanningEngine = useCallback((engine: PlanningEngine) => { setPlanningEngineState(engine); writePlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage, engine); }, []);
+  const [detGenerating, setDetGenerating] = useState(false);
+  // Version sauvegardée du plan affiché (export Nolio V2) ; effacée dès que le plan change.
+  const [savedVersionId, setSavedVersionId] = useState<string | null>(null);
+  // Retour de l'autorisation Nolio V2 (?nolio_v2=...) : message puis URL nettoyée.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const outcome = params.get("nolio_v2");
+    if (!outcome) return;
+    if (outcome === "connected") toast.success("Compte Nolio connecté. Reliez maintenant l'athlète à son profil Nolio (carte « Exporter vers Nolio »).");
+    else toast.error(`Connexion Nolio non aboutie (${outcome}).`);
+    params.delete("nolio_v2");
+    const qs = params.toString();
+    window.history.replaceState(null, "", window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash);
+  }, []);
 
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
@@ -1704,6 +1723,9 @@ export default function AITrainingPlanPage() {
   const parsedPlanWithMeta = useMemo<{ plan: ParsedPlan; taperFix: LegacyTaperUpgradeReport | null } | null>(() => {
     if (!rawParsedPlan) return null;
     if (!athleteContext) return { plan: rawParsedPlan, taperFix: null };
+    // Les prescriptions DET sont affichées et enregistrées telles quelles :
+    // les post-traitements du chemin IA (affûtage, normalisation) ne les réécrivent jamais.
+    if ((rawParsedPlan as ParsedPlan & { _provenance?: { engine?: string } })._provenance?.engine === "det") return { plan: rawParsedPlan, taperFix: null };
 
 
     const clonedPlan: ParsedPlan = {
@@ -1842,6 +1864,36 @@ export default function AITrainingPlanPage() {
     }
   };
 
+  // Moteur DET : même entrée que l'IA (athlète + config de la page), plan installé
+  // dans la vue commune (affichage, enregistrement, PDF, export Nolio). Un refus DET
+  // est affiché tel quel : l'IA n'est jamais lancée à sa place.
+  const runDetEngine = async (
+    data: PlanAthleteData,
+    config: PlanConfig,
+    coachPayload?: { limiterOrder?: string[]; excludedLimiterMetrics?: string[]; overriddenByCoach?: { primary?: boolean; secondary?: boolean } } | null,
+  ) => {
+    if (!athleteContext || !currentAthlete) return;
+    setDetGenerating(true);
+    // Laisse le navigateur afficher l'état « en cours » avant le calcul (synchrone, quelques secondes).
+    await new Promise(resolve => setTimeout(resolve, 50));
+    try {
+      const plan = await generateDetPlanFromPageInput({
+        athleteId: currentAthlete.id, athlete: data, config, diagnostic: athleteContext.diagnostic,
+        pageLimiterOrder: coachLimiterOrder, coachPayload,
+      });
+      setPlanOverride(plan);
+      setIsSaved(false);
+      setResponse("");
+      const sessions = plan.weeks.reduce((n, w) => n + w.sessions.filter(x => !x.isRest).length, 0);
+      toast.success(`Plan DET généré : ${plan.weeks.length} semaines, ${sessions} séances. Relisez-le puis enregistrez-le.`);
+    } catch (error) {
+      const reasons = error instanceof DetRefusal ? error.reasons : [error instanceof Error ? error.message : String(error)];
+      toast.error(`DET n'a pas pu générer ce plan : ${reasons.slice(0, 3).join(" · ")}`, { duration: 12000 });
+    } finally {
+      setDetGenerating(false);
+    }
+  };
+
   const handleGenerate = async (extraConstraints?: string, prevalidateOnly=false) => {
     // Une génération complète invalide toute régénération ciblée précédente.
 
@@ -1928,6 +1980,7 @@ export default function AITrainingPlanPage() {
       setShowSyncBanner(false);
     }
 
+    if (planningEngine === "det") { await runDetEngine(athleteContext.data, config); return; }
     generatePlanWindowed(athleteContext.data, config);
   };
 
@@ -2004,8 +2057,10 @@ export default function AITrainingPlanPage() {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objectiveOverride??objective)});
     if(payload.limiterOrder?.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objectiveOverride??objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
+    if (planningEngine === "det") { await runDetEngine(athleteContext.data, config, payload); return; }
     generatePlanWindowed(athleteContext.data, config);
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- runDetEngine lit l'état courant de la page
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
@@ -2278,7 +2333,7 @@ export default function AITrainingPlanPage() {
         : validatorSummary;
 
       // Archive this plan version (history only — no write to training_plan)
-      const { error } = await supabase.from("plan_versions").insert({
+      const { data: inserted, error } = await supabase.from("plan_versions").insert({
         athlete_id: currentAthlete.id,
         coach_id: user.id,
         plan_json: {
@@ -2304,9 +2359,10 @@ export default function AITrainingPlanPage() {
         validator_score: validatorScore,
         validator_grade: validatorGrade,
         validator_summary: summaryWithOverride as any,
-      });
+      }).select("id").single();
       if (error) throw error;
 
+      setSavedVersionId((inserted as { id?: string } | null)?.id ?? null);
       setIsSaved(true);
       setHistoryRefreshKey(k => k + 1);
       toast.success("Plan sauvegardé dans l'historique !");
@@ -2626,6 +2682,8 @@ export default function AITrainingPlanPage() {
     setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
     setResultView("interactive");
     setIsSaved(true);
+    const loadedId = (version as { id?: unknown }).id;
+    setSavedVersionId(typeof loadedId === "string" ? loadedId : null);
     toast.success("Version chargée");
   }, [setResponse, reset, activePlanKey]);
 
@@ -4150,17 +4208,50 @@ export default function AITrainingPlanPage() {
               </Alert>
             )}
 
-            <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
+            {/* Choix du moteur de génération (IA ou DET) */}
+            {!isMultiMode && (
+              <div className="space-y-1.5" data-testid="planning-engine-choice">
+                <Label className="text-xs font-medium">Moteur de génération</Label>
+                <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Moteur de génération">
+                  {([
+                    { value: "ai", title: "IA", hint: "Plan rédigé par l'IA TFCL" },
+                    { value: "det", title: "DET (bêta)", hint: "Séances de la bibliothèque, sans IA" },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={planningEngine === opt.value}
+                      disabled={isLoading || detGenerating}
+                      onClick={() => setPlanningEngine(opt.value)}
+                      className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${planningEngine === opt.value ? "border-primary bg-primary/10 font-semibold" : "border-border hover:bg-muted"}`}
+                    >
+                      <div>{opt.title}</div>
+                      <div className="text-[11px] font-normal text-muted-foreground">{opt.hint}</div>
+                    </button>
+                  ))}
+                </div>
+                {planningEngine === "det" && !detSupportsObjective(objective) && (
+                  <p className="text-xs text-amber-600">DET ne couvre pas encore l'objectif « {objective} » : choisissez le moteur IA.</p>
+                )}
+              </div>
+            )}
+            <Button variant="outline" disabled={isLoading||detGenerating||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
             {!isMultiMode ? (
               <Button
                 onClick={() => { void handleGenerate(); }}
-                disabled={isLoading || !hasData}
+                disabled={isLoading || detGenerating || !hasData || (planningEngine === "det" && !detSupportsObjective(objective))}
                 className="w-full"
                 size="lg"
               >
-                {isLoading ? (
+                {detGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Génération DET en cours...
+                  </>
+                ) : isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     {chunkProgress && chunkProgress.totalChunks > 1
@@ -4170,7 +4261,7 @@ export default function AITrainingPlanPage() {
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4 mr-2" />
-                    Générer le Plan TFCL™
+                    {planningEngine === "det" ? "Générer le Plan TFCL™ (DET)" : "Générer le Plan TFCL™"}
                   </>
                 )}
               </Button>
@@ -4548,6 +4639,9 @@ export default function AITrainingPlanPage() {
                             : "Plan IA · estimation depuis VMA"
                         }
                       />
+                      {currentAthlete && (
+                        <NolioV2ExportCard athleteId={currentAthlete.id} athleteName={currentAthlete.nom} planVersionId={isSaved ? savedVersionId : null} />
+                      )}
                       {/* Nolio sending panel is now rendered at the top of AIPlanViewer */}
                       <AIPlanViewer
                         plan={parsedPlan}

@@ -1,0 +1,530 @@
+import { resolveDetLimiter } from '../../../../experimental/det-engine/v403-limiter-semantics';
+import { structuredV3ZoneDose } from '../../../../experimental/det-engine/v310-structured-zone-dose';
+import { verifyPrimaryRunningSession } from '../../../../experimental/det-engine/v408-primary-limiter-evidence';
+import {TT_OBJECTIVE,type TimeTrialDeclaration} from '../../../../experimental/det-engine/v410-time-trial-contract';
+import {appPlanningPriorityGaps} from '@/lib/plan/dedicatedSportGoal';
+/**
+ * INTÉGRATION RÉELLE (aucun mock moteur) : enregistrements SYNTHÉTIQUES au format du dépôt
+ * → pipeline de la page (computeAppAthleteContext + buildAppPlanConfig, extraits tels quels)
+ * → profil figé partagé → IA (transport injecté, AUCUN appel IA payant) et DET (vrai solveur +
+ * validateurs finaux) → sauvegarde append-only (transport mémoire) → réouverture.
+ * La revue des séances est SYNTHÉTIQUE (test uniquement) ; elle n'est pas une revue scientifique.
+ */
+import { describe, it, expect, vi, beforeAll } from "vitest";
+// Pure pipeline test: effectiveRefs imports the live client for unrelated hooks.
+// Never initialize a backend client or require deployment settings in this suite.
+vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
+import { bindAppPlanMetadata, planArchiveMetadata } from "@/lib/plan/generatedPlanMetadata";
+import { computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState } from "@/lib/plan/appPlanningPipeline";
+import { freezeAppPlanningInput, planningInputFor, semanticPlanningPayload, explicitCoachLimiterOverride } from "../appPlanningInput";
+import { buildAthleteRecordView } from "../appRecordView";
+import { buildAthleteDetInputs, GENERAL_CONFIRMATIONS, CONDITIONAL_CONFIRMATIONS, clockSportsFor, bricksForFamily, type CoachAnswers, type GenuineSourceReviews, type AthleteRecordView } from "../athleteDetBridge";
+import { findSource, hashCoachInputs } from "../coachDetContext";
+import { fingerprintV3SportingSource } from "../../../../scripts/library-v3/sportingQualification800";
+import { familySourcePool } from "../familySourcePools";
+import { runAppPlanningDetPlan } from "../appPlanningDetRun";
+import { coachFamilyFor } from "../../../../experimental/det-engine/v401-coach-inputs-core";
+import { rankPrescriptionGaps } from "@/lib/limiterPrescription";
+import * as detEngine from "../../../../experimental/det-engine/engine";
+import { triClock, swimPaces } from './coachDetFamilies.test.shared';
+
+const COACH = "00000000-0000-4000-8000-0000000000c1";
+const A1 = "00000000-0000-4000-8000-0000000000a1";
+const days = Array(7).fill(true);
+function answers(objective: string, extra: Partial<CoachAnswers> = {}): CoachAnswers {
+  const fam = coachFamilyFor(objective)!; const pool = familySourcePool(fam.key);
+  const times: Record<string, string> = { run: "07:00", bike: "12:00", swim: "06:00", strength: "19:00", brick: "08:00" };
+  const all = { ...GENERAL_CONFIRMATIONS, ...CONDITIONAL_CONFIRMATIONS };
+  return {
+    provenance: Object.fromEntries(["runThresholdPaceSecPerKm", "runVvo2SpeedMps", "bikeFtpWatts", "cssSecPer100m", "vo2max", "weightKg", "fcMax", "tteRunMin", "vlamaxRun", "vlamaxBike"].map((k) => [k, { kind: "explicit_estimate", uncertainty: "±5 %" }])),
+    entered: { runSprintSpeedRangeMps: { value: [5.2, 7.0], kind: "explicit_estimate", method: "SYNTHÉTIQUE sprints 15 s", uncertainty: "±0,2 m/s" },
+      bikeSprintPowerRangeWatts: { value: [600, 870], kind: "explicit_estimate", method: "SYNTHÉTIQUE sprints", uncertainty: "±30 W" },
+      bikePmaWatts: { value: 390, kind: "explicit_estimate", method: "SYNTHÉTIQUE rampe", uncertainty: "±10 W" } }, swimPaces: {}, athleteLevel: "trained", recentLoad: "moderate", fatigue: "ready", injuryScreen: "cleared_by_coach",
+    general: Object.fromEntries(Object.keys(all).map((k) => [k, true])), prerequisitesAllMet: true, unmetPrerequisites: [], contraindicationsAllAbsent: true, presentContraindications: [],
+    strengthLoadAndRpeConfirmed: true, clock: { timeZone: "Europe/Brussels", bySport: Object.fromEntries(clockSportsFor(fam, pool).map((s) => [s, { time: times[s], days }])) },
+    bricksConfirmed: true, coachLimiterOrder: null, ...extra,
+  };
+}
+/** Revue par séance SYNTHÉTIQUE au format de la grille « Avancé » (représente une revue humaine enregistrée ; test uniquement). */
+function genuineFor(rec: AthleteRecordView, objective: string, over: Partial<GenuineSourceReviews> = {}): GenuineSourceReviews {
+  const pool = familySourcePool(coachFamilyFor(objective)!.key);
+  return { origin: "det_coach_review_contexts", reviewContextId: "ctx-grille-synthetique", coachId: rec.coachId, athleteId: rec.athleteId, reviewedAt: "2026-11-03T10:00:00Z",
+    qualifications: pool.ids.map((id) => { const w = findSource(id)!; return { id, sourceFingerprint: fingerprintV3SportingSource(w), preferReviewedV3: true, ...(pool.doses[id] ?? {}),
+      evidence: { coachReviewedSource: true, ...Object.fromEntries(Object.keys({ ...GENERAL_CONFIRMATIONS, ...CONDITIONAL_CONFIRMATIONS }).map((k) => [k, true])), currentPhase: w.phase[0], recentLoad: "moderate", fatigue: "ready", injuryScreen: "cleared_by_coach",
+        checkedPrerequisites: [...w.prerequisites], checkedContraindications: [...w.contraindications] } as never } as never; }),
+    brickApprovals: bricksForFamily(coachFamilyFor(objective)!.key), ...over };
+}
+
+const toHm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const variedClock = { timeZone: "Europe/Brussels", bySport: {
+  run: { time: "", days, perDay: [1080, 360, 540, 720, 900, 1020, 1140].map(toHm) },
+  strength: { time: "", days, perDay: [900, 900, 1080, 1200, 540, 600, 720].map(toHm) },
+  bike: { time: "", days, perDay: [660, 660, 840, 1020, 720, 780, 900].map(toHm) } } };
+
+/** Lignes SYNTHÉTIQUES au format `athletes` / `snapshots` (aucune donnée réelle). */
+const athleteRow = { id: A1, name: "Synthétique A1", birth_date: "1991-01-01", sex: "M", active_snapshot_id: "snap-syn-1", refs: { fcMax: 188 } };
+const snapRow = (pace: number) => ({ id: "snap-syn-1", athlete_id: A1, date: "2026-10-01", sport_main: "run", vma: 18, ftp: 300, weight_kg: 72, vo2max: 58, fc_max: 188,
+  pace_threshold_sec_per_km: pace, tte_observed_min_run: 45, vlamax_run: null,vlamax:null as number|null, vlamax_source:null as string|null, vlamax_protocol:null as string|null, fatigue_state: "ok", tss_7d: 380, run_economy_score: 68, run_hr_drift_pct: 3.5 });
+const formState = (objective: string, weeks: number, hours: number, sessions: number): AppPlanFormState => ({
+  objective, ambition: "age_group", planStartDate: new Date(2026, 9, 26), raceName: "", raceDate: new Date(Date.UTC(2026, 9, 26 + weeks * 7 - 1)).toISOString().slice(0, 10),
+  raceFormat: "continuous", raceGoals: [], trailDistanceKm: "", trailElevationM: "", trailTargetTimeH: "", trailMaxAltitudeM: "",
+  weeksAvailable: weeks, weeklyHours: String(hours), sessionsPerWeek: String(sessions), maxSessionsPerDay: "2", strengthSessionsPerWeek: "1",
+  deloadCadence: "auto", constraints: "", trainingLevel: "auto", terrainAvailability: "auto", lockAmbition: false, crossTrainingVelo: false, crossTrainingNatation: false,
+  chronicWeeklyHours: "", recentWeeklyHours: "", recentWeeksCount: "", maxDoubleDaysPerWeek: "", coachLimiterOrder: [], currentAthleteId: A1,
+});
+
+async function pagePipeline(pace: number, objective: string, weeks: number, hours: number, sessions: number, vma = 18, snapshotOverrides: Partial<ReturnType<typeof snapRow>> = {}, formOverrides: Partial<AppPlanFormState> = {}) {
+  const snapshots = [{ ...snapRow(pace), ...(/Ironman|Sprint|Olympic|Natation/.test(objective) ? {sport_main:'tri',css:95} : /Cyclisme/.test(objective)?{sport_main:'bike'}:{}), vma, ...snapshotOverrides }];
+  const ctx = computeAppAthleteContext({...athleteRow,objectif:"703"}, objective, "age_group", { snapshots, tests: [], checkins: [],programmeTarget:objective==="Cyclisme FTP"?330:objective==="Natation 1500m"?90:null })!;
+  const st = { ...formState(objective, weeks, hours, sessions), ...formOverrides };
+  const config = buildAppPlanConfig(ctx.diagnostic, st);
+  const applied = (config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
+  const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: ctx.data, config, planStartDate: "2026-10-26",
+    appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(ctx.diagnostic)).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
+  const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
+  return { ctx, config, frozen, record, st };
+}
+async function runDet(p: Awaited<ReturnType<typeof pagePipeline>>, objective: string, weeks: number, hours: number, sessions: number, extraAnswers:Partial<CoachAnswers>={}) {
+  const f = { raceGoals:p.frozen.config.raceGoals, objective, planStartDate: "2026-10-26", raceDate: p.st.raceDate, weeksAvailable: weeks, weeklyHours: hours, sessionsPerWeek: sessions, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
+  const b = buildAthleteDetInputs(p.record, f, answers(objective, { clock: variedClock,timeTrial:p.frozen.config.timeTrialContext, ...extraAnswers }), { ...genuineFor(p.record, objective), planningInputFingerprint: p.frozen.fingerprint }, p.frozen.fingerprint);
+  expect(b.sourceReview.status).toBe("reviewed");
+  const inputsHash = await hashCoachInputs(b.snapshot!);
+  const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
+    snapshot: b.snapshot!, inputsHash, sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, now: () => new Date("2026-11-04T00:00:00Z"),
+    limits: /Ironman/.test(objective)?undefined:{ maxNodes: 25000, maxMilliseconds: 120000 }, appInput: p.frozen });
+  return { b, out };
+}
+/** Exercise repeated real source prescriptions from the ORIGINAL app priorities.
+ * Rebuild only time blocks from the saved configured structure, never catalogue
+ * default doses; existing V408 rules decide whether the declared focus is met. */
+function assertRecurringRunningPrescription(plan:import('@/lib/aiPlanParser').ParsedPlan,priorities:readonly string[]) {
+  type Node=import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredNode;
+  type Workout=import('../../../../experimental/det-engine/v400-structured-workout').DetStructuredWorkout;
+  type Block=import('../../../../scripts/library-v3/catalogueRuntime').V3Block;
+  function blocks(nodes:readonly Node[]):Block[]|null {
+    const result:Block[]=[];
+    for(const node of nodes){
+      if(node.kind==='repeat'){
+        const steps=blocks(node.steps);if(!steps)return null;
+        result.push({kind:'repeat',label:node.label,count:{min:node.count,base:node.count,max:node.count},betweenSec:node.betweenSec,steps});
+      }else{
+        if(!('seconds' in node.dose))return null;
+        result.push({kind:'time',label:node.label,role:node.role,domain:node.domain as import('@/lib/zones/tfclDoctrine').DoctrineDomainId|null,seconds:{min:node.dose.seconds,base:node.dose.seconds,max:node.dose.seconds}});
+      }
+    }
+    return result;
+  }
+  const byBlock=new Map<number,{focus:string;weeks:typeof plan.weeks}>();
+  for(const week of plan.weeks){
+    const focus=plan.weeklyQuotas?.[week.weekNumber]?.limiterFocus;
+    if(focus?.mode!=='development'||!focus.focus||focus.block===null)continue;
+    expect(priorities).toContain(focus.focus);
+    const group=byBlock.get(focus.block)??{focus:focus.focus,weeks:[]};group.weeks.push(week);byBlock.set(focus.block,group);
+  }
+  for(const priority of priorities)expect([...byBlock.values()].filter(b=>b.focus===priority).length,'recurring focus '+priority).toBeGreaterThanOrEqual(2);
+  for(const [block,group] of byBlock){
+    const resolved=resolveDetLimiter(group.focus);
+    expect(resolved.status).toBe('supported');if(resolved.status!=='supported')continue;
+    const hits=group.weeks.flatMap(w=>w.sessions).filter(session=>{
+      const workout=(session as typeof session&{detStructuredWorkout?:Workout}).detStructuredWorkout;
+      if(!workout||workout.sourceId!==session.catalogId||workout.chosenDurationMin!==session.durationMin||workout.exactSeconds===null||Math.abs(workout.exactSeconds-session.durationMin!*60)>1e-6)return false;
+      const configured=blocks(workout.nodes);if(!configured)return false;
+      const dose=structuredV3ZoneDose({id:workout.sourceId,sport:'run',blocks:configured},{});
+      return verifyPrimaryRunningSession(session,resolved.key,{
+        dose:id=>id===workout.sourceId?dose:null,
+        limiterKeys:id=>findSource(id)?.prescription.physiologicalIntent.limiterKeys,
+        primaryDomain:id=>findSource(id)?.primaryDomain,
+      }).verified;
+    });
+    expect(hits.length,group.focus+' focus block '+block+' has no configured session meeting its existing dose rule').toBeGreaterThan(0);
+  }
+}
+
+beforeAll(() => { vi.spyOn(console, "log").mockImplementation(() => {}); vi.spyOn(console, "warn").mockImplementation(() => {});
+  vi.spyOn(globalThis, "fetch").mockImplementation(() => { throw new Error("NETWORK_FORBIDDEN"); }); });
+
+describe("[intégration réelle] pipeline de la page → profil figé → IA et DET (vrai solveur)", () => {
+  it('CLM : original app profile and exact declared posture calendar',async()=>{
+    const timeTrialContext:TimeTrialDeclaration={aeroWeeks:[5,6],aeroDayIndex:3,athleteId:A1,raceDurationMinutes:60,observedOn:'2026-10-20',reviewReference:'SYNTHETIC FIELD REVIEW ONLY',bikeFitConfirmed:true,symptomScreenClear:true,longestContinuousAeroMinutes:20,maxAeroMinutesPerSession:60,minimumContinuousAeroMinutes:15,minimumAeroMinutesPerSession:30,minimumAeroSessions:2};
+    const p=await pagePipeline(240,TT_OBJECTIVE,8,7,4,20,{ftp:180,vo2max:75,tte_observed_min_run:80,vlamax:0.25,vlamax_run:0.25,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC lactate lab',sport_main:'bike'},{raceTargetMinutes:'60',timeTrialContext,constraints:'pas de vélo le mercredi'});
+    const clock={timeZone:'Europe/Brussels',bySport:{bike:{time:'',days,perDay:[480,360,480,540,600,480,480].map(toHm)},strength:{time:'19:00',days}}};
+    const {out,b}=await runDet(p,TT_OBJECTIVE,8,7,4,{clock});
+    process.stdout.write('TT_APP '+JSON.stringify({priorities:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;expect(out.plan.weeks).toHaveLength(8);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);expect(out.provenance.prescriptionAllowed).toBe(false);expect(p.config.planningProfileReference).toBe('703');
+    const bad=await pagePipeline(240,TT_OBJECTIVE,8,7,4,20,{ftp:180,vo2max:75,tte_observed_min_run:80,vlamax:0.25,vlamax_run:0.25,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC lactate lab',sport_main:'bike'},{raceTargetMinutes:'60',timeTrialContext:{...timeTrialContext,aeroWeeks:[3,6]},constraints:'pas de vélo le mercredi'});
+    const refused=await runDet(bad,TT_OBJECTIVE,8,7,4,{clock});expect(refused.out.kind).toBe('refused');if(refused.out.kind==='refused')expect(refused.out.refusals.join(' ')).toMatch(/rendez-vous aéro.*semaine 3/);
+  },180000);
+  it.each([
+    {goal:'Cyclisme FTP',weeks:8,hours:7,sessions:4,expected:'FTP'},
+    {goal:'Natation 1500m',weeks:8,hours:4,sessions:4,expected:'CSS'},
+    {goal:'Sprint',weeks:8,hours:8,sessions:8,expected:'VLamax'},
+    {goal:'Olympic',weeks:12,hours:10,sessions:9,expected:'VLamax'},
+  ])('new family $goal : shared app input and real solver',async c=>{
+    const p=await pagePipeline(240,c.goal,c.weeks,c.hours,c.sessions,18,c.goal==='Cyclisme FTP'?{vlamax:0.25,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}:{},c.goal==='Natation 1500m'?{constraints:'Mercredi indisponible. Samedi indisponible.'}:{});
+    const clock={timeZone:'Europe/Brussels',bySport:Object.fromEntries(Object.entries({swim:[360,360,360,720,360,1020,480],bike:[600,660,600,480,600,420,540],run:[1080,540,720,900,1080,1260,1140],strength:Array(7).fill(1140),brick:Array(7).fill(360)}).map(([sport,row])=>[sport,{time:'',days,perDay:row.map(toHm)}]))};
+    const {out,b}=await runDet(p,c.goal,c.weeks,c.hours,c.sessions,{clock,swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHETIC TEST ONLY',uncertainty:'±5 s/100 m'}]))});
+    if(out.kind!=='accepted')process.stdout.write('NEW_FAMILY_APP '+JSON.stringify({goal:c.goal,priorities:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues,context:out.contextProblems}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    if(p.ctx.diagnostic.planningGoalAnalysis){const reference=computeAppAthleteContext({...athleteRow,objectif:'703'},'703','age_group',{snapshots:[{...snapRow(240),...(/Cyclisme/.test(c.goal)?{sport_main:'bike',vlamax:0.25,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}:{sport_main:'tri',css:95})}],tests:[],checkins:[]})!;expect(p.ctx.diagnostic.limiter).toEqual(reference.diagnostic.limiter);const withoutAuditClock=(x:unknown)=>JSON.parse(JSON.stringify(x,(key,value)=>key==='calibrationLog'&&value?{...value,date:undefined}:value));expect(withoutAuditClock(p.ctx.diagnostic._rawInput)).toEqual(withoutAuditClock(reference.diagnostic._rawInput));}
+    expect(out.plan.weeks).toHaveLength(c.weeks);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);expect(out.provenance.prescriptionAllowed).toBe(false);
+    if(c.expected)expect(out.limiterOrder.applied[0]).toBe(c.expected);if(c.goal==='Cyclisme FTP'||c.goal==='Natation 1500m'){expect(p.frozen.config.planningGoalContext).toMatchObject({origin:'explicit_coach_programme_target',profileObjective:'703',causalLimiterDiagnosis:false});}
+  },180000);
+  it.each([
+    {label:'VO2max',pace:222,vma:18,snapshot:{vo2max:30,tte_observed_min_run:80}},
+    {label:'VMA',pace:285,vma:14,snapshot:{tte_observed_min_run:80,vlamax_run:0.25,vlamax_source:'field_test',vlamax_protocol:'sprint'}},
+    {label:'VLamax',pace:300,vma:18,snapshot:{}},
+  ])('primary $label : exact app diagnosis retained, complete marathon',async c=>{
+    const p=await pagePipeline(c.pace,'Marathon',16,7,4,c.vma,c.snapshot);
+    expect(p.frozen.limiters.applied[0]).toBe(c.label);
+    const {out}=await runDet(p,'Marathon',16,7,4);
+    if(out.kind!=='accepted')process.stdout.write('PRIMARY_RESULT '+JSON.stringify({label:c.label,kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.plan.weeks).toHaveLength(16);expect(out.provenance.prescriptionAllowed).toBe(false);
+  },180000);
+  it.each([0,1,2])('Trail format %s : profil figé de la page, parcours propres à cet athlète, solveur réel',async index=>{
+    const {runTrail,trailCases}=await import('../../../../experimental/det-engine/v360-trail-fixture');
+    const {fingerprintTrailRoute}=await import('../../../../experimental/det-engine/v360-trail-evidence');
+    const reference=runTrail(trailCases[index]);
+    const spec=trailCases[index],sessions=index===0?5:6;
+    const p=await pagePipeline(222,spec.objective,spec.weeks,spec.weeklyHours,sessions,18,index===0?{vo2max:30,tte_observed_min_run:80}:{tte_observed_min_run:10},{crossTrainingVelo:true,crossTrainingNatation:false,trailDistanceKm:String(spec.event.distanceKm),trailElevationM:String(spec.event.elevationGainM),trailTargetTimeH:Math.floor(spec.event.targetTimeMinutes/60)+'h'+spec.event.targetTimeMinutes%60});
+    const routes=reference.routes.map(r=>({...r,athleteId:A1,provenance:'explicit_coach_route_observation' as const}));
+    const {detPrimaryLimiterKey}=await import('../../../../experimental/det-engine/v403-limiter-semantics');
+    const review={...reference.coachReview,primaryLimiter:detPrimaryLimiterKey(p.frozen.config) as typeof reference.coachReview.primaryLimiter,athleteId:A1,routeFingerprints:Object.fromEntries(routes.map(r=>[r.sourceId,fingerprintTrailRoute(r)]))};
+    const times=[720,720,420,930,420,720,420].map(toHm);
+    const {out,b}=await runDet(p,spec.objective,spec.weeks,spec.weeklyHours,sessions,{trail:{review,routes,longStartMinutes:spec.longStart,longPeakMinutes:spec.longPeak,scheduleConfirmed:true,fieldReviewReference:'SYNTHETIC field check only',domainRpe:{recovery:[1,2],moderate_lt1:[2,3],mlss:[6,7],vo2max:[8,9]}},clock:{timeZone:'UTC',bySport:{run:{time:'',days,perDay:times},bike:{time:'',days,perDay:times},strength:{time:'18:00',days}}}});
+    if(out.kind!=='accepted')process.stdout.write('TRAIL_APP '+JSON.stringify({primary:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues,context:out.contextProblems}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(p.frozen.limiters.applied[0]).toBe(index===0?'VO2max':'TTE');expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(spec.weeks);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+    const runs=out.plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='run'&&!s.isRest&&!s.title.startsWith('COURSE : '));
+    expect(runs.every(s=>s.details.includes('coach_field_effort'))).toBe(true);
+    expect(runs.every(s=>!s.details.includes('sec_per_km'))).toBe(true);
+  },180000);
+  it('10 km B puis 70.3 A : calendrier multi-sport complet depuis la page',async()=>{
+    const p=await pagePipeline(240,'Ironman 70.3',12,9,8,18,{}, {raceTargetMinutes:'330',raceGoals:[{objective:'10K',raceDate:'2026-11-28',priority:'B',targetTimeMinutes:40}]});
+    const solver=vi.spyOn(detEngine,'constructDeterministicPlan');
+    const {out}=await runDet(p,'Ironman 70.3',12,9,8,{clock:{timeZone:triClock.timeZone,bySport:Object.fromEntries(Object.entries(triClock.minutesBySport).map(([sport,row])=>[sport,{time:'',days,perDay:row.map(m=>m===null?'':toHm(m))}]))},swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHÉTIQUE QA',uncertainty:'±5 s/100 m'}]))});
+    if(out.kind!=='accepted')process.stdout.write('MULTI_TRI_ATTEMPTS '+JSON.stringify(solver.mock.results.filter(r=>r.type==='return').slice(0,3).map(r=>({reason:r.value.reason,hard:r.value.issues.filter((i:{severity:string;week?:number})=>['blocking','critical','error'].includes(i.severity)||i.week===6),trace:r.value.trace?.slice(-3)})))+'\n');
+    if(out.kind!=='accepted'&&solver.mock.calls[1]){const {prepareGenerationContracts}=await import('@/lib/plan/prepareGenerationContracts');const prep=prepareGenerationContracts(p.ctx.data,p.frozen.config);solver.mock.calls[1][3]?.adapt(prep,p.frozen.config);process.stdout.write('MULTI_TRI_WEEK6 '+JSON.stringify(prep.weeklyQuotas[6])+'\n');}
+    solver.mockRestore();
+    if(out.kind!=='accepted')process.stdout.write('MULTI_TRI '+JSON.stringify({kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(12);expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.plan.weeks[4].sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({day:s.dayIndex,duration:s.durationMin,sport:s.sport}))).toEqual([{day:5,duration:40,sport:'run'}]);
+    expect(out.plan.weeklyQuotas?.[6].weekType).toBe('recovery');expect(out.provenance.prescriptionAllowed).toBe(false);
+  },240000);
+  it('marathon 40 semaines : deux courses B, récupérations et course A conservées',async()=>{
+    const p=await pagePipeline(222,'Marathon',40,8,4,18,{tte_observed_min_run:10},{raceTargetMinutes:'195',raceGoals:[{objective:'10K',raceDate:'2026-12-19',priority:'B',targetTimeMinutes:40},{objective:'Semi',raceDate:'2027-04-11',priority:'B',targetTimeMinutes:95}]});
+    const {out}=await runDet(p,'Marathon',40,8,4);
+    if(out.kind!=='accepted')process.stdout.write('MULTI_40 '+JSON.stringify({kind:out.kind,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');
+    expect(out.kind).toBe('accepted');if(out.kind!=='accepted')return;
+    const races=out.plan.weeks.flatMap(w=>w.sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({week:w.weekNumber,day:s.dayIndex,minutes:s.durationMin})));
+    expect(races).toEqual([{week:8,day:5,minutes:40},{week:24,day:6,minutes:95},{week:40,day:6,minutes:195}]);
+    expect(out.plan.weeklyQuotas?.[9].weekType).toBe('recovery');expect(out.plan.weeklyQuotas?.[25].weekType).toBe('recovery');expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+  },180000);
+  it('multi pool fingerprint is pinned',async()=>{
+    const {computePoolFingerprint}=await import('../familySourcePools');
+    expect(await computePoolFingerprint(familySourcePool('semi_marathon').ids)).toBe(familySourcePool('semi_marathon').pinnedFingerprint);
+  });
+  it('10 km B puis semi A : calendrier complet depuis les déclarations de la page',async()=>{
+    const p=await pagePipeline(222,'Semi',16,8,4,18,{tte_observed_min_run:10},{raceTargetMinutes:'95',raceGoals:[{objective:'10K',raceDate:'2026-12-19',priority:'B',targetTimeMinutes:40}]});
+    const {out,b}=await runDet(p,'Semi',16,8,4);
+    if(out.kind!=='accepted')process.stdout.write('MULTI_APP '+JSON.stringify({kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:{refusals:out.refusals})})+'\n');
+    expect(out.kind).toBe('accepted');
+    if(out.kind!=='accepted')return;
+    expect(out.plan.weeks).toHaveLength(16);
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    const races=out.plan.weeks.flatMap(w=>w.sessions.filter(s=>s.title.startsWith('COURSE : ')).map(s=>({week:w.weekNumber,day:s.dayIndex,minutes:s.durationMin})));
+    expect(races).toEqual([{week:8,day:5,minutes:40},{week:16,day:6,minutes:95}]);
+    expect(out.plan.weeklyQuotas?.[9].weekType).toBe('recovery');
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  },180000);
+  it.each([8, 10, 12])("10 km %s semaines : le diagnostic TTE de l'app guide le calendrier complet", async (weeks) => {
+    const p = await pagePipeline(222, '10K', weeks, 7, 4, 18, { tte_observed_min_run: 10 });
+    const before = structuredClone(p.ctx.diagnostic);
+    const { out } = await runDet(p, '10K', weeks, 7, 4);
+    process.stdout.write('TENK_APP '+JSON.stringify({weeks,limiters:p.frozen.limiters.applied,...(out.kind==='accepted'?{kind:out.kind,sessions:out.sessions,audit:out.auditCodes}:out.kind==='engine_refused'?{kind:out.kind,reason:out.reason,issues:out.blockingIssues}:{kind:out.kind,refusals:out.refusals})})+'\n');
+    expect(out.kind).toBe('accepted');
+    expect(p.ctx.diagnostic).toEqual(before);
+    if (out.kind !== 'accepted') return;
+    expect(out.plan.weeks).toHaveLength(weeks);
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.auditCodes).toContain('det_v358_running_exact_source_horizon_verified');
+    expect(out.auditCodes).toContain('det_v403_race_durability_coverage_verified');
+    const { isDetCoachInputsProvenance, readPlanProvenance } = await import('@/lib/plan/planProvenance');
+    expect(isDetCoachInputsProvenance(out.provenance)).toBe(true);
+    expect(readPlanProvenance(JSON.parse(JSON.stringify(out.plan))).engine).toBe('det');
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  }, 120000);
+  it('Ironman 16 sem./14 h : profil et priorités automatiques de l’app conservés dans le calendrier complet',async()=>{
+    const p=await pagePipeline(240,'Ironman',16,14,10),before=structuredClone(p.ctx.diagnostic);
+    const clock={timeZone:triClock.timeZone,bySport:Object.fromEntries(Object.entries(triClock.minutesBySport).map(([sport,row])=>[sport,{time:'',days,perDay:(sport==='run'?[420,420,1080,1200,1080,420,420]:row).map(toHm)}]))};
+    const {out,b}=await runDet(p,'Ironman',16,14,10,{clock,swimPaces:Object.fromEntries(Object.entries(swimPaces).map(([domain,value])=>[domain,{value,kind:'explicit_estimate',method:'SYNTHÉTIQUE QA',uncertainty:'±5 s/100 m'}]))});
+    process.stdout.write('IM_APP_PIPELINE '+JSON.stringify({kind:out.kind,priorities:p.frozen.limiters.applied,missing:b.missing,...(out.kind==='engine_refused'?{issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{sessions:out.sessions})})+'\n');
+    expect(out.kind).toBe('accepted');
+    expect(p.ctx.diagnostic).toEqual(before);
+    if(out.kind==='accepted'){
+      expect(out.plan.weeks).toHaveLength(16);
+      expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+      expect(out.provenance.planningInput).toEqual({source:'app_planning_pipeline',fingerprint:p.frozen.fingerprint});
+      expect(out.provenance.prescriptionAllowed).toBe(false);
+    }
+  },180000);
+  it("VMA 17,5 km/h du profil enregistré : la conversion d'unité atteint le vrai solveur sans faux refus d'ancre", async () => {
+    const p = await pagePipeline(240, "Semi", 8, 6, 5, 17.5);
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const { b, out } = await runDet(p, "Semi", 8, 6, 5);
+      expect(b.snapshot!.anchors.runVvo2SpeedMps!.value).toBe(17.5 / 3.6);
+      expect(solver).toHaveBeenCalledTimes(1);
+      expect(solver.mock.calls[0][0].vma).toBe(17.5);
+      // This checks delivery to the solver, not approval of any resulting plan.
+      expect(["accepted", "engine_refused"]).toContain(out.kind);
+    } finally { solver.mockRestore(); }
+  }, 200000);
+  it("une autre allure seuil enregistrée change le diagnostic et conserve la branche VLamax, sans reprendre le plan précédent", async () => {
+    const before = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const after = await pagePipeline(300, "Marathon", 16, 7, 4);
+    expect(after.frozen.fingerprint).not.toBe(before.frozen.fingerprint);
+    expect(before.frozen.limiters.applied).toEqual(["Durabilité", "TTE"]);
+    expect(after.frozen.limiters.applied[0]).toBe("VLamax");
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const accepted = await runDet(before, "Marathon", 16, 7, 4);
+      const refused = await runDet(after, "Marathon", 16, 7, 4);
+      expect(accepted.out.kind).toBe("accepted");
+      expect(["accepted","engine_refused"]).toContain(refused.out.kind);
+      if(refused.out.kind!=="accepted"&&refused.out.kind!=="engine_refused")return;
+      expect(refused.out.limiterOrder.applied).toEqual(after.config.identifiedLimitersRaw);
+      expect(solver).toHaveBeenCalledTimes(2);
+      expect(before.frozen.athlete.paceThresholdSecPerKm).toBe(222);
+      expect(after.frozen.athlete.paceThresholdSecPerKm).toBe(300);
+    } finally { solver.mockRestore(); }
+  }, 200000);
+
+  it("l'ordre choisi dans la page atteint le vrai solveur et active la branche correspondante, sans modifier le diagnostic", async () => {
+    const p = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const rawBefore = structuredClone(p.ctx.diagnostic);
+    const order = [...p.frozen.limiters.applied].reverse();
+    const config = buildAppPlanConfig(p.ctx.diagnostic, { ...p.st, coachLimiterOrder: order });
+    const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: p.ctx.data, config, planStartDate: "2026-10-26",
+      appAutomaticLimiters: p.frozen.limiters.appAutomatic,
+      coachOverride: explicitCoachLimiterOverride(order, null, config.identifiedLimitersRaw ?? []) });
+    // Espion en passage réel : aucun résultat moteur n'est substitué.
+    const solver = vi.spyOn(detEngine, "constructDeterministicPlan");
+    try {
+      const automatic = await runDet(p, "Marathon", 16, 7, 4);
+      const coached = await runDet({ ...p, config, frozen }, "Marathon", 16, 7, 4);
+      expect(solver).toHaveBeenCalledTimes(2);
+      for (const [index, expected] of [p.frozen, frozen].entries()) {
+        const [athlete, receivedConfig] = solver.mock.calls[index];
+        expect(athlete).toEqual(expected.athlete);
+        expect(semanticPlanningPayload(athlete, receivedConfig)).toEqual(semanticPlanningPayload(
+          expected.athlete as Parameters<typeof semanticPlanningPayload>[0], expected.config));
+      }
+      expect(automatic.out.kind).toBe("accepted");
+      expect(coached.out.kind).toBe("accepted");
+      if (automatic.out.kind !== "accepted" || coached.out.kind !== "accepted") return;
+      expect(automatic.out.limiterOrder.applied).toEqual(["Durabilité", "TTE"]);
+      expect(coached.out.limiterOrder).toMatchObject({ mode: "coach", applied: ["TTE", "Durabilité"] });
+      expect(automatic.out.auditCodes).toContain("det_v403_race_durability_coverage_verified");
+      expect(coached.out.auditCodes).toContain("det_v355_exact_tte_candidate_preference_audit");
+      expect(coached.out.auditCodes).not.toContain("det_v403_race_durability_coverage_verified");
+      expect(p.ctx.diagnostic).toEqual(rawBefore);
+    } finally { solver.mockRestore(); }
+  }, 200000);
+
+  it("semi 8 sem./6 h : limiteurs produits par le diagnostic de l'app, ACCEPTÉ, calendrier complet, entrée identique à l'IA, sauvegarde/réouverture", async () => {
+    const p = await pagePipeline(240, "Semi", 8, 6, 5);
+    // Le diagnostic réel de l'app a produit les limiteurs (pas une liste écrite dans le test).
+    const pipelineLimiters = (p.config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
+    expect(pipelineLimiters.length).toBeGreaterThan(0);
+    expect(p.frozen.limiters).toMatchObject({ applied: pipelineLimiters, origin: "app_automatic", coachOverride: null });
+    // Champs réellement préparés par le pipeline et présents dans l'entrée partagée.
+    const raw = (p.ctx.diagnostic as unknown as { _rawInput: Record<string, unknown> })._rawInput;
+    expect(raw.tss7d).toBe(380); expect(raw.runEconomyScore).toBe(68); expect(raw.runHrDriftPct).toBe(3.5); expect(raw.fatigueState).toBe("ok");
+    expect(typeof raw.targetRaceDurationMin).toBe("number");
+    expect(p.frozen.config).toEqual({ ...p.config, planStartDate: "2026-10-26" });
+    // IA : même entrée (transport injecté, aucun appel IA).
+    const ai = planningInputFor(p.frozen, "ai");
+    const { b, out } = await runDet(p, "Semi", 8, 6, 5);
+    expect(out.kind).toBe("accepted");
+    if (out.kind !== "accepted") return;
+    const det = planningInputFor(p.frozen, "det");
+    expect(semanticPlanningPayload(ai.athlete, ai.config)).toEqual(semanticPlanningPayload(det.athlete, det.config));
+    expect(out.limiterOrder).toMatchObject({ mode: "automatic", source: "app_planning_pipeline", applied: pipelineLimiters });
+    expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+    expect((out.provenance.coachInputs as { planningInputFingerprint?: string }).planningInputFingerprint).toBe(p.frozen.fingerprint);
+    expect(b.snapshot!.coachLimiterOrder).toBeNull();
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+    const weeks = (out.plan as unknown as { weeks: { sessions: { isRest?: boolean }[] }[] }).weeks;
+    expect(weeks).toHaveLength(8);
+    for (const w of weeks) expect(w.sessions.some((x) => !x.isRest)).toBe(true);
+    // Sauvegarde append-only (transport mémoire, PAS une preuve JWT) + réouverture.
+    const { AppendOnlyPlanVersionSaver } = await import("@/lib/plan/appendOnlyPlanVersionSave");
+    const { restoreStructuredPlan } = await import("@/lib/plan/restoreStructuredPlan");
+    const { isDetCoachInputsProvenance } = await import("@/lib/plan/planProvenance");
+    const db = new Map<string, Record<string, unknown>>();
+    const transport = { insert: async (row: { id: string }) => { db.set(row.id, JSON.parse(JSON.stringify(row))); return { error: null }; },
+      readById: async (id: string) => ({ data: db.get(id) ?? null, error: null }) };
+    const saved = await new AppendOnlyPlanVersionSaver({ transport } as never).save({ athlete_id: A1, coach_id: COACH, plan_json: out.plan, objective: "Semi",
+      weeks_count: 8, sessions_count: out.sessions, validator_score: null, validator_grade: null, validator_summary: null } as never);
+    expect(saved.status).toBe("CONFIRMED");
+    const restored = restoreStructuredPlan((db.get(saved.attemptId!) as { plan_json: unknown }).plan_json as never);
+    const prov = (restored as unknown as { _provenance: Record<string, unknown> })._provenance;
+    expect(isDetCoachInputsProvenance(prov)).toBe(true);
+    expect(prov.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+    expect(prov.limiterOrder).toMatchObject({ source: "app_planning_pipeline", applied: pipelineLimiters });
+  }, 200000);
+
+  it("semi 30 sem./6 h : diagnostic de l'app inchangé, vrais mésocycles et calendrier complet", async () => {
+    const p = await pagePipeline(240, "Semi", 30, 6, 5);
+    const before = structuredClone(p.ctx.diagnostic);
+    const applied = [...p.frozen.limiters.applied];
+    const { out } = await runDet(p, "Semi", 30, 6, 5);
+    expect(out.kind).toBe("accepted");
+    if (out.kind !== "accepted") throw new Error(JSON.stringify(out.kind === "engine_refused" ? out.blockingIssues : out));
+    expect(out.plan.weeks).toHaveLength(30);
+    assertRecurringRunningPrescription(out.plan,out.limiterOrder.applied);
+    expect(out.limiterOrder.applied).toEqual(applied);
+    expect(p.ctx.diagnostic).toEqual(before);
+    expect(out.auditCodes).toContain("det_v358_measured_running_mesocycles_verified");
+    expect(out.auditCodes).not.toContain("det_v358_measured_running_mesocycles_unverified");
+    expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  }, 200000);
+
+  it("marathon 16 sem./7 h depuis le VRAI diagnostic de l'app (enregistrement inchangé) : « Durabilité » primaire défini côté moteur (V403), ACCEPTÉ, priorités brutes conservées, jamais remplacé par TTE", async () => {
+    const p = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const applied = p.frozen.limiters.applied;
+    expect(applied).toEqual(["Durabilité", "TTE"]); // produit par le diagnostic réel, pas écrit ici
+    expect(p.frozen.limiters.origin).toBe("app_automatic");
+    const { b, out } = await runDet(p, "Marathon", 16, 7, 4);
+    expect(b.snapshot!.coachLimiterOrder).toBeNull();
+    expect(out.kind).toBe("accepted");
+    if (out.kind !== "accepted") return;
+    // Config transmise au solveur : libellés bruts de l'app, ordre inchangé (aucune traduction écrite dans la config).
+    expect(planningInputFor(p.frozen, "det").config.identifiedLimitersRaw).toEqual(["Durabilité", "TTE"]);
+    expect(out.limiterOrder.applied).toEqual(["Durabilité", "TTE"]);
+    expect(out.limiterOrder.unrecognizedByDet).toEqual([]);
+    expect(out.limiterOrder.semantics!.rawPriorities).toEqual(["Durabilité", "TTE"]);
+    expect(out.limiterOrder.semantics!.resolutions.map((r) => [r.raw, r.key, r.role, r.policy])).toEqual([
+      ["Durabilité", "durability_race_relative", "primary", "det_primary_branch"], ["TTE", "tte", "secondary", "native_validators_only"]]);
+    // Branche Durabilité réellement exercée (audit bloquant vérifié), branche TTE primaire NON activée.
+    expect(out.auditCodes).toContain("det_v403_race_durability_coverage_verified");
+    expect(out.auditCodes).not.toContain("det_v403_race_durability_coverage_missing");
+    expect(out.auditCodes).not.toContain("det_v355_exact_tte_candidate_preference_audit");
+    expect(out.auditCodes).toContain("det_v351_marathon_exact_source_horizon_evidence_verified");
+    expect(out.auditCodes).toContain("det_v316_strict_periodization_verified");
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+    expect((out.provenance.limiterOrder as { semantics: { scientificReview: boolean } }).semantics.scientificReview).toBe(false);
+    const weeks = (out.plan as unknown as { weeks: { sessions: { isRest?: boolean }[] }[] }).weeks;
+    expect(weeks).toHaveLength(16);
+    // Sauvegarde append-only (transport mémoire) + réouverture : priorités brutes et sémantique conservées.
+    const { AppendOnlyPlanVersionSaver } = await import("@/lib/plan/appendOnlyPlanVersionSave");
+    const { restoreStructuredPlan } = await import("@/lib/plan/restoreStructuredPlan");
+    const db = new Map<string, Record<string, unknown>>();
+    const transport = { insert: async (row: { id: string }) => { db.set(row.id, JSON.parse(JSON.stringify(row))); return { error: null }; },
+      readById: async (id: string) => ({ data: db.get(id) ?? null, error: null }) };
+    const generated = bindAppPlanMetadata(out.plan, p.frozen);
+    const archiveMetadata = planArchiveMetadata(generated, {
+      _planStartDate: "2028-01-03", _objective: "IM", _raceName: "changed live form", _raceDate: "2028-06-04", _raceGoals: [], _coachLimiterOrder: ["VO2max"],
+    });
+    expect(archiveMetadata._planStartDate).toBe(p.frozen.config.planStartDate);
+    expect(archiveMetadata._objective).toBe(p.frozen.config.objective);
+    expect(generated.weeks).toEqual(out.plan.weeks);
+    const saved = await new AppendOnlyPlanVersionSaver({ transport } as never).save({ athlete_id: A1, coach_id: COACH, plan_json: { ...generated, ...archiveMetadata }, objective: archiveMetadata._objective,
+      weeks_count: 16, sessions_count: out.sessions, validator_score: null, validator_grade: null, validator_summary: null } as never);
+    expect(saved.status).toBe("CONFIRMED");
+    const restored = restoreStructuredPlan((db.get(saved.attemptId!) as { plan_json: unknown }).plan_json as never);
+    expect(planArchiveMetadata(restored!, archiveMetadata)).toEqual(archiveMetadata);
+    const prov = (restored as unknown as { _provenance: { limiterOrder: { applied: string[]; semantics: { rawPriorities: string[] } }; planningInput: unknown } })._provenance;
+    expect(prov.limiterOrder.applied).toEqual(["Durabilité", "TTE"]);
+    expect(prov.limiterOrder.semantics.rawPriorities).toEqual(["Durabilité", "TTE"]);
+    expect(prov.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+  }, 200000);
+
+  it("marathon 40 sem./9 h : calendrier complet depuis le diagnostic figé de l’app", async () => {
+    const p = await pagePipeline(222, "Marathon", 40, 9, 4);
+    const before = structuredClone(p.ctx.diagnostic);
+    const { out } = await runDet(p, "Marathon", 40, 9, 4);
+    process.stdout.write("MARATHON40_APP_PIPELINE " + JSON.stringify(out.kind === "engine_refused" ? { kind: out.kind, issues: out.blockingIssues } : out.kind === "refused" ? out : { kind: out.kind, sessions: out.sessions, auditCodes: out.auditCodes }) + "\n");
+    expect(out.kind).toBe("accepted");
+    expect(p.ctx.diagnostic).toEqual(before);
+    if (out.kind !== "accepted") return;
+    expect(out.plan.weeks).toHaveLength(40);
+    assertRecurringRunningPrescription(out.plan,out.limiterOrder.applied);
+    expect(out.limiterOrder.applied).toEqual(p.frozen.limiters.applied);
+    expect(out.provenance.planningInput).toEqual({ source: "app_planning_pipeline", fingerprint: p.frozen.fingerprint });
+    expect(out.auditCodes).toContain("det_v316_strict_periodization_verified");
+    expect(out.auditCodes).toContain("det_v403_race_durability_coverage_verified");
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+  }, 200000);
+
+  it.each([9, 9.5, 10])("70.3 12 sem./%s h depuis le VRAI pipeline de la page (enregistrement tri synthétique) : composition de base revue, calendrier complet et priorités brutes conservées", async (hours) => {
+    const triSnap = { ...snapRow(240), sport_main: "tri", css: 95, vlamax: 0.55 };
+    const snapshots = [triSnap];
+    const ctx = computeAppAthleteContext(athleteRow, "703", "age_group", { snapshots, tests: [], checkins: [] })!;
+    const st = formState("703", 12, hours, 8);
+    const config = buildAppPlanConfig(ctx.diagnostic, st);
+    const applied = (config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [];
+    const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: ctx.data, config, planStartDate: "2026-10-26",
+      appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(ctx.diagnostic)).map((g) => g.metric), coachOverride: explicitCoachLimiterOverride([], null, applied) });
+    const record = buildAthleteRecordView(athleteRow, snapshots, COACH, ctx.diagnostic);
+    const sw = { recovery: 120, moderate_lt1: 110, tempo: 103, im_pace: 108, "703_pace": 102, marathon_pace: 103, sub_threshold: 98, semi_pace: 98, mlss: 95, vo2max: 88, neuromuscular: 80 } as const;
+    const f = { objective: "703", planStartDate: "2026-10-26", raceDate: st.raceDate, weeksAvailable: 12, weeklyHours: hours, sessionsPerWeek: 8, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
+    const a = answers("703", { provenance: {}, swimPaces: Object.fromEntries(Object.entries(sw).map(([k, v]) => [k, { value: v, kind: "explicit_estimate", method: "SYNTHÉTIQUE test 400/200", uncertainty: "±3 s" }])) as never });
+    const b = buildAthleteDetInputs(record, f, a, { ...genuineFor(record, "703"), planningInputFingerprint: frozen.fingerprint }, frozen.fingerprint);
+    expect(b.missing).toEqual([]);
+    for (const key of ["runThresholdPaceSecPerKm", "runVvo2SpeedMps", "bikeFtpWatts", "cssSecPer100m"] as const) expect(b.snapshot!.anchors[key]?.kind).toBe("app_reference");
+    expect(b.sourceReview.status).toBe("reviewed");
+    const h = await hashCoachInputs(b.snapshot!);
+    const out = runAppPlanningDetPlan({ reviewContextId: "ctx-syn", ctx: { ...b.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1,
+      snapshot: b.snapshot!, inputsHash: h, sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, now: () => new Date("2026-11-04T00:00:00Z"),
+      limits: { maxNodes: 200000, maxMilliseconds: 120000 }, appInput: frozen });
+    process.stdout.write("703_APP_PIPELINE " + JSON.stringify(out.kind === "engine_refused" ? {kind:out.kind,issues:out.blockingIssues} : out.kind === "refused" ? out : {kind:out.kind,sessions:out.sessions}) + "\n");
+    expect(out.kind).toBe("accepted");
+    if (out.kind !== "accepted") return;
+    expect(out.plan.weeks).toHaveLength(12);
+    expect(out.provenance.prescriptionAllowed).toBe(false);
+    const selected = (out.plan.weeks as unknown as {sessions: {catalogId?:string;detStructuredWorkout?: {composition?: {bike:{exactSeconds:number};run:{exactSeconds:number};transitionSeconds:number}}}[]}[]).flatMap(w => w.sessions)
+      .filter(s => s.catalogId === "V3B_703_BASE_EASY_180");
+    expect(selected.length).toBeGreaterThan(0);
+    for (const s of selected) expect(s.detStructuredWorkout?.composition).toMatchObject({
+      bike: { exactSeconds: 139 * 60 }, run: { exactSeconds: 35 * 60 }, transitionSeconds: 360,
+    });
+    expect(out.limiterOrder.applied).toEqual(applied);
+    expect(out.limiterOrder.semantics!.rawPriorities).toEqual(applied);
+    expect(out.limiterOrder.semantics!.resolutions[0].policy).toBe("native_validators_only");
+  }, 200000);
+
+  it.each([["Durabilté", "faute de frappe"], ["Foo", "inconnu"], ["FatMax", "sans branche primaire marathon"]])(
+    "marathon : primaire « %s » (%s) ⇒ blocked_unsupported_limiter AVANT le solveur, priorités brutes conservées, rien de substitué", async (bad) => {
+    const p0 = await pagePipeline(222, "Marathon", 16, 7, 4);
+    const config = { ...JSON.parse(JSON.stringify(p0.config)), identifiedLimitersRaw: [bad, "TTE"] };
+    const frozen = await freezeAppPlanningInput({ athleteId: A1, athlete: p0.ctx.data, config, planStartDate: "2026-10-26", appAutomaticLimiters: [bad, "TTE"], coachOverride: null });
+    const t0 = Date.now();
+    const { out } = await runDet({ ...p0, config, frozen }, "Marathon", 16, 7, 4);
+    expect(Date.now() - t0).toBeLessThan(10000);
+    expect(out.kind).toBe("refused");
+    if (out.kind !== "refused") return;
+    expect(out.blockedUnsupportedLimiter).toMatchObject({ code: "blocked_unsupported_limiter", raw: bad });
+    expect(out.limiterOrder!.applied).toEqual([bad, "TTE"]);
+    expect(out.limiterOrder!.semantics!.rawPriorities).toEqual([bad, "TTE"]);
+    expect(out.refusals.join(" ")).toMatch(/Rien n'est remplacé/);
+  }, 60000);
+
+  it("changement de physiologie du même athlète ⇒ nouvelle empreinte : anciennes vérifications et ancienne revue refusées", async () => {
+    const a = await pagePipeline(240, "Semi", 8, 6, 5), b2 = await pagePipeline(235, "Semi", 8, 6, 5);
+    expect(a.frozen.fingerprint).not.toBe(b2.frozen.fingerprint);
+    const f = { objective: "Semi", planStartDate: "2026-10-26", raceDate: a.st.raceDate, weeksAvailable: 8, weeklyHours: 6, sessionsPerWeek: 5, strengthSessionsPerWeek: 1, maxSessionsPerDay: 2, ambition: "age_group" };
+    const stale = buildAthleteDetInputs(b2.record, f, answers("Semi", { clock: variedClock }), { ...genuineFor(b2.record, "Semi"), planningInputFingerprint: a.frozen.fingerprint }, b2.frozen.fingerprint);
+    expect(stale.ctx).toBeNull();
+    const ok = buildAthleteDetInputs(a.record, f, answers("Semi", { clock: variedClock }), { ...genuineFor(a.record, "Semi"), planningInputFingerprint: a.frozen.fingerprint }, a.frozen.fingerprint);
+    const h = await hashCoachInputs(ok.snapshot!);
+    const out = runAppPlanningDetPlan({ reviewContextId: "x", ctx: { ...ok.ctx!, inputsHash: h, sourcesVersion: "b".repeat(64) }, coachId: COACH, athleteId: A1, snapshot: ok.snapshot!, inputsHash: h,
+      sourcesVersion: "b".repeat(64), engineVersion: "a".repeat(64), releaseId: null, appInput: b2.frozen });
+    expect(out.kind).toBe("refused");
+  }, 60000);
+});

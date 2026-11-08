@@ -77,13 +77,14 @@ export function resolveAmbitionKey(config: PlanGenerationConfig): string {
 /**
  * Calcule la semaine du plan (1-indexed) pour une date de course donnée
  */
-function getRaceWeekNumber(raceDate: string, planStartDate: string, totalWeeks: number): number {
+function getRaceWeekNumber(raceDate: string, planStartDate: string): number {
   const race = new Date(raceDate);
   const start = new Date(planStartDate);
   const diffMs = race.getTime() - start.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const weekNum = Math.floor(diffDays / 7) + 1;
-  return Math.max(1, Math.min(weekNum, totalWeeks));
+  // Non borné : une course hors calendrier du plan doit être ignorée par le
+  // garde-fou `plan.weeks.find(...)`, jamais décalée sur S1 ou la dernière semaine.
+  return Math.floor(diffDays / 7) + 1;
 }
 
 /**
@@ -211,7 +212,7 @@ function anchorRaceDays(
     // normalizeWeeksAndPhases juste au-dessus) restaure ce garde-fou : si la
     // semaine de course n'existe pas encore dans `plan.weeks`, on ne fabrique
     // aucun jour de course plutôt que d'en étiqueter un faux.
-    const targetWeekNum = getRaceWeekNumber(goal.raceDate, config.planStartDate, config.weeksAvailable);
+    const targetWeekNum = getRaceWeekNumber(goal.raceDate, config.planStartDate);
     const targetWeek = plan.weeks.find(w => w.weekNumber === targetWeekNum);
     if (!targetWeek) {
       // eslint-disable-next-line no-console
@@ -397,7 +398,7 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
         if (!isRaceDaySession(s)) continue;
         const goal = goals.find(g => {
           if (!g.raceDate || !config.planStartDate) return false;
-          return getRaceWeekNumber(g.raceDate, config.planStartDate, plan.weeks.length) === week.weekNumber;
+          return getRaceWeekNumber(g.raceDate, config.planStartDate) === week.weekNumber;
         }) ?? goals[0];
         const obj = (goal?.objective ?? "").toLowerCase();
         if (obj && !obj.includes("marathon") && /allure\s+marathon/i.test(s.details)) {

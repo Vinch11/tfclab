@@ -1,0 +1,561 @@
+/**
+ * Read-only, fail-closed ingestion of the COMPLETE 800-recipe V3 candidate
+ * catalogue into the experimental deterministic engine. No production import.
+ *
+ * Reviews and parameter overrides are scoped to one candidate and athlete
+ * scenario; they do not declare scientific validation of the original recipe.
+ */
+import {
+  auditV3Catalogue, evaluateV3Workout, v3FullCatalogue,
+  type Overrides, type V3Block, type V3Workout,
+} from '../../scripts/library-v3/catalogueRuntime';
+import {v3SupplementalCatalogue} from '../../scripts/library-v3/supplementalCatalogue';
+import {library920Catalogue,library920Problems,library920SourceMetadata} from '../../scripts/library-v3/library920Catalogue';
+import supplementalRegistry from '../../scripts/library-v3/v3SupplementSportingReview20261103.json';
+import type {V3SportingSourceRecord} from '../../scripts/library-v3/sportingQualification800';
+import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
+import {configureMeasuredStrengthTiming,type VerifiedStrengthTiming} from '../../scripts/library-v3/strengthTimingV3';
+import {
+  auditV3SportingRegistry,qualifyV3IndividualSportingSource,
+  type V3IndividualSportingEvidence,
+} from '../../scripts/library-v3/sportingQualification800';
+import {resolveV3IntensityTargets, type V3AthleteAnchors, type V3IntensityTarget} from '../../scripts/library-v3/resolveV3Intensity';
+import {
+  buildDetV3Contract, type DetV3Review, type V3SourceCard,
+} from './v31-v3-bridge';
+import { composeReviewedV3BaseBricks, type V3BaseBrickReview } from './v31-v3-brick';
+import { composeReviewedV32SpecificBricks, type V32SpecificBrickReview } from './v32-v3-specific-bricks';
+import { composeReviewedV34EasyRunBricks, type V34SafeBrickReview } from './v34-v3-low-run-bricks';
+import { composeReviewedImTaperBrick, type ImTaperBrickReview } from './v404-im-taper-brick';
+import type { ExperimentalAssemblyContract } from './engine';
+import {buildDetStructuredWorkout,buildDetStructuredBrick,type DetStructureResult} from './v400-structured-workout';
+import {structuredV3ZoneDose,composeReviewedBrickZoneDose,matchingStructuredDose,type StructuredZoneDose} from './v310-structured-zone-dose';
+
+export interface V3ReviewedSettings extends DetV3Review {
+  /** Independent route-context binding, mandatory in the explicit terrain mode. */
+  expectedRunTerrainContextId?:string;
+  /** Separate expected athlete identity (not inferred from the review itself). */
+  expectedAthleteId?:string;
+  /** Explicit source-and-athlete sporting qualification evidence. */
+  sportingReview?:V3IndividualSportingEvidence;
+  /** Original repetitions require individually measured movement + setup time. */
+  verifiedStrengthTiming?:VerifiedStrengthTiming;
+  /** Measured or explicitly verified athlete anchors: never generated or filled from population defaults. */
+  athleteAnchors?: V3AthleteAnchors;
+  /** Exact V3 paths such as "0.seconds" or "1.count". */
+  overrides?: Overrides;
+  /** Optional exact target. Never pad spare time or round a prescription. */
+  targetDurationMin?: number;
+  /** Explicit coach permission to change work-set counts/intense durations. */
+  allowWorksetChange?: boolean;
+}
+
+type Bounds = {min:number;base:number;max:number};
+
+function alterBound(bounds: Bounds, path: string, all: Overrides, seen: Set<string>, integral: boolean): Bounds {
+  if (!Object.prototype.hasOwnProperty.call(all,path)) return bounds;
+  seen.add(path);
+  const next=all[path];
+  if (!Number.isFinite(next) || next < bounds.min || next > bounds.max ||
+      (integral && !Number.isSafeInteger(next))) throw Error('v3_override_out_of_bounds:'+path);
+  return {...bounds,base:next};
+}
+
+function configureBlocks(blocks: V3Block[], overrides: Overrides, seen:Set<string>, prefix=''):V3Block[] {
+  return blocks.map((b,i):V3Block=>{
+    const path=prefix?prefix+'.'+i:String(i);
+    switch(b.kind) {
+      case 'repeat': {
+        const rest=b.betweenSecBounds?alterBound(b.betweenSecBounds,path+'.betweenSec',overrides,seen,true):undefined;
+        return {...b,count:alterBound(b.count,path+'.count',overrides,seen,true),
+          betweenSec:rest?.base??b.betweenSec,betweenSecBounds:rest,
+          steps:configureBlocks(b.steps,overrides,seen,path)};
+      }
+      case 'time': return {...b,seconds:alterBound(b.seconds!,path+'.seconds',overrides,seen,false),
+        repsTarget:b.repsTarget?alterBound(b.repsTarget,path+'.repsTarget',overrides,seen,true):undefined};
+      case 'distance': return {...b,meters:alterBound(b.meters!,path+'.meters',overrides,seen,false)};
+      case 'reps': return {...b,reps:alterBound(b.reps!,path+'.reps',overrides,seen,true)};
+    }
+  });
+}
+
+/** Explicit edits of quality doses are not equivalent to easy volume fitting. */
+function requireDoseChangeApproval(workout:V3Workout,overrides:Overrides,allowed:boolean) {
+  if(allowed)return;
+  const inspect=(blocks:V3Block[],prefix=''):void=>{
+    blocks.forEach((b,i)=>{
+      const path=prefix?prefix+'.'+i:String(i);
+      if(b.kind==='repeat'){
+        if(overrides[path+'.betweenSec']!==undefined&&overrides[path+'.betweenSec']!==b.betweenSec)
+          throw Error('v3_rest_change_requires_coach_permission:'+path);
+        if(overrides[path+'.count']!==undefined&&overrides[path+'.count']!==b.count.base)
+          throw Error('v3_workset_change_requires_coach_permission:'+path);
+        inspect(b.steps,path);
+      }else{
+        const key=b.kind==='time'?'seconds':b.kind==='distance'?'meters':'reps';
+        if(b.kind==='time'&&b.repsTarget&&overrides[path+'.repsTarget']!==undefined&&
+          overrides[path+'.repsTarget']!==b.repsTarget.base)
+          throw Error('v3_repetitions_change_requires_coach_permission:'+path);
+        const value=overrides[path+'.'+key];
+        const bounds=b.kind==='time'?b.seconds!:b.kind==='distance'?b.meters!:b.reps!;
+        const easy=b.domain==='recovery'||b.domain==='moderate_lt1';
+        if(value!==undefined&&value!==bounds.base&&!easy)
+          throw Error('v3_intense_dose_change_requires_coach_permission:'+path);
+      }
+    });
+  };
+  inspect(workout.blocks);
+}
+
+function normalizedSwimPaces(settings:V3ReviewedSettings) {
+  const old=settings.swimPacesSecPer100m??{};
+  const supplied=settings.athleteAnchors?.swimDomainPacesSecPer100m??{};
+  for(const key of Object.keys(old) as Array<keyof typeof old>) {
+    if(supplied[key]!==undefined && old[key]!==supplied[key])
+      throw Error('v3_conflicting_swim_pace:'+key);
+  }
+  const merged={...old,...supplied};
+  if(settings.athleteAnchors?.coachConfirmsCssAsMlssProxy===true &&
+     typeof settings.athleteAnchors.cssSecPer100m==='number' && merged.mlss===undefined)
+    merged.mlss=settings.athleteAnchors.cssSecPer100m;
+  return merged;
+}
+function measuredAnchorInputs(settings:V3ReviewedSettings):V3AthleteAnchors {
+  // CSS-derived MLSS may be used for duration but must remain a *proxy* in evidence.
+  // Only genuine directly supplied domain paces are presented as direct measurements.
+  return {...(settings.athleteAnchors??{}),swimDomainPacesSecPer100m:{
+    ...(settings.swimPacesSecPer100m??{}),
+    ...(settings.athleteAnchors?.swimDomainPacesSecPer100m??{}),
+  }};
+}
+function verifiedTargetsText(targets:readonly V3IntensityTarget[]):string {
+  return targets.map(t=>t.metric==='coach_rpe_load'?
+    'Force: charge/RPE individuels confirmés par le coach':
+    [t.domain,t.min===null?'':String(t.min),t.max===null?'open':String(t.max),t.metric,
+     'source='+t.source,'confiance='+t.confidence].join(' ')).join(' ; ');
+}
+/** Same configured blocks for the human source review and engine admission. No approval is created here. */
+export function previewV3SourceDose(dosing:V3Workout,settings:Pick<V3ReviewedSettings,'overrides'|'targetDurationMin'|'allowWorksetChange'>,swimPaces:Record<string,number>={}){
+  if (settings.overrides && settings.targetDurationMin !== undefined)
+    throw Error('v3_conflicting_recipe_controls');
+  let overrides=settings.overrides??{};
+  if (settings.targetDurationMin !== undefined) {
+    // Fitting cannot change the load-bearing work unless coach explicitly opts in.
+    const fit=fitV3Duration(dosing,settings.targetDurationMin,{
+      swimPaces,toleranceSeconds:0,
+      allowWorksetChange:settings.allowWorksetChange===true,
+    });
+    if(!fit.fitsSlot || fit.computed.status!=='confirmed')
+      throw Error('v3_target_duration_unreachable:'+fit.code);
+    overrides=fit.overrides;
+  }
+  requireDoseChangeApproval(dosing,overrides,settings.allowWorksetChange===true);
+  const seen=new Set<string>();
+  const configured={...dosing,blocks:configureBlocks(dosing.blocks,overrides,seen)};
+  if(seen.size!==Object.keys(overrides).length)
+    throw Error('v3_override_unknown_path');
+  return configured;
+}
+
+function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
+  const terrain=settings.athleteAnchors?.runTerrainReview;
+  const imported=library920SourceMetadata(workout.id);
+  if(imported){
+    if(workout.sport==='run'&&imported.terrainEffortRequired&&!terrain)
+      throw Error('v3_imported_terrain_field_review_missing');
+    if(workout.sport==='swim'&&imported.techniqueSpecificSwimPaceRequired)
+      throw Error('v3_imported_technique_specific_pace_binding_missing');
+    const leaves=(blocks:V3Block[]):Exclude<V3Block,{kind:'repeat'}>[]=>blocks.flatMap(b=>b.kind==='repeat'?leaves(b.steps):[b]);
+    const blocks=leaves(workout.blocks);
+    if(workout.sport!=='swim'&&blocks.some(b=>b.kind==='distance'))
+      throw Error('v3_imported_non_swim_distance_pace_binding_missing');
+    if(workout.sport==='swim'&&blocks.some(b=>b.kind==='distance'&&b.domain==='neuromuscular'&&
+      (!(normalizedSwimPaces(settings).neuromuscular>0)||b.meters!.base*normalizedSwimPaces(settings).neuromuscular!/100>20)))
+      throw Error('v3_imported_swim_sprint_duration_over_20s_or_unmeasured');
+  }
+  if(terrain||settings.expectedRunTerrainContextId){
+    if(workout.sport!=='run'||!terrain||!settings.expectedAthleteId||
+       terrain.athleteId!==settings.expectedAthleteId||terrain.sourceId!==workout.id||
+       !settings.expectedRunTerrainContextId||terrain.terrainContextId!==settings.expectedRunTerrainContextId)
+      throw Error('v3_terrain_context_or_athlete_binding_mismatch');
+  }
+  const swimPaces=normalizedSwimPaces(settings);
+  if(settings.verifiedStrengthTiming&&settings.overrides&&Object.keys(settings.overrides).length)
+    throw Error('v3_strength_repetitions_changed_without_remeasurement');
+  const dosing= settings.verifiedStrengthTiming?
+    configureMeasuredStrengthTiming(workout,settings.verifiedStrengthTiming).workout:workout;
+  // Alactic 25m only when the athlete's own neuromuscular pace proves
+  // an effort no longer than 20 seconds, never inferred from pool distance.
+  if(workout.id==='V3P_SWIM_083'){
+    const pace=swimPaces.neuromuscular;
+    if(typeof pace!=='number'||!Number.isFinite(pace)||pace<=0||25*pace/100>20)
+      throw Error('v3_sprint_25m_duration_over_20s_or_unmeasured');
+    const repeat=workout.blocks.find(b=>b.kind==='repeat'&&b.steps.some(step=>
+      step.kind==='distance'&&step.domain==='neuromuscular'));
+    if(!repeat||repeat.kind!=='repeat'||repeat.betweenSec<90)
+      throw Error('v3_sprint_25m_recovery_not_sufficient');
+  }
+  const configured=previewV3SourceDose(dosing,settings,swimPaces);
+  const result=evaluateV3Workout(configured,{swimPaces});
+  // For historical strength, the weekly prescription is a count of reviewed
+  // sessions, not a fabricated appointment duration. Other sports still
+  // require executable minute-level timing.
+  const hasTimedStrengthProtocol=configured.blocks.some(b=>b.kind==='repeat'&&b.steps.some(
+    step=>step.kind==='time'&&!!step.repsTarget&&!!step.rpeRange));
+  const strengthCountOnly=configured.sport==='strength'&&!hasTimedStrengthProtocol;
+  if(result.status==='estimated'&&!strengthCountOnly)throw Error('v3_timing_is_only_estimated');
+  if(result.status==='unresolved')throw Error('v3_timing_unresolved');
+  // Preserve the individually calculated seconds, including sub-minute
+  // doses and swim fractional seconds. A time estimate cannot be rounded
+  // upward just to satisfy the historical whole-minute catalogue restriction.
+  if(!strengthCountOnly &&
+     (result.seconds===null||!Number.isFinite(result.seconds)||result.seconds<=0||
+      result.seconds>24*60*60))
+    throw Error('v3_exact_duration_invalid_or_above_day_limit');
+  // No athlete-specific physiological dose may be inferred from a slot duration.
+  const resolved=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
+  if(resolved.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+resolved.missing.join(','));
+  return configured;
+}
+
+/**
+ * Makes all 800 source candidates visible to DET-ENGINE for evaluation.
+ * With no athlete-specific reviews, it MUST admit exactly zero sessions.
+ */
+export function buildDetV3ContractFromCatalogue(
+  reviews:readonly V3ReviewedSettings[],brickReviews:readonly V3BaseBrickReview[]=[],
+  specificBrickReviews:readonly V32SpecificBrickReview[]=[],
+  lowRunBrickReviews:readonly V34SafeBrickReview[]=[],
+  imBrickReviews:readonly ImTaperBrickReview[]=[]
+) {
+  // Supplemental doses enter only through an explicit review of their ID.
+  // Historical 800-source contracts retain their exact source cohort/counts.
+  const requested=v3SupplementalCatalogue.workouts.filter(w=>reviews.some(r=>r.id===w.id));
+  const requestedSupplement=requested.length>0;
+  const requested920=library920Catalogue.workouts.filter(w=>reviews.some(r=>r.id===w.id));
+  const requestedWorkouts=[...v3FullCatalogue.workouts,...requested,...requested920];
+  const sourceCatalogue=requested.length||requested920.length?{...v3FullCatalogue,
+    count:requestedWorkouts.length,counts:requestedWorkouts.reduce((counts,w)=>({...counts,[w.sport]:(counts[w.sport]??0)+1}),{} as Record<string,number>),
+    workouts:requestedWorkouts}:v3FullCatalogue;
+  const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry(),
+    ...(requestedSupplement?[...auditV3Catalogue(v3SupplementalCatalogue),
+      ...auditV3SportingRegistry(v3SupplementalCatalogue.workouts,
+        supplementalRegistry.records as V3SportingSourceRecord[],v3SupplementalCatalogue.workouts.length)]:[])];
+  if(requested920.length)auditErrors.push(...library920Problems());
+  if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
+  if(v3FullCatalogue.workouts.length!==800 ||
+      ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
+    throw Error('v3_catalogue_800_distribution_invalid');
+  const reviewMap=new Map<string,V3ReviewedSettings>();
+  for(const review of reviews) {
+    if(reviewMap.has(review.id))throw Error('v3_duplicate_review_id');
+    reviewMap.set(review.id,review);
+  }
+  for(const id of reviewMap.keys())if(!sourceCatalogue.workouts.some(w=>w.id===id))
+    throw Error('v3_unknown_reviewed_recipe:'+id);
+  const faulty=new Map<string,string>();
+  const resolvedIntensityTexts=new Map<string,string>();
+  const resolvedTargets=new Map<string,V3IntensityTarget[]>();
+  const qualifiedReviews:V3ReviewedSettings[]=[];
+  const cards:V3Workout[]=sourceCatalogue.workouts.map(w=>{
+    const settings=reviewMap.get(w.id);
+    if(!settings)return w;
+    try {
+      const sporting=qualifyV3IndividualSportingSource(w,settings.sportingReview,settings.expectedAthleteId);
+      if(!sporting.allowedToSubmitToDet)
+        throw Error('v3_sporting_gate_refused:'+sporting.blockingReasons.join(';'));
+      const configured=configureWorkout(w,settings);
+      const checked=resolveV3IntensityTargets(configured,measuredAnchorInputs(settings));
+      if(checked.status!=='resolved')throw Error('v3_intensity_anchor_missing:'+checked.missing.join(','));
+      resolvedIntensityTexts.set(w.id,verifiedTargetsText(checked.targets));
+      resolvedTargets.set(w.id,checked.targets.map(t=>({...t})));
+      qualifiedReviews.push({...settings,swimPacesSecPer100m:normalizedSwimPaces(settings),
+        ...(w.sport==='strength'&&settings.athleteAnchors?.coachValidatedStrengthLoadAndRpe===true?
+          {verifiedStrengthLoadAndRpe:true as const}:{}),
+      });
+      return configured;
+    }catch(e){
+      faulty.set(w.id,String(e));
+      return w;
+    }
+  });
+  const {contract:sourceContract,report}=buildDetV3Contract(cards as unknown as V3SourceCard[],qualifiedReviews);
+  for(const admitted of report.accepted){
+    const intensity=resolvedIntensityTexts.get(admitted.id);
+    if(!intensity)throw Error('v3_resolved_intensity_proof_missing:'+admitted.id);
+    admitted.structure+=' | CIBLES INDIVIDUALISÉES: '+intensity;
+    admitted.tags.push('v3-intensity-anchors-individually-verified');
+    admitted.tags.push('v3-sporting-source-individually-reviewed-candidate');
+  }
+  for(const rejection of report.rejected) {
+    const why=faulty.get(rejection.id);
+    if(why)rejection.reason=why;
+  }
+  // V310: preserve an exact athlete-configured block ledger ONLY for accepted
+  // source reviews whose computed dose matches the source admitted to DET.
+  // The textual candidate structure is never parsed to fabricate zone time.
+  const verifiedZoneDoses=new Map<string,StructuredZoneDose>();
+  const configuredById=new Map(cards.map(card=>[card.id,card]));
+  for(const admitted of report.accepted){
+    const settings=reviewMap.get(admitted.id);
+    const configured=configuredById.get(admitted.id);
+    if(!settings||!configured||admitted.sport==='strength')continue;
+    const candidate=structuredV3ZoneDose(configured,normalizedSwimPaces(settings));
+    if(candidate&&admitted.durationMin[0]===admitted.durationMin[1]&&
+       matchingStructuredDose(candidate,admitted.durationMin[0]))
+      verifiedZoneDoses.set(admitted.id,candidate);
+  }
+  const brickReport=composeReviewedV3BaseBricks(report.accepted,brickReviews);
+  const specificBrickReport=composeReviewedV32SpecificBricks(report.accepted,specificBrickReviews);
+  const lowRunBrickReport=composeReviewedV34EasyRunBricks(report.accepted,lowRunBrickReviews);
+  const imBrickReport=composeReviewedImTaperBrick(report.accepted,imBrickReviews);
+  const allBricks=[...brickReport.accepted,...specificBrickReport.accepted,...lowRunBrickReport.accepted,...imBrickReport.accepted];
+  const brickById=new Map(allBricks.map(card=>[card.id,card]));
+  const approvedBrickTransitions=new Map<string,number>(
+    [...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
+      .map(r=>[r.id,r.transitionSeconds] as const));
+  for(const brick of allBricks){
+    const transition=approvedBrickTransitions.get(brick.id);
+    if(transition===undefined)continue;
+    const componentIds=brick.tags.flatMap(tag=>{
+      const raw=tag.startsWith('bike-source:')?tag.slice('bike-source:'.length):
+        tag.startsWith('run-source:')?tag.slice('run-source:'.length):tag;
+      return /^V3P_(BIKE|RUN)_\d{3}$/.test(raw)?[raw]:[];
+    });
+    const unique=[...new Set(componentIds)];
+    if(unique.length!==2||brick.durationMin[0]!==brick.durationMin[1])continue;
+    const bikeId=unique.find(id=>id.startsWith('V3P_BIKE_'));
+    const runId=unique.find(id=>id.startsWith('V3P_RUN_'));
+    if(!bikeId||!runId)continue;
+    const combined=composeReviewedBrickZoneDose(
+      verifiedZoneDoses.get(bikeId)??null,verifiedZoneDoses.get(runId)??null,
+      transition,brick.durationMin[0]);
+    if(combined)verifiedZoneDoses.set(brick.id,combined);
+  }
+  const preferredBrickIds=new Set<string>([...brickReviews,...specificBrickReviews,...lowRunBrickReviews,...imBrickReviews]
+    .filter(review=>review.preferReviewedV3===true && brickById.has(review.id))
+    .map(review=>review.id));
+  const lowRunPreferred=new Set<string>(lowRunBrickReviews.filter(r=>r.preferReviewedV3===true &&
+    lowRunBrickReport.accepted.some(m=>m.id===r.id)).map(r=>r.id));
+  // Tie-breaks use only explicit canonical limiter keys from the athlete's
+  // plan and the 800 source records. Never guess a synonym or silently claim
+  // a physiological match merely because the sport/phase fits.
+  const reviewedSourceLimiters=new Map(report.accepted.map(card=>[
+    card.id,sourceCatalogue.workouts.find(w=>w.id===card.id)
+      ?.prescription.physiologicalIntent.limiterKeys??[],
+  ] as const));
+  const preferredReviewedSources=new Set(qualifiedReviews.filter(r=>
+    r.preferReviewedV3===true&&reviewedSourceLimiters.has(r.id)).map(r=>r.id));
+  let planLimiters=new Set<string>();
+  const canonicalLimiter=(s:string)=>s.trim().toLowerCase().replace(/[\s-]+/g,'_');
+  const contract:ExperimentalAssemblyContract={
+    ...sourceContract,
+    validateReviewedAthleteContext(athlete){
+      // FTP and threshold pace are directly comparable measured fields. Swim
+      // domain paces are deliberately NOT equated with CSS without an
+      // independently confirmed CSS-as-MLSS proxy.
+      const acceptedById=new Map(report.accepted.map(card=>[card.id,card]));
+      const problems:string[]=[];
+      for(const r of qualifiedReviews){
+        const card=acceptedById.get(r.id);
+        if(!card)continue;
+        if(card.sport==='bike'){
+          const sourceFtp=reviewMap.get(r.id)?.athleteAnchors?.bikeFtpWatts;
+          if(typeof sourceFtp!=='number'||!Number.isFinite(sourceFtp)||sourceFtp<=0 ||
+             typeof athlete.ftp!=='number'||!Number.isFinite(athlete.ftp)||
+             Math.abs(athlete.ftp-sourceFtp)>1e-6)
+            problems.push('reviewed_bike_ftp_mismatch:'+r.id);
+        }
+        if(card.sport==='run'){
+          const sourcePace=reviewMap.get(r.id)?.athleteAnchors?.runThresholdPaceSecPerKm;
+          if(typeof sourcePace!=='number'||!Number.isFinite(sourcePace)||sourcePace<=0 ||
+             typeof athlete.paceThresholdSecPerKm!=='number'||
+             !Number.isFinite(athlete.paceThresholdSecPerKm)||
+             Math.abs(athlete.paceThresholdSecPerKm-sourcePace)>1e-6)
+            problems.push('reviewed_run_threshold_pace_mismatch:'+r.id);
+        }
+      }
+      return problems;
+    },
+    verifiedBrickCompositions:allBricks,
+    reviewedBrickComponentsForId(id){
+      const brick=brickById.get(id),transition=approvedBrickTransitions.get(id);
+      if(!brick||transition===undefined)return null;
+      const ids=contract.consumedSourceIds?.(brick)??[];
+      const components=ids.flatMap(sourceId=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return card&&['bike','run'].includes(card.sport)&&card.durationMin[0]===card.durationMin[1]?
+          [{sourceId,sport:card.sport as 'bike'|'run',durationMin:card.durationMin[0]}]:[];
+      });
+      return components.length===2?{sourceId:id,transitionSeconds:transition,components}:null;
+    },
+    adapt(preparation,config){
+      planLimiters=new Set((config.identifiedLimitersRaw??[])
+        .filter((x):x is string=>typeof x==='string').map(canonicalLimiter));
+      sourceContract.adapt(preparation,config);
+      if(!allBricks.length)return;
+      for(const phase of Object.keys(preparation.phaseRepairCatalogs)){
+        preparation.phaseRepairCatalogs[phase]=[
+          ...(preparation.phaseRepairCatalogs[phase]??[]),
+          ...allBricks.filter(card=>card.phases.includes(phase)),
+        ];
+      }
+      for(const rows of [preparation.chunkRepairCatalogs,preparation.chunkRegenRepairCatalogs])
+        rows.forEach((row,i)=>{rows[i]=[...row,...allBricks];});
+    },
+    filterCandidate(card,ctx){
+      const brick=brickById.get(card.id);
+      if(brick){
+        if(!brick.phases.includes(ctx.phase??''))return false;
+        // A short, entirely easy brick must not masquerade as an intensity key.
+        if(ctx.slot.isKeySession && !ctx.slot.isLongSession && brick.mainZoneMax<3)return false;
+        // Existing 70.3 compositions remain load-only. The distinct IM
+        // composition has two individually reviewed taper sources at their
+        // exact lighter doses, and is admissible only in a taper week.
+        if(imBrickReport.accepted.some(b=>b.id===brick.id)) {
+          if(ctx.weekType!=='taper')return false;
+        } else if(ctx.weekType!=='load')return false;
+      }
+      return sourceContract.filterCandidate?.(card,ctx)??true;
+    },
+    doseRange(card,ctx){
+      const brick=brickById.get(card.id);
+      return brick?brick.durationMin:(sourceContract.doseRange?.(card,ctx)??card.durationMin);
+    },
+    rankCandidate(card,ctx){
+      if(lowRunPreferred.has(card.id))return -2;
+      if(preferredBrickIds.has(card.id))return -1;
+      // Never prefer a source merely because it appears in the library.
+      // A source must already be admitted, explicitly preferred by coach,
+      // and target a declared limiter on a matching key slot.
+      if(ctx.slot.isKeySession&&preferredReviewedSources.has(card.id)){
+        const keys=reviewedSourceLimiters.get(card.id)??[];
+        const matches=keys.some(key=>planLimiters.has(canonicalLimiter(key)));
+        const appropriateDose=ctx.slot.isLongSession || card.mainZoneMax>=3 ||
+          card.sport==='strength';
+        if(matches&&appropriateDose)return -3;
+        // Complementary sessions remain eligible with the ordinary coach
+        // preference. A limiter match strengthens ranking, never enforces
+        // that EVERY training session targets the primary limiter.
+      }
+      return sourceContract.rankCandidate?.(card,ctx)??0;
+    },
+    consumedSourceIds(card){
+      if(report.accepted.some(source=>source.id===card.id))return [card.id];
+      const reviewed=brickById.get(card.id);
+      if(!reviewed)return [];
+      return [...new Set(reviewed.tags.flatMap(tag=>{
+        const value=tag.startsWith('bike-source:')?tag.slice('bike-source:'.length):
+          tag.startsWith('run-source:')?tag.slice('run-source:'.length):tag;
+        return /^V3P_(BIKE|RUN)_\d{3}$/.test(value)?[value]:[];
+      }))];
+    },
+    sourceStructuredZoneForId(id,chosenDurationMin){
+      const ledger=matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
+      return ledger?{low:ledger.low,nonLow:ledger.mid+ledger.high,unknown:ledger.unknown}:null;
+    },
+    sourceFullStructuredDoseForId(id,chosenDurationMin){
+      // Source integrity, athlete approval and exact duration are already
+      // gated during ingestion; preserve actual Z4–Z6 minutes (not Z3+).
+      if(!report.accepted.some(source=>source.id===id))return null;
+      return matchingStructuredDose(verifiedZoneDoses.get(id)??null,chosenDurationMin);
+    },
+    reviewedSourceLimiterKeysForId(id){
+      // Only the individually admitted V3 registry may supply limiter intent.
+      // No inference from session title, free text or unreviewed library IDs.
+      return reviewedSourceLimiters.get(id)??null;
+    },
+    reviewedSourcePrimaryDomainForId(id){
+      // Exact athlete-approved V3 source, not a domain guessed from prose.
+      if(!report.accepted.some(card=>card.id===id))return null;
+      return configuredById.get(id)?.primaryDomain??null;
+    },
+    reviewedRunningSpecificForId(id){
+      const card=report.accepted.find(m=>m.id===id);
+      const source=configuredById.get(id);
+      // Never infer a marathon/semi anchor from a title or a generic Z4.
+      if(!card||!source||card.sport!=='run'||
+         !verifiedZoneDoses.has(id)||
+         !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
+         !card.tags.includes('individual-coach-approval-recorded')||
+         !card.tags.includes('v3-intensity-anchors-individually-verified'))
+        return null;
+      if(source.primaryIntent!=='race_specific')return null;
+      if(source.primaryDomain==='mlss'&&card.goals.includes('10k'))
+        return {sourceId:id,objective:'10k'};
+      if(source.primaryDomain==='semi_pace'&&card.goals.includes('semi'))
+        return {sourceId:id,objective:'semi'};
+      if(source.primaryDomain==='marathon_pace'&&card.goals.includes('marathon'))
+        return {sourceId:id,objective:'marathon'};
+      return null;
+    },
+    reviewedRaceSpecificForId(id){
+      // Only sources actually admitted after individual V3 review qualify.
+      // Metadata comes from the preserved source's primary domain/intent,
+      // never from title matching or an inferred race pace.
+      const card=report.accepted.find(m=>m.id===id);
+      if(!card||!verifiedZoneDoses.has(id)||
+         !card.tags.includes('v3-sporting-source-individually-reviewed-candidate')||
+         !card.tags.includes('individual-coach-approval-recorded'))return null;
+      const source=configuredById.get(id);
+      // Dedicated FTP/CSS references: genuine MLSS work with an explicit
+      // goal-compatible individual review and supplied FTP/domain anchors.
+      // This is specific threshold TRAINING, not a predicted performance.
+      if(source?.primaryIntent==='mlss'&&source.primaryDomain==='mlss'){
+        if(card.sport==='bike'&&card.goals.includes('cycling'))
+          return {sourceId:id,objective:'Cycling'};
+        if(card.sport==='swim'&&card.goals.includes('swimming'))
+          return {sourceId:id,objective:'Swimming'};
+      }
+      if(source?.primaryIntent!=='race_specific')return null;
+      if(source.primaryDomain==='tempo'&&['bike','swim'].includes(card.sport)){
+        if(card.goals.includes('sprint'))return {sourceId:id,objective:'Sprint'};
+        if(card.goals.includes('olympic'))return {sourceId:id,objective:'Olympic'};
+      }
+      if(card.goals.includes('half')&&
+         card.tags.includes('v3-primary-domain:703_pace'))
+        return {sourceId:id,objective:'703'};
+      if(card.goals.includes('ironman')&&
+         card.tags.includes('v3-primary-domain:im_pace'))
+        return {sourceId:id,objective:'IM'};
+      return null;
+    },
+    sourceRecoveryForId(id){
+      const meta=report.accepted.find(m=>m.id===id)||brickById.get(id);
+      if(!meta)return [];
+      const used=contract.consumedSourceIds?.(meta)??[];
+      return used.map(sourceId=>{
+        const source=sourceCatalogue.workouts.find(w=>w.id===sourceId);
+        if(!source||!Number.isFinite(source.minimumRecoveryHours)||source.minimumRecoveryHours<0)
+          throw Error('v3_source_recovery_hours_untrusted:'+sourceId);
+        return {sourceId,sport:source.sport,hours:source.minimumRecoveryHours};
+      });
+    },
+  };
+  // V400: serialisable structure from the CONFIGURED + admitted blocks only.
+  const structuredWorkoutForId=(id:string,chosenDurationMin:number|undefined):DetStructureResult=>{
+    const admitted=report.accepted.find(card=>card.id===id);
+    const brick=brickById.get(id);
+    if(brick){
+      const sourceIds=contract.consumedSourceIds?.(brick)??[];
+      const bikeId=sourceIds.find(x=>x.startsWith('V3P_BIKE_'));
+      const runId=sourceIds.find(x=>x.startsWith('V3P_RUN_'));
+      if(sourceIds.length!==2||!bikeId||!runId||brick.durationMin[0]!==brick.durationMin[1])
+        return {status:'refused',sourceId:id,reason:'brick_reviewed_composition_incomplete'};
+      const component=(sourceId:string):DetStructureResult=>{
+        const card=report.accepted.find(c=>c.id===sourceId);
+        return buildDetStructuredWorkout({sourceId,configured:configuredById.get(sourceId),targets:resolvedTargets.get(sourceId),
+          admitted:!!card,isBrick:false,chosenDurationMin:card?.durationMin[0],
+          exactDurationMin:card&&card.durationMin[0]===card.durationMin[1]?card.durationMin[0]:null});
+      };
+      return buildDetStructuredBrick({sourceId:id,bike:component(bikeId),run:component(runId),
+        transitionSeconds:approvedBrickTransitions.get(id)??NaN,chosenDurationMin});
+    }
+    return buildDetStructuredWorkout({
+      sourceId:id,configured:configuredById.get(id),targets:resolvedTargets.get(id),
+      admitted:!!admitted,isBrick:brickById.has(id),chosenDurationMin,
+      exactDurationMin:admitted&&admitted.durationMin[0]===admitted.durationMin[1]?admitted.durationMin[0]:null,
+    });
+  };
+  return {contract,report,brickReport,specificBrickReport,lowRunBrickReport,imBrickReport,allBricks,auditErrors,sourceCounts:sourceCatalogue.counts,structuredWorkoutForId};
+}

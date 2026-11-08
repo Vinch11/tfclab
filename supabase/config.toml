@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.nolio-training-load-daily]
 verify_jwt = false
+
+# Nolio API V2 — retour OAuth appelé par le navigateur depuis nolio.io, sans
+# session Supabase : sécurité par state 256 bits à usage unique + PKCE
+# (cf. supabase/functions/nolio-v2-oauth-callback/index.ts).
+[functions.nolio-v2-oauth-callback]
+verify_jwt = false

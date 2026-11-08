@@ -544,9 +544,14 @@ function buildScenario(
     // la projection ne peut pas dépasser la vitesse d'adaptation observée
     // en pratique pour la métrique (voir `trainabilityCaps.ts`).
     const cap = capDeltaPct(config.id, current, rawMin, rawMax, months);
-    const scaledMin = cap.minPct;
-    const scaledMax = cap.maxPct;
-    const midPct = cap.midPct;
+    // Respect the documented 0–100 score scale independently of adaptation
+    // rate models. Keep the displayed deltas consistent with that bound.
+    const scoreMetric=config.id==='durability'||config.id==='economy';
+    const boundedPct=(pct:number)=>scoreMetric&&current>0?(Math.max(0,Math.min(100,current*(1+pct/100)))/current-1)*100:pct;
+    const scaledMin = boundedPct(cap.minPct);
+    const scaledMax = boundedPct(cap.maxPct);
+    const midPct = boundedPct(cap.midPct);
+    const scoreBounded=Math.abs(scaledMin-cap.minPct)>1e-9||Math.abs(scaledMax-cap.maxPct)>1e-9||Math.abs(midPct-cap.midPct)>1e-9;
     const projected = current * (1 + midPct / 100);
 
     let direction: "up" | "down" | "stable";
@@ -573,8 +578,8 @@ function buildScenario(
       direction,
       significance,
       available: true,
-      capped: cap.capped,
-      capNote: cap.capNote,
+      capped: cap.capped||scoreBounded,
+      capNote: [cap.capNote,scoreBounded?'Score borné à son échelle 0–100 ; aucune amélioration au-delà du maximum.':null].filter(Boolean).join(' ')||null,
     };
   });
 

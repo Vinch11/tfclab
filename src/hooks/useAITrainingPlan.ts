@@ -1,3 +1,5 @@
+import {isTimeTrial,type TimeTrialDeclaration} from '../../experimental/det-engine/v410-time-trial-contract';
+import { aiProvenance } from "@/lib/plan/aiProvenance";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { assessPreparedGeneration, prevalidateTrainingPlan } from "@/lib/plan/prevalidateTrainingPlan";
 import { assertPlanPrevalidation, prevalidateDeclaredCalendar, withPrevalidationIssues, type PlanPrevalidation } from "../../supabase/functions/_shared/planPrevalidation";
@@ -330,6 +332,9 @@ export interface AdaptationProjection {
 }
 
 export interface PlanConfig {
+  planningProfileReference?:string;
+  timeTrialContext?:TimeTrialDeclaration;
+  planningGoalContext?:import('@/lib/plan/dedicatedSportGoal').DedicatedSportGoalAnalysis;
   _outputFormat?: "json" | "markdown";
   objective: string;
   /** ID de l'athlète — requis pour la mémoire de diversité inter-plans (P3). */
@@ -622,6 +627,10 @@ export interface ChunkProgress {
   currentChunk: number;
   totalChunks: number;
 }
+export type GenerationProgressScope={totalWeeks:number;totalChunks:number;weekOffset:number;chunkOffset:number};
+export function globalGenerationProgress(local:ChunkProgress,scope:GenerationProgressScope|null):ChunkProgress{
+ return scope?{currentWeek:Math.min(scope.totalWeeks,scope.weekOffset+local.currentWeek),totalWeeks:scope.totalWeeks,currentChunk:Math.min(scope.totalChunks,scope.chunkOffset+local.currentChunk),totalChunks:scope.totalChunks}:local;
+}
 
 /** Complete read-only scope: all known windows are checked before any generation. */
 export function prevalidateGenerationScope(athlete:PlanAthleteData,config:PlanConfig,options:Parameters<typeof prepareGenerationContracts>[2]={}) {
@@ -651,7 +660,12 @@ export function useAITrainingPlan() {
   // fenêtres — sans ce second flag, l'UI ("Générer" ré-activable) laisserait
   // croire que c'est fini entre deux requêtes.
   const [isBatchGenerating, setIsBatchGenerating] = useState(false);
-  const [chunkProgress, setChunkProgress] = useState<ChunkProgress | null>(null);
+  const [chunkProgress, setChunkProgressState] = useState<ChunkProgress | null>(null);
+  const progressScope=useRef<GenerationProgressScope|null>(null);
+  const setChunkProgress=useCallback((local:ChunkProgress|null)=>{
+    if(local)setChunkProgressState(globalGenerationProgress(local,progressScope.current));
+    else if(!progressScope.current)setChunkProgressState(null);
+  },[]);
   // Préparation pilote Mode B (consigne coach, "consulter la consommation") —
   // usage réel (tokens) accumulé sur TOUS les chunks de la dernière
   // génération JSON, si le gateway l'a renvoyé pour chaque chunk ; `null`
@@ -704,6 +718,7 @@ export function useAITrainingPlan() {
   const generationInFlightRef=useRef(false);
   const batchInFlightRef=useRef(false);
   const generatePlan = useCallback(async (athleteData: PlanAthleteData, planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" }, frozenOptions?:Parameters<typeof prepareGenerationContracts>[2]) => {
+    if(isTimeTrial(String(planConfig.objective))){toast.error("Le CLM nécessite actuellement le contrat de sources et de position du moteur DET ; aucun appel IA n’est lancé.");return;}
     // Guard against double-fire
     if (isLoading || generationInFlightRef.current) {
       console.warn("Plan generation already in progress — ignoring duplicate call");
@@ -772,6 +787,10 @@ export function useAITrainingPlan() {
 
       // ─── PHASE 2B : Target Table (source unique des valeurs physiologiques) ───
       let targetTable: TargetTable | null = null;
+      // New dedicated programmes have an explicit coach target, not a
+      // normative triathlon race target. Never normalize their unknown label
+      // through the historical 70.3 target-table fallback.
+      if (!planConfig.planningGoalContext) {
       try {
         targetTable = buildTargetTable({
           ftp: athleteData.ftp ?? null,
@@ -814,6 +833,7 @@ export function useAITrainingPlan() {
         });
       } catch (e) {
         console.warn("[useAITrainingPlan] targetTable build failed:", e);
+      }
       }
 
       // Enrichit planConfig avec les quotas + target table (transmission edge)
@@ -1275,6 +1295,7 @@ export function useAITrainingPlan() {
             // recalcul depuis le formulaire vivant lors de l'affichage.
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
+            Object.assign(parsed,{_provenance:aiProvenance(athleteData,planConfig,typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__)});
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);
@@ -1533,7 +1554,7 @@ export function useAITrainingPlan() {
       setIsLoading(false);
       setChunkProgress(null);
     }
-  }, [isLoading, resolvePlanningOptions]);
+  }, [isLoading, resolvePlanningOptions, setChunkProgress]);
 
   // Audit coach (plan Manu 40 sem) : jsonPlanHandler.ts accumule TOUS les
   // blocs en mémoire serveur et ne les envoie au navigateur qu'à la toute fin
@@ -1568,6 +1589,7 @@ export function useAITrainingPlan() {
     athleteData: PlanAthleteData,
     planConfig: PlanConfig & { _outputFormat?: "json" | "markdown" },
   ): Promise<void> => {
+    if(isTimeTrial(String(planConfig.objective))){toast.error("Le CLM utilise actuellement le contrat de sources du moteur DET ; aucun appel IA n’est lancé.");return;}
     const totalWeeks = planConfig.weeksAvailable ?? 0;
     const { chunkSize } = computeChunkSizing(planConfig.objective || "", totalWeeks);
     const totalChunksForPlan = computeTotalChunks(planConfig.objective || "", totalWeeks);
@@ -1596,6 +1618,7 @@ export function useAITrainingPlan() {
       for (let wi = 0; wi < windows.length; wi++) {
         const { from, to } = windows[wi];
         const isLastWindow = wi === windows.length - 1;
+        progressScope.current={totalWeeks,totalChunks:windows.reduce((n,w)=>n+computeTotalChunks(planConfig.objective||'',w.to-w.from+1),0),weekOffset:from-1,chunkOffset:windows.slice(0,wi).reduce((n,w)=>n+computeTotalChunks(planConfig.objective||'',w.to-w.from+1),0)};
 
         toast.info(`Génération — fenêtre ${wi + 1}/${windows.length} (S${from}-S${to})…`, { duration: 6000 });
 
@@ -1682,6 +1705,7 @@ export function useAITrainingPlan() {
           ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
         ];
+        Object.assign(assembled,{_provenance:aiProvenance(athleteData,planConfig,typeof __PLAN_RELEASE_INFO__ === "undefined"?null:__PLAN_RELEASE_INFO__)});
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
@@ -1691,6 +1715,8 @@ export function useAITrainingPlan() {
         toast.success(`Plan complet généré — ${windows.length} fenêtres assemblées.`);
       }
     } finally {
+      progressScope.current=null;
+      setChunkProgressState(null);
       batchInFlightRef.current=false;
       setIsBatchGenerating(false);
     }
@@ -1698,6 +1724,7 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     planningSnapshotRef.current=null;
+    progressScope.current=null;
     setPrevalidation(null);
     setResponse("");
     lastResponseRef.current = "";
@@ -1710,7 +1737,7 @@ export function useAITrainingPlan() {
     setCatalogIdIssues([]);
     setIsLoading(false);
     setChunkProgress(null);
-  }, []);
+  }, [setChunkProgress]);
 
   return {
     response,
