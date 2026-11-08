@@ -16,6 +16,38 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it.each([1,5,7,9])('resumes %i prior activities in a 10-activity selection without treating the unsent tail of a read batch as a failed prior send',async prior=>{
+  const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(prior);let sent=prior;
+  invoke.mockImplementation(async(n,b)=>{
+   const r=await original(n,b);
+   if(b.action==='send')sent=Math.min(sent+8,10);
+   if(b.action==='verify'){const from=Number(b.fromIndex);return {...r,results:Array.from({length:Math.min(from+8,10)-from},(_,i)=>({opIndex:from+i,result:from+i<sent?'verified_unique':'not_sent'}))};}
+   return r;
+  });
+  expect(await runCoachExport(p)).toEqual({verified:10,total:10});
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='send')).toHaveLength(Math.ceil((10-prior)/8));
+  const actions=invoke.mock.calls.map(([,b])=>b.action);expect(actions.indexOf('verify')).toBeLessThan(actions.indexOf('send'));
+ });
+ it.each(['absent','ambiguous','unknown','ledger_body_divergent'])('does not ignore an unexpected %s beyond the prior prefix',async result=>{
+  const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(5);
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{...await original(n,b),results:[{opIndex:6,result,retryableRead:true}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Export arrêté');expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
+ it('still refuses a not_sent inside the already-attempted prefix',async()=>{
+  const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(5);
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{...await original(n,b),results:[{opIndex:2,result:'not_sent'}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('n’a pas encore été envoyée');expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
+ it('read-only verification still reports the first unsent activity and never sends it',async()=>{
+  const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(5);
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{...await original(n,b),results:[{opIndex:5,result:'not_sent'}]}:original(n,b));
+  await expect(runCoachExport(p,true)).rejects.toThrow('n’a pas encore été envoyée');expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
+ it.each([100,'5'])('does not ignore an out-of-window or malformed unsent index %s',async opIndex=>{
+  const {p,invoke,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(5);
+  invoke.mockImplementation(async(n,b)=>b.action==='verify'?{...await original(n,b),results:[{opIndex,result:'not_sent'}]}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('Export arrêté');expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);
+ });
  it('restores an unanswered question with fresh server titles and requires a new decision before any write',async()=>{
   const {p,invoke,dry}=fixture(1);
   const decision={planSha256:hash,refsSha256:refs,opsSha256:ops,rows:[{...dry.manifest[0],title:'Untrusted cached title',binding:'d'.repeat(64)}]};

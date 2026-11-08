@@ -1,6 +1,7 @@
 import {formatWorkoutReadbackDifferences,formatRawTargetEvidence} from '../../../supabase/functions/_shared/nolioV2/readbackDifferences';
 import {runPlanDrySequence,parsePlanDryResp,reasonFr,stopFr,type PlanDryResp} from '@/qa/pilot-review/planDryRunView';
 import type {NolioExportScope} from '../../../supabase/functions/_shared/nolioV2/exportScope';
+import {PLAN_SEND_BATCH} from '../../../supabase/functions/_shared/nolioV2/planSend';
 export type CoachFlowPorts={
  planVersionId:string;planSha256:string;scope:NolioExportScope;
  current:()=>boolean;stopRequested:()=>boolean;
@@ -121,8 +122,16 @@ export async function runCoachExport(p:CoachFlowPorts,verifyOnly=false,calendarO
    if(r.status==='NOTHING_SENT')throw Error('Aucune activité envoyée pour cette sélection.');
    if(r.status!=='VERIFY'||!same(r.preview as typeof frozen))throw Error('Résultat Nolio non confirmé. Vérifiez les activités avant de reprendre.');
    const read=await p.verifyReceipts(dry);checkpoint(p);
-   const failed=Array.isArray(r.results)?r.results.find((x:{result?:string})=>x.result!=='verified_unique'):null;
-   if(read.total===total&&read.verified>=verified&&failed?.result==='unknown'&&failed.retryableRead===true&&readRetries<2){
+   // During resume the server's read batch may extend past the acknowledged
+   // prefix. A not_sent in that in-manifest tail is expected: the later send
+   // phase handles it. All other failures, including any not_sent inside the
+   // prefix or during whole-selection verification, still stop the export.
+   const expectedUnsentTail=(x:{result?:string;opIndex?:number})=>{
+    const index=x.opIndex;
+    return x.result==='not_sent'&&typeof index==='number'&&Number.isSafeInteger(index)&&index>=target&&index<total&&index>=nextIndex&&index<nextIndex+PLAN_SEND_BATCH&&dry.manifest!.some(o=>o.opIndex===index);
+   };
+   const failed=Array.isArray(r.results)?r.results.find((x:{result?:string;opIndex?:number})=>x.result!=='verified_unique'&&!expectedUnsentTail(x)):null;
+   if(read.total===total&&read.verified>=verified&&read.verified<target&&failed?.result==='unknown'&&Number.isSafeInteger(failed.opIndex)&&failed.opIndex>=nextIndex&&failed.opIndex<target&&failed.retryableRead===true&&readRetries<2){
     // Retry only a bounded read. Keep the exact frozen binding and resume at
     // the first unverified operation; never return to send on uncertainty.
     verified=read.verified;nextIndex=read.nextIndex;readRetries++;
