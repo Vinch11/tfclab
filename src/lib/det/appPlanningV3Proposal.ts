@@ -259,6 +259,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const marginSuffix=Array(order.length+1).fill(0) as number[];
     for(let i=order.length-1;i>=0;i--)marginSuffix[i]=marginSuffix[i+1]+Math.max(...order[i].domain.map(margin));
     let nodes=0;
+    if(requiresQuality&&!qualitySuffix[0])throw Object.assign(Error(`S${week.week} : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.`),{code:'v3_quality_source_unavailable',week:week.week,noCompletePlanReturned:true});
     function solve(index:number,total:number):boolean {
       if(++nodes>50000||total+suffix[index]>ceiling+1e-7)return false;
       if(requiresQuality&&!selected.some(quality)&&!qualitySuffix[index])return false;

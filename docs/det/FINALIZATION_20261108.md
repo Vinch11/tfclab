@@ -1,5 +1,22 @@
 # TFCLab finalization — 8 November 2026
 
+## Current status after the full-plan readback
+
+The original immutable QA plan `508e9d79-11e6-8d22-9939-585728d1c6a0`
+is delivered and uniquely reread: 95 source sessions, 101 current provider
+activities, including six bike/run pairs. The coach reported 101/101. An
+independent read-only database join confirms 101 distinct resource IDs, current
+confirmed ledger bindings, identical body hashes, complete exact-unique reads
+and one marker match per operation. Latest receipts are from 8 November,
+12:14:51–12:15:39 UTC. This supersedes the earlier delivery/preview blockers
+in the chronological notes below; it does not prove watch guidance or provider
+acceptance of a newly generated pace-v1 plan.
+
+Continuation evidence and remaining acceptance work:
+`NORMAL_PLAN_ACCEPTANCE_20261108.md`. The shared IA profile/calendar/save path
+is retained; no replacement diagnostic, release approval or private session
+was created.
+
 This branch combines the latest Nolio resume/delayed-read fixes from #464,
 the contextual 920-source integration from #465, and the corrections below.
 It is a reviewable integration candidate, not proof of a deployed application,
