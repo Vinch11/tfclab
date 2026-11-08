@@ -17,6 +17,10 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const proposal=await generateAppPlanningV3Proposal(app,athleteId,{includeLibrary920:true,...options,completeSessions:true});
  const {athlete,config}=planningInputFor(app,'det');
  const weeklyQuotas=structuredClone(prepareGenerationContracts(athlete,config).weeklyQuotas);
+ for(const week of proposal.weeks){
+  const phase=week.phase;
+  if(weeklyQuotas[week.week]&&(phase==='base'||phase==='build'||phase==='peak'||phase==='taper'))weeklyQuotas[week.week].phase=phase;
+ }
  const blocked=proposal.checks.filter(c=>c.status==='blocked');
  if(blocked.length)throw Error(blocked.map(c=>c.message).join('\n'));
  const enteredClock=options.clock?clockFor(options.clock,app.config.planStartDate!):null;
@@ -27,8 +31,9 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
   return {coachStart:{provenance:'coach_confirmed' as const,localDate:date.toISOString().slice(0,10),timeZone:options.clock.timeZone,minuteOfDay:start.minuteOfDay,utcOffsetMinutes:start.utcOffsetMinutes}};
  };
  const raceTitle=(week:number,dayIndex:number)=>{const date=new Date(app.config.planStartDate!+'T00:00:00Z');date.setUTCDate(date.getUTCDate()+(week-1)*7+dayIndex);const ymd=date.toISOString().slice(0,10);const event=proposal.eventCalendar.find(g=>g.raceDate===ymd);return 'COURSE : '+(event?.raceName||event?.objective||app.config.raceName||proposal.objective);};
- const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:w.focus??'Maintien',phase:w.phase??'Préparation',coachNotes:w.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':undefined,sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
-  const base={weekNumber:w.week,weekTheme:w.focus??'Maintien',phase:w.phase??'Préparation',dayName:d.day,dayIndex};
+ const weekTheme=(w:typeof proposal.weeks[number])=>w.weekType==='recovery'?'Récupération et assimilation':w.weekType==='taper'?'Affûtage':w.weekType==='race'?'Compétition':w.focus??'Préparation';
+ const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:w.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':undefined,sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
+  const base={weekNumber:w.week,weekTheme:weekTheme(w),phase:w.phase??'Préparation',dayName:d.day,dayIndex};
   if(d.rest)return [{...base,sport:'Repos',title:'Repos prévu',details:'',isRest:true}];
   return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?'Épreuve du calendrier ; durée non inventée.':renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
  })}));

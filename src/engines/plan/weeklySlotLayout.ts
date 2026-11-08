@@ -63,6 +63,9 @@ function midpoint(r: { min: number; max: number }): number {
 }
 
 export interface SlotLayoutOptions {
+  /** Normal planning retains taper dose; older athlete-reviewed layouts may
+   * explicitly retain their activation-only shape until separately reviewed. */
+  runTaperMode?: 'activation'|'maintain';
   /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
   availableSports?: ReadonlySet<LayoutSport>;
   raceEvents?: Array<{dayName:DayName;sport:"run"|"brick"|"bike"|"swim"}>;
@@ -317,8 +320,8 @@ function buildLayout(
       if (remaining.run <= 0) break;
       if (!canAdd(d, "run") || hasSportOn(d, "run") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push(
-        isTaperish
-          ? { sport: "run", isActivation: true, minDurationMin: 20, maxDurationMin: 30 }
+        isTaperish&&(weekType==='race'||opts.runTaperMode!=='maintain')
+          ? { sport: "run", isActivation: true, ...(opts.runTaperMode==='maintain'?{isKeySession:!days.some(day=>day.slots.some(s=>s.sport==='run'&&!s.isRaceEvent&&s.isKeySession))}:{}), minDurationMin: 20, maxDurationMin: 30 }
           : { sport: "run", isKeySession: !hasSportOn(d, "bike") },
       );
       remaining.run--;

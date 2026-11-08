@@ -90,7 +90,9 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   for (let week = 1; week <= config.weeksAvailable!; week++) {
     const quota = prepared.weeklyQuotas[week];
     if (!quota?.layout) throw Error(`Le calendrier commun ne fournit pas la semaine ${week} ; aucun calendrier de remplacement n’est inventé.`);
-    const phase = quota.phase ?? null;
+    // Week type governs the executable prescription. Keep the shared macro
+    // calendar intact; its peak block can overlap the beginning of taper.
+    const phase = quota.weekType==='taper'||quota.weekType==='race'?'taper':quota.phase ?? null;
     const limiterFocus = prepared.limiterMesocycles.byWeek[week];
     const focusPriority = limiterFocus.focus ? priorities.find(priority => priority.raw === limiterFocus.focus) : null;
     const days = quota.layout.days.map(day => ({ day: day.dayName, rest: day.isRest, slots: day.slots.map(slot => {

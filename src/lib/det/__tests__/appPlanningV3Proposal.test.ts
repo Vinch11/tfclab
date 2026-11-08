@@ -91,7 +91,7 @@ it('keeps the unsupported 5 km family refused instead of borrowing a 10 km plan'
 describe('full V3 source proposal from the existing app profile',()=>{
  it.each([['Ironman 70.3',12,10],['Marathon',16,8],['Marathon',40,9],['Semi',8,6]] as const)('%s / %s weeks: a chosen bounded V3 prescription in every non-race slot',async(objective,weeks,hours)=>{
   const app=await shared(objective,weeks,hours),before=JSON.stringify(app);
-  const plan=await generateAppPlanningV3Proposal(app,ATHLETE);
+  const plan=await generateAppPlanningV3Proposal(app,ATHLETE).catch(error=>{process.stdout.write('PROPOSAL_REFUSAL '+JSON.stringify({objective,weeks,...error})+'\n');throw error;});
   expect(plan.weeks).toHaveLength(weeks);
   expect(plan.checks.filter(c=>c.status==='blocked')).toEqual([]);
   if(objective==='Ironman 70.3')for(const week of plan.weeks.filter(w=>w.weekType==='load'&&['base','build','peak'].includes(w.phase??'')))for(const session of week.days.flatMap(d=>d.sessions).filter(s=>s.sport==='brick'&&s.role!=='race'))expect(V34_SAFE_RUN_BRICKS.some(r=>r.phase===week.phase&&r.bikeId===session.components[0].sourceId&&r.runId===session.components[1].sourceId&&r.bikeMin===session.components[0].durationMinutes&&r.runMin===session.components[1].durationMinutes)).toBe(true);
@@ -107,7 +107,7 @@ describe('full V3 source proposal from the existing app profile',()=>{
    if(budget)expect(week.knownMinutes).toBeLessThanOrEqual(budget.maxMinutes+1e-7);
    if(week.durationMinutes!==null&&budget&&previousLoad!==null)expect(week.durationMinutes).toBeLessThanOrEqual(previousLoad*(week.weekType==='recovery'?0.7:1+budget.weeklyIncreasePctMax)+1e-7);
    if(week.weekType==='load'&&!week.days.some(d=>d.sessions.some(s=>s.role==='race'))){
-    expect(week.days.some(d=>d.sessions.some(s=>s.components.some(c=>c.zoneMinutes&&c.zoneMinutes.high>0&&['mlss','vo2max'].includes(c.sourceDomain??''))))).toBe(true);
+    expect(week.days.some(d=>d.sessions.some(s=>s.components.some(c=>c.zoneMinutes&&c.zoneMinutes.high>0&&['mlss','vo2max','marathon_pace','semi_pace'].includes(c.sourceDomain??''))))).toBe(true);
     const check=plan.checks.find(c=>c.week===week.week&&c.code==='structured_polarization');
     expect(check).toBeDefined();
     if(week.durationMinutes!==null)expect(check?.status).toBe('passed');
@@ -269,7 +269,7 @@ it('preserves race-week activation ceilings and displays grouped coach-readable 
  const run=p.weeks.at(-1)!.sessions.filter(s=>s.sport==='run'&&!s.isRest);
  expect(run.length).toBeGreaterThan(0);expect(run.every(s=>s.durationMin!==undefined&&s.durationMin<=30)).toBe(true);
  expect(run.some(s=>s.durationMin===157)).toBe(false);
- expect(p.phases.map(s=>s.weeks)).toEqual(['1-4','5-8','9-10','11-12']);
+ expect(p.phases.map(s=>s.weeks)).toEqual(['1-4','5-8','9','10-12']);
  expect(p.weeks.flatMap(w=>w.sessions).some(s=>/sec_per_km|sec_per_100m|coach_verified_rpe_and_load/.test(s.details))).toBe(false);
  expect(coachDuration(33.266666666666666)).toBe('33 min 16 s');
  expect(coachTarget({domain:'mlss',metric:'sec_per_km',min:233,max:247.4,source:'athlete_reference_with_doctrine_model',confidence:'model',note:''})).toBe('3′53″ à 4′07,4″ /km');
@@ -333,7 +333,7 @@ it('keeps explicit swimming domain references instead of switching to timed fall
 it.each([['Semi',8,6],['Marathon',16,8],['Ironman',16,14]] as const)('complete-session supplements retain the common %s calendar',async(objective,weeks,hours)=>{
  const plan=await generateAppProfileDetPlan(await shared(objective,weeks,hours),ATHLETE,{},'complete-engine');
  expect(plan.weeks).toHaveLength(weeks);
- expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>native(s).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_20[1-8]/))).toBe(true);
+ expect(plan.weeks.flatMap(w=>w.sessions).filter(s=>s.sport==='strength').every(s=>native(s).detSourceComponents[0].sourceId.match(/V3P_STRENGTH_2(?:0[1-9]|1[0-6])$/))).toBe(true);
  expect(appProfileDetArchiveSummary(plan,ATHLETE).prescriptionAllowed).toBe(false);
 },60000);
 

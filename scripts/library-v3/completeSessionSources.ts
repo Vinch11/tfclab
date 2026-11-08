@@ -5,6 +5,7 @@ import swimRaw from './v3SwimNext100.json';
 import type {V3Workout,V3Block,V3Leaf,Bounds} from './catalogueRuntime';
 
 export const BODYWEIGHT_POLICY='bodyweight_only_source_rpe_no_external_load';
+export const SOURCE_RPE_LOAD_POLICY='source_prescribed_rpe_load_no_measured_weight';
 export const TIMED_SWIM_POLICY='qualitative_timeboxed_no_pace_conversion';
 const fixed=(base:number):Bounds=>({min:base,base,max:base});
 const time=(seconds:number,label:string,role:'warmup'|'main'|'cooldown'='main',rpe?:[number,number],reps?:number):V3Leaf=>({kind:'time',seconds:fixed(seconds),domain:null,role,label,...(rpe?{rpeRange:{min:rpe[0],max:rpe[1]}}:{}),...(reps?{repsTarget:fixed(reps)}:{})});
@@ -40,6 +41,26 @@ export const completeStrengthSources:V3Workout[]=(['base','build','peak','taper'
  Object.assign(w,{equipment:['chaise stable','mur','tapis']});
  w.methodology='Poids du corps uniquement, appui autorisé. Le RPE est une consigne de séance, pas une charge mesurée. Faire au plus les répétitions indiquées pendant la fenêtre de mouvement ; utiliser le temps restant pour récupérer. Les exercices unilatéraux alternent les côtés à mi-créneau. Aucun kilogramme ni 1RM présumé.';
  return w;
+}));
+/** Complete alternatives for trained athletes. RPE and repetition targets are
+ * prescriptions, not measured loads or proof of maximal strength adaptation.
+ * Principle support: https://pubmed.ncbi.nlm.nih.gov/38165636/ . The exact
+ * original compositions below have no independent session validation.
+ */
+export const trainedStrengthSources:V3Workout[]=(['base','build','peak','taper'] as const).flatMap((phase,index)=>[0,1].map(variant=>{
+ const taper=phase==='taper',maintenance=phase==='peak',rounds=taper||maintenance?1:phase==='build'?3:2;
+ const moves=variant?['Fente arrière chargée ou split squat déjà maîtrisé : 5 répétitions de chaque côté','Hip thrust avec charge maîtrisée : 5 répétitions','Mollets genoux fléchis avec charge maîtrisée : 5 répétitions lentes']:['Squat avec charge maîtrisée ou presse déjà pratiquée : 5 répétitions','Soulevé de terre roumain avec charge maîtrisée : 5 répétitions','Mollets debout avec charge maîtrisée : 5 répétitions lentes'];
+ const rpe:[number,number]=taper?[3,4]:maintenance?[6,7]:[7,8];
+ const steps=moves.map(move=>time(taper?90:180,taper?`${move.replace(/chargée|avec charge maîtrisée|avec une charge maîtrisée/g,'sans charge externe')}. Mobilisation facile, sans fatigue ni série lourde ; utiliser le temps restant pour récupérer`:`${move}. Choisir la charge pour RPE ${rpe[0]}–${rpe[1]}/10, conserver au moins 2 répétitions en réserve ; terminer les répétitions puis se reposer le reste des 3 min, au moins 2 min. Si le geste n’est pas déjà maîtrisé, le coach doit adapter avant exécution`,'main',rpe,5));
+ const w=finish(strengthBase,`V3P_STRENGTH_${209+index*2+variant}`,`${taper?'Mobilité et activation':maintenance?'Entretien de force':'Force avec charge'} ${variant?'B':'A'} — ${phase}`,[phase],[time(taper?180:360,'Échauffement général puis séries progressives légères des gestes déjà maîtrisés ; adapter avec le coach, ne pas tester de charge maximale','warmup'),{kind:'repeat',label:'Séries de force séparées par des récupérations complètes',count:fixed(rounds),betweenSec:0,steps},time(taper?180:240,'Gainage latéral complet ou Pallof press déjà maîtrisé : efforts brefs de 15 à 20 s, alterner les côtés, récupérer entre efforts','main',taper?[2,3]:[4,5]),time(taper?90:180,'Retour au calme et bilan des sensations','cooldown')],taper?0:maintenance?24:48,SOURCE_RPE_LOAD_POLICY);
+ w.minimumLevel='trained';w.primaryIntent=taper?'mobility_prevention':'max_strength';
+ w.focus=taper?'Conserver la mobilité et les gestes sans charge lourde ni fatigue résiduelle':'Développer ou entretenir la force avec une charge individualisée et des récupérations complètes ; aucune amélioration chiffrée d’économie n’est garantie';
+ w.prerequisites=['Pratique des exercices de force déjà acquise ; technique, matériel et charge adaptés par le coach avant exécution'];
+ w.contraindications=['Geste chargé non maîtrisé, douleur, matériel indisponible ou fatigue incompatible'];
+ w.methodology='Composition originale TFCLab, inspirée des principes de force pour coureurs (Sports Medicine 2024, PMID 38165636). Les créneaux incluent répétitions, installation et repos ; ne pas travailler continuellement pendant 3 min. Le RPE est une consigne, pas une conversion en pourcentage de 1RM ni une charge mesurée. Aucune charge en kilogrammes inventée, aucun test maximal. Réduire ou adapter avec le coach si les prérequis ne sont pas réunis.';
+ w.prescription.physiologicalIntent={...w.prescription.physiologicalIntent,primaryIntent:w.primaryIntent,statement:w.focus};
+ w.prescription.admissibility={...w.prescription.admissibility,minimumLevel:w.minimumLevel,prerequisites:[...w.prerequisites],contraindications:[...w.contraindications]};
+ Object.assign(w,{equipment:['charges et supports adaptés aux exercices déjà maîtrisés','tapis']});return w;
 }));
 const swimBase=swimRaw.workouts[0] as unknown as V3Workout;
 const swimThemes=[

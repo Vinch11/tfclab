@@ -21,6 +21,7 @@ import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
 import { readPlanProvenance } from "@/lib/plan/planProvenance";
+import {getLiteratureHintText} from '@/lib/raceStandards';
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -41,7 +42,7 @@ function detPreparationHTML(plan:ParsedPlan):string {
     <p>Priorités de cette version. Les associations aux limiteurs décrivent les fiches retenues ; elles ne prouvent pas une amélioration physiologique.</p>
     <table style="width:100%;border-collapse:collapse;"><thead><tr><th>Semaines</th><th>Chantier prévu</th><th>Séances clés ou longues associées</th></tr></thead><tbody>${blocks.map(block=>{
       const label=block.mode==='recovery'?'Récupération et assimilation':block.mode==='taper'?'Affûtage':block.mode==='race'?'Compétition':block.focus?limiterKeyLabel(block.focus):'Préparation';
-      return `<tr style="break-inside:avoid;border-bottom:1px solid #ddd;"><td>S${block.startWeek}${block.endWeek!==block.startWeek?`–S${block.endWeek}`:''}</td><td><b>${escPdf(label)}</b><br/>Principal : ${escPdf(block.primary?limiterKeyLabel(block.primary):'non renseigné')}<br/>${Math.round(block.knownMinutes)} min d’exercice connues${block.totalMinutes===null?' ; durée totale à préciser':''}</td><td>${block.associations.map(row=>`${escPdf(limiterKeyLabel(row.limiter))} : ${row.sessions}/${block.keySessions}`).join('<br/>')}</td></tr>`;
+      return `<tr style="break-inside:avoid;border-bottom:1px solid #ddd;"><td>S${block.startWeek}${block.endWeek!==block.startWeek?`–S${block.endWeek}`:''}</td><td><b>${escPdf(label)}</b><br/>Priorité globale du profil : ${escPdf(block.primary?limiterKeyLabel(block.primary):'non renseigné')}<br/>${Math.round(block.knownMinutes)} min d’exercice connues${block.totalMinutes===null?' ; durée totale à préciser':''}</td><td>${block.associations.map(row=>`${escPdf(limiterKeyLabel(row.limiter))} : ${row.sessions}/${block.keySessions}`).join('<br/>')}</td></tr>`;
     }).join('')}</tbody></table></section>`;
 }
 /**
@@ -63,7 +64,7 @@ function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null
     if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
     badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#E7E4DC;color:#2B2933;font-size:9px;font-weight:600;margin-right:4px;">${escPdf(tag)}</span>`);
   }
-  const clean = parsed.cleanTitle.trim();
+  const clean = parsed.cleanTitle.trim()||rawTitle.trim();
   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
   const id = catalogId ?? parsed.catalogId ?? null;
   const idHtml = id ? ` <span data-src="catalog-id" style="font-size:9px;color:#6E6B78;font-weight:400;">${escPdf(id)}</span>` : "";
@@ -136,6 +137,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
     objective: ctx.objective || "",
     ambition: ambSource,
     weeklyHours: ctx.weeklyHours ?? null,
+    literatureHintText:getLiteratureHintText(ctx.objective||'',ambSource),
     sport: mapObjectiveToSport(ctx.objective || ""),
   });
   const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
@@ -146,6 +148,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
 
   const paceAct = derived.racePaceSecPerKm ? fmtSecPace(derived.racePaceSecPerKm) : "—";
   const timeAct = derived.raceTimeSec ? fmtSecTime(derived.raceTimeSec) : "—";
+  const referencePace=derived.distanceKm&&derived.literatureRangeSec?(derived.literatureRangeSec.loSec+derived.literatureRangeSec.hiSec)/2/derived.distanceKm:null;
   const vmaAct = ctx.vmaKmh ? ctx.vmaKmh.toFixed(1) : "—";
   const vmaReq = derived.vmaRequiredForLiterature ? derived.vmaRequiredForLiterature.toFixed(1) : "—";
   const gapBadge = (pct: number | null) => {
@@ -172,7 +175,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
       </thead>
       <tbody>
         <tr><td style="padding:4px 6px;">VMA (km/h)</td><td style="padding:4px 6px;">${vmaAct}</td><td style="padding:4px 6px;">${vmaReq}</td><td style="padding:4px 6px;">${gapBadge(gapVma)}</td></tr>
-        <tr><td style="padding:4px 6px;">Allure course soutenable</td><td style="padding:4px 6px;">${paceAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
+        <tr><td style="padding:4px 6px;">Allure course soutenable</td><td style="padding:4px 6px;">${paceAct}</td><td style="padding:4px 6px;">${referencePace?fmtSecPace(referencePace):'—'}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
         <tr><td style="padding:4px 6px;">Temps projeté</td><td style="padding:4px 6px;">${timeAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
         <tr><td style="padding:4px 6px;">Volume hebdo</td><td style="padding:4px 6px;">${ctx.weeklyHours ? ctx.weeklyHours + "h" : "—"}</td><td style="padding:4px 6px;">${volReqStr}</td><td style="padding:4px 6px;">${gapBadge(gapVol)}</td></tr>
       </tbody>
@@ -687,7 +690,7 @@ export function buildPlanHTML(
   ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
   <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #5555E0;page-break-inside:avoid;">
     <strong>🔮 Projections Adaptation Predictor™</strong>
-    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Estimations modèle (fourchettes physiologiques typiques, non garanties).</p>
+    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Scénarios théoriques, non garantis. Ils ne démontrent ni la dose réellement présente dans ce plan ni une amélioration mesurée.</p>
     ${adaptationProjections.map((p, i) => `
       <div style="margin-top:${i === 0 ? 0 : 10}px;padding:8px 10px;background:#fff;border:1px solid #dbe7f5;border-radius:4px;">
         <div style="font-weight:600;font-size:12px;margin-bottom:4px;">

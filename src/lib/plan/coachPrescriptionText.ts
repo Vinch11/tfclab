@@ -8,8 +8,11 @@ export function coachDuration(minutes:number):string{
  return [m?`${m} min`:'',s?`${number(s)} s`:''].filter(Boolean).join(' ')||'0 min';
 }
 const pace=(seconds:number)=>`${Math.floor(seconds/60)}′${(seconds%60<10?'0':'')+number(seconds%60)}″`;
-export function coachTarget(t:V3IntensityTarget):string{
+export function coachTarget(t:V3IntensityTarget,legacySpeedUnits=false):string{
  if(t.min===null)return 'À individualiser';
+ if(t.metric==='m_per_sec'&&!legacySpeedUnits&&t.min>0&&t.max!==null&&t.max>0){
+  return `${pace(1000/t.max)}${t.max!==t.min?` à ${pace(1000/t.min)}`:''} /km`;
+ }
  const format=(v:number)=>['sec_per_km','sec_per_100m'].includes(t.metric)?pace(v):number(v);
  const unit={watts:'W',sec_per_km:'/km',sec_per_100m:'/100 m',m_per_sec:'m/s',coach_rpe_load:'RPE / charge',coach_field_effort:'RPE'}[t.metric];
  return `${format(t.min)}${t.max!==null&&t.max!==t.min?` à ${format(t.max)}`:''} ${unit}`;
