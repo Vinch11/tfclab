@@ -101,7 +101,7 @@ replaced with a newly generated version on the same occupied dates.
   App and Vite TypeScript, five focused suites (100 tests), and PWA build pass
   using the exact QA repository environment.
 - QA functions ai-training-plan, ai-training-plan-test, nolio-v2-plan-dry-run,
-  nolio-v2-send-plan deployed. Public GET `?release=1` on both Nolio endpoints
+  nolio-v2-send-plan deployed. Public GET `?release=1` on ai-training-plan and ai-training-plan-test
   returns HTTP 200 and QA release
   `3ba3d1ca860183b12419175986ed30238e7eb42aed1bf5e073ff0a8591e74417`.
 - The externally hosted QA preview still shows v2026.11.07-2318 and loads
@@ -149,3 +149,18 @@ The long activity list is scrollable independently, keeping the confirmation
 buttons accessible on a phone. If session storage is unavailable, the normal
 server inspection remains the safe fallback. Browser suspension can pause work;
 this change provides recovery, not a background execution guarantee.
+
+Mobile correction validation: 60 focused tests pass; app TypeScript and targeted
+ESLint pass; public and exact QA PWA builds pass. Hosted Playwright and Deno
+checks pass for runtime commit 91d5be9. Other hosted jobs hit release-download
+setup failures before tests; the full frontend job was still running at this
+update. QA source f56551fe4d0bfb996c184ded51e056246001202e is synchronized;
+the four edge functions were deployed successfully from a clean worktree.
+Independent public GET ?release=1 on ai-training-plan and ai-training-plan-test
+returns 200 with release
+4a5716eac01019354308d0dc212c131a651eb492a71bf9676242a12459680841.
+The Nolio endpoints intentionally reject GET with 405: their capabilities
+metadata requires an owned-plan authenticated POST. No new provider actions
+were performed in this correction. The user's preview and iPhone return flow
+remain to be observed; browser policy prevents this agent inspecting that
+preview. Backend deployment is not frontend delivery evidence.
