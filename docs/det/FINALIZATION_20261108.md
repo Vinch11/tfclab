@@ -186,3 +186,25 @@ or duplicate recreation. Ownership rechecks before every endpoint call remain.
 After correction all 65 targeted tests pass, including real identity-change
 cancellation, content-change cancellation and previous reload tests. The live
 user preview has not yet been observed by this agent.
+
+## Whole-screen plan loss: onboarding gate regression
+
+The user's next screenshot showed the entire planning result reset to the empty
+Generate screen. A higher-level cause was then reproduced using the real
+AuthGate, OnboardingGate and useProfile around a stateful planning child. The
+profile loader depended on the User object reference. Same-coach SIGNED_IN
+recovery replaces that object, retriggers profile loading, and OnboardingGate
+returns a loading screen in place of its children. This unmounts the complete
+planning subtree, regardless of the export provider's focus handling.
+
+The regression test fails with the original User-object dependency: the loaded
+plan/confirmation child disappears while the second profile read is pending.
+The loader now depends on the primitive authenticated UID, used for its existing
+profile select/create. Same UID means no incidental profile reload or child
+unmount. An actual UID change still reloads the owned profile and removes the
+old account's open plan; auth/onboarding redirects remain intact. Explicit
+profile refetch and profile update actions are preserved.
+
+All six focused suites pass (76 tests), including existing auth/onboarding
+production gate checks and earlier export recovery tests. This is a real gate
+mount-retention regression test, not proof of the live preview's served bundle.

@@ -47,12 +47,16 @@ interface UseProfileReturn {
 
 export function useProfile(): UseProfileReturn {
   const { user } = useAuth();
+  // Auth recovery on tab focus creates another User object for the same UID.
+  // Depending on that object reloads the profile, making OnboardingGate
+  // unmount the entire planning page and discard the open plan/export.
+  const userId = user?.id ?? null;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const fetchProfile = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setProfile(null);
       setLoading(false);
       return;
@@ -63,7 +67,7 @@ export function useProfile(): UseProfileReturn {
       const { data, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -72,7 +76,7 @@ export function useProfile(): UseProfileReturn {
       if (!data) {
         const { data: newProfile, error: insertError } = await supabase
           .from("profiles")
-          .insert({ user_id: user.id })
+          .insert({ user_id: userId })
           .select()
           .single();
 
@@ -88,7 +92,7 @@ export function useProfile(): UseProfileReturn {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userId]);
 
   useEffect(() => {
     fetchProfile();
