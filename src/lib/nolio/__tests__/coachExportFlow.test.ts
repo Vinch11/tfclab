@@ -17,6 +17,19 @@ function fixture(total=10){
  return {p,invoke,dry,setSent:(n:number)=>{sent=n;}};
 }
 describe('one-click coach export controller',()=>{
+ it('reports the frozen rejected session and allowlisted fields without reaching creates',async()=>{
+  const {p,invoke,dry}=fixture(1),original=invoke.getMockImplementation()!;
+  dry.progress={...dry.progress,valid:0,refused:1,pending:0,fullyValidated:false};
+  invoke.mockImplementation(async(n,b)=>b.action==='inspect-refusal'?{status:'REFUSAL_DIAGNOSTIC',planSha256:hash,refsSha256:refs,opsSha256:ops,refusal:{opIndex:0,sessionKey:dry.manifest[0].sessionKey,date:dry.manifest[0].date,httpStatus:400,issues:[{field:'workout.1.targets.0.value_max',reason:'pace_format'},{field:'PRIVATE',reason:'invalid'}]}}:original(n,b));
+  await expect(runCoachExport(p)).rejects.toThrow('S1-J1-0 · 2026-11-09 : Nolio refuse la simulation (HTTP 400). workout.1.targets.0.value_max : format d’allure refusé. Aucune activité créée');
+  expect(invoke.mock.calls.filter(([,b])=>b.action==='inspect-refusal')).toHaveLength(1);
+  expect(invoke.mock.calls.some(([,b])=>b.action==='send')).toBe(false);expect(p.confirmSimulation).not.toHaveBeenCalled();
+ });
+ it('never uses refusal diagnostics for an unknown outcome',async()=>{
+  const {p,invoke,dry}=fixture(1);dry.progress={...dry.progress,valid:0,unknown:1,fullyValidated:false};
+  await expect(runCoachExport(p)).rejects.toThrow('résultat inconnu');
+  expect(invoke.mock.calls.some(([,b])=>b.action==='inspect-refusal'||b.action==='send')).toBe(false);
+ });
  it('rereads replacements instead of completing from receipts for deleted resource IDs',async()=>{
   const {p,invoke,dry,setSent}=fixture(10),original=invoke.getMockImplementation()!;setSent(10);
   const bindings=dry.manifest.map(o=>({opIndex:o.opIndex,sessionKey:o.sessionKey,path:o.path,bodySha256:o.bodySha256,state:'confirmed',remoteId:`ptrn_CURRENT${o.opIndex}`}));

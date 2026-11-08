@@ -1,4 +1,5 @@
 import {coachRefsForPlan} from '../_shared/nolioV2/coachRefs.ts';
+import {inspectDryRunRefusal} from '../_shared/nolioV2/inspectDryRunRefusal.ts';
 import {exportCapabilities} from '../_shared/nolioV2/exportCapabilities.ts';
 import {CHECKED_IN_PLAN_RELEASE_INFO} from '../_shared/planReleaseManifest.ts';
 /**
@@ -41,7 +42,7 @@ Deno.serve(async (req) => {
   try { b = (await req.json()) ?? {}; } catch { return json(400, { status: "BLOCKED", code: "body_not_json" }); }
   if (Object.keys(b).some((k) => !["planVersionId", "action", "scope"].includes(k))) return json(400, { status: "BLOCKED", code: "unknown_fields" });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "BLOCKED", code: "plan_version_id_invalid" });
-  if (b.action !== "precheck" && b.action !== "run" && b.action !== "capabilities") return json(400, { status: "BLOCKED", code: "action_unknown" });
+  if (b.action !== "precheck" && b.action !== "run" && b.action !== "capabilities" && b.action !== 'inspect-refusal') return json(400, { status: "BLOCKED", code: "action_unknown" });
   const pv = await userClient.from("plan_versions").select("id,athlete_id,plan_json").eq("id", b.planVersionId).eq("coach_id", sub).maybeSingle();
   if (pv.error) return json(502, { status: "BLOCKED", code: "plan_read_failed" });
   if (!pv.data) return json(403, { status: "BLOCKED", code: "plan_not_owned" });
@@ -86,6 +87,15 @@ Deno.serve(async (req) => {
   // Manifeste SANS identifiant Nolio (index, séance, date, kind, path, empreinte du corps) + empreintes du job :
   // le navigateur le recalcule et le compare au job et à CHAQUE reçu relus sous RLS.
   const binding = { planSha256: prepared.planSha256, refsSha256: prepared.refsSha256, opsSha256: prepared.opsSha256, manifest: manifestOf(prepared.ops) };
+  if(b.action==='inspect-refusal'){
+    const j=await admin.from('qa_nolio_v2_plan_dry_run_jobs').select(JOB_COLS).eq('coach_id',sub).eq('plan_version_id',planVersionId).eq('refs_sha256',prepared.refsSha256).eq('ops_sha256',prepared.opsSha256).maybeSingle();
+    if(j.error||!j.data)return json(200,{status:'BLOCKED',code:'refusal_context_stale',...binding});
+    const lock=crypto.randomUUID();
+    try{
+      const out=await inspectDryRunRefusal({prepared,job:j.data as JobRow,receipts:await store.receipts(j.data.id),lease:()=>store.lease(j.data.id,lock,30),release:()=>store.release(j.data.id,lock),post:(kind,body,ms)=>postDryRun({kind,fetch:(u,i)=>fetch(u,i),accessToken:loaded.value.accessToken,body,budgetMs:ms})});
+      return json(200,{...out,...binding});
+    }catch{return json(200,{status:'BLOCKED',code:'refusal_diagnostic_unavailable',...binding});}
+  }
   if (b.action === "precheck") {
     let progress = null;
     const j = await admin.from("qa_nolio_v2_plan_dry_run_jobs").select(JOB_COLS).eq("coach_id", sub).eq("plan_version_id", planVersionId).eq("refs_sha256", prepared.refsSha256).eq("ops_sha256", prepared.opsSha256).maybeSingle();
