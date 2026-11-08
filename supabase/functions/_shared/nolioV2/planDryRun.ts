@@ -1,4 +1,5 @@
 import {expandCoachBricks} from './coachMultisport.ts';
+import {PACE_TARGET_FORMAT} from './paceTarget.ts';
 /**
  * Nolio V2 — simulation (dry_run) d'un PLAN COMPLET sauvegardé (QA). DRY-RUN ONLY.
  *
@@ -82,9 +83,11 @@ export async function preparePlan(planJson: unknown, refs: NolioV2Refs, planVers
   const expanded = await expandReviewedMultisport(selected.sessions, scopedChoices);
   const provenance=(planJson as {_provenance?:{engine?:string;mode?:string;syntheticFixture?:boolean}})?._provenance;
   const auto=provenance?.engine==='det'&&provenance.mode==='app-profile'&&provenance.syntheticFixture===false?await expandCoachBricks(expanded.sessions):{sessions:expanded.sessions,problems:[]};
-  const ex = { sessions: auto.sessions, problems: [...auto.problems,...raw.problems,...selected.problems, ...expanded.problems] };
+  const targetFormat = (planJson as Record<string, unknown> | null)?._nolioV2TargetFormat;
+  const formatProblems = targetFormat !== undefined && targetFormat !== PACE_TARGET_FORMAT ? ['nolio_target_format_unknown'] : [];
+  const ex = { sessions: auto.sessions, problems: [...formatProblems,...auto.problems,...raw.problems,...selected.problems, ...expanded.problems] };
   const options={timedCoachStrength:provenance?.engine==='det'&&provenance.mode==='app-profile'&&provenance.syntheticFixture===false};
-  const mappingOptions={...options,declaredCompetitions:options.timedCoachStrength};
+  const mappingOptions={...options,declaredCompetitions:options.timedCoachStrength,paceTargets:targetFormat===PACE_TARGET_FORMAT};
   const m = ex.problems.length ? { operations: [], refusals: [] } : mapPlanToNolioV2(ex.sessions, refs,mappingOptions);
   const refusedBy = new Map<string, string>();
   for (const r of m.refusals) refusedBy.set(r.sessionKey, r.reason);

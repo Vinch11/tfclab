@@ -1,4 +1,6 @@
 import {coachDuration} from '@/lib/plan/coachPrescriptionText';
+import {savedDetPreparationTimeline} from '@/lib/det/detPreparationTimeline';
+import {limiterKeyLabel} from '@/lib/limiterSessionPatterns';
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
@@ -30,6 +32,17 @@ const LORANG_COLORS: Record<string, string> = {
 };
 function escPdf(x: string): string {
   return x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function detPreparationHTML(plan:ParsedPlan):string {
+  const blocks=savedDetPreparationTimeline(plan);
+  if(!blocks?.length)return '';
+  return `<section data-role="info" aria-label="Chantiers de la préparation" style="margin-bottom:20px;font-size:11px;">
+    <h2>Chantiers de la préparation</h2>
+    <p>Priorités de cette version. Les associations aux limiteurs décrivent les fiches retenues ; elles ne prouvent pas une amélioration physiologique.</p>
+    <table style="width:100%;border-collapse:collapse;"><thead><tr><th>Semaines</th><th>Chantier prévu</th><th>Séances clés ou longues associées</th></tr></thead><tbody>${blocks.map(block=>{
+      const label=block.mode==='recovery'?'Récupération et assimilation':block.mode==='taper'?'Affûtage':block.mode==='race'?'Compétition':block.focus?limiterKeyLabel(block.focus):'Préparation';
+      return `<tr style="break-inside:avoid;border-bottom:1px solid #ddd;"><td>S${block.startWeek}${block.endWeek!==block.startWeek?`–S${block.endWeek}`:''}</td><td><b>${escPdf(label)}</b><br/>Principal : ${escPdf(block.primary?limiterKeyLabel(block.primary):'non renseigné')}<br/>${Math.round(block.knownMinutes)} min d’exercice connues${block.totalMinutes===null?' ; durée totale à préciser':''}</td><td>${block.associations.map(row=>`${escPdf(limiterKeyLabel(row.limiter))} : ${row.sessions}/${block.keySessions}`).join('<br/>')}</td></tr>`;
+    }).join('')}</tbody></table></section>`;
 }
 /**
  * Titre de séance : le titre SOURCE (nettoyé de ses seuls tags entre crochets,
@@ -660,6 +673,7 @@ export function buildPlanHTML(
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #5555E0;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
   ${buildGapAmbitionHTML(gapContext)}
+  ${detPreparationHTML(plan)}
 
   ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
   <div style="background:#f0f7ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #e67e22;">

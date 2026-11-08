@@ -62,6 +62,7 @@ describe("AITrainingPlanPage — garde-fou anti-régression : les objectifs seco
 
   it("applyLoadedVersion restaure raceGoals depuis pj._raceGoals au chargement d'une version", () => {
     const body = sliceBetween(
+      // Optional saved-version metadata must not break the persistence guard.
       "const applyLoadedVersion = useCallback(",
       "setResultView(\"interactive\");",
     );

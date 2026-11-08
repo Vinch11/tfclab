@@ -7,11 +7,16 @@ import type {FrozenAppPlanningInput} from './appPlanningInput';
 import {generateAppPlanningV3Proposal,type V3ProposalOptions} from './appPlanningV3Proposal';
 import {bindAppPlanMetadata} from '@/lib/plan/generatedPlanMetadata';
 import {PLAN_PROVENANCE_SCHEMA} from '@/lib/plan/planProvenance';
+import {PACE_TARGET_FORMAT} from '../../../supabase/functions/_shared/nolioV2/paceTarget';
+import {planningInputFor} from './appPlanningInput';
+import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
 /** Common plan representation, not a qualified-runner outcome or review.
  * Unknown durations remain absent; the complete source proposal is retained.
  */
 export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={},engineVersion:string){
- const proposal=await generateAppPlanningV3Proposal(app,athleteId,{...options,completeSessions:true});
+ const proposal=await generateAppPlanningV3Proposal(app,athleteId,{includeLibrary920:true,...options,completeSessions:true});
+ const {athlete,config}=planningInputFor(app,'det');
+ const weeklyQuotas=structuredClone(prepareGenerationContracts(athlete,config).weeklyQuotas);
  const blocked=proposal.checks.filter(c=>c.status==='blocked');
  if(blocked.length)throw Error(blocked.map(c=>c.message).join('\n'));
  const enteredClock=options.clock?clockFor(options.clock,app.config.planStartDate!):null;
@@ -29,6 +34,6 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  })}));
  const phases:ParsedPlan['phases']=[];
  for(const w of proposal.weeks){const name=w.phase??'Préparation',last=phases.at(-1);if(last?.name===name){const start=last.weeks.split('-')[0];last.weeks=start===String(w.week)?start:`${start}-${w.week}`;}else phases.push({name,weeks:String(w.week)});}
- const plan:ParsedPlan={title:`Plan TFCL™ — ${proposal.objective}`,diagnostic:`Limiteurs : ${proposal.limiterOrder.join(' → ')}. Plan construit depuis le profil disponible. Intensités calculées depuis les repères disponibles, à confirmer ; elles ne prouvent pas une mesure individuelle de LT1/MLSS.`,totalWeeks:weeks.length,weeks,finalValidationIssues:[...new Set(proposal.checks.filter(c=>c.status==='pending').map(c=>c.code))].map(code=>({rule:'det_'+code,severity:'warning' as const,message:proposal.checks.find(c=>c.code===code&&c.status==='pending')!.message})),phases};
- return bindAppPlanMetadata({...plan,_provenance:{schema:PLAN_PROVENANCE_SCHEMA,engine:'det',mode:'app-profile',engineVersion,releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,planningInput:{source:'app_planning_pipeline',fingerprint:app.fingerprint},prescriptionAllowed:false,sportingAttestation:false,syntheticFixture:false,generatedAt:new Date().toISOString()},_detSourceProposal:proposal} as ParsedPlan,app);
+ const plan:ParsedPlan={title:`Plan TFCL™ — ${proposal.objective}`,diagnostic:`Limiteurs : ${proposal.limiterOrder.join(' → ')}. Plan construit depuis le profil disponible. Intensités calculées depuis les repères disponibles, à confirmer ; elles ne prouvent pas une mesure individuelle de LT1/MLSS.`,totalWeeks:weeks.length,weeks,weeklyQuotas,finalValidationIssues:[...new Set(proposal.checks.filter(c=>c.status==='pending').map(c=>c.code))].map(code=>({rule:'det_'+code,severity:'warning' as const,message:proposal.checks.find(c=>c.code===code&&c.status==='pending')!.message})),phases};
+ return bindAppPlanMetadata({...plan,_nolioV2TargetFormat:PACE_TARGET_FORMAT,_provenance:{schema:PLAN_PROVENANCE_SCHEMA,engine:'det',mode:'app-profile',engineVersion,releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,planningInput:{source:'app_planning_pipeline',fingerprint:app.fingerprint},prescriptionAllowed:false,sportingAttestation:false,syntheticFixture:false,generatedAt:new Date().toISOString()},_detSourceProposal:proposal} as ParsedPlan,app);
 }

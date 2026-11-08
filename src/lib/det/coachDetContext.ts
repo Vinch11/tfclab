@@ -1,6 +1,8 @@
 import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
 import { v3ExtendedCatalogue } from '../../../scripts/library-v3/supplementalCatalogue';
+import { findLibrary920Source,library920Catalogue,library920SourceMetadata } from '../../../scripts/library-v3/library920Catalogue';
+import { library920ContextProblems } from './library920Selection';
 import type { RaceGoal } from '@/hooks/useAITrainingPlan';
 /**
  * Contexte de revue coach pour DET (QA). Pur, sérialisable, sans réseau.
@@ -252,7 +254,7 @@ export function anchorsFromSnapshot(s: CoachDetInputSnapshot): V3AthleteAnchors 
 }
 
 export function findSource(id: string): V3Workout | undefined {
-  return v3ExtendedCatalogue.workouts.find((w) => w.id === id);
+  return v3ExtendedCatalogue.workouts.find((w) => w.id === id)??findLibrary920Source(id);
 }
 
 /** Recherche lisible : titre, sport, intention ou focus. L'identifiant reste secondaire. */
@@ -261,8 +263,8 @@ export function searchSources(query: string, limit = 12): Array<{ id: string; ti
   const terms = norm(query).split(/\s+/).filter(Boolean);
   if (!terms.length) return [];
   const out: Array<{ id: string; title: string; sport: string; intent: string; phases: string[] }> = [];
-  for (const w of v3ExtendedCatalogue.workouts) {
-    const hay = norm([w.title, SPORT_LABELS[w.sport] ?? w.sport, INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, w.focus, w.id].join(" "));
+  for (const w of [...v3ExtendedCatalogue.workouts,...library920Catalogue.workouts]) {
+    const hay = norm([w.title, SPORT_LABELS[w.sport] ?? w.sport, INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, w.focus, w.id,library920SourceMetadata(w.id)?.sourceId??''].join(" "));
     if (terms.every((t) => hay.includes(t))) out.push({ id: w.id, title: w.title, sport: SPORT_LABELS[w.sport] ?? w.sport, intent: INTENT_LABELS[w.primaryIntent] ?? w.primaryIntent, phases: [...w.phase] });
     if (out.length >= limit) break;
   }
@@ -332,6 +334,7 @@ export function checkCoachReviewContext(input: {
     ids.add(q.id);
     const w = findSource(q.id);
     if (!w) { r.push(`source ${q.id} inconnue du catalogue courant`); continue; }
+    r.push(...library920ContextProblems(w,current.snapshot.objective,current.snapshot.athleteLevel).map(problem=>`source ${q.id} : ${problem}`));
     sports.add(w.sport);
     if (q.sourceFingerprint !== fingerprintV3SportingSource(w)) r.push(`source ${q.id} modifiée depuis la qualification : revue périmée`);
     const checked = new Set(q.evidence.checkedPrerequisites);

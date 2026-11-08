@@ -13,13 +13,14 @@
  * - Aucun id Nolio n'est inventé : sport / athlète / exercice viennent des
  *   références confirmées. Des références `synthetic:true` ne sont jamais
  *   acceptées pour un envoi réel (voir plannedClient).
- * - Allures : converties en m/s EXACTES (pas d'arrondi à la seconde de la
- *   chaîne m:ss). La conversion est signalée dans `precisionNotes`.
+ * - Allures : anciennes archives en m/s exactes ; nouvelles versions pace-v1
+ *   en /km ou /100m, avec les secondes décimales source conservées.
  * - Tout ce qui ne peut pas être représenté fidèlement ⇒ refus explicite.
  * Aucun réseau, aucun secret.
  */
 
 import { isRealYmd, startProblems, hhmm, type CoachSessionStart } from "./localTime.ts";
+import { formatPaceSeconds, parsePaceSeconds } from "./paceTarget.ts";
 
 export const NOLIO_V2_CONTRACT = {
   openapiSha256: "bc43cbcd9298e6190237680024c4d969654e47b60bd646cf45d6d02b9b4a1965",
@@ -62,7 +63,7 @@ export type NolioV2Refs = {
 // ---- Sortie : corps V2 ----
 type Q<U extends string> = { value: number; unit: U };
 export type V2Target =
-  | { type: "raw"; value: number; unit: string; value_max?: number }
+  | { type: "raw"; value: number | string; unit: string; value_max?: number | string }
   | { type: "rpe"; rpe: number; rpe_max?: number }
   | { type: "no_target" };
 export type V2Step = { kind: "step"; duration?: Q<"s" | "min" | "h">; distance?: Q<"m" | "km" | "mi">; targets: V2Target[]; intensity?: "warmup" | "work" | "rest" | "cooldown"; comment?: string };
@@ -81,11 +82,22 @@ const fin = (x: unknown): x is number => typeof x === "number" && Number.isFinit
 const OPAQUE = { usr: /^usr_[A-Za-z0-9]+$/, spt: /^spt_[A-Za-z0-9]+$/, exf: /^exf_[A-Za-z0-9]+$/ };
 
 /** Cible V400 → cible V2, ou raison du refus. Ordre des bornes toujours value ≤ value_max. */
-export function mapTarget(t: DetTarget, notes: string[]): V2Target | string {
+export function mapTarget(t: DetTarget, notes: string[], options: { paceTargets?: boolean; sport?: string } = {}): V2Target | string {
   const { min, max } = t;
   if (min === null && max === null) return "target_without_bounds";
   if ((min !== null && !fin(min)) || (max !== null && !fin(max))) return "target_bound_not_finite";
   if (min !== null && max !== null && min > max) return "target_bounds_inverted";
+  if (options.paceTargets && (t.metric === 'sec_per_km' || t.metric === 'sec_per_100m' || (t.metric === 'm_per_sec' && options.sport === 'run'))) {
+    if (min === null || max === null) return 'open_pace_bound_unrepresentable';
+    if (min <= 0 || max <= 0) return 'pace_not_positive';
+    const fast = t.metric === 'm_per_sec' ? 1000 / max : min;
+    const slow = t.metric === 'm_per_sec' ? 1000 / min : max;
+    const value = formatPaceSeconds(fast), valueMax = formatPaceSeconds(slow);
+    if (value === null || valueMax === null) return 'pace_precision_unrepresentable';
+    const unit = t.metric === 'sec_per_100m' ? '/100m' : '/km';
+    notes.push(`allure transmise en ${unit}, secondes décimales conservées sans arrondi`);
+    return { type: 'raw', value, ...(fast === slow ? {} : { value_max: valueMax }), unit };
+  }
   if (t.metric === "coach_rpe_load") {
     if (min === null || !Number.isInteger(min) || (max !== null && !Number.isInteger(max))) return "rpe_not_integer";
     if (min < 0 || (max ?? min) > 10) return "rpe_out_of_range";
@@ -108,9 +120,9 @@ export function mapTarget(t: DetTarget, notes: string[]): V2Target | string {
   return lo === hi ? { type: "raw", value: hi, unit: "m/s" } : { type: "raw", value: lo, value_max: hi, unit: "m/s" };
 }
 
-function leafTargets(l: DetLeaf, notes: string[]): V2Target[] | string {
+function leafTargets(l: DetLeaf, notes: string[], options: MappingOptions, sport: string): V2Target[] | string {
   const out: V2Target[] = [];
-  if (l.target) { const t = mapTarget(l.target, notes); if (typeof t === "string") return `${t}:${l.label}`; out.push(t); }
+  if (l.target) { const t = mapTarget(l.target, notes, { paceTargets: options.paceTargets, sport }); if (typeof t === "string") return `${t}:${l.label}`; out.push(t); }
   if (l.rpe) {
     if (!Number.isInteger(l.rpe.min) || !Number.isInteger(l.rpe.max) || l.rpe.min > l.rpe.max || l.rpe.min < 0 || l.rpe.max > 10) return `rpe_range_invalid:${l.label}`;
     if (!out.some((t) => t.type === "rpe")) out.push(l.rpe.min === l.rpe.max ? { type: "rpe", rpe: l.rpe.min } : { type: "rpe", rpe: l.rpe.min, rpe_max: l.rpe.max });
@@ -127,7 +139,7 @@ function leafTargets(l: DetLeaf, notes: string[]): V2Target[] | string {
  * Une phase warmup/cooldown temporisée ou en distance, sans répétitions, reste un step V2
  * (durée, intensité, cibles et libellé conservés), sans exerciseId.
  */
-export type MappingOptions={timedCoachStrength?:boolean;declaredCompetitions?:boolean};
+export type MappingOptions={timedCoachStrength?:boolean;declaredCompetitions?:boolean;paceTargets?:boolean};
 export function nodeRequiresExercise(n: DetLeaf, sport: string,options:MappingOptions={}): boolean {
   if(options.timedCoachStrength&&sport==='strength'&&'seconds' in n.dose)return false;
   if ("reps" in n.dose || n.repsTarget !== undefined) return true;
@@ -176,7 +188,7 @@ function mapNodes(ns: DetNode[], sport: string, refs: NolioV2Refs, notes: string
       } else out.push({ kind: "repeat", times: n.count, steps: inner });
       continue;
     }
-    const tg = leafTargets(n, notes);
+    const tg = leafTargets(n, notes, options, sport);
     if (typeof tg === "string") return tg;
     const isStrength = nodeRequiresExercise(n, sport,options);
     if (isStrength) {
@@ -215,7 +227,10 @@ export function semanticViolations(nodes: V2Node[], path = ""): string[] {
       if (n.duration && n.distance) v.push(`${p}:step_duration_and_distance`);
       if (!n.targets?.length || n.targets.length > 2) v.push(`${p}:step_targets_cardinality`);
       for (const t of n.targets) {
-        if (t.type === "raw" && t.value_max !== undefined && t.value > t.value_max) v.push(`${p}:raw_bounds_inverted`);
+        if (t.type === "raw" && t.value_max !== undefined) {
+          const lo = rawTargetValue(t.value, t.unit), hi = rawTargetValue(t.value_max, t.unit);
+          if (lo !== null && hi !== null && lo > hi) v.push(`${p}:raw_bounds_inverted`);
+        }
         if (t.type === "rpe" && t.rpe_max !== undefined && t.rpe > t.rpe_max) v.push(`${p}:rpe_bounds_inverted`);
       }
     } else if (n.kind === "repeat") {
@@ -407,6 +422,9 @@ export function detWorkoutProblems(w: DetWorkout): string[] {
 export const V2_TRAINING_CREATE_KEYS = ["recurrence", "athletes", "group", "time", "moment", "description", "description_html", "duration", "distance", "elevation_gain", "elevation_loss", "rpe", "show_rpe", "coggan_load", "color", "tags", "name", "date_start", "sport", "workout"] as const;
 export const V2_COMPETITION_CREATE_KEYS = ["event", "location", "goal_type", "recurrence", "athletes", "group", "time", "moment", "description", "description_html", "duration", "distance", "elevation_gain", "elevation_loss", "rpe", "show_rpe", "coggan_load", "color", "tags", "name", "date_start", "sport"] as const;
 const DUR_UNITS = new Set(["s", "min", "h"]); const DIST_UNITS = new Set(["m", "km", "mi"]);
+function rawTargetValue(value: unknown, unit: unknown): number | null {
+  return unit === '/km' || unit === '/100m' ? parsePaceSeconds(value) : fin(value) && value >= 0 ? value : null;
+}
 const quantityOk = (q: unknown, units: Set<string>) => !!q && typeof q === "object" && pos((q as { value: unknown }).value) && units.has((q as { unit: string }).unit) && Object.keys(q).length === 2;
 
 function v2NodeProblems(ns: unknown, p: string): string[] {
@@ -423,7 +441,10 @@ function v2NodeProblems(ns: unknown, p: string): string[] {
       const ts = o.targets as Array<Record<string, unknown>> | undefined;
       if (!Array.isArray(ts) || ts.length < 1 || ts.length > 2) out.push(`${q}targets_cardinality`);
       else for (const t of ts) {
-        if (t.type === "raw") { if (!fin(t.value) || (t.value as number) < 0 || (t.value_max !== undefined && (!fin(t.value_max) || (t.value_max as number) < (t.value as number))) || typeof t.unit !== "string") out.push(`${q}raw_target_invalid`); }
+        if (t.type === "raw") {
+          const lo = rawTargetValue(t.value, t.unit), hi = t.value_max === undefined ? lo : rawTargetValue(t.value_max, t.unit);
+          if (typeof t.unit !== 'string' || lo === null || hi === null || hi < lo) out.push(`${q}raw_target_invalid`);
+        }
         else if (t.type === "rpe") { if (!Number.isInteger(t.rpe) || (t.rpe as number) < 0 || (t.rpe as number) > 10 || (t.rpe_max !== undefined && (!Number.isInteger(t.rpe_max) || (t.rpe_max as number) < (t.rpe as number) || (t.rpe_max as number) > 10))) out.push(`${q}rpe_target_invalid`); }
         else if (t.type !== "no_target") out.push(`${q}target_type_unknown`);
       }

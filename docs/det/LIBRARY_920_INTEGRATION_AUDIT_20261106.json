@@ -1,0 +1,1213 @@
+{
+  "schema": "tfcl.library920.integration-audit.v1",
+  "date": "2026-11-06",
+  "basedOnPr": 464,
+  "baseCommit": "091f4473d14d4683c8711cd34b8fe025cc350694",
+  "sourceVersion": "3.2.1-critical-review-candidate-920",
+  "sourcePdfSha256": "eae221547781ae72f85f83277586d2d0a93f071a559381196d90ed3aa02b1f98",
+  "originalCandidateObjectsPreserved": true,
+  "registeredSourceIds": 920,
+  "ordinaryCandidates": 826,
+  "sourceEngineeringEligible": 661,
+  "blockedOrdinarySources": 165,
+  "specialRouteRecords": 94,
+  "engineeringEligibilityIsNotScientificOrIndividualApproval": true,
+  "independentScientificReviewsCreated": 0,
+  "realAthleteApprovalsCreated": 0,
+  "productionDeploymentsPerformed": 0,
+  "productionAthleteDataWrites": 0,
+  "nolioSends": 0,
+  "validation": {
+    "frontendUniqueCasesPassed": 151,
+    "frontendCasesSourceRuns": [
+      {
+        "caseCount": 138,
+        "files": 7
+      },
+      {
+        "caseCount": 21,
+        "files": 1,
+        "includes13AdditionalGoalScopeCases": true
+      }
+    ],
+    "experimentalCasesPassed": 16,
+    "totalUniqueTargetedCasesPassed": 167,
+    "applicationTypeScript": "PASS",
+    "changedTypeScriptEslint": {
+      "files": 14,
+      "errors": 0,
+      "warnings": 0
+    },
+    "productionBuildWithPwaPrecache": "PASS",
+    "runtimeReleaseDeclaration": "6e11043329f986037632abc9246358856b0c6e9d5786ffd71c7259e725f5807b",
+    "liveAthleteOrProviderAcceptance": "NOT_PERFORMED"
+  },
+  "selectionPolicy": "source-blocked records excluded; known athlete level and source-goal/phase/negative restrictions; exact duration/domain/zone/limiter-compatible alternatives with calendar recovery checks and explicit pending unknowns",
+  "blockedSources": [
+    {
+      "runtimeId": "V3P_RUN_605",
+      "sourceId": "V2_RUN_STRIDES_POST_EF",
+      "reasons": [
+        "short_sprint_recovery_less_than_five_to_one"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_628",
+      "sourceId": "B_5K_FINISH_KICK",
+      "reasons": [
+        "short_sprint_recovery_less_than_five_to_one"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_642",
+      "sourceId": "B_RUN_FARTLEK_60_PRO",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_654",
+      "sourceId": "B_RUN_TEMPO_2x20_PRO",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_663",
+      "sourceId": "B_SEMI_FARTLEK_CONTROLLED",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_695",
+      "sourceId": "B_TR_TEMPO_VALLON",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_704",
+      "sourceId": "CANOVA_RUN_FARTLEK_MARATHON",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_705",
+      "sourceId": "CANOVA_RUN_FARTLEK_MIXED",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_717",
+      "sourceId": "ENR_RUN_10K_TEMPO_CONTINU",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_723",
+      "sourceId": "ENR_RUN_FARTLEK_KENYAN",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_725",
+      "sourceId": "ENR_RUN_FARTLEK_SCANDINAVE",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_732",
+      "sourceId": "ENR_TAPER_OPENERS_RUN",
+      "reasons": [
+        "short_sprint_recovery_less_than_five_to_one"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_744",
+      "sourceId": "KENYAN_RUN_TEMPO_GROUP",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_745",
+      "sourceId": "KENYAN_RUN_TEMPO_MARATHON",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_756",
+      "sourceId": "SEILER_RUN_PROGRESSION_4TO8",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_760",
+      "sourceId": "TPL_703_RUN_TEMPO_2x20",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_782",
+      "sourceId": "URBAN_COTES_LONGUES_FARTLEK",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_794",
+      "sourceId": "V2_RUN_ETHIOPIAN_FARTLEK",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_795",
+      "sourceId": "V2_RUN_KENYAN_TEMPO_LONG",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_802",
+      "sourceId": "V3_TRAIL_SHORT_TEMPO_COTE",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_808",
+      "sourceId": "C_10K_STRIDES_SPEED",
+      "reasons": [
+        "short_sprint_recovery_less_than_five_to_one"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_819",
+      "sourceId": "C_SPRINT_RUN_5K_PACE",
+      "reasons": [
+        "source_5k_race_intervals_rewritten_as_alactic_bursts"
+      ]
+    },
+    {
+      "runtimeId": "V3P_RUN_908",
+      "sourceId": "BILLAT_TRAIL_FARTLEK_HILL",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_555",
+      "sourceId": "B_OLY_BIKE_TEMPO_SUSTAINED",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_564",
+      "sourceId": "ENR_BIKE_GIMENEZ_TEST_FORMAT",
+      "reasons": [
+        "test_protocol_prerequisite_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_569",
+      "sourceId": "ENR_BIKE_RAMP_4x10",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_584",
+      "sourceId": "SEILER_BIKE_PROGRESSION_POLARIZED",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_595",
+      "sourceId": "V2_BIKE_GRIMPEUR_TEMPO",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_602",
+      "sourceId": "V3_BIKE_CLIMBING_TEMPO",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_610",
+      "sourceId": "V3_BIKE_TEMPO_LONG",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_BIKE_628",
+      "sourceId": "TAPER_ACTIVATION_J2",
+      "reasons": [
+        "short_sprint_recovery_less_than_five_to_one"
+      ]
+    },
+    {
+      "runtimeId": "V3P_SWIM_510",
+      "sourceId": "A_SWIM_TEMPO_1500",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_SWIM_542",
+      "sourceId": "B_SWIM_FARTLEK_MIX",
+      "reasons": [
+        "mixed_stimulus_requires_two_main_domains"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_500",
+      "sourceId": "D_ACTIVATION_CORE_TAPER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_501",
+      "sourceId": "D_ACTIVATION_GLUTES",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_502",
+      "sourceId": "D_MOBILITY_HIPS_DEEP",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_503",
+      "sourceId": "D_MOBILITY_ROUTINE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_504",
+      "sourceId": "D_MOBILITY_THORACIC",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_505",
+      "sourceId": "D_STRETCH_ROUTINE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_506",
+      "sourceId": "D_YOGA_ATHLETE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_507",
+      "sourceId": "D_YOGA_POWER_LIGHT",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_508",
+      "sourceId": "D_YOGA_PRERACE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_509",
+      "sourceId": "D_YOGA_YIN_DEEP",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_510",
+      "sourceId": "A_STR_AERO_STRENGTH",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_511",
+      "sourceId": "A_STR_ENDURANCE_CIRCUIT",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_512",
+      "sourceId": "A_STR_STABILITY_CORE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_513",
+      "sourceId": "B_STR_MAX_STRENGTH",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_514",
+      "sourceId": "B_STR_PLYOMETRIC",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_515",
+      "sourceId": "B_STR_POWER_ENDURANCE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_516",
+      "sourceId": "C_RESP_INSPIRATORY_MUSCLE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_517",
+      "sourceId": "C_RUN_STRENGTH_30_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_518",
+      "sourceId": "C_STR_ANKLE_FOOT_COMPLEX",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_519",
+      "sourceId": "C_STR_ANKLE_PROPRIO_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_520",
+      "sourceId": "C_STR_BEGINNER_FOUNDATION_FULL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_521",
+      "sourceId": "C_STR_BODYWEIGHT_HOME",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_522",
+      "sourceId": "C_STR_CALF_HEAVY_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_523",
+      "sourceId": "C_STR_CALF_ISO_HEAVY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_524",
+      "sourceId": "C_STR_CIRCUIT_CARDIO_RUN",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_525",
+      "sourceId": "C_STR_CIRCUIT_CARDIO_TRI",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_526",
+      "sourceId": "C_STR_CONCURRENT_AM_PM",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_527",
+      "sourceId": "C_STR_CORE_INTEGRATED",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_528",
+      "sourceId": "C_STR_CORE_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_529",
+      "sourceId": "C_STR_CYCLIST_NECK_BACK",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_530",
+      "sourceId": "C_STR_CYCLIST_PEDAL_POWER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_531",
+      "sourceId": "C_STR_DOWNHILL_PLYO_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_532",
+      "sourceId": "C_STR_ECC_DOWNHILL_PROTOCOL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_533",
+      "sourceId": "C_STR_ECC_QUAD_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_534",
+      "sourceId": "C_STR_EXPLOSIVE_LOWER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_535",
+      "sourceId": "C_STR_FULL_BODY_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_536",
+      "sourceId": "C_STR_GLUTE_REACTIVATION",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_537",
+      "sourceId": "C_STR_HAMSTRING_HEALTH_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_538",
+      "sourceId": "C_STR_HILL_SPRINTS_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_539",
+      "sourceId": "C_STR_HIP_MOBILITY_DYNAMIC",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_540",
+      "sourceId": "C_STR_HIP_MOBILITY_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_541",
+      "sourceId": "C_STR_ISOMETRIC_LOWER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_542",
+      "sourceId": "C_STR_ISOMETRIC_UPPER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_543",
+      "sourceId": "C_STR_KETTLEBELL_FLOW",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_544",
+      "sourceId": "C_STR_KNEE_PREHAB_VMO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_545",
+      "sourceId": "C_STR_LOWER_BACK_BULLETPROOF",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_546",
+      "sourceId": "C_STR_LOWER_HYPERTROPHY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_547",
+      "sourceId": "C_STR_LOWER_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_548",
+      "sourceId": "C_STR_MAX_LOWER_HEAVY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_549",
+      "sourceId": "C_STR_NORDIC_HAMSTRING",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_550",
+      "sourceId": "C_STR_NORDIC_HAMSTRING_PETERSEN",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_551",
+      "sourceId": "C_STR_PLYOMETRIC",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_552",
+      "sourceId": "C_STR_PLYO_ADVANCED_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_553",
+      "sourceId": "C_STR_PLYO_BASIC_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_554",
+      "sourceId": "C_STR_PLYO_PROGRESSION_8WK",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_555",
+      "sourceId": "C_STR_POWER_LIFT_COMPLEX",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_556",
+      "sourceId": "C_STR_REACTIVE_STIFFNESS",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_557",
+      "sourceId": "C_STR_RE_ECONOMY_BLAGROVE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_558",
+      "sourceId": "C_STR_RUN_CADENCE_DRILLS",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_559",
+      "sourceId": "C_STR_RUN_DRILLS_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_560",
+      "sourceId": "C_STR_SINGLE_LEG_RUNNER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_561",
+      "sourceId": "C_STR_THORACIC_POSTURAL_RESET",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_562",
+      "sourceId": "C_STR_THORACIC_SHOULDER_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_563",
+      "sourceId": "C_STR_TIBIAL_SHIN_SPLINTS",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_564",
+      "sourceId": "C_STR_TOTAL_BODY_45",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_565",
+      "sourceId": "C_STR_TRAIL_CORE_BACKPACK",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_566",
+      "sourceId": "C_STR_TRAIL_CORE_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_567",
+      "sourceId": "C_STR_TRAIL_FOOT_TECHNIQUE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_568",
+      "sourceId": "C_STR_TRAIL_HIKING_POWER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_569",
+      "sourceId": "C_STR_TRAIL_LATERAL_STABILITY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_570",
+      "sourceId": "C_STR_UPPER_BODY_TRI",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_571",
+      "sourceId": "C_STR_UPPER_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_572",
+      "sourceId": "C_STR_UPPER_PUSH_PULL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_573",
+      "sourceId": "C_STR_VAR_10_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_574",
+      "sourceId": "C_STR_VAR_11_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_575",
+      "sourceId": "C_STR_VAR_12_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_576",
+      "sourceId": "C_STR_VAR_13_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_577",
+      "sourceId": "C_STR_VAR_14_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_578",
+      "sourceId": "C_STR_VAR_15_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_579",
+      "sourceId": "C_STR_VAR_1_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_580",
+      "sourceId": "C_STR_VAR_2_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_581",
+      "sourceId": "C_STR_VAR_3_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_582",
+      "sourceId": "C_STR_VAR_4_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_583",
+      "sourceId": "C_STR_VAR_5_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_584",
+      "sourceId": "C_STR_VAR_6_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_585",
+      "sourceId": "C_STR_VAR_7_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_586",
+      "sourceId": "C_STR_VAR_8_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_587",
+      "sourceId": "C_STR_VAR_9_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_588",
+      "sourceId": "C_TR50_STRENGTH_EXPLOSIVE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_589",
+      "sourceId": "C_TR_CORE_ANTIFATIGUE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_590",
+      "sourceId": "C_TR_EXCENTRIQUE_LOURD",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_591",
+      "sourceId": "C_TR_FORCE_MONTEE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_592",
+      "sourceId": "C_TR_MOBILITY_HIPS_20",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_593",
+      "sourceId": "C_TR_PLIO_TRAIL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_594",
+      "sourceId": "C_TR_PROPRIOCEPTION",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_595",
+      "sourceId": "C_TR_PROPRIO_ANKLE_FOOT",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_596",
+      "sourceId": "C_TR_RENFO_CIRCUIT_FATIGUE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_597",
+      "sourceId": "C_TR_STRENGTH_ECCENTRIC_QUADS",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_598",
+      "sourceId": "C_TR_STRENGTH_GENERAL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_599",
+      "sourceId": "C_TR_STRENGTH_HILLS",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_600",
+      "sourceId": "C_TR_STRENGTH_HILLS_V29",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_601",
+      "sourceId": "C_TR_STRENGTH_LOWER_45",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_602",
+      "sourceId": "C_TR_STRENGTH_PRO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_603",
+      "sourceId": "ENR_STR_CONCURRENT_AM_PM",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_604",
+      "sourceId": "ENR_STR_CORE_ANTI_ROTATION",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_605",
+      "sourceId": "ENR_STR_EXCENTRIQUE_ISCHIO",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_606",
+      "sourceId": "ENR_STR_PLYOMETRIE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_607",
+      "sourceId": "TPL_MAR_RENFO_EXPLOSIF",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_608",
+      "sourceId": "TPL_MAR_RENFO_LOURD",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_609",
+      "sourceId": "URBAN_CORE_GAINAGE_TRAIL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_610",
+      "sourceId": "URBAN_EXCENTRIQUE_DESCENTE_SALLE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_611",
+      "sourceId": "V2_STR_ESCALIERS_TRAIL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_612",
+      "sourceId": "V2_STR_FORCE_MAX_UPPER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_613",
+      "sourceId": "V2_STR_GAINAGE_DYNAMIQUE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_614",
+      "sourceId": "V2_STR_HANCHE_COUREUR",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_615",
+      "sourceId": "V2_STR_ISOMETRIQUE_SEUIL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_616",
+      "sourceId": "D_PAP_PRE_RACE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_617",
+      "sourceId": "D_TR_MOBILITE_TRAIL",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_618",
+      "sourceId": "D_TR_REST_MOBILITY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_619",
+      "sourceId": "ENR_RECUP_MOBILITE_YOGA",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_620",
+      "sourceId": "V2_RECUP_FOAM_ROLLING",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_621",
+      "sourceId": "V3_RECUP_MOBILITE_HANCHE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_622",
+      "sourceId": "V3_RECUP_YOGA_ATHLETE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_623",
+      "sourceId": "RECOVERY_COLD_WATER_IMMERSION",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_624",
+      "sourceId": "RECOVERY_YOGA_MOBILITY_TRI",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_625",
+      "sourceId": "CONTRAST_STR_UPPER_LOWER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_626",
+      "sourceId": "RMT_EXPIRATORY_CORE",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_627",
+      "sourceId": "S2R_STR_FOUNDATION_BEGINNER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_628",
+      "sourceId": "S2R_STR_FOUNDATION_BLOC2",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_629",
+      "sourceId": "S2R_STR_FOUNDATION_BLOC3",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_630",
+      "sourceId": "S2R_STR_MAINTENANCE_TAPER",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    },
+    {
+      "runtimeId": "V3P_STRENGTH_631",
+      "sourceId": "S2R_MOBILITY_RECOVERY",
+      "reasons": [
+        "strength_equipment_missing"
+      ]
+    }
+  ],
+  "specialRecordTypeCounts": {
+    "multi_day_bundle": 3,
+    "multi_session_day": 3,
+    "assessment": 7,
+    "support_protocol": 16,
+    "multi_day_assessment": 1,
+    "multisport_workout": 62,
+    "rest_day": 1,
+    "specialist_protocol": 1
+  }
+}

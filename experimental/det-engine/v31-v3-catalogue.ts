@@ -10,6 +10,7 @@ import {
   type Overrides, type V3Block, type V3Workout,
 } from '../../scripts/library-v3/catalogueRuntime';
 import {v3SupplementalCatalogue} from '../../scripts/library-v3/supplementalCatalogue';
+import {library920Catalogue,library920Problems,library920SourceMetadata} from '../../scripts/library-v3/library920Catalogue';
 import supplementalRegistry from '../../scripts/library-v3/v3SupplementSportingReview20261103.json';
 import type {V3SportingSourceRecord} from '../../scripts/library-v3/sportingQualification800';
 import { fitV3Duration } from '../../scripts/library-v3/durationFitter';
@@ -158,6 +159,20 @@ export function previewV3SourceDose(dosing:V3Workout,settings:Pick<V3ReviewedSet
 
 function configureWorkout(workout:V3Workout,settings:V3ReviewedSettings):V3Workout {
   const terrain=settings.athleteAnchors?.runTerrainReview;
+  const imported=library920SourceMetadata(workout.id);
+  if(imported){
+    if(workout.sport==='run'&&imported.terrainEffortRequired&&!terrain)
+      throw Error('v3_imported_terrain_field_review_missing');
+    if(workout.sport==='swim'&&imported.techniqueSpecificSwimPaceRequired)
+      throw Error('v3_imported_technique_specific_pace_binding_missing');
+    const leaves=(blocks:V3Block[]):Exclude<V3Block,{kind:'repeat'}>[]=>blocks.flatMap(b=>b.kind==='repeat'?leaves(b.steps):[b]);
+    const blocks=leaves(workout.blocks);
+    if(workout.sport!=='swim'&&blocks.some(b=>b.kind==='distance'))
+      throw Error('v3_imported_non_swim_distance_pace_binding_missing');
+    if(workout.sport==='swim'&&blocks.some(b=>b.kind==='distance'&&b.domain==='neuromuscular'&&
+      (!(normalizedSwimPaces(settings).neuromuscular>0)||b.meters!.base*normalizedSwimPaces(settings).neuromuscular!/100>20)))
+      throw Error('v3_imported_swim_sprint_duration_over_20s_or_unmeasured');
+  }
   if(terrain||settings.expectedRunTerrainContextId){
     if(workout.sport!=='run'||!terrain||!settings.expectedAthleteId||
        terrain.athleteId!==settings.expectedAthleteId||terrain.sourceId!==workout.id||
@@ -217,13 +232,16 @@ export function buildDetV3ContractFromCatalogue(
   // Historical 800-source contracts retain their exact source cohort/counts.
   const requested=v3SupplementalCatalogue.workouts.filter(w=>reviews.some(r=>r.id===w.id));
   const requestedSupplement=requested.length>0;
-  const sourceCatalogue=requestedSupplement?{...v3FullCatalogue,
-    count:800+requested.length,counts:{...v3FullCatalogue.counts,run:200+requested.length},
-    workouts:[...v3FullCatalogue.workouts,...requested]}:v3FullCatalogue;
+  const requested920=library920Catalogue.workouts.filter(w=>reviews.some(r=>r.id===w.id));
+  const requestedWorkouts=[...v3FullCatalogue.workouts,...requested,...requested920];
+  const sourceCatalogue=requested.length||requested920.length?{...v3FullCatalogue,
+    count:requestedWorkouts.length,counts:requestedWorkouts.reduce((counts,w)=>({...counts,[w.sport]:(counts[w.sport]??0)+1}),{} as Record<string,number>),
+    workouts:requestedWorkouts}:v3FullCatalogue;
   const auditErrors=[...auditV3Catalogue(v3FullCatalogue),...auditV3SportingRegistry(),
     ...(requestedSupplement?[...auditV3Catalogue(v3SupplementalCatalogue),
       ...auditV3SportingRegistry(v3SupplementalCatalogue.workouts,
         supplementalRegistry.records as V3SportingSourceRecord[],v3SupplementalCatalogue.workouts.length)]:[])];
+  if(requested920.length)auditErrors.push(...library920Problems());
   if(auditErrors.length)throw Error('v3_catalogue_audit_failed:'+auditErrors.slice(0,5).join(','));
   if(v3FullCatalogue.workouts.length!==800 ||
       ['bike','run','swim','strength'].some(s=>v3FullCatalogue.workouts.filter(w=>w.sport===s).length!==200))
