@@ -214,7 +214,11 @@ export function resolveFullRegenerationStartDate(
   hadExistingActivePlan: boolean,
   currentPlanStartDate: Date,
   now: Date = new Date(),
+  sharedInput?: FrozenAppPlanningInput | null,
 ): Date {
+  // The common IA/DET form is authoritative when its frozen input is ready.
+  // Its visible selected start must not move when switching engines.
+  if(sharedInput)return parseISO(sharedInput.config.planStartDate);
   return hadExistingActivePlan ? currentPlanStartDate : startOfWeek(now, { weekStartsOn: 1 });
 }
 
@@ -1679,6 +1683,14 @@ export default function AITrainingPlanPage() {
       if(!detGenerationAction.current){toast.error("Profil DET indisponible : vérifiez l’athlète et la configuration.");return;}
       await detGenerationAction.current();return;
     }
+    const useSharedInput=qaChoice&&!isMultiMode&&planningEngine==='ai';
+    const sharedInput=useSharedInput?appPlanningRef.current:null;
+    if(useSharedInput&&(!sharedInput||sharedInput.athleteId!==currentAthlete?.id)){
+      toast.error('Profil de planification en cours de préparation : patientez avant de générer.');return;
+    }
+    const sharedGeneration=sharedInput?planningInputFor(sharedInput,'ai'):null;
+    const generationEpoch=qaActionEpoch.current;
+    const sharedCurrent=()=>!sharedInput||(generationEpoch===qaActionEpoch.current&&appPlanningRef.current?.fingerprint===sharedInput.fingerprint&&appPlanningRef.current.athleteId===sharedInput.athleteId);
     // Une génération complète invalide toute régénération ciblée précédente.
 
     // Une génération pleine ("Générer") repart sur le lundi de la semaine
@@ -1692,7 +1704,7 @@ export default function AITrainingPlanPage() {
     // est asynchrone et `buildConfigFromDiag` ci-dessous lirait encore
     // l'ancienne valeur dans le même tick — d'où l'override direct de
     // `config.planStartDate`.
-    const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate);
+    const freshStartDate = resolveFullRegenerationStartDate(hadExistingActivePlanRef.current, planStartDate,new Date(),sharedInput);
 
     if (!athleteContext) {
       toast.error("Sélectionnez un athlète avec un snapshot actif");
@@ -1711,7 +1723,7 @@ export default function AITrainingPlanPage() {
     }
 
 
-    const config = buildConfigWithCoachOverrides(athleteContext.diagnostic);
+    const config = sharedGeneration?.config??buildConfigWithCoachOverrides(athleteContext.diagnostic);
     // Voir commentaire plus haut : `buildConfigFromDiag` a lu l'ancien
     // `planStartDate` (closure figée au dernier render) — on force ici la
     // valeur fraîche calculée en tête de fonction.
@@ -1740,14 +1752,17 @@ export default function AITrainingPlanPage() {
       config.constraints = [config.constraints || "", extraConstraints.trim()].filter(Boolean).join("\n");
     }
     if (isJsonBetaEnabled()) (config as any)._outputFormat = "json";
-    const preview=await prevalidateTrainingPlan(athleteContext.data,config);
+    const preview=await prevalidateTrainingPlan(sharedGeneration?.athlete??athleteContext.data,config);
     if(prevalidateOnly||preview.status==="blocked") {
       if(preview.status==="blocked")toast.error("Prévalidation bloquante : corrige les contraintes avant génération.");
       return;
     }
+    if(!sharedCurrent()){
+      toast.error('La configuration a changé pendant la prévalidation : génération annulée.');return;
+    }
     expressFlagRef.current = false;
     setPlanOverride(null);
-    setPlanStartDate(freshStartDate);
+    if(freshStartDate.getTime()!==planStartDate.getTime())setPlanStartDate(freshStartDate);
     // Archive current plan if this is a sync-triggered regeneration
     if (showSyncBanner && currentAthlete) {
       const { data: { user } } = await supabase.auth.getUser();
@@ -1764,7 +1779,8 @@ export default function AITrainingPlanPage() {
       setShowSyncBanner(false);
     }
 
-    generatePlanWindowed(athleteContext.data, config);
+    if(!sharedCurrent()){toast.error('La configuration a changé : génération annulée.');return;}
+    generatePlanWindowed(sharedGeneration?.athlete??athleteContext.data, config);
   };
 
   // Pre-fill from auto diagnostic (metric names → Lorang categories, best-effort).

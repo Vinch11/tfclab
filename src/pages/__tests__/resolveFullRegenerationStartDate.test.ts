@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { resolveFullRegenerationStartDate } from "../AITrainingPlanPage";
+import type {FrozenAppPlanningInput} from '@/lib/det/appPlanningInput';
 
 /**
  * Bug réel signalé par le coach : plan de Cath démarré le 3 août, course le
@@ -10,6 +11,11 @@ import { resolveFullRegenerationStartDate } from "../AITrainingPlanPage";
  * du jour, y compris pour un plan déjà actif et déjà en cours.
  */
 describe("resolveFullRegenerationStartDate", () => {
+  it.each([false,true])('the common selected16-week horizon keeps9November even if an old plan exists (%s)',hadExisting=>{
+    const shared={config:{planStartDate:'2026-11-09',raceDate:'2027-02-28',weeksAvailable:16}} as FrozenAppPlanningInput;
+    const result=resolveFullRegenerationStartDate(hadExisting,new Date(2026,10,9),new Date(2026,10,8),shared);
+    expect(result).toEqual(new Date(2026,10,9));expect(shared.config.weeksAvailable).toBe(16);
+  });
   it("un plan DÉJÀ ACTIF conserve sa date de début d'origine (ne bascule pas sur aujourd'hui)", () => {
     const originalStart = new Date(2026, 7, 3); // 3 août 2026 (mois 0-indexé)
     const today = new Date(2026, 8, 1); // 1er septembre 2026

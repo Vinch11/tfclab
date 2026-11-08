@@ -34,6 +34,11 @@ separately by the real client-hook test.
    unchanged validators; no switch to Markdown, arbitrary custom session or
    relaxed scientific/sporting check is introduced.
 4. Apply the identical generator change to ai-training-plan and its test copy.
+5. The normal single-athlete IA button now consumes the same ready frozen app
+   input as DET. Its selected start date is authoritative even without an old
+   active plan; legacy/non-shared defaults remain unchanged. Recheck the input
+   fingerprint, athlete and engine epoch after asynchronous prevalidation and
+   archiving. An engine/profile change cancels generation before a model call.
 
 ## Offline checks
 
@@ -51,6 +56,12 @@ Mocked Deno tests exercise the actual generator retry with the source contract:
 the bad selection remains rejected, and only a regenerated consistent response
 is accepted. They must pass in QA before deployment; no live generation success
 is claimed by these mocked tests.
+
+Initial QA verification subsequently passed39frontend tests,10mocked Deno
+tests and four Deno checks, then deployed the source-contract/progress change.
+The additional visible-start-date regression increases the selected frontend
+checks to43tests in six files. It verifies9November→28February remains the
+selected16-week horizon with or without a prior active plan.
 
 The comparative Nolio diagnostic work is paused in a separate local git branch.
 It is not part of this IA repair or its QA deployment. Existing saved plans and
