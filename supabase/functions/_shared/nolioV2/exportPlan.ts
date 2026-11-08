@@ -81,7 +81,7 @@ export async function sendExportBatch(a: {
     if (Date.now() > a.deadline - 15_000) return result("PROGRESS", "time_budget", 0);
     const dry = await postDryRun({ fetch: a.dryFetch, accessToken: a.accessToken, body: { ...o.body, dry_run: true }, kind: o.kind });
     if (dry.outcome !== "DRY_RUN_VALID") {
-      const fields = (dry.validationIssues ?? []).map((i) => (i as { field?: string }).field ?? "").filter(Boolean).slice(0, 5);
+      const fields = (dry.validationIssues ?? []).map((i) => i.field).filter(Boolean).slice(0, 5);
       const row = a.prepared.rows.find((r) => r.sessionKey === o.sessionKey);
       return result("STOPPED", `nolio_refused_simulation:${dry.code}`, 0, { sessionKey: o.sessionKey, title: row?.title ?? "", date: o.date, code: dry.code, fields });
     }
@@ -100,4 +100,43 @@ export async function sendExportBatch(a: {
   const row = last ? a.prepared.rows.find((r) => r.sessionKey === last.sessionKey) : undefined;
   return result("STOPPED", `${report.status}:${report.reason ?? ""}`, created,
     last && row ? { sessionKey: last.sessionKey, title: row.title, date: row.date ?? "", code: String(last.state), fields: [] } : null);
+}
+
+// ---------------- Relecture du calendrier Nolio ----------------
+export type LedgerRow = { op_key: string; session_key: string; path: string; state: string; remote_id: string | null };
+export type VerifyResult = {
+  checked: number; present: number;
+  missing: Array<{ sessionKey: string; title: string; date: string | null }>;
+  unknown: Array<{ sessionKey: string; title: string; date: string | null; detail: string }>;
+  nextIndex: number | null; totalConfirmed: number;
+};
+
+/** Opérations confirmées du journal, restreintes aux opérations actuelles du plan, ordre stable. */
+export function confirmedRowsForPlan(prepared: PreparedExport, rows: LedgerRow[]): LedgerRow[] {
+  const keys = new Set(prepared.ops.map((o) => o.opKey));
+  return rows.filter((r) => r.state === "confirmed" && r.remote_id && keys.has(r.op_key)).sort((a, b) => a.session_key.localeCompare(b.session_key, "en") || a.path.localeCompare(b.path, "en"));
+}
+
+/**
+ * Relit dans Nolio chaque activité confirmée (détail par id). 404 = supprimée
+ * dans Nolio ; toute autre lecture non concluante = inconnue (jamais « présente »).
+ */
+export async function verifyConfirmedBatch(a: {
+  prepared: PreparedExport; confirmed: LedgerRow[]; http: NolioV2Http; athleteRef: string; fromIndex: number; deadline: number; maxReads?: number;
+}): Promise<VerifyResult> {
+  const out: VerifyResult = { checked: 0, present: 0, missing: [], unknown: [], nextIndex: null, totalConfirmed: a.confirmed.length };
+  const rowOf = (key: string) => a.prepared.rows.find((r) => r.sessionKey === key.replace(/~(bike|run)$/, ""));
+  const max = a.maxReads ?? 30;
+  for (let i = Math.max(0, a.fromIndex); i < a.confirmed.length; i++) {
+    if (out.checked >= max || Date.now() > a.deadline - 8_000) { out.nextIndex = i; break; }
+    const r = a.confirmed[i];
+    const info = { sessionKey: r.session_key, title: rowOf(r.session_key)?.title ?? r.session_key, date: rowOf(r.session_key)?.date ?? null };
+    const d = await a.http.getDetail(r.path, r.remote_id!, a.athleteRef);
+    out.checked++;
+    if (d.ok === true) { out.present++; continue; }
+    const detail = (d as { detail: string }).detail;
+    if (detail === "http_404") out.missing.push(info);
+    else out.unknown.push({ ...info, detail });
+  }
+  return out;
 }

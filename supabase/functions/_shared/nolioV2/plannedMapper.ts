@@ -94,8 +94,10 @@ export function mapTarget(t: DetTarget, notes: string[], options: { paceTargets?
     const slow = t.metric === 'm_per_sec' ? 1000 / min : max;
     // Production : allures transmises au format documenté m:ss (secondes entières,
     // arrondi au plus proche, écart ≤ 0,5 s). Les secondes décimales ("4:07.4")
-    // ne figurent pas dans les exemples du contrat Nolio et ont déjà été refusées
-    // en simulation (HTTP 400) ; la prescription source reste intacte dans le plan.
+    // ne figurent pas dans les exemples du contrat Nolio. HYPOTHÈSE non confirmée :
+    // elles seraient la cause du HTTP 400 observé en simulation QA (S1, V3P_RUN_136).
+    // La simulation dry_run avant chaque création reste le juge ; la prescription
+    // source reste intacte dans le plan.
     const fastS = Math.round(fast), slowS = Math.max(Math.round(slow), Math.round(fast));
     const value = formatPaceSeconds(fastS), valueMax = formatPaceSeconds(slowS);
     if (value === null || valueMax === null) return 'pace_precision_unrepresentable';

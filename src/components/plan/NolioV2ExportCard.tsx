@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { isRefusal, nolioV2, reasonLabel, type NolioV2Prepared, type NolioV2Status } from "@/lib/nolio/nolioV2Client";
+import { isRefusal, nolioV2, reasonLabel, type NolioV2Prepared, type NolioV2Status, type NolioV2Verify } from "@/lib/nolio/nolioV2Client";
 
 const SPORT_LABELS: Record<string, string> = { run: "Course à pied", bike: "Vélo", swim: "Natation", strength: "Renforcement", brick: "Compétition triathlon" };
 const NONE = "__none__";
@@ -34,6 +34,8 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
   const [prepared, setPrepared] = useState<NolioV2Prepared | null>(null);
   const [progress, setProgress] = useState<{ confirmed: number; total: number } | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+  /** Bilan relu dans le calendrier Nolio (jamais déduit du seul journal TFCLab). */
+  const [report, setReport] = useState<null | { expected: number; present: number; refused: NolioV2Prepared["refused"]; missing: NolioV2Verify["missing"]; unknown: NolioV2Verify["unknown"]; notCreated: number }>(null);
   const cancelRef = useRef(false);
 
   const refresh = useCallback(async () => {
@@ -45,7 +47,7 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
     setChosenRef(r.link?.nolioAthleteRef ?? "");
   }, [athleteId]);
 
-  useEffect(() => { cancelRef.current = true; setPrepared(null); setProgress(null); setMessage(null); void refresh(); }, [refresh, planVersionId]);
+  useEffect(() => { cancelRef.current = true; setPrepared(null); setProgress(null); setMessage(null); setReport(null); void refresh(); }, [refresh, planVersionId]);
 
   const connect = async () => {
     setBusy("connect");
@@ -98,29 +100,68 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
     setPrepared(r);
   };
 
-  const send = async () => {
-    if (!planVersionId || !prepared) return;
+  /** Relit chaque activité créée dans Nolio puis établit le bilan sur les séances attendues. */
+  const verify = async (): Promise<boolean> => {
+    if (!planVersionId) return false;
+    const missing: NolioV2Verify["missing"] = [], unknown: NolioV2Verify["unknown"] = [];
+    let present = 0, from = 0, last: NolioV2Verify | null = null;
+    for (let i = 0; i < 50; i++) {
+      const r = await nolioV2.verify(planVersionId, from);
+      if (isRefusal(r)) { setMessage({ kind: "error", text: `Relecture du calendrier Nolio impossible : ${reasonLabel(r.reason)}` }); return false; }
+      last = r; present += r.present; missing.push(...r.missing); unknown.push(...r.unknown);
+      if (r.nextIndex === null) break;
+      from = r.nextIndex;
+    }
+    if (!last) return false;
+    const expected = last.counts.expected;
+    setReport({ expected, present, refused: last.refused, missing, unknown, notCreated: Math.max(0, last.counts.operations - last.totalConfirmed) });
+    setMessage(null);
+    return true;
+  };
+
+  const runSendLoop = async (): Promise<boolean> => {
+    if (!planVersionId || !prepared) return false;
     cancelRef.current = false;
-    setBusy("send"); setMessage(null);
     setProgress({ confirmed: prepared.alreadySent ?? 0, total: prepared.counts.operations });
     for (let i = 0; i < 200; i++) {
-      if (cancelRef.current) break;
+      if (cancelRef.current) return false;
       const r = await nolioV2.sendBatch(planVersionId);
-      if (isRefusal(r)) { setMessage({ kind: "error", text: reasonLabel(r.reason) }); break; }
+      if (isRefusal(r)) { setMessage({ kind: "error", text: reasonLabel(r.reason) }); return false; }
       setProgress({ confirmed: r.confirmed, total: r.total });
-      if (r.status === "DONE") {
-        setMessage({ kind: "ok", text: `${r.confirmed} séance(s) présentes dans le calendrier Nolio de ${status?.link?.nolioAthleteName ?? athleteName ?? "l'athlète"}.` });
-        toast.success("Plan exporté vers Nolio");
-        break;
-      }
+      if (r.status === "DONE") return true;
       if (r.status === "STOPPED") {
         const f = r.failedSession;
         setMessage({ kind: "error", text: f
-          ? `Export arrêté sur « ${f.title} » (${f.date}) : ${reasonLabel(r.reason)}${f.fields.length ? ` — champs : ${f.fields.join(", ")}` : ""}. ${r.confirmed}/${r.total} séances déjà créées ; elles ne seront pas recréées.`
-          : `Export arrêté : ${reasonLabel(r.reason)}. ${r.confirmed}/${r.total} séances déjà créées ; elles ne seront pas recréées.` });
-        break;
+          ? `Export arrêté sur « ${f.title} » (${f.date}) : ${reasonLabel(r.reason)}${f.fields.length ? ` — champs : ${f.fields.join(", ")}` : ""}. Les séances déjà créées ne seront pas recréées.`
+          : `Export arrêté : ${reasonLabel(r.reason)}. Les séances déjà créées ne seront pas recréées.` });
+        return false;
       }
     }
+    return false;
+  };
+
+  const send = async () => {
+    setBusy("send"); setMessage(null); setReport(null);
+    const done = await runSendLoop();
+    // Le bilan est toujours relu dans Nolio, même après un arrêt.
+    await verify();
+    if (done) toast.success("Export Nolio terminé : bilan relu dans le calendrier.");
+    setBusy(null);
+  };
+
+  const checkCalendar = async () => {
+    setBusy("verify"); setMessage(null);
+    await verify();
+    setBusy(null);
+  };
+
+  const recreateMissing = async () => {
+    if (!planVersionId) return;
+    setBusy("recreate"); setMessage(null);
+    const r = await nolioV2.recreateMissing(planVersionId);
+    if (isRefusal(r)) { setMessage({ kind: "error", text: reasonLabel(r.reason) }); setBusy(null); return; }
+    if (r.released > 0) await runSendLoop();
+    await verify();
     setBusy(null);
   };
 
@@ -209,9 +250,11 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
                   <div className="rounded border p-2 space-y-1 text-xs">
                     <div>
                       Plan {prepared.engine === "det" ? "DET (séances structurées bloc par bloc)" : "IA (prescription complète en description)"} ·{" "}
-                      <strong>{prepared.counts.operations}</strong> séance(s) à envoyer
-                      {prepared.firstDate && prepared.lastDate ? ` du ${prepared.firstDate} au ${prepared.lastDate}` : ""}
-                      {prepared.alreadySent ? ` · ${prepared.alreadySent} déjà présentes` : ""}
+                      <strong>{prepared.counts.expected}</strong> séance(s) attendues (hors repos) :{" "}
+                      <strong>{prepared.counts.operations}</strong> exportable(s)
+                      {prepared.counts.refused > 0 ? <>, <strong className="text-amber-600">{prepared.counts.refused} refusée(s)</strong></> : null}
+                      {prepared.firstDate && prepared.lastDate ? ` · du ${prepared.firstDate} au ${prepared.lastDate}` : ""}
+                      {prepared.alreadySent ? ` · ${prepared.alreadySent} déjà créée(s) par TFCLab (à relire)` : ""}
                     </div>
                     {prepared.counts.refused > 0 && (
                       <div className="text-amber-600">
@@ -222,20 +265,56 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
                       </div>
                     )}
                     {prepared.problems.length > 0 && <div className="text-amber-600">{prepared.problems.map(reasonLabel).join(" · ")}</div>}
-                    <Button size="sm" onClick={() => { void send(); }} disabled={!!busy || prepared.counts.operations === 0}>
-                      {busy === "send" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Send className="h-4 w-4 mr-1" />}
-                      Exporter vers Nolio
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" onClick={() => { void send(); }} disabled={!!busy || prepared.counts.operations === 0}>
+                        {busy === "send" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Send className="h-4 w-4 mr-1" />}
+                        {prepared.counts.refused > 0
+                          ? `Exporter ${prepared.counts.operations} séance(s) — ${prepared.counts.refused} resteront hors de Nolio`
+                          : `Exporter ${prepared.counts.operations} séance(s) vers Nolio`}
+                      </Button>
+                      {(prepared.alreadySent ?? 0) > 0 && (
+                        <Button size="sm" variant="outline" onClick={() => { void checkCalendar(); }} disabled={!!busy}>
+                          {busy === "verify" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1" />}Relire le calendrier Nolio
+                        </Button>
+                      )}
+                    </div>
                     <p className="text-[11px] text-muted-foreground">Une version déjà exportée puis modifiée crée de nouvelles séances : supprimez dans Nolio celles de l'ancienne version si besoin.</p>
                   </div>
                 )}
                 {progress && (
                   <div className="space-y-1">
                     <Progress value={progress.total ? (100 * progress.confirmed) / progress.total : 0} />
-                    <div className="text-xs text-muted-foreground">{progress.confirmed}/{progress.total} séances dans Nolio</div>
+                    <div className="text-xs text-muted-foreground">{progress.confirmed}/{progress.total} séance(s) exportable(s) créées — bilan relu dans Nolio à la fin</div>
                   </div>
                 )}
               </div>
+            )}
+          </div>
+        )}
+
+        {report && (
+          <div className={`rounded border p-2 text-xs space-y-1 ${report.present === report.expected ? "border-emerald-500/50" : "border-amber-500/50"}`} data-testid="nolio-v2-report">
+            <div className="font-semibold">
+              Bilan relu dans Nolio : {report.present} sur {report.expected} séance(s) attendue(s) présentes
+            </div>
+            {report.refused.length > 0 && (
+              <div className="text-amber-600">{report.refused.length} refusée(s), non envoyée(s) :
+                <ul className="list-disc pl-5">{report.refused.map(r => <li key={r.sessionKey}>{r.date} · {r.title} — {reasonLabel(r.reason)}</li>)}</ul>
+              </div>
+            )}
+            {report.missing.length > 0 && (
+              <div className="text-destructive">{report.missing.length} supprimée(s) dans Nolio depuis l'export :
+                <ul className="list-disc pl-5">{report.missing.map(r => <li key={r.sessionKey}>{r.date} · {r.title}</li>)}</ul>
+                <Button size="sm" variant="outline" className="mt-1" onClick={() => { void recreateMissing(); }} disabled={!!busy}>
+                  {busy === "recreate" ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}Recréer ces {report.missing.length} séance(s)
+                </Button>
+              </div>
+            )}
+            {report.unknown.length > 0 && (
+              <div className="text-amber-600">{report.unknown.length} non vérifiable(s) (lecture Nolio impossible) : relancez la relecture plus tard.</div>
+            )}
+            {report.notCreated > 0 && (
+              <div className="text-amber-600">{report.notCreated} séance(s) exportable(s) pas encore créée(s) : relancez l'export.</div>
             )}
           </div>
         )}

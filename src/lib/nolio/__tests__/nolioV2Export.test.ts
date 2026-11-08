@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mapAiSessionsToNolioV2, tfclSportKey } from "../../../../supabase/functions/_shared/nolioV2/aiTextMapper";
-import { prepareExport, planEngine } from "../../../../supabase/functions/_shared/nolioV2/exportPlan";
+import { confirmedRowsForPlan, prepareExport, planEngine, verifyConfirmedBatch } from "../../../../supabase/functions/_shared/nolioV2/exportPlan";
 import { autoSportIds, validateSportIds } from "../../../../supabase/functions/_shared/nolioV2/prodConnection";
 import { appOriginFrom, returnLocation } from "../../../../supabase/functions/_shared/nolioV2/oauth";
 import { mapTarget } from "../../../../supabase/functions/_shared/nolioV2/plannedMapper";
@@ -95,5 +95,41 @@ describe("Nolio V2 — retour OAuth", () => {
     expect(appOriginFrom("http://evil.example")).toBe("https://tfclab.lovable.app");
     expect(appOriginFrom("https://app.example.com/path")).toBe("https://tfclab.lovable.app");
     expect(returnLocation("https://app.example.com", "connected")).toBe("https://app.example.com/planning/ai-plan?nolio_v2=connected");
+  });
+});
+
+describe("Nolio V2 — bilan relu dans le calendrier (jamais déduit du seul journal)", () => {
+  it("distingue présente, supprimée (404) et non vérifiable, et ignore les opérations d'un autre contenu", async () => {
+    const p = await prepareExport(aiPlan, refs, VERSION);
+    const [a, b] = p.ops;
+    const rows = [
+      { op_key: a.opKey, session_key: a.sessionKey, path: a.source.path, state: "confirmed", remote_id: "ptrn_A1" },
+      { op_key: b.opKey, session_key: b.sessionKey, path: b.source.path, state: "confirmed", remote_id: "ptrn_B1" },
+      { op_key: "f".repeat(64), session_key: "S9-J0-0", path: a.source.path, state: "confirmed", remote_id: "ptrn_OLD" },
+      { op_key: "e".repeat(64), session_key: a.sessionKey, path: a.source.path, state: "sent_unconfirmed", remote_id: null },
+    ];
+    const confirmed = confirmedRowsForPlan(p, rows);
+    expect(confirmed.map(r => r.remote_id)).toEqual(["ptrn_A1", "ptrn_B1"]);
+    const http = {
+      post: async () => ({ kind: "lost" as const, detail: "unused" }),
+      listPage: async () => ({ ok: false as const, detail: "unused" }),
+      getDetail: async (_path: string, id: string) => id === "ptrn_A1" ? { ok: true as const, item: { id } } : { ok: false as const, detail: "http_404" },
+    };
+    const v = await verifyConfirmedBatch({ prepared: p, confirmed, http, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000 });
+    expect(v.present).toBe(1);
+    expect(v.missing.map(m => m.title)).toEqual(["Endurance"]);
+    expect(v.nextIndex).toBeNull();
+    const failing = { ...http, getDetail: async () => ({ ok: false as const, detail: "http_500" }) };
+    const u = await verifyConfirmedBatch({ prepared: p, confirmed, http: failing, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000 });
+    expect(u.present).toBe(0);
+    expect(u.missing).toEqual([]);
+    expect(u.unknown.length).toBe(2);
+  });
+
+  it("compte les séances attendues hors repos, refusées comprises", async () => {
+    const p = await prepareExport(aiPlan, refs, VERSION);
+    const expected = p.rows.filter(r => r.status !== "excluded_rest").length;
+    expect(expected).toBe(4);
+    expect(p.ops.length).toBe(2);
   });
 });

@@ -18,10 +18,16 @@ export type NolioV2Status = {
 export type NolioV2Refusal = { status: "REFUSED" | "UNKNOWN" | "BLOCKED"; reason: string };
 export type NolioV2Prepared = {
   status: "PREPARED"; engine: "ai" | "det"; nolioAthleteName: string | null;
-  counts: { total: number; operations: number; rest: number; refused: number };
+  counts: { total: number; expected: number; operations: number; rest: number; refused: number };
   problems: string[];
   refused: Array<{ sessionKey: string; date: string | null; title: string; sport: string; reason: string | null }>;
   alreadySent: number | null; firstDate: string | null; lastDate: string | null;
+};
+export type NolioV2Verify = {
+  status: "VERIFIED"; checked: number; present: number; totalConfirmed: number; nextIndex: number | null;
+  missing: Array<{ sessionKey: string; title: string; date: string | null }>;
+  unknown: Array<{ sessionKey: string; title: string; date: string | null; detail: string }>;
+  counts: NolioV2Prepared["counts"]; refused: NolioV2Prepared["refused"];
 };
 export type NolioV2Batch = {
   status: "DONE" | "PROGRESS" | "STOPPED"; reason: string | null;
@@ -50,6 +56,8 @@ export const nolioV2 = {
   disconnect: () => call<{ status: "DISCONNECTED" }>("nolio-v2-connect", { action: "disconnect" }),
   prepare: (planVersionId: string) => call<NolioV2Prepared>("nolio-v2-export-plan", { action: "prepare", planVersionId }),
   sendBatch: (planVersionId: string) => call<NolioV2Batch>("nolio-v2-export-plan", { action: "send", planVersionId }),
+  verify: (planVersionId: string, fromIndex: number) => call<NolioV2Verify>("nolio-v2-export-plan", { action: "verify", planVersionId, fromIndex }),
+  recreateMissing: (planVersionId: string) => call<{ status: "RELEASED"; released: number; stillPresent: number; unknown: number }>("nolio-v2-export-plan", { action: "recreate_missing", planVersionId }),
 };
 
 export function isRefusal(x: unknown): x is NolioV2Refusal {

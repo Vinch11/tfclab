@@ -68,7 +68,7 @@ Deno.test("chunk/retry context shares initial prompt applicability, raw assessme
   const handler = Deno.readTextFileSync(new URL("./index.ts", import.meta.url));
   assert(
     handler.includes(
-      "const cpwResult = computePrescriptionCPWprime(athleteData, config)",
+      "const cpwResult = computePrescriptionCPWprime(athleteData, planConfig)",
     ),
   );
   assert(!handler.includes("computeCPWprime(athleteData)"));

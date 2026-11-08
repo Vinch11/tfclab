@@ -222,3 +222,35 @@ GRANT EXECUTE ON FUNCTION public.nolio_v2_grant_connect(uuid, text, text[], text
 GRANT EXECUTE ON FUNCTION public.nolio_v2_refresh_begin(uuid, bigint, uuid, integer) TO service_role;
 GRANT EXECUTE ON FUNCTION public.nolio_v2_refresh_commit(uuid, uuid, bigint, text, text, timestamptz, text[]) TO service_role;
 GRANT EXECUTE ON FUNCTION public.nolio_v2_refresh_fail(uuid, uuid, text) TO service_role;
+
+-- 7) Activité supprimée dans Nolio (404 relu côté serveur) : la ligne confirmée est
+--    archivée puis libérée pour permettre une recréation explicite demandée par le coach.
+CREATE TABLE IF NOT EXISTS public.nolio_v2_operation_releases (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  op_key text NOT NULL,
+  coach_id uuid NOT NULL,
+  plan_version_id uuid NOT NULL,
+  session_key text NOT NULL,
+  path text NOT NULL,
+  remote_id text NOT NULL,
+  payload_sha256 text NOT NULL,
+  reason text NOT NULL CHECK (reason = 'remote_404_verified'),
+  released_at timestamptz NOT NULL DEFAULT now()
+);
+REVOKE ALL ON public.nolio_v2_operation_releases FROM PUBLIC, anon, authenticated;
+GRANT ALL ON public.nolio_v2_operation_releases TO service_role;
+ALTER TABLE public.nolio_v2_operation_releases ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.nolio_v2_release_deleted_operation(p_op_key text, p_coach_id uuid, p_remote_id text)
+RETURNS boolean LANGUAGE plpgsql SET search_path = public AS $$
+DECLARE r public.nolio_v2_operations%ROWTYPE;
+BEGIN
+  SELECT * INTO r FROM public.nolio_v2_operations WHERE op_key = p_op_key AND coach_id = p_coach_id FOR UPDATE;
+  IF NOT FOUND OR r.state <> 'confirmed' OR r.remote_id IS DISTINCT FROM p_remote_id THEN RETURN false; END IF;
+  INSERT INTO public.nolio_v2_operation_releases (op_key, coach_id, plan_version_id, session_key, path, remote_id, payload_sha256, reason)
+  VALUES (r.op_key, r.coach_id, r.plan_version_id, r.session_key, r.path, r.remote_id, r.payload_sha256, 'remote_404_verified');
+  DELETE FROM public.nolio_v2_operations WHERE op_key = r.op_key;
+  RETURN true;
+END $$;
+REVOKE ALL ON FUNCTION public.nolio_v2_release_deleted_operation(text, uuid, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.nolio_v2_release_deleted_operation(text, uuid, text) TO service_role;
