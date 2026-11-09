@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Revue scientifique ciblée des navettes lactate et protocoles norvégiens : fiches relues, deux sources scientifiques, catalogues de sept objectifs inspectés sans IA ; rapport dans docs/revue-lactate-norvegien-2026-11-09.md. Certaines séances norvégiennes simples sont déjà accessibles ; trois IDs du verrou n'existent pas. Aucune règle runtime modifiée.
+
 - [x] Ajouter une première version des modes Nolio « Rapide — à vérifier » et « Tests vérifiés » : lecture adaptée au sport, propositions vélo D1/D3/D5 et course D1/D3, confirmation coach et provenance ; 5 sports/168 records réels lus, préremplissage VMA vérifié sans sauvegarde, saisie manuelle préservée, ordinateur/mobile OK, 21 tests passés, fonctions déployées avec succès.
 - [ ] Compléter l'analyse précise des journées : répétitions, récupération, seuil, TTE, dérive et Pool Day. Bloqué par l'accès aux intervalles de la séance réelle essayée (lecture refusée/inaccessible) et des contrats d'analyse de protocole encore non validés ; aucun calcul automatique de FTP/CSS ni validation scientifique du test.
 
