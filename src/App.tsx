@@ -23,6 +23,7 @@ import Index from "./pages/Index";
 
 // Lazy: split into per-route chunks
 const DiagnosticPage = lazy(() => import("./pages/DiagnosticPage"));
+const NolioV2Page = lazy(() => import("./pages/NolioV2Page"));
 const PlanningPage = lazy(() => import("./pages/PlanningPage"));
 const TestsPage = lazy(() => import("./pages/TestsPage"));
 const AcademyPage = lazy(() => import("./pages/AcademyPage"));
@@ -105,6 +106,8 @@ export default function App() {
                   {/* Auth */}
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/onboarding" element={<AuthGate><OnboardingPage /></AuthGate>} />
+                  <Route path="/nolio-v2" element={<AuthGate><NolioV2Page /></AuthGate>} />
+                  <Route path="/nolio-v2/callback" element={<AuthGate><NolioV2Page /></AuthGate>} />
 
                   {/* Public — Mini Rapport (formulaire ouvert, sans auth) */}
                   <Route path="/mini-rapport" element={<MiniReportPage />} />

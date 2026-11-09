@@ -834,6 +834,57 @@ export type Database = {
         }
         Relationships: []
       }
+      nolio_v2_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          refresh_token: string | null
+          scopes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          refresh_token?: string | null
+          scopes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nolio_v2_oauth_states: {
+        Row: {
+          code_verifier: string
+          expires_at: string
+          state_hash: string
+          user_id: string
+        }
+        Insert: {
+          code_verifier: string
+          expires_at?: string
+          state_hash: string
+          user_id: string
+        }
+        Update: {
+          code_verifier?: string
+          expires_at?: string
+          state_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nolio_workout_overrides: {
         Row: {
           coach_id: string

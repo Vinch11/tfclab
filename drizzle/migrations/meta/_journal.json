@@ -15,6 +15,13 @@
       "when": 1792414081679,
       "tag": "0001_prevent_self_staff_coach_role",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794228324441,
+      "tag": "0002_nolio_v2_connections",
+      "breakpoints": true
     }
   ]
 }
