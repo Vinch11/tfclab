@@ -18,6 +18,14 @@ export function catalogueEligibility(metadata: RepairWorkoutMetadata, context: R
   ? { ...metadata, mainZoneMax: maxZone(metadata.zones) } : metadata;
  return evaluateRepairSportingEquivalence(effective, effective, { ...context, operation: "replacement" }).reasons;
 }
+/** Session sport accepted for a card. Cards labelled "mixed" have no session
+ * sport of their own: brick-intent cards are bricks, the others (mobility,
+ * yoga, breathing, recovery protocols) are recovery or strength sessions. */
+export function sessionSportMatchesCard(sessionSport: string | undefined, card: Pick<RepairWorkoutMetadata, "sport" | "intentFamily">): boolean {
+ const s = normalizeRepairSport(sessionSport), c = normalizeRepairSport(card.sport);
+ if (c !== "mixed") return s === c;
+ return card.intentFamily === "brick" ? s === "brick" : s === "recovery" || s === "strength";
+}
 export function checkSessionCatalogue(session: ContractSession, contract: CatalogueContract): { errors: string[]; unknown: string[] } {
  const errors: string[] = [], unknown: string[] = [];
  if (isRaceDaySession(session)) {
@@ -29,7 +37,7 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  if (!isCompleteRepairWorkoutMetadata(metadata)) return { errors, unknown: ["catalogue_metadata_missing"] };
  errors.push(...catalogueEligibility(metadata, contract));
  if (!session.sport) unknown.push("sport_not_preserved");
- else if (normalizeRepairSport(session.sport) !== normalizeRepairSport(metadata.sport)) errors.push("catalogue_sport");
+ else if (!sessionSportMatchesCard(session.sport, metadata)) errors.push("catalogue_sport");
  const variants = metadata.variants;
  const variant = session.variantKey ? variantRange(variants?.[session.variantKey]) : null;
  if (session.variantKey && !variant) return { errors: [...errors, "catalogue_variant_unavailable"], unknown: [...unknown, "variant_not_executable"] };

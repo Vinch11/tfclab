@@ -70,3 +70,13 @@ Deno.test("aucune fiche équivalente autorisée : pas de remplacement, le refus 
   assertEquals(substituteIneligibleCatalogueSession(s, c, [triSwim.id, swimVo2.id]), null);
   assertEquals(substituteIneligibleCatalogueSession(s, { ...c, catalog: [triSwim, swimAny] }, [triSwim.id]), null);
 });
+
+import { sessionSportMatchesCard } from "./sessionCatalogueContract.ts";
+Deno.test("fiche « mixed » : mobilité = récupération/renfo, brique = brick, jamais course/vélo", () => {
+  assert(sessionSportMatchesCard("strength", { sport: "mixed", intentFamily: "recuperation" }));
+  assert(sessionSportMatchesCard("recovery", { sport: "mixed", intentFamily: "technique" }));
+  assert(!sessionSportMatchesCard("run", { sport: "mixed", intentFamily: "recuperation" }));
+  assert(sessionSportMatchesCard("brick", { sport: "mixed", intentFamily: "brick" }));
+  assert(!sessionSportMatchesCard("strength", { sport: "mixed", intentFamily: "brick" }));
+  assert(!sessionSportMatchesCard("bike", { sport: "run", intentFamily: "seuil" }));
+});

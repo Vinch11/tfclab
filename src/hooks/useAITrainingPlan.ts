@@ -1240,7 +1240,7 @@ export function useAITrainingPlan() {
               if (finalValidation.hasCritical) {
                 console.error(
                   `🚨 [useAITrainingPlan] validation finale CRITIQUE (${finalValidation.issues.filter(i => i.severity === "error").length}) :`,
-                  finalValidation.issues.filter(i => i.severity === "error"),
+                  finalValidation.issues.filter(i => i.severity === "error").map(i => `${i.rule}: ${i.message}`).join(" | "),
                 );
               }
             } catch (fvErr) {

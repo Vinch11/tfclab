@@ -4,8 +4,9 @@ import {
   checkSessionCatalogue,
   type ContractSession,
   executableCatalogueVariants,
+  sessionSportMatchesCard,
 } from "./sessionCatalogueContract.ts";
-import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, normalizeRepairSport } from "./repairSportingEquivalence.ts";
+import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata } from "./repairSportingEquivalence.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 /** Narrow presentation repair, before acceptance: no sport/dose/protocol/ID substitution. */
 export function restoreCatalogueTitleForExactProtocol(
@@ -64,7 +65,7 @@ export function canonicalizeCatalogueSession(
   const card = contract.catalog.find((c) => c.id === s.catalogId);
   if (!isCompleteRepairWorkoutMetadata(card) || !card.structure?.trim() || isRaceDaySession({ title: card.title })) return null;
   if (catalogueEligibility(card, contract).length) return null;
-  if (typeof s.sport !== "string" || normalizeRepairSport(s.sport) !== normalizeRepairSport(card.sport)) return null;
+  if (typeof s.sport !== "string" || !sessionSportMatchesCard(s.sport, card)) return null;
   if (checkSessionCatalogue(s, contract).errors.length === 0 && checkSessionCatalogue(s, contract).unknown.length === 0) return null;
   const changed: string[] = [];
   const variants = executableCatalogueVariants(card, contract.objective);
@@ -107,7 +108,7 @@ export function substituteIneligibleCatalogueSession(
   if (s.custom !== false || typeof s.catalogId !== "string" || isRaceDaySession(s)) return null;
   const card = contract.catalog.find((c) => c.id === s.catalogId);
   if (!isCompleteRepairWorkoutMetadata(card) || catalogueEligibility(card, contract).length === 0) return null;
-  if (typeof s.sport !== "string" || normalizeRepairSport(s.sport) !== normalizeRepairSport(card.sport)) return null;
+  if (typeof s.sport !== "string" || !sessionSportMatchesCard(s.sport, card)) return null;
   const allowed = new Set(allowedIds);
   const wanted = typeof s.durationMin === "number" ? s.durationMin : (card.durationMin[0] + card.durationMin[1]) / 2;
   const candidates = contract.catalog
