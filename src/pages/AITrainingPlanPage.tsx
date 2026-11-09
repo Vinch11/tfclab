@@ -536,6 +536,7 @@ export default function AITrainingPlanPage() {
    */
   const [planOverride, setPlanOverride] = useState<ParsedPlan | null>(null);
   // Choix du moteur de génération par le coach : IA (historique) ou DET (déterministe).
+  const [trailLongRuns,setTrailLongRuns]=useState<{athlete:string;objective:string;recent:string;peak:string}|null>(null);
   const [planningEngine, setPlanningEngineState] = useState<PlanningEngine>(() => readPlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage));
   const setPlanningEngine = useCallback((engine: PlanningEngine) => { setPlanningEngineState(engine); writePlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage, engine); }, []);
   const [detGenerating, setDetGenerating] = useState(false);
@@ -1880,6 +1881,8 @@ export default function AITrainingPlanPage() {
       const plan = await generateDetPlanFromPageInput({
         athleteId: currentAthlete.id, athlete: data, config, diagnostic: athleteContext.diagnostic,
         pageLimiterOrder: coachLimiterOrder, coachPayload,
+        ...(trailLongRuns?.athlete===currentAthlete.id && trailLongRuns.objective===objective && config.objective === objective && /^Trail/.test(objective) &&
+          (trailLongRuns.recent||trailLongRuns.peak) ? {trailLongRunLimits:{recentMinutes:Number(trailLongRuns.recent),peakMinutes:Number(trailLongRuns.peak)}} : {}),
       });
       setPlanOverride(plan);
       setIsSaved(false);
@@ -2060,7 +2063,7 @@ export default function AITrainingPlanPage() {
     if (planningEngine === "det") { await runDetEngine(athleteContext.data, config, payload); return; }
     generatePlanWindowed(athleteContext.data, config);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- runDetEngine lit l'état courant de la page
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine]);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine, trailLongRuns]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
@@ -4231,6 +4234,17 @@ export default function AITrainingPlanPage() {
                     </button>
                   ))}
                 </div>
+                {planningEngine === "det" && currentAthlete && /^Trail/.test(objective) && (
+                  <fieldset className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <legend className="text-sm font-medium">Sortie longue trail · repères facultatifs du coach</legend>
+                    {([['recent','Durée récemment tolérée (min)'],['peak','Plafond prévu pendant la préparation (min)']] as const).map(([field,label])=>(
+                      <label key={field} className="text-sm">{label}
+                        <Input type="number" min="1" value={trailLongRuns?.athlete===currentAthlete.id && trailLongRuns.objective===objective?trailLongRuns[field]:''}
+                          onChange={e=>{const value=e.target.value;setTrailLongRuns(previous=>({...((previous?.athlete===currentAthlete.id&&previous.objective===objective)?previous:{athlete:currentAthlete.id,objective,recent:'',peak:''}),[field]:value}));}}/>
+                      </label>
+                    ))}
+                  </fieldset>
+                )}
                 {planningEngine === "det" && !detSupportsObjective(objective) && (
                   <p className="text-xs text-amber-600">DET ne couvre pas encore l'objectif « {objective} » : choisissez le moteur IA.</p>
                 )}

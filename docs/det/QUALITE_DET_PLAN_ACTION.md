@@ -59,3 +59,15 @@ Depuis la racine du dépôt, avec les dépendances du projet installées, lancer
 ```sh
 node_modules/.bin/vitest run --config scripts/quality/det/vitest.config.ts --maxWorkers=1
 ```
+
+### Raccordement des trois objectifs trail au formulaire coach
+
+Les 75 mêmes configurations trail donnent désormais 51 calendriers à relire et 24 refus. Trail court passe de 0 à 16 sur 25, montagne de 0 à 19, ultra de 0 à 16. Les 150 autres configurations ont été rejouées. Les neuf objectifs totalisent désormais 118 projets assemblés, 82 refus explicites et 25 parcours Start to Run distincts.
+
+Dans ces 51 projets, 510 semaines de charge sur 510 contiennent une séance clé ou longue répondant au contrôle du premier limiteur. Ce décompte atteste une présence dans les blocs. Il ne mesure ni l’adaptation obtenue ni la suffisance de la préparation pour le jour de course. Le banc synthétique concentre plusieurs combinaisons sur le même profil physiologique.
+
+Dans les trois exemples entraînés, la durée récente renseignée est de 100 minutes et le plafond de 150 minutes. Les sorties longues passent de 100 à 150 minutes avec des trajectoires distinctes. Les trois exemples gardent un affûtage à examiner, particulièrement sur les préparations longues. La course figure à sa date, hors du volume chronométré. Le coach retrouve dans chaque semaine les minutes de course, la sortie longue et les fiches associées au chantier.
+
+Sur les 24 refus trail, 15 concernent le renforcement en reprise, 5 la combinaison des contraintes hebdomadaires et 4 l’absence de séance de qualité compatible. Le contrôle du terrain reste ouvert sur les 51 projets. L’écart entre terrain d’entraînement et parcours cible, la tolérance au dénivelé et aux descentes, la suffisance des doses selon l’ambition et le guidage terrain restent à valider. La représentation structurée destinée à la montre refuse explicitement les cibles de course en attente de cette vérification.
+
+[Résultats des 75 profils trail](qualite-det-trail-20261109.csv) · [Trois plans synthétiques, calendrier complet et blocs de séances](exemples-trail-det-20261109.md)

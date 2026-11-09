@@ -1,7 +1,8 @@
 import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
-import { appendFileSync, readFileSync } from 'node:fs';
+import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { buildAppPlanConfig, computeAppAthleteContext, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
 import { DetRefusal, detSupportsObjective, generateDetPlanFromPageInput } from '@/lib/plan/detEngineRun';
+import { parseV3PlanProposal } from '@/lib/det/v3ProposalLocalSave';
 import { AMBITION_LEVELS_ORDERED } from '@/types/ambitionLevel';
 import type { V3PlanProposal } from '@/lib/det/appPlanningV3Proposal';
 
@@ -119,6 +120,7 @@ for (const scenario of selected) {
         emit({ ...row, ...diagnostic, status: 'assembled', activities: sessions.length,
           uniqueSources: new Set(components.map(c => c.sourceId)).size, loadWeeks: p.weeks.filter(w => w.weekType === 'load').length,
           weeksWithPrimaryDoseCheck: new Set(primary.map(c => c.week)).size,
+          weeksWithTrailDose: p.checks.filter(c => c.code === 'trail_primary_dose' && c.status === 'passed').length,
           weeksWithTriComponentDose: p.checks.filter(c => c.code === 'tri_primary_component_dose' && c.status === 'passed').length,
           weeksWithTriComponentPending: p.checks.filter(c => c.code === 'tri_primary_component_dose' && c.status === 'pending').length,
           pendingChecks: [...new Set(p.checks.filter(c => c.status === 'pending').map(c => c.code))] });
@@ -153,4 +155,38 @@ if (selected.some(s => s.objective === '703')) {
     expect(doseReports.length).toBeGreaterThan(0);
     expect(doseReports.every(c => c.message.startsWith('TTE'))).toBe(true);
   }, 120_000);
+}
+
+for (const trail of selected.filter(s => s.objective.startsWith('Trail'))) {
+  it(trail.objective + ' produces reviewable terrain sessions within the coach limits', async () => {
+    const input = inputFor(trail, 'trained', 'competitor');
+    const limits = { recentMinutes: 100, peakMinutes: 150 };
+    const plan = await generateDetPlanFromPageInput({ ...input, trailLongRunLimits: limits });
+    const p = (plan as typeof plan & { _detSourceProposal: V3PlanProposal })._detSourceProposal;
+    expect(parseV3PlanProposal(JSON.parse(JSON.stringify(p))).trailLongRunLimits).toEqual(limits);
+    expect(p.weeks).toHaveLength(trail.weeks);
+    expect(p.prescriptionAllowed).toBe(false);
+    const runSessions = plan.weeks.flatMap(w => w.sessions).filter(s => s.sport === 'run' && s.catalogId);
+    expect(runSessions.length).toBeGreaterThan(0);
+    expect(runSessions.every(s => s.detStructureRefusal?.reason === 'run_terrain_effort_review_required' && !s.detStructuredWorkout)).toBe(true);
+    expect(p.checks.some(c => c.code === 'trail_route_review' && c.status === 'pending')).toBe(true);
+    for (const w of p.weeks) {
+      for (const session of w.days.flatMap(d => d.sessions).filter(s => s.sport === 'run' && s.role !== 'race')) {
+        expect(session.durationMinutes).toBeGreaterThan(0);
+        expect(session.knownMinutes).toBeLessThanOrEqual(w.week === 1 ? limits.recentMinutes : limits.peakMinutes);
+        expect(session.components.every(c => c.targets.status === 'unresolved' && c.targets.targets.length === 0)).toBe(true);
+      }
+    }
+    if (process.env.DET_TRAIL_EXAMPLES) writeFileSync(process.env.DET_TRAIL_EXAMPLES + '/' + trail.objective + '.json', JSON.stringify(p));
+    await expect(generateDetPlanFromPageInput({ ...input, trailLongRunLimits: {recentMinutes:100,peakMinutes:50} })).rejects.toThrow();
+  }, 120_000);
+}
+
+if (selected.some(s => s.objective === 'TrailShort')) {
+  it('refuses an unsupported trail calendar or flat-only terrain', async () => {
+    const input = inputFor(scenarios.find(s => s.objective === 'TrailShort')!, 'trained', 'competitor');
+    await expect(generateDetPlanFromPageInput({...input, config:{...input.config, terrainAvailability:'plat'}})).rejects.toThrow(/relief/);
+    const raceGoals = input.config.raceGoals!.map(g => ({...g, raceDate:'2026-11-22'}));
+    await expect(generateDetPlanFromPageInput({...input, config:{...input.config, raceGoals}})).rejects.toThrow(/dernière semaine/);
+  });
 }
