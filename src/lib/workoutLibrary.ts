@@ -5260,7 +5260,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     id: "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
     cat: "B",
     sport: "course",
-    objectif: "Seuil bas norvégien volume — séance unique longue sous-seuil (sans double threshold)",
+    objectif: "Sous-seuil course — séance unique longue inspirée du modèle norvégien (sans double journée)",
     necessite: "Recommandé",
     when: "Build — séance standalone quand le double threshold n'est pas possible. 1-2x/semaine.",
     phase: ["base", "build"],
@@ -5272,7 +5272,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "seuil bas", "sous-seuil", "volume", "TTE", "Tjelta"],
     structure: [
       { part: "Warm-up", text: "15 min Z1→Z2 progressif", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "25-35 min continu à seuil bas norvégien (sous-seuil, 92-97 % de l'allure seuil) : 82-86% FCmax, RPE 6-7/10. Alternative intervalles avec récups très courtes : 3-4×8-10 min R:90s Z1. Réf : Tjelta 2019 — les meilleurs coureurs norvégiens accumulent 60-80 min/semaine au seuil bas en phase build. C'est le volume total qui crée l'adaptation, pas l'intensité de chaque répétition. Observer : FC stable (plateau) sur les 3 dernières minutes de chaque bloc = bonne intensité.", zones: ["Z4"] },
+      { part: "Main", text: "25-35 min continu dans le domaine sous-seuil TFCL, sous le MLSS et au-dessus de LT1, avec les repères individuels de l'athlète. Alternative : 3-4×8-10 min R:90s Z1. RPE 6-7/10, rythme maîtrisé ; réduire si le ressenti ou la dérive augmentent. La FC stable est un indice de contrôle, pas une mesure de lactate. Sans prélèvements, séance inspirée du modèle norvégien, non guidée par lactate. Réf descriptive : Casado, Foster, Bakken et Tjelta 2023 ; pas de supériorité individuelle garantie.", zones: ["Z4"] },
       { part: "Cool-down", text: "10 min Z1 + marche 5 min", zones: ["Z1"] }
     ],
     variants: {
@@ -5368,9 +5368,9 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     id: "NORWEGIAN_BIKE_THRESHOLD_LOW",
     cat: "B",
     sport: "cyclisme",
-    objectif: "Seuil bas norvégien vélo — accumulation volume sous-seuil vélo (88-93% FTP)",
+    objectif: "Sous-seuil vélo — accumulation contrôlée inspirée du modèle norvégien",
     necessite: "Recommandé",
-    when: "Build — séance standalone ou matin du double threshold triathlon. 2x/semaine.",
+    when: "Build — séance unique sous-seuil. Ne constitue pas une autorisation de double journée. 2x/semaine.",
     phase: ["build"],
     avoid: "Fatigue élevée · Séance < 48h après effort intense",
     durationMin: [70, 90],
@@ -5380,7 +5380,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     tags: ["Norwegian", "seuil bas", "vélo", "TTE", "triathlon", "Bakken"],
     structure: [
       { part: "Warm-up", text: "20 min Z1→Z2 progressif. Cadence 85-90 rpm.", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "4-5×8 min à 88-93% FTP (seuil bas norvégien = sous-seuil, PAS LT1) R:90s Z1. Cadence 88-95 rpm. Cible FC : 80-85% FCmax. RPE 6-7/10. La spécificité vélo de la méthode norvégienne : le vélo permet de contrôler précisément la puissance (lactatémètre moins indispensable qu'en course). Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Réf : Bakken 2019 adapté vélo — même principe cinétique lactique que la course.", zones: ["Z4"] },
+      { part: "Main", text: "4-5×8 min dans le domaine sous-seuil vélo TFCL, avec la FTP individuelle comme repère, R:90s Z1. Cadence 88-95 rpm, RPE 6-7/10. La puissance contrôle la charge externe mais ne mesure pas la lactatémie. Progression : S1=3×8min, S2=4×8min, S3=4×10min, S4=5×8min, S5=3×15min, S6=2×20min continu. Sans prélèvements, séance inspirée du modèle norvégien, non guidée par lactate. Les variantes spécifiques IM/70.3 à intensité plus basse ne doivent pas être présentées comme sous-seuil.", zones: ["Z4"] },
       { part: "Cool-down", text: "15 min Z1", zones: ["Z1"] }
     ],
     variants: {

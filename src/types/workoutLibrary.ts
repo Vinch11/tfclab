@@ -21,6 +21,7 @@ export type PhysiologicalIntent =
   // Domaines métaboliques : IDs identiques à tfclDoctrine.ts.
   | "moderate_lt1"
   | "recovery"
+  | "sub_threshold"
   | "mlss"
   | "vo2max"
   | "neuromuscular"

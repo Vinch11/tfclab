@@ -185,7 +185,7 @@ const LACTATE_SHUTTLE_RUN: LibraryWorkout[] = [
     sportKey: "run_lactate_shuttle",
     structure: [
       { part: "Warm-up", text: "15min Z1-Z2 progressif + 4 accélérations 15s", zones: ["Z1", "Z2"] },
-      { part: "Main", text: "Alternance seuil/récup active : 4-6× (3min allure seuil → 2min Z2 actif SANS arrêt). L'objectif est de maintenir le lactate légèrement élevé (~3-4 mmol/L) sans pic. Réf: Brooks 2018 – le lactate est un carburant, pas un déchet. Entraîner la navette = meilleure clairance.", zones: ["Z3-Z4", "Z2"] },
+      { part: "Main", text: "Alternance domaine MLSS/récupération active sous LT1 : 4-6× (3min allure seuil → 2min Z2 actif SANS arrêt). Contrôler l'allure avec les repères individuels ; aucune lactatémie cible ne peut être confirmée sans mesure. Réf: Brooks 2018 décrit le transport et l'utilisation du lactate, pas la validation expérimentale de cette recette.", zones: ["Z4", "Z2"] },
       { part: "Cool-down", text: "10min Z1 décroissant", zones: ["Z1"] }
     ],
     variants: {
@@ -196,7 +196,7 @@ const LACTATE_SHUTTLE_RUN: LibraryWorkout[] = [
     },
     goals: ["marathon", "semi", "10k", "half", "ironman", "trail_short", "trail_mountain"],
     tags: ["lactate-shuttle", "threshold", "clearance", "Brooks2018"],
-    notes: "Réf: Brooks 2018 – Cell-to-Cell Lactate Shuttle. La récupération active maintient le flux de lactate comme substrat énergétique. Ne pas confondre avec du fractionné classique : ici la récup est ACTIVE et l'intensité contrôlée."
+    notes: "Alternance au seuil avec récupération active ; aucun gain spécifique de clairance garanti. La sélection automatique reste fermée tant que les exclusions de fatigue élevée et de VLamax très haute ne disposent pas de contrats vérifiables. Les variantes marathon/semi/10K/trail ont des intensités spécifiques distinctes de la recette principale."
   }
 ];
 

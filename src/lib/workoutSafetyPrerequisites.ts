@@ -45,13 +45,23 @@ export const AUDITED_WORKOUT_SAFETY_PREREQUISITES: Readonly<Record<string, Worko
   KENYAN_RUN_DOUBLE_DAY: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   EXPE_HORS_VILLE_BACK_TO_BACK: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   KENYAN_WEEK_STRUCTURE_MARATHON: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  // Les vraies fiches de double journée demandent la même revue, indépendamment
+  // de leur nom. Ne pas appliquer ce verrou à la séance unique LOW_VOLUME.
+  NORWEGIAN_RUN_THRESHOLD_LOW_AM: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  NORWEGIAN_RUN_THRESHOLD_HIGH_PM: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  NORWEGIAN_RUN_DOUBLE_THRESHOLD_DAY: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  NORWEGIAN_WEEK_STRUCTURE_RUN: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  URBAN_COTES_NORVEGIEN_DOUBLE_SEUIL: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
 
   // Protocoles très intensifs ou lactate-guided du lot relu.
   BILLAT_RUN_LACTATE_TOLERANCE: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   ENR_RUN_NORWEGIAN_4X8: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   ENR_RUN_NORWEGIAN_5X6: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   ENR_RUN_LACTATE_CLEARANCE: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
-  B_RUN_LACTATE_SHUTTLE: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
+  // Candidate au seuil (pas maximale), mais les exclusions qualitatives de
+  // fatigue/VLamax de la fiche ne sont pas vérifiables dans le signal actuel.
+  // Aucun chiffre inventé et aucun accord générique ne les contourne.
+  B_RUN_LACTATE_SHUTTLE: { requireVerifiedProfile: true, blockAutomaticSelection: true },
   NORWEGIAN_RUN_LACTATE_TEST_PROTOCOL: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   ENR_BIKE_LACTATE_SHUTTLE: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },
   ENR_BIKE_NORWEGIAN_5X5: { requireVerifiedProfile: true, requireExplicitCoachApproval: true },

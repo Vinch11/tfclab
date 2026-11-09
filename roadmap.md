@@ -1,6 +1,8 @@
 # Roadmap
 
 - [x] Revue scientifique ciblée des navettes lactate et protocoles norvégiens : fiches relues, deux sources scientifiques, catalogues de sept objectifs inspectés sans IA ; rapport dans docs/revue-lactate-norvegien-2026-11-09.md. Certaines séances norvégiennes simples sont déjà accessibles ; trois IDs du verrou n'existent pas. Aucune règle runtime modifiée.
+- [x] Corrections approuvées : intentions sous-seuil / MLSS / VO₂max distinctes, fiches simples clarifiées sans promesse lactique, approbation harmonisée des doubles journées ; 58 tests passent (catalogue et substitutions sur sept objectifs), déclaration fraîche et aperçu sans erreur, fonctions ai-training-plan et ai-training-plan-test déployées avec succès. Aucun plan généré ni site publié.
+- [ ] Déblocage automatique de B_RUN_LACTATE_SHUTTLE : bloqué par les exclusions qualitatives « fatigue élevée / VLamax très haute » sans contrat vérifiable dans le signal disponible ; candidature au seuil préparée, aucun seuil numérique inventé.
 
 - [x] Ajouter une première version des modes Nolio « Rapide — à vérifier » et « Tests vérifiés » : lecture adaptée au sport, propositions vélo D1/D3/D5 et course D1/D3, confirmation coach et provenance ; 5 sports/168 records réels lus, préremplissage VMA vérifié sans sauvegarde, saisie manuelle préservée, ordinateur/mobile OK, 21 tests passés, fonctions déployées avec succès.
 - [ ] Compléter l'analyse précise des journées : répétitions, récupération, seuil, TTE, dérive et Pool Day. Bloqué par l'accès aux intervalles de la séance réelle essayée (lecture refusée/inaccessible) et des contrats d'analyse de protocole encore non validés ; aucun calcul automatique de FTP/CSS ni validation scientifique du test.

@@ -41,6 +41,7 @@ const CACHE = new WeakMap<LibraryWorkout, IntentFamily>();
 const STRUCTURED_INTENT_FAMILY: Readonly<Record<PhysiologicalIntent, IntentFamily>> = {
   moderate_lt1: "endurance_fondamentale",
   recovery: "recuperation",
+  sub_threshold: "seuil",
   mlss: "seuil",
   vo2max: "vo2",
   neuromuscular: "sprint",

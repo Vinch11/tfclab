@@ -48,6 +48,24 @@ export const AUDITED_WORKOUT_METADATA: Readonly<Record<string, AuditedWorkoutMet
   NORWEGIAN_RUN_THRESHOLD_HIGH_PM: {
     physiology: p("mlss", "Répétitions au seuil haut contrôlées par lactate/FC."),
   },
+  NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME: {
+    physiology: p("sub_threshold", "Séance unique en domaine sous-seuil, distinct de LT1 et du MLSS ; une FC stable ne mesure pas le lactate."),
+  },
+  NORWEGIAN_RUN_THRESHOLD_LOW_AM: {
+    physiology: p("sub_threshold", "Bloc matinal sous-seuil, appartenant à une double journée explicitement contrôlée."),
+  },
+  NORWEGIAN_BIKE_THRESHOLD_LOW: {
+    physiology: p("sub_threshold", "Recette principale sous-seuil vélo ; les variantes IM/70.3 plus basses sont spécifiques course, pas des preuves de travail au seuil."),
+  },
+  B_RUN_LACTATE_SHUTTLE: {
+    physiology: p("mlss", "Alternance au seuil et récupération active sous LT1 ; la théorie de Brooks ne démontre pas un gain spécifique garanti pour cette recette.", ["moderate_lt1"]),
+  },
+  ENR_RUN_LACTATE_CLEARANCE: {
+    physiology: p("vo2max", "Deux minutes en domaine sévère alternées avec quatre minutes tempo : ce n'est pas une navette uniquement au seuil."),
+  },
+  ENR_BIKE_LACTATE_SHUTTLE: {
+    physiology: p("vo2max", "Intervalles en domaine sévère avec récupération tempo continue."),
+  },
   NORWEGIAN_RUN_DOUBLE_THRESHOLD_DAY: {
     physiology: p(
       "mlss",

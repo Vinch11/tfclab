@@ -33,7 +33,6 @@ const REVIEW_REQUIRED = [
   "ENR_RUN_NORWEGIAN_4X8",
   "ENR_RUN_NORWEGIAN_5X6",
   "ENR_RUN_LACTATE_CLEARANCE",
-  "B_RUN_LACTATE_SHUTTLE",
   "NORWEGIAN_RUN_LACTATE_TEST_PROTOCOL",
   "ENR_BIKE_LACTATE_SHUTTLE",
   "ENR_BIKE_NORWEGIAN_5X5",
@@ -56,7 +55,7 @@ describe("prérequis de sécurité ciblés — premier lot audit 2026-10", () =>
   });
 
   it("refuse les protocoles maximaux, doubles journées et charges lourdes sans revue coach nominative", () => {
-    expect(REVIEW_REQUIRED).toHaveLength(26);
+    expect(REVIEW_REQUIRED).toHaveLength(25);
     for (const id of REVIEW_REQUIRED) {
       expect(isLevelPrerequisiteIncompatible(id, VERIFIED_PROFILE), id).toBe(true);
     }

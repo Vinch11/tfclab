@@ -52,3 +52,17 @@ Les trois navettes présentes sont refusées sans approbation dans tous ces essa
 4. Vérifier catalogue et substitutions sur 5 km, 10 km, semi, marathon, trail, 70.3 et Ironman. Aucune preuve de plan impeccable ne peut être tirée de ces seuls tests.
 
 Aucune règle de sélection n'est modifiée à l'issue de cette revue.
+
+## Installation après approbation du plan
+
+La phrase précédente décrit l'état de la revue avant approbation ; les corrections ci-dessous ont ensuite été installées :
+
+- Intention canonique `sub_threshold` pour les séances course volume et vélo sous-seuil ; famille de couverture « seuil » conservée, sans les confondre avec le MLSS ni l'endurance LT1. Métadonnées de la navette au seuil et des deux navettes sévères relues explicitement.
+- Fiches simples clarifiées : l'allure/puissance et la FC ne prouvent pas la lactatémie ; variantes spécifiques IM/70.3 signalées comme distinctes de la recette sous-seuil. Référence Brooks ramenée à une explication mécanistique, sans validation prétendue de cette recette.
+- Approbation nominative ajoutée aux vraies fiches AM/PM, double journée course, semaine norvégienne et double seuil côte urbain. Le minimum existant de niveau/volume du double seuil complet est conservé. Le parcours d'approbation n'est pas construit : ces fiches demeurent donc fermées dans l'app réelle.
+- La navette course au seuil reste automatiquement bloquée, même avec un accord nominatif : son signal actuel ne contient ni fatigue ni VLamax et ses exclusions qualitatives n'ont pas de contrat validé. Aucun seuil inventé ; préparation ne signifie pas activation.
+- Navettes sévères et test lactate : approbation conservée.
+
+Vérification : 58 tests dans huit fichiers passent, dont catalogue et non-contournement des substitutions pour sept objectifs ; déclaration de version vérifiée fraîche, dernier aperçu « build OK ». Essais locaux avec plafond 60 : sous-seuil course volume toujours présent pour 5 km, 10 km, semi, marathon, Half et Ironman ; aucune des fiches inspectées forcée dans Trail. Vélo sous-seuil présent dans les essais 5 km et 10 km sans filtre sportif ; cela n'atteste pas sa présence dans un vrai plan course pure.
+
+Les fonctions `ai-training-plan` et `ai-training-plan-test` ont été déployées avec succès pour maintenir la concordance de version. Aucun appel IA, aucune génération complète ni validation coach de plan effectués. Aucun changement de données athlètes, de Nolio ou publication du site. La qualité d'un plan réel et les exclusions de fatigue/charge des fiches simples restent à vérifier dans le contexte complet du plan ; les essais ne certifient pas toutes les contre-indications textuelles.
