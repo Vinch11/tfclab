@@ -361,8 +361,8 @@
 
 
   /* Cards → glass bento tiles */
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"],
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"] {
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]),
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]) {
     background: linear-gradient(135deg, hsl(var(--card) / 0.92) 0%, hsl(var(--background) / 0.96) 100%) !important;
     border: 1px solid hsl(var(--border)) !important;
     border-radius: 1rem !important;
@@ -375,16 +375,16 @@
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]::before,
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]::before {
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"])::before,
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"])::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 30%, hsl(var(--accent) / 0.3) 70%, transparent 100%);
     pointer-events: none;
     z-index: 1;
   }
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:hover,
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:hover {
+  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover,
+  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover {
     border-color: hsl(var(--primary) / 0.3) !important;
     box-shadow:
       inset 0 1px 0 hsl(var(--foreground) / 0.06),
@@ -1460,9 +1460,9 @@
   }
 
   /* ── Cards: floating white, 28px radius, corner gradient wash ──────────── */
-  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"],
-  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"],
-  .bevel [class*="rounded-2xl"][class*="border"][class*="bg-card"] {
+  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]),
+  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]),
+  .bevel [class*="rounded-2xl"][class*="border"][class*="bg-card"]:not([role="dialog"]) {
     background:
       radial-gradient(ellipse 78% 62% at 100% 0%, hsl(var(--primary) / 0.16) 0%, transparent 62%),
       radial-gradient(ellipse 70% 55% at 0% 0%, hsl(var(--accent) / 0.09) 0%, transparent 60%),
@@ -1473,7 +1473,7 @@
     backdrop-filter: none !important;
   }
   .bevel [class*="border"][class*="bg-card"]::before { display: none !important; }
-  .bevel [class*="border"][class*="bg-card"]:hover {
+  .bevel [class*="border"][class*="bg-card"]:not([role="dialog"]):hover {
     border-color: hsl(var(--border)) !important;
     box-shadow: var(--shadow-elevated) !important;
     transform: none !important;
