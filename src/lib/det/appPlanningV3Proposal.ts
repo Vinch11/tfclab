@@ -7,6 +7,7 @@ import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions,
 import { familySourcePool } from './familySourcePools';
 import { findSource,FATIGUE_LABELS,RECENT_LOAD_LABELS } from './coachDetContext';
 import { coachFamilyFor,clockFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
+import { primaryRunningInputProblems } from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 import { resolveDetLimiter } from '../../../experimental/det-engine/v403-limiter-semantics';
 import { limiterSourceAffinity } from '../../../experimental/det-engine/v411-limiter-source-affinity';
 import { previewV3SourceDose } from '../../../experimental/det-engine/v31-v3-catalogue';
@@ -151,11 +152,11 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   if(priorities[0]?.resolution.status!=='supported')throw Error('Limiteur principal non raccordé : aucune priorité de remplacement n’est inventée.');
   const primaryKey=priorities[0].resolution.key;
   const primaryMatchCache=new Map<ProposedV3Workout,boolean>();
-  const matchesPrimary=(session:ProposedV3Session)=>session.components.some(c=>{
-    if(!road)return false;
+  function componentMatchesPrimary(c:ProposedV3Workout):boolean {
     if(!primaryMatchCache.has(c))primaryMatchCache.set(c,primaryPrescriptionMatch(c,findSource(c.sourceId)!,primaryKey));
     return primaryMatchCache.get(c)!;
-  });
+  }
+  const matchesPrimary=(session:ProposedV3Session)=>!!road&&session.components.some(c=>c.sport==='run'&&componentMatchesPrimary(c));
   const matches=(s:V3Workout,raw:string)=>{
     const r=resolveDetLimiter(raw);return r.status==='supported'&&limiterSourceAffinity({primaryDomain:s.primaryDomain,limiterKeys:s.prescription.physiologicalIntent.limiterKeys},r.key);
   };
@@ -203,6 +204,10 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   let doseCeiling:number|undefined;
   const goal=normalizeRepairGoal(config.objective);
   const triObjective=({half:'703',ironman:'IM',sprint:'Sprint',olympic:'Olympic'} as const)[goal as 'half'|'ironman'|'sprint'|'olympic'];
+  // The bike/run evidence rules operate on configured blocks. For VLamax
+  // they describe reduction only when the app actually documents that direction.
+  const triDoseApplicable=!!triObjective&&primaryRunningInputProblems(config).length===0;
+  const triDoseMatch=(c:ProposedV3Workout)=>triDoseApplicable&&c.targets.status==='resolved'&&componentMatchesPrimary(c);
   const ratioObjective=parseAthleteConstraints(config.constraints).bannedSports.length?undefined:triObjective;
   const minuteLedger={swim:0,bike:0,run:0};let minuteLedgerKnown=true;
   const finalLoad=study.weeks.filter(w=>w.weekType==='load'&&!w.days.some(d=>d.slots.some(s=>s.role==='race'))).at(-1)?.week;
@@ -437,6 +442,12 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // because its duration wins by a fraction. Alternatives must retain the
     // exact sport/domain/minutes/zone dose and every limiter match; their own
     // recovery and missing anchors are checked. This preserves future budgets.
+    // On a triathlon key/long slot, choose between equivalently dosed
+    // recipes using the existing sport-specific evidence before rotating IDs.
+    const comparePrimary=(a:ProposedV3Workout,b:ProposedV3Workout)=>
+      Number(triDoseMatch(b))-Number(triDoseMatch(a));
+    const trackPrimary=(session:ProposedV3Session)=>triDoseApplicable&&week.weekType==='load'&&
+      (session.role==='key'||session.role==='long');
     const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
       if(session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
@@ -448,7 +459,8 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         c.zoneMinutes?.low===original.zoneMinutes?.low&&c.zoneMinutes?.mid===original.zoneMinutes?.mid&&c.zoneMinutes?.high===original.zoneMinutes?.high&&c.zoneMinutes?.unknown===original.zoneMinutes?.unknown&&
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
-        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .filter(c=>!trackPrimary(session)||!triDoseMatch(original)||triDoseMatch(c))
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){occupied.delete(original.sourceId);occupied.add(replacement.sourceId);session.components=[replacement];}
     }
@@ -471,7 +483,8 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         JSON.stringify(c.zoneMinutes)===JSON.stringify(original.zoneMinutes)&&
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
-        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .filter(c=>!trackPrimary(session)||!triDoseMatch(original)||triDoseMatch(c))
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){importOccupied.delete(original.sourceId);importOccupied.add(replacement.sourceId);session.components=[replacement];}
     }
@@ -483,6 +496,15 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     for(const session of selected)for(const component of session.components)usage.set(component.sourceId,(usage.get(component.sourceId)??0)+1);
     result.weeks.push({week:week.week,phase:week.phase,weekType:week.weekType,focus:week.limiterFocus.focus,days,knownMinutes,durationMinutes});
     result.checks.push({code:'weekly_minutes',week:week.week,status:durationMinutes===null?'pending':'passed',message:durationMinutes===null?'Durée totale inconnue : allures, durée de force ou transition manquantes ; plafond non certifié.':'Somme des doses calculées dans le plafond horaire.'});
+    if(triObjective&&week.weekType==='load'){
+      const keySlots=calendarSelected.filter(s=>s.role==='key'||s.role==='long');
+      const matches=keySlots.flatMap(s=>s.components.filter(triDoseMatch));
+      const detail=matches.map(c=>c.sport+' '+c.sourceId).join(', ');
+      result.checks.push({code:'tri_primary_component_dose',week:week.week,status:matches.length?'passed':'pending',
+        message:matches.length
+          ?`${priorities[0].raw} · composantes vélo/course dont les blocs satisfont le critère de séance : ${detail}. La couverture de la préparation complète reste à évaluer.`
+          :`${priorities[0].raw} · S${week.week} : aucune dose vélo/course démontrée sur les séances clés ou longues par les critères applicables. Couverture du limiteur à revoir.`});
+    }
     if(week.weekType==='load'){
       const zones=polarization(selected);
       result.checks.push({code:'structured_polarization',week:week.week,status:zones?.complete?'passed':'pending',message:zones?.complete?`Blocs configurés : ${zones.lowPct?.toFixed(1)} % de temps facile, ${zones.unknownPct?.toFixed(1)} % non classé. Cibles de construction respectées, sans attestation sportive.`:'Répartition totale des intensités non vérifiable : durée cardio ou transition inconnue. Les composantes connues ne peuvent pas contourner les cibles existantes.'});
