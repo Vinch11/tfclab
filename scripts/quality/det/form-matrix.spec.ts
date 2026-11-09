@@ -239,9 +239,17 @@ for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].i
         const reduced = readProposal(await generateDetPlanFromPageInput(withRecent(String(lowerHours))));
         expect(reduced.weeks[0].knownMinutes).toBeLessThanOrEqual(lowerHours*60+1e-7);
         expect(reduced.weeks[0].knownMinutes).toBeLessThan(previous.weeks[0].knownMinutes);
+        expect(reduced.limiterOrder).toEqual(previous.limiterOrder);
+        expect(reduced.weeks).toHaveLength(scenario.weeks);
+        expect(reduced.checks.some(c=>c.status==='blocked')).toBe(false);
+        if(['703','IM'].includes(scenario.objective)){
+          const loads = reduced.weeks.filter(w=>w.weekType==='load');
+          const proven = reduced.checks.filter(c=>c.code==='tri_primary_component_dose'&&c.status==='passed');
+          expect(proven.map(c=>c.week)).toEqual(loads.map(w=>w.week));
+        }
         if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,actual:reduced.weeks[0].knownMinutes})+'\n');
       }catch(error){
-        if(!(error instanceof DetRefusal)||['Semi','Marathon'].includes(scenario.objective))throw error;
+        if(!(error instanceof DetRefusal)||scenario.objective!=='10K')throw error;
         if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,reason:error.reasons})+'\n');
       }
     }

@@ -93,7 +93,7 @@ Cinq comparaisons ont été générées avec les mêmes données de profil et de
 | 10 km | 6 h | 230 min | 192 min | Refus de la combinaison de séances et de contraintes |
 | Semi | 6 h | 272 min | 228 min | 225 min |
 | Marathon | 8 h | 335 min | 282 min | 281 min |
-| 70.3 | 10 h | 475,5 min | 402 min | Les créneaux et doses disponibles dépassent déjà le volume récent |
-| Ironman | 14 h | 475 min | 402 min | Les créneaux et doses disponibles dépassent déjà le volume récent |
+| 70.3 | 10 h | 475,5 min | 402 min | 400 min de blocs chronométrés |
+| Ironman | 14 h | 475 min | 402 min | 402 min de blocs chronométrés |
 
-Le banc couvre également une déclaration de 30 min par semaine sur ces cinq configurations. DET indique le volume minimal des créneaux quand celui-ci excède à lui seul le volume récent. Le cas semi et le cas marathon exigent une réduction effective des doses dans le test. Un échec de recherche indique qu’aucune combinaison n’a été trouvée avec ces entrées.
+Le banc couvre également une déclaration de 30 min par semaine sur ces cinq configurations. DET indique le volume minimal des créneaux quand celui-ci excède à lui seul le volume récent. Les deux triathlons utilisent les fiches V3 compatibles avec le niveau et la distance sur toute la préparation lorsque le volume récent limite la première semaine. Le test exige une réduction effective des doses en semi, marathon, 70.3 et Ironman. Un échec de recherche indique qu’aucune combinaison n’a été trouvée avec ces entrées.
