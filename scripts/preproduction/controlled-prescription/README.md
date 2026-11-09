@@ -1,5 +1,13 @@
 # Offline correction preparation
 
+**Update 2026-11-09:** the global contract/window correction is installed in the
+preview. Prescription preparation also exists under `src/lib/plan/controlledPrescription.ts`,
+but the new prescription mode is not globally activated: explicit reviewed
+stimulus/race-stage contracts do not cover the complete catalogue and dedicated
+paths. Both functions reject the experimental marker before paid calls. See
+`verification.md` for deployment checks and remaining limitations. The following
+sections describe the initial offline preparation and are historical.
+
 These modules and candidate patch are not imported by the running application
 or by either generation function. No deployment, model call or database write
 is involved. Tests import the modules directly through Vitest.

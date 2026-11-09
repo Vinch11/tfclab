@@ -1,5 +1,5 @@
 import {it,expect} from 'vitest';
-import {mergeWindowEvidence,contractWindowLabel} from '../../../../scripts/preproduction/controlled-prescription/contractScope';
+import {mergeWindowEvidence,contractWindowLabel} from '../contractScope';
 import type {PlanPrevalidation} from '../../../../supabase/functions/_shared/planPrevalidation';
 const report=(count:number):PlanPrevalidation=>({status:'coach_review',issues:[{week:1,code:'coach_initial_load_unverified',severity:'warning'}],weeks:Array.from({length:count},(_,i)=>({week:i+1,globalWeek:i+1,availability:[],requiredIntentions:[],eligible:[],excluded:[],limitedDiversitySports:[],missingSports:[],minimumStructuredMinutes:0,minimumCatalogueMinutes:0}))});
 it('keeps 33 global contracts when the first 15 week window is assessed',()=>{

@@ -1832,6 +1832,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
     corsHeaders,
   } = input;
 
+  if(planConfig?._controlledPrescription===true) {
+    return Response.json({code:'CONTROLLED_PRESCRIPTION_NOT_ACTIVATED',error:'Prescription contrôlée en recette : activation globale non validée, aucun appel IA.'},{status:422,headers:corsHeaders});
+  }
+
   // Audit "génération de plan IA" — retour coach : plan multi-objectifs
   // (Marathon intermédiaire → Ironman final), le cycle Marathon gardait
   // natation/vélo toute la semaine malgré un catalogue restreint côté client

@@ -1,4 +1,7 @@
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
+import { mergeWindowEvidence, type GenerationWindow } from "@/lib/plan/contractScope";
+import { prepareControlledPrescription } from "@/lib/plan/controlledPrescription";
+import { completePlanCoverageIssues } from "@/lib/plan/completePlanValidation";
 import { assessPreparedGeneration, prevalidateTrainingPlan } from "@/lib/plan/prevalidateTrainingPlan";
 import { assertPlanPrevalidation, prevalidateDeclaredCalendar, withPrevalidationIssues, type PlanPrevalidation } from "../../supabase/functions/_shared/planPrevalidation";
 import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
@@ -330,6 +333,8 @@ export interface AdaptationProjection {
 }
 
 export interface PlanConfig {
+  /** Fail-closed migration: only application-prescribed JSON sessions. */
+  _controlledPrescription?: boolean;
   _outputFormat?: "json" | "markdown";
   objective: string;
   /** ID de l'athlète — requis pour la mémoire de diversité inter-plans (P3). */
@@ -641,6 +646,8 @@ export function prevalidateGenerationScope(athlete:PlanAthleteData,config:PlanCo
 
 export function useAITrainingPlan() {
   const [prevalidation, setPrevalidation] = useState<PlanPrevalidation|null>(null);
+  const globalPrevalidationRef = useRef<PlanPrevalidation|null>(null);
+  const [generationWindow, setGenerationWindow] = useState<GenerationWindow|null>(null);
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   // Audit coach (plan Manu 40 sem) : une génération longue (>3 blocs standards)
@@ -697,7 +704,11 @@ export function useAITrainingPlan() {
     let report:PlanPrevalidation;
     try { report=prevalidateGenerationScope(athlete,config,await resolvePlanningOptions(athlete,config)); }
     catch (error) { report={status:"blocked",issues:[{week:0,code:error instanceof Error&&error.message==="PREVALIDATION_INVALID_DURATION"?"prevalidation_duration_invalid":"prevalidation_input_invalid",severity:"blocking"}],weeks:[]}; }
-    if(planningSnapshotRef.current?.key===JSON.stringify({athlete,config}))setPrevalidation(report);
+    if(planningSnapshotRef.current?.key===JSON.stringify({athlete,config})&&!batchInFlightRef.current&&!generationInFlightRef.current) {
+      globalPrevalidationRef.current=null;
+      setGenerationWindow(null);
+      setPrevalidation(report);
+    }
     return report;
   },[resolvePlanningOptions]);
 
@@ -735,13 +746,22 @@ export function useAITrainingPlan() {
     try {
       const options=frozenOptions??await resolvePlanningOptions(athleteData,planConfig);
       const preparation = prepareGenerationContracts(athleteData, planConfig, options);
+      const controlled=planConfig._controlledPrescription?prepareControlledPrescription(planConfig,preparation):null;
       const historicalUsage=preparation.historicalUsage;
       const { phaseCatalogs, phaseRepairCatalogs, chunkCatalogs, chunkRepairCatalogs,
         chunkRegenCatalogs, chunkRegenRepairCatalogs, chunkRegenWeeks,
         catalogDurationStats, weeklyQuotas, quotasByChunkText, beginnerIntensitySignal } = preparation;
       lastAllowedCatalogIdsRef.current = preparation.allowedCatalogIds;
       const prevalidation = assessPreparedGeneration(planConfig, preparation);
-      setPrevalidation(prevalidation);
+      if (batchInFlightRef.current && globalPrevalidationRef.current) {
+        const updated=mergeWindowEvidence(globalPrevalidationRef.current,{from:weekOffset+1,to:weekOffset+totalWeeks,report:prevalidation});
+        globalPrevalidationRef.current=updated;
+        setPrevalidation(updated);
+      } else {
+        globalPrevalidationRef.current=null;
+        setGenerationWindow(null);
+        setPrevalidation(prevalidation);
+      }
       assertPlanPrevalidation(prevalidation);
     setResponse("");
     lastResponseRef.current = "";
@@ -819,6 +839,7 @@ export function useAITrainingPlan() {
       // Enrichit planConfig avec les quotas + target table (transmission edge)
       const planConfigWithQuota = {
         ...planConfig,
+        ...(controlled?{_controlledPrescription:true,_prescribedChunks:controlled.chunks}:{}),
         _weeklyQuotas: weeklyQuotas,
         _weeklyQuotasPromptByChunk: quotasByChunkText,
         _targetTable: targetTable,
@@ -1000,7 +1021,15 @@ export function useAITrainingPlan() {
               chunkIndex: typeof data.chunkIndex === "number" ? data.chunkIndex : undefined,
             };
           } else if (event === "prevalidation") {
-            setPrevalidation(previous=>({...previous,weeks:previous?.weeks??[],status:data.status,issues:data.issues??[]}));
+            const serverReport:PlanPrevalidation={weeks:[],status:data.status,issues:data.issues??[]};
+            const global=globalPrevalidationRef.current;
+            if(global) {
+              const updated=mergeWindowEvidence(global,{from:weekOffset+1,to:weekOffset+totalWeeks,report:serverReport});
+              globalPrevalidationRef.current=updated;
+              setPrevalidation(updated);
+            } else {
+              setPrevalidation(previous=>withPrevalidationIssues(previous??prevalidation,serverReport.issues));
+            }
           } else if (event === "warning") {
             warningEvidence.push(sanitizeWarningEvidence(data));
             const code = data.code ?? "warning";
@@ -1108,7 +1137,7 @@ export function useAITrainingPlan() {
             // Corrige phase/durée/discipline/quota AVANT le merge final, à
             // partir des mêmes règles que B10/B11 (ficheAllowedPhases).
             try {
-              const rec = runReconciler(collected, lastWeeklyQuotasRef.current, 2, lastAllowedCatalogIdsRef.current, {
+              const rec = planConfig._controlledPrescription ? null : runReconciler(collected, lastWeeklyQuotasRef.current, 2, lastAllowedCatalogIdsRef.current, {
                 objectiveKey: planConfig.objective ? normalizeObjectiveKey(planConfig.objective) : null,
                 constraints: (planConfig as any)?.constraints ?? null,
                 isLcw3Day:
@@ -1141,6 +1170,7 @@ export function useAITrainingPlan() {
                 beginnerIntensitySignal,
               });
 
+              if (rec) {
               const c = rec.counters;
               const summary = `phase_substituted=${c.phase_substituted} id_substituted_duration=${c.id_substituted_duration} discipline_substituted=${c.discipline_substituted} quota_floor_inserted=${c.quota_floor_inserted_from_catalog} quota_ceiling_trimmed=${c.quota_ceiling_trimmed} id_remapped_to_neighbor=${c.id_remapped_to_neighbor} id_remap_fallback_custom=${c.id_remap_no_intent_match_fallback_custom} phase_unresolved=${c.phase_unresolved} duration_unresolved=${c.duration_unresolved} discipline_unresolved=${c.discipline_unresolved} floor_unresolved=${c.quota_floor_unresolved} reconcile_conflict=${c.reconcile_conflict} zone_hydrated=${c.zone_hydrated ?? 0} taper_weeks_enforced=${c.taper_weeks_enforced ?? 0} constraint_day_moved=${c.constraint_day_moved ?? 0} constraint_day_unresolved=${c.constraint_day_unresolved ?? 0} constraint_banned_sport_removed=${c.constraint_banned_sport_removed ?? 0} demanding_accumulation_downgraded=${c.demanding_accumulation_downgraded ?? 0} demanding_accumulation_unresolved=${c.demanding_accumulation_unresolved ?? 0}`;
 
@@ -1149,6 +1179,7 @@ export function useAITrainingPlan() {
               console.groupEnd();
               semanticRepairs.push(`[info] reconciler_summary: ${summary}`);
               for (const line of rec.logs) semanticRepairs.push(`[reconciler] ${line}`);
+              }
             } catch (rerr) {
               const rmsg = rerr instanceof Error ? `${rerr.name}: ${rerr.message}` : String(rerr);
               const rstack = rerr instanceof Error ? (rerr.stack ?? "").slice(0, 500) : "";
@@ -1586,6 +1617,8 @@ export function useAITrainingPlan() {
     try {
       const scopeOptions=await resolvePlanningOptions(athleteData,planConfig);
       const scopePrevalidation=prevalidateGenerationScope(athleteData,planConfig,scopeOptions);
+      globalPrevalidationRef.current=scopePrevalidation;
+      setGenerationWindow(null);
       setPrevalidation(scopePrevalidation);
       if(scopePrevalidation.status==="blocked") {
         toast.error("Prévalidation bloquante : aucune fenêtre envoyée au modèle.");
@@ -1638,6 +1671,7 @@ export function useAITrainingPlan() {
           volumeRamp: planConfig.volumeRamp,
         };
 
+        setGenerationWindow({from,to,objective:windowConfig.catalogObjective??planConfig.objective});
         await generatePlan(athleteData, windowConfig,scopeOptions);
 
         const windowPlan = lastParsedPlanRef.current;
@@ -1681,7 +1715,15 @@ export function useAITrainingPlan() {
         assembled.finalValidationIssues = [
           ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
+          ...completePlanCoverageIssues(assembled,totalWeeks),
         ];
+        if(assembled.finalValidationIssues.some(i=>i.rule==='complete_plan_week_coverage')) {
+          setFinalValidationIssues(assembled.finalValidationIssues);
+          lastParsedPlanRef.current=null;
+          setParsedPlan(null);
+          toast.error('Plan incomplet : toutes les semaines doivent être présentes avant utilisation.');
+          return;
+        }
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
@@ -1698,6 +1740,8 @@ export function useAITrainingPlan() {
 
   const reset = useCallback(() => {
     planningSnapshotRef.current=null;
+    globalPrevalidationRef.current=null;
+    setGenerationWindow(null);
     setPrevalidation(null);
     setResponse("");
     lastResponseRef.current = "";
@@ -1720,7 +1764,7 @@ export function useAITrainingPlan() {
     // Générer, spinner) n'aient rien à changer pour rester corrects.
     isLoading: isLoading || isBatchGenerating,
     chunkProgress, generatePlan, generatePlanWindowed, reset, setResponse,
-    prevalidation, prevalidateTrainingPlan:previewPlan,
+    prevalidation:prevalidation?{...prevalidation,generationWindow}:null, prevalidateTrainingPlan:previewPlan,
     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
     parsedPlan, mergedPlan, sportObjectiveIssues,
     // Phase 2A — quota hebdo moteur (validation post-merge).

@@ -1,6 +1,7 @@
 import {detectLcwFromConfig,computeLcwChunkSize} from "../../../supabase/functions/_shared/lcwChunkSizing";
 import type { PlanConfig, PlanAthleteData } from '@/hooks/useAITrainingPlan';
 import { prepareGenerationContracts } from './prepareGenerationContracts';
+import { prepareControlledPrescription } from './controlledPrescription';
 import { prevalidatePlanWeeks, prevalidateDeclaredCalendar, prevalidatePhysiologicalContext, withPrevalidationIssues } from '../../../supabase/functions/_shared/planPrevalidation';
 export function assessPreparedGeneration(config:PlanConfig,prepared:ReturnType<typeof prepareGenerationContracts>) {
  const standardSize=prepared.chunksForQuota[0]?.end??config.weeksAvailable??1;
@@ -22,7 +23,8 @@ export function assessPreparedGeneration(config:PlanConfig,prepared:ReturnType<t
   report.issues.push({week:1,code:"coach_initial_load_unverified",severity:"warning"});
   if(report.status==="admissible")report.status="coach_review";
  }
- const assessed=withPrevalidationIssues(report,prevalidatePhysiologicalContext(config));
+ const controlled=config._controlledPrescription===true?prepareControlledPrescription(config,prepared):null;
+ const assessed=withPrevalidationIssues(report,[...prevalidatePhysiologicalContext(config),...(controlled?.issues??[])]);
  return config.globalTotalWeeks===undefined?withPrevalidationIssues(assessed,prevalidateDeclaredCalendar(config,config.weeksAvailable??0)):assessed;
 }
 /** Public read-only preview: same preparation as generation, no auth/database/model.

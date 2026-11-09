@@ -1,5 +1,11 @@
-import type {PlanPrevalidation} from '../../supabase/functions/_shared/planPrevalidation';
+import {contractWindowLabel, type DisplayPrevalidation} from '@/lib/plan/contractScope';
 const issueLabels:Record<string,string>={
+ controlled_trail_contract_unavailable:'Prescription trail contrôlée non disponible : aucune génération lancée',
+ controlled_stage_contract_unavailable:'Prescription des étapes de course non disponible : aucune génération lancée',
+ controlled_event_prescription_unavailable:'Prescription du jour de course non disponible : aucune génération lancée',
+ controlled_week_contract_unavailable:'Contrat de prescription hebdomadaire incomplet : aucune génération lancée',
+ controlled_stimulus_unavailable:'Intention physiologique de ce créneau non déterminée : aucune génération lancée',
+ controlled_reviewed_candidate_unavailable:'Aucune fiche physiologiquement vérifiée compatible avec ce créneau et son plafond : aucune génération lancée',
  prevalidation_input_invalid:'Paramètres incomplets ou invalides : vérifiez l’objectif, la durée et le calendrier avant de réessayer',
  prevalidation_duration_invalid:'Durée du plan absente ou invalide : renseignez un nombre entier de semaines supérieur à zéro',
  prevalidation_contract_unavailable:'Contrats de planification indisponibles : vérification du coach nécessaire',
@@ -40,22 +46,27 @@ function issueLabel(code:string) {
  return 'Un contrôle de planification nécessite une vérification ; consultez le diagnostic technique';
 }
 const labels={admissible:'Configuration admissible aux contrôles disponibles',coach_review:'Revue du coach nécessaire',blocked:'Contradiction bloquante — aucune génération lancée'};
-export function PlanPrevalidationPanel({report}:{report:PlanPrevalidation|null}) {
+export function PlanPrevalidationPanel({report}:{report:DisplayPrevalidation|null}) {
  if(!report)return null;
  return <section className="rounded-lg border p-4 space-y-3" aria-label="Prévalidation du plan">
+  <p className="font-semibold">Plan complet : {report.weeks.length} semaines</p>
+  {report.generationWindow&&<p className="text-sm text-muted-foreground">{contractWindowLabel(report.generationWindow)}</p>}
   <p className="font-semibold">{labels[report.status]}</p>
   <p className="text-sm text-muted-foreground">Dernier précontrôle calculé sans IA, recalculé avant génération. La dose inconnue et la diversité limitée sont des avertissements. Ce contrôle ne valide pas scientifiquement un plan qui n’existe pas encore.</p>
   {!!report.limiterPriorities?.length&&<p className="text-sm">Limiteurs transmis dans l’ordre : {report.limiterPriorities.join(' → ')}</p>}
   <p className="text-sm text-muted-foreground">Le squelette fixe les rôles (qualité, sortie longue, activation, compétition), pas toujours une intention physiologique exacte. Les familles disponibles sont celles des fiches admissibles ; la prescription finale reste à contrôler.</p>
-  {report.issues.length>0&&<ul className="text-sm list-disc pl-5">{report.issues.map(i=><li key={`${i.week}:${i.code}`}>{i.week>0?`S${i.week}`:'Plan'} — {i.severity==='blocking'?'Bloquant':'À revoir'} : {issueLabel(i.code)}</li>)}</ul>}
+  {report.issues.length>0&&<ul className="text-sm list-disc pl-5">{report.issues.map(i=>{
+   const objective=report.weeks.find(w=>w.globalWeek===i.week)?.objective;
+   return <li key={`${i.week}:${i.code}:${i.severity}`}>{i.week>0?`S${i.week}${objective?` · ${objective}`:''}`:'Plan'} — {i.severity==='blocking'?'Bloquant':'À revoir'} : {issueLabel(i.code)}</li>;
+  })}</ul>}
   <p className="text-sm text-muted-foreground">Les quotas sont des bornes, pas une charge prescrite. Un brick est une séance combinée qui remplace un créneau vélo autonome selon le comptage existant ; additionner les quotas bruts surestime le nombre de séances. Un plafond ne doit pas être rempli automatiquement.</p>
   <details><summary className="cursor-pointer">Contrats des {report.weeks.length} semaines</summary>
-   <div className="overflow-x-auto"><table className="text-xs w-full"><thead><tr><th>Semaine</th><th>Phase / cycle</th><th>Quotas</th><th>Plafond</th><th>Fiches admissibles</th></tr></thead>
-    <tbody>{report.weeks.map(w=><tr key={w.globalWeek}><td>{w.globalWeek}</td><td>{w.phase??'Non déterminée'}{w.expectedPhase&&w.expectedPhase!==w.phase?` (attendue : ${w.expectedPhase})`:''} / {w.weekType??'Voie dédiée'}</td>
-     <td>{w.quota?(['swim','bike','run','brick','strength'] as const).filter(s=>w.quota![s].max>0).map(s=>`${sportLabels[s]} ${w.quota![s].min}–${w.quota![s].max}`).join(' ; '):'Quotas déterministes indisponibles : revue requise'}</td>
+   <div className="overflow-x-auto"><table className="text-xs w-full"><thead><tr><th>Semaine</th><th>Objectif / phase / cycle</th><th>Quotas</th><th>Plafond</th><th>Fiches admissibles</th></tr></thead>
+    <tbody>{report.weeks.map(w=>{const quota=w.quota;return <tr key={w.globalWeek}><td>{w.globalWeek}</td><td>{w.objective??'Objectif non déterminé'} · {w.phase??'Non déterminée'}{w.expectedPhase&&w.expectedPhase!==w.phase?` (attendue : ${w.expectedPhase})`:''} / {w.weekType??'Voie dédiée'}</td>
+     <td>{quota?(['swim','bike','run','brick','strength'] as const).filter(s=>quota[s].max>0).map(s=>`${sportLabels[s]} ${quota[s].min}–${quota[s].max}`).join(' ; '):'Quotas déterministes indisponibles : revue requise'}</td>
      <td>{w.volumeBudget?`${w.volumeBudget.maxMinutes} min — ${w.volumeBudget.referenceSource==='internal-matrix'?'référence interne, charge inconnue':'déclaration coach'}`:'Non disponible'}</td>
      <td><details><summary>{w.eligible.length} fiches</summary>{w.eligible.map(c=><p key={c.id}>{c.id} — {c.sport}, {c.durationMin.join('–')} min, {c.intentFamily}</p>)}</details></td>
-    </tr>)}</tbody></table></div>
+    </tr>;})}</tbody></table></div>
   </details>
  </section>;
 }
