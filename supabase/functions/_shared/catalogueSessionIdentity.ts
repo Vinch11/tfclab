@@ -77,8 +77,12 @@ export function canonicalizeCatalogueSession(
   if (durationMin !== s.durationMin) changed.push("durationMin");
   if (s.title !== card.title) changed.push("title");
   if ((s.details ?? "") !== card.structure) changed.push("details");
-  if (JSON.stringify(s.zones ?? []) !== JSON.stringify(card.zones)) changed.push("zones");
-  const session: ContractSession = { ...s, title: card.title, details: card.structure, zones: [...card.zones], durationMin };
+  // The card's declared main zone is part of its prescription even when its
+  // zone list only names the warm-up/cool-down zones.
+  const cardMax = Math.max(0, ...card.zones.flatMap((z) => [...z.matchAll(/\bZ\s*([1-7])/gi)].map((m) => Number(m[1]))));
+  const zones = card.mainZoneMax > cardMax ? [...card.zones, `Z${card.mainZoneMax}`] : [...card.zones];
+  if (JSON.stringify(s.zones ?? []) !== JSON.stringify(zones)) changed.push("zones");
+  const session: ContractSession = { ...s, title: card.title, details: card.structure, zones, durationMin };
   if (variantKey === undefined) delete session.variantKey; else session.variantKey = variantKey;
   const checked = checkSessionCatalogue(session, contract);
   return checked.errors.length === 0 ? { session, changed } : null;

@@ -32,7 +32,7 @@ import {
   type BudgetCheckResult, type BudgetState,
 } from "./pilotCockpitBudget";
 
-const RUN_TIMEOUT_MS = 8 * 60 * 1000;
+const RUN_TIMEOUT_MS = 40 * 60 * 1000;
 const POLL_INTERVAL_MS = 500;
 
 async function waitForCompletion(getIsLoading: () => boolean, deadline: number): Promise<"done" | "timeout"> {
@@ -181,10 +181,14 @@ export function usePilotCockpit() {
         ? { _pilotMaxChunks: maxChunks }
         : {};
       const pilotFunctionOverride = functionName ? { _pilotFunctionName: functionName } : {};
-      await plan.generatePlan(preparedContext.athleteData, { ...preparedContext.planConfig, _outputFormat: "json", ...pilotChunkOverride, ...pilotFunctionOverride });
+      // Same request windows as the coach page (generatePlanWindowed): one
+      // HTTP request for a long plan exceeds the server time limit. A
+      // deliberately partial run (_pilotMaxChunks) keeps the single request.
+      const runConfig = { ...preparedContext.planConfig, _outputFormat: "json" as const, ...pilotChunkOverride, ...pilotFunctionOverride };
+      await ("_pilotMaxChunks" in pilotChunkOverride ? plan.generatePlan : plan.generatePlanWindowed)(preparedContext.athleteData, runConfig);
       const outcome = await waitForCompletion(() => isLoadingRef.current, Date.now() + RUN_TIMEOUT_MS);
       if (outcome === "timeout") {
-        errorMessage = "Timeout (>8 min) — génération non complétée.";
+        errorMessage = "Timeout (>40 min) — génération non complétée.";
       }
     } catch (e) {
       errorMessage = e instanceof Error ? e.message : String(e);

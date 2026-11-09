@@ -39,3 +39,12 @@ Deno.test("séance déjà conforme : inchangée", () => {
   const out = canonicalizeCatalogueSession({ day: "mardi", sport: "run", title: easy.title, details: easy.structure, durationMin: 50, zones: ["Z2"], custom: false, catalogId: easy.id }, contract);
   assertEquals(out, null);
 });
+
+Deno.test("zone principale de la fiche ajoutée quand sa liste ne cite que l'échauffement", () => {
+  const seuil: RepairWorkoutMetadata = { ...easy, id: "B_SEUIL", title: "Seuil 3x10min", intentFamily: "seuil", mainZoneMax: 4, zones: ["Z2"], structure: "Échauffement Z2, 3x10min Z4, retour au calme", durationMin: [60, 75] };
+  const c = { phase: "base", objective: "10km", catalog: [seuil] };
+  const out = canonicalizeCatalogueSession({ day: "jeudi", sport: "run", title: "Seuil", details: "", durationMin: 60, zones: ["Z2"], custom: false, catalogId: seuil.id }, c);
+  assert(out);
+  assertEquals(out.session.zones, ["Z2", "Z4"]);
+  assertEquals(checkSessionCatalogue(out.session, c).errors, []);
+});
