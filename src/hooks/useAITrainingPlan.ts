@@ -1675,6 +1675,14 @@ export function useAITrainingPlan() {
 
         setGenerationWindow({from,to,objective:windowConfig.catalogObjective??planConfig.objective});
         await generatePlan(athleteData, windowConfig,scopeOptions);
+        // One more attempt for a window whose block was refused by the
+        // catalogue checks (the server already retried once with corrections).
+        // A refused block is never saved; a second independent draw usually
+        // passes. Two failures still stop the sequence.
+        if (!lastParsedPlanRef.current || lastParsedPlanRef.current.weeks.length === 0) {
+          console.warn(`[generatePlanWindowed] fenêtre ${wi + 1}/${windows.length} (S${from}-S${to}) — nouvel essai unique.`);
+          await generatePlan(athleteData, windowConfig,scopeOptions);
+        }
 
         const windowPlan = lastParsedPlanRef.current;
         if (!windowPlan || windowPlan.weeks.length === 0) {
