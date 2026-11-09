@@ -93,6 +93,29 @@ Deno.serve(async (req) => {
       return json({ connected: true, scopes: b.scope ?? null });
     }
 
+    if (action === "personal_probe") {
+      // Personal API key (nolio_sk_…): read-only GETs only, never returned to the client.
+      const pk = Deno.env.get("NOLIO_PERSONAL_TOKEN")?.trim();
+      if (!pk) return json({ error: "missing_personal_token" }, 400);
+      const get = async (path: string) => {
+        const res = await fetch(API + path, { headers: { Authorization: `Bearer ${pk}`, Accept: "application/json" } });
+        const text = await res.text();
+        let data: unknown = null;
+        try { data = JSON.parse(text); } catch { data = text.slice(0, 300); }
+        return { status: res.status, data };
+      };
+      const [me, athletes, windows] = await Promise.all([get("me/"), get("me/athletes/?limit=100"), get("metrics/records/")]);
+      const raw = athletes.data as { data?: Array<Record<string, unknown>>; results?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+      const list = Array.isArray(raw) ? raw : raw?.data ?? raw?.results ?? [];
+      return json({
+        me: { status: me.status, error: me.status >= 400 ? me.data : undefined },
+        athletes: { status: athletes.status, count: list.length, has_api_access: list.filter((a) => a.has_api_access).length,
+          keys: list[0] ? Object.keys(list[0]) : [], error: athletes.status >= 400 ? athletes.data : undefined },
+        records_windows: { status: windows.status, sample: windows.status < 400 ? JSON.stringify(windows.data).slice(0, 1500) : undefined,
+          error: windows.status >= 400 ? windows.data : undefined },
+      });
+    }
+
     const { data: conn } = await admin.from("nolio_v2_connections").select("*").eq("user_id", userId).maybeSingle();
 
     if (action === "status") return json({ connected: !!conn, scopes: conn?.scopes ?? null, expires_at: conn?.expires_at ?? null });
