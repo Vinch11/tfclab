@@ -200,7 +200,9 @@ export function usePilotCockpit() {
     const durationMs = Date.now() - t0;
     const allStats = readPlanStats();
     const newStats = planStatsSince(beforeStats, allStats, t0);
-    const failStat = newStats.find((s) => s.schemaFailDetails || (!s.ok && s.errorCode));
+    // A window that failed once and then passed on its single retry is not a
+    // run failure: report a failing stat only when no plan came out.
+    const failStat = parsedPlanRef.current ? undefined : newStats.find((s) => s.schemaFailDetails || (!s.ok && s.errorCode));
     const newStat: PlanGenerationStat | undefined = failStat ?? newStats[newStats.length - 1];
     // Toujours lire via les refs (cf. commentaire plus haut) — JAMAIS
     // `plan.mergedPlan`/`plan.parsedPlan` directement, qui retomberaient sur

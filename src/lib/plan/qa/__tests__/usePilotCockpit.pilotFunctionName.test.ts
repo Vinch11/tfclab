@@ -42,7 +42,7 @@ function useFakeAITrainingPlanCapture() {
     sportObjectiveIssues: [], weeklyQuotaIssues: [],
     lastAllowedCatalogIdsRef, lastWeeklyQuotasRef,
     chunkProgress: null,
-    reset, generatePlan,
+    reset, generatePlan, generatePlanWindowed: generatePlan,
   };
 }
 
