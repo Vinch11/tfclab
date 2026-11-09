@@ -205,8 +205,14 @@ export function usePilotCockpit() {
     // Toujours lire via les refs (cf. commentaire plus haut) — JAMAIS
     // `plan.mergedPlan`/`plan.parsedPlan` directement, qui retomberaient sur
     // l'état figé au clic.
-    const merged = mergedPlanRef.current;
     const parsed = parsedPlanRef.current;
+    // Windowed runs leave only the LAST window in mergedPlan; the assembled
+    // plan is parsedPlan. Check and export the assembled plan, exactly as the
+    // coach page does before saving (parsedPlan as MergedPlan).
+    const lastWindow = mergedPlanRef.current;
+    const merged = parsed && lastWindow && parsed.weeks.length > lastWindow.weeks.length
+      ? (parsed as unknown as MergedPlan)
+      : lastWindow;
 
     let checks: CheckResult[] | null = null;
     let validatorResult: PlanValidationResult | null = null;
