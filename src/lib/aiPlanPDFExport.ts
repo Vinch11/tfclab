@@ -1,3 +1,6 @@
+import {coachDuration} from '@/lib/plan/coachPrescriptionText';
+import {savedDetPreparationTimeline} from '@/lib/det/detPreparationTimeline';
+import {limiterKeyLabel} from '@/lib/limiterSessionPatterns';
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 /**
@@ -7,15 +10,18 @@ import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
 import type { AdaptationProjection } from "@/hooks/useAITrainingPlan";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
-import { getFicheForSession, maybeDowngradeBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
+import { getFicheForSession, isRunOnlyHighIntensityBikeSession, type EnrichedSessionFiche } from "@/lib/aiPlanWorkoutEnricher";
 import type { WbalAthleteRefs } from "@/lib/wbalLibraryRecalc";
 import { formatFicheText } from "@/lib/ficheTextFormatter";
+import { readableV3Prescription } from "@/lib/plan/readableV3Prescription";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { parseSessionTitle } from "@/lib/parseSessionTitle";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
+import { readPlanProvenance } from "@/lib/plan/planProvenance";
+import {getLiteratureHintText} from '@/lib/raceStandards';
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -25,7 +31,27 @@ const SPORT_TAG_TOKENS = new Set([
 const LORANG_COLORS: Record<string, string> = {
   A: "#D0433A", B: "#D4711C", C: "#5555E0", D: "#1F9D6B",
 };
-function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null): string {
+function escPdf(x: string): string {
+  return x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function detPreparationHTML(plan:ParsedPlan):string {
+  const blocks=savedDetPreparationTimeline(plan);
+  if(!blocks?.length)return '';
+  return `<section data-role="info" aria-label="Chantiers de la préparation" style="margin-bottom:20px;font-size:11px;">
+    <h2>Chantiers de la préparation</h2>
+    <p>Priorités de cette version. Les associations aux limiteurs décrivent les fiches retenues ; elles ne prouvent pas une amélioration physiologique.</p>
+    <table style="width:100%;border-collapse:collapse;"><thead><tr><th>Semaines</th><th>Chantier prévu</th><th>Séances clés ou longues associées</th></tr></thead><tbody>${blocks.map(block=>{
+      const label=block.mode==='recovery'?'Récupération et assimilation':block.mode==='taper'?'Affûtage':block.mode==='race'?'Compétition':block.focus?limiterKeyLabel(block.focus):'Préparation';
+      return `<tr style="break-inside:avoid;border-bottom:1px solid #ddd;"><td>S${block.startWeek}${block.endWeek!==block.startWeek?`–S${block.endWeek}`:''}</td><td><b>${escPdf(label)}</b><br/>Priorité globale du profil : ${escPdf(block.primary?limiterKeyLabel(block.primary):'non renseigné')}<br/>${Math.round(block.knownMinutes)} min d’exercice connues${block.totalMinutes===null?' ; durée totale à préciser':''}</td><td>${block.associations.map(row=>`${escPdf(limiterKeyLabel(row.limiter))} : ${row.sessions}/${block.keySessions}`).join('<br/>')}</td></tr>`;
+    }).join('')}</tbody></table></section>`;
+}
+/**
+ * Titre de séance : le titre SOURCE (nettoyé de ses seuls tags entre crochets,
+ * rendus en badges) est toujours affiché tel quel dans `data-src="title"`.
+ * L'objectif d'une fiche catalogue n'est qu'une information secondaire,
+ * jamais un remplacement du titre sauvegardé.
+ */
+function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null, catalogId?: string | null): string {
   const parsed = parseSessionTitle(rawTitle);
   const badges: string[] = [];
   if (parsed.lorangCategory) {
@@ -36,13 +62,16 @@ function renderTitleForPDF(rawTitle: string, fiche?: EnrichedSessionFiche | null
     if (tag === parsed.lorangCategory) continue;
     if (tag === parsed.catalogId) continue;
     if (SPORT_TAG_TOKENS.has(tag.toUpperCase())) continue;
-    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#E7E4DC;color:#2B2933;font-size:9px;font-weight:600;margin-right:4px;">${tag}</span>`);
+    badges.push(`<span style="display:inline-block;padding:1px 6px;border-radius:4px;background:#E7E4DC;color:#2B2933;font-size:9px;font-weight:600;margin-right:4px;">${escPdf(tag)}</span>`);
   }
-  let clean = parsed.cleanTitle.trim();
+  const clean = parsed.cleanTitle.trim()||rawTitle.trim();
   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
-  if (looksLikeId && fiche?.objectif) clean = fiche.objectif;
-  clean = clean.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  return `${badges.join("")}<span>${clean}</span>`;
+  const id = catalogId ?? parsed.catalogId ?? null;
+  const idHtml = id ? ` <span data-src="catalog-id" style="font-size:9px;color:#6E6B78;font-weight:400;">${escPdf(id)}</span>` : "";
+  const info = looksLikeId && fiche?.objectif
+    ? ` <span data-role="info" style="font-size:10px;color:#6E6B78;font-weight:400;">(fiche : ${escPdf(fiche.objectif)})</span>`
+    : "";
+  return `${badges.join("")}<span data-src="title">${escPdf(clean)}</span>${idHtml}${info}`;
 }
 
 
@@ -108,6 +137,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
     objective: ctx.objective || "",
     ambition: ambSource,
     weeklyHours: ctx.weeklyHours ?? null,
+    literatureHintText:getLiteratureHintText(ctx.objective||'',ambSource),
     sport: mapObjectiveToSport(ctx.objective || ""),
   });
   const stdTime = REFERENCE_STANDARDS_PDF[objKey]?.[ambKey] ?? "—";
@@ -118,6 +148,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
 
   const paceAct = derived.racePaceSecPerKm ? fmtSecPace(derived.racePaceSecPerKm) : "—";
   const timeAct = derived.raceTimeSec ? fmtSecTime(derived.raceTimeSec) : "—";
+  const referencePace=derived.distanceKm&&derived.literatureRangeSec?(derived.literatureRangeSec.loSec+derived.literatureRangeSec.hiSec)/2/derived.distanceKm:null;
   const vmaAct = ctx.vmaKmh ? ctx.vmaKmh.toFixed(1) : "—";
   const vmaReq = derived.vmaRequiredForLiterature ? derived.vmaRequiredForLiterature.toFixed(1) : "—";
   const gapBadge = (pct: number | null) => {
@@ -144,7 +175,7 @@ function buildGapAmbitionHTML(ctx?: PDFGapContext): string {
       </thead>
       <tbody>
         <tr><td style="padding:4px 6px;">VMA (km/h)</td><td style="padding:4px 6px;">${vmaAct}</td><td style="padding:4px 6px;">${vmaReq}</td><td style="padding:4px 6px;">${gapBadge(gapVma)}</td></tr>
-        <tr><td style="padding:4px 6px;">Allure course soutenable</td><td style="padding:4px 6px;">${paceAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
+        <tr><td style="padding:4px 6px;">Allure course soutenable</td><td style="padding:4px 6px;">${paceAct}</td><td style="padding:4px 6px;">${referencePace?fmtSecPace(referencePace):'—'}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
         <tr><td style="padding:4px 6px;">Temps projeté</td><td style="padding:4px 6px;">${timeAct}</td><td style="padding:4px 6px;">${stdTime}</td><td style="padding:4px 6px;">${gapBadge(derived.divergencePct)}</td></tr>
         <tr><td style="padding:4px 6px;">Volume hebdo</td><td style="padding:4px 6px;">${ctx.weeklyHours ? ctx.weeklyHours + "h" : "—"}</td><td style="padding:4px 6px;">${volReqStr}</td><td style="padding:4px 6px;">${gapBadge(gapVol)}</td></tr>
       </tbody>
@@ -325,7 +356,7 @@ function getSportBadgeStyle(sport: string): { bg: string; color: string; border:
 
 function getSportBadge(sport: string): string {
   const style = getSportBadgeStyle(sport);
-  return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${sport}</span>`;
+  return `<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:${style.bg};color:${style.color};border:1px solid ${style.border};white-space:nowrap;">${getSportEmoji(sport)} ${escapeHTML(({run:'Course à pied',bike:'Vélo',swim:'Natation',strength:'Renforcement',brick:'Enchaînement vélo-course'} as Record<string,string>)[sport]??sport)}</span>`;
 }
 
 export type PlanPDFOrientation = "landscape" | "portrait";
@@ -385,6 +416,19 @@ export interface PDFGapContext {
   wbalRefs?: WbalAthleteRefs | null;
 }
 
+/**
+ * Fixture QA non prescriptive : identifiée STRICTEMENT par le double marqueur
+ * `_qaFixture === true && _qaNonPrescriptive === true` (lecture seule, cast
+ * local — le type ParsedPlan ne porte pas ces champs).
+ */
+export function isQaNonPrescriptivePlan(plan: unknown): boolean {
+  if (!plan || typeof plan !== "object") return false;
+  const p = plan as { _qaFixture?: unknown; _qaNonPrescriptive?: unknown };
+  return p._qaFixture === true && p._qaNonPrescriptive === true;
+}
+
+export const QA_NON_PRESCRIPTIVE_BANNER = "QA — PLAN FICTIF / NON PRESCRIPTIF";
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -398,7 +442,7 @@ export function exportAIPlanToPDF(
   openPrintableHTML(html, { filenameHint: plan.title ?? "Plan d'entraînement", includeInstructions: false });
 }
 
-function buildPlanHTML(
+export function buildPlanHTML(
   plan: ParsedPlan,
   athleteName?: string,
   startDate?: Date,
@@ -407,6 +451,10 @@ function buildPlanHTML(
   detailLevel: PlanPDFDetailLevel = "full",
   gapContext?: PDFGapContext,
 ): string {
+
+  // Défense en profondeur : une fixture QA n'exporte jamais de projections.
+  const isQaFixture = isQaNonPrescriptivePlan(plan);
+  if (isQaFixture) adaptationProjections = undefined;
 
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
@@ -422,7 +470,16 @@ function buildPlanHTML(
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
     const sessionRows = week.sessions.map((rawS, sessionIdx) => {
-      const s = maybeDowngradeBikeSession(rawS, gapContext?.objective);
+      // Le PDF restitue la séance SAUVEGARDÉE : aucune réécriture silencieuse.
+      // Une séance vélo intense dans un plan running pur est seulement signalée.
+      const s = rawS;
+      const wouldDowngrade = isRunOnlyHighIntensityBikeSession(rawS, gapContext?.objective);
+      const sessionKey = `S${week.weekNumber}-J${s.dayIndex}-${sessionIdx}`;
+      const keyAttr = `data-session-key="${escPdf(sessionKey)}"${s.isRest ? ' data-rest="true"' : ""}`;
+      const downgradeNote = wouldDowngrade
+        ? `<div data-role="info" style="color:#a22;font-size:10px;margin-top:4px;">⚠️ Séance vélo à intensité élevée dans un plan running pur : prescription sauvegardée affichée telle quelle, à revoir par le coach.</div>`
+        : "";
+      const detailsHTML = `<div data-src="details">${formatFicheText(readableV3Prescription(s))}</div>${downgradeNote}`;
 
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
@@ -435,6 +492,10 @@ function buildPlanHTML(
           </div>`
         : "";
       const fiche = (isCompact || s.isRest) ? null : getFicheForSession(s, gapContext?.objective, gapContext?.wbalRefs);
+      // Dose chiffrée déjà connue : affichée telle quelle, jamais inférée.
+      const durationHTML = !s.isRest && typeof s.durationMin === "number" && Number.isFinite(s.durationMin) && s.durationMin > 0
+        ? `<div class="session-duration" data-src="duration" style="font-weight:600;color:#14131A;margin-bottom:4px;">Durée : ${escapeHTML(coachDuration(s.durationMin))}</div>`
+        : "";
 
       const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });
       const catalogueWarning = catalogueIssues.length ? `<p style="color:#a22;font-weight:bold">Prescription et référence catalogue : correspondance à vérifier.</p>` : "";
@@ -442,30 +503,30 @@ function buildPlanHTML(
         // Stacked card layout — clearer in A4 portrait
         const header = `
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:6px 10px;background:#F2F0E9;border-bottom:1px solid #DAD6CC;">
-            <strong style="color:#14131A;font-size:12px;min-width:90px;">${s.dayName}</strong>
-            ${dateStr ? `<span style="font-size:10.5px;color:#6E6B78;">${dateStr}</span>` : ""}
+            <strong data-src="day" style="color:#14131A;font-size:12px;min-width:90px;">${s.dayName}</strong>
+            ${dateStr ? `<span data-src="date" style="font-size:10.5px;color:#6E6B78;">${dateStr}</span>` : ""}
             ${getSportBadge(s.sport)}
-            <span style="font-weight:600;color:#14131A;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
+            <span style="font-weight:600;color:#14131A;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche, s.catalogId)}</span>
           </div>`;
-        const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
+        const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${durationHTML}${detailsHTML}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
+          ? `<div data-role="info" style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
           : "";
         const altsBlock = altsHtml
-          ? `<div style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
+          ? `<div data-role="info" style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
           : "";
         return `
-          <div class="session-card" style="border:1px solid #DAD6CC;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
+          <div class="session-card" ${keyAttr} style="border:1px solid #DAD6CC;border-radius:6px;margin-bottom:8px;overflow:hidden;background:#fff;">
             ${header}${body}${ficheBlock}${altsBlock}
           </div>`;
       }
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
+        ? `<tr class="fiche-row" data-role="info" data-info-for="${escPdf(sessionKey)}"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
         : "";
       const altsRow = altsHtml
-        ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
+        ? `<tr class="alts-row" data-role="info" data-info-for="${escPdf(sessionKey)}"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
         : "";
       
       // Alternating row colors + stronger separator between days
@@ -473,12 +534,12 @@ function buildPlanHTML(
       const daySeparator = sessionIdx > 0 ? "border-top:2px solid #E7E4DC;" : "";
       
       return `
-      <tr class="session-row" style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#97949F;' : ''}">
-        ${hasDate ? `<td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;font-size:11px;color:#5C5966;vertical-align:top;font-weight:500;">${dateStr}</td>` : ""}
-        <td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;vertical-align:top;font-weight:600;color:#2B2933;">${s.dayName}</td>
+      <tr class="session-row" ${keyAttr} style="background:${rowBg};${daySeparator}${s.isRest ? 'color:#97949F;' : ''}">
+        ${hasDate ? `<td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;font-size:11px;color:#5C5966;vertical-align:top;font-weight:500;"><span data-src="date">${dateStr}</span></td>` : ""}
+        <td data-src="day" style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;vertical-align:top;font-weight:600;color:#2B2933;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #DAD6CC;vertical-align:top;">${getSportBadge(s.sport)}</td>
-        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-weight:600;vertical-align:top;color:#14131A;">${renderTitleForPDF(s.title, fiche)}</td>
-        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-weight:600;vertical-align:top;color:#14131A;">${renderTitleForPDF(s.title, fiche, s.catalogId)}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${durationHTML}${detailsHTML}</td>
       </tr>
       ${ficheRow}
       ${altsRow}
@@ -519,6 +580,7 @@ function buildPlanHTML(
           <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${displayPhase(week.phase, phaseLabelMap)}</span>
         </h3>
         ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        ${week.computedVolumeStr && week.computedVolumeStr.trim() ? `<p class="week-computed-volume" style="margin:0 0 10px 6px;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume réel calculé : ${escapeHTML(week.computedVolumeStr)}</p>` : ""}
         ${sessionsBlock}
         ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#5C5966;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #C8860D;">⚡ ${week.coachNotes}</p>` : ""}
       </div>
@@ -605,13 +667,16 @@ function buildPlanHTML(
   <div class="no-print" style="background:#e3f2fd;padding:12px 16px;border-radius:8px;margin-bottom:20px;font-size:13px;">
     📄 Utilisez <strong>Ctrl+P</strong> (ou <strong>⌘+P</strong> sur Mac) → <strong>Imprimer en PDF</strong> pour exporter ce plan.
   </div>
+  ${isQaFixture ? `<div class="qa-non-prescriptive-banner" style="background:#fdecea;color:#8a1c1c;border:2px solid #c62828;padding:10px 14px;border-radius:6px;font-weight:700;font-size:14px;margin-bottom:16px;">⚠️ ${QA_NON_PRESCRIPTIVE_BANNER} — NE PAS PRESCRIRE</div>` : ""}
   ${incompleteWarningHTML}
   <h1>${plan.title}</h1>
   ${athleteName ? `<p style="color:#666;margin:0 0 8px 0;">Athlète : ${athleteName}</p>` : ""}
+  ${(() => { const pv = readPlanProvenance(plan); return `<p class="plan-provenance" data-engine="${pv.engine}" style="color:#555;font-size:12px;margin:0 0 6px 0;">Moteur : ${escapeHTML(pv.label)}${pv.detail ? ` — ${escapeHTML(pv.detail)}` : ""}</p>`; })()}
   <p style="color:#888;font-size:12px;margin:0 0 12px 0;">${completeness.actualWeeks}/${completeness.expectedWeeks} semaines • ${plan.phases.length} phases</p>
   <div style="margin-bottom:16px;">${phasesSummary}</div>
   ${plan.diagnostic ? `<div style="background:#f9f9f9;padding:10px 14px;border-radius:6px;font-size:12px;color:#555;margin-bottom:20px;border-left:3px solid #5555E0;"><strong>Diagnostic TFCL™</strong><br/>${plan.diagnostic.replace(/\n/g, "<br/>")}</div>` : ""}
   ${buildGapAmbitionHTML(gapContext)}
+  ${detPreparationHTML(plan)}
 
   ${plan.strategicRecap && plan.strategicRecap.limiters.length > 0 ? `
   <div style="background:#f0f7ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #e67e22;">
@@ -625,7 +690,7 @@ function buildPlanHTML(
   ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
   <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #5555E0;page-break-inside:avoid;">
     <strong>🔮 Projections Adaptation Predictor™</strong>
-    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Estimations modèle (fourchettes physiologiques typiques, non garanties).</p>
+    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Scénarios théoriques, non garantis. Ils ne démontrent ni la dose réellement présente dans ce plan ni une amélioration mesurée.</p>
     ${adaptationProjections.map((p, i) => `
       <div style="margin-top:${i === 0 ? 0 : 10}px;padding:8px 10px;background:#fff;border:1px solid #dbe7f5;border-radius:4px;">
         <div style="font-weight:600;font-size:12px;margin-bottom:4px;">

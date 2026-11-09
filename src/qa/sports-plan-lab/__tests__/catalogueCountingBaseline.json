@@ -1,7 +1,7 @@
 {
-  "referenceCommit": "1651a4533d68ec03ac6f62c533a7c8c606066fe4",
+  "referenceCommit": "fe84b75ca8d7399dcb2a654801e9a7b19e30791f",
   "cases": 600,
-  "invariantSha256": "96d0b96b53a41bd4901333bb7c69275831fb8f8af220a5a7f4678224d3701ceb",
+  "invariantSha256": "82897e56c1d18310ed921853c627ff07a4a14dd97a7a2830ea020b84afa865a6",
   "blockedIds": [
     "703:highly_trained:competitor:unknown",
     "703:highly_trained:world_class:unknown",

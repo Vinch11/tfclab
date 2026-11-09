@@ -11,7 +11,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-export type EvidenceTier = "peer_reviewed" | "practitioner_literature" | "elite_practice";
+export type EvidenceTier = "peer_reviewed" | "practitioner_literature" | "elite_practice" | "coach_declared";
 
 export interface QuotaRange { min: number; max: number }
 
@@ -729,6 +729,7 @@ export function applySessionsPerWeekTarget(
   targetCardioPerWeek: number,
   weekType: WeekType,
   protectedBrickMinimum = 0,
+  protectedRunMinimum = 0,
 ): { quota: WeeklyQuota; floors: SizingFloors } {
   const target0 = Math.round(targetCardioPerWeek);
   if (!Number.isFinite(target0) || target0 <= 0) return input;
@@ -758,7 +759,8 @@ export function applySessionsPerWeekTarget(
   const mins: Record<CardioSport, number> = {
     swim: allowed.swim ? Math.min(floors.minSwimPerWeek ?? 0, quota.swim.max) : 0,
     bike: allowed.bike && floors.longRideWeekly ? 1 : 0,
-    run: allowed.run && floors.longRunWeekly ? 1 : 0,
+    run: allowed.run ? Math.max(floors.longRunWeekly?1:0,
+      Math.min(protectedRunMinimum,quota.run.max)) : 0,
     brick: allowed.brick ? Math.min(protectedBrickMinimum, quota.brick.max) : 0,
   };
   const relaxOrder: CardioSport[] = ["brick", "swim", "bike"];
@@ -938,6 +940,7 @@ export function computeWeekQuotaEntry(
     sessionsPerWeek?: number | null;
     maxSessionsPerDay?: number;
     bannedSports?: Array<"swim" | "bike" | "run" | "strength" | "any">;
+    strengthSessionsPerWeek?: number;
   } = {},
 ): {
   quota: WeeklyQuota;
@@ -946,6 +949,21 @@ export function computeWeekQuotaEntry(
   downgraded: boolean;
   downgradeReason?: string;
 } | null {
+  // Dedicated programmes reuse the explicit coach-frequency convention of
+  // V359 (cardio count + separately requested strength), rather than a race
+  // matrix for another discipline. No physiological target is invented.
+  const key=objective.trim().toLowerCase();
+  const sport=['cyclisme ftp','cycling ftp'].includes(key)?'bike':['natation 1500m','natation css','swimming css'].includes(key)?'swim':null;
+  if(sport){
+    const n=opts.sessionsPerWeek;
+    if(!Number.isSafeInteger(n)||!n||n<3||n>6||!Number.isFinite(hoursAvailable)||hoursAvailable<=0||opts.bannedSports?.some(s=>s==='any'||s===sport))return null;
+    const count=weekType==='recovery'?Math.max(2,Math.round(n*.7)):weekType==='taper'?Math.max(2,n-1):n;
+    const strength=weekType==='race'||opts.bannedSports?.includes('strength')?0:opts.strengthSessionsPerWeek??1;
+    if(!Number.isSafeInteger(strength)||strength<0||strength>7)return null;
+    const quota:WeeklyQuota={swim:{min:0,max:0},bike:{min:0,max:0},run:{min:0,max:0},brick:{min:0,max:0},strength:{min:strength,max:strength},totalSessions:{min:count+strength,max:count+strength},maxSessionsPerDay:opts.maxSessionsPerDay??1,minFullRestDays:1,source:{tier:'coach_declared',ref:'Explicit programme frequency; existing V359 recovery/taper modulation. No normative physiological target.'}};
+    quota[sport]={min:count,max:count};
+    return {quota,floors:{minStrengthPerWeek:strength,...(sport==='swim'?{minSwimPerWeek:count}:{}),longRideWeekly:sport==='bike'&&['load','recovery'].includes(weekType),...(sport==='bike'&&['load','recovery'].includes(weekType)?{slLongRideMin:weekType==='recovery'?60:90}:{})},weekType,downgraded:false};
+  }
   const q0 = computeWeeklySessionQuota(objective, ambitionEffective, hoursAvailable, weekType, isLCW);
   if (!q0) return null;
   let adj = opts.sessionsPerWeek && opts.sessionsPerWeek > 0

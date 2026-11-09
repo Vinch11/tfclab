@@ -1,3 +1,4 @@
+import { buildLimiterMesocycles, limiterMesocyclePrompt, limiterScheduleWindow } from "./limiterMesocycles";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -16,7 +17,7 @@ import { catalogueForWeek } from "../../../supabase/functions/_shared/sessionCat
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
-export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
+export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number;runTaperMode?:'activation'|'maintain'}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
  const effTotalWeeks=planConfig.globalTotalWeeks??totalWeeks,weekOffset=planConfig.globalWeekOffset??0;
@@ -426,6 +427,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           sessionsPerWeek: targetSpw,
           maxSessionsPerDay: planConfig.maxSessionsPerDay,
           bannedSports: bannedSportsForQuota,
+          strengthSessionsPerWeek:planConfig.strengthSessionsPerWeek,
         });
         if (entry) {
           const individualized = applySlFloorIndividualization(
@@ -438,9 +440,14 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
           const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType }).eligible
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
+          const raceEvents=declaredRaceSlotsForWeek(planConfig,w);
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
+            runTaperMode:options.runTaperMode??'maintain',
             availableSports,
-            raceEvents: declaredRaceSlotsForWeek(planConfig,w),
+            raceEvents,
+            // The official triathlon is not an extra training brick. Reserve
+            // its date even when race-week training-brick quota is zero.
+            ...(weekType==='race'&&entry.quota.brick.max===0&&raceEvents.some(e=>e.sport==='brick')?{officialRaceOutsideTrainingQuota:true as const}:{}),
             dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
@@ -459,6 +466,18 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         console.log(`[sl_floor_individualization] plancher sortie longue individualisé sur ${slFloorIndividualizationLog.length} semaine(s) :\n${slFloorIndividualizationLog.join("\n")}`);
       }
 
+
+      // Reconstruct ONLY the existing global load/recovery calendar, so a
+      // regenerated window cannot restart limiter #1 at its local week 1.
+      const limiterCalendar: Record<number, {weekType:string;phase?:string}> = {};
+      for (let global = 1; global <= effTotalWeeks; global++) {
+        const local = global - weekOffset;
+        const existing = weeklyQuotas[local];
+        const regen = !!cycleSegmentsForRegen && !cycleSegmentsForRegen.some(segment=>global>=segment.startWeek&&global<=segment.endWeek);
+        limiterCalendar[global] = existing ? {weekType:existing.weekType,phase:existing.phase} : {weekType:regen?'recovery':inferWeekType(global,effTotalWeeks,objectiveForQuota,athleteData.age,planConfig.deloadCadenceWeeks)};
+      }
+      const limiterMesocycles = limiterScheduleWindow(buildLimiterMesocycles(planConfig.identifiedLimitersRaw ?? [], limiterCalendar),weekOffset,totalWeeks);
+      for (const [week, entry] of Object.entries(weeklyQuotas)) entry.limiterFocus = limiterMesocycles.byWeek[Number(week)];
 
       // Bloc texte par chunk (uniquement les semaines du chunk concerné).
       const chunksForQuota: Array<{ start: number; end: number }> = [];
@@ -480,9 +499,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const layoutBlock = Object.keys(layoutMap).length > 0
           ? buildLayoutPromptBlock(scope, layoutMap)
           : "";
-        quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
+        quotasByChunkText.push([quotaBlock, layoutBlock, limiterMesocyclePrompt(limiterMesocycles, scope)].filter(Boolean).join("\n\n"));
       }
 
 
- return {beginnerIntensitySignal,dayBans:rulesForQuota.dayBans,phaseCalendar,phaseCatalogs,phaseRepairCatalogs,chunkCatalogs,chunkRepairCatalogs,chunkRegenCatalogs,chunkRegenRepairCatalogs,chunkRegenWeeks,catalogDurationStats,weeklyQuotas,quotasByChunkText,allowedCatalogIds,historicalUsage,chunksForQuota,catalogObjective};
+ return {limiterCalendar,limiterMesocycles,beginnerIntensitySignal,dayBans:rulesForQuota.dayBans,phaseCalendar,phaseCatalogs,phaseRepairCatalogs,chunkCatalogs,chunkRepairCatalogs,chunkRegenCatalogs,chunkRegenRepairCatalogs,chunkRegenWeeks,catalogDurationStats,weeklyQuotas,quotasByChunkText,allowedCatalogIds,historicalUsage,chunksForQuota,catalogObjective};
 }

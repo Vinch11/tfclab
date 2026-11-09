@@ -24,6 +24,7 @@ import type { LibraryWorkout, PhysiologicalIntent } from "@/types/workoutLibrary
 export type IntentFamily =
   | "endurance_fondamentale"
   | "seuil"
+  | "mixed_intensity"
   | "vo2"
   | "sprint"
   | "technique"

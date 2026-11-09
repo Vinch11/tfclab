@@ -67,6 +67,9 @@ export interface DoctrineDomain {
   run: FractionRange | null;
   /** Fraction de FTP (≈ MLSS) vélo. */
   bike: FractionRange | null;
+  /** Plage d'exécution guidée, choix de programmation à l'intérieur du domaine.
+   * Ce plancher positif n'est ni une limite physiologique ni une mesure LT1. */
+  execution?: { bike?: FractionRange; run?: FractionRange };
   /** Vrai seulement si le domaine est du travail AU seuil (MLSS ± 3 %). */
   isThresholdWork: boolean;
   /** Synonymes acceptés dans les textes de séances (minuscules). */
@@ -78,6 +81,10 @@ export const TFCL_DOCTRINE: DoctrineDomain[] = [
     id: "recovery", rank: 0, metabolic: "moderate", label: "Récupération", zone: "Z1",
     anchor: "Sous LT1 — aucun stress métabolique",
     run: { min: 0, max: 0.75 }, bike: { min: 0, max: 0.55 },
+    // Programming defaults for active movement, not new zone boundaries.
+    // The 55% FTP ceiling follows Coggan; the 40%/50% execution floors are
+    // explicit TFCL coaching choices, not thresholds established by that source.
+    execution: { bike: { min: 0.40, max: 0.55 }, run: { min: 0.50, max: 0.75 } },
     isThresholdWork: false,
     aliases: ["récupération", "recup", "footing récup"],
   },

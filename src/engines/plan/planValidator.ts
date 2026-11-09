@@ -14,7 +14,7 @@ import { isOneTimeTestProtocol, parseWeeklyFrequencyCap } from '../../../supabas
  */
 
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
-import { inferWeekType, type WeekType } from "./sessionSizingMatrix";
+import { inferWeekType, taperWeeksForObjective, type WeekType } from "./sessionSizingMatrix";
 import type { PlanAthleteData } from "./types";
 import { parseAthleteConstraints, constraintSportLabel, type ConstraintSport } from "@/lib/plan/constraintRules";
 import { extractCatalogId, extractAllCatalogIds } from "@/lib/catalogIdExtractor";
@@ -554,7 +554,7 @@ function clauseTier(clause: string, zoneFallback: SessionTier | null = null): Se
   return "low";
 }
 
-interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: number }
+export interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: number }
 
 /**
  * Estime la répartition low/mid/high(/unknown) EN MINUTES d'une séance, en
@@ -572,7 +572,7 @@ interface SessionZoneMinutes { low: number; mid: number; high: number; unknown: 
  * explicitement plutôt que de présumer une conformité sur du temps non
  * classifiable).
  */
-function estimateSessionZoneMinutes(
+export function estimateSessionZoneMinutes(
   session: ParsedSession,
   totalDurationMin: number | null,
 ): SessionZoneMinutes {
@@ -673,6 +673,11 @@ function validateKeySessionSelfDeclaration(plan: ParsedPlan): { issues: Validati
  */
 export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (session.isRest) return 0;
+  // Experimental V3 strength may deliberately be prescribed by weekly session
+  // COUNT with no verified duration. Never derive fake minutes from exercise
+  // labels (e.g. 3x30s plank) or from the original estimated exercise timing.
+  if (normalizeSport(session.sport)==='Renfo' &&
+      session.details?.includes('FRÉQUENCE UNIQUEMENT : durée non mesurée')) return null;
   if (typeof session.durationMin === 'number' && Number.isFinite(session.durationMin) && session.durationMin > 0) {
     return session.durationMin;
   }
@@ -2382,6 +2387,8 @@ function validateAmbitionCoherence(
 // test.ts) : vérifie mécaniquement qu'aucun objectif de ObjectifType n'est
 // jamais oublié ici, plutôt que de compter sur un audit manuel ponctuel.
 export const SPORT_RATIO_TARGETS: Record<string, { swim?: [number, number]; bike?: [number, number]; run?: [number, number] }> = {
+  Cycling:  { bike: [100,100] },
+  Swimming: { swim: [100,100] },
   IM:       { swim: [15, 20], bike: [45, 55], run: [25, 35] },
   "703":    { swim: [15, 20], bike: [40, 50], run: [30, 40] },
   // Audit fix — absents jusqu'ici : le contrôle de ratio par sport retombait
@@ -3257,8 +3264,20 @@ function validatePhaseCoherence(plan: ParsedPlan, objective?: string): { issues:
   for (const phase of phases) {
     const idx = getPhaseIndex(phase.name);
     if (idx === null) continue;
-    const range = idx === 4 && isUltraCompressedTrail ? ULTRA_COMPRESSED_PEAK_DURATION_RANGE : PHASE_DURATION_RANGE[idx];
-    if (!range) continue;
+    const defaultRange = idx === 4 && isUltraCompressedTrail ? ULTRA_COMPRESSED_PEAK_DURATION_RANGE : PHASE_DURATION_RANGE[idx];
+    if (!defaultRange) continue;
+    // inferWeekType counts taper weeks BEFORE the race week. A declared
+    // Affûtage block may also include the actual event. Use that same source
+    // of truth only when an authentic race closes the block; an arbitrary
+    // four-week taper without a race keeps the ordinary upper bound.
+    const phaseWeekMatch = phase.weeks.match(/(\d+)\s*[-–àto]\s*S?(\d+)/i);
+    const finalWeek = plan.weeks[plan.weeks.length - 1];
+    const endsWithRace = phase === phases[phases.length - 1] &&
+      phaseWeekMatch !== null && Number(phaseWeekMatch[2]) === finalWeek?.weekNumber &&
+      finalWeek?.sessions.some(isRaceDaySession);
+    const range: [number, number] = idx === 5 && endsWithRace
+      ? [defaultRange[0], Math.max(defaultRange[1], taperWeeksForObjective(objective) + 1)]
+      : defaultRange;
 
     // Parse weeks range like "S1-S4", "S1-S6" (préfixe "S" sur les deux
     // nombres, format produit par derivePhasesFromWeeks ET par l'exemple
@@ -3804,7 +3823,7 @@ export function deriveLimiterKeysFromGapAnalysis(
   for (const gap of rankedGaps) {
     const key = detectLimiterKeyFromMetric(gap.metric);
     if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-    if (limiterKeys.length >= 4) break;
+
   }
 
   return limiterKeys;
@@ -3959,7 +3978,7 @@ export function computePhaseLimiterFocus(
   limiterKeys: string[] | undefined
 ): PhaseLimiterFocus[] {
   if (!limiterKeys || limiterKeys.length === 0 || plan.weeks.length === 0) return [];
-  const rankedKeys = limiterKeys.slice(0, 4);
+  const rankedKeys = [...limiterKeys];
 
   const groups: { name: string; weeks: ParsedWeek[] }[] = [];
   for (const w of plan.weeks) {
@@ -4016,14 +4035,12 @@ function validateLimiterCoherence(
   if (identifiedLimiterKeys && identifiedLimiterKeys.length > 0) {
     for (const key of identifiedLimiterKeys) {
       if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
     }
   } else if (identifiedLimiters) {
     // Fallback for legacy callers: extract from prompt text
     for (const limText of identifiedLimiters) {
       const key = detectLimiterKeyFromText(limText);
       if (key && !limiterKeys.includes(key)) limiterKeys.push(key);
-      if (limiterKeys.length >= 4) break;
     }
   }
 
@@ -5990,4 +6007,22 @@ export function formatValidationReport(result: PlanValidationResult): string {
   }
 
   return lines.join("\n");
+}
+
+/** Planned focus versus observed textual correspondences, block by block.
+ * This reuses the native matcher; it is deliberately NOT exact-dose evidence. */
+export function computeMesocycleLimiterFocus(plan: ParsedPlan, limiterKeys: string[] = []) {
+  const groups = new Map<number, {focus:string;weeks:ParsedWeek[]}>();
+  for (const week of plan.weeks) {
+    const intention = plan.weeklyQuotas?.[week.weekNumber]?.limiterFocus;
+    if (intention?.mode !== 'development' || intention.block === null || !intention.focus) continue;
+    const group = groups.get(intention.block) ?? {focus:intention.focus,weeks:[]};
+    group.weeks.push(week); groups.set(intention.block,group);
+  }
+  return [...groups].map(([block,group]) => {
+    const counts = computeLimiterHitsForWeeks(group.weeks,limiterKeys);
+    return { block, plannedFocus:group.focus,startWeek:group.weeks[0].weekNumber,endWeek:group.weeks[group.weeks.length-1].weekNumber,
+      totalKeySessions:counts.totalKeySessions,breakdown:limiterKeys.map(key=>({key,hits:counts.limiterHits[key]??0})),
+      basis:'native_text_correspondence' as const,doseCoverageVerified:false as const };
+  });
 }

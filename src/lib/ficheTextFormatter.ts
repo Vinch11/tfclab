@@ -18,8 +18,34 @@ function applyBold(s: string): string {
   return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
 
+/** Contenu comparable : marqueurs de liste et gras retirés, espaces supprimés. */
+function contentFingerprint(text: string): string {
+  return text
+    .replace(/\*\*/g, "")
+    .replace(/(^|\s)\d+\)\s/g, " ")
+    .replace(/(^|\s)•\s/g, " ")
+    .replace(/\s+/g, "")
+    .toLowerCase();
+}
+function htmlTextContent(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+}
+
+/**
+ * Mise en forme SANS PERTE : si la mise en liste/paragraphes ferait disparaître
+ * ou déplacer du texte (ex. « (2018) · … (2018) » pris pour une liste
+ * numérotée), le texte source est rendu tel quel (échappé, gras seul).
+ */
 export function formatFicheText(raw: string): string {
   if (!raw) return "";
+  const formatted = formatFicheTextUnchecked(raw);
+  if (contentFingerprint(htmlTextContent(formatted)) === contentFingerprint(raw)) return formatted;
+  return applyBold(escapeHTML(raw));
+}
+
+function formatFicheTextUnchecked(raw: string): string {
   const escaped = escapeHTML(raw);
 
   // Try numbered list: split on " N) " patterns (>= 2 occurrences)

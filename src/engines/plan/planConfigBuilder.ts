@@ -499,6 +499,7 @@ function formatLimitersForPrompt(
     limiters.push(`- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.`);
     limiters.push(`- Phase Build : Limiteur #1 toujours prioritaire mais le Limiteur #2 monte en importance (séance clé #2 dédiée).`);
     limiters.push(`- Phase Spécifique : Intégration de tous les limiteurs dans un contexte race-specific.`);
+    limiters.push(`- Le calendrier commun par mésocycles joint aux quotas précise les retours successifs sur les priorités, surtout sur une longue préparation. Le primaire reste prioritaire ; ne jamais confondre focus planifié et effet physiologique démontré.`);
     limiters.push(`- Les limiteurs 🔴 CRITIQUES doivent être traités AVANT les 🟡 SOUS-OPTIMAUX.`);
     limiters.push(`- Interactions positives : VLamax↓ améliore aussi TTE et FatMax. VO2max↑ améliore aussi FTP/kg. Exploiter ces synergies.`);
   }

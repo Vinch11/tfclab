@@ -43,7 +43,7 @@ import { checkSessionCatalogue, type CatalogueContract } from "../_shared/sessio
  */
 
 import { isRaceEventTitle } from "../_shared/raceDayIdentity.ts";
-import { z } from "npm:zod@3.23.8";
+import { z } from "npm:zod@3.25.76";
 
 // Marqueurs B3 strictement critical : D+ chiffré, trail technique / massif géographique, etc.
 // "vallonné" seul reste warning (terrain vallonné légitime en route/tri).
