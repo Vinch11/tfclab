@@ -1,5 +1,5 @@
 import { executableCatalogueVariantsForWeeks } from "../_shared/sessionCatalogueContract.ts";
-import { restoreCatalogueTitleForExactProtocol } from "../_shared/catalogueSessionIdentity.ts";
+import { restoreCatalogueTitleForExactProtocol, canonicalizeCatalogueSession } from "../_shared/catalogueSessionIdentity.ts";
 import { gateway400Evidence, type SafeGatewayRejection } from "../_shared/planGatewayDiagnostics.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 /**
@@ -495,11 +495,10 @@ function buildJsonSchemaResponseFormat(allowedIds: string[], opts?: BuildPlanChu
     required: ["weekNumber", "phase", "theme", "sessions"],
     additionalProperties: false,
   };
+  // Gemini refuse (HTTP 400 « invalid argument ») tout minItems>1 / maxItems sur
+  // ce tableau de semaines imbriqué (reproduit 2026-11-09). Le nombre exact de
+  // semaines reste imposé par la validation Zod (`z.array(zWeek).length(n)`).
   const weeks: Record<string, unknown> = { type: "array", minItems: 1, items: weekSchema };
-  if (opts?.expectedWeekCount !== undefined) {
-    weeks.minItems = opts.expectedWeekCount;
-    weeks.maxItems = opts.expectedWeekCount;
-  }
   return {
     type: "json_schema",
     json_schema: {
@@ -914,7 +913,9 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
         if (contract && Array.isArray(week?.sessions)) week.sessions = week.sessions.map((session:unknown,index:number) => {
           const restored = restoreCatalogueTitleForExactProtocol(session,contract);
           if (restored) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_title_restored_exact_protocol`);
-          return restored ?? session;
+          const canonical = canonicalizeCatalogueSession(restored ?? session, contract);
+          if (canonical) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_prescription_canonicalized(${canonical.changed.join(",")})`);
+          return canonical?.session ?? restored ?? session;
         });
       }
     }
@@ -975,7 +976,7 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
     diag: AttemptDiagnostic,
   ): { attempt: 1 | 2; repairs: string[]; parseError?: string } | undefined => {
     const recovered = typeof diag.parseError === "string" && diag.parseError.startsWith("recovered_after_repair");
-    const identityRepairs = diag.repairs.filter(repair => repair.endsWith(".catalogue_title_restored_exact_protocol"));
+    const identityRepairs = diag.repairs.filter(repair => repair.endsWith(".catalogue_title_restored_exact_protocol") || repair.includes(".catalogue_prescription_canonicalized("));
     if (!recovered && diag.jsonRepairs.length === 0 && identityRepairs.length === 0) return undefined;
     return { attempt, repairs: [...diag.jsonRepairs, ...identityRepairs], parseError: diag.parseError };
   };

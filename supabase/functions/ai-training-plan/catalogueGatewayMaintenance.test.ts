@@ -153,12 +153,22 @@ Deno.test("real intent changes, excessive/diluted intensity, out-of-range durati
         { ...base, title: "Technique éducatifs", details: "30min éducatifs" },
         { ...base, zones: ["Z4"], details: "60min Z4" },
         { ...base, durationMin: 20 },
-        { ...base, catalogId: "INVENTED" },
       ]
     ) {
+      // The eligible card owns the prescription: title, protocol, zones and a
+      // duration inside its validated range replace what the model wrote.
       globalThis.fetch = async () => ok(chunk(session));
-      await assertRejects(() => generateChunkJSON(args), ChunkGenerationError);
+      const result = await generateChunkJSON(args);
+      const s = result.chunk.weeks[0].sessions[0];
+      assertEquals(s.catalogId, fiche.id);
+      assertEquals(s.title, fiche.title);
+      assertEquals(s.details, fiche.structure);
+      assertEquals(s.zones, fiche.zones);
+      assert(s.durationMin >= fiche.durationMin[0] && s.durationMin <= fiche.durationMin[1]);
+      assert(result.repairDiag?.repairs.some((r) => r.includes("catalogue_prescription_canonicalized")));
     }
+    globalThis.fetch = async () => ok(chunk({ ...base, catalogId: "INVENTED" }));
+    await assertRejects(() => generateChunkJSON(args), ChunkGenerationError);
     const hard = {
       ...fiche,
       id: "SYNTHETIC_HARD",
@@ -196,7 +206,7 @@ Deno.test("HTTP400 fallback keeps technical parameter evidence without free-text
         }),
         { status: 400 },
       )
-      : ok(chunk({ ...base, durationMin: 20 }));
+      : ok(chunk({ ...base, catalogId: "INVENTED" }));
   };
   try {
     const e = await assertRejects(
@@ -253,6 +263,21 @@ Deno.test("official races remain custom events, never repaired into a catalogue 
     const result = await generateChunkJSON(args);
     assertEquals(result.chunk.weeks[0].sessions[0].title, event.title);
     assertEquals(result.chunk.weeks[0].sessions[0].catalogId, null);
+  } finally {
+    globalThis.fetch = previous;
+  }
+});
+
+Deno.test("format envoyé au modèle : jamais de nombre exact de semaines (Gemini HTTP 400), Zod impose toujours la longueur", async () => {
+  const previous = globalThis.fetch;
+  let sent: any;
+  globalThis.fetch = async (_url, init) => { sent = JSON.parse(String(init?.body)); return ok(chunk(base)); };
+  try {
+    await generateChunkJSON({ ...args, schemaOptions: { ...args.schemaOptions, expectedWeekCount: 5 } }).catch(() => undefined);
+    const weeks = sent.response_format.json_schema.schema.properties.weeks;
+    assertEquals(weeks.minItems, 1);
+    assertEquals(weeks.maxItems, undefined);
+    assert(!buildPlanChunkSchema([fiche.id], { ...args.schemaOptions, expectedWeekCount: 5 }).safeParse(chunk(base)).success);
   } finally {
     globalThis.fetch = previous;
   }
