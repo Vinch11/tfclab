@@ -53,7 +53,7 @@ règles B1-B12).
 
 **QA de la génération** — `src/lib/plan/qa/` : profils synthétiques
 (`syntheticProfiles.ts`) rejoués manuellement depuis `/debug/plan-qa`
-(jamais en CI : coût IA réel) ; `checks.ts` applique B1-B12,
+(jamais en CI : coût IA réel) ; `checks.ts` applique B1-B14 (B15 est appliqué dans `finalValidation.ts`),
 `checkB4For()` = dispatch exhaustif par profil.
 
 **Zones/intensité** — `src/lib/zones/tfclDoctrine.ts` (seule source).
@@ -66,7 +66,7 @@ sous WebKit (seul moteur reproduisant les bugs tactiles Safari). Harnais
 dev-only `src/pages/__e2e/` (gardés par `import.meta.env.DEV`).
 
 **CI** (`.github/workflows/ci.yml`) — `vitest` (tsc + suite), `deno-test`
-(seulement `supabase/functions/ai-training-plan/`), `playwright`
+(`supabase/functions/ai-training-plan/` puis les autres `supabase/functions/*/` ayant des `*.test.ts`), `playwright`
 (chromium + webkit).
 
 ## Pièges connus
