@@ -48,7 +48,7 @@ describe("computeWindowRanges — plan Manu (Ironman 40 sem, 8 blocs)", () => {
   const { chunkSize } = computeChunkSizing("Ironman", 40);
 
   it("découpe en 3 fenêtres de ≤3 blocs (15/15/10 semaines)", () => {
-    const windows = computeWindowRanges(40, chunkSize, MAX_CHUNKS_PER_WINDOW);
+    const windows = computeWindowRanges(40, chunkSize, 3);
     expect(windows).toEqual([
       { from: 1, to: 15 },
       { from: 16, to: 30 },
@@ -57,15 +57,15 @@ describe("computeWindowRanges — plan Manu (Ironman 40 sem, 8 blocs)", () => {
   });
 
   it("chaque fenêtre reste dans la limite de blocs standards (≤3)", () => {
-    const windows = computeWindowRanges(40, chunkSize, MAX_CHUNKS_PER_WINDOW);
+    const windows = computeWindowRanges(40, chunkSize, 3);
     for (const w of windows) {
       const windowWeeks = w.to - w.from + 1;
-      expect(Math.ceil(windowWeeks / chunkSize)).toBeLessThanOrEqual(MAX_CHUNKS_PER_WINDOW);
+      expect(Math.ceil(windowWeeks / chunkSize)).toBeLessThanOrEqual(3);
     }
   });
 
   it("les fenêtres couvrent exactement S1 à S40 sans trou ni chevauchement", () => {
-    const windows = computeWindowRanges(40, chunkSize, MAX_CHUNKS_PER_WINDOW);
+    const windows = computeWindowRanges(40, chunkSize, 3);
     const covered = new Set<number>();
     for (const w of windows) {
       for (let wk = w.from; wk <= w.to; wk++) {
@@ -79,7 +79,7 @@ describe("computeWindowRanges — plan Manu (Ironman 40 sem, 8 blocs)", () => {
   });
 
   it("plan exactement divisible (45 sem, 9 blocs) → 3 fenêtres de 3 blocs pile", () => {
-    const windows = computeWindowRanges(45, chunkSize, MAX_CHUNKS_PER_WINDOW);
+    const windows = computeWindowRanges(45, chunkSize, 3);
     expect(windows).toEqual([
       { from: 1, to: 15 },
       { from: 16, to: 30 },
@@ -88,7 +88,7 @@ describe("computeWindowRanges — plan Manu (Ironman 40 sem, 8 blocs)", () => {
   });
 
   it("plan assez court (15 sem, 3 blocs pile) → une seule fenêtre couvrant tout", () => {
-    const windows = computeWindowRanges(15, chunkSize, MAX_CHUNKS_PER_WINDOW);
+    const windows = computeWindowRanges(15, chunkSize, 3);
     expect(windows).toEqual([{ from: 1, to: 15 }]);
   });
 });
@@ -204,7 +204,7 @@ describe("computeObjectiveAwareWindows — plan multi-objectifs (Manu-like : Mar
 
   it("sans le fix (découpage à plat, ignorant les cycles) : la fenêtre contenant S22 s'étendrait jusqu'à S30, en plein cycle Ironman", () => {
     const { chunkSize } = computeChunkSizing("Ironman", 39);
-    const flatWindows = computeWindowRanges(39, chunkSize);
+    const flatWindows = computeWindowRanges(39, chunkSize, 3);
     const flatWindowWithMarathonWeek = flatWindows.find((w) => w.from <= 22 && 22 <= w.to);
     expect(flatWindowWithMarathonWeek).toEqual({ from: 16, to: 30 });
   });
@@ -332,5 +332,16 @@ describe("buildAssembledPlanTitle", () => {
     const title = buildAssembledPlanTitle("Ironman", "Marathon Valence", 40);
     expect(title).toContain("Marathon Valence");
     expect(title).toContain("40 semaines");
+  });
+});
+
+describe("limite serveur — un bloc par requête", () => {
+  it("chaque requête HTTP ne porte qu'un seul bloc (3 blocs + relances dépassaient 400 s)", () => {
+    expect(MAX_CHUNKS_PER_WINDOW).toBe(1);
+    const { chunkSize } = computeChunkSizing("Ironman", 33);
+    const windows = computeWindowRanges(33, chunkSize);
+    for (const w of windows) expect(w.to - w.from + 1).toBeLessThanOrEqual(chunkSize);
+    expect(windows[0].from).toBe(1);
+    expect(windows[windows.length - 1].to).toBe(33);
   });
 });

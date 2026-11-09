@@ -67,7 +67,9 @@ export function resolvePlanUrl(supabaseUrl: string, pilotFunctionName?: string):
 }
 
 /** Nombre maximal de blocs standards générés par requête HTTP (cf. generatePlanWindowed). */
-export const MAX_CHUNKS_PER_WINDOW = 3;
+// Une requête = un bloc : 3 blocs avec relances dépassaient la limite de
+// 400 s du serveur (arrêt « shutdown » observé le 2026-11-09, NO_CHUNKS).
+export const MAX_CHUNKS_PER_WINDOW = 1;
 
 /**
  * Taille de bloc standard + seuil de chunking pour un objectif donné.
