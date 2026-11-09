@@ -81,3 +81,19 @@ Le cas supplémentaire de 8 km et 150 m D+ produit douze semaines. Les sorties l
 [Calendrier du cas de reprise](exemple-reprise-trail-20261109.md)
 
 [Matrice des neuf objectifs après le travail sur la reprise — 225 combinaisons](qualite-det-formulaire-apres-reprise.csv)
+
+### Volume initial sur route et en triathlon
+
+Le volume hebdomadaire récemment réalisé, lorsqu’il est fourni par le coach, borne désormais la première semaine du plan DET sur les autres objectifs. La disponibilité et la cible à terme restent distinctes. Les minutes connues incluent le renforcement. Une transition ou une compétition de durée inconnue laisse la vérification du volume total en attente. Le contrôle conserve le diagnostic, l’ambition effective et les contraintes sportives existants.
+
+Cinq comparaisons ont été générées avec les mêmes données de profil et de course. Seul l’historique récent change entre les deux colonnes. Le nombre indiqué en cas de réussite est la somme des durées de blocs connues dans la première semaine. Les valeurs des profils de démonstration ne constituent pas des recommandations d’entraînement.
+
+| Objectif | Temps disponible par semaine | S1 sans historique de volume en heures | Volume hebdomadaire récent déclaré pendant 4 semaines | Résultat S1 |
+|---|---:|---:|---:|---|
+| 10 km | 6 h | 230 min | 192 min | Refus de la combinaison de séances et de contraintes |
+| Semi | 6 h | 272 min | 228 min | 225 min |
+| Marathon | 8 h | 335 min | 282 min | 281 min |
+| 70.3 | 10 h | 475,5 min | 402 min | Les créneaux et doses disponibles dépassent déjà le volume récent |
+| Ironman | 14 h | 475 min | 402 min | Les créneaux et doses disponibles dépassent déjà le volume récent |
+
+Le banc couvre également une déclaration de 30 min par semaine sur ces cinq configurations. DET indique le volume minimal des créneaux quand celui-ci excède à lui seul le volume récent. Le cas semi et le cas marathon exigent une réduction effective des doses dans le test. Un échec de recherche indique qu’aucune combinaison n’a été trouvée avec ces entrées.

@@ -308,9 +308,9 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   }
   for(const week of study.weeks){
     const budget=preparation.weeklyQuotas[week.week]?.volumeBudget;
-    const recentHours=config.loadHistory?.recentWeeklyHours;
-    const initialTrailCeiling=trail&&week.week===1&&recentHours&&recentHours>0?recentHours*60:Infinity;
-    const baseCeiling=Math.min(config.weeklyHours!*60,budget?.maxMinutes??Infinity,initialTrailCeiling);
+    const firstWeekRecentMinutes = options.completeSessions && week.week === 1 && Number.isFinite(recentTraining) && (recentTraining??0)>0
+      ? recentTraining! * 60 : undefined;
+    const baseCeiling=Math.min(config.weeklyHours!*60,budget?.maxMinutes??Infinity,firstWeekRecentMinutes??Infinity);
     const taperIndex=study.weeks.filter(w=>w.weekType==='taper'&&w.week<=week.week).length;
     const taperCeiling=(road||trail)&&peakKnownMinutes>0&&['taper','race'].includes(week.weekType)?peakKnownMinutes*(week.weekType==='race'?.4:taperIndex===1?.6:.5):Infinity;
     const ceiling=Math.min(baseCeiling,taperCeiling,priorLoad===null?Infinity:week.weekType==='recovery'?priorLoad*0.7:budget?priorLoad*(1+budget.weeklyIncreasePctMax):Infinity);
@@ -319,6 +319,13 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // Do not greedily choose a small load week that makes the next recovery
     // week's existing slot floors impossible. This is an exercise-dose lower
     // bound only; unknown transitions/totals remain explicitly unknown.
+    if(firstWeekRecentMinutes!==undefined){
+      // Lower bound across all slots. Several slots might compete for the same
+      // source, so the true minimum may be higher. Unknown durations contribute zero.
+      const minimum = domains.reduce((n,rows)=>n+Math.min(...rows.map(r=>r.knownMinutes)),0);
+      if(minimum>firstWeekRecentMinutes+1e-7) throw Error(
+        `S1 : les créneaux demandés totalisent au moins ${Math.floor(minimum*10)/10} min pour ${Number(firstWeekRecentMinutes.toFixed(1))} min hebdomadaires récemment réalisées. Revoir le calendrier ou le volume récent avec le coach.`);
+    }
     const next=study.weeks.find(w=>w.week===week.week+1);
     const nextDomains=week.weekType==='load'&&next?.weekType==='recovery'?weekDomains(next).domains:null;
     const floor=Math.max(nextDomains&&nextDomains.every(rows=>rows.every(s=>s.components.every(c=>c.durationMinutes!==null)))?
@@ -527,6 +534,10 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     for(const session of selected)for(const component of session.components)usage.set(component.sourceId,(usage.get(component.sourceId)??0)+1);
     result.weeks.push({week:week.week,phase:week.phase,weekType:week.weekType,focus:week.limiterFocus.focus,days,knownMinutes,durationMinutes});
     result.checks.push({code:'weekly_minutes',week:week.week,status:durationMinutes===null?'pending':'passed',message:durationMinutes===null?'Durée totale inconnue : allures, durée de force ou transition manquantes ; plafond non certifié.':'Somme des doses calculées dans le plafond horaire.'});
+    if(firstWeekRecentMinutes!==undefined)result.checks.push({code:'initial_recent_volume',week:1,
+      status:durationMinutes===null?'pending':'passed',
+      message:`Volume initial : ${Math.round(knownMinutes)} min de blocs chronométrés pour ${Math.round(firstWeekRecentMinutes)} min hebdomadaires récemment déclarées.`+
+        (durationMinutes===null?' Durée complète en attente, notamment pour les transitions ou la compétition.':'')});
     if(trail&&week.weekType==='load'){
       const matching=calendarSelected.filter(s=>(s.role==='long'||s.role==='key')&&matchesPrimary(s));
       result.checks.push({code:'trail_primary_dose',week:week.week,status:matching.length?'passed':requiresQuality?'blocked':'pending',

@@ -217,3 +217,35 @@ if (selected.some(s => s.objective === 'TrailShort')) {
     if(process.env.DET_TRAIL_EXAMPLES) writeFileSync(process.env.DET_TRAIL_EXAMPLES+'/TrailReturn.json', JSON.stringify(p));
   }, 120_000);
 }
+
+
+for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].includes(s.objective))) {
+  it(scenario.objective + ' respects the recent weekly volume independently of ambition and availability', async () => {
+    const ambition = scenario.objective==='IM'?'finisher':'competitor';
+    const withRecent = (hours:string) => inputFor(scenario,'trained',ambition,[],{recentWeeklyHours:hours,recentWeeksCount:'4'});
+    await expect(generateDetPlanFromPageInput(withRecent('0.5'))).rejects.toThrow(/S1.*30 min hebdomadaires récemment réalisées/);
+    const baseline = inputFor(scenario,'trained',ambition);
+    const plan = await generateDetPlanFromPageInput(baseline);
+    const readProposal = (value:typeof plan)=>(value as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+    const previous = readProposal(plan);
+    expect(previous.checks.some(c=>c.code==='initial_recent_volume')).toBe(false);
+    const hours = Math.ceil(previous.weeks[0].knownMinutes / 60);
+    const constrained = readProposal(await generateDetPlanFromPageInput(withRecent(String(hours))));
+    expect(constrained.limiterOrder).toEqual(previous.limiterOrder);
+    const first = constrained.weeks[0];
+    {
+      const lowerHours = Math.floor(previous.weeks[0].knownMinutes*.85/6)/10;
+      try{
+        const reduced = readProposal(await generateDetPlanFromPageInput(withRecent(String(lowerHours))));
+        expect(reduced.weeks[0].knownMinutes).toBeLessThanOrEqual(lowerHours*60+1e-7);
+        expect(reduced.weeks[0].knownMinutes).toBeLessThan(previous.weeks[0].knownMinutes);
+        if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,actual:reduced.weeks[0].knownMinutes})+'\n');
+      }catch(error){
+        if(!(error instanceof DetRefusal)||['Semi','Marathon'].includes(scenario.objective))throw error;
+        if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,reason:error.reasons})+'\n');
+      }
+    }
+    expect(first.knownMinutes).toBeLessThanOrEqual(hours*60);
+    expect(constrained.checks.find(c=>c.code==='initial_recent_volume')?.status).toBe(first.durationMinutes===null?'pending':'passed');
+  },120_000);
+}
