@@ -6,7 +6,7 @@ import {
   executableCatalogueVariants,
   sessionSportMatchesCard,
 } from "./sessionCatalogueContract.ts";
-import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata } from "./repairSportingEquivalence.ts";
+import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, isRecoveryWeekType } from "./repairSportingEquivalence.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 /** Narrow presentation repair, before acceptance: no sport/dose/protocol/ID substitution. */
 export function restoreCatalogueTitleForExactProtocol(
@@ -111,22 +111,35 @@ export function substituteIneligibleCatalogueSession(
   if (typeof s.sport !== "string" || !sessionSportMatchesCard(s.sport, card)) return null;
   const allowed = new Set(allowedIds);
   const wanted = typeof s.durationMin === "number" ? s.durationMin : (card.durationMin[0] + card.durationMin[1]) / 2;
-  const candidates = contract.catalog
-    .filter((c) => c.id !== card.id && allowed.has(c.id) && isCompleteRepairWorkoutMetadata(c) && c.structure?.trim() &&
-      !isRaceDaySession({ title: c.title }) && catalogueEligibility(c, contract).length === 0 &&
-      evaluateRepairSportingEquivalence(card, c, { ...contract, operation: "replacement" }).compatible)
-    .map((c) => ({ c, score: (usedInWeek.has(c.id) ? 1000 : 0) +
+  const pool = contract.catalog.filter((c) => c.id !== card.id && allowed.has(c.id) && isCompleteRepairWorkoutMetadata(c) &&
+    c.structure?.trim() && !isRaceDaySession({ title: c.title }) && catalogueEligibility(c, contract).length === 0);
+  const pick = (cands: typeof pool, extra: Record<string, unknown> = {}) => {
+    const ranked = cands.map((c) => ({ c, score: (usedInWeek.has(c.id) ? 1000 : 0) +
       (wanted < c.durationMin[0] ? c.durationMin[0] - wanted : wanted > c.durationMin[1] ? wanted - c.durationMin[1] : 0) }))
-    .sort((a, b) => a.score - b.score || a.c.id.localeCompare(b.c.id));
-  for (const { c } of candidates) {
-    const cMax = Math.max(0, ...c.zones.flatMap((z) => [...z.matchAll(/\bZ\s*([1-7])/gi)].map((m) => Number(m[1]))));
-    const swapped: ContractSession = { ...s, catalogId: c.id, title: c.title, details: c.structure,
-      zones: c.mainZoneMax > cMax ? [...c.zones, `Z${c.mainZoneMax}`] : [...c.zones],
-      durationMin: Math.min(c.durationMin[1], Math.max(c.durationMin[0], Math.round(wanted))) };
-    delete swapped.variantKey;
-    const canonical = canonicalizeCatalogueSession(swapped, contract);
-    const session = canonical?.session ?? swapped;
-    if (checkSessionCatalogue(session, contract).errors.length === 0) return { session, fromId: card.id, toId: c.id };
+      .sort((a, b) => a.score - b.score || a.c.id.localeCompare(b.c.id));
+    for (const { c } of ranked) {
+      const cMax = Math.max(0, ...c.zones.flatMap((z) => [...z.matchAll(/\bZ\s*([1-7])/gi)].map((m) => Number(m[1]))));
+      const swapped: ContractSession = { ...s, ...extra, catalogId: c.id, title: c.title, details: c.structure,
+        zones: c.mainZoneMax > cMax ? [...c.zones, `Z${c.mainZoneMax}`] : [...c.zones],
+        durationMin: Math.min(c.durationMin[1], Math.max(c.durationMin[0], Math.round(wanted))) };
+      delete swapped.variantKey;
+      const canonical = canonicalizeCatalogueSession(swapped, contract);
+      const session = canonical?.session ?? swapped;
+      if (checkSessionCatalogue(session, contract).errors.length === 0) return { session, fromId: card.id, toId: c.id };
+    }
+    return null;
+  };
+  const sameRole = pick(pool.filter((c) =>
+    evaluateRepairSportingEquivalence(card, c, { ...contract, operation: "replacement" }).compatible));
+  if (sameRole) return sameRole;
+  // Recovery (deload) week: a quality card is refused only because the week
+  // is a deload. The deload itself prescribes lower intensity, so the card is
+  // replaced by an easy card of the same sport (endurance / recovery /
+  // technique, main zone <= Z2) — never by another quality session.
+  const reasons = catalogueEligibility(card, contract);
+  if (isRecoveryWeekType(contract.weekType) && reasons.every((r) => r.startsWith("recovery_"))) {
+    return pick(pool.filter((c) => sessionSportMatchesCard(s.sport, c) && c.mainZoneMax <= 2 &&
+      ["endurance_fondamentale", "recuperation", "technique"].includes(c.intentFamily)), { isKeySession: false });
   }
   return null;
 }

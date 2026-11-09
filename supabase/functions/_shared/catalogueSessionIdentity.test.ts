@@ -80,3 +80,16 @@ Deno.test("fiche « mixed » : mobilité = récupération/renfo, brique = brick,
   assert(!sessionSportMatchesCard("strength", { sport: "mixed", intentFamily: "brick" }));
   assert(!sessionSportMatchesCard("bike", { sport: "run", intentFamily: "seuil" }));
 });
+
+const swimSeuil: RepairWorkoutMetadata = { ...swimAny, id: "SWIM_SEUIL", title: "Natation seuil CSS", intentFamily: "seuil", mainZoneMax: 4, zones: ["Z4"], structure: "10x100 CSS" };
+Deno.test("semaine de décharge : une séance seuil est remplacée par une séance facile du même sport, jamais par une autre séance dure", () => {
+  const c = { phase: "build", weekType: "recovery", objective: "half", catalog: [swimSeuil, swimVo2, swimAny] };
+  const s = { day: "mardi", sport: "swim", title: "Natation seuil CSS", details: "10x100 CSS", durationMin: 50, zones: ["Z4"], custom: false, catalogId: swimSeuil.id, isKeySession: true };
+  assert(checkSessionCatalogue(s, c).errors.some((e) => e.startsWith("recovery_")));
+  const out = substituteIneligibleCatalogueSession(s, c, [swimSeuil.id, swimVo2.id, swimAny.id]);
+  assertEquals(out?.toId, "SWIM_ANY");
+  assertEquals((out?.session as Record<string, unknown>).isKeySession, false);
+  assertEquals(checkSessionCatalogue(out!.session, c).errors, []);
+  // Hors décharge, aucune rétrogradation d'intensité.
+  assertEquals(substituteIneligibleCatalogueSession(s, { ...c, weekType: "load", objective: "10km", catalog: [{ ...swimSeuil, goals: ["half"], objectiveSpecific: true }, swimAny] }, [swimSeuil.id, swimAny.id]), null);
+});
