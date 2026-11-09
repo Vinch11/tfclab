@@ -20,13 +20,22 @@ function randomToken(n = 32) { const b = new Uint8Array(n); crypto.getRandomValu
 async function sha256(s: string) { return b64url(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)))); }
 
 async function tokenRequest(params: Record<string, string>) {
-  const id = Deno.env.get("NOLIO_V2_CLIENT_ID"), secret = Deno.env.get("NOLIO_V2_CLIENT_SECRET");
+  const id = Deno.env.get("NOLIO_V2_CLIENT_ID")?.trim(), secret = Deno.env.get("NOLIO_V2_CLIENT_SECRET")?.trim();
   if (!id || !secret) throw new Error("missing_client_credentials");
-  const res = await fetch(TOKEN_URL, {
+  let res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Authorization: "Basic " + btoa(`${id}:${secret}`) },
     body: new URLSearchParams(params),
   });
+  if (res.status === 401) {
+    // Some OAuth servers only accept client credentials in the form body.
+    await res.body?.cancel();
+    res = await fetch(TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ ...params, client_id: id, client_secret: secret }),
+    });
+  }
   const text = await res.text();
   let body: Record<string, unknown> = {};
   try { body = JSON.parse(text); } catch { /* non-JSON */ }
