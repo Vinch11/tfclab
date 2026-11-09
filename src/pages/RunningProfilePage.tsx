@@ -1,3 +1,4 @@
+import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { fatigueStateToScoreOrDefault, fatigueStateToAvailability } from "@/lib/fatigueStateMapping";
 import { type AvailabilityRun, computePotentielRun } from "@/lib/v2/potentielTypes";
 /**
@@ -122,14 +123,7 @@ export default function RunningProfilePage() {
   // Effective Cloud Snapshot
   const effectiveCloudSnapshot = useMemo(() => {
     if (!currentAthlete) return null;
-    const athleteSnapshots = snapshots.filter(s => s.athlete_id === currentAthlete.id);
-    if (athleteSnapshots.length === 0) return null;
-    
-    if (currentAthlete.active_snapshot_id) {
-      const active = athleteSnapshots.find(s => s.id === currentAthlete.active_snapshot_id);
-      if (active) return active;
-    }
-    return [...athleteSnapshots].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    return pickReferenceSnapshot(snapshots, currentAthlete.id, currentAthlete.active_snapshot_id);
   }, [currentAthlete, snapshots]);
 
   // VLamax Effectif

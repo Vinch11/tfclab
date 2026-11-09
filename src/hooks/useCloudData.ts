@@ -15,6 +15,10 @@ import {
   validateOrNull 
 } from "@/lib/validationSchemas";
 import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
+
+function describeSnapshotIssues(issues: { path: (string | number)[]; message: string }[]): string {
+  return issues.slice(0, 3).map((i) => `${i.path.join(".") || "bilan"} (${i.message})`).join(", ");
+}
 // Types DB from generated types (extended with active_snapshot_id and birth_date)
 export interface DbAthlete {
   id: string;
@@ -144,7 +148,7 @@ export function useCloudData() {
         supabase.from("athletes").select("*").eq("coach_id", user.id).order("created_at", { ascending: false }),
         supabase.from("tests").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
         supabase.from("plans").select("*").eq("coach_id", user.id),
-        supabase.from("snapshots").select("*").eq("coach_id", user.id).order("date", { ascending: false }),
+        supabase.from("snapshots").select("*").eq("coach_id", user.id).order("date", { ascending: false }).order("created_at", { ascending: false }),
         supabase.from("checkins").select("*").eq("coach_id", user.id).order("date_iso", { ascending: false }),
       ]);
 
@@ -367,7 +371,7 @@ export function useCloudData() {
           (snapshot as any)?.[i.path[0]]
         )
       );
-      toast.error("Données invalides — voir console");
+      toast.error(`Données invalides : ${describeSnapshotIssues(zodResult.error.issues)}`);
       return null;
     }
 
@@ -380,12 +384,10 @@ export function useCloudData() {
     const providedSport = validated.sport_main as string | undefined;
     const { deduceSportMainFromGoal } = await import("@/lib/sportMainDeduction");
     const deduced = deduceSportMainFromGoal(goal);
-    // Si pas fourni, ou si fourni 'bike' (défaut DB) alors que l'objectif est run/tri, on corrige
+    // Le sport choisi par le coach est respecté ; déduction seulement s'il est absent.
     let finalSport = providedSport;
     if (!providedSport && deduced) {
       finalSport = deduced;
-    } else if (providedSport === "bike" && deduced === "run") {
-      finalSport = "run";
     }
 
     const insertPayload: TablesInsert<"snapshots"> = {
@@ -437,6 +439,12 @@ export function useCloudData() {
   const updateSnapshot = async (id: string, updates: Partial<DbSnapshot>) => {
     // Strip non-DB fields before sending to Supabase
     const { id: _id, created_at: _ca, updated_at: _ua, ...cleanUpdates } = updates as any;
+    // Mêmes vérifications qu'à la création, appliquées aux champs modifiés.
+    const updateCheck = snapshotSchema.partial().safeParse(cleanUpdates);
+    if (!updateCheck.success) {
+      toast.error(`Données invalides : ${describeSnapshotIssues(updateCheck.error.issues)}`);
+      return false;
+    }
     const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
     if (error) {
       const detail = error.details || error.message || "Erreur inconnue";

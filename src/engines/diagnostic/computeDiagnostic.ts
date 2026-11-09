@@ -94,7 +94,8 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     vlamax: vlamax.value,
     wprimeKj: input.wprimeKj,
     cpDataQuality: input.cpDataQuality,
-    tte: tte.tte_min,
+    // Durabilité inconnue ≠ durabilité nulle : null = « Données insuffisantes ».
+    tte: tte.source === "unknown" || !(tte.tte_min > 0) ? null : tte.tte_min,
     fatmax: input.fatmax,
     economyScore: input.runEconomyScore,
     availabilityScore: fatigue.score < 30 ? 85 : fatigue.score < 55 ? 60 : fatigue.score < 75 ? 35 : 15,

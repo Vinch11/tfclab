@@ -43,6 +43,7 @@ import {
   VLamaxCapEstimateInput
 } from "@/lib/v2/vlamaxCapEstimator";
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
+import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -96,6 +97,7 @@ const INITIAL_FORM_STATE = {
   tte_mode: "LOAD",
   tss_7d: "",
   tte_observed_min: "",
+  tte_observed_min_run: "",
   // ⚡ État de fatigue au moment du snapshot
   fatigue_state: "ok",
   // 🏃 Économie CAP
@@ -191,6 +193,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tte_mode: (s.tte_mode as string) || "LOAD",
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
+      tte_observed_min_run: (s as any).tte_observed_min_run != null ? String((s as any).tte_observed_min_run) : "",
 
       // ⚡ État de fatigue
       fatigue_state: s.fatigue_state || "ok",
@@ -249,11 +252,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const vlamaxRun = staffMode ? parseNum(formData.vlamax_run) : null;
     const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
 
-    await addSnapshot({
+    const created = await addSnapshot({
       athlete_id: athleteId,
       coach_id: "", // replaced in hook
       date: formData.date,
       source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
+      // Preuve de mesure : la VLamax vélo saisie en mode Staff est déclarée mesurée en labo.
+      ...(staffMode && vlamax ? { vlamax_source: "lab", vlamax_protocol: "Mesure lactate (saisie coach)" } : {}),
       cycle_tag: formData.cycle_tag || null,
       sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
@@ -280,6 +285,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
+      ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -310,6 +316,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ...((formData as any).vlamax_is_reference === "true" && { vlamax_is_reference: true } as Record<string, unknown>),
     });
 
+    // Le formulaire reste ouvert (saisie conservée) si l'enregistrement échoue.
+    if (!created) return;
     resetForm();
     setIsCreateOpen(false);
   };
@@ -342,7 +350,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const shouldClearVlamaxRunLock = staffMode && vlamaxRun == null && editingSnapshot.vlamax_run != null;
     const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
 
-    await updateSnapshot(editingSnapshot.id, {
+    const updated = await updateSnapshot(editingSnapshot.id, {
       date: formData.date,
       cycle_tag: formData.cycle_tag || null,
       sport_main: formData.sport_main || null,
@@ -353,6 +361,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: parseNum(formData.css),
       vo2max,
       vlamax, // ✅ Conserve valeur existante si mode standard
+      ...(staffMode && vlamax != null && vlamax !== editingSnapshot.vlamax
+        ? { source: "staff" }
+        : {}),
       vlamax_run: vlamaxRun, // ✅ VLamax CAP
       ...(shouldClearVlamaxRunLock ? {
         vlamax_source: null,
@@ -375,6 +386,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tte_mode: (formData.tte_mode as string) || "LOAD",
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
+      ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -405,6 +417,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ...((formData as any).vlamax_is_reference === "true" && { vlamax_is_reference: true } as Record<string, unknown>),
     });
 
+    if (!updated) return;
     setIsEditOpen(false);
     setEditingSnapshotId({ id: null });
   };
@@ -466,7 +479,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
       {/* Nolio Import Button */}
       {(() => {
-        const latestSnap = snapshots.length > 0 ? [...snapshots].sort((a, b) => b.date.localeCompare(a.date))[0] : null;
+        const latestSnap = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
         return (
           <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
             <TrendingUp className="w-4 h-4 text-primary" />
@@ -855,7 +868,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
         <div className="mt-3">
           <Label htmlFor="tte_observed_min" className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "text-warning" : ""}>
-            TTE observé (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
+            Durée tenue au seuil — vélo (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
           </Label>
           <Input
             id="tte_observed_min"
@@ -870,6 +883,20 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           )}
           <p className="text-xs text-muted-foreground mt-1">
             Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l'estimation par charge.
+          </p>
+        </div>
+
+        <div className="mt-3">
+          <Label htmlFor="tte_observed_min_run">Durée tenue au seuil — course (min)</Label>
+          <Input
+            id="tte_observed_min_run"
+            type="number"
+            placeholder="ex: 40"
+            value={formData.tte_observed_min_run}
+            onChange={(e) => setFormData({ ...formData, tte_observed_min_run: e.target.value })}
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Mesurée en course uniquement. Laissez vide si non testée : la durabilité course affichera « Données insuffisantes ».
           </p>
         </div>
 
@@ -1305,7 +1332,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           {(() => {
             const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
             const vmaNum = parseNum(formData.vma);
-            const tteNum = parseNum(formData.tte_observed_min);
+            const tteNum = parseNum(formData.tte_observed_min_run);
             
             // Calculer économie de course pour ajustement confiance
             const runPaceSec = parsePaceToSec(formData.run_pace_ref);

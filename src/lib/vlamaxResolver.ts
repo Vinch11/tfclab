@@ -58,6 +58,7 @@ interface SnapshotLike {
   vma?: number | null;
   pace_threshold_sec_per_km?: number | null;
   tte_observed_min?: number | null;
+  tte_observed_min_run?: number | null;
   sprint_15s_distance?: number | null;
   running_power_max?: number | null;
   running_power_threshold?: number | null;
@@ -125,7 +126,7 @@ export function resolveVlamaxForGoal(
     const capEst = estimateVLamaxCap({
       vma: snapshot.vma ?? null,
       paceThresholdSecPerKm: snapshot.pace_threshold_sec_per_km ?? null,
-      tteMin: snapshot.tte_observed_min ?? null,
+      tteMin: snapshot.tte_observed_min_run ?? null,
       sprint15sDistance: snapshot.sprint_15s_distance ?? null,
       runningPowerMax: snapshot.running_power_max ?? null,
       runningPowerThreshold: snapshot.running_power_threshold ?? null,

@@ -84,3 +84,6 @@ dev-only `src/pages/__e2e/` (gardés par `import.meta.env.DEV`).
 - Vérifier les impacts sur 5 km, 10 km, semi-marathon, marathon, trail, Half-Ironman et Ironman, avec les fixtures et tests existants, complétés par des non-régressions représentatives.
 - Préserver les spécificités physiologiques, quotas, périodisation et récupération de chaque discipline. Une voie dédiée (ex. trail ou LCW) ne doit pas hériter silencieusement des règles d'une autre.
 - Le rapport distingue corrections communes, corrections spécifiques, disciplines effectivement testées et comportements restant à vérifier. Un test 10 km vert ne valide jamais le moteur entier ni la qualité sportive d'un plan réel.
+
+- The reference snapshot is chosen only by `pickReferenceSnapshot` (`src/lib/referenceSnapshot.ts`): active snapshot, else date ↓, created_at ↓, id ↓. Why: same-date ties made screens and engines use different snapshots.
+- Bike VLamax is locked as measured only with lab provenance or Staff-mode entry; unknown TTE reaches limiter detection as null, never 0; run TTE lives only in `tte_observed_min_run`. Why: estimates and missing data were presented as measurements.

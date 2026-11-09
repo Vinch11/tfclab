@@ -28,6 +28,7 @@ export function mapSnapshotToV2(s: DbSnapshot) {
     p60s_w: s.p60s_w,
     map5min_w: s.map5min_w,
     tte_observed_min: s.tte_observed_min,
+    tte_observed_min_run: (s as { tte_observed_min_run?: number | null }).tte_observed_min_run ?? null,
     protocol_quality: s.protocol_quality,
     objectif: s.objectif,
     vo2max: s.vo2max,

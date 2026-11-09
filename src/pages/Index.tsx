@@ -1,3 +1,4 @@
+import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
@@ -416,16 +417,7 @@ const Index = () => {
   // ✅ FIX 3B — Snapshot "effectif" (actif sinon dernier)
   // ============================================
   const pickEffectiveSnapshot = (athleteId: string, activeSnapshotId?: string | null): DbSnapshot | null => {
-    const list = (snapshots || []).filter((s) => s.athlete_id === athleteId);
-    if (list.length === 0) return null;
-
-    if (activeSnapshotId) {
-      const active = list.find((s) => s.id === activeSnapshotId);
-      if (active) return active;
-    }
-
-    // Dernier par date
-    return [...list].sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    return pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
   };
 
   // ============================================

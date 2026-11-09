@@ -1,3 +1,4 @@
+import { compareSnapshotsNewestFirst } from "@/lib/referenceSnapshot";
 // =============================================
 // VLAMAX EFFECTIF - Source unique de vérité
 // Architecture scientifique correcte - Two For Coaching Lab
@@ -127,6 +128,11 @@ function isLabMeasuredVlamaxTest(t: TestCloud): boolean {
   return false;
 }
 
+export function hasBikeVlamaxMeasurementEvidence(s: SnapshotCloud): boolean {
+  if (isLabMeasuredVlamaxSnapshot(s)) return true;
+  return ((s as { source?: string | null }).source || "").toLowerCase() === "staff";
+}
+
 function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
   const source = (s.vlamax_source || "").toLowerCase();
   if (["lab", "labo", "lactate_lab", "vlamax_lab"].includes(source)) return true;
@@ -151,6 +157,8 @@ interface SnapshotCloud {
   id: string;
   athlete_id: string;
   date: string;
+  created_at?: string | null;
+  source?: string | null;
   vlamax?: number | null;
   ftp?: number | null;
   pmax_5s?: number | null;
@@ -161,6 +169,7 @@ interface SnapshotCloud {
   p60s_w?: number | null;
   map5min_w?: number | null;
   tte_observed_min?: number | null;
+  tte_observed_min_run?: number | null;
   protocol_quality?: number | null;
   objectif?: string | null;
   vo2max?: number | null;
@@ -258,9 +267,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       effectiveSnapshot = athleteSnapshots.find(s => s.id === activeSnapshotId) || null;
     }
     if (!effectiveSnapshot) {
-      effectiveSnapshot = [...athleteSnapshots].sort((a, b) => 
-        b.date.localeCompare(a.date)
-      )[0];
+      effectiveSnapshot = [...athleteSnapshots].sort(compareSnapshotsNewestFirst)[0];
     }
   }
 
@@ -305,7 +312,16 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // On l'ignore donc pour laisser la priorité à la chaîne CAP (vlamax_run
   // mesurée → estimation CAP V2 via VMA/seuil/sprint/power).
   // =============================================
-  if (sport !== "cap" && effectiveSnapshot && effectiveSnapshot.vlamax != null) {
+  // Verrou uniquement avec une preuve de mesure : source labo explicite, ou
+  // saisie en mode Staff (le coach déclare une mesure lactate de laboratoire).
+  // Une VLamax estimée stockée ailleurs n'est jamais présentée comme mesurée.
+  if (
+    sport !== "cap" &&
+    effectiveSnapshot &&
+    effectiveSnapshot.vlamax != null &&
+    effectiveSnapshot.vlamax > 0 &&
+    hasBikeVlamaxMeasurementEvidence(effectiveSnapshot)
+  ) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax,
@@ -388,7 +404,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       const capEst = estimateVLamaxCap({
         vma: effectiveSnapshot.vma ?? null,
         paceThresholdSecPerKm: effectiveSnapshot.pace_threshold_sec_per_km ?? null,
-        tteMin: effectiveSnapshot.tte_observed_min ?? null,
+        tteMin: effectiveSnapshot.tte_observed_min_run ?? null,
         sprint15sDistance: effectiveSnapshot.sprint_15s_distance ?? null,
         runningPowerMax: effectiveSnapshot.running_power_max ?? null,
         runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
@@ -438,7 +454,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
           runPower30s: effectiveSnapshot.running_power_30s ?? null,
           runPower60s: effectiveSnapshot.running_power_60s ?? null,
           runPower5min: effectiveSnapshot.running_power_5min ?? null,
-          tteMin: effectiveSnapshot.tte_observed_min ?? null,
+          tteMin: effectiveSnapshot.tte_observed_min_run ?? null,
           weightKg: weight_kg ?? null,
           protocolQuality: (effectiveSnapshot.protocol_quality as 1|2|3|4|5) ?? 3,
           vma: effectiveSnapshot.vma ?? null,

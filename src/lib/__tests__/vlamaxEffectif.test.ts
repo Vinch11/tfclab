@@ -97,13 +97,13 @@ describe("computeVLamaxEffectif", () => {
       expect(fromTest.confidence).toBeGreaterThanOrEqual(0.6);
     });
 
-    it("snapshot with explicit VLamax has high confidence", () => {
+    it("snapshot with lab-measured VLamax has high confidence", () => {
       const fromSnapshot = computeVLamaxEffectif({
         athleteId: ATHLETE_ID,
         objectif: "IM",
         tests: [],
         snapshots: [
-          { id: "s1", athlete_id: ATHLETE_ID, date: "2026-03-01", vlamax: 0.42, ftp: 280, pmax_5s: 900, weight_kg: 70 },
+          { id: "s1", athlete_id: ATHLETE_ID, date: "2026-03-01", vlamax: 0.42, vlamax_source: "lab", ftp: 280, pmax_5s: 900, weight_kg: 70 },
         ],
       });
 

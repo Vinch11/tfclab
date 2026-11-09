@@ -32,7 +32,7 @@ const COMPLETE_INPUT: DiagnosticInput = {
   css: null,
   vlamax: 0.55,
   vlamaxRun: null,
-  vlamaxSource: "test",
+  vlamaxSource: "lab",
   vlamaxProtocol: "30-15",
   vlamaxIsReference: true,
   tteObservedMin: 35,

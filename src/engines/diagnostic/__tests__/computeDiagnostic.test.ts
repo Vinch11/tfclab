@@ -30,7 +30,7 @@ const BASE_INPUT: DiagnosticInput = {
   css: null,
   vlamax: 0.45,
   vlamaxRun: null,
-  vlamaxSource: "test",
+  vlamaxSource: "lab",
   vlamaxProtocol: "30-15",
   vlamaxIsReference: true,
   tteObservedMin: 42,
