@@ -93,7 +93,21 @@ Cinq comparaisons ont été générées avec les mêmes données de profil et de
 | 10 km | 6 h | 230 min | 192 min | Refus de la combinaison de séances et de contraintes |
 | Semi | 6 h | 272 min | 228 min | 225 min |
 | Marathon | 8 h | 335 min | 282 min | 281 min |
-| 70.3 | 10 h | 475,5 min | 402 min | 400 min de blocs chronométrés |
-| Ironman | 14 h | 475 min | 402 min | 402 min de blocs chronométrés |
+| 70.3 | 10 h | 475,5 min | 402 min | 402 min de blocs chronométrés |
+| Ironman | 14 h | 475 min | 402 min | 400 min de blocs chronométrés |
 
 Le banc couvre également une déclaration de 30 min par semaine sur ces cinq configurations. DET indique le volume minimal des créneaux quand celui-ci excède à lui seul le volume récent. Les deux triathlons utilisent les fiches V3 compatibles avec le niveau et la distance sur toute la préparation lorsque le volume récent limite la première semaine. Le test exige une réduction effective des doses en semi, marathon, 70.3 et Ironman. Un échec de recherche indique qu’aucune combinaison n’a été trouvée avec ces entrées.
+
+
+### Précontrôle Nolio des quatre préparations recalibrées
+
+Le test relit chaque projet sérialisé avant de préparer les opérations Nolio. Les options plan entier, semaine et séance utilisent les mêmes blocs et les mêmes empreintes. Les séances de triathlon sélectionnées dans le catalogue élargi doivent disposer d’une durée et d’une structure acceptées par le convertisseur de la page coach. Une fiche terrain sans cible adaptée ou une nage de durée incertaine laisse sa place à une fiche admissible.
+
+| Projet | Semaines couvertes | Opérations préparées | Refus au précontrôle local |
+|---|---:|---:|---:|
+| Semi | 8 | 44 | 0 |
+| Marathon | 16 | 105 | 0 |
+| 70.3 | 12 | 103 | 0 |
+| Ironman | 16 | 163 | 0 |
+
+Ces vérifications utilisent des références synthétiques, sans réseau. La réception par Nolio et l’exécution sur une montre restent à observer.

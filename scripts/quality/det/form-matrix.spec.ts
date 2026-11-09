@@ -1,3 +1,6 @@
+import {preparePlan} from '../../../supabase/functions/_shared/nolioV2/planDryRun';
+import {sessionsFromPlanJson} from '../../../supabase/functions/_shared/nolioV2/planSessions';
+import {raceIdentityOf} from '../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { buildAppPlanConfig, computeAppAthleteContext, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
@@ -236,7 +239,23 @@ for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].i
     {
       const lowerHours = Math.floor(previous.weeks[0].knownMinutes*.85/6)/10;
       try{
-        const reduced = readProposal(await generateDetPlanFromPageInput(withRecent(String(lowerHours))));
+        const reducedPlan = await generateDetPlanFromPageInput(withRecent(String(lowerHours)));
+        const reduced = readProposal(reducedPlan);
+        const saved = JSON.parse(JSON.stringify(reducedPlan));
+        const sessions = sessionsFromPlanJson(saved).sessions;
+        const race = sessions.map(raceIdentityOf).find(r=>r!==null)!;
+        const refs = {synthetic:true,athleteId:'usr_SYNTHETIC',sportIds:{run:'spt_RUN',bike:'spt_BIKE',swim:'spt_SWIM',strength:'spt_STRENGTH',brick:'spt_TRI'},
+          exerciseIds:{},competition:{date:race.date,name:race.name,sport:race.sport}};
+        const version = 'SYNTHETIC_LOAD_'+scenario.objective;
+        const whole = await preparePlan(saved,refs,version);
+        expect(whole.precheck.complete, JSON.stringify(whole.precheck.rows.filter(r=>r.status==='refused'))).toBe(true);
+        expect(whole.precheck.weeks).toBe(scenario.weeks);
+        const key = sessions.find(s=>!s.isRest && s.sport==='run' && s.catalogId)!.sessionKey;
+        for(const scope of [{kind:'weeks',from:1,to:1},{kind:'sessions',keys:[key]}]){
+          const part = await preparePlan(saved,refs,version,scope);
+          expect(part.precheck.complete).toBe(true);
+          expect(part.ops.every(op=>whole.ops.find(o=>o.sessionKey===op.sessionKey)?.bodySha256===op.bodySha256)).toBe(true);
+        }
         expect(reduced.weeks[0].knownMinutes).toBeLessThanOrEqual(lowerHours*60+1e-7);
         expect(reduced.weeks[0].knownMinutes).toBeLessThan(previous.weeks[0].knownMinutes);
         expect(reduced.limiterOrder).toEqual(previous.limiterOrder);
@@ -247,7 +266,7 @@ for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].i
           const proven = reduced.checks.filter(c=>c.code==='tri_primary_component_dose'&&c.status==='passed');
           expect(proven.map(c=>c.week)).toEqual(loads.map(w=>w.week));
         }
-        if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,actual:reduced.weeks[0].knownMinutes})+'\n');
+        if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,actual:reduced.weeks[0].knownMinutes,operations:whole.precheck.operations,weeks:whole.precheck.weeks})+'\n');
       }catch(error){
         if(!(error instanceof DetRefusal)||scenario.objective!=='10K')throw error;
         if(process.env.DET_COMPARE_RECENT) process.stdout.write('RECENT_COMPARE '+JSON.stringify({objective:scenario.objective,ambition,available:scenario.hours,baseline:previous.weeks[0].knownMinutes,recentMax:lowerHours*60,reason:error.reasons})+'\n');

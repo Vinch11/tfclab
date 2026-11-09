@@ -1,3 +1,4 @@
+import {appProfileDetStructure} from './appProfileDetStructure';
 import {trailReturnSources} from '../../../scripts/library-v3/trailReturnSources';
 import {introductoryStrengthSources,completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import {library920CandidatesForProposal,library920Problems,library920SourceMetadata,library920Manifest} from '../../../scripts/library-v3/library920Catalogue';
@@ -211,7 +212,10 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         sourceDomain:source.primaryDomain,zoneMinutes:dose?{low:dose.low,mid:dose.mid,high:dose.high,unknown:dose.unknown}:null,
         review:{minimumRecoveryHours:source.minimumRecoveryHours,prerequisites:[...source.prerequisites],contraindications:[...source.contraindications],stopRule:source.stopRule,minimumLevel:source.minimumLevel}});
     }catch{/* A bounded source/dose that cannot be configured is ineligible. */}
-    cache.set(key,out);return out;
+    const feasible = options.completeSessions && constrainedTri ? out.filter(component =>
+      appProfileDetStructure({sport:component.sport,role:'support',components:[component],transitionMinutes:null,
+        knownMinutes:component.durationMinutes??0,durationMinutes:component.durationMinutes}).detStructuredWorkout !== undefined) : out;
+    cache.set(key,feasible);return feasible;
   }
   const result:V3PlanProposal={kind:'v3_plan_proposal',status:'assembled_for_review',athleteId,planningInputFingerprint:app.fingerprint,
     ...(trailLimits?{trailLongRunLimits:{...trailLimits}}:{}),objective:study.objective,limiterOrder:[...study.limiterOrder],eventCalendar:structuredClone(config.raceGoals??[]),prescriptionAllowed:false,sourceReview:'pending',weeks:[],checks:[]};
