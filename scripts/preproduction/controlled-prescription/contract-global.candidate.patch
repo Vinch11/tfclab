@@ -1,0 +1,119 @@
+--- a/src/hooks/useAITrainingPlan.ts
++++ b/src/hooks/useAITrainingPlan.ts
+@@ -1,3 +1,4 @@
++import { mergeWindowEvidence } from "@/lib/plan/contractScope";
+ import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
+ import { assessPreparedGeneration, prevalidateTrainingPlan } from "@/lib/plan/prevalidateTrainingPlan";
+ import { assertPlanPrevalidation, prevalidateDeclaredCalendar, withPrevalidationIssues, type PlanPrevalidation } from "../../supabase/functions/_shared/planPrevalidation";
+@@ -641,6 +642,8 @@
+ 
+ export function useAITrainingPlan() {
+   const [prevalidation, setPrevalidation] = useState<PlanPrevalidation|null>(null);
++  const globalPrevalidationRef = useRef<PlanPrevalidation|null>(null);
++  const [generationWindow, setGenerationWindow] = useState<{from:number;to:number;objective?:string}|null>(null);
+   const [response, setResponse] = useState("");
+   const [isLoading, setIsLoading] = useState(false);
+   // Audit coach (plan Manu 40 sem) : une génération longue (>3 blocs standards)
+@@ -741,7 +744,11 @@
+         catalogDurationStats, weeklyQuotas, quotasByChunkText, beginnerIntensitySignal } = preparation;
+       lastAllowedCatalogIdsRef.current = preparation.allowedCatalogIds;
+       const prevalidation = assessPreparedGeneration(planConfig, preparation);
+-      setPrevalidation(prevalidation);
++      if (!batchInFlightRef.current) {
++        globalPrevalidationRef.current=null;
++        setGenerationWindow(null);
++        setPrevalidation(prevalidation);
++      }
+       assertPlanPrevalidation(prevalidation);
+     setResponse("");
+     lastResponseRef.current = "";
+@@ -1000,7 +1007,15 @@
+               chunkIndex: typeof data.chunkIndex === "number" ? data.chunkIndex : undefined,
+             };
+           } else if (event === "prevalidation") {
+-            setPrevalidation(previous=>({...previous,weeks:previous?.weeks??[],status:data.status,issues:data.issues??[]}));
++            const serverReport:PlanPrevalidation={weeks:[],status:data.status,issues:data.issues??[]};
++            const global=globalPrevalidationRef.current;
++            if(global) {
++              const updated=mergeWindowEvidence(global,{from:weekOffset+1,to:weekOffset+totalWeeks,report:serverReport});
++              globalPrevalidationRef.current=updated;
++              setPrevalidation(updated);
++            } else {
++              setPrevalidation(previous=>withPrevalidationIssues(previous??prevalidation,serverReport.issues));
++            }
+           } else if (event === "warning") {
+             warningEvidence.push(sanitizeWarningEvidence(data));
+             const code = data.code ?? "warning";
+@@ -1586,6 +1601,8 @@
+     try {
+       const scopeOptions=await resolvePlanningOptions(athleteData,planConfig);
+       const scopePrevalidation=prevalidateGenerationScope(athleteData,planConfig,scopeOptions);
++      globalPrevalidationRef.current=scopePrevalidation;
++      setGenerationWindow(null);
+       setPrevalidation(scopePrevalidation);
+       if(scopePrevalidation.status==="blocked") {
+         toast.error("Prévalidation bloquante : aucune fenêtre envoyée au modèle.");
+@@ -1638,6 +1655,7 @@
+           volumeRamp: planConfig.volumeRamp,
+         };
+ 
++        setGenerationWindow({from,to,objective:windowConfig.catalogObjective??planConfig.objective});
+         await generatePlan(athleteData, windowConfig,scopeOptions);
+ 
+         const windowPlan = lastParsedPlanRef.current;
+@@ -1698,6 +1716,8 @@
+ 
+   const reset = useCallback(() => {
+     planningSnapshotRef.current=null;
++    globalPrevalidationRef.current=null;
++    setGenerationWindow(null);
+     setPrevalidation(null);
+     setResponse("");
+     lastResponseRef.current = "";
+@@ -1720,7 +1740,7 @@
+     // Générer, spinner) n'aient rien à changer pour rester corrects.
+     isLoading: isLoading || isBatchGenerating,
+     chunkProgress, generatePlan, generatePlanWindowed, reset, setResponse,
+-    prevalidation, prevalidateTrainingPlan:previewPlan,
++    prevalidation:prevalidation?{...prevalidation,generationWindow}:null, prevalidateTrainingPlan:previewPlan,
+     // Phase 1B — JSON-mode outputs (null when Markdown path was used).
+     parsedPlan, mergedPlan, sportObjectiveIssues,
+     // Phase 2A — quota hebdo moteur (validation post-merge).
+--- a/src/components/PlanPrevalidationPanel.tsx
++++ b/src/components/PlanPrevalidationPanel.tsx
+@@ -40,9 +40,10 @@
+  return 'Un contrôle de planification nécessite une vérification ; consultez le diagnostic technique';
+ }
+ const labels={admissible:'Configuration admissible aux contrôles disponibles',coach_review:'Revue du coach nécessaire',blocked:'Contradiction bloquante — aucune génération lancée'};
+-export function PlanPrevalidationPanel({report}:{report:PlanPrevalidation|null}) {
++export function PlanPrevalidationPanel({report}:{report:(PlanPrevalidation & {generationWindow?:{from:number;to:number;objective?:string}|null})|null}) {
+  if(!report)return null;
+  return <section className="rounded-lg border p-4 space-y-3" aria-label="Prévalidation du plan">
++  {report.generationWindow&&<p className="font-semibold">Plan complet : {report.weeks.length} semaines · Fenêtre S{report.generationWindow.from}–S{report.generationWindow.to}{report.generationWindow.objective?` · ${report.generationWindow.objective}`:""}</p>}
+   <p className="font-semibold">{labels[report.status]}</p>
+   <p className="text-sm text-muted-foreground">Dernier précontrôle calculé sans IA, recalculé avant génération. La dose inconnue et la diversité limitée sont des avertissements. Ce contrôle ne valide pas scientifiquement un plan qui n’existe pas encore.</p>
+   {!!report.limiterPriorities?.length&&<p className="text-sm">Limiteurs transmis dans l’ordre : {report.limiterPriorities.join(' → ')}</p>}
+@@ -50,8 +51,8 @@
+   {report.issues.length>0&&<ul className="text-sm list-disc pl-5">{report.issues.map(i=><li key={`${i.week}:${i.code}`}>{i.week>0?`S${i.week}`:'Plan'} — {i.severity==='blocking'?'Bloquant':'À revoir'} : {issueLabel(i.code)}</li>)}</ul>}
+   <p className="text-sm text-muted-foreground">Les quotas sont des bornes, pas une charge prescrite. Un brick est une séance combinée qui remplace un créneau vélo autonome selon le comptage existant ; additionner les quotas bruts surestime le nombre de séances. Un plafond ne doit pas être rempli automatiquement.</p>
+   <details><summary className="cursor-pointer">Contrats des {report.weeks.length} semaines</summary>
+-   <div className="overflow-x-auto"><table className="text-xs w-full"><thead><tr><th>Semaine</th><th>Phase / cycle</th><th>Quotas</th><th>Plafond</th><th>Fiches admissibles</th></tr></thead>
+-    <tbody>{report.weeks.map(w=><tr key={w.globalWeek}><td>{w.globalWeek}</td><td>{w.phase??'Non déterminée'}{w.expectedPhase&&w.expectedPhase!==w.phase?` (attendue : ${w.expectedPhase})`:''} / {w.weekType??'Voie dédiée'}</td>
++   <div className="overflow-x-auto"><table className="text-xs w-full"><thead><tr><th>Semaine</th><th>Objectif / phase / cycle</th><th>Quotas</th><th>Plafond</th><th>Fiches admissibles</th></tr></thead>
++    <tbody>{report.weeks.map(w=><tr key={w.globalWeek}><td>{w.globalWeek}</td><td>{w.objective??'Objectif non déterminé'} · {w.phase??'Non déterminée'}{w.expectedPhase&&w.expectedPhase!==w.phase?` (attendue : ${w.expectedPhase})`:''} / {w.weekType??'Voie dédiée'}</td>
+      <td>{w.quota?(['swim','bike','run','brick','strength'] as const).filter(s=>w.quota![s].max>0).map(s=>`${sportLabels[s]} ${w.quota![s].min}–${w.quota![s].max}`).join(' ; '):'Quotas déterministes indisponibles : revue requise'}</td>
+      <td>{w.volumeBudget?`${w.volumeBudget.maxMinutes} min — ${w.volumeBudget.referenceSource==='internal-matrix'?'référence interne, charge inconnue':'déclaration coach'}`:'Non disponible'}</td>
+      <td><details><summary>{w.eligible.length} fiches</summary>{w.eligible.map(c=><p key={c.id}>{c.id} — {c.sport}, {c.durationMin.join('–')} min, {c.intentFamily}</p>)}</details></td>
+--- /dev/null
++++ b/src/lib/plan/contractScope.ts
+@@ -0,0 +1,10 @@
++import type { PlanPrevalidation, PrevalidationIssue } from '../../../supabase/functions/_shared/planPrevalidation';
++export interface ContractWindow { from: number; to: number; objective?: string; report: PlanPrevalidation; }
++export function mergeWindowEvidence(global:PlanPrevalidation, window:ContractWindow):PlanPrevalidation {
++  const issues:PrevalidationIssue[]=window.report.issues.map(i=>({...i,week:i.week>0?window.from+i.week-1:0}));
++  const combined=[...new Map([...global.issues,...issues].map(i=>[`${i.week}:${i.code}:${i.severity}`,i])).values()];
++  return {...global,issues:combined,status:combined.some(i=>i.severity==='blocking')?'blocked':combined.length?'coach_review':'admissible'};
++}
++export function contractWindowLabel(window:Pick<ContractWindow,'from'|'to'|'objective'>):string {
++  return `Fenêtre S${window.from}–S${window.to}${window.objective?` · ${window.objective}`:''}`;
++}

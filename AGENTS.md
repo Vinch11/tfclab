@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Keep controlled-prescription preparation offline until coordinated deployment is authorized; explicit decision-engine stimuli and catalogue contracts own prescription fields, while AI commentary cannot alter them. Why: preview and production share generation functions and release identity.
+
 - Intensity domains (LT1 → MLSS → VO₂max) are defined only in `src/lib/zones/tfclDoctrine.ts`; zones, workouts and AI prompts must reference a doctrine domain, never hardcoded % VMA. Why: author-named methods were redefining intensities inconsistently.
 
 ## Pourquoi cette section existe
