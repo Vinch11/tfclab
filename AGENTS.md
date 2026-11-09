@@ -1,6 +1,7 @@
 # Architecture rules
 
 - Nolio v2 period imports prefill only empty observed snapshot fields after coach selection; never infer thresholds or confirmed protocols from records. Why: best efforts are not laboratory measurements.
+- Nolio test review distinguishes quick records from coach-confirmed protocols; running sprint distance and VMA conversions require explicit units and protocol confirmation, and never write VLamax, FTP or CSS. Why: records cannot automatically certify a test or laboratory measurement.
 - Nolio multi-sport reads query each selected variant independently and retain its base sport; suspend prefill if any response is incomplete or fails. Why: indoor/outdoor variants must aggregate without mixing running and cycling measurements or hiding missing reads.
 - A project-level Nolio personal token is usable only when the verified app email matches the Nolio owner profile email; tokens and owner identity stay server-side. Why: authentication alone does not authorize another coach to use a shared key.
 

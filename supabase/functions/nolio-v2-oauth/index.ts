@@ -3,7 +3,7 @@
 // Tokens never leave the server. Read-only: no write call to Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
-import { ownsPersonalConnection, validPeriod } from "./recordContract.ts";
+import { ownsPersonalConnection, validPeriod, canReadTestSession } from "./recordContract.ts";
 
 const AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       return json({ connected: false });
     }
 
-    if (action === "probe" || action === "records" || action === "catalogues") {
+    if (action === "probe" || action === "records" || action === "catalogues" || action === "test_session") {
       if (!conn && !personalKey) return json({ error: "not_connected" }, 400);
       let token = conn ? String(conn.access_token) : personalKey;
       if (!token) return json({ error: "not_connected" }, 403);
@@ -177,6 +177,30 @@ Deno.serve(async (req) => {
         const [athletes, sports, windows] = await Promise.all([collection('me/athletes/'), collection('sports/'), get('metrics/records/')]);
         if (windows.status >= 400) return json({ error:'records_catalogue_unavailable' }, 502);
         return json({ athletes: athletes.items.map(a => ({id:a.id,name:a.name,has_api_access:a.has_api_access})), sports: sports.items.map(s => ({id:s.id,name:s.name,sport_base:s.sport_base})), windows:(windows.data as {windows?: unknown})?.windows, complete:athletes.complete && sports.complete });
+      }
+      if (action === 'test_session') {
+        if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training)) return json({error:'invalid_session_request'},400);
+        const athletes=await collection('me/athletes/');
+        if(!athletes.complete||!athletes.items.some(a=>a.id===body.athlete&&a.has_api_access===true))return json({error:'athlete_not_accessible'},403);
+        const query=new URLSearchParams({athlete:body.athlete,from:body.from,to:body.to});
+        const sessions=await collection('real/trainings/?'+query);
+        if(!sessions.complete)return json({error:'incomplete_session_list'},502);
+        if(!canReadTestSession(body.athlete,body.training,athletes.items,sessions.items,athletes.complete&&sessions.complete))return json({error:'session_outside_athlete_period'},403);
+        const laps=await get(`real/trainings/${body.training}/laps/`);
+        if(laps.status===204)return json({laps:[],available:false});
+        if(laps.status>=400)return json({error:'session_laps_unavailable',status:laps.status},502);
+        // Return measured lap data only, not signed file URLs or arbitrary metadata.
+        const payload=laps.data as {data?:unknown[];laps?:unknown[]};
+        const list=Array.isArray(laps.data)?laps.data:payload?.data??payload?.laps;
+        if(!Array.isArray(list))return json({laps:[],available:false});
+        const clean=(value:unknown):unknown=>{
+          if(typeof value==='number')return Number.isFinite(value)?value:null;
+          if(typeof value==='string')return /^[-+\d:.,% A-Za-z/²_-]{1,60}$/.test(value)&&!value.includes('http')?value:null;
+          if(Array.isArray(value))return value.map(clean);
+          if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).filter(([key])=>!/url|token|secret|email|name|description/i.test(key)).map(([key,v])=>[key,clean(v)]));
+          return null;
+        };
+        return json({laps:list.map(clean),available:list.length>0});
       }
       if (action === 'records') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.sport !== 'string' || !/^spt_[A-Za-z0-9_-]+$/.test(body.sport) || !['ppr','phrr','par','ptr','pvar','pcadr'].includes(body.cat) || !['time','distance'].includes(body.record_type)) return json({error:'invalid_record_request'},400);

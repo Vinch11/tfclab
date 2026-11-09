@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Ajouter une première version des modes Nolio « Rapide — à vérifier » et « Tests vérifiés » : lecture adaptée au sport, propositions vélo D1/D3/D5 et course D1/D3, confirmation coach et provenance ; 5 sports/168 records réels lus, préremplissage VMA vérifié sans sauvegarde, saisie manuelle préservée, ordinateur/mobile OK, 21 tests passés, fonctions déployées avec succès.
+- [ ] Compléter l'analyse précise des journées : répétitions, récupération, seuil, TTE, dérive et Pool Day. Bloqué par l'accès aux intervalles de la séance réelle essayée (lecture refusée/inaccessible) et des contrats d'analyse de protocole encore non validés ; aucun calcul automatique de FTP/CSS ni validation scientifique du test.
+
 - [x] Import Nolio : sélection simultanée des sports et de tous les records ; 5 sports et 103 records réels vérifiés, export et désélection vérifiés, ordinateur/mobile OK, 15 tests réussis ; aucun bilan enregistré ni site publié, fonctions déployées avec succès.
 
 - [x] Ajouter le bilan Nolio v2 par période : records vérifiables, sélection multisport, préremplissage des champs observés vides ; lecture réelle, export et formulaire vérifiés sans sauvegarde ni publication. Les seuils, CSS et tests confirmés ne sont pas déduits des records.

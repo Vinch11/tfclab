@@ -3,10 +3,63 @@ export interface NolioV2Record {
   inner_val?: number; training_id?: string; training_name?: string | null; sport_id?: string;
   sport_name?: string; source?: string;
 }
-export type SnapshotRecordFields = Partial<Record<'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'run_power_1s' | 'run_power_5s' | 'run_power_30s' | 'run_power_60s' | 'run_power_5min' | 'fc_max', string>>;
+export type SnapshotRecordFields = Partial<Record<'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'run_power_1s' | 'run_power_5s' | 'run_power_30s' | 'run_power_60s' | 'run_power_5min' | 'fc_max' | 'sprint_15s' | 'vma', string>>;
 export type ReviewedRecord = NolioV2Record & { sportBase: string };
 
 export interface NolioRecordSport { id: string; name: string; sport_base: string | null }
+
+export function recordQueries(sport: NolioRecordSport, catalogue: NolioRecordSport[]) {
+  const base=catalogue.find(s=>s.name==='Vélo - Route')?.sport_base;
+  return sport.sport_base && sport.sport_base===base
+    ? [{cat:'ppr',axis:'time'}, {cat:'phrr',axis:'time'}]
+    : [{cat:'par',axis:'time'}, {cat:'par',axis:'distance'}, {cat:'phrr',axis:'time'}];
+}
+
+/** Convert only explicitly described pace/speed units, never a guessed sport unit. */
+export function speedMetresPerSecond(record: NolioV2Record): number | null {
+  const value=record.value;
+  if(typeof value!=='number'||!Number.isFinite(value)||value<=0)return null;
+  const unit=record.unit;
+  if(unit==='m/s')return value;
+  if(unit==='km/h')return value/3.6;
+  if(unit==='s/km')return 1000/value;
+  if(unit==='min/km')return 1000/(value*60);
+  if(unit==='s/100m')return 100/value;
+  return null;
+}
+
+export interface TestProposal {
+  id: string; label: string; value: string; unit: string; record: ReviewedRecord;
+  field?: keyof SnapshotRecordFields; requiresProtocol: boolean;
+}
+
+export function testProposals(records: ReviewedRecord[]): TestProposal[] {
+  const proposals:TestProposal[]=[];
+  for(const [i,r] of records.entries()) {
+    if(typeof r.value!=='number'||!Number.isFinite(r.value)||r.value<=0||r.record_type!=='time')continue;
+    if(r.sportBase==='cycling'&&r.cat==='ppr'&&r.unit==='W') {
+      const definition=({5:['D1 vélo · Sprint 5 s','pmax_5s'],30:['D1 vélo · Puissance 30 s','p30s_w'],60:['D1 vélo · Puissance 60 s','p60s_w'],300:['D3 vélo · Puissance 5 min','map5min_w']} as const)[r.inner_val as 5];
+      if(definition)proposals.push({id:String(i),label:definition[0],field:definition[1],value:String(Math.round(r.value)),unit:'W',record:r,requiresProtocol:false});
+      if(r.inner_val===1200)proposals.push({id:String(i),label:'D5 vélo · Puissance 20 min — pas une FTP',value:String(Math.round(r.value)),unit:'W',record:r,requiresProtocol:true});
+    }
+    if(r.sportBase==='running'&&r.cat==='par'&&(r.inner_val===15||r.inner_val===360)) {
+      const speed=speedMetresPerSecond(r);
+      if(speed===null)continue;
+      const sprint=r.inner_val===15;
+      proposals.push({id:String(i),label:sprint?'D1 course · Distance sprint 15 s':'D3 course · VMA du test 6 min',field:sprint?'sprint_15s':'vma',value:String(Math.round((sprint?speed*15:speed*3.6)*10)/10),unit:sprint?'m':'km/h',record:r,requiresProtocol:true});
+    }
+  }
+  return proposals;
+}
+
+export function proposalFields(proposals: TestProposal[], accepted: Set<string>, verified: Set<string>, mode:'quick'|'verified'): SnapshotRecordFields {
+  const fields:SnapshotRecordFields={};
+  for(const p of proposals) {
+    if(!p.field||!accepted.has(p.id)||(p.requiresProtocol||mode==='verified')&&!verified.has(p.id))continue;
+    fields[p.field]=String(Math.max(Number(fields[p.field]??0),Number(p.value)));
+  }
+  return fields;
+}
 
 /** Every selected variant is queried separately; a failed read never becomes an empty successful result. */
 export async function readSportsRecords(

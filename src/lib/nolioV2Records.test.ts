@@ -1,8 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { observedFields, mergeEmptyFields, readSportsRecords, selectableRecordIndices, type ReviewedRecord } from './nolioV2Records';
-import { ownsPersonalConnection, validPeriod } from '../../supabase/functions/nolio-v2-oauth/recordContract';
+import { observedFields, mergeEmptyFields, readSportsRecords, selectableRecordIndices, recordQueries, testProposals, proposalFields, speedMetresPerSecond, type ReviewedRecord } from './nolioV2Records';
+import { ownsPersonalConnection, validPeriod, canReadTestSession } from '../../supabase/functions/nolio-v2-oauth/recordContract';
 const record = (patch: Partial<ReviewedRecord>): ReviewedRecord => ({value: 450, unit:'W', date:'2026-10-15', cat:'ppr', record_type:'time', inner_val:5, sportBase:'cycling', ...patch});
 describe('Nolio period snapshot', () => {
+  it('reads only an accessible athletes session from a complete period list',()=>{
+    const athletes=[{id:'usr_owner',has_api_access:true}],sessions=[{id:'trn_test'}];
+    expect(canReadTestSession('usr_owner','trn_test',athletes,sessions,true)).toBe(true);
+    expect(canReadTestSession('usr_other','trn_test',athletes,sessions,true)).toBe(false);
+    expect(canReadTestSession('usr_owner','trn_other',athletes,sessions,true)).toBe(false);
+    expect(canReadTestSession('usr_owner','trn_test',athletes,sessions,false)).toBe(false);
+    expect(canReadTestSession('usr_owner','trn_test',[{id:'usr_owner',has_api_access:false}],sessions,true)).toBe(false);
+  });
+  it('routes bike to power and running to pace with distance windows',()=>{
+    const bike={id:'b',name:'Vélo - Route',sport_base:'b'};
+    const run={id:'r',name:'Course à pied',sport_base:'r'};
+    expect(recordQueries(bike,[bike,run])).toEqual([{cat:'ppr',axis:'time'},{cat:'phrr',axis:'time'}]);
+    expect(recordQueries(run,[bike,run])).toEqual([{cat:'par',axis:'time'},{cat:'par',axis:'distance'},{cat:'phrr',axis:'time'}]);
+  });
+  it('keeps P20 as an observation and never imports it as FTP',()=>{
+    const proposals=testProposals([record({inner_val:1200,value:300})]);
+    expect(proposals[0].value).toBe('300');
+    expect(proposalFields(proposals,new Set(['0']),new Set(['0']),'verified')).toEqual({});
+  });
+  it('requires protocol confirmation for sprint 15s distance and VMA 6min',()=>{
+    const proposals=testProposals([record({cat:'par',sportBase:'running',unit:'m/s',value:6,inner_val:15}),record({cat:'par',sportBase:'running',unit:'s/km',value:240,inner_val:360})]);
+    expect(proposalFields(proposals,new Set(['0','1']),new Set(),'quick')).toEqual({});
+    expect(proposalFields(proposals,new Set(['0','1']),new Set(['0','1']),'verified')).toEqual({sprint_15s:'90',vma:'15'});
+  });
+  it('requires confirmation even for bike power in verified mode',()=>{
+    const proposals=testProposals([record({inner_val:300,value:350})]);
+    expect(proposalFields(proposals,new Set(['0']),new Set(),'verified')).toEqual({});
+    expect(proposalFields(proposals,new Set(['0']),new Set(['0']),'verified')).toEqual({map5min_w:'350'});
+  });
+  it('does not guess unsupported pace units',()=>{
+    expect(speedMetresPerSecond(record({unit:'/km'}))).toBe(null);
+    expect(testProposals([record({cat:'par',sportBase:'running',unit:'/km',inner_val:15})])).toEqual([]);
+  });
   const sports = [
     {id:'route',name:'Vélo - Route',sport_base:'bike'},
     {id:'indoor',name:'Vélo - Home trainer',sport_base:'bike'},
