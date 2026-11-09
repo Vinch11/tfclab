@@ -11,3 +11,6 @@
 - [x] Corriger les erreurs de type de `nolio-training-load-daily` signalées par le build.
 - [x] Vérifier la fonction concernée et l’état du build (déploiement backend réussi).
 - [x] Corriger l'erreur TS2322 (`metricKey: "force"`) dans checkB11TaperOpeners.test.ts.
+- [x] Génération complète réussie (profil fictif 10 km → 70.3, 32 sem.) : format Gemini, fiches recalées sur le catalogue, remplacement par fiche équivalente, fiches mobilité/brique, un bloc par requête.
+- [ ] Qualité du plan généré : score 69/100 (C), 15 critiques — polarisation < 75 % Z1-Z2 sur 8 semaines, B6 volume, B8 fréquence par sport, B13, même fiche répétée en affûtage. À corriger hors IA sur le plan exporté.
+- [ ] Publication du site : non autorisée ; le site publié reste verrouillé.
