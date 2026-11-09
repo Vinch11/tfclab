@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Import Nolio : sélection simultanée des sports et de tous les records ; 5 sports et 103 records réels vérifiés, export et désélection vérifiés, ordinateur/mobile OK, 15 tests réussis ; aucun bilan enregistré ni site publié, fonctions déployées avec succès.
+
 - [x] Ajouter le bilan Nolio v2 par période : records vérifiables, sélection multisport, préremplissage des champs observés vides ; lecture réelle, export et formulaire vérifiés sans sauvegarde ni publication. Les seuils, CSS et tests confirmés ne sont pas déduits des records.
 
 - [x] Préparer hors runtime une couche de prescription et hydratation de commentaires, avec tests locaux (pas un générateur complet).

@@ -1,6 +1,7 @@
 # Architecture rules
 
 - Nolio v2 period imports prefill only empty observed snapshot fields after coach selection; never infer thresholds or confirmed protocols from records. Why: best efforts are not laboratory measurements.
+- Nolio multi-sport reads query each selected variant independently and retain its base sport; suspend prefill if any response is incomplete or fails. Why: indoor/outdoor variants must aggregate without mixing running and cycling measurements or hiding missing reads.
 - A project-level Nolio personal token is usable only when the verified app email matches the Nolio owner profile email; tokens and owner identity stay server-side. Why: authentication alone does not authorize another coach to use a shared key.
 
 - Keep controlled prescription gated until complete sport-specific and race-stage contracts pass validation; never activate it by globally blocking legacy generation. Explicit reviewed physiology and catalogue contracts own prescription fields; AI commentary cannot alter them. Why: partial catalogue coverage is not a complete planner, and preview and production share functions.

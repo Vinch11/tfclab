@@ -6,6 +6,31 @@ export interface NolioV2Record {
 export type SnapshotRecordFields = Partial<Record<'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'run_power_1s' | 'run_power_5s' | 'run_power_30s' | 'run_power_60s' | 'run_power_5min' | 'fc_max', string>>;
 export type ReviewedRecord = NolioV2Record & { sportBase: string };
 
+export interface NolioRecordSport { id: string; name: string; sport_base: string | null }
+
+/** Every selected variant is queried separately; a failed read never becomes an empty successful result. */
+export async function readSportsRecords(
+  sports: NolioRecordSport[],
+  catalogue: NolioRecordSport[],
+  readSport: (sport: string) => Promise<{ records: NolioV2Record[]; complete: boolean }>,
+): Promise<{ records: ReviewedRecord[]; complete: boolean }> {
+  const bikeBase = catalogue.find(s => s.name === 'Vélo - Route')?.sport_base;
+  const runBase = catalogue.find(s => s.name === 'Course à pied')?.sport_base;
+  const results = await Promise.all(sports.map(async sport => {
+    const data = await readSport(sport.id);
+    const sportBase = sport.sport_base && sport.sport_base === bikeBase ? 'cycling'
+      : sport.sport_base && sport.sport_base === runBase ? 'running' : 'other';
+    return { complete: data.complete, records: data.records.map(r => ({
+      ...r, sport_id: sport.id, sport_name: r.sport_name ?? sport.name, sportBase,
+    })) };
+  }));
+  return { records: results.flatMap(result => result.records), complete: results.every(result => result.complete) };
+}
+
+export function selectableRecordIndices(records: NolioV2Record[]): number[] {
+  return records.flatMap((r, i) => typeof r.value === 'number' && Number.isFinite(r.value) && r.value > 0 ? [i] : []);
+}
+
 /** Only observed, unit-checked values. No FTP, VMA, CSS, TTE or lactate inferred from a best effort. */
 export function observedFields(records: ReviewedRecord[]): SnapshotRecordFields {
   const fields: SnapshotRecordFields = {};
