@@ -25,7 +25,7 @@ export type NolioV2Prepared = {
 };
 export type NolioV2Verify = {
   status: "VERIFIED"; checked: number; present: number; totalConfirmed: number; nextIndex: number | null;
-  missing: Array<{ sessionKey: string; title: string; date: string | null }>;
+  missing: Array<{ opKey: string; remoteId: string; sessionKey: string; title: string; date: string | null }>;
   unknown: Array<{ sessionKey: string; title: string; date: string | null; detail: string }>;
   counts: NolioV2Prepared["counts"]; refused: NolioV2Prepared["refused"];
 };
@@ -57,7 +57,8 @@ export const nolioV2 = {
   prepare: (planVersionId: string) => call<NolioV2Prepared>("nolio-v2-export-plan", { action: "prepare", planVersionId }),
   sendBatch: (planVersionId: string) => call<NolioV2Batch>("nolio-v2-export-plan", { action: "send", planVersionId }),
   verify: (planVersionId: string, fromIndex: number) => call<NolioV2Verify>("nolio-v2-export-plan", { action: "verify", planVersionId, fromIndex }),
-  recreateMissing: (planVersionId: string) => call<{ status: "RELEASED"; released: number; stillPresent: number; unknown: number }>("nolio-v2-export-plan", { action: "recreate_missing", planVersionId }),
+  recreateMissing: (planVersionId: string, opKey: string, remoteId: string) =>
+    call<NolioV2Batch>("nolio-v2-export-plan", { action: "recreate_missing", planVersionId, opKey, remoteId }),
 };
 
 export function isRefusal(x: unknown): x is NolioV2Refusal {
@@ -70,6 +71,9 @@ const REASONS: Record<string, string> = {
   athlete_not_linked: "Cet athlète n'est pas encore relié à un athlète Nolio.",
   athlete_not_managed_by_account: "Cet athlète Nolio n'est pas géré par votre compte Nolio.",
   athlete_api_access_denied: "L'athlète n'a pas autorisé l'accès API dans Nolio.",
+  recreation_target_changed: "La séance a changé depuis la relecture.",
+  deletion_not_confirmed: "La suppression de cette séance n’est plus confirmée.",
+  prescription_changed: "La date ou le contenu diffère de la prescription exportée.",
   nothing_to_send: "Aucune séance exportable dans ce plan.",
   plan_not_owned: "Plan introuvable ou non autorisé.",
   "missing_config:NOLIO_V2_CLIENT_ID/NOLIO_V2_CLIENT_SECRET": "Export Nolio V2 non configuré sur le serveur (identifiants OAuth manquants).",

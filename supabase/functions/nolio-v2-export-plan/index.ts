@@ -7,9 +7,8 @@
  *                              navigateur rappelle tant que status = PROGRESS
  * - verify  { planVersionId, fromIndex }  relit dans Nolio les activités déjà
  *                              créées (404 = supprimée, autre échec = inconnu)
- * - recreate_missing { planVersionId }  libère les activités dont la
- *                              suppression est RELUE (404) ; le prochain « send »
- *                              les recrée (simulation puis création)
+ * - recreate_missing { planVersionId, opKey, remoteId } restaure une seule
+ *   opération après une nouvelle lecture 404 et une simulation réussie.
  *
  * Ordre : getClaims → plan_versions lu avec le client de l'appelant (RLS, coach
  * propriétaire) → lien athlète + autorisation Nolio (service-role) → envoi.
@@ -20,7 +19,7 @@ import { corsHeaders } from "../_shared/nolioV2/cors.ts";
 import { authenticate, json, nativeFetch, UUID } from "../_shared/nolioV2/edgeAuth.ts";
 import { loadConfig } from "../_shared/nolioV2/oauth.ts";
 import { confirmedOpKeys, connectionFromGrant, readLink, readyGrant, refsFromLink } from "../_shared/nolioV2/prodConnection.ts";
-import { confirmedRowsForPlan, prepareExport, sendExportBatch, verifyConfirmedBatch, type LedgerRow } from "../_shared/nolioV2/exportPlan.ts";
+import { confirmedRowsForPlan, recreateMissingOperation, prepareExport, sendExportBatch, verifyConfirmedBatch, type LedgerRow } from "../_shared/nolioV2/exportPlan.ts";
 import { fetchNolioV2Http } from "../_shared/nolioV2/httpFetch.ts";
 import { supabaseNolioV2Ledger } from "../_shared/nolioV2/ledgerSupabase.ts";
 
@@ -36,7 +35,7 @@ Deno.serve(async (req) => {
   let b: Record<string, unknown>;
   try { b = (await req.json()) ?? {}; } catch { return json(400, { status: "REFUSED", reason: "body_not_json" }); }
   if (!["prepare", "send", "verify", "recreate_missing"].includes(String(b.action))) return json(400, { status: "REFUSED", reason: "action_invalid" });
-  const extra = Object.keys(b).filter((k) => !["action", "planVersionId", ...(b.action === "verify" ? ["fromIndex"] : [])].includes(k));
+  const extra = Object.keys(b).filter((k) => !["action", "planVersionId", ...(b.action === "verify" ? ["fromIndex"] : b.action === "recreate_missing" ? ["opKey", "remoteId"] : [])].includes(k));
   if (extra.length) return json(400, { status: "REFUSED", reason: `unknown_fields:${extra.join(",")}` });
   if (typeof b.planVersionId !== "string" || !UUID.test(b.planVersionId)) return json(400, { status: "REFUSED", reason: "plan_version_id_invalid" });
   const planVersionId = b.planVersionId;
@@ -91,18 +90,20 @@ Deno.serve(async (req) => {
       console.log(JSON.stringify({ fn: "nolio-v2-export-plan", action: "verify", checked: v.checked, present: v.present, missing: v.missing.length, unknown: v.unknown.length }));
       return json(200, { status: "VERIFIED", ...v, counts, refused: refusedRows });
     }
-    // recreate_missing : chaque suppression est RELUE ici (404) avant toute libération.
-    let released = 0, stillPresent = 0, unknown = 0;
-    for (const r of confirmedRows) {
-      if (Date.now() > deadline - 8_000) break;
-      const d = await http.getDetail(r.path, r.remote_id!, refs.athleteId);
-      if (d.ok === true) { stillPresent++; continue; }
-      if ((d as { detail: string }).detail !== "http_404") { unknown++; continue; }
-      const { data: ok, error: rErr } = await admin.rpc("nolio_v2_release_deleted_operation", { p_op_key: r.op_key, p_coach_id: coachId, p_remote_id: r.remote_id });
-      if (!rErr && ok === true) released++; else unknown++;
+    if (typeof b.opKey !== "string" || typeof b.remoteId !== "string") {
+      return json(400, { status: "REFUSED", reason: "recreation_target_required" });
     }
-    console.log(JSON.stringify({ fn: "nolio-v2-export-plan", action: "recreate_missing", released, stillPresent, unknown }));
-    return json(200, { status: "RELEASED", released, stillPresent, unknown });
+    const result = await recreateMissingOperation({
+      prepared, planVersionId, refs, connection: connectionFromGrant(ready.grant), http,
+      ledger: supabaseNolioV2Ledger(admin, coachId), dryFetch: (url, init) => fetch(url, init),
+      accessToken, confirmedKeys: new Set(), batchSize: 1, deadline,
+    }, { opKey: b.opKey, remoteId: b.remoteId }, confirmedRows, async row => {
+      const { data, error } = await admin.rpc("nolio_v2_release_deleted_operation", {
+        p_op_key: row.op_key, p_coach_id: coachId, p_remote_id: row.remote_id,
+      });
+      return !error && data === true;
+    });
+    return json(200, result);
   }
 
   const confirmed = await confirmedOpKeys(admin, coachId, planVersionId);

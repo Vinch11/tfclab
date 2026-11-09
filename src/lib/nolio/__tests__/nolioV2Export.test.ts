@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { NOLIO_V2_REQUIRED_SCOPES } from "../../../../supabase/functions/_shared/nolioV2/plannedClient";
+import { describe, expect, it, vi } from "vitest";
 import { mapAiSessionsToNolioV2, tfclSportKey } from "../../../../supabase/functions/_shared/nolioV2/aiTextMapper";
-import { confirmedRowsForPlan, prepareExport, planEngine, verifyConfirmedBatch } from "../../../../supabase/functions/_shared/nolioV2/exportPlan";
+import { confirmedRowsForPlan, recreateMissingOperation, prepareExport, planEngine, verifyConfirmedBatch } from "../../../../supabase/functions/_shared/nolioV2/exportPlan";
 import { autoSportIds, validateSportIds } from "../../../../supabase/functions/_shared/nolioV2/prodConnection";
 import { appOriginFrom, returnLocation } from "../../../../supabase/functions/_shared/nolioV2/oauth";
 import { mapTarget } from "../../../../supabase/functions/_shared/nolioV2/plannedMapper";
@@ -113,12 +114,16 @@ describe("Nolio V2 — bilan relu dans le calendrier (jamais déduit du seul jou
     const http = {
       post: async () => ({ kind: "lost" as const, detail: "unused" }),
       listPage: async () => ({ ok: false as const, detail: "unused" }),
-      getDetail: async (_path: string, id: string) => id === "ptrn_A1" ? { ok: true as const, item: { id } } : { ok: false as const, detail: "http_404" },
+      getDetail: async (_path: string, id: string) => id === "ptrn_A1" ? { ok: true as const, item: { ...a.body, id } } : { ok: false as const, detail: "http_404" },
     };
     const v = await verifyConfirmedBatch({ prepared: p, confirmed, http, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000 });
     expect(v.present).toBe(1);
     expect(v.missing.map(m => m.title)).toEqual(["Endurance"]);
     expect(v.nextIndex).toBeNull();
+    const edited = { ...http, getDetail: async () => ({ok: true as const, item: { ...a.body, id: "ptrn_A1", date_start: "2026-11-11" }}) };
+    const changed = await verifyConfirmedBatch({ prepared: p, confirmed: [rows[0]], http: edited, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now()+60000 });
+    expect(changed.present).toBe(0);
+    expect(changed.unknown[0].detail).toBe("prescription_changed");
     const failing = { ...http, getDetail: async () => ({ ok: false as const, detail: "http_500" }) };
     const u = await verifyConfirmedBatch({ prepared: p, confirmed, http: failing, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000 });
     expect(u.present).toBe(0);
@@ -131,5 +136,35 @@ describe("Nolio V2 — bilan relu dans le calendrier (jamais déduit du seul jou
     const expected = p.rows.filter(r => r.status !== "excluded_rest").length;
     expect(expected).toBe(4);
     expect(p.ops.length).toBe(2);
+  });
+});
+
+describe("recréation ciblée pendant un export partiel", () => {
+  it("restaure seulement la cible, après un 404 et une simulation valide", async () => {
+    const prepared = await prepareExport(aiPlan, refs, VERSION);
+    const [missing, unsent] = prepared.ops;
+    const target = { opKey: missing.opKey, remoteId: "ptrn_old" };
+    const row = { op_key: missing.opKey, remote_id: target.remoteId, path: missing.source.path,
+      session_key: missing.sessionKey, state: "confirmed" };
+    const release = vi.fn(async () => true);
+    const post = vi.fn(async () => ({kind: "response" as const, status: 201, json: {id:"ptrn_new"}}));
+    const dryFetch = vi.fn(async () => new Response(JSON.stringify({dry_run:true,is_valid:true,summary:"valid"}),{status:201}));
+    const args = {
+      prepared, refs, planVersionId:VERSION, batchSize:6, deadline:Date.now()+60000, confirmedKeys:new Set<string>(),
+      connection:{mode:"test-mock" as const,apiVersion:"v2" as const,grantedScopes:[...NOLIO_V2_REQUIRED_SCOPES]},
+      accessToken:"synthetic", dryFetch, http:{ getDetail:async () => ({ok:false as const,detail:"http_404"}),
+        listPage:async () => ({ok:false as const,detail:"unused"}),post },
+      ledger:{claim:async () => ({claimed:true as const}),transition:async () => true},
+    };
+    for (const invalid of [{...target,opKey:unsent.opKey},{...target,remoteId:"ptrn_stale"}]) {
+      expect((await recreateMissingOperation(args,invalid,[row],release)).status).toBe("REFUSED");
+    }
+    dryFetch.mockResolvedValueOnce(new Response("{}",{status:400}));
+    expect((await recreateMissingOperation(args,target,[row],release)).status).toBe("STOPPED");
+    expect(release).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalled();
+    expect((await recreateMissingOperation(args,target,[row],release)).status).toBe("DONE");
+    expect(release).toHaveBeenCalledExactlyOnceWith(row);
+    expect(post).toHaveBeenCalledExactlyOnceWith(missing.source.path,missing.body);
   });
 });

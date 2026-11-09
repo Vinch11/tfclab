@@ -15,7 +15,7 @@ import { sessionsFromPlanJson } from "./planSessions.ts";
 import { preparePlan } from "./planDryRun.ts";
 import { mapAiSessionsToNolioV2 } from "./aiTextMapper.ts";
 import { postDryRun, type DryFetch } from "./dryRun.ts";
-import { sendPlannedV2, type NolioV2Connection, type NolioV2Http, type NolioV2Ledger, type SendReport } from "./plannedClient.ts";
+import { exactRemoteMatch, sendPlannedV2, type NolioV2Connection, type NolioV2Http, type NolioV2Ledger, type SendReport } from "./plannedClient.ts";
 import type { NolioV2Refs, V2Operation } from "./plannedMapper.ts";
 
 export type ExportRow = { sessionKey: string; date: string | null; sport: string; title: string; status: "operation" | "excluded_rest" | "refused"; reason: string | null };
@@ -106,7 +106,7 @@ export async function sendExportBatch(a: {
 export type LedgerRow = { op_key: string; session_key: string; path: string; state: string; remote_id: string | null };
 export type VerifyResult = {
   checked: number; present: number;
-  missing: Array<{ sessionKey: string; title: string; date: string | null }>;
+  missing: Array<{ opKey: string; remoteId: string; sessionKey: string; title: string; date: string | null }>;
   unknown: Array<{ sessionKey: string; title: string; date: string | null; detail: string }>;
   nextIndex: number | null; totalConfirmed: number;
 };
@@ -133,10 +133,46 @@ export async function verifyConfirmedBatch(a: {
     const info = { sessionKey: r.session_key, title: rowOf(r.session_key)?.title ?? r.session_key, date: rowOf(r.session_key)?.date ?? null };
     const d = await a.http.getDetail(r.path, r.remote_id!, a.athleteRef);
     out.checked++;
-    if (d.ok === true) { out.present++; continue; }
+    if (d.ok === true) {
+      const sent = a.prepared.ops.find(op => op.opKey === r.op_key);
+      if (sent && d.item.id === r.remote_id && exactRemoteMatch(d.item, sent.body)) out.present++;
+      else out.unknown.push({ ...info, detail: "prescription_changed" });
+      continue;
+    }
     const detail = (d as { detail: string }).detail;
-    if (detail === "http_404") out.missing.push(info);
+    if (detail === "http_404") out.missing.push({ ...info, opKey: r.op_key, remoteId: r.remote_id! });
     else out.unknown.push({ ...info, detail });
   }
   return out;
+}
+
+/** Restore only the resource shown to the coach. Keep the old receipt until
+ * the dry run succeeds and the sender actually requests its reservation. */
+export async function recreateMissingOperation(
+  args: Parameters<typeof sendExportBatch>[0],
+  target: { opKey: string; remoteId: string },
+  rows: LedgerRow[],
+  release: (row: LedgerRow) => Promise<boolean>,
+) {
+  const op = args.prepared.ops.find(item => item.opKey === target.opKey);
+  const row = rows.find(item => item.op_key === target.opKey && item.remote_id === target.remoteId
+    && item.state === "confirmed" && item.path === op?.source.path);
+  const refused = (reason: string) => ({ status: "REFUSED" as const, reason });
+  if (!op || !row) return refused("recreation_target_changed");
+  const detail = await args.http.getDetail(row.path, target.remoteId, args.refs.athleteId);
+  if (detail.ok === true || detail.detail !== "http_404") return refused("deletion_not_confirmed");
+
+  return sendExportBatch({
+    ...args,
+    prepared: { ...args.prepared, ops: [op] },
+    confirmedKeys: new Set(),
+    batchSize: 1,
+    ledger: {
+      ...args.ledger,
+      async claim(entry) {
+        if (entry.opKey !== target.opKey || !await release(row)) throw new Error("recreation_target_changed");
+        return args.ledger.claim(entry);
+      },
+    },
+  });
 }

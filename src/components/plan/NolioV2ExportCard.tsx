@@ -112,11 +112,13 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
       if (r.nextIndex === null) break;
       from = r.nextIndex;
     }
-    if (!last) return false;
+    if (!last || last.nextIndex !== null) {
+      setMessage({ kind: "error", text: "Relecture du calendrier incomplète." });
+      return false;
+    }
     const expected = last.counts.expected;
     setReport({ expected, present, refused: last.refused, missing, unknown, notCreated: Math.max(0, last.counts.operations - last.totalConfirmed) });
-    setMessage(null);
-    return true;
+    return present === expected && expected > 0 && !prepared?.problems.length && last.counts.refused === 0 && !missing.length && !unknown.length;
   };
 
   const runSendLoop = async (): Promise<boolean> => {
@@ -144,8 +146,8 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
     setBusy("send"); setMessage(null); setReport(null);
     const done = await runSendLoop();
     // Le bilan est toujours relu dans Nolio, même après un arrêt.
-    await verify();
-    if (done) toast.success("Export Nolio terminé : bilan relu dans le calendrier.");
+    const complete = await verify();
+    if (done && complete) toast.success("Export Nolio terminé : bilan relu dans le calendrier.");
     setBusy(null);
   };
 
@@ -156,11 +158,17 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
   };
 
   const recreateMissing = async () => {
-    if (!planVersionId) return;
+    if (!planVersionId || !report?.missing.length) return;
+    cancelRef.current = false;
     setBusy("recreate"); setMessage(null);
-    const r = await nolioV2.recreateMissing(planVersionId);
-    if (isRefusal(r)) { setMessage({ kind: "error", text: reasonLabel(r.reason) }); setBusy(null); return; }
-    if (r.released > 0) await runSendLoop();
+    for (const item of report.missing) {
+      if (cancelRef.current) break;
+      const r = await nolioV2.recreateMissing(planVersionId, item.opKey, item.remoteId);
+      if (isRefusal(r) || r.status !== "DONE") {
+        setMessage({ kind: "error", text: `Recréation interrompue pour « ${item.title} ». ${reasonLabel(r.reason)}` });
+        break;
+      }
+    }
     await verify();
     setBusy(null);
   };
@@ -311,7 +319,12 @@ export function NolioV2ExportCard({ athleteId, athleteName, planVersionId }: Pro
               </div>
             )}
             {report.unknown.length > 0 && (
-              <div className="text-amber-600">{report.unknown.length} non vérifiable(s) (lecture Nolio impossible) : relancez la relecture plus tard.</div>
+              <div className="text-amber-600">
+                {report.unknown.length} séance(s) à vérifier :
+                <ul className="list-disc pl-5">{report.unknown.map(item =>
+                  <li key={item.sessionKey}>{item.date} · {item.title} — {item.detail === "prescription_changed"
+                    ? reasonLabel(item.detail) : "Lecture Nolio impossible."}</li>)}</ul>
+              </div>
             )}
             {report.notCreated > 0 && (
               <div className="text-amber-600">{report.notCreated} séance(s) exportable(s) pas encore créée(s) : relancez l'export.</div>
