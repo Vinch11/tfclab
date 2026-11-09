@@ -118,7 +118,12 @@ Deno.serve(async (req) => {
 
     const { data: conn } = await admin.from("nolio_v2_connections").select("*").eq("user_id", userId).maybeSingle();
 
-    if (action === "status") return json({ connected: !!conn, scopes: conn?.scopes ?? null, expires_at: conn?.expires_at ?? null });
+    const personalKey = Deno.env.get("NOLIO_PERSONAL_TOKEN")?.trim() || null;
+
+    if (action === "status") {
+      if (!conn && personalKey) return json({ connected: true, scopes: "Clé personnelle Nolio (lecture seule)", mode: "personal" });
+      return json({ connected: !!conn, scopes: conn?.scopes ?? null, expires_at: conn?.expires_at ?? null, mode: conn ? "oauth" : null });
+    }
 
     if (action === "disconnect") {
       await admin.from("nolio_v2_connections").delete().eq("user_id", userId);
@@ -126,9 +131,9 @@ Deno.serve(async (req) => {
     }
 
     if (action === "probe") {
-      if (!conn) return json({ error: "not_connected" }, 400);
-      let token = conn.access_token as string;
-      if (conn.expires_at && new Date(conn.expires_at).getTime() - Date.now() < 120_000 && conn.refresh_token) {
+      if (!conn && !personalKey) return json({ error: "not_connected" }, 400);
+      let token = conn ? conn.access_token as string : personalKey!;
+      if (conn && conn.expires_at && new Date(conn.expires_at).getTime() - Date.now() < 120_000 && conn.refresh_token) {
         const r = await tokenRequest({ grant_type: "refresh_token", refresh_token: conn.refresh_token });
         if (!r.ok) return json({ error: "reauthorization_required" }, 401);
         token = String(r.body.access_token);
@@ -145,7 +150,8 @@ Deno.serve(async (req) => {
         return { status: res.status, data };
       };
       const [me, athletes, windows] = await Promise.all([get("me/"), get("me/athletes/?limit=100"), get("metrics/records/")]);
-      const list = (athletes.data as { data?: Array<Record<string, unknown>> })?.data ?? [];
+      const rawList = athletes.data as { data?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
+      const list = Array.isArray(rawList) ? rawList : rawList?.data ?? [];
       return json({
         me: { status: me.status },
         athletes: { status: athletes.status, count: list.length,
