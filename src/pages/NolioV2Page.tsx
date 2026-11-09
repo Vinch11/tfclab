@@ -4,6 +4,7 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
 
 type Probe = {
   me: { status: number };
@@ -24,7 +25,7 @@ async function call(action: string, extra: Record<string, unknown> = {}) {
 export default function NolioV2Page() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<{ connected: boolean; scopes?: string | null } | null>(null);
+  const [status, setStatus] = useState<{ connected: boolean; scopes?: string | null; mode?: string } | null>(null);
   const [probe, setProbe] = useState<Probe | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -69,12 +70,13 @@ export default function NolioV2Page() {
           </p>
           {message && <p className="text-sm">{message}</p>}
           <div className="flex flex-wrap gap-2">
-            <Button onClick={connect} disabled={busy}>{status?.connected ? "Reconnecter Nolio" : "Connecter Nolio"}</Button>
+            {status?.mode !== 'personal' && <Button onClick={connect} disabled={busy}>{status?.connected ? "Reconnecter Nolio" : "Connecter Nolio"}</Button>}
             {status?.connected && <Button variant="outline" onClick={runProbe} disabled={busy}>Tester la lecture</Button>}
           </div>
           {status?.scopes && <p className="text-xs text-muted-foreground">Permissions accordées : {status.scopes}</p>}
         </CardContent>
       </Card>
+      {status?.connected && <NolioPeriodRecords/>}
       {probe && (
         <Card>
           <CardHeader><CardTitle>Ce que Nolio renvoie</CardTitle></CardHeader>

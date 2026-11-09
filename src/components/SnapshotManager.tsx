@@ -23,6 +23,8 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
+import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
+import { mergeEmptyFields } from "@/lib/nolioV2Records";
 import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
@@ -482,6 +484,15 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           </div>
         );
       })()}
+
+      {!isEditOpen && <details className="border-b border-border pb-3">
+        <summary className="cursor-pointer py-3 text-sm font-medium">Nolio v2 — choisir une période de tests</summary>
+        <p className="text-sm text-muted-foreground">Bilan de {athleteName} · Vérifiez que l’athlète Nolio sélectionné correspond.</p>
+        <NolioPeriodRecords onApply={(fields, notes) => setFormData(prev => ({
+          ...mergeEmptyFields(prev, fields),
+          coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
+        }))}/>
+      </details>}
 
       <div className="grid grid-cols-2 gap-4">
         <div>

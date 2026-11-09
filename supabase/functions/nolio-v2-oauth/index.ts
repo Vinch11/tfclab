@@ -3,6 +3,7 @@
 // Tokens never leave the server. Read-only: no write call to Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { ownsPersonalConnection, validPeriod } from "./recordContract.ts";
 
 const AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -59,6 +60,15 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "");
 
+    // A shared personal key must never become accessible to another signed-in coach.
+    const configuredPersonalKey = Deno.env.get("NOLIO_PERSONAL_TOKEN")?.trim();
+    let personalKey: string | null = null;
+    if (configuredPersonalKey) {
+      const profileResponse = await fetch(API + "settings/profile/", { headers: { Authorization: `Bearer ${configuredPersonalKey}` } });
+      const profile = await profileResponse.json().catch(() => null);
+      if (profileResponse.ok && ownsPersonalConnection(claims?.claims?.email, profile?.email)) personalKey = configuredPersonalKey;
+    }
+
     if (action === "start") {
       const state = randomToken(), verifier = randomToken(48);
       await admin.from("nolio_v2_oauth_states").delete().lt("expires_at", new Date().toISOString());
@@ -95,7 +105,7 @@ Deno.serve(async (req) => {
 
     if (action === "personal_probe") {
       // Personal API key (nolio_sk_…): read-only GETs only, never returned to the client.
-      const pk = Deno.env.get("NOLIO_PERSONAL_TOKEN")?.trim();
+      const pk = personalKey;
       if (!pk) return json({ error: "missing_personal_token" }, 400);
       const get = async (path: string) => {
         const res = await fetch(API + path, { headers: { Authorization: `Bearer ${pk}`, Accept: "application/json" } });
@@ -118,8 +128,6 @@ Deno.serve(async (req) => {
 
     const { data: conn } = await admin.from("nolio_v2_connections").select("*").eq("user_id", userId).maybeSingle();
 
-    const personalKey = Deno.env.get("NOLIO_PERSONAL_TOKEN")?.trim() || null;
-
     if (action === "status") {
       if (!conn && personalKey) return json({ connected: true, scopes: "Clé personnelle Nolio (lecture seule)", mode: "personal" });
       return json({ connected: !!conn, scopes: conn?.scopes ?? null, expires_at: conn?.expires_at ?? null, mode: conn ? "oauth" : null });
@@ -130,9 +138,10 @@ Deno.serve(async (req) => {
       return json({ connected: false });
     }
 
-    if (action === "probe") {
+    if (action === "probe" || action === "records" || action === "catalogues") {
       if (!conn && !personalKey) return json({ error: "not_connected" }, 400);
-      let token = conn ? conn.access_token as string : personalKey!;
+      let token = conn ? String(conn.access_token) : personalKey;
+      if (!token) return json({ error: "not_connected" }, 403);
       if (conn && conn.expires_at && new Date(conn.expires_at).getTime() - Date.now() < 120_000 && conn.refresh_token) {
         const r = await tokenRequest({ grant_type: "refresh_token", refresh_token: conn.refresh_token });
         if (!r.ok) return json({ error: "reauthorization_required" }, 401);
@@ -149,6 +158,37 @@ Deno.serve(async (req) => {
         try { data = JSON.parse(text); } catch { data = text.slice(0, 300); }
         return { status: res.status, data };
       };
+      const collection = async (path: string) => {
+        const items: Array<Record<string, unknown>> = [];
+        for (let page = 0; page < 20; page++) {
+          const separator = path.includes('?') ? '&' : '?';
+          const last = items.at(-1)?.id;
+          const result = await get(path + separator + 'limit=100' + (last ? '&starting_after=' + encodeURIComponent(String(last)) : ''));
+          if (result.status >= 400) throw new Error('nolio_read_failed');
+          const data = result.data as { data?: Array<Record<string, unknown>>; has_more?: boolean };
+          if (!Array.isArray(data.data)) throw new Error('invalid_collection');
+          items.push(...data.data);
+          if (!data.has_more) return { items, complete: true };
+          if (!data.data.length || !items.at(-1)?.id) break;
+        }
+        return { items, complete: false };
+      };
+      if (action === 'catalogues') {
+        const [athletes, sports, windows] = await Promise.all([collection('me/athletes/'), collection('sports/'), get('metrics/records/')]);
+        if (windows.status >= 400) return json({ error:'records_catalogue_unavailable' }, 502);
+        return json({ athletes: athletes.items.map(a => ({id:a.id,name:a.name,has_api_access:a.has_api_access})), sports: sports.items.map(s => ({id:s.id,name:s.name,sport_base:s.sport_base})), windows:(windows.data as {windows?: unknown})?.windows, complete:athletes.complete && sports.complete });
+      }
+      if (action === 'records') {
+        if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.sport !== 'string' || !/^spt_[A-Za-z0-9_-]+$/.test(body.sport) || !['ppr','phrr','par','ptr','pvar','pcadr'].includes(body.cat) || !['time','distance'].includes(body.record_type)) return json({error:'invalid_record_request'},400);
+        const [athletes, sports] = await Promise.all([collection('me/athletes/'), collection('sports/')]);
+        if (!athletes.items.some(a => a.id === body.athlete && a.has_api_access === true) || !sports.items.some(s => s.id === body.sport)) return json({error:'athlete_or_sport_not_accessible'},403);
+        const query = new URLSearchParams({athlete:body.athlete,sports:body.sport,cat:body.cat,record_type:body.record_type,from:body.from,to:body.to,top:'1'});
+        const result = await get('metrics/records/?' + query);
+        if (result.status >= 400) return json({error:result.status === 429 ? 'nolio_rate_limit' : 'records_read_failed',status:result.status},502);
+        const payload = result.data as {data?: Array<Record<string, unknown>>;has_more?: boolean};
+        if (!Array.isArray(payload.data)) return json({error:'invalid_records_response'},502);
+        return json({records:payload.data.map(r => ({value:r.value,unit:r.unit,date:r.date,cat:r.cat,record_type:r.record_type,inner_val:r.inner_val,source:r.source,training_id:r.training_id,training_name:r.training_name,sport_id:r.sport_id,sport_name:r.sport_name})),complete:payload.has_more === false});
+      }
       const [me, athletes, windows] = await Promise.all([get("me/"), get("me/athletes/?limit=100"), get("metrics/records/")]);
       const rawList = athletes.data as { data?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
       const list = Array.isArray(rawList) ? rawList : rawList?.data ?? [];

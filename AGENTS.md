@@ -1,5 +1,8 @@
 # Architecture rules
 
+- Nolio v2 period imports prefill only empty observed snapshot fields after coach selection; never infer thresholds or confirmed protocols from records. Why: best efforts are not laboratory measurements.
+- A project-level Nolio personal token is usable only when the verified app email matches the Nolio owner profile email; tokens and owner identity stay server-side. Why: authentication alone does not authorize another coach to use a shared key.
+
 - Keep controlled prescription gated until complete sport-specific and race-stage contracts pass validation; never activate it by globally blocking legacy generation. Explicit reviewed physiology and catalogue contracts own prescription fields; AI commentary cannot alter them. Why: partial catalogue coverage is not a complete planner, and preview and production share functions.
 
 - Intensity domains (LT1 → MLSS → VO₂max) are defined only in `src/lib/zones/tfclDoctrine.ts`; zones, workouts and AI prompts must reference a doctrine domain, never hardcoded % VMA. Why: author-named methods were redefining intensities inconsistently.

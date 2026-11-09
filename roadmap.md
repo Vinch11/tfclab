@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Ajouter le bilan Nolio v2 par période : records vérifiables, sélection multisport, préremplissage des champs observés vides ; lecture réelle, export et formulaire vérifiés sans sauvegarde ni publication. Les seuils, CSS et tests confirmés ne sont pas déduits des records.
+
 - [x] Préparer hors runtime une couche de prescription et hydratation de commentaires, avec tests locaux (pas un générateur complet).
 - [x] Préparer hors runtime une correction candidate du contrat global et des objectifs par semaine, avec tests 33/15 semaines.
 - [x] Vérifier les refus de champs prescriptifs et la couverture complète dans les modules hors runtime, plus les prévalidations existantes.

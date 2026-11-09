@@ -1,0 +1,79 @@
+import { useEffect, useState } from 'react';
+import { FunctionsHttpError } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Download, Search, Check } from 'lucide-react';
+import { observedFields, recordNotes, type NolioV2Record, type ReviewedRecord, type SnapshotRecordFields } from '@/lib/nolioV2Records';
+
+type Catalogues = {athletes:{id:string;name:string;has_api_access:boolean}[];sports:{id:string;name:string;sport_base:string|null}[];windows:Record<string,{label:string;time:number[];distance:number[]}>;complete:boolean};
+async function read(action:string, args:Record<string,unknown> = {}) {
+  const {data,error} = await supabase.functions.invoke('nolio-v2-oauth',{body:{action,...args}});
+  if(error) throw new Error(error instanceof FunctionsHttpError ? await error.context.text() : error.message);
+  return data;
+}
+export function NolioPeriodRecords({onApply}:{onApply?:(fields:SnapshotRecordFields, notes:string)=>void}) {
+  const [catalogues,setCatalogues]=useState<Catalogues|null>(null);
+  const [athlete,setAthlete]=useState(''); const [sport,setSport]=useState('');
+  const [from,setFrom]=useState(''); const [to,setTo]=useState('');
+  const [cat,setCat]=useState('ppr'); const [axis,setAxis]=useState('time');
+  const [records,setRecords]=useState<ReviewedRecord[]>([]); const [selected,setSelected]=useState<Set<number>>(new Set());
+  const [busy,setBusy]=useState(false); const [error,setError]=useState(''); const [complete,setComplete]=useState(true);
+  const [period,setPeriod]=useState<{from:string;to:string}|null>(null);
+  const [basket,setBasket]=useState<ReviewedRecord[]>([]);
+  const [confirmedAthlete,setConfirmedAthlete]=useState(false);
+  useEffect(()=>{let active=true;read('catalogues').then(data=>{if(active)setCatalogues(data);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
+  const reset=()=>{setRecords([]);setSelected(new Set());setPeriod(null);};
+  const search=async()=>{
+    if(!from || !to || from>to || !athlete || !sport)return;
+    setBusy(true);setError('');reset();
+    try {
+      const data:{records:NolioV2Record[];complete:boolean}=await read('records',{athlete,sport,from,to,cat,record_type:axis});
+      const chosen=catalogues?.sports.find(s=>s.id===sport);
+      const bikeBase=catalogues?.sports.find(s=>s.name==='Vélo - Route')?.sport_base;
+      const runBase=catalogues?.sports.find(s=>s.name==='Course à pied')?.sport_base;
+      const sportBase=chosen?.sport_base && chosen.sport_base===bikeBase?'cycling':chosen?.sport_base && chosen.sport_base===runBase?'running':'other';
+      setRecords(data.records.map(r=>({...r,sportBase})));setComplete(data.complete);setPeriod({from,to});
+    }catch(e){setError((e as Error).message);}finally{setBusy(false);}
+  };
+  const currentSelection=records.filter((_,i)=>selected.has(i));
+  const reviewed=[...basket,...currentSelection];
+  const download=()=>{
+    if(!period)return;
+    const blob=new Blob([JSON.stringify({period,records:reviewed},null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`records-nolio-${period.from}-${period.to}.json`;a.click();URL.revokeObjectURL(url);
+  };
+  return <section className="space-y-4 py-4">
+    <h2 className="text-lg font-semibold">Bilan Nolio par période</h2>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <div><Label htmlFor="nolio-athlete">Athlète Nolio</Label><select id="nolio-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy} onChange={e=>{setAthlete(e.target.value);setBasket([]);setConfirmedAthlete(false);reset();}}><option value="">Choisir un athlète</option>{catalogues?.athletes.map(a=><option key={a.id} value={a.id} disabled={!a.has_api_access}>{a.name}{!a.has_api_access?' — accès refusé':''}</option>)}</select></div>
+      <div><Label htmlFor="nolio-sport">Sport</Label><select id="nolio-sport" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={sport} disabled={busy} onChange={e=>{setSport(e.target.value);reset();}}><option value="">Choisir un sport</option>{catalogues?.sports.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+      <div><Label htmlFor="nolio-from">Du</Label><Input id="nolio-from" type="date" value={from} max={to||undefined} disabled={busy} onChange={e=>{setFrom(e.target.value);setBasket([]);reset();}}/></div>
+      <div><Label htmlFor="nolio-to">Au (inclus)</Label><Input id="nolio-to" type="date" value={to} min={from||undefined} disabled={busy} onChange={e=>{setTo(e.target.value);setBasket([]);reset();}}/></div>
+      <div><Label htmlFor="nolio-category">Records</Label><select id="nolio-category" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={cat} disabled={busy} onChange={e=>{setCat(e.target.value);reset();}}>{Object.entries(catalogues?.windows??{}).map(([key,w])=><option key={key} value={key}>{w.label}</option>)}</select></div>
+      <div><Label htmlFor="nolio-axis">Fenêtres</Label><select id="nolio-axis" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={axis} disabled={busy} onChange={e=>{setAxis(e.target.value);reset();}}><option value="time">Durées</option><option value="distance">Distances</option></select></div>
+    </div>
+    {error && <p role="alert" className="text-sm text-destructive">Lecture impossible : {error}</p>}
+    {catalogues && !catalogues.complete && <p className="text-sm text-destructive">Liste Nolio incomplète.</p>}
+    <Button onClick={search} disabled={busy||!catalogues||!athlete||!sport||!from||!to||from>to}><Search className="mr-2 h-4 w-4"/>{busy?'Lecture…':'Lire les records'}</Button>
+    {period && <>
+      <p className="text-sm text-muted-foreground">{records.length} records · {reviewed.length} retenus · {period.from} → {period.to}</p>
+      {!complete && <p role="alert" className="text-destructive text-sm">Réponse incomplète : préremplissage suspendu.</p>}
+      {records.length===0 && <p className="text-sm">Données insuffisantes sur cette période.</p>}
+      <div className="max-h-80 overflow-auto divide-y divide-border">
+        {records.map((r,i)=><label key={i} className="flex items-start gap-3 py-3 text-sm">
+          <Checkbox aria-label={`Retenir le record ${i+1}`} checked={selected.has(i)} disabled={typeof r.value!=='number'||!Number.isFinite(r.value)||r.value<=0} onCheckedChange={checked=>setSelected(prev=>{const next=new Set(prev);if(checked===true)next.add(i);else next.delete(i);return next;})}/>
+          <span className="min-w-0 break-words"><span className="font-medium">{r.inner_val??'?'} {r.record_type==='distance'?'m':'s'} · {r.value??'Indisponible'} {r.unit}</span><br/>{r.sport_name??'Sport non fourni'} · {r.date??'Date non fournie'}<br/><span className="text-muted-foreground">{r.training_name??'Séance non fournie'}{r.training_id?` · ${r.training_id}`:''} · Effort enregistré, test non confirmé</span></span>
+        </label>)}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" disabled={!selected.size||!complete} onClick={()=>{setBasket(prev=>[...prev,...currentSelection]);setSelected(new Set());}}>Garder et poursuivre</Button>
+        <Button variant="outline" disabled={!reviewed.length} onClick={download}><Download className="mr-2 h-4 w-4"/>Exporter la sélection</Button>
+        {onApply && <Button disabled={!reviewed.length||!complete||!confirmedAthlete} onClick={()=>onApply(observedFields(reviewed),recordNotes(reviewed,period.from,period.to))}><Check className="mr-2 h-4 w-4"/>Préremplir les champs vides</Button>}
+      </div>
+      {onApply && <label className="flex items-center gap-3 py-2 text-sm"><Checkbox checked={confirmedAthlete} onCheckedChange={v=>setConfirmedAthlete(v===true)}/>Je confirme que cet athlète Nolio correspond à ce bilan.</label>}
+    </>}
+  </section>;
+}
