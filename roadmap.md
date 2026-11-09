@@ -12,5 +12,6 @@
 - [x] Vérifier la fonction concernée et l’état du build (déploiement backend réussi).
 - [x] Corriger l'erreur TS2322 (`metricKey: "force"`) dans checkB11TaperOpeners.test.ts.
 - [x] Génération complète réussie (profil fictif 10 km → 70.3, 32 sem.) : format Gemini, fiches recalées sur le catalogue, remplacement par fiche équivalente, fiches mobilité/brique, un bloc par requête.
-- [ ] Qualité du plan généré : score 69/100 (C), 15 critiques — polarisation < 75 % Z1-Z2 sur 8 semaines, B6 volume, B8 fréquence par sport, B13, même fiche répétée en affûtage. À corriger hors IA sur le plan exporté.
+- [x] Corrigé : course B placée sur son vrai jour, fiches dures en semaine de décharge remplacées par une fiche facile du même sport, nouvel essai unique d'un bloc refusé, part des sports mesurée en temps, renforcement exclu de la répartition d'intensité, titres catalogue non ré-étiquetés, cockpit QA sur le plan complet.
+- [ ] Qualité sportive restante (plan fictif 70.3, 32 sem.) : trop de séances dures en construction (le gabarit hebdo de l'app prévoit 7 séances clés), vélo sous-dosé et sortie longue vélo absente en base, pas de jour de repos (11 séances + 4 jours doubles), même fiche répétée. Décision coach requise sur le nombre de séances dures par semaine.
 - [ ] Publication du site : non autorisée ; le site publié reste verrouillé.

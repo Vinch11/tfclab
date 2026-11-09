@@ -1730,6 +1730,52 @@ function ensureRaceDaySession(
 
 
 
+/** Course intermédiaire (B/C) déclarée par le coach, en semaine/jour GLOBAUX. */
+export interface IntermediateRaceDay {
+  globalWeek: number;
+  /** Jour en minuscules ("samedi"...). */
+  day: string;
+  objectiveKey: string | null;
+  label: string;
+}
+
+/**
+ * Only the final week gets an automatic race day (ensureRaceDaySession).
+ * A declared B/C race inside the plan was left to the model and was missing
+ * from real plans (S8 10 km, 2026-11-09). The race is a coach fact (date),
+ * not a prescription choice: it is placed on its real day, and the other
+ * sessions of that day are removed (no training on top of a race).
+ */
+export function ensureIntermediateRaceDays(
+  chunks: PlanChunk[],
+  races: readonly IntermediateRaceDay[] | null | undefined,
+  counters: ReconcilerCounters,
+  logs: string[],
+  globalWeekOffset?: number | null,
+): void {
+  if (!races?.length) return;
+  const offset = globalWeekOffset ?? 0;
+  for (const race of races) {
+    const week = chunks.flatMap(ch => ch.weeks ?? []).find(w => (w.weekNumber ?? 0) + offset === race.globalWeek);
+    if (!week) continue;
+    const sessions = (week.sessions ?? []) as PlanSession[];
+    if (sessions.some(s => isRaceDaySession({ title: s.title ?? "", details: s.details ?? "" }))) continue;
+    const spec = RACE_DAY_SPEC[String(race.objectiveKey ?? "")] ?? { sport: "run" as const, durationMin: 60, label: race.label };
+    const raceSession = makeRaceSession(
+      race.day,
+      `🏁 COURSE B — Jour J (${spec.label})`,
+      `Course intermédiaire déclarée par le coach (${race.label}). Échauffement selon protocole, ` +
+        `pacing conforme à l'objectif fixé, sans prise de risque compromettant l'objectif principal.`,
+      spec.sport,
+      spec.durationMin,
+    );
+    const removed = sessions.filter(s => String((s as { day?: string }).day ?? "").toLowerCase() === race.day).length;
+    week.sessions = [...sessions.filter(s => String((s as { day?: string }).day ?? "").toLowerCase() !== race.day), raceSession] as typeof week.sessions;
+    counters.race_day_inserted = (counters.race_day_inserted ?? 0) + 1;
+    logs.push(`[race_day_inserted] S${race.globalWeek} — course intermédiaire ${race.label} (${race.day}, ${removed} séance(s) du jour retirée(s))`);
+  }
+}
+
 // ── API publique ───────────────────────────────────────────────────────────
 
 
@@ -2049,6 +2095,8 @@ function enforceDemandingAccumulation(
 }
 
 export interface RunReconcilerOptions {
+  /** Courses B/C déclarées (semaine/jour globaux) — jour de course garanti. */
+  intermediateRaces?: IntermediateRaceDay[] | null;
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
   objectiveKey?: string | null;
   /** Format Long Course Weekend (3 jours éclatés Ven/Sam/Dim) — 3 étapes de course. */
@@ -2353,6 +2401,7 @@ export function runReconciler(
   }
   enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day, opts.globalTotalWeeks, opts.globalWeekOffset);
+  ensureIntermediateRaceDays(chunks, opts.intermediateRaces, counters, logs, opts.globalWeekOffset);
   alignPostBikeRunClaims(chunks, counters, logs);
 
   // Métrique de diversité finale (observabilité P0).

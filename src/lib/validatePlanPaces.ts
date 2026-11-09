@@ -144,6 +144,13 @@ const TAG_RX = /^\s*\[(VO2(?:\/VMA|\/PMA|\/CSS)?|Race pace|Race power|Marathon|E
 
 function tagSession(s: ParsedSession, isLCW: boolean): boolean {
   if (s.isRest) return false;
+  // Strength, mobility and recovery sessions have no endurance zone: words
+  // such as "tempo" (lifting cadence) must not label them "[Tempo · Z3]".
+  if (/renfo|muscu|strength|force|ppg|gainage|core|mobilit|yoga|recovery|r[eé]cup/i.test(s.sport)) return false;
+  // A catalogue card keeps its reviewed title: a regex guess from its text
+  // labelled an easy run with strides "[LT2 · seuil]" (real plan, 2026-11-09).
+  const ref = s as { custom?: boolean; catalogId?: string | null };
+  if (ref.custom === false && typeof ref.catalogId === "string" && ref.catalogId) return false;
   const fullText = `${s.title} ${s.details}`;
   const zone = detectDominantZone(fullText);
   if (zone === "none") return false;

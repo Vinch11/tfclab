@@ -860,6 +860,9 @@ function extractWeekMetrics(
       longestSessionMinBySport[sport] = Math.max(longestSessionMinBySport[sport] || 0, d);
       durationMinBySport[sport] = (durationMinBySport[sport] || 0) + d;
     }
+    // Seiler's intensity distribution is an endurance-time measure: strength
+    // and mobility time is excluded (their "tempo" is a lifting cadence).
+    if (normalizeSport(s.sport) === "Renfo") continue;
     const zoneMinutes = estimateSessionZoneMinutes(s, d);
     low += zoneMinutes.low;
     mid += zoneMinutes.mid;
@@ -2465,13 +2468,24 @@ function validateSportRatio(
   // polarisation jusqu'ici (cf. doc du champ), étendue ici après vérification
   // que cette règle a bien le même besoin ("la semaine est-elle HONNÊTEMENT
   // une décharge ?", pas "la charge a-t-elle été RÉELLEMENT réduite ?").
-  const totals: Record<string, number> = {};
+  const counts: Record<string, number> = {};
+  const minutes: Record<string, number> = {};
   for (const wm of metrics) {
     if (wm.isContentOrScheduleDeload || wm.isRaceWeek) continue;
     for (const [sport, count] of Object.entries(wm.sports)) {
-      totals[sport] = (totals[sport] || 0) + count;
+      counts[sport] = (counts[sport] || 0) + count;
+    }
+    for (const [sport, min] of Object.entries(wm.durationMinBySport ?? {})) {
+      minutes[sport] = (minutes[sport] || 0) + min;
     }
   }
+  // The targets are shares of training VOLUME (Lorang tables, "% Volume").
+  // Four 50-min swims are not 36 % of a triathlete's volume: use prescribed
+  // minutes whenever every primary sport present has durations, session
+  // counts only as a fallback for plans without durations.
+  const primary = ["Natation", "Vélo", "Course", "Brick"];
+  const minutesCover = primary.every((sp) => !(counts[sp] > 0) || (minutes[sp] ?? 0) > 0);
+  const totals: Record<string, number> = minutesCover && primary.some((sp) => (minutes[sp] ?? 0) > 0) ? minutes : counts;
 
   // Only count primary sports (exclude Renfo, Repos)
   const swim = (totals["Natation"] || 0);
@@ -2480,7 +2494,8 @@ function validateSportRatio(
   const bikeAdj = bike + Math.round((totals["Brick"] || 0) * 0.5);
   const primaryTotal = swim + bikeAdj + run;
 
-  if (primaryTotal < 10) {
+  const primaryCount = ["Natation", "Vélo", "Course"].reduce((a, sp) => a + (counts[sp] || 0), 0) + (counts["Brick"] || 0);
+  if (primaryCount < 10 || primaryTotal <= 0) {
     return { issues: [], score: 80 }; // Not enough data
   }
 

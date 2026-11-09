@@ -142,6 +142,32 @@ describe("planValidator", () => {
     expect(polarError).toBeDefined();
   });
 
+  it("la répartition par sport d'un 70.3 se mesure en temps d'entraînement, pas en nombre de séances", () => {
+    // 4 natations courtes (4×45 = 180 min), 3 vélos longs (3×120 = 360), 3 courses (3×60 = 180) :
+    // 40 % des séances mais 25 % du temps en natation ; vélo 50 % du temps.
+    const weeks = [1, 2].map((n) => makeWeek(n, [
+      ...[0, 1, 2, 3].map(() => ({ sport: "Natation", title: "Natation Z2", details: "45 min Z2", durationMin: 45 })),
+      ...[0, 1, 2].map(() => ({ sport: "Vélo", title: "Vélo Z2", details: "120 min Z2", durationMin: 120 })),
+      ...[0, 1, 2].map(() => ({ sport: "Course", title: "EF", details: "60 min Z2", durationMin: 60 })),
+    ]));
+    const result = validatePlan(makePlan(weeks), "70.3");
+    const ratio = result.issues.filter(i => i.rule === "sport_ratio");
+    expect(ratio.find(i => i.message.startsWith("Natation"))?.message).toMatch(/^Natation 25%/);
+    expect(ratio.find(i => i.message.startsWith("Vélo"))).toBeUndefined();
+  });
+
+  it("le renforcement (tempo = cadence de levée) ne compte pas dans la répartition d'intensité d'endurance", () => {
+    const week = makeWeek(1, [
+      { sport: "Course", title: "EF 60min", details: "60 min Z2 endurance", durationMin: 60 },
+      { sport: "Vélo", title: "Endurance 90min", details: "90 min Z2", durationMin: 90 },
+      { sport: "Course", title: "Seuil 3x8min", details: "Z4 seuil", durationMin: 30 },
+      { sport: "Renfo", title: "Full body tempo 3-1-1", details: "Squat tempo 3-1-1, Z3", durationMin: 60 },
+      { sport: "Renfo", title: "Gainage tempo", details: "tempo lent Z3", durationMin: 60 },
+    ]);
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.find(i => i.rule === "polarization" && i.severity === "error")).toBeUndefined();
+  });
+
   it("pondère la polarisation en minutes par zone plutôt qu'en nombre de séances entières", () => {
     // Séance réaliste "EF + fin de séance appuyée" : ~56min Z2 (low) suivies de
     // ~4min seuil (high). L'ancienne logique classait la séance ENTIÈRE en

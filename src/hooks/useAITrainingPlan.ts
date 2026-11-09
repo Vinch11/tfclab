@@ -38,7 +38,7 @@ import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/li
 import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import { buildTargetTable, formatTargetTableBlock, type TargetTable } from "@/lib/plan/targetTable";
-import { runReconciler } from "@/lib/plan/planReconciler";
+import { runReconciler, type IntermediateRaceDay } from "@/lib/plan/planReconciler";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 
 import { normalizeWeeksAndPhases } from "@/engines/plan/normalizeWeeksPhases";
@@ -64,6 +64,21 @@ export function resolvePlanUrl(supabaseUrl: string, pilotFunctionName?: string):
     ? pilotFunctionName
     : "ai-training-plan";
   return `${supabaseUrl}/functions/v1/${functionName}`;
+}
+
+const FR_DAYS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+/** Declared B/C races as GLOBAL plan week + weekday, from the coach's dates. */
+export function intermediateRaceDays(cfg: Pick<PlanConfig, "raceGoals" | "planStartDate">): IntermediateRaceDay[] {
+  const start = cfg.planStartDate ? Date.parse(`${cfg.planStartDate.slice(0, 10)}T00:00:00Z`) : NaN;
+  if (!Number.isFinite(start) || !Array.isArray(cfg.raceGoals)) return [];
+  return cfg.raceGoals.flatMap((g) => {
+    if (!g?.raceDate || g.priority === "A") return [];
+    const t = Date.parse(`${String(g.raceDate).slice(0, 10)}T00:00:00Z`);
+    const days = Math.round((t - start) / 86_400_000);
+    if (!Number.isFinite(t) || days < 0) return [];
+    return [{ globalWeek: Math.floor(days / 7) + 1, day: FR_DAYS[new Date(t).getUTCDay()],
+      objectiveKey: g.objective ? normalizeObjectiveKey(g.objective) : null, label: g.raceName || g.objective || "Course B" }];
+  });
 }
 
 /** Nombre maximal de blocs standards générés par requête HTTP (cf. generatePlanWindowed). */
@@ -1156,6 +1171,7 @@ export function useAITrainingPlan() {
                 // fenêtre), ils valent totalWeeks/0 et ne changent rien.
                 globalTotalWeeks: effTotalWeeks,
                 globalWeekOffset: weekOffset,
+                intermediateRaces: intermediateRaceDays(planConfig),
                 // Fix B3 + fix "traitement des limiteurs" : même liste (TOUS les
                 // limiteurs, pas seulement L1) que le serveur transmet à
                 // extractLimiterKeywords/applyReconciler (jsonPlanHandler.ts)
