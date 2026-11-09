@@ -63,9 +63,10 @@ Deno.test("buildUserPrompt — cycle Marathon intermédiaire (catalogObjective) 
     identifiedLimitersRaw: [],
     crossTrainingMaintenance: { natation: true },
   });
-  assertStringIncludes(prompt, "VERROU SPORT OBJECTIF — RUNNING ROUTE");
+  // Consigne coach (2026-11) : avant un triathlon, maintien réel 2×/semaine.
+  assertStringIncludes(prompt, "AVANT TRIATHLON");
   assert(!prompt.includes("NATATION INTERDITE"));
-  assertStringIncludes(prompt, "NATATION AUTORISÉE EN MAINTIEN LÉGER");
+  assertStringIncludes(prompt, "Natation en MAINTIEN RÉEL : 2 séances/semaine");
 });
 
 Deno.test("buildUserPrompt — RAPPEL COHÉRENCE MARATHON reflète le toggle coach (pas de divergence avec le VERROU SPORT)", () => {

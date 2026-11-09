@@ -215,7 +215,7 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
   // avant l'Ironman qui suit. `maintenanceSports` réinjecte une dose minimale
   // (≤1 séance chacun, famille "recuperation" uniquement) sans revenir au mix
   // ~1/3-1/3-1/3 d'avant le fix précédent.
-  it("maintenanceSports réinjecte ≤1 séance récupération par sport, sans revenir à une représentation équilibrée", () => {
+  it("maintenanceSports réinjecte un maintien réel (≤3 fiches par sport : facile, endurance/technique, seuil), sans représentation équilibrée", () => {
     const totalWeeks = 39;
     const cat = buildWorkoutCatalog("Marathon", 16, 22, totalWeeks, {
       maxItems: 45,
@@ -228,14 +228,15 @@ describe("buildWorkoutCatalog — F-CHUNK-STRUCT structural coverage", () => {
     const bikeEntries = cat.filter(e => e.sport === "cyclisme" || e.sport === "bike");
     const swimEntries = cat.filter(e => e.sport === "natation" || e.sport === "swim");
 
-    expect(bikeEntries.length).toBeLessThanOrEqual(1);
-    expect(swimEntries.length).toBeLessThanOrEqual(1);
+    expect(bikeEntries.length).toBeLessThanOrEqual(3);
+    expect(swimEntries.length).toBeLessThanOrEqual(3);
+    expect(cat.filter(e => e.sport === "course").length).toBeGreaterThan(bikeEntries.length + swimEntries.length);
 
     const byId = new Map(WorkoutLibrary.map(w => [w.id, w]));
     for (const e of [...bikeEntries, ...swimEntries]) {
       const fiche = byId.get(e.id);
       expect(fiche, `fiche introuvable: ${e.id}`).toBeDefined();
-      if (fiche) expect(intentFamilyOf(fiche)).toBe("recuperation");
+      if (fiche) expect(["recuperation", "endurance_fondamentale", "technique", "seuil"]).toContain(intentFamilyOf(fiche));
     }
   });
 

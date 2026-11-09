@@ -40,6 +40,8 @@ export interface ParsedWeek {
   theme: string;
   phase: string;
   phaseObjective?: string;
+  /** Objectif du cycle multi-objectifs auquel appartient cette semaine (ex. Marathon avant un Ironman). */
+  cycleObjective?: string;
   volumeTarget?: string;
   /** #7 audit : volume RÉEL calculé par sommation des durées de séances. */
   computedVolumeMin?: number;

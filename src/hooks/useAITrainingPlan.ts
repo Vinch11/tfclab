@@ -1700,7 +1700,13 @@ export function useAITrainingPlan() {
           await generatePlan(athleteData, windowConfig,scopeOptions);
         }
 
-        const windowPlan = lastParsedPlanRef.current;
+        const generatedWindow = lastParsedPlanRef.current;
+        // Each week keeps the objective of its own cycle, so later checks judge
+        // marathon-cycle sessions against the marathon, not the final Ironman.
+        const cycleObjective = windowConfig.catalogObjective ?? planConfig.objective;
+        const windowPlan = generatedWindow && cycleObjective
+          ? { ...generatedWindow, weeks: generatedWindow.weeks.map((w) => ({ ...w, cycleObjective })) }
+          : generatedWindow;
         if (!windowPlan || windowPlan.weeks.length === 0) {
           // generatePlan a déjà affiché son propre toast.error (échec dur,
           // identifiant le bloc/la cause) — on arrête simplement la séquence.

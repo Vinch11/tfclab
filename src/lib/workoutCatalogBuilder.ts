@@ -1562,12 +1562,19 @@ export function buildWorkoutCatalog(
   // recherche part de WorkoutLibrary entière, pas SourceLibrary, car ces
   // sports sont précisément ceux que le filtre principal exclut.
   if (options?.maintenanceSports && options.maintenanceSports.length > 0) {
+    // Maintien réel avant un triathlon (consigne coach) : une fiche facile,
+    // une fiche d'endurance/technique et une fiche au domaine seuil par sport.
+    const MAINTENANCE_FAMILIES: Record<string, string[]> = {
+      cyclisme: ["recuperation", "endurance_fondamentale", "seuil"],
+      natation: ["recuperation", "technique", "seuil"],
+    };
     for (const sport of options.maintenanceSports) {
-      if (selected.some(w => w.sport === sport)) continue; // déjà présent (rotation d'un chunk précédent)
+     for (const family of MAINTENANCE_FAMILIES[sport] ?? ["recuperation"]) {
+      if (selected.some(w => w.sport === sport && intentFamilyOf(w) === family)) continue; // déjà présent
       const candidate = WorkoutLibrary
         .filter(w =>
           w.sport === sport
-          && intentFamilyOf(w) === "recuperation"
+          && intentFamilyOf(w) === family
           && !isTrailWorkout(w)
           && !selectedIds.has(w.id)
           && (s2rGoal === (w.goals || []).includes("start_to_run"))
@@ -1579,10 +1586,11 @@ export function buildWorkoutCatalog(
       if (candidate) {
         selected.push(candidate.workout);
         selectedIds.add(candidate.workout.id);
-        console.log(`[chunk-catalog] maintenance-dose sport=${sport} id=${candidate.workout.id} (chunk=${options?.chunkIndex ?? 0})`);
+        console.log(`[chunk-catalog] maintenance-dose sport=${sport} family=${family} id=${candidate.workout.id} (chunk=${options?.chunkIndex ?? 0})`);
       } else {
-        console.warn(`[chunk-catalog] maintenance-dose sport=${sport} count=0 (aucune candidate "recuperation" disponible — chunk=${options?.chunkIndex ?? 0})`);
+        console.warn(`[chunk-catalog] maintenance-dose sport=${sport} family=${family} count=0 (chunk=${options?.chunkIndex ?? 0})`);
       }
+     }
     }
   }
 

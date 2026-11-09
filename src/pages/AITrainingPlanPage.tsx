@@ -3785,7 +3785,7 @@ export default function AITrainingPlanPage() {
                           className="mt-0.5"
                         />
                         <Label htmlFor="crossTrainingVelo" className="text-xs font-normal cursor-pointer">
-                          🚴 Vélo en récupération active (Z1-Z2, 45-75min, max 1-2×/sem)
+                          {shouldAutoEnableNatationMaintenance(objective, raceGoals) ? "🚴 Vélo en maintien réel avant le triathlon (2×/sem : endurance + sous-seuil court)" : "🚴 Vélo en récupération active (Z1-Z2, 45-75min, max 1-2×/sem)"}
                         </Label>
                       </div>
                       <div className="flex items-start gap-2">
@@ -3799,7 +3799,7 @@ export default function AITrainingPlanPage() {
                           className="mt-0.5"
                         />
                         <Label htmlFor="crossTrainingNatation" className="text-xs font-normal cursor-pointer">
-                          🏊 Natation en maintien léger (Z1 technique/CSS, 20-30min, max 1×/2 sem)
+                          {shouldAutoEnableNatationMaintenance(objective, raceGoals) ? "🏊 Natation en maintien réel avant le triathlon (2×/sem : technique + allure CSS)" : "🏊 Natation en maintien léger (Z1 technique/CSS, 20-30min, max 1×/2 sem)"}
                         </Label>
                       </div>
                     </div>

@@ -43,7 +43,7 @@ Deno.test("buildUserPrompt — cycle Marathon intermédiaire (maxSessionsPerDay=
     !prompt.includes("INTERDICTION ABSOLUE : AUCUNE séance de natation"),
     "le bloc doubles/triples ne doit plus contredire la case 'maintien natation' cochée par le coach",
   );
-  assertStringIncludes(prompt, "Natation autorisée en maintien léger");
+  assertStringIncludes(prompt, "Natation en MAINTIEN RÉEL : 2 séances/semaine");
 });
 
 Deno.test("buildUserPrompt — cycle Marathon intermédiaire, natation NON cochée : la natation reste bien interdite", () => {

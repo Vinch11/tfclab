@@ -758,16 +758,28 @@ function hasVlamaxOrFatMaxLimiter(config: any): boolean {
  * la classe de bug (deux endroits qui répètent la même règle et finissent
  * par se contredire) rencontrée plusieurs fois cet audit.
  */
-function resolveCrossTrainingMaintenance(config: any): { velo: boolean; natation: boolean } {
+function resolveCrossTrainingMaintenance(config: any): { velo: boolean; natation: boolean; triMaintenance: boolean } {
   const raw = config?.crossTrainingMaintenance;
-  return {
-    velo: raw?.velo !== false,
-    natation: raw?.natation === true,
-  };
+  // Cycle course intermédiaire d'un plan dont l'objectif final est un
+  // triathlon : vélo/natation cochés = maintien réel (consigne coach), pas
+  // une simple récupération.
+  const cycle = String(config?.catalogObjective || "");
+  const finalSport = mapObjectiveToSport(String(config?.objective || ""));
+  const triFinal = finalSport === "ironman" || finalSport === "tri_70_3";
+  const velo = raw?.velo !== false;
+  const natation = raw?.natation === true;
+  return { velo, natation, triMaintenance: triFinal && !!cycle && cycle !== String(config?.objective || "") && (velo || natation) };
 }
 
+const TRI_MAINTENANCE_VELO = "Vélo en MAINTIEN RÉEL : 2 séances/semaine — 1 sortie endurance LT1 (60–90 min) + 1 séance courte au domaine sous-seuil/MLSS (ex. 2–3 × 8–12 min), jamais VO₂max, jamais la veille de la sortie longue CAP ou d'une séance CAP clé, jamais en brique.";
+const TRI_MAINTENANCE_NATATION = "Natation en MAINTIEN RÉEL : 2 séances/semaine (30–50 min) — 1 technique/endurance + 1 série au domaine sous-seuil/MLSS (allure CSS), jamais VO₂max.";
+
+
 /** Phrase standard "vélo/natation en maintien" pour les objectifs run_route/trail. */
-function buildCrossTrainingPhrase(xtrain: { velo: boolean; natation: boolean }): string {
+function buildCrossTrainingPhrase(xtrain: { velo: boolean; natation: boolean; triMaintenance?: boolean }): string {
+  if (xtrain.triMaintenance) {
+    return `Cycle course AVANT un triathlon : la course reste prioritaire (sortie longue + séances clés CAP intactes). ${xtrain.velo ? TRI_MAINTENANCE_VELO : "Vélo interdit."} ${xtrain.natation ? TRI_MAINTENANCE_NATATION : "Natation 0%."} Répartition indicative : CAP 60-70% | Vélo 15-25% | Natation 8-12% | Renfo 5-10%.`;
+  }
   const natationPart = xtrain.natation
     ? "Natation autorisée en maintien léger uniquement (Z1 technique/CSS, 20-30min, max 1×/2 semaines), jamais en qualité, jamais pilier du plan."
     : "Natation 0%.";
@@ -790,6 +802,17 @@ function buildObjectiveSportLockLines(config: any): string[] {
 
   if (sport === "run_route") {
     const xtrain = resolveCrossTrainingMaintenance(config);
+    if (xtrain.triMaintenance) {
+      return [
+        `\n### 🚨 VERROU SPORT OBJECTIF — CYCLE ${objectiveKey} AVANT TRIATHLON`,
+        `Objectif du cycle: ${objective || "N/A"} (objectif final: ${config?.objective ?? "N/A"}). La course à pied est le sport principal de ce cycle ; le coach demande de MAINTENIR vélo et natation.`,
+        ...(xtrain.velo ? [`- ✅ ${TRI_MAINTENANCE_VELO}`] : [`- ⛔ VÉLO INTERDIT.`]),
+        ...(xtrain.natation ? [`- ✅ ${TRI_MAINTENANCE_NATATION}`] : [`- ⛔ NATATION INTERDITE.`]),
+        `- ⛔ BRIQUES INTERDITES pendant ce cycle (aucun enchaînement vélo→CAP).`,
+        `- La ligne "Répartition sport" DOIT afficher : CAP 60-70% | Vélo ${xtrain.velo ? "15-25%" : "0%"} | Natation ${xtrain.natation ? "8-12%" : "0%"} | Renfo 5-10%.`,
+        `- Ces séances de maintien remplacent des séances CAP faciles, jamais la sortie longue ni les séances CAP clés.`,
+      ];
+    }
     const natationLine = xtrain.natation
       ? `- ✅ NATATION AUTORISÉE EN MAINTIEN LÉGER UNIQUEMENT : Z1 technique/CSS, 20-30 min, max 1×/2 semaines. Jamais en qualité, jamais pilier du plan.`
       : `- ⛔ NATATION INTERDITE : aucune ligne Sport="Natation", "Swim", "Piscine", "CSS", "crawl".`;
@@ -1744,7 +1767,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         // source de vérité (`resolveCrossTrainingMaintenance`), aucune
         // logique dupliquée.
         const xtrainDoubles = resolveCrossTrainingMaintenance(config);
-        if (sportForDoubles === "run_route") {
+        if (xtrainDoubles.triMaintenance) {
+          lines.push(`  → AUCUNE brique. ${buildCrossTrainingPhrase(xtrainDoubles)} Un double peut associer CAP facile + vélo ou natation de maintien.`);
+        } else if (sportForDoubles === "run_route") {
           lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUN vélo en qualité (Z3+/seuil/VO2/intervalles/SFR), AUCUNE brique triathlon. ${buildCrossTrainingPhrase(xtrainDoubles)} Doubles/triples = CAP + renfo/mobilité principalement.`);
         } else {
           lines.push(`  → ⛔ INTERDICTION ABSOLUE : AUCUNE brique triathlon, AUCUN vélo qualité. ${buildCrossTrainingPhrase(xtrainDoubles)} Toute brique ou séance vélo qualité = erreur bloquante.`);
@@ -2479,13 +2504,13 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   } else if (objKeyForRappel === "Marathon") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE MARATHON");
-    lines.push("- CAP 85-90% | Renfo 10-15%");
+    if (!resolveCrossTrainingMaintenance(config).triMaintenance) lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 2 séances qualité/sem + 1 sortie longue progressive");
     lines.push("- Minimum 5 séances CAP/sem : EF, tempo, seuil, SL, fartlek/côtes");
     lines.push(`- Plan marathon = CAP + renfo/mobilité. ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
   } else if (objKeyForRappel === "Semi") {
     lines.push("\n### ⚠️ RAPPEL COHÉRENCE SEMI-MARATHON");
-    lines.push("- CAP 85-90% | Renfo 10-15%");
+    if (!resolveCrossTrainingMaintenance(config).triMaintenance) lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- Accent VMA + seuil. Minimum 4-5 séances CAP/sem.");
     lines.push("- Séances types : EF Z2, Tempo allure semi, VMA 30/30, Seuil 2×20min, SL 15-20km, Fartlek, Côtes");
     lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
@@ -2519,7 +2544,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     lines.push("- Séances TOUJOURS en terrain trail/sentier, jamais route");
   } else if (["10K", "5K"].includes(objKeyForRappel)) {
     lines.push(`\n### ⚠️ RAPPEL COHÉRENCE ${objKeyForRappel}`);
-    lines.push("- CAP 85-90% | Renfo 10-15%");
+    if (!resolveCrossTrainingMaintenance(config).triMaintenance) lines.push("- CAP 85-90% | Renfo 10-15%");
     lines.push("- 1 seuil/tempo + 1 VMA + 1 sortie longue/sem + EF Z2");
     lines.push(`- ${buildCrossTrainingPhrase(resolveCrossTrainingMaintenance(config))}`);
   } else if (objKeyForRappel === "StartToRun") {
