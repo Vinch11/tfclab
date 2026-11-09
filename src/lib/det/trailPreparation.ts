@@ -50,7 +50,8 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
   for (let w=1; w<=config.weeksAvailable!; w++) {
     const type = inferWeekType(w,config.weeksAvailable!,config.objective,athlete.age,config.deloadCadenceWeeks);
     const reduced = type !== 'load';
-    const count = reduced ? Math.max(2,runs-1) : runs;
+    const minimumRuns = level === 'untrained' && type === 'taper' ? 1 : 2;
+    const count = reduced ? Math.max(minimumRuns,runs-1) : runs;
     const force = type === 'race' ? 0 : strength;
     const quota: WeeklyQuota = {run:fixed(count), bike:fixed(bike), swim:fixed(swim), strength:fixed(force), brick:zero,
       totalSessions:fixed(count+bike+swim+force), maxSessionsPerDay:config.maxSessionsPerDay ?? 1,minFullRestDays:1,

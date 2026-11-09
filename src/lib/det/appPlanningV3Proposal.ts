@@ -1,4 +1,5 @@
-import {completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
+import {trailReturnSources} from '../../../scripts/library-v3/trailReturnSources';
+import {introductoryStrengthSources,completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import {library920CandidatesForProposal,library920Problems,library920SourceMetadata,library920Manifest} from '../../../scripts/library-v3/library920Catalogue';
 import {library920ContextProblems,library920TimingPaces,resolveLibrary920Targets} from './library920Selection';
 import type { FrozenAppPlanningInput } from './appPlanningInput';
@@ -124,9 +125,16 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const levels=['untrained','light','trained','highly_trained'];
   const signal=config.ambitionMeta;
   const knownLevel=signal&&['manual','auto-tss'].includes(signal.trainingLevelSource)?levels.indexOf(signal.trainingLevel):-1;
+  const recentTraining = config.loadHistory?.recentWeeklyHours;
+  if(trail&&knownLevel===0&&(!trailLimits||!Number.isFinite(recentTraining)||(recentTraining??0)<=0))
+    throw Error('Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.');
   const timedSwim=options.completeSessions&&(!options.swimDomainPaces?.recovery||!options.swimDomainPaces?.moderate_lt1);
   const selectedSources=pool.ids.map(findSource).filter((s):s is V3Workout=>!!s).filter(s=>!options.completeSessions||s.sport!=='strength').filter(s=>!timedSwim||s.sport!=='swim');
-  if(options.completeSessions)selectedSources.push(...(road&&knownLevel>=2?trainedStrengthSources:completeStrengthSources));
+  if(options.completeSessions){
+    const strengthSources = knownLevel===0 ? introductoryStrengthSources : road&&knownLevel>=2 ? trainedStrengthSources : completeStrengthSources;
+    selectedSources.push(...strengthSources);
+  }
+  if(options.completeSessions && trail?.key==='trail_short' && knownLevel===0)selectedSources.push(...trailReturnSources);
   if(timedSwim)selectedSources.push(...timedSwimSources);
   let librarySources:V3Workout[]=[];
   if(options.includeLibrary920){
@@ -182,8 +190,12 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const brickDoses=normalizeRepairGoal(config.objective)==='half'?V34_SAFE_RUN_BRICKS.flatMap<{targetDurationMin:number;allowWorksetChange:boolean}>(r=>r.bikeId===source.id?[{targetDurationMin:r.bikeMin,allowWorksetChange:false}]:r.runId===source.id?[{targetDurationMin:r.runMin,allowWorksetChange:false}]:[]):[];
     // These are proposed doses inside the source's declared bounds, not human
     // approvals. The qualified runner and its explicit review remain separate.
-    const settings=[pool.doses[source.id]??{},...brickDoses,...(min!==null?[{targetDurationMin:min,allowWorksetChange:false}]:[]),
-      ...(desired!==undefined?[desired,Math.floor(desired/5)*5,Math.ceil(desired/5)*5].map(targetDurationMin=>({targetDurationMin,allowWorksetChange:true})):[])];
+    const introDoses = trailReturnSources.includes(source) ? source.prescription.parameters
+      .filter(p => p.path === '1.count')
+      .flatMap(p => Array.from({length:p.max-p.min+1}, (_,i) =>
+        ({overrides:{'1.count':p.min+i},allowWorksetChange:true}))) : [];
+    const settings=[pool.doses[source.id]??{},...brickDoses,...introDoses,...(min!==null?[{targetDurationMin:min,allowWorksetChange:false}]:[]),
+      ...(desired!==undefined?[desired,...(trail&&knownLevel===0&&trailLimits?[Math.floor(desired)]:[]),Math.floor(desired/5)*5,Math.ceil(desired/5)*5].map(targetDurationMin=>({targetDurationMin,allowWorksetChange:true})):[])];
     const out:ProposedV3Workout[]=[];
     for(const setting of settings)try{
       const timingPaces=library920TimingPaces(source,swimPaces);
@@ -259,7 +271,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       if(trail&&slot.sport==='run')rows=rows.filter(row=>row.durationMinutes!==null&&(!trailLimits||row.durationMinutes<=(week.week===1?trailLimits.recentMinutes:trailLimits.peakMinutes)));
       if(trail&&week.weekType==='load'&&slot.role==='long'){
         // Native long trail prescriptions contain timed main blocks on slopes or trails.
-        const nativeTerrainLong = ['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092'];
+        const nativeTerrainLong = ['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092','V3P_RUN_205'];
         rows=rows.filter(row=>row.components.some(c=>c.sourceDomain==='moderate_lt1' &&
           (nativeTerrainLong.includes(c.sourceId)||library920SourceMetadata(c.sourceId)?.terrainEffortRequired)));
       }

@@ -2,6 +2,8 @@ import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { buildAppPlanConfig, computeAppAthleteContext, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
 import { DetRefusal, detSupportsObjective, generateDetPlanFromPageInput } from '@/lib/plan/detEngineRun';
+import { auditV3Catalogue } from '../../library-v3/catalogueRuntime';
+import { v3ExtendedCatalogue } from '../../library-v3/supplementalCatalogue';
 import { parseV3PlanProposal } from '@/lib/det/v3ProposalLocalSave';
 import { AMBITION_LEVELS_ORDERED } from '@/types/ambitionLevel';
 import type { V3PlanProposal } from '@/lib/det/appPlanningV3Proposal';
@@ -58,7 +60,7 @@ it('covers the objectives offered by the normal coach form', () => {
   if (subset) expect(selected.map(s => s.objective).sort()).toEqual([...subset].sort());
 });
 
-function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = []) {
+function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = [], history: Partial<Pick<AppPlanFormState,'recentWeeklyHours' | 'recentWeeksCount'>> = {}) {
   const tri = s.objective === '703' || s.objective === 'IM';
   const id = 'SYNTHETIC_DET_' + s.objective;
   const athlete = { id, name: 'Synthetic', objectif: s.objective, birth_date: '1988-03-11',
@@ -77,7 +79,7 @@ function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrd
     sessionsPerWeek: String(s.sessions ?? ''), maxSessionsPerDay: '2', strengthSessionsPerWeek: s.objective === 'Marathon' ? '2' : '1',
     deloadCadence: 'auto', constraints: '', terrainAvailability: 'auto', lockAmbition: false,
     crossTrainingVelo: false, crossTrainingNatation: false, chronicWeeklyHours: '', recentWeeklyHours: '', recentWeeksCount: '',
-    maxDoubleDaysPerWeek: '', coachLimiterOrder: coachOrder, currentAthleteId: id,
+    maxDoubleDaysPerWeek: '', coachLimiterOrder: coachOrder, currentAthleteId: id, ...history,
   };
   const config = buildAppPlanConfig(context.diagnostic, form);
   return { athleteId: id, config, athlete: context.data, diagnostic: context.diagnostic, pageLimiterOrder: coachOrder };
@@ -189,4 +191,29 @@ if (selected.some(s => s.objective === 'TrailShort')) {
     const raceGoals = input.config.raceGoals!.map(g => ({...g, raceDate:'2026-11-22'}));
     await expect(generateDetPlanFromPageInput({...input, config:{...input.config, raceGoals}})).rejects.toThrow(/dernière semaine/);
   });
+}
+
+if (selected.some(s => s.objective === 'TrailShort')) {
+  it('uses recent training and introductory strength in a trail return to training', async () => {
+    const ids = ['V3P_STRENGTH_217','V3P_STRENGTH_218','V3P_RUN_203','V3P_RUN_204','V3P_RUN_205'];
+    const workouts = v3ExtendedCatalogue.workouts.filter(w=>ids.includes(w.id));
+    expect(auditV3Catalogue({...v3ExtendedCatalogue, workouts, count:5, counts:{run:3,strength:2,swim:0,bike:0}})).toEqual([]);
+    const scenario = {objective:'TrailShort',weeks:12,hours:3,distanceKm:8,elevationM:150};
+    const input = inputFor(scenario, 'untrained', 'finisher');
+    await expect(generateDetPlanFromPageInput(input)).rejects.toThrow(/renseigner le volume hebdomadaire récent/);
+    const withHistory = inputFor(scenario, 'untrained', 'finisher', [], {recentWeeklyHours:'3',recentWeeksCount:'4'});
+    const plan = await generateDetPlanFromPageInput({...withHistory, trailLongRunLimits:{recentMinutes:50,peakMinutes:75}});
+    const p = (plan as typeof plan & { _detSourceProposal:V3PlanProposal })._detSourceProposal;
+    expect(p.weeks[0].knownMinutes).toBeLessThanOrEqual(180);
+    const longs = p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.filter(s=>s.role==='long').map(s=>s.knownMinutes)));
+    expect(longs[0]).toBeLessThanOrEqual(50);
+    expect(longs.at(-1)).toBeGreaterThan(longs[0]);
+    expect(Math.max(...longs)).toBeLessThanOrEqual(75);
+    const exercises = p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
+    const strength = exercises.filter(c=>c.sport==='strength');
+    expect(strength.length).toBeGreaterThan(0);
+    expect(strength.every(c=>['V3P_STRENGTH_217','V3P_STRENGTH_218'].includes(c.sourceId) && c.durationMinutes===12)).toBe(true);
+    expect(exercises.every(c=>c.review.minimumLevel==='untrained')).toBe(true);
+    if(process.env.DET_TRAIL_EXAMPLES) writeFileSync(process.env.DET_TRAIL_EXAMPLES+'/TrailReturn.json', JSON.stringify(p));
+  }, 120_000);
 }

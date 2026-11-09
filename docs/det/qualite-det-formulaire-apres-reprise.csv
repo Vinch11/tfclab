@@ -1,0 +1,226 @@
+objectif,niveau saisi,ambition saisie,niveau retenu,ambition retenue,limiteurs,résultat,semaines de charge,semaines dose trail vérifiée,semaines composante tri vérifiée,motif de refus
+IM,auto,finisher,trained,finisher,VLamax,projet à relire,9,0,9,
+IM,auto,age_group,trained,age_group,VLamax,projet à relire,9,0,9,
+IM,auto,competitor,trained,competitor,Durabilité / VLamax / TTE,projet à relire,9,0,9,
+IM,auto,elite,trained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,projet à relire,9,0,9,
+IM,auto,world_class,trained,elite,Durabilité / VLamax / TTE / FTP/kg / VO2max,projet à relire,9,0,9,
+IM,untrained,finisher,untrained,finisher,VLamax,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+IM,untrained,age_group,untrained,finisher,VLamax,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+IM,untrained,competitor,untrained,finisher,Durabilité / VLamax / TTE,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+IM,untrained,elite,untrained,finisher,Durabilité / VLamax / TTE / VO2max / FTP/kg,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+IM,untrained,world_class,untrained,finisher,Durabilité / VLamax / TTE / FTP/kg / VO2max,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+IM,light,finisher,light,finisher,VLamax,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+IM,light,age_group,light,age_group,VLamax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,competitor,light,age_group,Durabilité / VLamax / TTE,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,elite,light,age_group,Durabilité / VLamax / TTE / VO2max / FTP/kg,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,world_class,light,age_group,Durabilité / VLamax / TTE / FTP/kg / VO2max,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,trained,finisher,trained,finisher,VLamax,projet à relire,9,0,9,
+IM,trained,age_group,trained,age_group,VLamax,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+IM,trained,competitor,trained,competitor,Durabilité / VLamax / TTE,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+IM,trained,elite,trained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+IM,trained,world_class,trained,elite,Durabilité / VLamax / TTE / FTP/kg / VO2max,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+IM,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,9,0,9,
+IM,highly_trained,age_group,highly_trained,age_group,VLamax,projet à relire,9,0,9,
+IM,highly_trained,competitor,highly_trained,competitor,Durabilité / VLamax / TTE,projet à relire,9,0,9,
+IM,highly_trained,elite,highly_trained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,projet à relire,9,0,9,
+IM,highly_trained,world_class,highly_trained,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,projet à relire,9,0,9,
+703,auto,finisher,trained,finisher,VLamax,projet à relire,7,0,7,
+703,auto,age_group,trained,age_group,VLamax,projet à relire,7,0,7,
+703,auto,competitor,trained,competitor,VLamax,projet à relire,7,0,7,
+703,auto,elite,trained,elite,VLamax / VO2max / TTE / FTP/kg,projet à relire,7,0,7,
+703,auto,world_class,trained,elite,VLamax / TTE / VO2max / FTP/kg,projet à relire,7,0,7,
+703,untrained,finisher,untrained,finisher,VLamax,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+703,untrained,age_group,untrained,finisher,VLamax,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+703,untrained,competitor,untrained,finisher,VLamax,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+703,untrained,elite,untrained,finisher,VLamax / VO2max / TTE / FTP/kg,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+703,untrained,world_class,untrained,finisher,VLamax / TTE / VO2max / FTP/kg,refus,,,,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.
+703,light,finisher,light,finisher,VLamax,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+703,light,age_group,light,age_group,VLamax,refus,,,,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.
+703,light,competitor,light,age_group,VLamax,refus,,,,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.
+703,light,elite,light,age_group,VLamax / VO2max / TTE / FTP/kg,refus,,,,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.
+703,light,world_class,light,age_group,VLamax / TTE / VO2max / FTP/kg,refus,,,,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.
+703,trained,finisher,trained,finisher,VLamax,projet à relire,7,0,7,
+703,trained,age_group,trained,age_group,VLamax,projet à relire,7,0,7,
+703,trained,competitor,trained,competitor,VLamax,projet à relire,7,0,7,
+703,trained,elite,trained,elite,VLamax / VO2max / TTE / FTP/kg,projet à relire,7,0,7,
+703,trained,world_class,trained,elite,VLamax / TTE / VO2max / FTP/kg,projet à relire,7,0,7,
+703,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,7,0,7,
+703,highly_trained,age_group,highly_trained,age_group,VLamax,projet à relire,7,0,7,
+703,highly_trained,competitor,highly_trained,competitor,VLamax,projet à relire,7,0,7,
+703,highly_trained,elite,highly_trained,elite,VLamax / VO2max / TTE / FTP/kg,projet à relire,7,0,7,
+703,highly_trained,world_class,highly_trained,world_class,VLamax / TTE / VO2max / FTP/kg,projet à relire,7,0,7,
+Marathon,auto,finisher,trained,finisher,VLamax,projet à relire,10,0,0,
+Marathon,auto,age_group,trained,age_group,VLamax,projet à relire,10,0,0,
+Marathon,auto,competitor,trained,competitor,Durabilité / VLamax / TTE / VO2max,projet à relire,10,0,0,
+Marathon,auto,elite,trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,projet à relire,10,0,0,
+Marathon,auto,world_class,trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,projet à relire,10,0,0,
+Marathon,untrained,finisher,untrained,finisher,VLamax,refus,,,,S2 dimanche : aucune dose V3 compatible pour run. Aucun créneau vide ni remplacement historique n’est produit.
+Marathon,untrained,age_group,untrained,finisher,VLamax,refus,,,,S2 dimanche : aucune dose V3 compatible pour run. Aucun créneau vide ni remplacement historique n’est produit.
+Marathon,untrained,competitor,untrained,finisher,Durabilité / VLamax / TTE / VO2max,refus,,,,S2 dimanche : aucune dose V3 compatible pour run. Aucun créneau vide ni remplacement historique n’est produit.
+Marathon,untrained,elite,untrained,finisher,Durabilité / VLamax / TTE / VO2max / VMA,refus,,,,S2 dimanche : aucune dose V3 compatible pour run. Aucun créneau vide ni remplacement historique n’est produit.
+Marathon,untrained,world_class,untrained,finisher,Durabilité / VLamax / TTE / VO2max / VMA,refus,,,,S2 dimanche : aucune dose V3 compatible pour run. Aucun créneau vide ni remplacement historique n’est produit.
+Marathon,light,finisher,light,finisher,VLamax,projet à relire,10,0,0,
+Marathon,light,age_group,light,age_group,VLamax,refus,,,,"S14 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Marathon,light,competitor,light,age_group,Durabilité / VLamax / TTE / VO2max,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Marathon,light,elite,light,age_group,Durabilité / VLamax / TTE / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Marathon,light,world_class,light,age_group,Durabilité / VLamax / TTE / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Marathon,trained,finisher,trained,finisher,VLamax,projet à relire,10,0,0,
+Marathon,trained,age_group,trained,age_group,VLamax,projet à relire,10,0,0,
+Marathon,trained,competitor,trained,competitor,Durabilité / VLamax / TTE / VO2max,projet à relire,10,0,0,
+Marathon,trained,elite,trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,projet à relire,10,0,0,
+Marathon,trained,world_class,trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,projet à relire,10,0,0,
+Marathon,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,10,0,0,
+Marathon,highly_trained,age_group,highly_trained,age_group,VLamax,projet à relire,10,0,0,
+Marathon,highly_trained,competitor,highly_trained,competitor,Durabilité / VLamax / TTE / VO2max,projet à relire,10,0,0,
+Marathon,highly_trained,elite,highly_trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,projet à relire,10,0,0,
+Marathon,highly_trained,world_class,highly_trained,world_class,Durabilité / VLamax / TTE / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,auto,finisher,trained,finisher,VLamax,projet à relire,5,0,0,
+Semi,auto,age_group,trained,age_group,VLamax,projet à relire,5,0,0,
+Semi,auto,competitor,trained,competitor,VLamax / VO2max,projet à relire,5,0,0,
+Semi,auto,elite,trained,elite,Durabilité / VO2max / VLamax / VMA / TTE,projet à relire,5,0,0,
+Semi,auto,world_class,trained,elite,Durabilité / VO2max / TTE / VLamax / VMA,projet à relire,5,0,0,
+Semi,untrained,finisher,untrained,finisher,VLamax,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,untrained,age_group,untrained,finisher,VLamax,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,untrained,competitor,untrained,finisher,VLamax / VO2max,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,untrained,elite,untrained,finisher,Durabilité / VO2max / VLamax / VMA / TTE,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,untrained,world_class,untrained,finisher,Durabilité / VO2max / TTE / VLamax / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+Semi,light,finisher,light,finisher,VLamax,projet à relire,5,0,0,
+Semi,light,age_group,light,age_group,VLamax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,competitor,light,age_group,VLamax / VO2max,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,elite,light,age_group,Durabilité / VO2max / VLamax / VMA / TTE,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,world_class,light,age_group,Durabilité / VO2max / TTE / VLamax / VMA,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,trained,finisher,trained,finisher,VLamax,projet à relire,5,0,0,
+Semi,trained,age_group,trained,age_group,VLamax,projet à relire,5,0,0,
+Semi,trained,competitor,trained,competitor,VLamax / VO2max,projet à relire,5,0,0,
+Semi,trained,elite,trained,elite,Durabilité / VO2max / VLamax / VMA / TTE,projet à relire,5,0,0,
+Semi,trained,world_class,trained,elite,Durabilité / VO2max / TTE / VLamax / VMA,projet à relire,5,0,0,
+Semi,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,5,0,0,
+Semi,highly_trained,age_group,highly_trained,age_group,VLamax,projet à relire,5,0,0,
+Semi,highly_trained,competitor,highly_trained,competitor,VLamax / VO2max,projet à relire,5,0,0,
+Semi,highly_trained,elite,highly_trained,elite,Durabilité / VO2max / VLamax / VMA / TTE,projet à relire,5,0,0,
+Semi,highly_trained,world_class,highly_trained,world_class,Durabilité / VO2max / TTE / VLamax / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+10K,auto,finisher,trained,finisher,,refus,,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,auto,age_group,trained,age_group,Durabilité / TTE,projet à relire,5,0,0,
+10K,auto,competitor,trained,competitor,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,auto,elite,trained,elite,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,auto,world_class,trained,elite,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,untrained,finisher,untrained,finisher,,refus,,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,untrained,age_group,untrained,finisher,Durabilité / TTE,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+10K,untrained,competitor,untrained,finisher,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+10K,untrained,elite,untrained,finisher,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+10K,untrained,world_class,untrained,finisher,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+10K,light,finisher,light,finisher,,refus,,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,light,age_group,light,age_group,Durabilité / TTE,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,competitor,light,age_group,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,elite,light,age_group,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,world_class,light,age_group,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,trained,finisher,trained,finisher,,refus,,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,trained,age_group,trained,age_group,Durabilité / TTE,projet à relire,5,0,0,
+10K,trained,competitor,trained,competitor,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,trained,elite,trained,elite,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,trained,world_class,trained,elite,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,highly_trained,finisher,highly_trained,finisher,,refus,,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,highly_trained,age_group,highly_trained,age_group,Durabilité / TTE,projet à relire,5,0,0,
+10K,highly_trained,competitor,highly_trained,competitor,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,highly_trained,elite,highly_trained,elite,TTE / Durabilité / VO2max / VMA,projet à relire,5,0,0,
+10K,highly_trained,world_class,highly_trained,world_class,TTE / Durabilité / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+StartToRun,auto,finisher,,,,protocole distinct,,,,
+StartToRun,auto,age_group,,,,protocole distinct,,,,
+StartToRun,auto,competitor,,,,protocole distinct,,,,
+StartToRun,auto,elite,,,,protocole distinct,,,,
+StartToRun,auto,world_class,,,,protocole distinct,,,,
+StartToRun,untrained,finisher,,,,protocole distinct,,,,
+StartToRun,untrained,age_group,,,,protocole distinct,,,,
+StartToRun,untrained,competitor,,,,protocole distinct,,,,
+StartToRun,untrained,elite,,,,protocole distinct,,,,
+StartToRun,untrained,world_class,,,,protocole distinct,,,,
+StartToRun,light,finisher,,,,protocole distinct,,,,
+StartToRun,light,age_group,,,,protocole distinct,,,,
+StartToRun,light,competitor,,,,protocole distinct,,,,
+StartToRun,light,elite,,,,protocole distinct,,,,
+StartToRun,light,world_class,,,,protocole distinct,,,,
+StartToRun,trained,finisher,,,,protocole distinct,,,,
+StartToRun,trained,age_group,,,,protocole distinct,,,,
+StartToRun,trained,competitor,,,,protocole distinct,,,,
+StartToRun,trained,elite,,,,protocole distinct,,,,
+StartToRun,trained,world_class,,,,protocole distinct,,,,
+StartToRun,highly_trained,finisher,,,,protocole distinct,,,,
+StartToRun,highly_trained,age_group,,,,protocole distinct,,,,
+StartToRun,highly_trained,competitor,,,,protocole distinct,,,,
+StartToRun,highly_trained,elite,,,,protocole distinct,,,,
+StartToRun,highly_trained,world_class,,,,protocole distinct,,,,
+TrailShort,untrained,finisher,untrained,finisher,VLamax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,age_group,untrained,finisher,VLamax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,competitor,untrained,finisher,VLamax / TTE,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,elite,untrained,finisher,VLamax / TTE / VO2max / VMA,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,world_class,untrained,finisher,TTE / VLamax / VO2max / VMA,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,finisher,untrained,finisher,VLamax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,age_group,untrained,finisher,VLamax / TTE,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,competitor,untrained,finisher,VLamax / TTE,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,elite,untrained,finisher,VLamax / TTE / VO2max / VMA,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,world_class,untrained,finisher,TTE / VLamax / VO2max / VMA,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,finisher,untrained,finisher,VLamax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,age_group,untrained,finisher,VLamax / TTE / FatMax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,competitor,untrained,finisher,VLamax / TTE / FatMax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,elite,untrained,finisher,VLamax / TTE / VMA / VO2max / FatMax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,world_class,untrained,finisher,VLamax / TTE / VMA / VO2max / FatMax,refus,,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,auto,finisher,trained,finisher,VLamax,projet à relire,8,8,0,
+TrailShort,auto,age_group,trained,age_group,VLamax,projet à relire,8,8,0,
+TrailShort,auto,competitor,trained,competitor,VLamax / TTE,projet à relire,8,8,0,
+TrailShort,auto,elite,trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,8,8,0,
+TrailShort,auto,world_class,trained,elite,TTE / VLamax / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,light,finisher,light,finisher,VLamax,projet à relire,8,8,0,
+TrailShort,light,age_group,light,age_group,VLamax,projet à relire,8,8,0,
+TrailShort,light,competitor,light,age_group,VLamax / TTE,projet à relire,8,8,0,
+TrailShort,light,elite,light,age_group,VLamax / TTE / VO2max / VMA,projet à relire,8,8,0,
+TrailShort,light,world_class,light,age_group,TTE / VLamax / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,trained,finisher,trained,finisher,VLamax,projet à relire,8,8,0,
+TrailShort,trained,age_group,trained,age_group,VLamax,projet à relire,8,8,0,
+TrailShort,trained,competitor,trained,competitor,VLamax / TTE,projet à relire,8,8,0,
+TrailShort,trained,elite,trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,8,8,0,
+TrailShort,trained,world_class,trained,elite,TTE / VLamax / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,8,8,0,
+TrailShort,highly_trained,age_group,highly_trained,age_group,VLamax,projet à relire,8,8,0,
+TrailShort,highly_trained,competitor,highly_trained,competitor,VLamax / TTE,projet à relire,8,8,0,
+TrailShort,highly_trained,elite,highly_trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,8,8,0,
+TrailShort,highly_trained,world_class,highly_trained,world_class,TTE / VLamax / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailMountain,auto,finisher,trained,finisher,VLamax,projet à relire,10,10,0,
+TrailMountain,auto,age_group,trained,age_group,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,auto,competitor,trained,competitor,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,auto,elite,trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,auto,world_class,trained,elite,TTE / VLamax / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,light,finisher,light,finisher,VLamax,projet à relire,10,10,0,
+TrailMountain,light,age_group,light,age_group,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,light,competitor,light,age_group,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,light,elite,light,age_group,VLamax / TTE / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,light,world_class,light,age_group,TTE / VLamax / VO2max / VMA,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailMountain,trained,finisher,trained,finisher,VLamax,projet à relire,10,10,0,
+TrailMountain,trained,age_group,trained,age_group,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,trained,competitor,trained,competitor,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,trained,elite,trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,trained,world_class,trained,elite,TTE / VLamax / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,10,10,0,
+TrailMountain,highly_trained,age_group,highly_trained,age_group,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,highly_trained,competitor,highly_trained,competitor,VLamax / TTE,projet à relire,10,10,0,
+TrailMountain,highly_trained,elite,highly_trained,elite,VLamax / TTE / VO2max / VMA,projet à relire,10,10,0,
+TrailMountain,highly_trained,world_class,highly_trained,world_class,TTE / VLamax / VO2max / VMA,projet à relire,10,10,0,
+TrailUltra,auto,finisher,trained,finisher,VLamax,projet à relire,12,12,0,
+TrailUltra,auto,age_group,trained,age_group,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,auto,competitor,trained,competitor,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,auto,elite,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,
+TrailUltra,auto,world_class,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,
+TrailUltra,light,finisher,light,finisher,VLamax,projet à relire,12,12,0,
+TrailUltra,light,age_group,light,age_group,VLamax / TTE / FatMax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,competitor,light,age_group,VLamax / TTE / FatMax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,elite,light,age_group,VLamax / TTE / VMA / VO2max / FatMax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,world_class,light,age_group,VLamax / TTE / VMA / VO2max / FatMax,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,trained,finisher,trained,finisher,VLamax,projet à relire,12,12,0,
+TrailUltra,trained,age_group,trained,age_group,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,trained,competitor,trained,competitor,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,trained,elite,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,
+TrailUltra,trained,world_class,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,
+TrailUltra,highly_trained,finisher,highly_trained,finisher,VLamax,projet à relire,12,12,0,
+TrailUltra,highly_trained,age_group,highly_trained,age_group,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,highly_trained,competitor,highly_trained,competitor,VLamax / TTE / FatMax,projet à relire,12,12,0,
+TrailUltra,highly_trained,elite,highly_trained,elite,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,
+TrailUltra,highly_trained,world_class,highly_trained,world_class,VLamax / TTE / VMA / VO2max / FatMax,projet à relire,12,12,0,

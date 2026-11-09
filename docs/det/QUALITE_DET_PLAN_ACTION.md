@@ -71,3 +71,13 @@ Dans les trois exemples entraînés, la durée récente renseignée est de 100 m
 Sur les 24 refus trail, 15 concernent le renforcement en reprise, 5 la combinaison des contraintes hebdomadaires et 4 l’absence de séance de qualité compatible. Le contrôle du terrain reste ouvert sur les 51 projets. L’écart entre terrain d’entraînement et parcours cible, la tolérance au dénivelé et aux descentes, la suffisance des doses selon l’ambition et le guidage terrain restent à valider. La représentation structurée destinée à la montre refuse explicitement les cibles de course en attente de cette vérification.
 
 [Résultats des 75 profils trail](qualite-det-trail-20261109.csv) · [Trois plans synthétiques, calendrier complet et blocs de séances](exemples-trail-det-20261109.md)
+
+### Premier cas de reprise avec historique déclaré
+
+Deux fiches de renforcement de douze minutes au poids du corps et trois fiches de marche-course sur sentier court entrent dans la sélection DET. Elles ont des mouvements, des temps de récupération et des bornes propres au niveau de reprise. Leur statut reste candidat. Les fiches de marche-course sont réservées au trail court et les charges sont bornées par les paramètres du coach.
+
+Le cas supplémentaire de 8 km et 150 m D+ produit douze semaines. Les sorties longues progressent de 40 à 60 minutes, avec deux semaines de récupération et un affûtage. Sans volume récent et sans repères de sortie longue, le formulaire retourne au coach la donnée à compléter. Dans la matrice de référence sans cet historique, les 15 combinaisons trail en reprise demandent désormais ces données. Le décompte global conserve 118 projets, 82 refus et 25 parcours distincts.
+
+[Calendrier du cas de reprise](exemple-reprise-trail-20261109.md)
+
+[Matrice des neuf objectifs après le travail sur la reprise — 225 combinaisons](qualite-det-formulaire-apres-reprise.csv)
