@@ -6,6 +6,7 @@
 // =============================================
 
 import { useState, useMemo } from "react";
+import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,8 @@ import {
 } from "@/lib/v2/vlamaxCapEstimator";
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
+import { SnapshotTestDays } from "@/components/SnapshotTestDays";
+import { checkSnapshotForm } from "@/lib/snapshotTestDays";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -147,6 +150,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const [compareB, setCompareB] = useState<string>("");
 
   const snapshots = getSnapshotsForAthlete(athleteId);
+  const [nolioFields, setNolioFields] = useState<Set<string>>(new Set());
   
   // Derive editingSnapshot from persisted ID
   const editingSnapshot = useMemo(() => {
@@ -162,6 +166,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const resetForm = () => {
     clearFormData();
+    setNolioFields(new Set());
     setEditingSnapshotId({ id: null });
   };
 
@@ -226,7 +231,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     return isNaN(n) ? null : n;
   };
 
+  const blockIfInvalid = (): boolean => {
+    const { errors } = checkSnapshotForm(formData as unknown as Record<string, string>);
+    if (errors.length > 0) {
+      toast.error(`Bilan non enregistré : ${errors[0]}${errors.length > 1 ? ` (+${errors.length - 1})` : ""}`);
+      return true;
+    }
+    return false;
+  };
+
   const handleCreate = async () => {
+    if (blockIfInvalid()) return;
     // ✅ VLamax uniquement si mode Staff, sinon null (sera calculée)
     const vlamax = staffMode ? parseNum(formData.vlamax) : null;
     const vo2max = parseNum(formData.vo2max);
@@ -324,6 +339,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const handleUpdate = async () => {
     if (!editingSnapshot) return;
+    if (blockIfInvalid()) return;
 
     // ✅ VLamax uniquement si mode Staff, sinon conserver la valeur existante
     const vlamax = staffMode ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
@@ -498,14 +514,32 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         );
       })()}
 
-      {!isEditOpen && <details className="border-b border-border pb-3">
+      <details className="border-b border-border pb-3">
         <summary className="cursor-pointer py-3 text-sm font-medium">Nolio v2 — choisir une période de tests</summary>
         <p className="text-sm text-muted-foreground">Bilan de {athleteName} · Vérifiez que l’athlète Nolio sélectionné correspond.</p>
-        <NolioPeriodRecords onApply={(fields, notes) => setFormData(prev => ({
-          ...mergeEmptyFields(prev, fields),
-          coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
-        }))}/>
-      </details>}
+        <NolioPeriodRecords onApply={(fields, notes) => {
+          setNolioFields(prevSet => {
+            const next = new Set(prevSet);
+            Object.entries(fields).forEach(([k, v]) => { if (v && !String((formData as Record<string, unknown>)[k] ?? "").trim()) next.add(k); });
+            return next;
+          });
+          setFormData(prev => ({
+            ...mergeEmptyFields(prev, fields),
+            coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
+          }));
+        }}/>
+      </details>
+
+      <SnapshotTestDays
+        formData={formData as unknown as Record<string, string>}
+        nolioFields={nolioFields}
+        onChange={(key, value) => {
+          setNolioFields(prevSet => { if (!prevSet.has(key)) return prevSet; const n = new Set(prevSet); n.delete(key); return n; });
+          setFormData(prev => ({ ...prev, [key]: value }));
+        }}
+      />
+
+      <p className="text-sm font-medium pt-1">Tous les champs</p>
 
       <div className="grid grid-cols-2 gap-4">
         <div>

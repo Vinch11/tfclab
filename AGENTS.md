@@ -87,3 +87,4 @@ dev-only `src/pages/__e2e/` (gardés par `import.meta.env.DEV`).
 
 - The reference snapshot is chosen only by `pickReferenceSnapshot` (`src/lib/referenceSnapshot.ts`): active snapshot, else date ↓, created_at ↓, id ↓. Why: same-date ties made screens and engines use different snapshots.
 - Bike VLamax is locked as measured only with lab provenance or Staff-mode entry; unknown TTE reaches limiter detection as null, never 0; run TTE lives only in `tte_observed_min_run`. Why: estimates and missing data were presented as measurements.
+- Snapshot save checks (ranges, power-duration order, threshold pace vs VMA) live only in `checkSnapshotForm` (`src/lib/snapshotTestDays.ts`) and run on both create and edit. Why: create and edit used to validate differently.
