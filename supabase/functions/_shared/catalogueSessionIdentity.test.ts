@@ -48,3 +48,25 @@ Deno.test("zone principale de la fiche ajoutée quand sa liste ne cite que l'éc
   assertEquals(out.session.zones, ["Z2", "Z4"]);
   assertEquals(checkSessionCatalogue(out.session, c).errors, []);
 });
+
+import { substituteIneligibleCatalogueSession } from "./catalogueSessionIdentity.ts";
+const triSwim: RepairWorkoutMetadata = { ...easy, id: "SWIM_TRI_ONLY", sport: "swim", title: "Natation 70.3", goals: ["half"], objectiveSpecific: true, structure: "2000m Z2", durationMin: [50, 70] };
+const swimAny: RepairWorkoutMetadata = { ...easy, id: "SWIM_ANY", sport: "swim", title: "Natation endurance", goals: [], objectiveSpecific: false, structure: "1800m Z2", durationMin: [45, 60] };
+const swimVo2: RepairWorkoutMetadata = { ...swimAny, id: "SWIM_VO2", intentFamily: "vo2", mainZoneMax: 5, zones: ["Z5"] };
+
+Deno.test("fiche réservée à un autre objectif : remplacée par une fiche du même sport et du même rôle", () => {
+  const c = { phase: "base", objective: "10km", catalog: [triSwim, swimAny, swimVo2] };
+  const s = { day: "mercredi", sport: "swim", title: "Natation", details: "", durationMin: 60, zones: ["Z2"], custom: false, catalogId: triSwim.id };
+  assert(checkSessionCatalogue(s, c).errors.length > 0);
+  const out = substituteIneligibleCatalogueSession(s, c, [triSwim.id, swimAny.id, swimVo2.id]);
+  assertEquals(out?.toId, "SWIM_ANY");
+  assertEquals(out?.session.title, swimAny.title);
+  assertEquals(checkSessionCatalogue(out!.session, c).errors, []);
+});
+
+Deno.test("aucune fiche équivalente autorisée : pas de remplacement, le refus reste", () => {
+  const c = { phase: "base", objective: "10km", catalog: [triSwim, swimVo2] };
+  const s = { day: "mercredi", sport: "swim", title: "Natation", details: "", durationMin: 60, zones: ["Z2"], custom: false, catalogId: triSwim.id };
+  assertEquals(substituteIneligibleCatalogueSession(s, c, [triSwim.id, swimVo2.id]), null);
+  assertEquals(substituteIneligibleCatalogueSession(s, { ...c, catalog: [triSwim, swimAny] }, [triSwim.id]), null);
+});

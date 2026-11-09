@@ -1,5 +1,5 @@
 import { executableCatalogueVariantsForWeeks } from "../_shared/sessionCatalogueContract.ts";
-import { restoreCatalogueTitleForExactProtocol, canonicalizeCatalogueSession } from "../_shared/catalogueSessionIdentity.ts";
+import { restoreCatalogueTitleForExactProtocol, canonicalizeCatalogueSession, substituteIneligibleCatalogueSession } from "../_shared/catalogueSessionIdentity.ts";
 import { gateway400Evidence, type SafeGatewayRejection } from "../_shared/planGatewayDiagnostics.ts";
 import { sanitizeSchemaFailure } from "../_shared/planFailureDiagnostics.ts";
 /**
@@ -915,7 +915,11 @@ export async function generateChunkJSON(input: GenerateChunkJSONInput): Promise<
           if (restored) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_title_restored_exact_protocol`);
           const canonical = canonicalizeCatalogueSession(restored ?? session, contract);
           if (canonical) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_prescription_canonicalized(${canonical.changed.join(",")})`);
-          return canonical?.session ?? restored ?? session;
+          const current = canonical?.session ?? restored ?? session;
+          const used = new Set<string>(week.sessions.map((x: { catalogId?: unknown }) => typeof x?.catalogId === "string" ? x.catalogId : "").filter(Boolean));
+          const swapped = substituteIneligibleCatalogueSession(current, contract, input.allowedCatalogIds, used);
+          if (swapped) normalized.repairs.push(`weeks.${week.weekNumber}.sessions.${index}.catalogue_prescription_canonicalized(substituted_same_role:${swapped.fromId}->${swapped.toId})`);
+          return swapped?.session ?? current;
         });
       }
     }

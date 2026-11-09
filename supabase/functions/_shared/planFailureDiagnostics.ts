@@ -13,7 +13,7 @@ function issue(x: unknown) {
  const v = object(x);
  const code = typeof v.code === "string" && ["invalid_type","invalid_enum_value","custom","too_small","too_big","unrecognized_keys","invalid_literal","invalid_union"].includes(v.code) ? v.code : "validation";
  const message = String(v.message ?? "");
- const technical = /^(?:catalogue_prescription_incompatible:)?(?:catalogue_(?:sport|duration|intensity_diluted|intensity_exceeded|structure|physiological_intent|variant_unavailable)|variant_requires_catalogue_reference|variant_goal_mismatch|phase:(?:base|build|peak|taper)|week_(?:phase_contract_mismatch|not_in_catalogue_contract)|race_catalog_conflict)$/;
+ const technical = /^(?:catalogue_prescription_incompatible:)?(?:catalogue_(?:sport|duration|intensity_diluted|intensity_exceeded|structure|physiological_intent|variant_unavailable)|variant_requires_catalogue_reference|variant_goal_mismatch|phase:(?:base|build|peak|taper)|objective:[a-z0-9_]{1,20}|recovery_zone:z[0-9]|recovery_intent:[a-z_]{1,24}|candidate_metadata_incomplete|week_(?:phase_contract_mismatch|not_in_catalogue_contract)|race_catalog_conflict)$/;
  return { path: path(v.path), code, message: technical.test(message) ? message : code };
 }
 function attempt(x: unknown) {

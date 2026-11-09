@@ -5,7 +5,7 @@ import {
   type ContractSession,
   executableCatalogueVariants,
 } from "./sessionCatalogueContract.ts";
-import { isCompleteRepairWorkoutMetadata, normalizeRepairSport } from "./repairSportingEquivalence.ts";
+import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, normalizeRepairSport } from "./repairSportingEquivalence.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 /** Narrow presentation repair, before acceptance: no sport/dose/protocol/ID substitution. */
 export function restoreCatalogueTitleForExactProtocol(
@@ -86,4 +86,46 @@ export function canonicalizeCatalogueSession(
   if (variantKey === undefined) delete session.variantKey; else session.variantKey = variantKey;
   const checked = checkSessionCatalogue(session, contract);
   return checked.errors.length === 0 ? { session, changed } : null;
+}
+
+/**
+ * A referenced card that is not eligible for this week (phase, objective,
+ * recovery week…) is swapped for an eligible card of the SAME sport and the
+ * SAME sporting role (evaluateRepairSportingEquivalence, operation
+ * "replacement"), offered to the model for this chunk, preferably unused in
+ * the week and with a duration range containing the requested duration.
+ * No candidate → null: the session stays refused, nothing is invented.
+ */
+export function substituteIneligibleCatalogueSession(
+  value: unknown,
+  contract: CatalogueContract,
+  allowedIds: readonly string[],
+  usedInWeek: ReadonlySet<string> = new Set(),
+): { session: ContractSession; fromId: string; toId: string } | null {
+  if (!value || typeof value !== "object") return null;
+  const s = value as ContractSession;
+  if (s.custom !== false || typeof s.catalogId !== "string" || isRaceDaySession(s)) return null;
+  const card = contract.catalog.find((c) => c.id === s.catalogId);
+  if (!isCompleteRepairWorkoutMetadata(card) || catalogueEligibility(card, contract).length === 0) return null;
+  if (typeof s.sport !== "string" || normalizeRepairSport(s.sport) !== normalizeRepairSport(card.sport)) return null;
+  const allowed = new Set(allowedIds);
+  const wanted = typeof s.durationMin === "number" ? s.durationMin : (card.durationMin[0] + card.durationMin[1]) / 2;
+  const candidates = contract.catalog
+    .filter((c) => c.id !== card.id && allowed.has(c.id) && isCompleteRepairWorkoutMetadata(c) && c.structure?.trim() &&
+      !isRaceDaySession({ title: c.title }) && catalogueEligibility(c, contract).length === 0 &&
+      evaluateRepairSportingEquivalence(card, c, { ...contract, operation: "replacement" }).compatible)
+    .map((c) => ({ c, score: (usedInWeek.has(c.id) ? 1000 : 0) +
+      (wanted < c.durationMin[0] ? c.durationMin[0] - wanted : wanted > c.durationMin[1] ? wanted - c.durationMin[1] : 0) }))
+    .sort((a, b) => a.score - b.score || a.c.id.localeCompare(b.c.id));
+  for (const { c } of candidates) {
+    const cMax = Math.max(0, ...c.zones.flatMap((z) => [...z.matchAll(/\bZ\s*([1-7])/gi)].map((m) => Number(m[1]))));
+    const swapped: ContractSession = { ...s, catalogId: c.id, title: c.title, details: c.structure,
+      zones: c.mainZoneMax > cMax ? [...c.zones, `Z${c.mainZoneMax}`] : [...c.zones],
+      durationMin: Math.min(c.durationMin[1], Math.max(c.durationMin[0], Math.round(wanted))) };
+    delete swapped.variantKey;
+    const canonical = canonicalizeCatalogueSession(swapped, contract);
+    const session = canonical?.session ?? swapped;
+    if (checkSessionCatalogue(session, contract).errors.length === 0) return { session, fromId: card.id, toId: c.id };
+  }
+  return null;
 }
