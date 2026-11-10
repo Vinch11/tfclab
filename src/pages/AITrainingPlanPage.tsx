@@ -117,6 +117,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { RefreshCw } from "lucide-react";
+import { DetCoachPanel as DetEnginePanel } from "../../integrations/det/DetCoachPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
@@ -631,6 +632,8 @@ export default function AITrainingPlanPage() {
     } catch { return null; }
   }, []);
 
+  // Choix du moteur de génération : IA par défaut, DET-ENGINE en option (parcours IA inchangé).
+  const [planEngine, setPlanEngine] = useState<'ia'|'det'>('ia');
   const [isMultiMode, setIsMultiMode] = useState(() => savedMultiState?.isMultiMode ?? false);
   const [selectedAthleteIds, setSelectedAthleteIds] = useState<string[]>(() => savedMultiState?.selectedAthleteIds ?? []);
   const [multiPlans, setMultiPlans] = useState<MultiPlanEntry[]>(() => savedMultiState?.multiPlans ?? []);
@@ -4182,6 +4185,22 @@ export default function AITrainingPlanPage() {
               </Alert>
             )}
 
+            {!isMultiMode && (
+              <div className="space-y-2 rounded-lg border p-3" role="radiogroup" aria-label="Moteur de génération">
+                <p className="text-sm font-semibold">Moteur de génération</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button type="button" role="radio" aria-checked={planEngine==='ia'} variant={planEngine==='ia'?'default':'outline'} onClick={()=>setPlanEngine('ia')}>IA</Button>
+                  <Button type="button" role="radio" aria-checked={planEngine==='det'} variant={planEngine==='det'?'default':'outline'} onClick={()=>setPlanEngine('det')}>DET-ENGINE</Button>
+                </div>
+                {planEngine==='det' && <p className="text-xs text-muted-foreground" data-testid="det-page-order">Ordre des limiteurs transmis : {(coachLimiterOrder.length?coachLimiterOrder:(limiter?.gapAnalysis??[]).filter(g=>g.weightedImpact>0).map(g=>g.metric)).join(' → ')||'—'}</p>}
+              </div>
+            )}
+            {!isMultiMode && planEngine==='det' && currentAthlete && athleteContext && (
+              <DetEnginePanel key={currentAthlete.id} defaultOpen clm={false} disabled={!hasData}
+                revision={JSON.stringify([athleteContext.data,athleteContext.diagnostic,buildConfigWithCoachOverrides(athleteContext.diagnostic),coachLimiterOrder,lastCoachOverridesPayload])}
+                readInput={()=>({athleteId:currentAthlete.id,athlete:athleteContext.data,diagnostic:athleteContext.diagnostic,config:buildConfigWithCoachOverrides(athleteContext.diagnostic),pageLimiterOrder:coachLimiterOrder,coachPayload:lastCoachOverridesPayload})}/>
+            )}
+            {planEngine==='ia' && <>
             <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
@@ -4207,6 +4226,7 @@ export default function AITrainingPlanPage() {
                 )}
               </Button>
             ) : null}
+            </>}
 
             {/* Plan Start-to-Run statique (audit "plan Mamou") — protocole
                 standardisé, sans IA : cf. startToRunTemplate.ts.

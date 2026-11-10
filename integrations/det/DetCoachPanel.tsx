@@ -12,8 +12,8 @@ type PageInput = {
 type DetPlan = ParsedPlan & {_provenance:{engine:string;engineVersion:string};_detSourceProposal:{limiterOrder:string[]}};
 type WorkerClient = {runDet:(job:unknown,signal:AbortSignal)=>Promise<DetPlan>};
 
-export function DetCoachPanel({readInput,disabled,revision,clm}:{readInput:()=>PageInput;disabled:boolean;revision:string;clm:boolean}) {
-  const [open,setOpen]=useState(false);
+export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false}:{readInput:()=>PageInput;disabled:boolean;revision:string;clm:boolean;defaultOpen?:boolean}) {
+  const [open,setOpen]=useState(defaultOpen);
   const [fields,setFields]=useState(emptyTimeTrial);
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
@@ -51,6 +51,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm}:{readInput:()=>P
       {result && <div aria-live="polite">
         <h3 className="font-semibold">{result.title}</h3>
         <p>{result.weeks.length} semaines · {result._detSourceProposal.limiterOrder.join(' → ')}</p>
+        <p className="text-xs" data-testid="det-provenance">Provenance : {result._provenance.engine} · {result._provenance.engineVersion} · ordre reçu par DET : {result._detSourceProposal.limiterOrder.join(' → ')}</p>
         {result.weeks.map(w=><details key={w.weekNumber}><summary>Semaine {w.weekNumber} · {w.theme}</summary>
           {w.coachNotes&&<p className="whitespace-pre-line">{w.coachNotes}</p>}
           {w.sessions.filter(s=>!s.isRest).map((s,i)=><div key={i} className="my-2"><strong>{s.dayName} · {s.title}</strong>{s.durationMin!=null && ' · '+s.durationMin+' min'}<p className="whitespace-pre-line">{s.details}</p></div>)}

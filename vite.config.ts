@@ -1,6 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 import { checkedPlanRelease, readDeclaration } from "./scripts/preproduction/plan-release-source.mjs";
@@ -27,6 +28,15 @@ export default defineConfig(async ({ mode, command }) => {
   },
   plugins: [
     { name: "plan-release-metadata", generateBundle() { this.emitFile({ type: "asset", fileName: "plan-release.json", source: JSON.stringify(PLAN_RELEASE) }); } } satisfies Plugin,
+    // Dev only: serve the DET worker archive as raw bytes (Vite would add Content-Encoding: gzip and break its integrity check).
+    { name: "det-raw-gzip", configureServer(server) { server.middlewares.use((req, res, next) => {
+      const url = (req.url ?? "").split("?")[0];
+      if (!/^\/__det\/v1\/[\w.-]+\.gz$/.test(url)) return next();
+      const file = path.join(__dirname, "public", url);
+      if (!fs.existsSync(file)) return next();
+      res.setHeader("Content-Type", "application/octet-stream"); res.setHeader("Cache-Control", "no-cache");
+      res.end(fs.readFileSync(file));
+    }); } } satisfies Plugin,
     react(),
     mode === "development" && componentTagger(),
     VitePWA({
