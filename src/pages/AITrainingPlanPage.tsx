@@ -546,6 +546,8 @@ export default function AITrainingPlanPage() {
 
   const [selectedProjectionLever, setSelectedProjectionLever] = useState<string | undefined>();
   const [coachLimiterOrder, setCoachLimiterOrder] = useState<string[]>([]);
+  // Hiérarchie (limiteurs bruts) réellement utilisée pour générer le plan affiché.
+  const [generatedLimitersKey, setGeneratedLimitersKey] = useState<string|null>(null);
   const [showSyncBanner, setShowSyncBanner] = useState(false);
   const [isAdaptDialogOpen, setIsAdaptDialogOpen] = useState(false);
   const [coachId, setCoachId] = useState<string>("");
@@ -1946,6 +1948,7 @@ export default function AITrainingPlanPage() {
       setShowSyncBanner(false);
     }
 
+    setGeneratedLimitersKey(JSON.stringify(config.identifiedLimitersRaw??[]));
     generatePlanWindowed(athleteContext.data, config);
   };
 
@@ -2022,6 +2025,7 @@ export default function AITrainingPlanPage() {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objectiveOverride??objective)});
     if(payload.limiterOrder?.length)writeCommittedLimiterPolicy(localStorage,currentAthlete?.id,objectiveOverride??objective,{limiterOrder:payload.limiterOrder,excludedLimiterMetrics:payload.excludedLimiterMetrics??[],prohibitions:payload.prohibitions,metabolicProfile:payload.metabolicProfile,s2rStrength:payload.s2rStrength,sessionsPerWeek:payload.sessionsPerWeek});
     toast.success(`Plan ${config.weeksAvailable} sem — limiteurs: ${config.identifiedLimitersRaw?.join(" + ")}.`);
+    setGeneratedLimitersKey(JSON.stringify(config.identifiedLimitersRaw??[]));
     generatePlanWindowed(athleteContext.data, config);
   }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective]);
 
@@ -2323,6 +2327,7 @@ export default function AITrainingPlanPage() {
           // catalogue restreint) sans aucun avertissement pour le coach.
           _raceGoals: raceGoals,
           _coachLimiterOrder: [...coachLimiterOrder],
+          _generatedLimitersKey: generatedLimitersKey,
         } as any,
         objective: objective || currentAthlete.goal || null,
         weeks_count: parsedPlan.weeks?.length || null,
@@ -2342,7 +2347,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals, coachLimiterOrder]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals, coachLimiterOrder, generatedLimitersKey]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -2650,6 +2655,7 @@ export default function AITrainingPlanPage() {
     // objectifs secondaires (`raceGoals=[]`), silencieusement.
     if (Array.isArray(pj._raceGoals)) setRaceGoals(pj._raceGoals);
     setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
+    setGeneratedLimitersKey(typeof pj._generatedLimitersKey==='string'?pj._generatedLimitersKey:null);
     setResultView("interactive");
     setIsSaved(true);
     toast.success("Version chargée");
@@ -4171,6 +4177,21 @@ export default function AITrainingPlanPage() {
                   />
                 </CollapsibleCard>
               ) : null;
+            })()}
+
+            {!isMultiMode && athleteContext && parsedPlan && generatedLimitersKey!==null && !isLoading && (()=>{
+              const current=buildConfigWithCoachOverrides(athleteContext.diagnostic).identifiedLimitersRaw??[];
+              if(JSON.stringify(current)===generatedLimitersKey)return null;
+              return (
+                <Alert className="border-primary/50 bg-primary/5" data-testid="limiter-order-stale">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  <AlertTitle className="text-sm font-semibold">Hiérarchie des limiteurs modifiée</AlertTitle>
+                  <AlertDescription className="text-xs space-y-2">
+                    <p>Le plan affiché a été construit avec l'ancienne hiérarchie ({(JSON.parse(generatedLimitersKey) as string[]).join(' → ')||'—'}). Nouvelle hiérarchie : {current.join(' → ')||'—'}. Il faut régénérer le plan pour l'appliquer.</p>
+                    <Button size="sm" onClick={()=>{void handleGenerate();}}>Régénérer avec la nouvelle hiérarchie</Button>
+                  </AlertDescription>
+                </Alert>
+              );
             })()}
 
             {/* Sync Banner — plan needs update */}
