@@ -398,9 +398,9 @@ if(process.env.DET_EXTENDED_CASES) {
     const input=inputFor(scenario,level,ambition,[],{recentWeeklyHours:String(scenario.hours),recentWeeksCount:'4'});
     let plan;
     try {plan=await generateDetPlanFromPageInput(input);} catch(error){
-      const expectedPlan=(scenario.objective==='5K'&&scenario.weeks===12)||
+      const expectedPlan=scenario.objective==='5K'||
         scenario.objective==='Marathon'||scenario.objective==='Semi'&&scenario.weeks===30||
-        scenario.objective==='Cyclisme FTP'&&scenario.weeks===12||['Natation 1500m','Sprint','Olympic'].includes(scenario.objective);
+        scenario.objective==='Cyclisme FTP'||['Natation 1500m','Sprint','Olympic'].includes(scenario.objective);
       if(!(error instanceof DetRefusal)||expectedPlan)throw error;
       emit({...scenario,level,ambition,status:'refused',reasons:error.reasons});return;
     }
@@ -431,3 +431,21 @@ if(process.env.DET_EXTENDED_CASES) {
         reason:r.reason,sport:r.sport,title:r.title}))});
   },120000);
 }
+
+// Long-horizon regression: same ordinary form and diagnostic pipeline as a coach.
+// Synthetic profiles, not a replay of a named athlete.
+describe('multi-week repair acceptance',()=>{
+  it.each([
+    [32,18,10],[32,14,9],[32,14,8],[30,12,8],[32,18,12]
+  ])('IM %i weeks %i hours %i slots',async(weeks,hours,sessions)=>{
+    const input=inputFor({objective:'IM',weeks,hours,sessions},'trained','competitor');
+    if(process.env.DET_LONG_FIXTURE && sessions===12)writeFileSync(process.env.DET_LONG_FIXTURE,JSON.stringify(input,null,2)+'\n');
+    const plan=await generateDetPlanFromPageInput(input);
+    const p=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+    expect(p.weeks.length).toBe(weeks);
+    expect(p.weeks.every(w=>w.knownMinutes<=hours*60+1e-7)).toBe(true);
+    expect(p.checks.filter(c=>c.status==='blocked')).toEqual([]);
+    expect(p.limiterOrder).toEqual(input.config.identifiedLimitersRaw);
+    process.stdout.write('REPAIR_CASE '+JSON.stringify({weeks,hours,sessions,repairs:p.checks.filter(c=>c.code==='adaptive_search'),limiters:p.limiterOrder})+'\n');
+  },180000);
+});

@@ -18,6 +18,14 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const weeklyQuotas=structuredClone(prepareDetGeneration(athlete,config).weeklyQuotas);
  for(const week of proposal.weeks){
   const phase=week.phase;
+  if(proposal.checks.some(c=>c.code==='revised_key_days'&&c.week===week.week)){
+    const days=weeklyQuotas[week.week].layout.days;
+    week.days.forEach((day,d)=>day.sessions.forEach((session,i)=>{
+      const slot=days[d]?.slots[i];
+      if(!slot||slot.sport!==session.sport)throw Error('Calendrier DET révisé incohérent.');
+      if(session.role==='support'||session.role==='key')slot.isKeySession=session.role==='key';
+    }));
+  }
   if(weeklyQuotas[week.week]&&(phase==='base'||phase==='build'||phase==='peak'||phase==='taper'))weeklyQuotas[week.week].phase=phase;
  }
  const blocked=proposal.checks.filter(c=>c.status==='blocked');
@@ -42,7 +50,7 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
    dose?.message, 'Dénivelé et effort à confirmer sur les parcours de cet athlète.'].filter(Boolean).join(' ');
  };
  const weekNotes = (week:typeof proposal.weeks[number]) => {
-  const ranked=proposal.checks.filter(c=>c.week===week.week&&['ranked_limiter_work','time_trial_posture'].includes(c.code)).map(c=>c.message);
+  const ranked=proposal.checks.filter(c=>c.week===week.week&&['ranked_limiter_work','adaptive_search','time_trial_posture'].includes(c.code)).map(c=>c.message);
   if(trailReview)return [trailWeekNotes(week),...ranked].join('\n');
   const taper=proposal.checks.find(c=>c.week===week.week&&c.code==='tri_taper_exercise_minutes');
   const volume=week.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':'';

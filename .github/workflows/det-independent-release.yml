@@ -38,5 +38,5 @@ jobs:
             gh release download "$version" -D "$RUNNER_TEMP/previous"
             for file in client.mjs manifest.json worker.js.gz; do cmp "release/det/dist/$file" "$RUNNER_TEMP/previous/$file"; done
           else
-            gh release create "$version" --target "$GITHUB_SHA" --title "DET-ENGINE · contre-la-montre" --latest=false --prerelease --notes 'Version pilote du moteur en navigateur. Aucun déploiement Lovable, Supabase ou IA. La réception sur montre physique et le retour terrain restent à documenter.' release/det/dist/client.mjs release/det/dist/manifest.json release/det/dist/worker.js.gz
+            gh release create "$version" --target "$GITHUB_SHA" --title "DET-ENGINE · recherche adaptative" --latest=false --prerelease --notes 'Version pilote : recherche adaptative, limites V3 et classement du coach. Vérification sur Ironman long synthétique et contre-la-montre. Aucun déploiement Lovable, Supabase ou IA. La réception sur montre physique et le retour terrain restent à documenter.' release/det/dist/client.mjs release/det/dist/manifest.json release/det/dist/worker.js.gz
           fi

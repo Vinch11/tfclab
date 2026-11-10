@@ -26,3 +26,16 @@ async function run(job){
 }
 const input=JSON.parse(readFileSync(from('./ordinary-clm.json'),'utf8'));
 console.log(JSON.stringify(await receipt(run,input)));
+
+// This fully synthetic 32-week/12-slot request exhausted the previous
+// release's S1 search. Run the shipped worker, not a source-only adapter.
+const long=JSON.parse(readFileSync(from('./ordinary-long-im.json'),'utf8'));
+const plan=await run({action:'generate',input:long});
+const proposal=plan._detSourceProposal;
+assert.equal(plan._provenance.engineVersion,manifest.version);
+assert.equal(proposal.weeks.length,32);
+assert.deepEqual(proposal.limiterOrder,long.config.identifiedLimitersRaw);
+assert.equal(proposal.checks.some(c=>c.status==='blocked'),false);
+assert(proposal.weeks.every(w=>w.knownMinutes<=long.config.weeklyHours*60));
+for(const raw of proposal.limiterOrder)assert(proposal.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.includes(' · '+raw+' · ')));
+console.log(JSON.stringify({case:'synthetic-long-IM',weeks:32,ranked:proposal.limiterOrder,repairWeeks:proposal.checks.filter(c=>c.code==='adaptive_search').map(c=>c.week)}));

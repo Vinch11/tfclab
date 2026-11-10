@@ -136,3 +136,30 @@ for(let i=0;i<2;i++){
  w.methodology='Séance originale TFCLab au temps, avec effort prescrit par ressenti et récupération explicite ; aucune allure calculée depuis CSS. Le domaine est une intention de planification, pas une mesure du MLSS ; le RPE ne démontre pas que ce seuil est atteint. Réduire le rythme ou interrompre si la technique ou la respiration se dégradent. Cette dose exacte reste candidate et non validée scientifiquement.';
  timedSwimSources.push(w);
 }
+
+// Gap observed in the ordinary-form matrix: all timed pool cards required
+// at least "light". These short, distinct recipes are for returning swimmers,
+// not lessons for people unable to swim independently.
+for(const [i,cue] of ['Chercher un alignement confortable sans accélérer.',
+  'Expirer librement et garder une respiration confortable.'].entries()){
+ const count={min:3,base:4+i,max:6};
+ const blocks:V3Block[]=[
+  {...time(180,'Nage très facile, pauses au mur si besoin.','warmup',[1,2]),domain:'recovery'},
+  {kind:'repeat',label:'Courtes fractions faciles entrecoupées de repos',count,betweenSec:0,steps:[
+   {...time(60,'Nager facilement sur une minute. '+cue,'main',[2,3]),domain:'moderate_lt1'},
+   {...time(60,'Récupérer au mur ; ne reprendre que si la respiration est confortable.','main',[1,2]),domain:'recovery'}]},
+  {...time(120,'Terminer par une nage très souple ou rester au mur.','cooldown',[1,2]),domain:'recovery'}];
+ const parent=timedSwimSources[i*2];
+ const w=finish(parent,'V3P_SWIM_'+(215+i),'Reprise en bassin · '+(i?'respiration':'alignement'),['base','build','peak','taper'],blocks,24,TIMED_SWIM_POLICY);
+ w.minimumLevel='untrained';w.primaryDomain='moderate_lt1';w.origin='TFCLab : variante originale de reprise en bassin, sans allure extrapolée.';
+ w.focus='Retrouver une nage autonome confortable par fractions courtes ; aucune évaluation de seuil.';
+ w.prescription.physiologicalIntent={...parent.prescription.physiologicalIntent,statement:w.focus,limiterKeys:['technical_efficiency']};
+ w.prescription.individualization=structuredClone(parent.prescription.individualization);
+ w.prerequisites=['Savoir déjà nager seul en bassin surveillé et avoir toléré la nage facile ; à confirmer par le coach'];
+ w.contraindications=[...parent.contraindications];
+ w.stopRule='Arrêter en cas de gêne respiratoire, de douleur ou de technique dégradée.';
+ w.prescription.admissibility={...w.prescription.admissibility,minimumLevel:w.minimumLevel,prerequisites:[...w.prerequisites],contraindications:[...w.contraindications],stopRule:w.stopRule};
+ const parameter=w.prescription.parameters.find(p=>p.path==='1.count')!;parameter.risk='bounded_easy_repeat_count';
+ w.methodology='Un cycle comprend la nage et le repos au mur. Durée totale 11 à 17 minutes. Ne pas déduire une allure de CSS, ni une capacité à nager de la seule catégorie de niveau.';
+ timedSwimSources.push(w);
+}
