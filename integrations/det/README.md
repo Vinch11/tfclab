@@ -2,7 +2,9 @@
 
 Sur la page de planification, choisir le moteur **DET-ENGINE** dans le sélecteur de la page (à l’étape « Générer le plan »), puis choisir l’athlète et renseigner **Configuration** et **Objectif principal (A)**. L’option **Contre-la-montre vélo** utilise le bilan de l’athlète et permet d’ajuster l’ordre dans **Hiérarchie des Limiteurs**. Le coach renseigne ensuite l’observation en position aéro, les durées tolérées et les semaines visées. **Générer avec DET** calcule le plan dans le navigateur.
 
-Dans le plan CLM, **Guidage Nolio V2** permet de vérifier le plan complet, une semaine ou une séance. Pour une séance, la vue affiche les étapes structurées attendues, la durée, les cibles et le traitement de la dernière récupération. Le contrôle utilise des associations de simulation. Son résultat ne constitue pas un accusé de réception de Nolio ou d’une montre.
+Dans chaque plan DET, **Guidage Nolio V2** permet de vérifier le plan complet, une semaine ou une séance. Pour une séance, la vue affiche les étapes structurées attendues, la durée, les cibles et le traitement de la dernière récupération. Le contrôle utilise des associations de simulation. Son résultat ne constitue pas un accusé de réception de Nolio ou d’une montre.
+
+Pour un marathon chronométré, le champ DET associe le temps visé à la course A. En reprise, le coach peut enregistrer les durées de sortie longue tolérées pour cet athlète et cette préparation. Pour le trail, chaque cible d’effort sur le terrain est rattachée à une sortie observée, au parcours et aux fiches V3 concernées. Le coach peut renseigner les fiches en plusieurs fois et revoir les séances qui restent sans cible.
 
 La connexion Nolio V2 de cette version de TFCLab 2.1 demande `planned:read` pour le calendrier. L’envoi nécessite une connexion DET disposant aussi de `planned:write`.
 

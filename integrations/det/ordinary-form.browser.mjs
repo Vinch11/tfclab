@@ -79,7 +79,7 @@ try{
   await page.locator('[aria-label="Génération déterministe"]').locator('h3,[role=alert]').first().waitFor({timeout:90000});
   const result=page.locator('[aria-label="Génération déterministe"]');
   assert.equal(await result.locator('[role=alert]').allTextContents().then(r=>r.join(' ')),'');
-  assert.equal(await result.locator('details').count(),8);
+  assert.equal(await result.locator('details').filter({has:page.locator('summary',{hasText:/^Semaine /})}).count(),8);
   assert.match(await result.innerText(),/FTP\/kg/);
   const pinned=JSON.parse(await readFile(path.join(publicFiles,'__det/v1/manifest.json'),'utf8'));
   assert((await result.getByTestId('det-provenance').innerText()).includes(pinned.version));
@@ -102,7 +102,7 @@ try{
   const peak=page.getByLabel('Durée maximale en préparation (min)');
   await recent.fill('75');await peak.fill('50');
   await page.getByRole('button',{name:'Générer avec DET'}).click();
-  await result.getByRole('alert').filter({hasText:'plafond au moins égal'}).waitFor();
+  await result.getByRole('alert').filter({hasText:/plafond.*(inférieur|au moins égal)/}).waitFor();
   await peak.fill('100');
   await page.evaluate(()=>{
     const send=Worker.prototype.postMessage;
@@ -117,6 +117,19 @@ try{
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
+  await page.evaluate(()=>{
+    const send=Worker.prototype.postMessage;
+    Worker.prototype.postMessage=function(job,...args){
+      if(job?.action==='generate')window.marathonWorkerInput=job.input.config.raceGoals?.find(g=>g.priority==='A');
+      return send.call(this,job,...args);
+    };
+  });
+  await racePicker.click();
+  await page.getByRole('option',{name:'Marathon',exact:true}).click();
+  await page.getByLabel('Chrono marathon visé (h:mm:ss ou minutes)').fill('3:07:00');
+  await page.getByRole('button',{name:'Générer avec DET'}).click();
+  await page.waitForFunction(()=>window.marathonWorkerInput?.objective==='Marathon');
+  assert.equal(await page.evaluate(()=>window.marathonWorkerInput.targetTimeMinutes),187);
   assert.deepEqual(refused,[]);assert.deepEqual(errors,[]);
   const witness=await ctx.newPage();
   await witness.goto(app+'/index.html');

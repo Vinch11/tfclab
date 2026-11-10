@@ -3,12 +3,12 @@ const hash = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-2
   .map(b=>b.toString(16).padStart(2,'0')).join('');
 let script;
 async function checkedScript() {
-  const manifest = await fetch(new URL('manifest.json',import.meta.url),{credentials:'same-origin'}).then(r=>{
+  const manifest = await fetch(new URL('manifest.json',import.meta.url),{credentials:'omit'}).then(r=>{
     if(!r.ok) throw Error('Version DET indisponible.'); return r.json();
   });
   if(manifest.schema!==1 || manifest.entry !== 'worker.js.gz' || !/^det-[\da-f]{64}$/.test(manifest.version))
     throw Error('Format de version DET inconnu.');
-  const response=await fetch(new URL(manifest.entry,import.meta.url),{credentials:'same-origin'});
+  const response=await fetch(new URL(manifest.entry,import.meta.url),{credentials:'omit'});
   if(!response.ok)throw Error('Téléchargement du moteur DET impossible.');
   const compressed=await response.arrayBuffer();
   if(compressed.byteLength!==manifest.bytes || await hash(compressed)!==manifest.sha256)
@@ -30,14 +30,16 @@ export async function runDet(job, signal) {
     return await new Promise((resolve,reject)=>{
       const stop=()=>reject(new DOMException('Génération annulée.','AbortError'));
       const clean=()=>{clearTimeout(timeout);signal?.removeEventListener('abort',onAbort);};
-      const timeout=setTimeout(()=>{clean();reject(Error('Délai de calcul DET dépassé.'));},180000);
+      const timeout=setTimeout(()=>{clean();reject(Error('Limite du moteur. Le délai de calcul DET est dépassé. La faisabilité reste indéterminée.'));},180000);
       const onAbort=()=>{clean();stop();};
       signal?.addEventListener('abort',onAbort,{once:true});
       worker.onerror=e=>{clean();reject(Error(e.message||'Chargement du moteur DET impossible.'));};
       worker.onmessageerror=()=>{clean();reject(Error('Réponse DET illisible.'));};
       worker.onmessage=({data})=>{
         clean();
-        if(!data.ok || data.version!==version)reject(Error(data.error||'Version DET incohérente.'));
+        if(data.version && data.version!==version)reject(Error('Version DET incohérente.'));
+        else if(!data.ok)reject(Object.assign(Error(data.error||'Réponse DET illisible.'),{decision:data.decision}));
+        else if(data.version!==version)reject(Error('Version DET incohérente.'));
         else resolve(data.value);
       };
       try {worker.postMessage(job);}catch(error){clean();reject(error);}
