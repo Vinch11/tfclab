@@ -29,3 +29,5 @@
 - [x] Corrigé : course B placée sur son vrai jour, fiches dures en semaine de décharge remplacées par une fiche facile du même sport, nouvel essai unique d'un bloc refusé, part des sports mesurée en temps, renforcement exclu de la répartition d'intensité, titres catalogue non ré-étiquetés, cockpit QA sur le plan complet.
 - [ ] Qualité sportive restante (plan fictif 70.3, 32 sem.) : trop de séances dures en construction (le gabarit hebdo de l'app prévoit 7 séances clés), vélo sous-dosé et sortie longue vélo absente en base, pas de jour de repos (11 séances + 4 jours doubles), même fiche répétée. Décision coach requise sur le nombre de séances dures par semaine.
 - [ ] Publication du site : non autorisée ; le site publié reste verrouillé.
+
+- [x] Onglet « Séances exigeantes » dans la configuration du plan : 7 familles autorisables, désactivées par défaut, prérequis de profil/niveau/heures maintenus, blocages permanents inchangés ; 7 tests passent, fonctions déployées. Plan réel non généré.
