@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       return json({ connected: false });
     }
 
-    if (action === "probe" || action === "records" || action === "catalogues" || action === "test_session") {
+    if (action === "probe" || action === "records" || action === "catalogues" || action === "test_session" || action === "test_sessions" || action === "protocol_session") {
       if (!conn && !personalKey) return json({ error: "not_connected" }, 400);
       let token = conn ? String(conn.access_token) : personalKey;
       if (!token) return json({ error: "not_connected" }, 403);
@@ -178,15 +178,48 @@ Deno.serve(async (req) => {
         if (windows.status >= 400) return json({ error:'records_catalogue_unavailable' }, 502);
         return json({ athletes: athletes.items.map(a => ({id:a.id,name:a.name,has_api_access:a.has_api_access})), sports: sports.items.map(s => ({id:s.id,name:s.name,sport_base:s.sport_base})), windows:(windows.data as {windows?: unknown})?.windows, complete:athletes.complete && sports.complete });
       }
+      if (action === 'test_sessions' || action === 'protocol_session') {
+        if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete)) return json({error:'invalid_session_request'},400);
+        if (action === 'protocol_session' && (typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training))) return json({error:'invalid_session_request'},400);
+        const athletes = await collection('me/athletes/');
+        if (!athletes.complete || !athletes.items.some(a => a.id === body.athlete && a.has_api_access === true)) return json({error:'athlete_not_accessible'},403);
+        const sessions = await collection('real/trainings/?' + new URLSearchParams({athlete:body.athlete,date_from:body.from,date_to:body.to}));
+        if (!sessions.complete) return json({error:'incomplete_session_list'},502);
+        if (action === 'test_sessions') {
+          const sports = await collection('sports/');
+          if (!sports.complete) return json({error:'incomplete_sports_list'},502);
+          const bikeBase = sports.items.find(s => s.name === 'Vélo - Route')?.sport_base;
+          const runBase = sports.items.find(s => s.name === 'Course à pied')?.sport_base;
+          return json({complete:true,sessions:sessions.items.map(s => {
+            const sport = sports.items.find(v => v.id === s.sport);
+            const base = sport?.sport_base;
+            return {id:s.id,name:s.name,date:s.date_start,sport:s.sport,sportName:sport?.name,
+              sportBase:base && base === bikeBase ? 'cycling' : base && base === runBase ? 'running' : 'other'};
+          }).filter(s => s.sportBase !== 'other')});
+        }
+        if (!canReadTestSession(body.athlete,body.training,athletes.items,sessions.items,true)) return json({error:'session_outside_athlete_period'},403);
+        const response = await get(`real/trainings/${body.training}/streams/?` + new URLSearchParams({athlete:body.athlete}));
+        if (response.status === 204) return json({available:false,streams:{}});
+        if (response.status >= 400) {
+          const code = (response.data as {error?:{code?:string}})?.error?.code;
+          return json({error:'session_streams_unavailable',status:response.status,reason:typeof code === 'string' ? code : null},502);
+        }
+        // Never expose file URLs, GPS, access tokens or arbitrary metadata. Units are coach-confirmed.
+        const payload = response.data as Record<string,unknown>;
+        const measured = Object.fromEntries(Object.entries(payload ?? {}).filter(([key,value]) =>
+          /^stream_(time|watts|power|speed|velocity)$/.test(key) && Array.isArray(value)
+        ).map(([key,value]) => [key,(value as unknown[]).map(v => typeof v === 'number' && Number.isFinite(v) ? v : null)]));
+        return json({available:Object.keys(measured).length > 0,streams:measured});
+      }
       if (action === 'test_session') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training)) return json({error:'invalid_session_request'},400);
         const athletes=await collection('me/athletes/');
         if(!athletes.complete||!athletes.items.some(a=>a.id===body.athlete&&a.has_api_access===true))return json({error:'athlete_not_accessible'},403);
-        const query=new URLSearchParams({athlete:body.athlete,from:body.from,to:body.to});
+        const query=new URLSearchParams({athlete:body.athlete,date_from:body.from,date_to:body.to});
         const sessions=await collection('real/trainings/?'+query);
         if(!sessions.complete)return json({error:'incomplete_session_list'},502);
         if(!canReadTestSession(body.athlete,body.training,athletes.items,sessions.items,athletes.complete&&sessions.complete))return json({error:'session_outside_athlete_period'},403);
-        const laps=await get(`real/trainings/${body.training}/laps/`);
+        const laps=await get(`real/trainings/${body.training}/laps/?` + new URLSearchParams({athlete:body.athlete}));
         if(laps.status===204)return json({laps:[],available:false});
         if(laps.status>=400)return json({error:'session_laps_unavailable',status:laps.status},502);
         // Return measured lap data only, not signed file URLs or arbitrary metadata.

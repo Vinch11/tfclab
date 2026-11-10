@@ -39,7 +39,7 @@ export function NolioTestReview({records,mode,athlete,from,to,onApply}:{records:
         <p className="text-xs text-muted-foreground">{!p.field?'Résultat conservé dans les notes uniquement ; seuil non déduit.':verified.has(p.id)?'Protocole confirmé par le coach ; valeur issue du record.':'Proposition issue d’un record ; test non confirmé.'}</p>
       </div>)}
     </div>
-    <p className="text-sm text-muted-foreground">À compléter dans les fiches de tests : répétitions du sprint, seuil, FTP, CSS, durée tenue au seuil, dérive cardiaque, ressenti et qualité du protocole. Les records ne suffisent pas à vérifier ces résultats.</p>
+    <p className="text-sm text-muted-foreground">Répétitions du sprint, seuil, FTP, CSS, dérive, ressenti et qualité restent à confirmer dans les fiches. La durée au seuil se renseigne depuis une séance dédiée dans « Durée au seuil · protocole TTE », jamais depuis les records.</p>
     {onApply&&<Button variant="outline" disabled={!accepted.size} onClick={()=>onApply(fields,[`Import Nolio — ${mode==='quick'?'rapide, à vérifier':'tests vérifiés par le coach'} — aucune validation automatique du protocole.`,...proposals.filter(p=>accepted.has(p.id)).map(p=>`${p.label} : ${p.value} ${p.unit} | ${p.record.date??'?'} | ${p.record.training_id??'séance inconnue'} | ${verified.has(p.id)?'protocole confirmé par le coach':'record non confirmé'}`)].join('\n'))}>Préremplir les résultats retenus</Button>}
   </section>;
 }
