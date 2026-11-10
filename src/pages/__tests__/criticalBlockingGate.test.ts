@@ -124,3 +124,9 @@ describe("NON_DEROGABLE_RULES — distinction blocage dur / dérogeable (AITrain
     expect(blockingIssues).toHaveLength(0);
   });
 });
+
+import { NON_DEROGABLE_RULES as RULES_LOAD } from "@/pages/AITrainingPlanPage";
+import { it as itLoad, expect as expectLoad } from "vitest";
+itLoad("un dépassement de volume coach n'interdit jamais la sauvegarde", () => {
+  expectLoad(RULES_LOAD.has("coach_load_violation")).toBe(false);
+});

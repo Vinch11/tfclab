@@ -509,7 +509,8 @@ export const NON_DEROGABLE_RULES = new Set([
   // contournable par "Sauvegarder quand même".
   "race_day_unexpected",
   "catalogue_prescription_incompatible",
-  "coach_load_violation", // plafonds issus du niveau coach, jamais dérogeables
+  // coach_load_violation : volume au-dessus du plafond = avertissement
+  // dérogeable (« Sauvegarder quand même »), jamais une interdiction.
   "race_catalog_conflict", // compétition officielle ≠ fiche d’entraînement
 ]);
 
