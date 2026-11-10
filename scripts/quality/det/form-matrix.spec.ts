@@ -70,7 +70,7 @@ it('covers the objectives offered by the normal coach form', () => {
   if (subset) expect(selected.map(s => s.objective).sort()).toEqual([...subset].sort());
 });
 
-function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = [], history: Partial<Pick<AppPlanFormState,'recentWeeklyHours' | 'recentWeeksCount'>> = {}) {
+function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = [], history: Partial<Pick<AppPlanFormState,'recentWeeklyHours' | 'recentWeeksCount'>> = {}, returnProfile=false) {
   const tri = ['703','IM','Sprint','Olympic'].includes(s.objective);
   const dedicated=s.objective.startsWith('Cyclisme')||s.objective.startsWith('Natation');
   const id = 'SYNTHETIC_DET_' + s.objective;
@@ -79,7 +79,9 @@ function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrd
   const snapshot = { id: athlete.active_snapshot_id, athlete_id: id, date: '2026-11-04', source: 'manual',
     sport_main: tri ? 'tri' : s.objective.startsWith('Cyclisme') || s.objective==='CLM' ? 'bike' : s.objective.startsWith('Natation') ? 'swim' : 'run', vma: 18, ftp: 300, css: 95, pace_threshold_sec_per_km: 240,
     tss_7d: 380, fatigue_state: 'ok', vo2max: 58, weight_kg: 72, fc_max: 188,
-    ...(s.objective === '10K' ? { tte_observed_min_run: 25 } : {}) };
+    ...(s.objective === '10K' && !returnProfile ? { tte_observed_min_run: 25 } : {}),
+    ...(returnProfile?{vma:13,ftp:170,pace_threshold_sec_per_km:380,tss_7d:90,vo2max:43,
+      vlamax:0.65,vlamax_run:0.65,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC LAB'}:{}) };
   const context = computeAppAthleteContext(athlete, s.objective, ambition, { snapshots: [snapshot], tests: [], checkins: [], programmeTarget:s.objective==='Cyclisme FTP'?320:s.objective==='Natation 1500m'?90:undefined });
   if (!context) throw Error('Synthetic snapshot did not produce an app diagnostic');
   const form: AppPlanFormState = {
@@ -450,3 +452,31 @@ describe('multi-week repair acceptance',()=>{
     process.stdout.write('REPAIR_CASE '+JSON.stringify({weeks,hours,sessions,repairs:p.checks.filter(c=>c.code==='adaptive_search'),limiters:p.limiterOrder})+'\n');
   },180000);
 });
+
+
+if(process.env.DET_RETURN_CASES){
+  const returnCases:Scenario[]=[
+    {objective:'5K',weeks:12,hours:3,sessions:3},{objective:'5K',weeks:16,hours:3,sessions:3},
+    {objective:'10K',weeks:16,hours:4,sessions:3},{objective:'10K',weeks:20,hours:4,sessions:3},
+    {objective:'Semi',weeks:20,hours:5,sessions:3},{objective:'Semi',weeks:24,hours:5,sessions:3},
+    {objective:'703',weeks:24,hours:7,sessions:6},{objective:'IM',weeks:36,hours:10,sessions:7},
+  ];
+  it.each(returnCases)('documents return to training for $objective over $weeks weeks',async scenario=>{
+    const input=inputFor(scenario,'untrained','finisher',[],{recentWeeklyHours:'3',recentWeeksCount:'4'},true);
+    const limiters=input.config.identifiedLimitersRaw??[];
+    expect(limiters.length).toBeGreaterThan(0);
+    try{
+      const plan=await generateDetPlanFromPageInput(input);
+      const p=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+      expect(p.weeks).toHaveLength(scenario.weeks);
+      expect(p.limiterOrder).toEqual(limiters);
+      expect(p.checks.filter(c=>c.status==='blocked')).toEqual([]);
+      expect(p.weeks[0].knownMinutes).toBeLessThanOrEqual(180);
+      emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'assembled'});
+    }catch(error){
+      if(!(error instanceof DetRefusal))throw error;
+      expect(error.reasons.length).toBeGreaterThan(0);
+      emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'refused',reasons:error.reasons});
+    }
+  },120000);
+}

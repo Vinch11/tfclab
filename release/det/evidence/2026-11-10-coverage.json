@@ -6608,5 +6608,153 @@
         "V3P_STRENGTH_452"
       ]
     }
-  ]
+  ],
+  "returnCases": {
+    "recentWeeklyHours": 3,
+    "recentWeeksCount": 4,
+    "snapshot": {
+      "vma": 13,
+      "ftp": 170,
+      "pace_threshold_sec_per_km": 380,
+      "tss_7d": 90,
+      "vo2max": 43,
+      "vlamax": 0.65,
+      "vlamax_run": 0.65,
+      "synthetic": true
+    },
+    "results": [
+      {
+        "objective": "5K",
+        "weeks": 12,
+        "hours": 3,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 87 min de blocs pour un plafond de 72 min. Vérifier la fréquence et la disponibilité déclarées."
+        ]
+      },
+      {
+        "objective": "5K",
+        "weeks": 16,
+        "hours": 3,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 87 min de blocs pour un plafond de 72 min. Vérifier la fréquence et la disponibilité déclarées."
+        ]
+      },
+      {
+        "objective": "10K",
+        "weeks": 16,
+        "hours": 4,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S9 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+        ]
+      },
+      {
+        "objective": "10K",
+        "weeks": 20,
+        "hours": 4,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S9 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+        ]
+      },
+      {
+        "objective": "Semi",
+        "weeks": 20,
+        "hours": 5,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+        ]
+      },
+      {
+        "objective": "Semi",
+        "weeks": 24,
+        "hours": 5,
+        "sessions": 3,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+        ]
+      },
+      {
+        "objective": "703",
+        "weeks": 24,
+        "hours": 7,
+        "sessions": 6,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "FatMax",
+          "FTP/kg",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+        ]
+      },
+      {
+        "objective": "IM",
+        "weeks": 36,
+        "hours": 10,
+        "sessions": 7,
+        "level": "untrained",
+        "ambition": "finisher",
+        "limiters": [
+          "VLamax",
+          "FatMax",
+          "FTP/kg",
+          "VO2max"
+        ],
+        "status": "refused",
+        "reasons": [
+          "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+        ]
+      }
+    ]
+  }
 }
