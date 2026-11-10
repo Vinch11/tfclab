@@ -20,6 +20,7 @@ export type RepairIntentFamily =
   | "other";
 
 export interface RepairWorkoutMetadata {
+  dPlusTargetM?: { min: number; max: number };
   variants?: Record<string, string>;
   metadataVersion: 1;
   complete: true;
@@ -45,6 +46,8 @@ export interface RepairWorkoutMetadata {
 }
 
 export interface RepairCompatibilityContext {
+  terrainAvailability?: string;
+  day?: string;
   demandingContext?: import("./demandingSessionPolicy.ts").DemandingContext;
   objective?: string | null;
   phase?: string | null;

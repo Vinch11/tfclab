@@ -142,7 +142,7 @@ describe("normalizeWeeksAndPhases", () => {
     const MARATHON_DATE = addDaysIso(PLAN_START, 147); // S22
     const IRONMAN_DATE = addDaysIso(PLAN_START, 266); // S39
     const raceGoals = [
-      { objective: "Marathon", raceDate: MARATHON_DATE, priority: "B" as const },
+      { objective: "Marathon", raceDate: MARATHON_DATE, priority: "A" as const },
       { objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" as const },
     ];
 

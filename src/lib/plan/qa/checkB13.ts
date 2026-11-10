@@ -54,7 +54,7 @@ export interface FinalValidationWeekLike {
   sessions: FinalValidationSessionLike[];
 }
 export interface FinalValidationPlanLike {
-  weeklyQuotas?: Record<number, { phase?: string; weekType?: string; volumeBudget?: import("@/engines/plan/sessionSizingMatrix").CoachVolumeBudget }>;
+  weeklyQuotas?: Record<number, { terrainAvailability?: string; phase?: string; weekType?: string; volumeBudget?: import("@/engines/plan/sessionSizingMatrix").CoachVolumeBudget }>;
   weeks: FinalValidationWeekLike[];
 }
 

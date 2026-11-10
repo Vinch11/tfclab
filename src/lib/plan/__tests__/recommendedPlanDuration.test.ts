@@ -49,7 +49,7 @@ describe("evaluateDurationCoherenceMultiObjective", () => {
   const planStartDate = "2026-01-05";
   const marathonThenIM: ClassifiableRaceGoal[] = [
     { objective: "IM", raceDate: "2026-10-05", priority: "A" },
-    { objective: "Marathon", raceDate: "2026-05-18", priority: "B" },
+    { objective: "Marathon", raceDate: "2026-05-18", priority: "A" },
   ];
 
   it("Marathon (S1-S20) puis Ironman (S21-S40), 40 sem total → ok (pas de faux 'trop long')", () => {
@@ -71,7 +71,7 @@ describe("evaluateDurationCoherenceMultiObjective", () => {
     // Marathon en semaine 7 (< minViable 10) le 16/02/2026, puis IM le 05/10/2026 (gap de 33 sem, largement > 8 sem requis).
     const goals: ClassifiableRaceGoal[] = [
       { objective: "IM", raceDate: "2026-10-05", priority: "A" },
-      { objective: "Marathon", raceDate: "2026-02-16", priority: "B" },
+      { objective: "Marathon", raceDate: "2026-02-16", priority: "A" },
     ];
     const r = evaluateDurationCoherenceMultiObjective(40, goals, planStartDate, "competitor");
     expect(r.coherence).toBe("too_short");

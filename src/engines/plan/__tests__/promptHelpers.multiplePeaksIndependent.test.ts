@@ -28,10 +28,10 @@ function makeConfig(raceGoals: any[]) {
 }
 
 describe("classifyMultiObjectiveGoals — écart calendaire réel, pas l'étiquette de priorité", () => {
-  it("Marathon (A, février) + Ironman (B, juillet, ~5 mois) : les DEUX sont des pics complets", () => {
+  it("Marathon (A, février) + Ironman (A, juillet, ~5 mois) : les DEUX sont des pics complets", () => {
     const classification = classifyMultiObjectiveGoals([
       { objective: "Marathon", raceName: "Marathon de Paris", raceDate: "2027-02-07", priority: "A" },
-      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "B" },
+      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "A" },
     ]);
     const marathon = classification.find((c) => c.goal.objective === "Marathon")!;
     const im = classification.find((c) => c.goal.objective === "IM")!;
@@ -48,7 +48,7 @@ describe("classifyMultiObjectiveGoals — écart calendaire réel, pas l'étique
   it("10K (A, mars) + Marathon (B, juin, ~13 sem) : le 10K reste un jalon (format non éligible à un second pic, quel que soit l'écart)", () => {
     const classification = classifyMultiObjectiveGoals([
       { objective: "10K", raceName: "10K B", raceDate: "2026-03-02", priority: "A" },
-      { objective: "Marathon", raceName: "Marathon A", raceDate: "2026-06-01", priority: "B" },
+      { objective: "Marathon", raceName: "Marathon A", raceDate: "2026-06-01", priority: "A" },
     ]);
     const tenK = classification.find((c) => c.goal.objective === "10K")!;
     const marathon = classification.find((c) => c.goal.objective === "Marathon")!;
@@ -61,7 +61,7 @@ describe("classifyMultiObjectiveGoals — écart calendaire réel, pas l'étique
   it("Marathon (février) + Ironman (mars, ~6 sem — écart trop court pour un second pic complet)", () => {
     const classification = classifyMultiObjectiveGoals([
       { objective: "Marathon", raceDate: "2027-02-07", priority: "A" },
-      { objective: "IM", raceDate: "2027-03-21", priority: "B" },
+      { objective: "IM", raceDate: "2027-03-21", priority: "A" },
     ]);
     const marathon = classification.find((c) => c.goal.objective === "Marathon")!;
     const im = classification.find((c) => c.goal.objective === "IM")!;
@@ -76,10 +76,10 @@ describe("classifyMultiObjectiveGoals — écart calendaire réel, pas l'étique
 });
 
 describe("buildUserPrompt — multi-objectifs : plusieurs pics complets cohérents (pas de contradiction A vs chronologie)", () => {
-  it("Marathon (A, février) + Ironman (B, juillet) : le Marathon reçoit un PIC DE FORME COMPLET, pas un mini-taper générique, et l'Ironman reste la dernière semaine du plan", () => {
+  it("Marathon (A, février) + Ironman (A, juillet) : le Marathon reçoit un PIC DE FORME COMPLET et l'Ironman reste la dernière semaine du plan", () => {
     const config = makeConfig([
       { objective: "Marathon", raceName: "Marathon de Paris", raceDate: "2027-02-07", priority: "A" },
-      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "B" },
+      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "A" },
     ]);
     const prompt = buildUserPrompt({}, config);
 
@@ -123,10 +123,10 @@ describe("buildUserPrompt — multi-objectifs : plusieurs pics complets cohéren
  * "priorité des événements") sans produire de prompt incohérent.
  */
 describe("buildUserPrompt — rappel jalon multi-objectifs (cohérent avec la classification pic complet/jalon)", () => {
-  it("Marathon (A, février) + Ironman (B, juillet, ~5 mois) : l'Ironman est un pic complet, PAS de rappel 'Jalon' contradictoire", () => {
+  it("Marathon (A, février) + Ironman (A, juillet, ~5 mois) : l'Ironman est un pic complet, PAS de rappel 'Jalon' contradictoire", () => {
     const config = makeConfig([
       { objective: "Marathon", raceName: "Marathon de Paris", raceDate: "2027-02-07", priority: "A" },
-      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "B" },
+      { objective: "IM", raceName: "Ironman Nice", raceDate: "2027-07-04", priority: "A" },
     ]);
     const prompt = buildUserPrompt({}, config);
     expect(prompt).not.toMatch(/RAPPEL : Jalon.*Ironman/is);

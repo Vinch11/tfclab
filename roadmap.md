@@ -1,8 +1,8 @@
 # Roadmap
 
-- [ ] Fiabiliser la configuration : renforcement, doubles et maintien dans les contrats déterministes.
-- [ ] Stabiliser dates, objectifs, trail et choix coach sur les voies simple/groupée/régénération.
-- [ ] Harmoniser ambition, décharge, terrain et autorisations serveur ; tests comportementaux et vérification navigateur sans génération IA.
+- [x] Fiabiliser la configuration : renforcement explicite 0/3, doubles 0/1 et maintien sélectionné dans les contrats déterministes ; tests comportementaux verts.
+- [x] Stabiliser dates, objectifs, trail et choix coach dans les configurations simple/groupée/régénération ; priorités B/C non promues en pics complets, contrôle d'objectif absent conservé.
+- [x] Harmoniser ambition, décharge, terrain et autorisations serveur ; 1496 tests frontend, 378 tests fonction principale et 367 tests miroir verts ; aperçu connecté : renforcement 0 puis 3 avec doubles 0, changement du précontrôle vérifié. Fonctions déployées avec succès, déclaration fraîche ; aucune génération IA ni donnée athlète enregistrée. Détail et limites : docs/corrections-impact-configuration-plan-2026-11-10.md.
 - [ ] Vérifier un plan complet réellement généré : autorisation distincte requise pour les appels payants ; aucune donnée athlète écrite ni publication.
 
 - [x] Auditer l’impact de tous les domaines de configuration : rapport `docs/audit-impact-configuration-plan-2026-11-10.md`, 245 tests frontend et 64 tests générateur réussis, sept profils prévalidés sans IA ; contradictions renforcement/doubles/maintien reproduites. Aucun générateur modifié, aucune génération réelle ni publication.

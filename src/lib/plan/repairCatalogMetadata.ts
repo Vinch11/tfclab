@@ -56,6 +56,7 @@ export function buildRepairWorkoutMetadata(workout: LibraryWorkout): RepairWorko
   return {
     variants: { ...(workout.variants ?? {}) },
     metadataVersion: 1,
+    dPlusTargetM: typeof workout.dPlusTargetM === "number" ? { min: workout.dPlusTargetM, max: workout.dPlusTargetM } : workout.dPlusTargetM,
     complete: true,
     id: workout.id,
     sport: workout.sport,

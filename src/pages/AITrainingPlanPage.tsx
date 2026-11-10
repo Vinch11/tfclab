@@ -1,5 +1,6 @@
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
+import { computeObjectiveCycleSegments } from "@/lib/plan/multiObjectiveClassification";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
 import { PlanPrevalidationPanel } from "@/components/PlanPrevalidationPanel";
@@ -352,15 +353,17 @@ async function buildRegenCatalog(
   repairCatalog: Array<ReturnType<typeof buildWorkoutCatalog>[number]["repairMetadata"]>;
   historyUsedIdCounts?: Record<string, number>;
 }> {
-  const catalogSportFilter = getCatalogSportFilter(cfg.objective || "");
-  const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cfg.objective || "", cfg.raceGoals);
+  const cycleObjective = cfg.catalogObjective || cfg.objective || "";
+  const catalogSportFilter = getCatalogSportFilter(cycleObjective);
+  const { excludeIdPatterns, excludeTags } = getCatalogExclusions(cycleObjective, cfg.raceGoals);
+  const maintenance = cycleObjective !== cfg.objective && getCatalogSportFilter(cfg.objective || "")?.includes("bike");
   const limiterKeys = cfg.identifiedLimitersRaw && cfg.identifiedLimitersRaw.length > 0
     ? cfg.identifiedLimitersRaw
     : undefined;
   const historicalUsage = await fetchHistoricalCatalogUsage(athleteId);
   resetCatalogAttribution();
   const catalog = buildWorkoutCatalog(
-    cfg.objective || "",
+    cycleObjective,
     startWeek,
     endWeek,
     totalWeeksForPhase,
@@ -368,13 +371,14 @@ async function buildRegenCatalog(
       strictPhaseFilter: true,
       ...(() => { const calendar = buildPeriodizationCalendar(cfg);
         const phases = [...new Set(Array.from({ length: endWeek - startWeek + 1 }, (_, i) => calendar?.[startWeek + i]).filter(Boolean))] as PhaseTag[];
-        return phases.length ? { phaseOverride: phases, weekContexts: Array.from({length:endWeek-startWeek+1},(_,i)=>({phase:calendar?.[startWeek+i],objective:cfg.objective,})) } : {}; })(),
+        return phases.length ? { phaseOverride: phases, weekContexts: Array.from({length:endWeek-startWeek+1},(_,i)=>({phase:calendar?.[startWeek+i],objective:cycleObjective,terrainAvailability:cfg.terrainAvailability})) } : {}; })(),
       maxItems: 80,
       chunkIndex: 0,
       excludeIds: new Set(currentWeekCatalogIds),
       limiters: limiterKeys,
       prohibitions: cfg.prohibitions,
       sportFilter: catalogSportFilter,
+      maintenanceSports: maintenance ? [ ...(cfg.crossTrainingMaintenance?.velo ? ["cyclisme" as const] : []), ...(cfg.crossTrainingMaintenance?.natation ? ["natation" as const] : []) ] : undefined,
       excludeIdPatterns,
       excludeTags,
       historicalUsage,
@@ -2237,7 +2241,7 @@ export default function AITrainingPlanPage() {
       toast.success(`${results.length} plan(s) généré(s) !`);
       if (results.length > 1) setResultView("compare");
     }
-  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfigFromDiag]);
+  }, [selectedAthleteIds, athletes, objective, ambition, computeAthleteContext, buildConfigFromDiag, prevalidateTrainingPlan]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(response);
@@ -2698,6 +2702,9 @@ export default function AITrainingPlanPage() {
       ...buildConfigWithCoachOverrides(athleteContext.diagnostic),
       _outputFormat: "json",
     };
+    const cycle = computeObjectiveCycleSegments(fullPlanConfig.raceGoals, fullPlanConfig.planStartDate, parsedPlan.totalWeeks)
+      ?.find(segment => weekNumber >= segment.startWeek && weekNumber <= segment.endWeek);
+    if (cycle) fullPlanConfig.catalogObjective = cycle.objective;
     const existingTrainingSessions = week.sessions
       .filter(session => !session.isRest)
       .map(session => `${session.dayName || "Jour à définir"} — ${session.sport || "course"} — ${session.title || "Séance"}`)
@@ -2778,18 +2785,21 @@ export default function AITrainingPlanPage() {
     // cas de sur-effectif) n'avait aucun équivalent. On reproduit ici le
     // même calcul de quota déterministe que la génération complète (PHASE
     // 2A, useAITrainingPlan.ts ~ligne 588-606) pour la seule semaine cible.
-    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, fullPlanConfig.objective || "", athleteContext.data.age, fullPlanConfig.deloadCadenceWeeks);
+    const regenObjective = fullPlanConfig.catalogObjective || fullPlanConfig.objective || "";
+    const regenMaintenance = regenObjective !== fullPlanConfig.objective && getCatalogSportFilter(fullPlanConfig.objective || "")?.includes("bike");
+    const regenWeekType = inferWeekType(weekNumber, parsedPlan.totalWeeks, regenObjective, athleteContext.data.age, fullPlanConfig.deloadCadenceWeeks);
     const regenHoursAvail = typeof fullPlanConfig.weeklyHours === "number" ? fullPlanConfig.weeklyHours : 0;
     const regenAmbition = typeof fullPlanConfig.ambition === "string" ? fullPlanConfig.ambition : "age_group";
     const regenTargetSpw = typeof fullPlanConfig.sessionsPerWeek === "number" && fullPlanConfig.sessionsPerWeek > 0
       ? fullPlanConfig.sessionsPerWeek : null;
     const regenConstraintRules = parseAthleteConstraints(fullPlanConfig.constraints ?? null);
     const regenBannedSports = regenConstraintRules.bannedSports;
-    const regenQuotaEntryRaw = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
+    const regenQuotaEntryRaw = computeWeekQuotaEntry(regenObjective, regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
       sessionsPerWeek: regenTargetSpw,
       maxSessionsPerDay: fullPlanConfig.maxSessionsPerDay,
       strengthSessionsPerWeek: fullPlanConfig.strengthSessionsPerWeek,
       maxDoubleDaysPerWeek: fullPlanConfig.maxDoubleDaysPerWeek,
+      maintenance: regenMaintenance ? fullPlanConfig.crossTrainingMaintenance ?? {} : undefined,
       bannedSports: regenBannedSports,
     });
     // Correction ciblée "P0 progression individualisée des charges" : même
@@ -2812,13 +2822,14 @@ export default function AITrainingPlanPage() {
         ...regenQuotaEntryRaw,
         phase: buildPeriodizationCalendar(fullPlanConfig)?.[weekNumber],
         volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource),
+        terrainAvailability: fullPlanConfig.terrainAvailability,
         floors: applySlFloorIndividualization(
           regenQuotaEntryRaw.floors, weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
         ).floors,
       }
       : null;
     const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan,
-      new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: fullPlanConfig.objective, weekType: regenWeekType }).eligible
+      new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: regenObjective, weekType: regenWeekType, terrainAvailability: fullPlanConfig.terrainAvailability }).eligible
         .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)), regenConstraintRules.dayBans, declaredRaceSlotsForWeek(fullPlanConfig,weekNumber));
     const regenLayout = regenQuotaTransport._weeklyQuotas[weekNumber]?.layout;
     const regenConflicts = regenQuotaEntry && regenLayout ? planningFeasibility(regenQuotaEntry.quota, regenLayout) : [];

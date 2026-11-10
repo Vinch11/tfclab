@@ -2069,6 +2069,7 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
                 trainingLevel: planConfig?.ambitionMeta?.trainingLevel,
                 trainingLevelSource: planConfig?.ambitionMeta?.trainingLevelSource,
                 weeklyHours: planConfig?.weeklyHours },
+              terrainAvailability: planConfig?.terrainAvailability,
               weekType: planConfig?._weeklyQuotas?.[week]?.weekType,
               catalog: repairCatalogsByChunk[ci].filter(m => allowedIds.includes(m.id) && isCompleteRepairWorkoutMetadata(m)) };
             catalogueContractsByWeek[week] = contract;

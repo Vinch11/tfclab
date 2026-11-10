@@ -3,6 +3,7 @@
 - Explicit strength frequency and double-day limits are carried in weekly quota contracts shared by layout, prevalidation and final validation; run-cycle maintenance adds only selected sports without removing run targets. Why: prompt-only choices contradicted imposed calendars.
 - Audited demanding-family definitions and ID safety policies live in `supabase/functions/_shared`, re-exported by the client and checked independently by JSON catalogue contracts. Why: coach approval must not waive verified level, hours or permanent exclusions.
 - Guided schedule overrides use the selected plan start date and update the A race contract on generation and regeneration; limiter-only stored policies cannot override visible frequency. Why: stale dates and saved frequencies silently changed plans.
+- Terrain eligibility uses explicit catalogue metadata and the prescribed day in shared checks, with terrain carried to final validation; B/C races remain tune-ups rather than independent peaks. Why: available terrain and race priorities must not remain prompt-only preferences.
 
 - Nolio v2 period imports prefill only empty observed snapshot fields after coach selection; never infer thresholds or confirmed protocols from records. Why: best efforts are not laboratory measurements.
 - Nolio test review distinguishes quick records from coach-confirmed protocols; running sprint distance and VMA conversions require explicit units and protocol confirmation, and never write VLamax, FTP or CSS. Why: records cannot automatically certify a test or laboratory measurement.

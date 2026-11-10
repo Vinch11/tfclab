@@ -3,7 +3,8 @@ import { classifyIntentEvidence } from "./intentEvidence.ts";
 import { catalogueWeeklyUsageCapacity } from "./catalogueWeeklyFrequency.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
 import { demandingSessionReasons } from "./demandingSessionPolicy.ts";
-export interface ContractSession { title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
+import { terrainReasons } from "./terrainPolicy.ts";
+export interface ContractSession { day?: string; dayName?: string; title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
 export interface CatalogueContract extends RepairCompatibilityContext { catalog: RepairWorkoutMetadata[]; }
 const maxZone = (zones: string[]) => Math.max(0, ...zones.flatMap(z => [...z.matchAll(/\bZ\s*([1-7])/gi)].map(m => Number(m[1]))));
 /** Only explicit numeric variant ranges are executable. Free prose is not a waiver. */
@@ -14,6 +15,8 @@ function variantRange(text: string | undefined): [number, number] | null {
 }
 export function catalogueEligibility(metadata: RepairWorkoutMetadata, context: RepairCompatibilityContext): string[] {
  if (!isCompleteRepairWorkoutMetadata(metadata)) return ["candidate_metadata_incomplete"];
+ const terrain = terrainReasons(metadata, context.terrainAvailability, context.day);
+ if (terrain.length) return terrain;
  if (context.demandingContext) {
   const reasons = demandingSessionReasons(metadata.id, context.demandingContext);
   if (reasons.length) return reasons;
@@ -40,7 +43,7 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  if (!session.catalogId) return { errors, unknown }; // genuine custom training/legacy handled by other controls
  const metadata = contract.catalog.find(m => m.id === session.catalogId);
  if (!isCompleteRepairWorkoutMetadata(metadata)) return { errors, unknown: ["catalogue_metadata_missing"] };
- errors.push(...catalogueEligibility(metadata, contract));
+ errors.push(...catalogueEligibility(metadata, { ...contract, day: session.day ?? session.dayName }));
  if (!session.sport) unknown.push("sport_not_preserved");
  else if (!sessionSportMatchesCard(session.sport, metadata)) errors.push("catalogue_sport");
  const variants = metadata.variants;
@@ -53,7 +56,7 @@ export function checkSessionCatalogue(session: ContractSession, contract: Catalo
  } else unknown.push("duration_not_preserved");
  const zones = session.zones?.length ? session.zones : [...(session.details ?? "").matchAll(/\bZ\s*([1-7](?:[ab])?)/gi)].map(m => `Z${m[1]}`);
  const observed = maxZone(zones);
- const variantZones = variant ? [...(variants?.[session.variantKey!] ?? "").matchAll(/\bZ([1-7])/gi)].map(m => `Z${m[1]}`) : [];
+ const variantZones = variant && session.variantKey ? [...(variants?.[session.variantKey] ?? "").matchAll(/\bZ([1-7])/gi)].map(m => `Z${m[1]}`) : [];
  const expected = variantZones.length ? maxZone(variantZones) : metadata.mainZoneMax || maxZone(metadata.zones);
  if (!observed) unknown.push("intensity_not_declared");
  else if (expected >= 3 && observed < expected) errors.push("catalogue_intensity_diluted");
@@ -110,5 +113,5 @@ export function executableCatalogueDurationRanges(metadata: RepairWorkoutMetadat
 export function executableCatalogueVariantsForWeeks(contracts:Record<number,CatalogueContract>,allowedIds?:readonly string[]) {
  return Object.fromEntries(Object.entries(contracts).map(([week,contract])=>[week,Object.fromEntries(contract.catalog
   .filter(m=>(!allowedIds||allowedIds.includes(m.id))&&catalogueEligibility(m,contract).length===0)
-  .map(m=>[m.id,executableCatalogueVariants(m,contract.objective)] as const).filter(([,variants])=>Object.keys(variants).length>0))]));
+  .map(m=>[m.id,executableCatalogueVariants(m,contract.objective ?? undefined)] as const).filter(([,variants])=>Object.keys(variants).length>0))]));
 }

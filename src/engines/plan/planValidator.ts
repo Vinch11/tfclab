@@ -2788,10 +2788,11 @@ function validateFinalObjectiveMatchesMainGoal(
   // que soit celui qui vient chronologiquement en premier.
   const classified = classifyMultiObjectiveGoalsClient(raceGoals);
   const fullPeaks = classified.filter((c) => c.isFullPeak && c.goal.raceDate);
-  const fullPeak = fullPeaks[fullPeaks.length - 1];
+  const mainObjKey = normalizeObjectiveKey(objective);
+  const hasDeclaredGoal = raceGoals.some(goal => normalizeObjectiveKey(goal.objective || "") === mainObjKey);
+  const fullPeak = fullPeaks[fullPeaks.length - 1] ?? (!hasDeclaredGoal ? classified.filter(c => c.goal.raceDate).at(-1) : undefined);
   if (!fullPeak) return { issues: [], score: 100 };
 
-  const mainObjKey = normalizeObjectiveKey(objective);
   const peakObjKey = normalizeObjectiveKey(fullPeak.goal.objective || "");
   if (!mainObjKey || !peakObjKey || mainObjKey === peakObjKey) return { issues: [], score: 100 };
 

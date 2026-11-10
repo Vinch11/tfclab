@@ -32,6 +32,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
       const phaseOptions = (start: number, end: number) => {
         const phases = [...new Set(Array.from({ length: end - start + 1 }, (_, i) => phaseCalendar?.[start + i - weekOffset]).filter(Boolean))] as PhaseTag[];
         const weekContexts = Array.from({ length: end - start + 1 }, (_, i) => ({
+          terrainAvailability: planConfig.terrainAvailability,
           phase: isRegenGapWeek(start + i - weekOffset) ? "base" : phaseCalendar?.[start + i - weekOffset], objective: planConfig.catalogObjective || planConfig.objective,
           weekType: isRegenGapWeek(start + i - weekOffset) ? "recovery" : inferWeekType(start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks),
         }));
@@ -441,7 +442,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           }
           const phase = phaseCalendar?.[w];
           const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
-          const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType }).eligible
+          const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType, terrainAvailability: planConfig.terrainAvailability }).eligible
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             availableSports,
@@ -452,6 +453,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           });
 
           weeklyQuotas[w] = { ...entry, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
+            terrainAvailability: planConfig.terrainAvailability,
             volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,

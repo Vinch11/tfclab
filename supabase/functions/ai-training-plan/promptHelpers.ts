@@ -1496,7 +1496,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
         lines.push(`→ Ancrage absolu : la course ${goal.objective} DOIT être planifiée le ${goal.raceDate} (${formatIsoDateFr(goal.raceDate)}), dans S${goalWeek}${bounds ? ` [${bounds.start} → ${bounds.end}]` : ""}.`);
         lines.push(`→ INTERDIT de la placer une semaine avant/après (ex: ${goal.raceDate} ≠ ${goalWeek > 1 ? `S${goalWeek - 1}` : "S1"}).`);
         const classified = classifiedByGoal.get(goal);
-        if (classified?.isLast) {
+        if (classified?.isLast && classified.isFullPeak) {
           lines.push(`→ La DERNIÈRE semaine du plan (S${goalWeek}) DOIT être la SEMAINE DE COURSE avec : taper complet de ${classified.taperWeeks} semaine(s), activation J-2/J-1, et Jour de Course le jour exact de la compétition.`);
         } else if (classified?.isFullPeak) {
           // Pic de forme complet MAIS pas la dernière course chronologique

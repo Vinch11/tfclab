@@ -25,7 +25,7 @@ it('preserves the existing reduced foundation after an intermediate full peak',(
  const spec=planningCases().find(c=>c.objective==='IM'&&c.level==='light'&&c.ambition==='finisher')!;
  const {prepared}=preparePlanningCaseContext(spec);const date=(week:number)=>new Date(Date.UTC(2026,9,26+week*7-1)).toISOString().slice(0,10);
  const base={...prepared.planConfig,weeksAvailable:40,planStartDate:'2026-10-26',raceGoals:[
-  {objective:'Marathon',priority:'B' as const,raceDate:date(20)},
+  {objective:'Marathon',priority:'A' as const,raceDate:date(20)},
   {objective:'IM',priority:'A' as const,raceDate:date(40)}]};
  const cycles=computeObjectiveCycleSegments(base.raceGoals,base.planStartDate,40)!;
  expect(cycles).toHaveLength(2);

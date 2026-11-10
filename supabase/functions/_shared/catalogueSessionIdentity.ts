@@ -68,7 +68,7 @@ export function canonicalizeCatalogueSession(
   if (typeof s.sport !== "string" || !sessionSportMatchesCard(s.sport, card)) return null;
   if (checkSessionCatalogue(s, contract).errors.length === 0 && checkSessionCatalogue(s, contract).unknown.length === 0) return null;
   const changed: string[] = [];
-  const variants = executableCatalogueVariants(card, contract.objective);
+  const variants = executableCatalogueVariants(card, contract.objective ?? undefined);
   let variantKey = s.variantKey;
   if (variantKey !== undefined && !(variantKey in variants)) { variantKey = undefined; changed.push("variantKey"); }
   const vm = variantKey ? variants[variantKey].match(/(\d+)\s*[–-]\s*(\d+)/) : null;

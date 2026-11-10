@@ -57,8 +57,8 @@ Deno.test("buildUserPrompt — fenêtre AVEC catalogObjective=Marathon (cycle in
     !prompt.includes("🏊 Natation"),
     "la contrainte de ratio sportif Ironman (natation/vélo minimum obligatoire) ne doit plus apparaître pour une fenêtre du cycle Marathon — c'est exactement la contradiction qui faisait inventer des séances natation/vélo [CUSTOM]",
   );
-  assertStringIncludes(prompt, "VERROU SPORT OBJECTIF — RUNNING ROUTE");
-  assertStringIncludes(prompt, "NATATION INTERDITE");
+  assertStringIncludes(prompt, "VERROU SPORT OBJECTIF — CYCLE Marathon AVANT TRIATHLON");
+  assertStringIncludes(prompt, "Natation 0%");
 });
 
 Deno.test("buildUserPrompt — plan mono-objectif Marathon (sans catalogObjective) : comportement déjà correct, non régressé", () => {

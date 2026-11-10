@@ -23,6 +23,7 @@ const issueLabels:Record<string,string>={
  layout_exceeds_total_max:'Le calendrier dépasse le nombre maximal de séances',
  layout_below_full_rest_minimum:'Le calendrier ne respecte pas le minimum de jours de repos complet',
  layout_exceeds_daily_max:'Le calendrier dépasse le nombre maximal de séances par jour',
+ layout_exceeds_double_days_max:'Le calendrier dépasse le maximum de journées doubles choisi',
  periodization_phase_not_available:'Phase de préparation non déterminée : vérifiez le calendrier',
  declared_calendar_start_unavailable:'Date de début absente : les dates des compétitions ne peuvent pas être vérifiées',
  multiday_event_requires_stage_review:'Compétition sur plusieurs jours : vérification des étapes par le coach nécessaire',
