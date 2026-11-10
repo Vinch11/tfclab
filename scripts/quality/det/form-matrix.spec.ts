@@ -64,15 +64,16 @@ it('covers the objectives offered by the normal coach form', () => {
 });
 
 function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = [], history: Partial<Pick<AppPlanFormState,'recentWeeklyHours' | 'recentWeeksCount'>> = {}) {
-  const tri = s.objective === '703' || s.objective === 'IM';
+  const tri = ['703','IM','Sprint','Olympic'].includes(s.objective);
+  const dedicated=s.objective.startsWith('Cyclisme')||s.objective.startsWith('Natation');
   const id = 'SYNTHETIC_DET_' + s.objective;
-  const athlete = { id, name: 'Synthetic', objectif: s.objective, birth_date: '1988-03-11',
+  const athlete = { id, name: 'Synthetic', objectif: dedicated?'703':s.objective, birth_date: '1988-03-11',
     sex: 'M', active_snapshot_id: 'SYNTHETIC_SNAPSHOT', refs: {} };
   const snapshot = { id: athlete.active_snapshot_id, athlete_id: id, date: '2026-11-04', source: 'manual',
-    sport_main: tri ? 'tri' : 'run', vma: 18, ftp: 300, css: 95, pace_threshold_sec_per_km: 240,
+    sport_main: tri ? 'tri' : s.objective.startsWith('Cyclisme') || s.objective==='CLM' ? 'bike' : s.objective.startsWith('Natation') ? 'swim' : 'run', vma: 18, ftp: 300, css: 95, pace_threshold_sec_per_km: 240,
     tss_7d: 380, fatigue_state: 'ok', vo2max: 58, weight_kg: 72, fc_max: 188,
     ...(s.objective === '10K' ? { tte_observed_min_run: 25 } : {}) };
-  const context = computeAppAthleteContext(athlete, s.objective, ambition, { snapshots: [snapshot], tests: [], checkins: [] });
+  const context = computeAppAthleteContext(athlete, s.objective, ambition, { snapshots: [snapshot], tests: [], checkins: [], programmeTarget:s.objective==='Cyclisme FTP'?320:s.objective==='Natation 1500m'?90:undefined });
   if (!context) throw Error('Synthetic snapshot did not produce an app diagnostic');
   const form: AppPlanFormState = {
     objective: s.objective, ambition, trainingLevel, planStartDate: new Date(2026, 10, 9),
@@ -132,6 +133,38 @@ for (const scenario of selected) {
       }, 120_000);
     }
   });
+}
+
+if (selected.some(s => s.objective === 'IM')) {
+  it('exports the complete trained competitor Ironman after catalogue expansion', async () => {
+    const scenario = scenarios.find(s => s.objective === 'IM')!;
+    const input = inputFor(scenario, 'trained', 'competitor');
+    const plan = await generateDetPlanFromPageInput(input);
+    const proposal = (plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+    const loads = proposal.weeks.filter(w => w.weekType === 'load');
+    const evidence = proposal.checks.filter(c => c.code === 'tri_primary_component_dose' && c.status === 'passed');
+    expect(evidence.map(c => c.week)).toEqual(loads.map(w => w.week));
+    expect(proposal.limiterOrder).toEqual(input.config.identifiedLimitersRaw);
+    const saved = JSON.parse(JSON.stringify(plan));
+    const sessions = sessionsFromPlanJson(saved).sessions;
+    const competition = sessions.map(raceIdentityOf).find(r => r !== null)!;
+    const refs = {synthetic:true, athleteId:'usr_SYNTHETIC', competition,
+      sportIds:{run:'spt_RUN',bike:'spt_BIKE',swim:'spt_SWIM',strength:'spt_STRENGTH',brick:'spt_TRI'},exerciseIds:{}};
+    const full = await preparePlan(saved,refs,'SYNTHETIC_IM');
+    expect(full.precheck.complete).toBe(true);
+    expect(full.precheck.weeks).toBe(scenario.weeks);
+    const key = sessions.find(s => s.sport === 'run' && s.catalogId)!.sessionKey;
+    for (const scope of [{kind:'weeks',from:1,to:1},{kind:'sessions',keys:[key]}]) {
+      const part = await preparePlan(saved,refs,'SYNTHETIC_IM',scope);
+      expect(part.precheck.complete).toBe(true);
+      expect(part.ops.length).toBeGreaterThan(0);
+      expect(part.ops.every(op => full.ops.some(all => all.sessionKey === op.sessionKey && all.bodySha256 === op.bodySha256))).toBe(true);
+    }
+    if (process.env.DET_CASE_EVIDENCE) writeFileSync(process.env.DET_CASE_EVIDENCE,JSON.stringify({
+      limiters:proposal.limiterOrder,minutes:proposal.weeks.map(w => w.knownMinutes),loadWeeks:loads.length,
+      firstDose:evidence[0].message,operations:full.ops.length
+    }));
+  },120000);
 }
 
 if (selected.some(s => s.objective === '703')) {
@@ -275,4 +308,34 @@ for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].i
     expect(first.knownMinutes).toBeLessThanOrEqual(hours*60);
     expect(constrained.checks.find(c=>c.code==='initial_recent_volume')?.status).toBe(first.durationMinutes===null?'pending':'passed');
   },120_000);
+}
+
+
+if(process.env.DET_EXTENDED_CASES) {
+  const additional: Scenario[] = [
+    {objective:'5K',weeks:8,hours:4,sessions:3},
+    {objective:'10K',weeks:12,hours:3,sessions:3},
+    {objective:'Semi',weeks:16,hours:4,sessions:3},
+    {objective:'Sprint',weeks:8,hours:8,sessions:7},
+    {objective:'Olympic',weeks:12,hours:9,sessions:8},
+    {objective:'Cyclisme FTP',weeks:8,hours:7,sessions:5},
+    {objective:'Cyclisme contre la montre',weeks:8,hours:7,sessions:5},
+    {objective:'Natation 1500m',weeks:8,hours:4,sessions:4},
+  ];
+  it.each(additional)('vérifie le parcours de génération pour $objective ($weeks semaines)',async scenario=>{
+    const level=['10K','Semi'].includes(scenario.objective)?'untrained':'trained';
+    const ambition=level==='untrained'?'age_group':'competitor';
+    if(!detSupportsObjective(scenario.objective)){emit({...scenario,level,ambition,status:'outside_det'});return;}
+    const input=inputFor(scenario,level,ambition,[],{recentWeeklyHours:String(scenario.hours),recentWeeksCount:'4'});
+    let plan;
+    try {plan=await generateDetPlanFromPageInput(input);} catch(error){
+      if(!(error instanceof DetRefusal))throw error;
+      emit({...scenario,level,ambition,status:'refused',reasons:error.reasons});return;
+    }
+    const proposal=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+    expect(proposal.weeks).toHaveLength(scenario.weeks);
+    expect(proposal.limiterOrder).toEqual(input.config.identifiedLimitersRaw);
+    emit({...scenario,level,ambition,status:'assembled',limiters:proposal.limiterOrder,
+      firstWeek:proposal.weeks[0].knownMinutes,peak:Math.max(...proposal.weeks.map(w=>w.knownMinutes))});
+  },120000);
 }

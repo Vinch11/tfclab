@@ -42,7 +42,13 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
    longRun ? 'Sortie longue de ' + Math.round(longRun.knownMinutes) + ' min.' : '',
    dose?.message, 'Dénivelé et effort à confirmer sur les parcours de cet athlète.'].filter(Boolean).join(' ');
  };
- const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:trailReview?trailWeekNotes(w):w.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':undefined,sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
+ const weekNotes = (week:typeof proposal.weeks[number]) => {
+  if(trailReview)return trailWeekNotes(week);
+  const volume=week.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':'';
+  const dose=proposal.checks.find(c=>c.week===week.week&&['primary_dose_coverage','tri_primary_component_dose'].includes(c.code));
+  return [dose?.message,volume].filter(Boolean).join(' ') || undefined;
+ };
+ const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:weekNotes(w),sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
   const base={weekNumber:w.week,weekTheme:weekTheme(w),phase:w.phase??'Préparation',dayName:d.day,dayIndex};
   if(d.rest)return [{...base,sport:'Repos',title:'Repos prévu',details:'',isRest:true}];
   return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?'Épreuve du calendrier ; durée non inventée.':renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
