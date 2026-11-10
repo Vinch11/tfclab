@@ -104,7 +104,7 @@ import { AIPlanComparison } from "@/components/AIPlanComparison";
 import { AIPlanBenchmark } from "@/components/AIPlanBenchmark";
 import { RacePaceSimulation } from "@/components/RacePaceSimulation";
 import { AdaptationProjectionSummary } from "@/components/AdaptationProjectionSummary";
-import { LimiterHierarchyEditor } from "@/components/LimiterHierarchyEditor";
+import { LimiterHierarchyEditor, displayedLimiterOrder } from "@/components/LimiterHierarchyEditor";
 import { PlanHistoryCard } from "@/components/PlanHistoryCard";
 import { PlanAdaptationDialog } from "@/components/plan/PlanAdaptationDialog";
 import { usePlanSnapshotSync } from "@/hooks/usePlanSnapshotSync";
@@ -4192,7 +4192,7 @@ export default function AITrainingPlanPage() {
                   <Button type="button" role="radio" aria-checked={planEngine==='ia'} variant={planEngine==='ia'?'default':'outline'} onClick={()=>setPlanEngine('ia')}>IA</Button>
                   <Button type="button" role="radio" aria-checked={planEngine==='det'} variant={planEngine==='det'?'default':'outline'} onClick={()=>setPlanEngine('det')}>DET-ENGINE</Button>
                 </div>
-                {planEngine==='det' && <p className="text-xs text-muted-foreground" data-testid="det-page-order">Ordre des limiteurs transmis : {(coachLimiterOrder.length?coachLimiterOrder:(limiter?.gapAnalysis??[]).filter(g=>g.weightedImpact>0).map(g=>g.metric)).join(' → ')||'—'}</p>}
+                {planEngine==='det' && <p className="text-xs text-muted-foreground" data-testid="det-page-order">Ordre des limiteurs transmis : {displayedLimiterOrder(limiter?.gapAnalysis??[],coachLimiterOrder).join(' → ')||'—'}</p>}
               </div>
             )}
             {!isMultiMode && planEngine==='det' && currentAthlete && athleteContext && (

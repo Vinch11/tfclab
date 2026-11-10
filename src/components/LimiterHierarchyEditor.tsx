@@ -122,6 +122,18 @@ interface LimiterHierarchyEditorProps {
   orderedMetrics?: string[];
 }
 
+/** Ordre exactement affiché par l'éditeur (diagnostic trié par impact, puis ordre coach s'il existe). */
+export function displayedLimiterOrder(gaps: { metric: string; weightedImpact: number }[], orderedMetrics?: readonly string[]): string[] {
+  const list = [...gaps]
+    .filter(g => g.weightedImpact > 0 && g.metric !== "Disponibilité" && canGuidePrescription(g as never))
+    .sort((a, b) => b.weightedImpact - a.weightedImpact);
+  if (orderedMetrics?.length) {
+    const rank = new Map(orderedMetrics.map((m, i) => [m, i]));
+    list.sort((a, b) => (rank.get(a.metric) ?? Infinity) - (rank.get(b.metric) ?? Infinity));
+  }
+  return list.map(g => g.metric);
+}
+
 export function LimiterHierarchyEditor({
   gaps,
   confidence,
