@@ -8,8 +8,9 @@ import { Plus, Trash2, Download } from 'lucide-react';
 import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { criticalEffortsFromRecords, fitCriticalEfforts, previewCriticalInterval, type CriticalEffort, type CriticalSport } from '@/lib/criticalEfforts';
 import type { ReviewedRecord } from '@/lib/nolioV2Records';
+import { toStoredCritical, type StoredCriticalMetrics, type StoredCriticalSport } from '@/lib/criticalMetrics';
 
-export function CriticalEffortsPanel({records=[],athleteLabel='Bilan en cours'}:{records?:ReviewedRecord[];athleteLabel?:string}) {
+export function CriticalEffortsPanel({records=[],athleteLabel='Bilan en cours',stored,onSave}:{records?:ReviewedRecord[];athleteLabel?:string;stored?:StoredCriticalMetrics;onSave?:(sport:CriticalSport,value:StoredCriticalSport|null)=>void}) {
   const [sport,setSport]=useState<CriticalSport>('running');
   const [efforts,setEfforts]=useState<CriticalEffort[]>([]);
   const [selected,setSelected]=useState<Set<string>>(new Set());
@@ -32,7 +33,7 @@ export function CriticalEffortsPanel({records=[],athleteLabel='Bilan en cours'}:
     const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`reperes-critiques-${sport}-${today}.json`;a.click();URL.revokeObjectURL(url);
   };
   return <section className="min-w-0 space-y-4 py-3">
-    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold">Repères critiques</h2><Badge variant="outline">Étude non enregistrée</Badge></div>
+    <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-lg font-semibold">Repères critiques</h2><Badge variant="outline">{onSave?'Enregistré avec le bilan':'Étude non enregistrée'}</Badge></div>
     <p className="text-sm text-muted-foreground">{athleteLabel}</p>
     <Tabs value={sport} onValueChange={v=>{setSport(v==='cycling'?'cycling':'running');setApproved(false);setTarget('');}}><TabsList className="grid w-full grid-cols-2"><TabsTrigger value="running">Course · VC / D′</TabsTrigger><TabsTrigger value="cycling">Vélo · CP / W′</TabsTrigger></TabsList></Tabs>
     <div className="flex flex-wrap gap-2"><Button variant="outline" onClick={()=>{const e:CriticalEffort={id:crypto.randomUUID(),sport,durationSec:180,value:0,date:today,session:'',conditions:'',source:'manual',confirmed:false};setEfforts(prev=>[...prev,e]);setSelected(prev=>new Set([...prev,e.id]));setApproved(false);}}><Plus className="mr-2 h-4 w-4"/>Ajouter un effort</Button><Button variant="outline" disabled={!chosen.length} onClick={exportReview}><Download className="mr-2 h-4 w-4"/>Exporter l’étude</Button></div>
@@ -57,7 +58,12 @@ export function CriticalEffortsPanel({records=[],athleteLabel='Bilan en cours'}:
       <p className="text-xs text-muted-foreground">R² : {fit.r2===null?'non vérifiable':fit.r2.toFixed(4)} · Écart maximal : {fit.residualPct.toFixed(1)} % · Sensibilité au retrait d’un effort : {fit.sensitivityPct===null?'non vérifiable':`${fit.sensitivityPct.toFixed(1)} %`}</p>
     </>}
     {[...fit.errors,...fit.warnings].map(m=><p key={m} className="text-sm text-destructive">{m}</p>)}
-    <label className="flex min-h-11 items-center gap-3 text-sm"><Checkbox aria-label="Autoriser l’aperçu des intervalles" checked={approved&&fit.status==='eligible'} disabled={fit.status!=='eligible'} onCheckedChange={v=>setApproved(v===true)}/>Autoriser l’aperçu des intervalles — aucune modification du plan</label>
+    {onSave&&(()=>{const cur=stored?.[sport];const toSave=toStoredCritical(fit,chosen,approved,today);return <div className="space-y-2 border-y border-border py-3">
+      <p className="text-sm">{cur?<>Dans le bilan : <strong>{sport==='running'?`VC ${(cur.critical*3.6).toFixed(2)} km/h · D′ ${cur.reserve.toFixed(0)} m`:`CP ${cur.critical.toFixed(0)} W · W′ ${(cur.reserve/1000).toFixed(1)} kJ`}</strong> <Badge variant={cur.status==='confirmed'?'default':'secondary'}>{cur.status==='confirmed'?'Validé coach':'Estimation à vérifier'}</Badge></>:'Aucune valeur enregistrée dans ce bilan.'}</p>
+      <div className="flex flex-wrap gap-2"><Button disabled={!toSave} onClick={()=>toSave&&onSave(sport,toSave)}>{toSave?.status==='confirmed'?'Enregistrer comme validé coach':'Enregistrer comme estimation'}</Button>{cur&&<Button variant="outline" onClick={()=>onSave(sport,null)}>Retirer du bilan</Button>}</div>
+      <p className="text-xs text-muted-foreground">Une estimation reste visible mais n’ajuste aucune séance. Seule une valeur validée coach, issue de 3 tests confirmés de moins de 42 jours, permet de proposer des ajustements dans le plan. Enregistrement effectif à la sauvegarde du bilan.</p>
+    </div>;})()}
+    <label className="flex min-h-11 items-center gap-3 text-sm"><Checkbox aria-label="Autoriser l’aperçu des intervalles" checked={approved&&fit.status==='eligible'} disabled={fit.status!=='eligible'} onCheckedChange={v=>setApproved(v===true)}/>Je valide ces repères (coach) — requis pour l’aperçu et l’enregistrement validé</label>
     {approved&&fit.status==='eligible'&&<div className="space-y-3 border-t border-border pt-3"><h3 className="font-medium">Effort continu · comparaison</h3><div className="grid grid-cols-2 gap-3"><label className="text-sm">Durée (s)<Input aria-label="Durée intervalle" type="number" value={duration} onChange={e=>setDuration(e.target.value)}/></label><label className="text-sm">Cible ({sport==='running'?'km/h':'W'})<Input aria-label="Cible intervalle" type="number" value={target} onChange={e=>setTarget(e.target.value)}/></label></div>{preview?<p className="text-sm">Sollicitation estimée : {(preview.fraction*100).toFixed(0)} % de {sport==='running'?'D′':'W′'} · {preview.used.toFixed(0)} {sport==='running'?'m':'J'}.{preview.warning&&<span className="text-destructive"> {preview.warning}</span>}</p>:<p className="text-sm text-muted-foreground">Effort de 2 à 15 minutes au-dessus du repère critique requis.</p>}<p className="text-xs text-muted-foreground">Effort isolé uniquement : aucune prédiction des récupérations ni du nombre de répétitions. LT1/MLSS et durabilité restent distincts.</p></div>}
   </section>;
 }

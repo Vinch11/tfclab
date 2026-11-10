@@ -2,14 +2,14 @@
 export const CHECKED_IN_PLAN_RELEASE_INFO = {
   "manifestVersion": 2,
   "components": {
-    "frontend": "4e51192c05f0d114c5184bc2ca1dc9fdbf5c1f796c1859285d1dce70474244c4",
+    "frontend": "361aeaa7cfabab0f103fad9c927b72f2079c569c7e09ddd3f3af388e987d0646",
     "ai-training-plan": "8039e6bf473cf6ef62c7ec4f94a149353efd3e0e72904b53d6e8120d86a47216",
     "ai-training-plan-test": "7e2b00ab0fe768a31e7ae2a0fb27d9ddc3ca7796d51f622a6d8c8d81a7e02cfa"
   },
   "contractHash": "c4a28a86e63ca5fa2f0926b668ecfa62aaee2cacd8030e8d057f505cd897e265",
   "catalogueHash": "18aa53636bbf2210aa7d3c418f07edbd8a37e57d67eeec0b9cf07a8191334d95",
   "lockHash": "7049139d3d3743bc79fa5113bf0b489822336f1a1683ecaed9f389d6be59b245",
-  "releaseId": "e208d8786660d36db809909aecddfb460a8b776aba07275e635618b104f0bbfc",
+  "releaseId": "8e2a8558055bf259f5a563e10f89bbf2247d7ae023e4686392ba360d15fdc0df",
   "attested": false,
   "deploymentAttested": false,
   "provenance": "declared-source",

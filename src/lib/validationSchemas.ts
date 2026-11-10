@@ -97,6 +97,7 @@ export const snapshotSchema = z.object({
   bike_hr_drift_flag: z.boolean().nullable().optional(),
   gi_issues_flag: z.boolean().nullable().optional(),
   force_development_mode: z.boolean().nullable().optional(),
+  critical_metrics: z.record(z.unknown()).nullable().optional(),
 });
 
 export type ValidatedSnapshot = z.infer<typeof snapshotSchema>;

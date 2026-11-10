@@ -1405,6 +1405,7 @@ export type Database = {
           coach_notes: string | null
           confidence: number | null
           created_at: string
+          critical_metrics: Json | null
           css: number | null
           cycle_tag: string | null
           date: string
@@ -1478,6 +1479,7 @@ export type Database = {
           coach_notes?: string | null
           confidence?: number | null
           created_at?: string
+          critical_metrics?: Json | null
           css?: number | null
           cycle_tag?: string | null
           date?: string
@@ -1551,6 +1553,7 @@ export type Database = {
           coach_notes?: string | null
           confidence?: number | null
           created_at?: string
+          critical_metrics?: Json | null
           css?: number | null
           cycle_tag?: string | null
           date?: string

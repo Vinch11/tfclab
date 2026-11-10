@@ -34,6 +34,7 @@ import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel"
 import { supabase } from "@/integrations/supabase/client";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
+import { CriticalSessionProposals } from "@/components/CriticalSessionProposals";
 import { buildTargetTable } from "@/lib/plan/targetTable";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { derivePhasesFromWeeks, computePhaseLimiterFocus } from "@/engines/plan/planValidator";
@@ -1548,6 +1549,11 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
           séparément à la sauvegarde (handleSaveToPlan), où un vrai blocage
           (dialogue de confirmation) existe déjà pour B11/B12 — ce bandeau ne
           doit pas prétendre faire ce que cette page ne fait pas elle-même. */}
+      {athleteId && (() => {
+        const athlete = athletes.find((a) => a.id === athleteId) ?? null;
+        const snap = getEffectiveSnapshot(athlete, snapshots) as { critical_metrics?: unknown } | null;
+        return <CriticalSessionProposals plan={plan} criticalMetrics={snap?.critical_metrics ?? null} ftp={nolioRefs.ftp ?? null} onAccept={setPlan} />;
+      })()}
       {displayedFinalIssues && displayedFinalIssues.length > 0 && (() => {
         const critical = displayedFinalIssues.filter((i) => i.severity === "error");
         const warnings = displayedFinalIssues.filter((i) => i.severity === "warning");

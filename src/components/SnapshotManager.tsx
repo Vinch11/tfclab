@@ -48,6 +48,7 @@ import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
 import { checkSnapshotForm } from "@/lib/snapshotTestDays";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
+import { parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -102,6 +103,7 @@ const INITIAL_FORM_STATE = {
   tss_7d: "",
   tte_observed_min: "",
   tte_observed_min_run: "",
+  critical_metrics: "",
   // ⚡ État de fatigue au moment du snapshot
   fatigue_state: "ok",
   // 🏃 Économie CAP
@@ -200,6 +202,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
       tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
       tte_observed_min_run: (s as any).tte_observed_min_run != null ? String((s as any).tte_observed_min_run) : "",
+      critical_metrics: (s as any).critical_metrics ? JSON.stringify((s as any).critical_metrics) : "",
 
       // ⚡ État de fatigue
       fatigue_state: s.fatigue_state || "ok",
@@ -302,6 +305,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const m = parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -404,6 +408,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const m = parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -540,7 +545,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         }}
       />
 
-      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo</summary><CriticalEffortsPanel athleteLabel={athleteName}/></details>
+      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = parseStoredCriticalMetrics((prev as Record<string, unknown>).critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
 
       <p className="text-sm font-medium pt-1">Tous les champs</p>
 

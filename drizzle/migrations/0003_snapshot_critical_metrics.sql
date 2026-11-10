@@ -1,0 +1,2 @@
+ALTER TABLE public.snapshots ADD COLUMN IF NOT EXISTS critical_metrics jsonb;
+COMMENT ON COLUMN public.snapshots.critical_metrics IS 'CP/W prime (cycling) and critical speed/D prime (running) with provenance: status estimate (records, never adjusts sessions) or confirmed (coach-validated tests). Separate from legacy p30s/p60s/map5min CP model.';
