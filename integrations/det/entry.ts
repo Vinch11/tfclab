@@ -15,6 +15,8 @@ function copyOnWrite(base:Storage):Storage {
 }
 for(const name of ['localStorage','sessionStorage'] as const)
   Object.defineProperty(window,name,{value:copyOnWrite(window[name]),configurable:false});
+// The DET calculation binds one snapshot and one ordered diagnosis to one athlete.
+window.localStorage.removeItem('tfcl_ai_multi_plan');
 async function start() {
   let stage = 'configuration publique';
   try {

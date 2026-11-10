@@ -46,7 +46,7 @@ try{
   await page.clock.setFixedTime(new Date(date));
   page.on('console',msg=>{if(msg.type()==='error')console.error('Console du profil synthétique',msg.text().slice(0,350));});
   page.on('requestfailed',r=>console.error('Lecture du profil synthétique',new URL(r.url()).pathname,r.failure()?.errorText));
-  const keys={'sb-detfixture-auth-token':JSON.stringify(session),'vinceslab-selected-athlete':athlete,['tfcl_ai_plan_'+athlete]:JSON.stringify(form)};
+  const keys={'tfcl_ai_multi_plan':JSON.stringify({isMultiMode:true}), 'sb-detfixture-auth-token':JSON.stringify(session),'vinceslab-selected-athlete':athlete,['tfcl_ai_plan_'+athlete]:JSON.stringify(form)};
   const refused=[],requested=[],errors=[];
   await page.addInitScript(values=>{for(const [k,v] of Object.entries(values))localStorage.setItem(k,v);},keys);
   await page.route('**/*',async route=>{

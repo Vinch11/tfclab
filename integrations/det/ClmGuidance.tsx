@@ -50,7 +50,7 @@ export function ClmGuidance({plan}:{plan:ParsedPlan}){
       const race=sessions.find(row=>row.session.title.startsWith('COURSE : '))?.session;
       if(!race)throw Error('Course A introuvable dans le plan.');
       const date=(plan as ParsedPlan & {_raceDate:string})._raceDate;
-      const refs={synthetic:true,athleteId:'usr_LOCAL_PREVIEW',sportIds:{bike:'spt_BIKE',strength:'spt_STRENGTH'},exerciseIds:{},
+      const refs={synthetic:true,athleteId:'usr_SYNTHETIC',sportIds:{bike:'spt_BIKE',strength:'spt_STRENGTH'},exerciseIds:{},
         competition:{name:race.title.slice('COURSE : '.length),date,sport:'bike',goalType:'a'}};
       const scope=selection==='all'?{kind:'all'}:selection.startsWith('week-')?{kind:'weeks',from:Number(selection.slice(5)),to:Number(selection.slice(5))}:{kind:'sessions',keys:[selection]};
       const client:Client=await import(/* @vite-ignore */ new URL('/__det/v1/client.mjs',window.location.origin).href);
