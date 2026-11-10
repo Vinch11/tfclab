@@ -1,3 +1,4 @@
+import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
 import {timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import {fingerprintV3SportingSource} from '../../../scripts/library-v3/sportingQualification800';
 import {previewDetStructuredWorkout,type DetStructuredWorkout} from '../../../experimental/det-engine/v400-structured-workout';
@@ -23,6 +24,7 @@ export function appProfileDetStructure(session:ProposedV3Session):AppStructure{
  if(c.sport==='run' && c.targets.status==='unresolved' && c.targets.missing.some(key=>key.startsWith('run_terrain_effort_review.')))
   return {detStructureRefusal:{reason:'run_terrain_effort_review_required'}};
  const qualitative=timedSwimSources.find(w=>w.id===c.sourceId&&fingerprintV3SportingSource(w)===c.sourceFingerprint);
- const result=previewDetStructuredWorkout({...(qualitative?{qualitativeDomains:qualitative.prescription.physiologicalIntent.domainIds}:{}),sourceId:c.sourceId,sport:c.sport,blocks:c.blocks,targets:c.targets.targets,durationMinutes:c.durationMinutes});
+ const walkRun=roadReturnSources.some(w=>w.id===c.sourceId&&fingerprintV3SportingSource(w)===c.sourceFingerprint);
+ const result=previewDetStructuredWorkout({...(walkRun?{qualitativeDomains:["recovery"]}:qualitative?{qualitativeDomains:qualitative.prescription.physiologicalIntent.domainIds}:{}),sourceId:c.sourceId,sport:c.sport,blocks:c.blocks,targets:c.targets.targets,durationMinutes:c.durationMinutes});
  return result.status==='preview'?{detStructuredWorkout:result.workout,detStructureAdmission:result.sourceAdmission}:{detStructureRefusal:{reason:result.reason}};
 }

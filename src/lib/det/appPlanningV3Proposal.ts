@@ -1,5 +1,6 @@
 import {developmentIntervalSources} from '../../../scripts/library-v3/developmentIntervalSources';
-import {returnBikeSources} from '../../../scripts/library-v3/returnBikeSources';
+import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
+import {returnBikeSources,longBikeSource} from '../../../scripts/library-v3/returnBikeSources';
 import {alternateKeyDay,shorterSourceSettings} from './adaptiveSearch';
 import {aeroSlotAccepts, isTimeTrialSource, verifyTimeTrialWeeks} from './timeTrialPlanning';
 import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
@@ -234,6 +235,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   }
   if(options.completeSessions&&(knownLevel===0||lightTri&&allowRepair)&&!tt)selectedSources.push(...returnBikeSources);
   if(options.completeSessions && knownLevel===0 && !trail && !tt){
+    if(road)selectedSources.push(...roadReturnSources);
     for(const id of ['013','021','022','023','101','102','103','104','105']){
       const source=findSource('V3P_RUN_'+id);
       if(source&&!selectedSources.some(s=>s.id===source.id))selectedSources.push(source);
@@ -275,6 +277,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     {phase:'peak',bikeId:'V3P_BIKE_109',bikeMin:108,runId:'V3P_RUN_001',runMin:28}
   ]:[];
   if(lightTri){
+    if(allowRepair)selectedSources.push(longBikeSource);
     for(const id of ['V3P_BIKE_106','V3P_BIKE_107','V3P_BIKE_108','V3P_BIKE_109','V3P_BIKE_110','V3P_RUN_001']){
       const source=findSource(id);
       if(source && !selectedSources.some(s=>s.id===id))selectedSources.push(source);
@@ -355,7 +358,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     const brickDoses=detObjectiveGoal(config.objective)==='half'?halfBricks.flatMap<{targetDurationMin:number;allowWorksetChange:boolean}>(r=>r.bikeId===source.id?[{targetDurationMin:r.bikeMin,allowWorksetChange:false}]:r.runId===source.id?[{targetDurationMin:r.runMin,allowWorksetChange:false}]:[]):[];
     // These are proposed doses inside the source's declared bounds, not human
     // approvals. The qualified runner and its explicit review remain separate.
-    const introDoses = (trailReturnSources.includes(source) || developmentIntervalSources.includes(source)) ? source.prescription.parameters
+    const introDoses = (source.minimumLevel === "untrained" || developmentIntervalSources.includes(source)) ? source.prescription.parameters
       .filter(p => p.path === '1.count')
       .flatMap(p => Array.from({length:p.max-p.min+1}, (_,i) =>
         ({overrides:{'1.count':p.min+i},allowWorksetChange:true}))) : [];
@@ -387,6 +390,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   let priorLoad:number|null=null;
   let peakKnownMinutes=0,previousSpecificMinutes=0;
   let previousSpecificPhase:string|null=null;
+  let priorLongBikeMinutes:number|null=null;
   let priorLongRunMinutes:number|null=null;
   const demandingDays:number[]=[];
   let doseCeiling:number|undefined;
@@ -407,6 +411,19 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   const constrainedTri = !!triObjective && typeof recentTraining === 'number' && Number.isFinite(recentTraining) &&
     recentTraining > 0 && recentTraining * 60 < firstWeekBudget;
   const retryWithCatalogue = !!((triObjective||cyclingFtp) && options.completeSessions && librarySources.length && !constrainedTri && !expandedCatalogue);
+  const longRideTargets=new Map<number,number>();
+  if(lightTri&&allowRepair){
+    let next=0;
+    for(const week of [...study.weeks].reverse()){
+      if(week.weekType!=='load')continue;
+      const slot=week.days.flatMap(d=>d.slots).find(s=>['bike','brick'].includes(s.sport)&&s.role==='long');
+      if(!slot)continue;
+      const bikeMinimum=Math.max(0,(slot.minimumMinutes??0)-(slot.sport==='brick'?20:0));
+      const target=Math.max(bikeMinimum,next/(1+(config.volumeRamp?.weeklyIncreasePctMax??0)));
+      longRideTargets.set(week.week,target);
+      next=target;
+    }
+  }
   let taper: ReturnType<typeof triathlonTaperTargets> = null;
   // Native time-based endurance cards with a declared taper phase provide
   // longer easy bike options than the family's short activation recipes.
@@ -436,7 +453,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       const longCeiling=trail&&slot.role==='long'?trailLongCeiling:longRun?(week.weekType==='recovery'&&priorLongRunMinutes!==null?Math.max(slot.minimumMinutes??0,priorLongRunMinutes*.7):week.weekType==='load'?(priorLongRunMinutes===null?slot.minimumMinutes??Infinity:Math.max(slot.minimumMinutes??0,priorLongRunMinutes*(1+(preparation.weeklyQuotas[week.week]?.volumeBudget?.weeklyIncreasePctMax??.1)))):Infinity):Infinity;
       const single=(sport:string,min:number|null)=>eligible.filter(s=>s.sport===sport&&
         (sport==='strength'||slot.role==='key'||(tt && isTimeTrialSource(s.id))||easy(s)||(road&&slot.role==='long'&&['build','peak'].includes(week.phase??'')&&s.primaryDomain===road.raceDomain)))
-        .flatMap(s=>choices(s,min,desiredBase!==undefined&&sport==='run'?Math.max(min??0,Math.min(longCeiling,desiredBase*(slot.role==='long'?longWeight:1))):preferred?.[sport as 'run'|'bike'|'swim']));
+        .flatMap(s=>choices(s,min,desiredBase!==undefined&&sport==='run'?Math.max(min??0,Math.min(longCeiling,desiredBase*(slot.role==='long'?longWeight:1))):sport==='bike'&&slot.role==='long'&&longRideTargets.has(week.week)?Math.ceil(longRideTargets.get(week.week)!):preferred?.[sport as 'run'|'bike'|'swim']));
       let rows:ProposedV3Session[];
       if(slot.sport==='brick'){
         // For 70.3 base/build/peak, retain only the documented V34 component
@@ -464,7 +481,12 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         const hits=row.components.flatMap(c=>c.limiterMatches);
         return (slot.role==='key'||slot.role==='long'?priorities.reduce((n,p,index)=>n+(hits.includes(p.raw)?10/(index+1):0),0)+(week.limiterFocus.focus&&hits.includes(week.limiterFocus.focus)?20:0):0);
       };
-      return rows.filter(row=>!road||row.role==='race'||row.components.every(c=>c.sport!=='run'||c.durationMinutes!==null&&c.targets.status==='resolved'))
+      const ramp=config.volumeRamp?.weeklyIncreasePctMax??0;
+      return rows.filter(row=>!row.components.some(c=>c.sourceId===longBikeSource.id)||
+        slot.role==='long'&&slot.sport==='bike'&&priorLongBikeMinutes!==null&&row.knownMinutes<=priorLongBikeMinutes*(1+ramp)+1e-7)
+        .filter(row=>!row.components.some(c=>['V3P_RUN_219','V3P_RUN_220'].includes(c.sourceId))||
+        slot.role==='long'&&priorLongRunMinutes!==null&&row.knownMinutes<=priorLongRunMinutes*(1+(config.volumeRamp?.weeklyIncreasePctMax??0))+1e-7)
+        .filter(row=>!road||row.role==='race'||row.components.every(c=>c.sport!=='run'||c.durationMinutes!==null&&c.targets.status==='resolved'))
         .filter(row=>!(longRun||trail&&slot.role==='long')||row.knownMinutes<=longCeiling+1e-7)
         .filter(row=>!slot.maximumMinutes||(row.durationMinutes!==null&&row.durationMinutes<=slot.maximumMinutes+1e-7)).filter(row=>proposedRecoveryStatus(row,{week:week.week,dayIndex,sport:slot.sport},allSlots,start)!=='blocked').sort((a,b)=>score(b)-score(a)||
         Number(a.durationMinutes===null)-Number(b.durationMinutes===null)||a.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)-b.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)||
@@ -501,12 +523,12 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   // Save only the last two boundaries. Never retain failed-week doses, limiter
   // credit, usage or calendar history when revising an earlier week.
   function checkpoint(){
-    const saved={priorLoad,peakKnownMinutes,previousSpecificMinutes,previousSpecificPhase,priorLongRunMinutes,
+    const saved={priorLoad,peakKnownMinutes,previousSpecificMinutes,previousSpecificPhase,priorLongRunMinutes,priorLongBikeMinutes,
       minuteLedgerKnown,ledger:{...minuteLedger},demanding:demandingDays.length,strength:maxStrengthDays.length,
       severe:severeRunDays.length,weeks:result.weeks.length,checks:result.checks.length,
       usage:new Map(usage),exposure:new Map(exposure)};
     return ()=>{
-      ({priorLoad,peakKnownMinutes,previousSpecificMinutes,previousSpecificPhase,priorLongRunMinutes,minuteLedgerKnown}=saved);
+      ({priorLoad,peakKnownMinutes,previousSpecificMinutes,previousSpecificPhase,priorLongRunMinutes,priorLongBikeMinutes,minuteLedgerKnown}=saved);
       Object.assign(minuteLedger,saved.ledger);
       demandingDays.length=saved.demanding;maxStrengthDays.length=saved.strength;severeRunDays.length=saved.severe;
       result.weeks.length=saved.weeks;result.checks.length=saved.checks;
@@ -636,7 +658,13 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       demandingMaximum=Math.max(demandingMaximum,Math.min(2,Math.floor(runDayCount/2)));
     }
     const addressesWaiting = (s:ProposedV3Session)=>waiting && s.components.some(c=>c.limiterMatches.includes(waiting.raw));
+    const longRideShortfall=(session:ProposedV3Session)=>{
+      if(session.role!=='long'||!longRideTargets.has(week.week))return 0;
+      const bike=session.components.find(c=>c.sport==='bike');
+      return bike?Math.max(0,longRideTargets.get(week.week)!-(bike.durationMinutes??0)):0;
+    };
     for(const [index,item] of order.entries())item.domain.sort((a,b)=>
+      longRideShortfall(a)-longRideShortfall(b)||
       (triPowerPrimary&&requiresQuality&&index===0?Number(weekPrimaryMatch(b))-Number(weekPrimaryMatch(a)):0)||
       (separateStrength&&slots[item.index].slot.sport==='strength'?Number(maxStrength(b))-Number(maxStrength(a)):0)||
       (road&&requiresSpecific&&index===0?Number(specificMinutes(b)>0)-Number(specificMinutes(a)>0):0)||
@@ -673,7 +701,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     // Distinguish alternatives by the choices that can constrain later weeks.
     const signature=()=>JSON.stringify(selected.map((s,i)=>({slot:order[i].index,s})).sort((a,b)=>a.slot-b.slot)
       .map(({slot,s})=>[slot,s.sport,s.role,s.components.map(c=>[c.sport,c.durationMinutes,c.sourceDomain,c.limiterMatches])]));
-    const reusable=(s:ProposedV3Session)=>adaptive&&s.role==='support'&&s.components.length===1&&
+    const reusable=(s:ProposedV3Session)=>adaptive&&(s.role==='support'||knownLevel===0&&roadReturnSources.some(source=>source.id===s.components[0]?.sourceId))&&s.components.length===1&&
       ['run','bike','swim'].includes(s.sport)&&s.components[0].sourceDomain==='moderate_lt1'&&findSource(s.components[0].sourceId)?.primaryIntent==='moderate_lt1'&&
       s.components[0].zoneMinutes?.mid===0&&s.components[0].zoneMinutes?.high===0&&s.components[0].zoneMinutes?.unknown===0;
     function solve(index:number,total:number):boolean {
@@ -744,7 +772,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         if(firstPrimary||firstQuality||slack<remaining*10)candidates=[...candidates].sort((a,b)=>
           (firstPrimary?Number(weekPrimaryMatch(b))-Number(weekPrimaryMatch(a)):0)||
           (firstQuality?Number(quality(b))-Number(quality(a)):0)||
-          (slack<remaining*10?a.knownMinutes-b.knownMinutes:0));
+          longRideShortfall(a)-longRideShortfall(b)||(slack<remaining*10?a.knownMinutes-b.knownMinutes:0));
       }
       for(const choice of candidates){
         const ids=choice.components.map(c=>c.sourceId);
@@ -900,6 +928,10 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     // Unknown transitions keep the TOTAL pending. They must not disable
     // exercise-volume progression and deloads for the known component doses.
     if(week.weekType==='load')priorLoad=selected.every(s=>s.role!=='race'&&s.components.every(c=>c.durationMinutes!==null))?knownMinutes:null;
+    if(lightTri&&week.weekType==='load'){
+      const ride=selected.find(s=>s.role==='long'&&(s.sport==='bike'||s.sport==='brick'));
+      priorLongBikeMinutes=ride?.components.find(c=>c.sport==='bike')?.durationMinutes??priorLongBikeMinutes;
+    }
     if(road||trail){
       for(const [index,s] of calendarSelected.entries())if(demandingRun(s))demandingDays.push(7*(week.week-1)+slots[index].dayIndex);
       if(week.weekType==='load'){peakKnownMinutes=Math.max(peakKnownMinutes,knownMinutes);if(requiresSpecific){previousSpecificMinutes=selected.reduce((n,s)=>n+specificMinutes(s),0);previousSpecificPhase=week.phase;}priorLongRunMinutes=selected.find(s=>s.sport==='run'&&s.role==='long')?.durationMinutes??priorLongRunMinutes;}
@@ -939,6 +971,16 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   if(missingTargets.length)result.checks.push({code:'individual_targets',status:'pending',message:'Repères encore nécessaires : '+missingTargets.join(', ')});
   for(const [index,p] of priorities.entries())if(!exposure.has(p.raw)){
     const reductionRank=priorities.findIndex(other=>other.resolution.key==='vlamax_reduction');
+    if(options.completeSessions && knownLevel===0 && road?.ambition==='finisher' &&
+      p.resolution.key==='vo2max' && reductionRank>=0 && reductionRank<index && vlamaxReduction &&
+      exposure.has(priorities[reductionRank].raw) && selected.some(c=>roadReturnSources.some(source=>source.id===c.sourceId))){
+      const firstBlockEnd=result.weeks.find(w=>w.weekType==='recovery')?.week;
+      if(firstBlockEnd){
+        result.checks.push({code:'ranked_limiter_deferred',week:firstBlockEnd,status:'pending',message:
+          `Rang ${index+1} · ${p.raw} : travail direct différé pendant la reprise en marche-course. Rang ${reductionRank+1} · VLamax traité. Bilan coach en fin de S${firstBlockEnd} : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite.`});
+        continue;
+      }
+    }
     if(p.resolution.key==='vo2max' && reductionRank>=0 && reductionRank<index && vlamaxReduction &&
       resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
       result.checks.push({code:'ranked_limiter_deferred',status:'pending',message:

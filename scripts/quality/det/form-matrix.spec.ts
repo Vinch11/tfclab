@@ -463,6 +463,8 @@ if(process.env.DET_RETURN_CASES){
   ];
   it.each(returnCases)('documents return to training for $objective over $weeks weeks',async scenario=>{
     const input=inputFor(scenario,'untrained','finisher',[],{recentWeeklyHours:'3',recentWeeksCount:'4'},true);
+    if(process.env.DET_INTERVAL_FIXTURES && scenario.objective==='Semi' && scenario.weeks===24)
+      writeFileSync(process.env.DET_INTERVAL_FIXTURES+'/ordinary-return-semi.json',JSON.stringify(input,null,2)+'\n');
     const limiters=input.config.identifiedLimitersRaw??[];
     expect(limiters.length).toBeGreaterThan(0);
     try{
@@ -472,9 +474,25 @@ if(process.env.DET_RETURN_CASES){
       expect(p.limiterOrder).toEqual(limiters);
       expect(p.checks.filter(c=>c.status==='blocked')).toEqual([]);
       expect(p.weeks[0].knownMinutes).toBeLessThanOrEqual(180);
-      emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'assembled'});
+      const components=p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
+      expect(components.every(c=>c.review.minimumLevel==='untrained')).toBe(true);
+      expect(p.weeks.every(w=>w.knownMinutes<=scenario.hours*60)).toBe(true);
+      for(const [rank,label] of limiters.entries()){
+        expect(p.checks.some(c=>['ranked_limiter_work','ranked_limiter_deferred'].includes(c.code)&&c.message.startsWith('Rang '+(rank+1)+' · '+label))).toBe(true);
+      }
+      const returnSources=[...new Set(components.map(c=>c.sourceId).filter(id=>/^V3P_RUN_(217|218|219|220)$/.test(id)))];
+      expect(returnSources.length).toBeGreaterThan(0);
+      const sessions=sessionsFromPlanJson(plan).sessions;
+      const race=sessions.map(raceIdentityOf).find(r=>r!==null)!;
+      const refs={synthetic:true,athleteId:'usr_SYNTHETIC',sportIds:{run:'spt_RUN',strength:'spt_STRENGTH'},
+        exerciseIds:{},competition:{date:race.date,name:race.name,sport:race.sport}};
+      const exported=await preparePlan(plan,refs,'SYNTHETIC_RETURN');
+      expect(exported.precheck.complete,JSON.stringify(exported.precheck.rows.filter(r=>r.status==='refused'))).toBe(true);
+      expect(exported.precheck.weeks).toBe(scenario.weeks);
+      emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'assembled',returnSources,exportOperations:exported.ops.length,
+        weeklyMinutes:p.weeks.map(w=>w.knownMinutes),deferred:p.checks.filter(c=>c.code==='ranked_limiter_deferred')});
     }catch(error){
-      if(!(error instanceof DetRefusal))throw error;
+      if(!(error instanceof DetRefusal)||['5K','10K','Semi'].includes(scenario.objective))throw error;
       expect(error.reasons.length).toBeGreaterThan(0);
       emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'refused',reasons:error.reasons});
     }

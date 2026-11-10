@@ -63,3 +63,21 @@ for (const [goal,fixture,level] of [
   console.log(JSON.stringify({case:goal,level,weeks:p.weeks.length,ranked:p.limiterOrder,
     sources:[...new Set(components.map(c=>c.sourceId))].sort()}));
 }
+
+const returning=JSON.parse(readFileSync(from('./ordinary-return-semi.json'),'utf8'));
+const returnPlan=await run({action:'generate',input:returning});
+const comeback=returnPlan._detSourceProposal;
+assert.equal(comeback.weeks.length,24);
+assert.deepEqual(comeback.limiterOrder,returning.config.identifiedLimitersRaw);
+assert.equal(comeback.checks.some(c=>c.status==='blocked'),false);
+assert(comeback.checks.some(c=>c.code==='ranked_limiter_deferred'&&c.week>0));
+const flat=comeback.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
+assert(flat.every(c=>c.review.minimumLevel==='untrained'));
+const alternations=flat.filter(c=>/^V3P_RUN_(217|218|219|220)$/.test(c.sourceId));
+assert(alternations.length>0);
+for(const c of alternations){
+  assert(c.targets.targets.some(t=>t.domain==='moderate_lt1'));
+  assert(!c.targets.targets.some(t=>t.domain==='recovery'));
+  assert.deepEqual(c.blocks[1].steps[1].rpeRange,{min:1,max:2});
+}
+console.log(JSON.stringify({case:'return-semi',weeks:comeback.weeks.length,alternations:alternations.length}));

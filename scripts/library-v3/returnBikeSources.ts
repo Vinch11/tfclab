@@ -18,3 +18,21 @@ export const returnBikeSources:V3Workout[]=[0,1].map(i=>{
  s.prescription.admissibility={...s.prescription.admissibility,minimumLevel:s.minimumLevel,phases:[...s.phase],prerequisites:[...s.prerequisites],stopRule:s.stopRule};
  return s;
 });
+
+// A later progression for a rider training regularly. It is distinct from
+// the two re-entry cards and is only selectable in a progressing long slot.
+const endurance=structuredClone(v3FullCatalogue.workouts.find(s=>s.id==='V3P_BIKE_109')!);
+endurance.id='V3P_BIKE_204';
+endurance.version='3.5-long-easy-bike-candidate';
+endurance.title='Sortie longue vélo · prolongation en endurance facile';
+endurance.origin='TFCLab · prolongation de la fiche V3P_BIKE_109, à revoir individuellement.';
+endurance.focus='Prolonger progressivement une sortie facile déjà tolérée à cadence libre.';
+endurance.methodology='Vérifier la durée réellement tolérée lors de la dernière sortie longue et la récupération avant toute prolongation. Maintenir une conversation aisée et prévoir ravitaillement et possibilités de retour anticipé.';
+endurance.prerequisites=[...endurance.prerequisites,'Sortie longue comparable réellement tolérée, vérifiée par le coach.'];
+endurance.prescription.admissibility.prerequisites=[...endurance.prerequisites];
+endurance.prescription.physiologicalIntent.statement=endurance.focus;
+const main=endurance.blocks[1];
+if(main.kind!=='time')throw Error('long_bike_parent_shape');
+main.seconds={min:108*60,base:117*60,max:162*60};
+endurance.prescription.parameters=endurance.prescription.parameters.map(p=>p.path==='1.seconds'?{...p,...main.seconds}:p);
+export const longBikeSource=endurance;

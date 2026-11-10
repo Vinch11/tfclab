@@ -1,3 +1,4 @@
+import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
 import {library920SourceMetadata,library920EngineeringEligible} from '../../../scripts/library-v3/library920Catalogue';
 import type {V3Workout} from '../../../scripts/library-v3/catalogueRuntime';
 import {coachFamilyFor,coachObjectiveKey} from '../../../experimental/det-engine/v401-coach-inputs-core';
@@ -37,5 +38,9 @@ export function resolveLibrary920Targets(w:V3Workout,anchors:V3AthleteAnchors):V
  if(m&&(w.sport==='run'&&m.terrainEffortRequired||w.sport==='swim'&&m.techniqueSpecificSwimPaceRequired))return {
   status:'unresolved',targets:[],missing:[w.sport==='run'?'run_terrain_effort_review.'+w.id:'swim_technique_specific_paces.'+w.id],
   candidateOnly:true,notScientificValidation:true};
+ if(roadReturnSources.some(source=>source.id===w.id)){
+   const resolution=resolveV3IntensityTargets(w,anchors);
+   return {...resolution,targets:resolution.targets.filter(t=>t.domain!=='recovery')};
+ }
  return resolveV3IntensityTargets(w,anchors);
 }

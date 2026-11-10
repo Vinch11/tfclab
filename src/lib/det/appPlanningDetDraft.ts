@@ -130,7 +130,13 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
         limiterMatches: priorities.filter((_,index) => hits[index]).map(priority => priority.raw),
       }));
       if (!candidates.length && role !== 'race') pending.add(`S${week} ${day.dayName} : séance ${slot.sport} à choisir lors de la revue ; aucune candidate proposée pour ce créneau.`);
-      return { sport: slot.sport, role, minimumMinutes: slot.minDurationMin ?? null, maximumMinutes:slot.maxDurationMin??null, candidates };
+      // Shared templates allocate a 20-minute activation. During an ordinary
+      // beginner finish plan, DET can select a shorter bounded warm-up/run/walk.
+      const shortActivation=ordinaryProposal && slot.isActivation && slot.sport==='run' &&
+        config.ambitionMeta?.trainingLevel==='untrained' && config.ambition==='finisher' &&
+        slot.minDurationMin===20 && slot.maxDurationMin===30 && !config.constraints?.trim();
+      if(shortActivation)pending.add('Affûtage en reprise : activation en marche-course possible entre 12 et 30 min dans le budget de la semaine.');
+      return { sport: slot.sport, role, minimumMinutes: shortActivation?12:slot.minDurationMin ?? null, maximumMinutes:slot.maxDurationMin??null, candidates };
     }) }));
     weeks.push({ limiterFocus, week, phase, weekType: quota.weekType, days });
   }
