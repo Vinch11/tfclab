@@ -40,7 +40,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAppLogo } from "@/hooks/useAppLogo";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
-import { Footprints, FlaskConical } from "lucide-react";
+import { Footprints, FlaskConical, Gauge } from "lucide-react";
 
 interface NavItem {
   id: string;
@@ -168,6 +168,24 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                   </SidebarMenuItem>
                 );
               })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/critical-metrics")}
+                  isActive={location.pathname === "/critical-metrics"}
+                  tooltip={collapsed ? "Puissance et vitesse critiques" : undefined}
+                  className="relative h-10 sm:h-11 rounded-lg"
+                >
+                  <Gauge className="h-[18px] w-[18px] shrink-0" />
+                  {!collapsed && <span className="text-sm truncate">CP · Vitesse critique</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

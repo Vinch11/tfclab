@@ -21,6 +21,9 @@ describe('stored critical metrics', () => {
     expect(criticalForSessions({ cycling: bike }, 'cycling', '2026-12-14').value).toBeNull();
     expect(criticalForSessions({ cycling: bike }, 'cycling', '2026-12-13').value).not.toBeNull();
   });
+  it('coach verdict « À écarter » blocks proposals', () => {
+    expect(criticalForSessions({ cycling: { ...bike, coachReview: { verdict: 'reject', text: '', date: '2026-11-05' } } }, 'cycling', '2026-11-10').value).toBeNull();
+  });
   it('missing sport = Données insuffisantes', () => {
     expect(criticalForSessions(parseStoredCriticalMetrics(null), 'running', '2026-11-10').reason).toBe('Données insuffisantes');
   });

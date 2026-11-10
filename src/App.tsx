@@ -33,6 +33,7 @@ const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
 const RaceSimulationPage = lazy(() => import("./pages/RaceSimulationPage"));
 const PacingAuditPage = lazy(() => import("./pages/PacingAuditPage"));
 const RunningProfilePage = lazy(() => import("./pages/RunningProfilePage"));
+const CriticalMetricsPage = lazy(() => import("./pages/CriticalMetricsPage"));
 const AthleteEditPage = lazy(() => import("./pages/AthleteEditPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const TrainingLoadPage = lazy(() => import("./pages/TrainingLoadPage"));
@@ -181,6 +182,7 @@ export default function App() {
                   {/* RUNNING PROFILE (accessible via dashboard)  */}
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/running-profile" element={<ProtectedRoute><RunningProfilePage /></ProtectedRoute>} />
+                  <Route path="/critical-metrics" element={<ProtectedRoute><CriticalMetricsPage /></ProtectedRoute>} />
                   <Route path="/evolution" element={<ProtectedRoute><EvolutionPage /></ProtectedRoute>} />
                   <Route path="/training-load" element={<ProtectedRoute><TrainingLoadPage /></ProtectedRoute>} />
 

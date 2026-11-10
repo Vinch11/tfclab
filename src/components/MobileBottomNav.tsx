@@ -19,7 +19,7 @@ import {
   SlidersHorizontal,
   TrendingUp,
 } from "lucide-react";
-import { Footprints } from "lucide-react";
+import { Footprints, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
@@ -227,6 +227,15 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
                   <div className="h-px bg-border/40" />
                 </>
               )}
+              <button
+                onTouchEnd={(e) => { e.preventDefault(); navigate("/critical-metrics"); setShowMoreMenu(false); }}
+                onClick={() => { navigate("/critical-metrics"); setShowMoreMenu(false); }}
+                className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-foreground hover:bg-muted/50"
+              >
+                <Gauge className="w-4 h-4 text-primary" />
+                CP · Vitesse critique
+              </button>
+              <div className="h-px bg-border/40" />
               <button
                 onTouchEnd={(e) => { e.preventDefault(); navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}
                 onClick={() => { navigate("/"); onTabChange("configuration"); setShowMoreMenu(false); }}

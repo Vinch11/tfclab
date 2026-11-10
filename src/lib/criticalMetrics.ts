@@ -17,6 +17,8 @@ export interface StoredCriticalSport {
   warnings: string[];
   savedAt: string;
   latestEffortDate: string;
+  /** Coach opinion; 'reject' blocks session proposals even for confirmed values. */
+  coachReview?: { verdict: 'valid' | 'reserve' | 'reject'; text: string; date: string };
 }
 export type StoredCriticalMetrics = Partial<Record<CriticalSport, StoredCriticalSport>>;
 
@@ -51,6 +53,7 @@ export function criticalForSessions(metrics: StoredCriticalMetrics, sport: Criti
   const m = metrics[sport];
   if (!m) return { value: null, reason: 'Données insuffisantes' };
   if (m.status !== 'confirmed') return { value: null, reason: 'Estimation non validée par le coach' };
+  if (m.coachReview?.verdict === 'reject') return { value: null, reason: 'Écarté par l’avis du coach' };
   const age = (Date.parse(today + 'T00:00:00Z') - Date.parse(m.latestEffortDate + 'T00:00:00Z')) / 86400000;
   if (!Number.isFinite(age) || age < 0 || age > CRITICAL_POLICY.maxAgeDays) return { value: null, reason: `Tests de plus de ${CRITICAL_POLICY.maxAgeDays} jours — à refaire` };
   return { value: m, reason: null };
