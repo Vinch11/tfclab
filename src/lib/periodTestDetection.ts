@@ -1,7 +1,7 @@
 export const TEST_DAY_GROUPS: Array<{ title: string; fields: DetectedField[] }> = [
   { title: 'J1 · Sprint', fields: ['pmax_5s', 'p30s_w', 'p60s_w', 'sprint_15s'] },
   { title: 'J3 · Aérobie max', fields: ['map5min_w', 'vma'] },
-  { title: 'J5 · Seuil', fields: ['test20min_w', 'ftp'] },
+  { title: 'J5 · Seuil', fields: ['test20min_w', 'ftp', 'tte_observed_min', 'tte_observed_min_run'] },
   { title: 'Durabilité, économie et contexte', fields: ['run_hr_drift_pct', 'run_power_cost', 'fc_max'] },
 ];
 
@@ -20,7 +20,9 @@ export interface DetectionSession {
   id: string; name: string; date: string; sportBase: 'cycling' | 'running';
   laps?: DetectionLap[]; bikeLaps?: DetectionLapPower[]; time?: Array<number | null>; watts?: Array<number | null>;
 }
-export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w' | 'run_hr_drift_pct' | 'run_power_cost' | 'ftp' | 'fc_max';
+export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w' | 'run_hr_drift_pct' | 'run_power_cost' | 'ftp' | 'fc_max' | 'tte_observed_min' | 'tte_observed_min_run';
+/** Repères pour la durée tenue au seuil : FTP du snapshot (ou proposée) et allure seuil course. */
+export interface ThresholdRefs { ftpW?: number | null; thresholdKmh?: number | null }
 export interface DetectionLapPower { duration?: number | null; watts?: number | null; hrMax?: number | null }
 export interface DetectedTest {
   field: DetectedField; label: string; value: number; display: string; unit: string;
@@ -64,7 +66,7 @@ export function bestMeanPower(time: Array<number | null>, watts: Array<number | 
 
 const paceText = (kmh: number) => { const s = Math.round(3600 / kmh); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}/km`; };
 
-export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] {
+export function detectPeriodTests(sessions: DetectionSession[], refs: ThresholdRefs = {}): DetectedTest[] {
   type Cand = { value: number; display: string; s: DetectionSession; evidence: string; rank?: number };
   const cands = new Map<DetectedField, Cand[]>();
   const push = (f: DetectedField, c: Cand) => cands.set(f, [...(cands.get(f) ?? []), c]);
@@ -125,9 +127,23 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
     }
   }
 
+  // Durée tenue au seuil — MINIMUM prouvé (plus long effort continu ≥ 95 % du repère), jamais un test à l'épuisement.
+  const ftpRef = refs.ftpW && refs.ftpW > 0 ? refs.ftpW : (cands.get('ftp') ?? []).reduce((m, c) => Math.max(m, c.value), 0);
+  for (const s of sessions) {
+    if (ftpRef > 0 && s.sportBase === 'cycling' && s.time && s.watts) {
+      const min = longestAbove(s.time, s.watts, ftpRef * 0.95);
+      if (min >= 10) push('tte_observed_min', { value: min, display: `au moins ${min} min`, s, evidence: `plus long effort continu ≥ 95 % de la FTP (${Math.round(ftpRef)} W) — minimum, pas un test à l'épuisement` });
+    }
+    if (refs.thresholdKmh && refs.thresholdKmh > 0 && s.sportBase === 'running' && s.laps) {
+      const min = longestRunAbove(s.laps, refs.thresholdKmh * 0.97);
+      if (min >= 10) push('tte_observed_min_run', { value: min, display: `au moins ${min} min`, s, evidence: `plus long bloc de tours consécutifs à l'allure seuil (${paceText(refs.thresholdKmh)}) ou plus vite — minimum, pas un test à l'épuisement` });
+    }
+  }
+
   const labels: Record<DetectedField, [string, string]> = {
     pmax_5s: ['Vélo — sprint 5 s', 'W'], p30s_w: ['Vélo — 30 s', 'W'], p60s_w: ['Vélo — 60 s', 'W'],
     map5min_w: ['Vélo — puissance 5 min', 'W'], run_hr_drift_pct: ['Course — dérive cardiaque (durabilité, estimation)', '%'], run_power_cost: ['Course — coût en puissance (économie, information)', 'W par km/h'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], ftp: ['Vélo — FTP', 'W'], fc_max: ['FC max', 'bpm'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
+    tte_observed_min: ['Vélo — durée tenue au seuil (minimum)', 'min'], tte_observed_min_run: ['Course — durée tenue au seuil (minimum)', 'min'],
   };
   const out: DetectedTest[] = [];
   for (const field of Object.keys(labels) as DetectedField[]) {
@@ -139,7 +155,7 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
     const seen = new Set([best.s.id]);
     const alternatives = list.slice(1).filter(c => !seen.has(c.s.id) && seen.add(c.s.id)).slice(0, 3)
       .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display, value: c.value }));
-    const confidence: DetectedTest['confidence'] = field === 'test20min_w' || field === 'run_power_cost' ? 'info' : field === 'ftp' || field === 'fc_max' || field === 'run_hr_drift_pct' ? 'check' : 'measured';
+    const confidence: DetectedTest['confidence'] = field === 'test20min_w' || field === 'run_power_cost' ? 'info' : field === 'ftp' || field === 'fc_max' || field === 'tte_observed_min' || field === 'tte_observed_min_run' || field === 'run_hr_drift_pct' ? 'check' : 'measured';
     out.push({ field, confidence, fillable: confidence !== 'info', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
       sessionId: best.s.id, sessionName: best.s.name, date: best.s.date, evidence: best.evidence, alternatives });
   }
@@ -191,4 +207,28 @@ export function runPowerCost(laps: DetectionLap[]) {
   const kmh = (st.reduce((a, l) => a + l.d, 0) / total) * 3.6; const w = st.reduce((a, l) => a + (l.w as number) * l.t, 0) / total;
   const hr = st.reduce((a, l) => a + l.hr * l.t, 0) / total;
   return { wPerKmh: Math.round((w / kmh) * 10) / 10, kmh: Math.round(kmh * 10) / 10, hr: Math.round(hr), minutes: Math.round(total / 60) };
+}
+
+/** Plus longue durée continue (min) au-dessus de `floor` W ; creux tolérés ≤ 10 s (relances, virages). */
+export function longestAbove(time: Array<number | null>, watts: Array<number | null>, floor: number): number {
+  let best = 0, start: number | null = null, lastOk: number | null = null, prevT: number | null = null;
+  for (let i = 0; i < Math.min(time.length, watts.length); i++) {
+    const t = time[i], w = watts[i];
+    if (typeof t !== 'number' || !Number.isFinite(t)) continue;
+    if (prevT !== null && t - prevT > 5) { start = null; lastOk = null; } // trou d'enregistrement : rupture
+    prevT = t;
+    if (typeof w === 'number' && w >= floor) { if (start === null) start = t; lastOk = t; if (lastOk - start + 1 > best) best = lastOk - start + 1; }
+    else if (lastOk !== null && t - lastOk > 10) { start = null; lastOk = null; }
+  }
+  return Math.floor(best / 60);
+}
+
+/** Plus long bloc (min) de tours consécutifs plus rapides que `kmh`. */
+export function longestRunAbove(laps: DetectionLap[], kmh: number): number {
+  let best = 0, cur = 0;
+  for (const l of laps) {
+    const d = Number(l.distance), t = Number(l.duration);
+    if (d > 0 && t > 0 && (d / t) * 3.6 >= kmh) { cur += t; best = Math.max(best, cur); } else cur = 0;
+  }
+  return Math.floor(best / 60);
 }

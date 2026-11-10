@@ -81,7 +81,10 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
         }
       };
       await Promise.all([worker(), worker(), worker()]);
-      const found = detectPeriodTests(out);
+      const ftpW = Number(String(current.ftp ?? '').replace(',', '.'));
+      const pace = String(current.pace_threshold ?? '').match(/^(\d+):(\d{1,2})/);
+      const thresholdKmh = pace ? 3600 / (Number(pace[1]) * 60 + Number(pace[2])) : null;
+      const found = detectPeriodTests(out, { ftpW: ftpW > 0 ? ftpW : null, thresholdKmh });
       setMissing(failed); setTests(found);
       setValues(Object.fromEntries(found.map(t => [t.field, String(t.value)])));
       setSelected(new Set(found.filter(t => t.fillable && !hasValue(t.field)).map(t => t.field)));
