@@ -69,6 +69,7 @@ import { SessionReplaceDialog } from "@/components/SessionReplaceDialog";
 import type { LibraryWorkout } from "@/types/workoutLibrary";
 import { WeekPicker, mondayOf } from "@/components/ui/week-picker";
 import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
+import { PlanPhysioTimeline } from "@/components/plan/PlanPhysioTimeline";
 import { RegenerationConstraintsDialog, type RegenerationScope } from "@/components/plan/RegenerationConstraintsDialog";
 
 
@@ -1539,6 +1540,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
           </AlertDescription>
         </Alert>
       )}
+
+      <PlanPhysioTimeline plan={plan} />
 
       {/* Audit scientifique P0 — F12 : validation finale post-mutations
           (checkB13 critique / checkB14 avertissement), calculée après TOUTES
