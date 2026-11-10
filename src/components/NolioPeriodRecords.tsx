@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NolioTestReview } from '@/components/NolioTestReview';
 import { NolioThresholdTestReview } from '@/components/NolioThresholdTestReview';
+import { CriticalEffortsPanel } from '@/components/CriticalEffortsPanel';
 import { Download, Search, Check } from 'lucide-react';
 import { observedFields, recordNotes, recordQueries, readSportsRecords, selectableRecordIndices, type ReviewedRecord, type SnapshotRecordFields } from '@/lib/nolioV2Records';
 
@@ -104,6 +105,7 @@ export function NolioPeriodRecords({onApply}:{onApply?:(fields:SnapshotRecordFie
       </div>
       {onApply && <label className="flex items-center gap-3 py-2 text-sm"><Checkbox checked={confirmedAthlete} onCheckedChange={v=>setConfirmedAthlete(v===true)}/>Je confirme que cet athlète Nolio correspond à ce bilan.</label>}
       <NolioTestReview key={`${mode}-${athlete}-${period.from}-${period.to}-${records.length}-${[...selected].join(',')}-${basket.length}`} records={reviewed} mode={mode} athlete={athlete} from={period.from} to={period.to} onApply={onApply&&complete&&catalogues?.complete&&confirmedAthlete?onApply:undefined}/>
+      {complete&&catalogues?.complete&&confirmedAthlete&&<details className="border-t border-border"><summary className="cursor-pointer py-3 font-medium text-sm">Repères critiques · étudier les efforts retenus</summary><CriticalEffortsPanel key={`critical-${athlete}-${period.from}-${period.to}`} records={reviewed} athleteLabel={catalogues.athletes.find(a=>a.id===athlete)?.name??'Athlète Nolio'}/></details>}
     </>}
   </section>;
 }

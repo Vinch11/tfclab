@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Critical effort analysis uses a provenance-aware module separate from the historical CP/VLamax model; its workspace is transient and only previews isolated continuous intervals, never plan prescriptions. Why: record fits must not silently become confirmed measurements or change existing diagnostics before persistence and sport-specific variant contracts are authorized.
+
 - Explicit strength frequency and double-day limits are carried in weekly quota contracts shared by layout, prevalidation and final validation; run-cycle maintenance adds only selected sports without removing run targets. Why: prompt-only choices contradicted imposed calendars.
 - Audited demanding-family definitions and ID safety policies live in `supabase/functions/_shared`, re-exported by the client and checked independently by JSON catalogue contracts. Why: coach approval must not waive verified level, hours or permanent exclusions.
 - Guided schedule overrides use the selected plan start date and update the A race contract on generation and regeneration; limiter-only stored policies cannot override visible frequency. Why: stale dates and saved frequencies silently changed plans.

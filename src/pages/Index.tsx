@@ -18,6 +18,7 @@ import { IndexSeancesView } from "@/components/IndexSeances";
 
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
+import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 import { LowCRRJustificationCard } from "@/components/LowCRRJustificationCard";
 import { DashboardRecommendationsCard } from "@/components/DashboardRecommendationsCard";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
@@ -2170,6 +2171,15 @@ const Index = () => {
             ),
           },
           // ✅ CP/W' Courbe Puissance-Durée (déplacé du dashboard)
+          {
+            id: "critical-efforts-profil",
+            render: () => currentAthlete && (
+              <details className="border-y border-border">
+                <summary className="cursor-pointer py-4 font-semibold">Repères critiques · Course et vélo</summary>
+                <CriticalEffortsPanel key={currentAthlete.id} athleteLabel={currentAthlete.name} />
+              </details>
+            ),
+          },
           {
             id: "cp-wprime-curve-profil",
             render: () => currentAthlete && effectiveCloudSnapshot && (

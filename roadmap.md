@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Repères critiques : calculs course/vélo avec provenance, étude temporaire accessible depuis bilan/profil et sélection Nolio, export et sollicitation d’un effort continu ; 76 tests ciblés verts, parcours connecté avec efforts fictifs vérifié sur ordinateur/mobile, accord annulé après modification, aucune sauvegarde ni publication.
+- [ ] Vérifier les repères critiques sur des tests Nolio réels identifiés par le coach : aucune séance réelle n’a été déclarée arbitrairement comme test confirmé.
+- [ ] Enregistrement structuré et utilisation dans les plans : migration et écritures athlète non autorisées ; activation des variantes après validation sportive distincte.
+
 - [x] Fiabiliser la configuration : renforcement explicite 0/3, doubles 0/1 et maintien sélectionné dans les contrats déterministes ; tests comportementaux verts.
 - [x] Stabiliser dates, objectifs, trail et choix coach dans les configurations simple/groupée/régénération ; priorités B/C non promues en pics complets, contrôle d'objectif absent conservé.
 - [x] Harmoniser ambition, décharge, terrain et autorisations serveur ; 1496 tests frontend, 378 tests fonction principale et 367 tests miroir verts ; aperçu connecté : renforcement 0 puis 3 avec doubles 0, changement du précontrôle vérifié. Fonctions déployées avec succès, déclaration fraîche ; aucune génération IA ni donnée athlète enregistrée. Détail et limites : docs/corrections-impact-configuration-plan-2026-11-10.md.

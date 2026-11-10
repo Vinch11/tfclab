@@ -47,6 +47,7 @@ import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersi
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
 import { checkSnapshotForm } from "@/lib/snapshotTestDays";
+import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -538,6 +539,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           setFormData(prev => ({ ...prev, [key]: value }));
         }}
       />
+
+      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo</summary><CriticalEffortsPanel athleteLabel={athleteName}/></details>
 
       <p className="text-sm font-medium pt-1">Tous les champs</p>
 
