@@ -9,12 +9,15 @@ import type { SnapshotRecordFields } from '@/lib/nolioV2Records';
 export interface DetectionLap { distance?: number | null; duration?: number | null }
 export interface DetectionSession {
   id: string; name: string; date: string; sportBase: 'cycling' | 'running';
-  laps?: DetectionLap[]; time?: Array<number | null>; watts?: Array<number | null>;
+  laps?: DetectionLap[]; bikeLaps?: DetectionLapPower[]; time?: Array<number | null>; watts?: Array<number | null>;
 }
-export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma';
+export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w';
+export interface DetectionLapPower { duration?: number | null; watts?: number | null }
 export interface DetectedTest {
   field: DetectedField; label: string; value: number; display: string; unit: string;
   sessionId: string; sessionName: string; date: string; evidence: string;
+  /** false = information seulement (ex. test 20 min : jamais converti en FTP automatiquement). */
+  fillable: boolean;
   /** Autres séances candidates, du meilleur au moins bon. */
   alternatives: Array<{ sessionName: string; date: string; display: string }>;
 }
@@ -62,6 +65,11 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
         if (p && p > 0) push(field, { value: Math.round(p), display: `${Math.round(p)} W`, s, evidence: `meilleure moyenne ${sec < 60 ? sec + ' s' : sec / 60 + ' min'} de la séance` });
       }
     }
+    // Test 20 min (protocole FTP) : tour vélo isolé de 19 à 21 min, effort réel du test.
+    for (const lap of s.sportBase === 'cycling' ? s.bikeLaps ?? [] : []) {
+      const t = Number(lap.duration), w = Number(lap.watts);
+      if (t >= 1140 && t <= 1260 && w > 0) push('test20min_w', { value: Math.round(w), display: `${Math.round(w)} W sur ${Math.round(t / 60)} min`, s, evidence: 'tour de test 20 min (FTP non calculée automatiquement)' });
+    }
     if (s.sportBase === 'running' && s.laps) {
       for (const lap of s.laps) {
         const d = Number(lap.distance), t = Number(lap.duration);
@@ -95,7 +103,7 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
 
   const labels: Record<DetectedField, [string, string]> = {
     pmax_5s: ['Vélo — sprint 5 s', 'W'], p30s_w: ['Vélo — 30 s', 'W'], p60s_w: ['Vélo — 60 s', 'W'],
-    map5min_w: ['Vélo — puissance 5 min', 'W'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
+    map5min_w: ['Vélo — puissance 5 min', 'W'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
   };
   const out: DetectedTest[] = [];
   for (const field of Object.keys(labels) as DetectedField[]) {
@@ -106,12 +114,12 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
     const seen = new Set([best.s.id]);
     const alternatives = list.slice(1).filter(c => !seen.has(c.s.id) && seen.add(c.s.id)).slice(0, 3)
       .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display }));
-    out.push({ field, label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
+    out.push({ field, fillable: field !== 'test20min_w', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
       sessionId: best.s.id, sessionName: best.s.name, date: best.s.date, evidence: best.evidence, alternatives });
   }
   return out;
 }
 
 export function detectedToFields(tests: DetectedTest[]): SnapshotRecordFields {
-  return Object.fromEntries(tests.map(t => [t.field, String(t.value)])) as SnapshotRecordFields;
+  return Object.fromEntries(tests.filter(t => t.fillable).map(t => [t.field, String(t.value)])) as SnapshotRecordFields;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { bestMeanPower, detectPeriodTests, type DetectionSession } from './periodTestDetection';
+import { bestMeanPower, detectPeriodTests, detectedToFields, type DetectionSession } from './periodTestDetection';
 
 const flat = (n: number, w: number) => ({ time: Array.from({ length: n }, (_, i) => i), watts: Array.from({ length: n }, () => w) });
 
@@ -38,6 +38,14 @@ describe('Trouver les tests de la période', () => {
     const fields = detectPeriodTests([s]).map(t => t.field as string);
     expect(fields).not.toContain('ftp');
     expect(fields).not.toContain('tte_observed_min');
+  });
+
+  it('shows a 20 min bike test lap as information only, never as FTP', () => {
+    const s: DetectionSession = { id: 'f', name: 'FTP', date: '2026-10-21', sportBase: 'cycling', bikeLaps: [{ duration: 1200, watts: 198 }, { duration: 300, watts: 212 }] };
+    const t = detectPeriodTests([s]).find(x => x.field === 'test20min_w')!;
+    expect(t.value).toBe(198);
+    expect(t.fillable).toBe(false);
+    expect(detectedToFields([t])).toEqual({});
   });
 
   it('does not interpolate across recording gaps', () => {

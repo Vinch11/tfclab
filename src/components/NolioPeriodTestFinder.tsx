@@ -39,7 +39,9 @@ export function NolioPeriodTestFinder({ athlete, from, to, onApply }: Props) {
               out.push({ ...s, laps: r?.laps ?? [] });
             } else {
               const r = await call({ action: 'protocol_session', athlete, training: s.id, from, to });
-              out.push({ ...s, time: r?.streams?.stream_time, watts: r?.streams?.stream_watts ?? r?.streams?.stream_power });
+              const l = await call({ action: 'test_session', athlete, training: s.id, from, to }).catch(() => null);
+              const bikeLaps = (l?.laps ?? []).map((x: { duration?: number; stats?: { watts_avg?: { value?: number } } }) => ({ duration: x.duration, watts: x.stats?.watts_avg?.value }));
+              out.push({ ...s, bikeLaps, time: r?.streams?.stream_time, watts: r?.streams?.stream_watts ?? r?.streams?.stream_power });
             }
           } catch { failed++; }
           setProgress(`${++done}/${sessions.length} séances analysées`);
@@ -47,14 +49,14 @@ export function NolioPeriodTestFinder({ athlete, from, to, onApply }: Props) {
       };
       await Promise.all([worker(), worker(), worker()]);
       const found = detectPeriodTests(out);
-      setMissing(failed); setTests(found); setSelected(new Set(found.map(t => t.field)));
+      setMissing(failed); setTests(found); setSelected(new Set(found.filter(t => t.fillable).map(t => t.field)));
     } catch (e) { setError(e instanceof Error ? e.message : 'Lecture Nolio impossible.'); }
     finally { setBusy(false); }
   };
 
   const apply = () => {
     if (!tests || !onApply) return;
-    const chosen = tests.filter(t => selected.has(t.field));
+    const chosen = tests.filter(t => t.fillable && selected.has(t.field));
     const fields = Object.fromEntries(chosen.map(t => [t.field, String(t.value)])) as SnapshotRecordFields;
     const notes = `Tests trouvés dans Nolio (${from} → ${to}), meilleur résultat validé par le coach : ` +
       chosen.map(t => `${t.label} ${t.display} — ${t.sessionName} du ${t.date.slice(0, 10)}`).join(' ; ');
@@ -73,15 +75,16 @@ export function NolioPeriodTestFinder({ athlete, from, to, onApply }: Props) {
       {tests.length === 0 && <p className="text-sm">Données insuffisantes : aucun test reconnu sur cette période.</p>}
       <ul className="divide-y divide-border">
         {tests.map(t => <li key={t.field} className="flex gap-3 py-3">
-          <Checkbox aria-label={t.label} className="mt-1" checked={selected.has(t.field)} onCheckedChange={c => setSelected(prev => { const n = new Set(prev); if (c === true) n.add(t.field); else n.delete(t.field); return n; })} />
+          <Checkbox aria-label={t.label} className="mt-1" disabled={!t.fillable} checked={selected.has(t.field)} onCheckedChange={c => setSelected(prev => { const n = new Set(prev); if (c === true) n.add(t.field); else n.delete(t.field); return n; })} />
           <div className="min-w-0 text-sm">
             <p className="font-medium">{t.label} : {t.display}</p>
             <p className="text-muted-foreground">{t.sessionName} · {t.date.slice(0, 10)} · {t.evidence}</p>
+            {!t.fillable && <p className="text-muted-foreground">Information : la FTP reste à saisir par le coach à partir de ce test.</p>}
             {t.alternatives.length > 0 && <p className="text-muted-foreground">Autres : {t.alternatives.map(a => `${a.display} (${a.date.slice(0, 10)})`).join(', ')}</p>}
           </div>
         </li>)}
       </ul>
-      <p className="text-sm text-muted-foreground">Non détectés automatiquement : FTP, allure seuil, durée tenue au seuil et CSS — à saisir ou à confirmer par protocole.</p>
+      <p className="text-sm text-muted-foreground">Non remplis automatiquement : FTP, allure seuil, durée tenue au seuil et CSS — à saisir ou à confirmer par protocole.</p>
       {onApply && tests.length > 0 && <Button onClick={apply} disabled={!selected.size}>Remplir le snapshot avec les tests cochés</Button>}
     </>}
   </section>;
