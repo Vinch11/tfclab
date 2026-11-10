@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "version": "det-081d03cd7e4faab0a3426d894e1c73951db275f70b2251606d512d83389affc0",
+  "version": "det-4767de6a549b270572a7045c42e4abfc8d8ac6d93868e4963d10a010e9ec8818",
   "entry": "worker.js.gz",
   "encoding": "gzip",
-  "bytes": 786659,
-  "sha256": "9fec9f3c219b358bf961aa158114992ee291ec3d656fcc7bc04f9d8652c47544",
-  "workerSha256": "989829c58c4862f458900a4357b73c2de6829c495681432254ca4653fe7d7e4e"
+  "bytes": 786700,
+  "sha256": "844343ae765c576d871dd42bd32e1e585b7d0e91778f35610ac09bbd57ce9bf7",
+  "workerSha256": "74dc78535357e0e68862cc379eecbafecea918e9c9dc22ef705be4287253e028"
 }
