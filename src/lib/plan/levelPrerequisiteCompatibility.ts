@@ -128,6 +128,10 @@ export function isLevelPrerequisiteIncompatible(
     if (requiredLevel && (actualRank == null || actualRank < LEVEL_RANK[requiredLevel])) return true;
     const minimumHours = auditedPrerequisites.minimumWeeklyHours;
     if (minimumHours != null && (signal.weeklyHours == null || signal.weeklyHours < minimumHours)) return true;
+    // Une fiche de l'axe historique reste fermée à un niveau débutant vérifié
+    // même approuvée nominativement : son critère documenté (semaines/mois
+    // d'entraînement régulier) n'est pas levé par une décision de coach.
+    if (BEGINNER_LEVELS.has(signal.trainingLevel) && LEVEL_PREREQUISITE_FICHE_IDS.has(id)) return true;
     return false;
   }
 

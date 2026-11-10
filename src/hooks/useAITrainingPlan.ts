@@ -495,6 +495,23 @@ export interface PlanConfig {
    */
   maxDoubleDaysPerWeek?: number;
   /**
+   * Séances avancées approuvées NOMINATIVEMENT par le coach pour cet athlète
+   * (fiches `requireExplicitCoachApproval` de `workoutSafetyPrerequisites.ts`
+   * : sprints maximaux, tests, doubles journées, protocoles lactate, charges
+   * lourdes). Sans cette liste, ces fiches ne sont jamais proposées au modèle
+   * ni réintroduites par le réconciliateur.
+   *
+   * - L'approbation rend la fiche ÉLIGIBLE ; elle ne force pas sa sélection.
+   * - Elle ne remplace jamais la preuve de profil (niveau saisi par le coach
+   *   ou mesuré par le TSS) exigée par la même fiche.
+   * - Les fiches `blockAutomaticSelection` (hypoxie, chaleur, navette lactate
+   *   course au seuil) ne sont jamais approuvables ; tout ID hors liste
+   *   fermée est ignoré
+   *   (`lib/plan/advancedSessionApproval.ts`).
+   * Absent = aucune approbation (comportement historique).
+   */
+  approvedAdvancedSessionIds?: string[];
+  /**
    * Sprint qualité Marathon/Ironman (oct. 2026) — PRÉPARATION DU PREMIER
    * TEST CONTRÔLÉ (consigne coach explicite) : mode de test EXPLICITEMENT
    * opt-in, réservé au Pilot Cockpit (jamais posé par le formulaire coach

@@ -9,6 +9,7 @@
 
 - Intensity domains (LT1 → MLSS → VO₂max) are defined only in `src/lib/zones/tfclDoctrine.ts`; zones, workouts and AI prompts must reference a doctrine domain, never hardcoded % VMA. Why: author-named methods were redefining intensities inconsistently.
 - Audited sub-threshold cards use the canonical `sub_threshold` intent; safety prerequisites are shared by catalogue and replacements, and unrepresented qualitative exclusions stay automatically blocked. Why: method names, external power and coach approval cannot prove lactate control or missing safety conditions.
+- Coach approvals of advanced sessions enter only through `src/lib/plan/advancedSessionApproval.ts` (closed list derived from the audit tables, signal built by `buildLevelPrerequisiteSignal`); never write raw IDs into `approvedAdvancedSessionIds`. Why: the gate keeps a legacy branch where an approved ID without a review flag bypasses level and volume checks.
 
 ## Pourquoi cette section existe
 

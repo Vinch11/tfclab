@@ -59,6 +59,12 @@ import { computeDiagnostic, type AthleteDiagnostic, type DiagnosticInput } from 
 import { prepareTrainingPlanContext, buildPlanAthleteDataFromDiagnostic, deriveLimiterKeysFromGapAnalysis, postProcessParsedPlan, type PlanFormConfig } from "@/engines/plan";
 import { classifyMultiObjectiveGoalsClient, canBeIndependentPeak, minGapWeeksForFullPeak, type ClassifiableRaceGoal } from "@/lib/plan/multiObjectiveClassification";
 import { validatePlan, computeMissingFinalRaceDayFix, type ValidationIssue } from "@/engines/plan/planValidator";
+import {
+  buildLevelPrerequisiteSignal,
+  sanitizeApprovedAdvancedSessionIds,
+  type AdvancedSessionProfileSignal,
+} from "@/lib/plan/advancedSessionApproval";
+import { AdvancedSessionApprovalPanel } from "@/components/plan/AdvancedSessionApprovalPanel";
 import { checkB11, checkB11ToValidationIssues } from "@/lib/plan/qa/checksB10B11";
 import { checkB12, checkB12ToValidationIssues } from "@/lib/plan/qa/checkB12";
 import { checkB13, checkB13ToValidationIssues } from "@/lib/plan/qa/checkB13";
@@ -382,9 +388,9 @@ async function buildRegenCatalog(
       injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
       // P1 (audit "B-5K-BEGINNER round 2") : même protection qu'à la
       // génération complète (useAITrainingPlan.ts) sur régénération.
-      beginnerIntensitySignal: cfg.ambitionMeta
-        ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
-        : null,
+      // Même signal qu'à la génération complète, approbations coach des
+      // séances avancées comprises (`advancedSessionApproval.ts`).
+      beginnerIntensitySignal: buildLevelPrerequisiteSignal(cfg),
     },
   );
   return {
@@ -447,9 +453,7 @@ async function buildRegenPhaseCatalogs(
         historicalUsage,
         rotationSeed,
         injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
-        beginnerIntensitySignal: cfg.ambitionMeta
-          ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
-          : null,
+        beginnerIntensitySignal: buildLevelPrerequisiteSignal(cfg),
       },
     );
     phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
@@ -744,6 +748,11 @@ export default function AITrainingPlanPage() {
   const [deloadCadence, setDeloadCadence] = useState<string>("auto");
   const [trainingLevel, setTrainingLevel] = useState<string>("auto");
   const [lockAmbition, setLockAmbition] = useState<boolean>(false);
+  // Séances avancées approuvées nominativement par le coach pour CET athlète
+  // (liste fermée — cf. `advancedSessionApproval.ts`). Vide par défaut :
+  // sans décision explicite, ces fiches restent fermées.
+  const [approvedAdvancedSessionIds, setApprovedAdvancedSessionIds] = useState<string[]>([]);
+  const [advancedApprovalOpen, setAdvancedApprovalOpen] = useState(false);
 
   const [constraints, setConstraints] = useState("");
   // Trail-only: profil de course (D+, distance, temps cible, altitude max)
@@ -895,6 +904,9 @@ export default function AITrainingPlanPage() {
     setDeloadCadence("auto");
     setTrainingLevel("auto");
     setLockAmbition(false);
+    // Une approbation est nominative : elle ne doit jamais fuiter d'un athlète
+    // à l'autre (même classe de bug que `constraints`/`raceGoals` ci-dessus).
+    setApprovedAdvancedSessionIds([]);
     setRaceGoals([]);
     setCoachLimiterOrder([]);
     setTrailDistanceKm("");
@@ -928,6 +940,8 @@ export default function AITrainingPlanPage() {
       if (savedState.deloadCadence) setDeloadCadence(savedState.deloadCadence);
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
+      // localStorage = source non fiable : refiltré sur la liste fermée.
+      setApprovedAdvancedSessionIds(sanitizeApprovedAdvancedSessionIds(savedState.approvedAdvancedSessionIds));
 
       if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
       if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
@@ -1068,6 +1082,7 @@ export default function AITrainingPlanPage() {
       deloadCadence,
       trainingLevel,
       lockAmbition,
+      approvedAdvancedSessionIds,
 
       raceGoals,
       trailDistanceKm,
@@ -1111,7 +1126,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, approvedAdvancedSessionIds, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1626,6 +1641,12 @@ export default function AITrainingPlanPage() {
       trainingLevel: trainingLevel === "auto" ? undefined : (trainingLevel as any),
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
       lockAmbition,
+      // Approbation nominative : uniquement pour l'athlète affiché, jamais en
+      // mode multi-athlètes (une même liste ne vaut pas pour tout un groupe).
+      approvedAdvancedSessionIds:
+        isMultiMode || (athleteIdOverride != null && athleteIdOverride !== currentAthlete?.id)
+          ? undefined
+          : approvedAdvancedSessionIds,
       crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
       // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
       // passthrough déclaratif (heures) — jamais consommé par ce builder
@@ -1658,7 +1679,26 @@ export default function AITrainingPlanPage() {
     }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, approvedAdvancedSessionIds, isMultiMode, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
+
+  // Profil que le garde-fou verra à la génération, lu dans la configuration
+  // RÉELLE (même résolution niveau/source/heures que le plan) — jamais une
+  // règle recopiée. Calculé seulement quand le panneau d'approbation est
+  // ouvert ; `null` tant qu'aucun diagnostic n'existe.
+  const advancedApprovalProfile = useMemo<AdvancedSessionProfileSignal | null>(() => {
+    if (!advancedApprovalOpen || isMultiMode || !athleteContext?.diagnostic) return null;
+    try {
+      const cfg = buildConfigFromDiag(athleteContext.diagnostic);
+      if (!cfg.ambitionMeta) return null;
+      return {
+        trainingLevel: cfg.ambitionMeta.trainingLevel,
+        trainingLevelSource: cfg.ambitionMeta.trainingLevelSource,
+        weeklyHours: cfg.weeklyHours ?? null,
+      };
+    } catch {
+      return null;
+    }
+  }, [advancedApprovalOpen, isMultiMode, athleteContext, buildConfigFromDiag]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -3937,6 +3977,17 @@ export default function AITrainingPlanPage() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Coach override : approbation nominative des séances avancées */}
+                  {!isMultiMode && (
+                    <AdvancedSessionApprovalPanel
+                      approvedIds={approvedAdvancedSessionIds}
+                      onChange={(ids) => setApprovedAdvancedSessionIds(sanitizeApprovedAdvancedSessionIds(ids))}
+                      profile={advancedApprovalProfile}
+                      open={advancedApprovalOpen}
+                      onOpenChange={setAdvancedApprovalOpen}
+                    />
+                  )}
                 </div>
 
 

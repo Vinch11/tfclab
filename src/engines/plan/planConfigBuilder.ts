@@ -23,6 +23,7 @@ import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
 import { resolveCoachHoursReference } from "./sessionSizingMatrix";
 import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getVlamaxTarget as getVlamaxTargetCanonical } from "@/lib/v2/vlamaxTargets";
+import { sanitizeApprovedAdvancedSessionIds } from "@/lib/plan/advancedSessionApproval";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // ATHLETE DATA EXTRACTION
@@ -138,6 +139,12 @@ export interface PlanFormConfig {
   };
   /** Correction sprint qualité Marathon/Ironman (oct. 2026), #E — voir `PlanConfig.maxDoubleDaysPerWeek`. */
   maxDoubleDaysPerWeek?: number;
+  /**
+   * Séances avancées approuvées nominativement par le coach pour CET athlète
+   * — voir `PlanConfig.approvedAdvancedSessionIds`. Filtré ici sur la liste
+   * fermée des fiches approuvables (`sanitizeApprovedAdvancedSessionIds`).
+   */
+  approvedAdvancedSessionIds?: string[];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -366,6 +373,8 @@ export function buildPlanConfigFromDiagnostic(
     }
   }
 
+  const approvedAdvancedSessionIds = sanitizeApprovedAdvancedSessionIds(formConfig.approvedAdvancedSessionIds);
+
   return {
     objective: formConfig.objective,
     raceName: formConfig.raceName,
@@ -409,6 +418,9 @@ export function buildPlanConfigFromDiagnostic(
     // passthrough, jamais lu par ce builder (voir doc PlanFormConfig.loadHistory).
     loadHistory: formConfig.loadHistory,
     maxDoubleDaysPerWeek: formConfig.maxDoubleDaysPerWeek,
+    // Décision nominative du coach : bornée à la liste fermée des fiches
+    // approuvables, absente quand rien n'est approuvé (config inchangée).
+    approvedAdvancedSessionIds: approvedAdvancedSessionIds.length > 0 ? approvedAdvancedSessionIds : undefined,
   };
 }
 

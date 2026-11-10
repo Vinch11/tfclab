@@ -324,3 +324,45 @@ describe("computeFondationDurationWeeks", () => {
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// APPROBATION COACH DES SÉANCES AVANCÉES — frontière formulaire → PlanConfig
+// ═══════════════════════════════════════════════════════════════════════════════
+
+describe("approvedAdvancedSessionIds — transmission bornée vers le PlanConfig", () => {
+  const diagnostic = computeDiagnostic(COMPLETE_INPUT);
+
+  it("ne transmet que les fiches de la liste fermée, normalisées et triées", () => {
+    const config = buildPlanConfigFromDiagnostic(diagnostic, {
+      ...FORM_CONFIG,
+      approvedAdvancedSessionIds: [
+        " v2_run_sprint_plat ",
+        "ENR_RUN_LACTATE_CLEARANCE",
+        "enr_run_lactate_clearance",
+        // Sélection automatique bloquée : jamais approuvables.
+        "TPL_SWIM_HYPOXIE",
+        "A_HEAT_ACCLIM_RUN",
+        "B_RUN_LACTATE_SHUTTLE",
+        // Fiche sans revue nominative : hors liste fermée.
+        "NORWEGIAN_RUN_THRESHOLD_LOW_VOLUME",
+        "FICHE_INCONNUE",
+      ],
+    });
+    expect(config.approvedAdvancedSessionIds).toEqual(["ENR_RUN_LACTATE_CLEARANCE", "V2_RUN_SPRINT_PLAT"]);
+  });
+
+  it("liste absente, vide ou sans fiche approuvable → champ absent du PlanConfig", () => {
+    expect(buildPlanConfigFromDiagnostic(diagnostic, FORM_CONFIG).approvedAdvancedSessionIds).toBeUndefined();
+    expect(
+      buildPlanConfigFromDiagnostic(diagnostic, { ...FORM_CONFIG, approvedAdvancedSessionIds: [] })
+        .approvedAdvancedSessionIds,
+    ).toBeUndefined();
+    expect(
+      buildPlanConfigFromDiagnostic(diagnostic, {
+        ...FORM_CONFIG,
+        approvedAdvancedSessionIds: ["TPL_SWIM_HYPOXIE", "B_RUN_LACTATE_SHUTTLE"],
+      })
+        .approvedAdvancedSessionIds,
+    ).toBeUndefined();
+  });
+});

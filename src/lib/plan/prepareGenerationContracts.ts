@@ -16,6 +16,7 @@ import { catalogueForWeek } from "../../../supabase/functions/_shared/sessionCat
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
+import { buildLevelPrerequisiteSignal } from "./advancedSessionApproval";
 export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
@@ -185,13 +186,11 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
       // P1 (audit "B-5K-BEGINNER round 2", consigne coach) : signal de niveau
       // réel transmis au catalogue — jamais dérivé d'`ambition` (cf. JSDoc
       // `beginnerIntensitySignal`, workoutCatalogBuilder.ts).
-      const beginnerIntensitySignal = planConfig.ambitionMeta
-        ? {
-            trainingLevel: planConfig.ambitionMeta.trainingLevel,
-            trainingLevelSource: planConfig.ambitionMeta.trainingLevelSource,
-            weeklyHours: planConfig.weeklyHours ?? null,
-          }
-        : null;
+      // Le même signal porte les approbations nominatives du coach
+      // (`approvedAdvancedSessionIds`), bornées à la liste fermée — cf.
+      // `advancedSessionApproval.ts`. Il alimente le catalogue ET le
+      // réconciliateur (`useAITrainingPlan.ts`).
+      const beginnerIntensitySignal = buildLevelPrerequisiteSignal(planConfig);
 
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];

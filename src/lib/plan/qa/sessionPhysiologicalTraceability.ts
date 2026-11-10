@@ -10,6 +10,7 @@ import {
   resolveProhibitionKeys,
 } from "@/lib/limiterSessionPatterns";
 import { isLevelPrerequisiteIncompatible } from "@/lib/plan/levelPrerequisiteCompatibility";
+import { buildLevelPrerequisiteSignal } from "@/lib/plan/advancedSessionApproval";
 
 export type SessionTraceStatus = "verified" | "uncertain" | "not_verified" | "not_applicable";
 export type SessionTraceSeverity = "info" | "warning" | "critical";
@@ -318,12 +319,10 @@ export function buildSessionPhysiologicalTraceability(
   const byId = new Map(catalog.map(workout => [workout.id.toUpperCase(), workout]));
   const allowed = input.allowedCatalogIds == null ? null : new Set(input.allowedCatalogIds.map(id => id.toUpperCase()));
   const prohibitionKeys = resolveProhibitionKeys(input.planConfig.prohibitions);
-  const trainingSignal = input.planConfig.ambitionMeta
-    ? {
-        trainingLevel: input.planConfig.ambitionMeta.trainingLevel,
-        trainingLevelSource: input.planConfig.ambitionMeta.trainingLevelSource,
-      }
-    : null;
+  // Même signal que la génération (niveau, source, heures, approbations coach
+  // bornées) : une fiche avancée approuvée nominativement et éligible pour ce
+  // profil ne doit pas être signalée ici comme conflit de prérequis.
+  const trainingSignal = buildLevelPrerequisiteSignal(input.planConfig);
   const diagnosticConfidence = input.planConfig.physiologicalTrace?.diagnostic.confidenceGlobal ?? null;
   const strategyConfidence = input.planConfig.strategyContext?.confidence ?? null;
   const uncertainContext = diagnosticConfidence !== null && diagnosticConfidence < 0.7 ||
