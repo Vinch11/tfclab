@@ -36,7 +36,7 @@ const scenarios: Scenario[] = [
 ];
 // Every complete case recorded in the released matrix must still yield a
 // complete plan. A newly discovered refusal stays visible in the JSONL report.
-const baseline=JSON.parse(readFileSync('release/det/evidence/2026-11-10-coverage.json','utf8')) as {
+const baseline=JSON.parse(readFileSync('release/det/evidence/2026-11-10-reprise.json','utf8')) as {
   matrix:{objective:string;level:string;ambition:string;status:string}[]
 };
 const expectedComplete=new Set(baseline.matrix.filter(row=>row.status==='assembled')
@@ -455,6 +455,10 @@ describe('multi-week repair acceptance',()=>{
 
 
 if(process.env.DET_RETURN_CASES){
+  it('checks prescription contracts for the new return and long endurance sources',()=>{
+    const workouts=v3ExtendedCatalogue.workouts.filter(w=>['V3P_RUN_217','V3P_RUN_218','V3P_RUN_219','V3P_RUN_220','V3P_BIKE_204'].includes(w.id));
+    expect(auditV3Catalogue({...v3ExtendedCatalogue,workouts,count:5,counts:{run:4,bike:1,strength:0,swim:0}})).toEqual([]);
+  });
   const returnCases:Scenario[]=[
     {objective:'5K',weeks:12,hours:3,sessions:3},{objective:'5K',weeks:16,hours:3,sessions:3},
     {objective:'10K',weeks:16,hours:4,sessions:3},{objective:'10K',weeks:20,hours:4,sessions:3},

@@ -33,6 +33,7 @@ export const roadReturnSources:V3Workout[]=recipes.map(recipe=>{
   repeat.count={min:recipe.min,base:recipe.base,max:recipe.max};repeat.label='Alterner course et marche';
   const bounds=[warm.seconds,repeat.count,fixed(0),run.seconds,walk.seconds,cool.seconds];
   source.prescription.parameters=source.prescription.parameters.map((p,i)=>({...p,...bounds[i]}));
-  source.prescription.individualization.anchors=source.prescription.individualization.anchors.filter(a=>a.domain!=='recovery');
+  source.prescription.individualization.anchors=source.prescription.individualization.anchors.map(a=>a.domain==='recovery'?
+    {...a,key:'source_prescribed_walking_rpe',transform:'use_block_rpe_no_running_pace'}:a);
   return source;
 });
