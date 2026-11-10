@@ -21,6 +21,7 @@ export function coachView(source){
     {currentAthlete && <>`;
   // Render the form only when a profile is selected. Its regular JSX appears verbatim.
   const rendered=view+config+`
+    {!athleteContext && <p role="status">Donnée à compléter · Sélectionnez un bilan pour cet athlète dans sa fiche TFCLab.</p>}
     {athleteContext && <DetCoachPanel key={currentAthlete.id} clm={objective==='Cyclisme contre-la-montre'} disabled={!hasData} revision={JSON.stringify([athleteContext.data,athleteContext.diagnostic,buildConfigWithCoachOverrides(athleteContext.diagnostic),coachLimiterOrder,lastCoachOverridesPayload])}
       readInput={()=>({athleteId:currentAthlete.id,athlete:athleteContext.data,diagnostic:athleteContext.diagnostic,config:buildConfigWithCoachOverrides(athleteContext.diagnostic),pageLimiterOrder:coachLimiterOrder,coachPayload:lastCoachOverridesPayload})}/>}
     </>}</main>`;

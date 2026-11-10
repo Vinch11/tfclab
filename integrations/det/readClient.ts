@@ -10,6 +10,7 @@ const privateSession=new Map<string,string>();
 if(sessionAtOpen)privateSession.set(pilotKey,sessionAtOpen);
 const safeRead:typeof fetch=(request,init)=>{
   const r=new Request(request,init),url=new URL(r.url);
+  if(url.origin===project.origin && r.method==='POST' && ['/functions/v1/det-nolio-export','/functions/v1/det-nolio-connect'].includes(url.pathname))return fetch(r);
   if(url.origin!==project.origin || !['GET','HEAD'].includes(r.method) ||
       !(url.pathname.startsWith('/rest/v1/') || url.pathname==='/auth/v1/user'))
     return Promise.reject(new Error('Cette vue DET dispose uniquement de la lecture du profil.'));

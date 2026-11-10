@@ -1,3 +1,4 @@
+import './nolio-delivery.test.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createServer} from 'node:http';
@@ -47,12 +48,25 @@ try{
   page.on('console',msg=>{if(msg.type()==='error')console.error('Console du profil synthétique',msg.text().slice(0,350));});
   page.on('requestfailed',r=>console.error('Lecture du profil synthétique',new URL(r.url()).pathname,r.failure()?.errorText));
   const keys={'tfcl_ai_multi_plan':JSON.stringify({isMultiMode:true}), 'sb-detfixture-auth-token':JSON.stringify(session),'vinceslab-selected-athlete':athlete,['tfcl_ai_plan_'+athlete]:JSON.stringify(form)};
-  const refused=[],requested=[],errors=[];
+  const refused=[],requested=[],errors=[],delivery=[];
+  let expectedScope=null;
   await page.addInitScript(values=>{for(const [k,v] of Object.entries(values))localStorage.setItem(k,v);},keys);
   await page.route('**/*',async route=>{
     const req=route.request(),u=new URL(req.url());
     requested.push(u.pathname);
     if(u.origin===app)return route.continue();
+    if(expectedScope && u.origin===project && u.pathname==='/functions/v1/det-nolio-export' && ['OPTIONS','POST'].includes(req.method())){
+      const headers={'access-control-allow-origin':app,'access-control-allow-headers':req.headers()['access-control-request-headers']||'*','access-control-allow-methods':'POST,OPTIONS','content-type':'application/json'};
+      if(req.method()==='OPTIONS')return route.fulfill({status:200,headers,body:'{}'});
+      const job=req.postDataJSON();delivery.push(job.action);
+      if(job.action==='archive'){
+        assert.equal(job.plan._detSourceProposal.athleteId,athlete);
+        return route.fulfill({status:200,headers,body:JSON.stringify({status:'ARCHIVED',planVersionId:'version-simulee'})});
+      }
+      assert.deepEqual(job.scope,expectedScope);assert.equal(job.planVersionId,'version-simulee');
+      const sample={prepare:{status:'PREPARED',confirmed:0,total:1},send:{status:'DONE',confirmed:1,total:1},verify:{status:'VERIFIED',expected:1,totalConfirmed:1,present:1,nextIndex:null}}[job.action];
+      assert.ok(sample);return route.fulfill({status:200,headers,body:JSON.stringify(sample)});
+    }
     if(u.origin!==project || !['GET','HEAD','OPTIONS'].includes(req.method()) || !(u.pathname.startsWith('/rest/v1/')||u.pathname==='/auth/v1/user')){
       refused.push(req.method()+' '+u.origin+u.pathname);return route.abort();
     }
@@ -95,6 +109,11 @@ try{
   assert.ok(key,'Séance CLM du jeudi de la cinquième semaine');
   await verify(key,1);
   const stages=await guidance.innerText();
+  assert.deepEqual(delivery,[]);
+  expectedScope={kind:'sessions',keys:[key]};
+  await guidance.getByRole('button',{name:'Exporter la séance vers Nolio'}).click();
+  await guidance.getByText(/1 activité\(s\) relue\(s\) sur Nolio/).waitFor();
+  assert.deepEqual(delivery,['archive','prepare','send','verify']);expectedScope=null;
   assert.match(stages,/15 min 30 s/);assert.match(stages,/136,8–158,4 W/);assert.match(stages,/dernière récupération omise/);
   await racePicker.click();
   await page.getByRole('option',{name:/^Trail court/}).click();

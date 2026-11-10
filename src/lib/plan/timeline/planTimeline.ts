@@ -122,6 +122,15 @@ export function buildPhaseSegments(weeks: TimelineWeek[], ranges?: TimelinePhase
 }
 
 const fmtVol = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 >= 5 ? String(Math.round(m % 60)).padStart(2, "0") : ""}` : `${Math.round(m)}'`);
+const wrap = (t: string, px: number, fs: number, maxLines: number): string[] => {
+  const max = Math.max(3, Math.floor(px / (fs * 0.55)));
+  const words = t.split(/\s+/); const lines: string[] = []; let cur = "";
+  for (const w of words) { if (!cur) cur = w; else if ((cur + " " + w).length <= max) cur += " " + w; else { lines.push(cur); cur = w; } }
+  if (cur) lines.push(cur);
+  const out = lines.slice(0, maxLines).map((l) => (l.length > max ? l.slice(0, max - 1) + "…" : l));
+  if (lines.length > maxLines) out[maxLines - 1] = clip(out[maxLines - 1] + "…", px, fs);
+  return out;
+};
 const clip = (t: string, px: number, fs: number) => { const max = Math.floor(px / (fs * 0.56)); return t.length <= max ? t : max <= 2 ? "" : t.slice(0, max - 1) + "…"; };
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -144,18 +153,18 @@ function readChantiers(plan: ParsedPlan): Chantier[] {
  */
 export function renderPlanTimelineSVG(
   plan: ParsedPlan,
-  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date } = {},
+  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date; width?: number } = {},
 ): string {
   const P = opts.palette ?? PRINT_TIMELINE_PALETTE;
   const weeks = buildPlanTimeline(plan);
   if (weeks.length === 0) return "";
   const n = weeks.length;
   const labelW = 86;
-  const colW = opts.fluid ? Math.max(18, 900 / n) : 46;
+  const colW = opts.fluid ? Math.max(18, 900 / n) : Math.max(52, opts.width ? (opts.width - 90) / n : 52);
   const fs = opts.fluid ? 10.5 : 12;
   const W = labelW + n * colW + 4;
-  const rows = { phase: [0, 50], chantier: [56, 32], charge: [96, 120], marks: [222, 22], week: [248, 34] } as const;
-  const H = 286;
+  const rows = { phase: [0, 50], chantier: [56, 58], charge: [122, 120], marks: [248, 22], week: [274, 34] } as const;
+  const H = 312;
   const first = weeks[0].weekNumber;
   const xOf = (wk: number) => labelW + (wk - first) * colW;
   const wDate = (wk: number) => (opts.startDate ? addDays(opts.startDate, (wk - 1) * 7) : null);
@@ -169,7 +178,7 @@ export function renderPlanTimelineSVG(
     o.push(`<line x1="${labelW - 6}" x2="${W}" y1="${y + h + 2}" y2="${y + h + 2}" stroke="${P.grid}" stroke-dasharray="2 3"/>`);
   };
   rowLabel("phase", "PHASES");
-  rowLabel("chantier", "CHANTIER", "priorité travaillée");
+  rowLabel("chantier", "CHANTIER", "de la semaine");
   rowLabel("charge", "CHARGE", "volume / semaine");
   rowLabel("marks", "REPÈRES");
   rowLabel("week", "SEMAINES");
@@ -194,7 +203,30 @@ export function renderPlanTimelineSVG(
   {
     const [y, h] = rows.chantier;
     let i = 0;
-    if (!ch.length) o.push(`<text x="${labelW + 4}" y="${y + h / 2 + 4}" font-size="${fs - 1}" fill="${P.muted}">Aucun chantier déclaré dans le récapitulatif stratégique du plan</text>`);
+    if (!ch.length) {
+      // Repli : chantier lu dans le thème de chaque semaine (« Build - Charge 2 : Densification Seuil & SFR »).
+      const themes = plan.weeks.slice().sort((p1, p2) => p1.weekNumber - p2.weekNumber).map((wk) => {
+        const t = (wk.theme || "").trim();
+        const k = t.indexOf(":");
+        return (k >= 0 ? t.slice(k + 1) : t.replace(/^(semaine|week|s)\s*\d+\s*[-–—]?\s*/i, "")).trim();
+      });
+      let a = 0;
+      let any = false;
+      while (a < n) {
+        let b = a;
+        while (b + 1 < n && themes[b + 1] === themes[a]) b++;
+        if (themes[a]) {
+          any = true;
+          const x = xOf(weeks[a].weekNumber) + 1, w = (b - a + 1) * colW - 2;
+          o.push(`<g><title>Chantier ${a === b ? `S${weeks[a].weekNumber}` : `S${weeks[a].weekNumber}–S${weeks[b].weekNumber}`} : ${esc(themes[a])}</title><rect x="${x}" y="${y + 2}" width="${w}" height="${h - 4}" rx="6" fill="${P.phases[0]}" stroke="${P.recovery}" stroke-opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.3 : 0.8}"/><rect x="${x}" y="${y + 2}" width="4" height="${h - 4}" rx="2" fill="${P.recovery}" opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.35 : 1}"/>`);
+          const cfs = fs - 1.5, lines = wrap(themes[a], w - 12, cfs, 3), lh = cfs + 3, y0 = y + h / 2 - ((lines.length - 1) * lh) / 2 + cfs / 3;
+          lines.forEach((ln, li) => o.push(`<text x="${x + 9}" y="${y0 + li * lh}" font-size="${cfs}" font-weight="600" fill="${P.text}">${esc(ln)}</text>`));
+          o.push(`</g>`);
+        }
+        a = b + 1;
+      }
+      if (!any) o.push(`<text x="${labelW + 4}" y="${y + h / 2 + 4}" font-size="${fs - 1}" fill="${P.muted}">Aucun chantier identifiable dans ce plan</text>`);
+    }
     while (ch.length && i < n) {
       const top = active[i][0];
       let j = i;

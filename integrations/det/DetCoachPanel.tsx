@@ -14,12 +14,14 @@ type PageInput = {
 type DetPlan = ParsedPlan & {_provenance:{engine:string;engineVersion:string};_detSourceProposal:{limiterOrder:string[];athleteId:string;objective:string;planningInputFingerprint:string;weeks:{days:{sessions:{components:TrailSource[]}[]}[]}[]}};
 type WorkerClient = {runDet:(job:unknown,signal:AbortSignal)=>Promise<DetPlan>};
 
-const emptyHistory = {recent:'', peak:'', ride:'', marathon:'',target:''};
+const emptyHistory = {recent:'', peak:'', ride:'', marathon:'',target:'',thresholdReps:''};
 
 function historyForm(input: PageInput) {
   const objective=String(input.config.objective);
   const returning=input.config.ambitionMeta?.trainingLevel === 'untrained';
-  const kind=/trail/i.test(objective) ? 'trail' : /^marathon$/i.test(objective) ? (returning?'marathonReturn':'marathon') :
+  const returningTen=returning && /^10\s*k(?:m)?$/i.test(objective) && input.config.ambitionMeta?.effective==='finisher' &&
+    /^(?:Durabilité|TTE)$/i.test(input.config.identifiedLimitersRaw?.[0]??'');
+  const kind=returningTen?'tenReturn':/trail/i.test(objective) ? 'trail' : /^marathon$/i.test(objective) ? (returning?'marathonReturn':'marathon') :
     returning && /ironman|70[.,]?3|^(?:im|703)$|triathlon.*(?:full|half)/i.test(objective) ? 'bike' : null;
   if (!kind) return null;
   const times=input.config.raceGoals?.filter(g=>g.priority==='A'&&/^marathon$/i.test(g.objective)).map(g=>g.targetTimeMinutes)??[];
@@ -60,6 +62,12 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
     run.current?.abort();setResult(null);setReview(null);setError('');setBusy(false);setFields(emptyTimeTrial());
   },[revision]);
   function resetResult(){run.current?.abort();setResult(null);setReview(null);setError('');setBusy(false);}
+  function updateHistory(field:keyof typeof emptyHistory,value:string){
+    const next={...history,[field]:value};
+    resetResult();setHistory(next);
+    try{localStorage.setItem(next.key,JSON.stringify(Object.fromEntries(Object.keys(emptyHistory).map(k=>[k,next[k as keyof typeof emptyHistory]]))));}
+    catch{ /* Values remain in this form if storage is unavailable. */ }
+  }
   async function generate(trailGuidanceReview?:TrailReview){
     if(!trailGuidanceReview)resetResult();
     else {run.current?.abort();setError('');}
@@ -74,10 +82,11 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
         ? {recentMinutes:Number(values.recent),peakMinutes:Number(values.peak)} : undefined;
       const recentLongRideMinutes=record?.kind==='bike' && values.ride ? Number(values.ride) : undefined;
       if(record?.kind.startsWith('marathon'))input.config=withMarathonTime(input.config,values.target);
+      const roadReturnThresholdReps=record?.kind==='tenReturn' && values.thresholdReps!=='' ? Number(values.thresholdReps) : undefined;
       const marathonRecentLongRunMinutes=record?.kind==='marathonReturn' && values.marathon ? Number(values.marathon) : undefined;
       const url=new URL('/__det/v1/client.mjs',window.location.origin);
       const client:WorkerClient=await import(/* @vite-ignore */ url.href);
-      const plan=await client.runDet({action:'generate',input:{...input,timeTrial,trailLongRunLimits,recentLongRideMinutes,marathonRecentLongRunMinutes,trailGuidanceReview}},controller.signal);
+      const plan=await client.runDet({action:'generate',input:{...input,timeTrial,trailLongRunLimits,recentLongRideMinutes,marathonRecentLongRunMinutes,roadReturnThresholdReps,trailGuidanceReview}},controller.signal);
       if(controller.signal.aborted)return;
       if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');
       setResult(plan);setReview(trailGuidanceReview??null);
@@ -97,18 +106,20 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
     <button className="font-semibold" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>DET-ENGINE</button>
     {open && <div className="space-y-3">
       {history.key && <fieldset className="grid gap-2">
-        <legend>{history.kind==='trail'?'Sortie longue en trail':history.kind==='bike'?'Reprise du vélo':'Objectif marathon'}</legend>
-        {(history.kind==='trail' ? [['recent','Durée récemment tolérée (min)'],['peak','Durée maximale en préparation (min)']] as const :
+        <legend>{history.kind==='trail'?'Sortie longue en trail':history.kind==='bike'?'Reprise du vélo':history.kind==='tenReturn'?'Reprise du 10 km':'Objectif marathon'}</legend>
+        {history.kind==='tenReturn' && <label className="grid gap-1">Fractions de 3 min au seuil récemment courues et tolérées depuis la reprise
+          <select value={history.thresholdReps} onChange={e=>updateHistory('thresholdReps',e.target.value)}>
+            <option value="">À renseigner</option><option value="0">Aucune</option><option value="1">1</option><option value="2">2</option><option value="3">3 ou plus</option>
+          </select>
+          <small>Sur le plat, après 10 min faciles, avec 3 min au trot entre les fractions, puis 6 min faciles et une récupération satisfaisante.</small>
+        </label>}
+        {(history.kind==='tenReturn' ? [] : history.kind==='trail' ? [['recent','Durée récemment tolérée (min)'],['peak','Durée maximale en préparation (min)']] as const :
           history.kind==='marathonReturn'? [['target','Chrono marathon visé (h:mm:ss ou minutes)'],['marathon','Durée d’une sortie longue à pied récemment tolérée (min)']] as const :
           history.kind==='marathon'? [['target','Chrono marathon visé (h:mm:ss ou minutes)']] as const :
           [['ride','Sortie vélo facile la plus longue récemment tolérée (min)']] as const).map(([field,label])=>
           <label key={field} className="grid gap-1">{label}
             <input type={field==='target'?'text':'number'} min={field==='target'?undefined:1} className="rounded border p-2" value={history[field]}
-              onChange={e=>{
-                const next={...history,[field]:e.target.value};
-                resetResult(); setHistory(next);
-                try {localStorage.setItem(next.key,JSON.stringify({recent:next.recent,peak:next.peak,ride:next.ride,marathon:next.marathon,target:next.target}));} catch { /* Keep the current form. */ }
-              }}/>
+              onChange={e=>updateHistory(field,e.target.value)}/>
           </label>)}
       </fieldset>}
       {clm && <TimeTrialFields value={fields} onChange={v=>{resetResult();setFields(v);}}/>}
@@ -117,6 +128,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       {error && <p role="alert" className="whitespace-pre-line">{error}</p>}
       {result && <div aria-live="polite">
         <h3 className="font-semibold">{result.title}</h3>
+        <p>Plan assemblé · Revue sportive du coach en attente.</p>
         <p>{result.weeks.length} semaines{result._detSourceProposal.limiterOrder.length>0?' · '+result._detSourceProposal.limiterOrder.join(' → '):''}</p>
         <p className="whitespace-pre-line">{result.diagnostic}</p>
         {!!result.finalValidationIssues?.length && <details><summary>Points à vérifier avant prescription</summary>
@@ -129,7 +141,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
         {proposal && trailSources.length>0 && <TrailGuidanceFields key={proposal.planningInputFingerprint}
           sources={trailSources} review={review} athleteId={proposal.athleteId} fingerprint={proposal.planningInputFingerprint}
           busy={busy} onApply={value=>void generate(value)}/>}
-        <PlanGuidance key={result._provenance.engineVersion+JSON.stringify(review)} plan={result}/>
+        <PlanGuidance key={result._provenance.engineVersion+JSON.stringify(review)} plan={result} athleteId={result._detSourceProposal.athleteId}/>
       </div>}
     </div>}
   </section>;
