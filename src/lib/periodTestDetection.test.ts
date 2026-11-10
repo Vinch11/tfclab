@@ -48,6 +48,25 @@ describe('Trouver les tests de la période', () => {
     expect(detectedToFields([t])).toEqual({});
   });
 
+  it('computes HR drift on a long steady run, warm-up excluded, and fills the snapshot', () => {
+    const laps = Array.from({ length: 12 }, (_, i) => ({ distance: 1000, duration: 300, stats: { heartrate_avg: { value: i < 7 ? 140 : 150 } } }));
+    const t = detectPeriodTests([{ id: 'l', name: 'Long', date: '2026-10-10', sportBase: 'running', laps }]).find(x => x.field === 'run_hr_drift_pct')!;
+    expect(t.value).toBeGreaterThan(3);
+    expect(t.fillable).toBe(true);
+  });
+
+  it('ignores interval sessions for drift', () => {
+    const laps = Array.from({ length: 14 }, (_, i) => ({ distance: i % 2 ? 1000 : 400, duration: 300, stats: { heartrate_avg: { value: 150 } } }));
+    expect(detectPeriodTests([{ id: 'i', name: 'Fractionné', date: '2026-10-10', sportBase: 'running', laps }]).find(x => x.field === 'run_hr_drift_pct')).toBeUndefined();
+  });
+
+  it('shows running power cost as information only', () => {
+    const laps = Array.from({ length: 10 }, () => ({ distance: 1000, duration: 300, stats: { heartrate_avg: { value: 145 }, watts_avg: { value: 216 } } }));
+    const t = detectPeriodTests([{ id: 'p', name: 'EF', date: '2026-10-10', sportBase: 'running', laps }]).find(x => x.field === 'run_power_cost')!;
+    expect(t.value).toBe(18);
+    expect(t.fillable).toBe(false);
+  });
+
   it('does not interpolate across recording gaps', () => {
     expect(bestMeanPower([0, 1, 100, 101], [300, 300, 300, 300], 30)).toBeLessThan(30);
   });

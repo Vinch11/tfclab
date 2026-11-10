@@ -6,12 +6,13 @@
  */
 import type { SnapshotRecordFields } from '@/lib/nolioV2Records';
 
-export interface DetectionLap { distance?: number | null; duration?: number | null }
+type Stat = { value?: number | null } | null | undefined;
+export interface DetectionLap { distance?: number | null; duration?: number | null; stats?: { heartrate_avg?: Stat; watts_avg?: Stat; elevation_gain?: Stat } | null }
 export interface DetectionSession {
   id: string; name: string; date: string; sportBase: 'cycling' | 'running';
   laps?: DetectionLap[]; bikeLaps?: DetectionLapPower[]; time?: Array<number | null>; watts?: Array<number | null>;
 }
-export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w';
+export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w' | 'run_hr_drift_pct' | 'run_power_cost';
 export interface DetectionLapPower { duration?: number | null; watts?: number | null }
 export interface DetectedTest {
   field: DetectedField; label: string; value: number; display: string; unit: string;
@@ -54,7 +55,7 @@ export function bestMeanPower(time: Array<number | null>, watts: Array<number | 
 const paceText = (kmh: number) => { const s = Math.round(3600 / kmh); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}/km`; };
 
 export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] {
-  type Cand = { value: number; display: string; s: DetectionSession; evidence: string };
+  type Cand = { value: number; display: string; s: DetectionSession; evidence: string; rank?: number };
   const cands = new Map<DetectedField, Cand[]>();
   const push = (f: DetectedField, c: Cand) => cands.set(f, [...(cands.get(f) ?? []), c]);
 
@@ -93,6 +94,12 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
           if (t >= 300) { const kmh = (d / t) * 3.6; if (!bestVma || kmh > bestVma.kmh) bestVma = { kmh, d, t, n: j - i + 1 }; }
         }
       }
+      const drift = runDrift(s.laps);
+      if (drift) push('run_hr_drift_pct', { value: drift.pct, display: `${drift.pct} %`, s,
+        evidence: `${drift.minutes} min stables analysées (échauffement exclu) · allure/FC ${drift.first} → ${drift.second}`, rank: drift.minutes });
+      const cost = runPowerCost(s.laps);
+      if (cost) push('run_power_cost', { value: cost.wPerKmh, display: `${cost.wPerKmh} W par km/h à ${cost.kmh} km/h`, s,
+        evidence: `${cost.minutes} min de tours stables · ${cost.hr} bpm de moyenne`, rank: cost.minutes });
       if (bestVma) {
         const kmh = Math.round(bestVma.kmh * 10) / 10;
         if (kmh >= 8 && kmh <= 30) push('vma', { value: kmh, display: `${kmh} km/h (${paceText(kmh)})`, s,
@@ -103,18 +110,19 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
 
   const labels: Record<DetectedField, [string, string]> = {
     pmax_5s: ['Vélo — sprint 5 s', 'W'], p30s_w: ['Vélo — 30 s', 'W'], p60s_w: ['Vélo — 60 s', 'W'],
-    map5min_w: ['Vélo — puissance 5 min', 'W'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
+    map5min_w: ['Vélo — puissance 5 min', 'W'], run_hr_drift_pct: ['Course — dérive cardiaque (durabilité, estimation)', '%'], run_power_cost: ['Course — coût en puissance (économie, information)', 'W par km/h'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
   };
   const out: DetectedTest[] = [];
   for (const field of Object.keys(labels) as DetectedField[]) {
-    const list = (cands.get(field) ?? []).sort((a, b) => b.value - a.value);
+    // Dérive et coût : la séance stable la plus longue est la plus représentative (pas « la meilleure valeur »).
+    const list = (cands.get(field) ?? []).sort((a, b) => a.rank !== undefined && b.rank !== undefined ? b.rank - a.rank : b.value - a.value);
     if (!list.length) continue;
     const best = list[0];
     // Une seule alternative par séance.
     const seen = new Set([best.s.id]);
     const alternatives = list.slice(1).filter(c => !seen.has(c.s.id) && seen.add(c.s.id)).slice(0, 3)
       .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display }));
-    out.push({ field, fillable: field !== 'test20min_w', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
+    out.push({ field, fillable: field !== 'test20min_w' && field !== 'run_power_cost', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
       sessionId: best.s.id, sessionName: best.s.name, date: best.s.date, evidence: best.evidence, alternatives });
   }
   return out;
@@ -122,4 +130,47 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
 
 export function detectedToFields(tests: DetectedTest[]): SnapshotRecordFields {
   return Object.fromEntries(tests.filter(t => t.fillable).map(t => [t.field, String(t.value)])) as SnapshotRecordFields;
+}
+
+const statValue = (x: Stat) => (x && typeof x.value === 'number' && Number.isFinite(x.value) ? x.value : null);
+type SteadyLap = { d: number; t: number; hr: number; w: number | null };
+
+/** Tours d'endurance stables après 10 min d'échauffement : allure ±8 % autour de la médiane, FC présente, peu de dénivelé. */
+function steadyLaps(laps: DetectionLap[]): SteadyLap[] {
+  let elapsed = 0; const kept: SteadyLap[] = [];
+  for (const l of laps) {
+    const d = Number(l.distance), t = Number(l.duration), hr = statValue(l.stats?.heartrate_avg);
+    const start = elapsed; elapsed += Number.isFinite(t) ? t : 0;
+    if (start < 600 || !(d > 0) || !(t >= 60) || !hr || hr < 60) continue;
+    const gain = statValue(l.stats?.elevation_gain);
+    if (gain !== null && gain / (d / 1000) > 15) continue;
+    kept.push({ d, t, hr, w: statValue(l.stats?.watts_avg) });
+  }
+  if (kept.length < 4) return [];
+  const speeds = kept.map(k => k.d / k.t).sort((a, b) => a - b); const med = speeds[Math.floor(speeds.length / 2)];
+  // Séance trop fractionnée (intervalles) : non représentative.
+  const steady = kept.filter(k => Math.abs(k.d / k.t - med) / med <= 0.08);
+  return steady.length >= kept.length * 0.8 ? steady : [];
+}
+
+/** Dérive Pa:HR (découplage) entre 1re et 2e moitié de la partie stable, ≥ 40 min. */
+export function runDrift(laps: DetectionLap[]) {
+  const st = steadyLaps(laps); const total = st.reduce((a, l) => a + l.t, 0);
+  if (total < 2400) return null;
+  let acc = 0; const h1: SteadyLap[] = [], h2: SteadyLap[] = [];
+  for (const l of st) { (acc + l.t / 2 <= total / 2 ? h1 : h2).push(l); acc += l.t; }
+  if (!h1.length || !h2.length) return null;
+  const ratio = (g: SteadyLap[]) => { const t = g.reduce((a, l) => a + l.t, 0); const v = g.reduce((a, l) => a + l.d, 0) / t; const hr = g.reduce((a, l) => a + l.hr * l.t, 0) / t; return v / hr; };
+  const r1 = ratio(h1), r2 = ratio(h2);
+  const pct = Math.round(((r1 - r2) / r1) * 1000) / 10;
+  return { pct: Math.max(0, pct), minutes: Math.round(total / 60), first: (r1 * 1000).toFixed(2), second: (r2 * 1000).toFixed(2) };
+}
+
+/** Puissance nécessaire par km/h sur les tours stables : à comparer pour le même athlète et le même capteur. */
+export function runPowerCost(laps: DetectionLap[]) {
+  const st = steadyLaps(laps).filter(l => l.w && l.w > 0); const total = st.reduce((a, l) => a + l.t, 0);
+  if (total < 1200) return null;
+  const kmh = (st.reduce((a, l) => a + l.d, 0) / total) * 3.6; const w = st.reduce((a, l) => a + (l.w as number) * l.t, 0) / total;
+  const hr = st.reduce((a, l) => a + l.hr * l.t, 0) / total;
+  return { wPerKmh: Math.round((w / kmh) * 10) / 10, kmh: Math.round(kmh * 10) / 10, hr: Math.round(hr), minutes: Math.round(total / 60) };
 }

@@ -79,7 +79,7 @@ export function NolioPeriodTestFinder({ athlete, from, to, onApply }: Props) {
           <div className="min-w-0 text-sm">
             <p className="font-medium">{t.label} : {t.display}</p>
             <p className="text-muted-foreground">{t.sessionName} · {t.date.slice(0, 10)} · {t.evidence}</p>
-            {!t.fillable && <p className="text-muted-foreground">Information : la FTP reste à saisir par le coach à partir de ce test.</p>}
+            {!t.fillable && <p className="text-muted-foreground">{t.field === 'test20min_w' ? 'Information : la FTP reste à saisir par le coach à partir de ce test.' : 'Information : à comparer dans le temps pour cet athlète et ce capteur ; pas converti en score d’économie.'}</p>}
             {t.alternatives.length > 0 && <p className="text-muted-foreground">Autres : {t.alternatives.map(a => `${a.display} (${a.date.slice(0, 10)})`).join(', ')}</p>}
           </div>
         </li>)}
