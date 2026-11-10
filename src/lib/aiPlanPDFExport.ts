@@ -16,6 +16,7 @@ import { sanitizeWhenField } from "@/lib/plan/sanitizeWhenField";
 import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
+import { renderPlanTimelineHTML } from "@/lib/plan/timeline/planTimeline";
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -657,6 +658,7 @@ function buildPlanHTML(
       </div>
     `).join("")}
   </div>` : ""}
+  ${renderPlanTimelineHTML(plan, (p) => displayPhase(p, phaseLabelMap))}
   <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
   ${weekRows}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
