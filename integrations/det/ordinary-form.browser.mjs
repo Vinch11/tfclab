@@ -65,7 +65,10 @@ try{
   await page.goto(app+'/__det/coach/index.html');
   await page.getByRole('button',{name:'DET-ENGINE',exact:true}).click({timeout:25000});
   assert(!requested.some(url=>url.endsWith('worker.js.gz')));
-  await page.getByLabel('Préparer un contre-la-montre').check();
+  await page.getByRole('button',{name:'Configuration',exact:true}).click();
+  const racePicker=page.getByText('Objectif principal (A)',{exact:true}).locator('..').getByRole('combobox');
+  await racePicker.click();
+  await page.getByRole('option',{name:'Contre-la-montre vélo',exact:true}).click();
   for(const [label,value] of [['Durée de course prévue','60'],['Durée continue déjà tolérée','20'],['Total aéro toléré par séance','60'],['Durée continue visée','15'],['Total aéro visé','30'],['Date de l’observation','2026-10-20'],['Référence de la sortie','Observation synthétique'],['Semaines des séances aéro','5, 6']]){
     await page.getByLabel(label).fill(value);
   }
@@ -78,6 +81,19 @@ try{
   assert.equal(await result.locator('[role=alert]').allTextContents().then(r=>r.join(' ')),'');
   assert.equal(await result.locator('details').count(),8);
   assert.match(await result.innerText(),/FTP\/kg/);
+  const guidance=page.getByRole('region',{name:'Guidage Nolio V2'});
+  async function verify(scope,expected){
+    await guidance.getByLabel('Portée du contrôle').selectOption(scope);
+    await guidance.getByRole('button',{name:'Vérifier sans envoyer'}).click();
+    await guidance.getByText(expected+' opération(s) préparée(s) en simulation locale. Traduction complète.').waitFor();
+  }
+  await verify('all',37);
+  await verify('week-5',5);
+  const key=await guidance.locator('option').evaluateAll(options=>options.find(o=>o.value.startsWith('S5-J3-')&&o.textContent.includes('CLM'))?.value);
+  assert.ok(key,'Séance CLM du jeudi de la cinquième semaine');
+  await verify(key,1);
+  const stages=await guidance.innerText();
+  assert.match(stages,/15 min 30 s/);assert.match(stages,/136,8–158,4 W/);assert.match(stages,/dernière récupération omise/);
   assert.deepEqual(refused,[]);assert.deepEqual(errors,[]);
   const witness=await ctx.newPage();
   await witness.goto(app+'/index.html');

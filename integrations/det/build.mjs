@@ -1,6 +1,6 @@
 import {build} from 'vite';
 import react from '@vitejs/plugin-react-swc';
-import {readFile,writeFile,copyFile,rm,readdir} from 'node:fs/promises';
+import {readFile,writeFile,copyFile,rm} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -28,7 +28,7 @@ const pilot={
    }
  },
 };
-await build({configFile:false,root,base:'/__det/coach/',publicDir:false,
+const bundle=await build({configFile:false,root,base:'/__det/coach/',publicDir:false,
  plugins:[pilot,react()],resolve:{alias:{'@':path.join(root,'src')}},
  define:{'import.meta.env.VITE_SUPABASE_URL':'undefined','import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY':'undefined',__PLAN_RELEASE_INFO__:'null',__APP_VERSION__:JSON.stringify('DET'),__BUILD_TIME__:JSON.stringify(info.releaseId)},
  build:{outDir:out,emptyOutDir:false,rollupOptions:{input:path.join(folder,'coach.html'),
@@ -36,6 +36,7 @@ await build({configFile:false,root,base:'/__det/coach/',publicDir:false,
  logLevel:'warn'});
 const html=path.join(out,'integrations/det/coach.html');
 await copyFile(html,path.join(out,'index.html'));await rm(html);
-const assets=(await readdir(path.join(out,'assets'))).sort();
+const emitted=(Array.isArray(bundle) ? bundle : [bundle]).flatMap(group=>group.output.map(entry=>entry.fileName));
+const assets=emitted.filter(name=>name.startsWith('assets/')).map(name=>path.basename(name)).sort();
 const hashes=Object.fromEntries(await Promise.all(assets.map(async file=>[file,hash(await readFile(path.join(out,'assets',file)))])));
 await writeFile(path.join(out,'host-release.json'),JSON.stringify({upstreamRelease:info.releaseId,assets:hashes},null,2)+'\n');

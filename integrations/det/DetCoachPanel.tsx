@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
 import type {AthleteDiagnostic} from '@/engines/diagnostic';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
+import {ClmGuidance} from './ClmGuidance';
 import {emptyTimeTrial, enteredTimeTrial, TimeTrialFields} from './TimeTrialFields';
 
 type PageInput = {
@@ -11,9 +12,8 @@ type PageInput = {
 type DetPlan = ParsedPlan & {_provenance:{engine:string;engineVersion:string};_detSourceProposal:{limiterOrder:string[]}};
 type WorkerClient = {runDet:(job:unknown,signal:AbortSignal)=>Promise<DetPlan>};
 
-export function DetCoachPanel({readInput,disabled,revision}:{readInput:()=>PageInput;disabled:boolean;revision:string}) {
+export function DetCoachPanel({readInput,disabled,revision,clm}:{readInput:()=>PageInput;disabled:boolean;revision:string;clm:boolean}) {
   const [open,setOpen]=useState(false);
-  const [clm,setClm]=useState(false);
   const [fields,setFields]=useState(emptyTimeTrial);
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
@@ -21,7 +21,7 @@ export function DetCoachPanel({readInput,disabled,revision}:{readInput:()=>PageI
   const run=useRef<AbortController|null>(null);
   useEffect(()=>()=>{run.current?.abort();},[]);
   useEffect(()=>{
-    run.current?.abort();setResult(null);setError('');setBusy(false);setFields(emptyTimeTrial());setClm(false);
+    run.current?.abort();setResult(null);setError('');setBusy(false);setFields(emptyTimeTrial());
   },[revision]);
   function resetResult(){run.current?.abort();setResult(null);setError('');setBusy(false);}
   async function generate(){
@@ -44,7 +44,6 @@ export function DetCoachPanel({readInput,disabled,revision}:{readInput:()=>PageI
   return <section className="space-y-3 rounded-lg border p-3" aria-label="Génération déterministe">
     <button className="font-semibold" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>DET-ENGINE</button>
     {open && <div className="space-y-3">
-      <label className="flex items-center gap-2"><input type="checkbox" checked={clm} onChange={e=>{resetResult();setClm(e.target.checked);}}/> Préparer un contre-la-montre vélo pour la course A</label>
       {clm && <TimeTrialFields value={fields} onChange={v=>{resetResult();setFields(v);}}/>}
       <button type="button" className="rounded-md border px-3 py-2" disabled={disabled||busy} onClick={()=>void generate()}>{busy?'Calcul DET en cours…':'Générer avec DET'}</button>
       {busy && <button type="button" className="ml-2" onClick={resetResult}>Annuler</button>}
@@ -56,6 +55,7 @@ export function DetCoachPanel({readInput,disabled,revision}:{readInput:()=>PageI
           {w.coachNotes&&<p className="whitespace-pre-line">{w.coachNotes}</p>}
           {w.sessions.filter(s=>!s.isRest).map((s,i)=><div key={i} className="my-2"><strong>{s.dayName} · {s.title}</strong>{s.durationMin!=null && ' · '+s.durationMin+' min'}<p className="whitespace-pre-line">{s.details}</p></div>)}
         </details>)}
+        {clm && <ClmGuidance plan={result}/>}
       </div>}
     </div>}
   </section>;

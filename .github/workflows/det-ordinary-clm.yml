@@ -23,9 +23,11 @@ jobs:
           node integrations/det/build.mjs public/__det/coach
       - name: Installer le navigateur de recette
         run: |
-          npm install --prefix "$RUNNER_TEMP/det-test" --no-audit --no-fund playwright@1.57.0
-          ln -s "$RUNNER_TEMP/det-test/node_modules" integrations/det/node_modules
-          "$RUNNER_TEMP/det-test/node_modules/.bin/playwright" install --with-deps chromium
+          if command -v google-chrome >/dev/null; then
+            echo "DET_CHROME_EXECUTABLE=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          else
+            ./node_modules/.bin/playwright install --with-deps chromium
+          fi
       - name: Calculer un vrai plan depuis le formulaire, les services externes étant simulés
         run: node integrations/det/ordinary-form.browser.mjs
       - uses: actions/upload-artifact@v4
@@ -33,3 +35,31 @@ jobs:
           name: tfclab-21-det-coach
           path: public/__det/
           include-hidden-files: true
+  publish-tested-form:
+    if: github.event_name == 'push'
+    needs: ordinary-form
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: tfclab-21-det-coach
+          path: ${{ runner.temp }}/verified-det
+      - name: Livrer dans la branche DET les octets exercés sous Chromium
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA" || exit 0
+          test -s "$RUNNER_TEMP/verified-det/coach/host-release.json"
+          test -s "$RUNNER_TEMP/verified-det/coach/index.html"
+          rm -rf public/__det/coach
+          cp -a "$RUNNER_TEMP/verified-det/coach" public/__det/coach
+          git add -- public/__det/coach
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Distribuer le formulaire DET vérifié sur TFCLab 2.1'
+          git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"

@@ -6,6 +6,9 @@ function bound(text,needle){
   return at;
 }
 export function coachView(source){
+  const optionList='const OBJECTIVE_OPTIONS = [';
+  bound(source,optionList);
+  source=source.replace(optionList,optionList+'\n  {value:"Cyclisme contre-la-montre",label:"Contre-la-montre vélo"},');
   const begin=bound(source,'  return (\n    <AppLayout title="Plan IA TFCL™" showBack>');
   const end=source.indexOf('</AppLayout>',begin);
   if(end<0)throw Error('Fin du formulaire TFCLab introuvable.');
@@ -18,7 +21,7 @@ export function coachView(source){
     {currentAthlete && <>`;
   // Render the form only when a profile is selected. Its regular JSX appears verbatim.
   const rendered=view+config+`
-    {athleteContext && <DetCoachPanel key={currentAthlete.id} disabled={!hasData} revision={JSON.stringify([athleteContext.data,athleteContext.diagnostic,buildConfigWithCoachOverrides(athleteContext.diagnostic),coachLimiterOrder,lastCoachOverridesPayload])}
+    {athleteContext && <DetCoachPanel key={currentAthlete.id} clm={objective==='Cyclisme contre-la-montre'} disabled={!hasData} revision={JSON.stringify([athleteContext.data,athleteContext.diagnostic,buildConfigWithCoachOverrides(athleteContext.diagnostic),coachLimiterOrder,lastCoachOverridesPayload])}
       readInput={()=>({athleteId:currentAthlete.id,athlete:athleteContext.data,diagnostic:athleteContext.diagnostic,config:buildConfigWithCoachOverrides(athleteContext.diagnostic),pageLimiterOrder:coachLimiterOrder,coachPayload:lastCoachOverridesPayload})}/>}
     </>}</main>`;
   return 'import {DetCoachPanel} from "/integrations/det/DetCoachPanel";\n'+source.slice(0,begin)+rendered+source.slice(end+'</AppLayout>'.length);
