@@ -122,6 +122,15 @@ export function buildPhaseSegments(weeks: TimelineWeek[], ranges?: TimelinePhase
 }
 
 const fmtVol = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 >= 5 ? String(Math.round(m % 60)).padStart(2, "0") : ""}` : `${Math.round(m)}'`);
+const wrap = (t: string, px: number, fs: number, maxLines: number): string[] => {
+  const max = Math.max(3, Math.floor(px / (fs * 0.55)));
+  const words = t.split(/\s+/); const lines: string[] = []; let cur = "";
+  for (const w of words) { if (!cur) cur = w; else if ((cur + " " + w).length <= max) cur += " " + w; else { lines.push(cur); cur = w; } }
+  if (cur) lines.push(cur);
+  const out = lines.slice(0, maxLines).map((l) => (l.length > max ? l.slice(0, max - 1) + "…" : l));
+  if (lines.length > maxLines) out[maxLines - 1] = clip(out[maxLines - 1] + "…", px, fs);
+  return out;
+};
 const clip = (t: string, px: number, fs: number) => { const max = Math.floor(px / (fs * 0.56)); return t.length <= max ? t : max <= 2 ? "" : t.slice(0, max - 1) + "…"; };
 
 const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
@@ -154,8 +163,8 @@ export function renderPlanTimelineSVG(
   const colW = opts.fluid ? Math.max(18, 900 / n) : 46;
   const fs = opts.fluid ? 10.5 : 12;
   const W = labelW + n * colW + 4;
-  const rows = { phase: [0, 50], chantier: [56, 32], charge: [96, 120], marks: [222, 22], week: [248, 34] } as const;
-  const H = 286;
+  const rows = { phase: [0, 50], chantier: [56, 58], charge: [122, 120], marks: [248, 22], week: [274, 34] } as const;
+  const H = 312;
   const first = weeks[0].weekNumber;
   const xOf = (wk: number) => labelW + (wk - first) * colW;
   const wDate = (wk: number) => (opts.startDate ? addDays(opts.startDate, (wk - 1) * 7) : null);
@@ -169,7 +178,7 @@ export function renderPlanTimelineSVG(
     o.push(`<line x1="${labelW - 6}" x2="${W}" y1="${y + h + 2}" y2="${y + h + 2}" stroke="${P.grid}" stroke-dasharray="2 3"/>`);
   };
   rowLabel("phase", "PHASES");
-  rowLabel("chantier", "CHANTIER", "priorité travaillée");
+  rowLabel("chantier", "CHANTIER", "de la semaine");
   rowLabel("charge", "CHARGE", "volume / semaine");
   rowLabel("marks", "REPÈRES");
   rowLabel("week", "SEMAINES");
@@ -209,8 +218,10 @@ export function renderPlanTimelineSVG(
         if (themes[a]) {
           any = true;
           const x = xOf(weeks[a].weekNumber) + 1, w = (b - a + 1) * colW - 2;
-          o.push(`<g><title>Chantier ${a === b ? `S${weeks[a].weekNumber}` : `S${weeks[a].weekNumber}–S${weeks[b].weekNumber}`} : ${esc(themes[a])}</title><rect x="${x}" y="${y + 3}" width="${w}" height="${h - 6}" rx="6" fill="${P.recovery}" opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.4 : 0.85}"/>`);
-          o.push(`<text x="${x + 5}" y="${y + h / 2 + 4}" font-size="${fs - 2}" font-weight="600" fill="${P.bg === "transparent" ? "hsl(var(--primary-foreground))" : "#FFFFFF"}">${esc(clip(themes[a], w - 8, fs - 2))}</text></g>`);
+          o.push(`<g><title>Chantier ${a === b ? `S${weeks[a].weekNumber}` : `S${weeks[a].weekNumber}–S${weeks[b].weekNumber}`} : ${esc(themes[a])}</title><rect x="${x}" y="${y + 2}" width="${w}" height="${h - 4}" rx="6" fill="${P.phases[0]}" stroke="${P.recovery}" stroke-opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.3 : 0.8}"/><rect x="${x}" y="${y + 2}" width="4" height="${h - 4}" rx="2" fill="${P.recovery}" opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.35 : 1}"/>`);
+          const cfs = fs - 1.5, lines = wrap(themes[a], w - 12, cfs, 3), lh = cfs + 3, y0 = y + h / 2 - ((lines.length - 1) * lh) / 2 + cfs / 3;
+          lines.forEach((ln, li) => o.push(`<text x="${x + 9}" y="${y0 + li * lh}" font-size="${cfs}" font-weight="600" fill="${P.text}">${esc(ln)}</text>`));
+          o.push(`</g>`);
         }
         a = b + 1;
       }
