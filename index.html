@@ -2,6 +2,8 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <meta name="tfcl-det-project" content="%VITE_SUPABASE_URL%" />
+    <meta name="tfcl-det-public-key" content="%VITE_SUPABASE_PUBLISHABLE_KEY%" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -227,5 +229,7 @@
     
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <a id="tfcl-det-entry" href="/__det/coach/index.html" target="_blank" rel="noopener" hidden>Ouvrir le formulaire DET-ENGINE</a>
+    <script src="/__det/entry.js" defer></script>
   </body>
 </html>
