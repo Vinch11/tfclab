@@ -65,7 +65,7 @@ try{
   await page.goto(app+'/__det/coach/index.html');
   await page.getByRole('button',{name:'DET-ENGINE',exact:true}).click({timeout:25000});
   assert(!requested.some(url=>url.endsWith('worker.js.gz')));
-  await page.getByRole('button',{name:'Configuration',exact:true}).click();
+  await page.getByRole('button',{name:/^(?:\d+\s*·\s*)?Configuration$/}).click();
   const racePicker=page.getByText('Objectif principal (A)',{exact:true}).locator('..').getByRole('combobox');
   await racePicker.click();
   await page.getByRole('option',{name:'Contre-la-montre vélo',exact:true}).click();
@@ -81,6 +81,8 @@ try{
   assert.equal(await result.locator('[role=alert]').allTextContents().then(r=>r.join(' ')),'');
   assert.equal(await result.locator('details').count(),8);
   assert.match(await result.innerText(),/FTP\/kg/);
+  const pinned=JSON.parse(await readFile(path.join(publicFiles,'__det/v1/manifest.json'),'utf8'));
+  assert((await result.getByTestId('det-provenance').innerText()).includes(pinned.version));
   const guidance=page.getByRole('region',{name:'Guidage Nolio V2'});
   async function verify(scope,expected){
     await guidance.getByLabel('Portée du contrôle').selectOption(scope);
