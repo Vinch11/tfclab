@@ -15,6 +15,13 @@ type WorkerClient = {runDet:(job:unknown,signal:AbortSignal)=>Promise<DetPlan>};
 export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false}:{readInput:()=>PageInput;disabled:boolean;revision:string;clm:boolean;defaultOpen?:boolean}) {
   const [open,setOpen]=useState(defaultOpen);
   const [fields,setFields]=useState(emptyTimeTrial);
+  const [trailKey,setTrailKey]=useState('');
+  const [trail,setTrail]=useState({key:'',recent:'',peak:''});
+  useEffect(()=>{
+    if(!open||disabled||clm){setTrailKey('');return;}
+    const input=readInput();
+    setTrailKey(/^Trail/i.test(String(input.config.objective))?input.athleteId+'/'+input.config.objective:'');
+  },[readInput,revision,open,disabled,clm]);
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
   const [error,setError]=useState('');
@@ -31,9 +38,22 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
     try {
       const input=readInput();
       const timeTrial=clm?enteredTimeTrial(fields,input.athleteId):undefined;
+      let trailLongRunLimits;
+      const currentKey=input.athleteId+'/'+input.config.objective;
+      if(/^Trail/i.test(String(input.config.objective))){
+        const required=input.config.ambitionMeta?.trainingLevel==='untrained';
+        if(required && !(Number(input.config.loadHistory?.recentWeeklyHours)>0))
+          throw Error('Renseigner le volume hebdomadaire récemment réalisé dans la configuration du plan.');
+        if(required || (trail.key===currentKey && (trail.recent||trail.peak))){
+          const recent=Number(trail.recent),peak=Number(trail.peak);
+          if(trail.key!==currentKey||!Number.isFinite(recent)||!Number.isFinite(peak)||recent<=0||peak<recent)
+            throw Error('Renseigner une sortie longue récemment tolérée et un plafond au moins égal, en minutes.');
+          trailLongRunLimits={recentMinutes:recent,peakMinutes:peak};
+        }
+      }
       const url=new URL('/__det/v1/client.mjs',window.location.origin);
       const client:WorkerClient=await import(/* @vite-ignore */ url.href);
-      const plan=await client.runDet({action:'generate',input:{...input,timeTrial}},controller.signal);
+      const plan=await client.runDet({action:'generate',input:{...input,timeTrial,trailLongRunLimits}},controller.signal);
       if(controller.signal.aborted)return;
       if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');
       setResult(plan);
@@ -44,6 +64,15 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   return <section className="space-y-3 rounded-lg border p-3" aria-label="Génération déterministe">
     <button className="font-semibold" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>DET-ENGINE</button>
     {open && <div className="space-y-3">
+      {trailKey && <fieldset className="grid gap-2">
+        <legend>Sortie longue en trail</legend>
+        {([['recent','Durée récemment tolérée (min)'],['peak','Durée maximale en préparation (min)']] as const).map(([field,label])=>
+          <label key={field} className="grid gap-1">{label}
+            <input type="number" min="1" className="rounded border p-2" value={trail.key===trailKey?trail[field]:''}
+              onChange={e=>{const value=e.target.value;resetResult();setTrail(previous=>({
+                ...(previous.key===trailKey?previous:{key:trailKey,recent:'',peak:''}),[field]:value}));}}/>
+          </label>)}
+      </fieldset>}
       {clm && <TimeTrialFields value={fields} onChange={v=>{resetResult();setFields(v);}}/>}
       <button type="button" className="rounded-md border px-3 py-2" disabled={disabled||busy} onClick={()=>void generate()}>{busy?'Calcul DET en cours…':'Générer avec DET'}</button>
       {busy && <button type="button" className="ml-2" onClick={resetResult}>Annuler</button>}
