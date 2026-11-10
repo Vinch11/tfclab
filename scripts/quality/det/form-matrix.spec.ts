@@ -319,7 +319,7 @@ if(process.env.DET_EXTENDED_CASES) {
     {objective:'Sprint',weeks:8,hours:8,sessions:7},
     {objective:'Olympic',weeks:12,hours:9,sessions:8},
     {objective:'Cyclisme FTP',weeks:8,hours:7,sessions:5},
-    {objective:'Cyclisme contre la montre',weeks:8,hours:7,sessions:5},
+    {objective:'Cyclisme contre-la-montre',weeks:8,hours:7,sessions:5},
     {objective:'Natation 1500m',weeks:8,hours:4,sessions:4},
   ];
   it.each(additional)('vérifie le parcours de génération pour $objective ($weeks semaines)',async scenario=>{
