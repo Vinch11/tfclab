@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Auditer l’impact de tous les domaines de configuration : rapport `docs/audit-impact-configuration-plan-2026-11-10.md`, 245 tests frontend et 64 tests générateur réussis, sept profils prévalidés sans IA ; contradictions renforcement/doubles/maintien reproduites. Aucun générateur modifié, aucune génération réelle ni publication.
+
 - [x] Relier l'import Nolio aux séances et au protocole TTE D7 vélo / D6 course : seuil préalable D5, segment horodaté, unités et confirmations coach, durée séparée et provenance ; 34 tests passent, séances et 3638 mesures réelles d'Emanuela lues, refus sans confirmation vérifié ordinateur/mobile, fonction déployée. Aucun bilan enregistré ni publication.
 - [ ] Vérifier le préremplissage sur deux vrais tests TTE vélo/course : attend des séances identifiées et validées par le coach avec seuil préalable et arrêt à épuisement ; la séance réelle inspectée n'a pas été déclarée comme test.
 
