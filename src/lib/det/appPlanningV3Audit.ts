@@ -27,7 +27,7 @@ export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfi
   const sessions=week.days.flatMap(d=>d.sessions),primary=resolveDetLimiter(plan.limiterOrder[0]);
   if(week.weekType==='load'&&road.ambition!=='finisher'&&primary.status==='supported'){
    const keys=sessions.filter(s=>s.role==='long'||demandingRun(s));
-   const matched=keys.filter(s=>s.components.some(c=>{const source=findSource(c.sourceId);return !!source&&primaryPrescriptionMatch(c,source,primary.key);}));
+   const matched=keys.filter(s=>s.components.some(c=>{const source=findSource(c.sourceId);return c.sport==='run'&&!!source&&primaryPrescriptionMatch(c,source,primary.key);}));
    checks.push({code:'primary_dose_coverage',week:week.week,status:keys.length&&matched.length/keys.length>=.3?'passed':'blocked',message:`${plan.limiterOrder[0]} : ${matched.length}/${keys.length} séances exigeantes ou longues satisfont les critères de prescription existants. Seuil interne de couverture 30 %, aucune adaptation mesurée présumée.`});
   }
   if(road.raceDomain&&road.ambition!=='finisher'&&(['taper','race'].includes(week.weekType)||week.weekType==='load'&&['build','peak'].includes(week.phase??''))){

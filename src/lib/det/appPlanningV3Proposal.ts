@@ -1,4 +1,7 @@
-import {completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
+import {resolveProhibitionKeys} from '@/lib/limiterSessionPatterns';
+import {appProfileDetStructure} from './appProfileDetStructure';
+import {trailReturnSources} from '../../../scripts/library-v3/trailReturnSources';
+import {introductoryStrengthSources,completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import {library920CandidatesForProposal,library920Problems,library920SourceMetadata,library920Manifest} from '../../../scripts/library-v3/library920Catalogue';
 import {library920ContextProblems,library920TimingPaces,resolveLibrary920Targets} from './library920Selection';
 import type { FrozenAppPlanningInput } from './appPlanningInput';
@@ -7,15 +10,16 @@ import { buildAppPlanningDetDraft, filterDraftV3Sources, type DraftRestrictions,
 import { familySourcePool } from './familySourcePools';
 import { findSource,FATIGUE_LABELS,RECENT_LOAD_LABELS } from './coachDetContext';
 import { coachFamilyFor,clockFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
+import { primaryRunningInputProblems } from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 import { resolveDetLimiter } from '../../../experimental/det-engine/v403-limiter-semantics';
-import { limiterSourceAffinity } from '../../../experimental/det-engine/v411-limiter-source-affinity';
+import {rankedSourceIntent,hasRankedWork} from './rankedLimiterPrescription';
 import { previewV3SourceDose } from '../../../experimental/det-engine/v31-v3-catalogue';
 import { fingerprintV3SportingSource } from '../../../scripts/library-v3/sportingQualification800';
 import { evaluateV3Workout, type V3Block, type V3Workout } from '../../../scripts/library-v3/catalogueRuntime';
 import { resolveV3IntensityTargets, type V3AthleteAnchors, type V3IntensityResolution } from '../../../scripts/library-v3/resolveV3Intensity';
 import { structuredV3ZoneDose, type StructuredZoneDose } from '../../../experimental/det-engine/v310-structured-zone-dose';
 import { assessStrictStructuredZoneTarget } from '../../../experimental/det-engine/v39-strict-native-polarization-target';
-import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
+import {prepareDetGeneration,trailFamily,type TrailLongRunLimits} from './trailPreparation';
 import { auditV3ProposalRecovery,auditV3ProposalSportMinutes,auditV3ProposalDoseIntegrity,auditV3SportingPrescription,proposedRecoveryStatus } from './appPlanningV3Audit';
 import type { ScheduledSport } from '../../../experimental/det-engine/v39-calendar-safe-recovery';
 import { planTriathlonRatioTrajectory,triathlonCandidateDoseDistance,type TriContribution } from '../../../experimental/det-engine/v312-triathlon-dose-trajectory';
@@ -47,6 +51,7 @@ export interface ProposedV3Session {
 export interface V3PlanProposal {
   kind: 'v3_plan_proposal'; status: 'assembled_for_review';
   athleteId: string; planningInputFingerprint: string; objective: string;
+  trailLongRunLimits?:TrailLongRunLimits;
   limiterOrder: string[]; prescriptionAllowed: false; sourceReview: 'pending';
   eventCalendar: NonNullable<FrozenAppPlanningInput['config']['raceGoals']>;
   weeks: Array<{week:number;phase:string|null;weekType:string;focus:string|null;
@@ -60,6 +65,7 @@ export interface V3ProposalOptions extends DraftRestrictions {
   clock?: CoachConfirmedClock;
   /** Only the normal pre-review app plan; strict reviewed pools stay unchanged. */
   completeSessions?: boolean;
+  trailLongRunLimits?:TrailLongRunLimits;
   strengthLoadAndRpeConfirmed?: boolean;
   invalidClockSports?: string[];
   /** Explicit references entered by the coach, never inferred from CSS. */
@@ -106,20 +112,43 @@ function minimumDistinctExerciseMinutes(domains:ProposedV3Session[][]):number{
 }
 
 export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={}):Promise<V3PlanProposal> {
+  try {
+    return await assembleProposal(app,athleteId,options,false);
+  } catch(error) {
+    const canRetry = error instanceof Error && 'retryWithCatalogue' in error && error.retryWithCatalogue === true;
+    if(!canRetry) throw error;
+    // Start with a fresh ledger. Earlier choices affect later deloads and the
+    // cumulative discipline split, even when the first refusal is a late week.
+    return assembleProposal(app,athleteId,options,true);
+  }
+}
+
+async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions,expandedCatalogue:boolean):Promise<V3PlanProposal> {
   // Reuse the existing identity, fingerprint, family and negative-input guards.
   const study=await buildAppPlanningDetDraft(app,athleteId,options);
   const {athlete,config}=planningInputFor(app,'det');
-  const preparation=prepareGenerationContracts(athlete,config);
+  const preparation=prepareDetGeneration(athlete,config);
   const road=roadRunningPrescription(config);
+  const trail=trailFamily(config);
+  const trailLimits=options.trailLongRunLimits;
+  if(trailLimits&&(!trail||![trailLimits.recentMinutes,trailLimits.peakMinutes].every(n=>Number.isFinite(n)&&n>0)||
+    trailLimits.peakMinutes<trailLimits.recentMinutes))throw Error('Trail : préciser une sortie longue tolérée et un plafond de préparation au moins égal.');
   if(options.completeSessions&&road&&!road.level)throw Object.assign(Error('Renseignez le niveau d’entraînement actuel dans la configuration commune ; aucune capacité ni assimilation n’est déduite de l’ambition ou de la VMA.'),{code:'v3_training_level_missing',noCompletePlanReturned:true});
   const quality=(session:ProposedV3Session)=>thresholdQuality(session)||!!road?.raceDomain&&session.components.some(c=>c.sport==='run'&&domainMinutes(c.blocks,road.raceDomain!)>0);
   const pool=familySourcePool(coachFamilyFor(study.objective)!.key);
   const levels=['untrained','light','trained','highly_trained'];
   const signal=config.ambitionMeta;
   const knownLevel=signal&&['manual','auto-tss'].includes(signal.trainingLevelSource)?levels.indexOf(signal.trainingLevel):-1;
+  const recentTraining = config.loadHistory?.recentWeeklyHours;
+  if(trail&&knownLevel===0&&(!trailLimits||!Number.isFinite(recentTraining)||(recentTraining??0)<=0))
+    throw Error('Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.');
   const timedSwim=options.completeSessions&&(!options.swimDomainPaces?.recovery||!options.swimDomainPaces?.moderate_lt1);
   const selectedSources=pool.ids.map(findSource).filter((s):s is V3Workout=>!!s).filter(s=>!options.completeSessions||s.sport!=='strength').filter(s=>!timedSwim||s.sport!=='swim');
-  if(options.completeSessions)selectedSources.push(...(road&&knownLevel>=2?trainedStrengthSources:completeStrengthSources));
+  if(options.completeSessions){
+    const strengthSources = knownLevel===0 ? introductoryStrengthSources : road&&knownLevel>=2 ? trainedStrengthSources : completeStrengthSources;
+    selectedSources.push(...strengthSources);
+  }
+  if(options.completeSessions && trail?.key==='trail_short' && knownLevel===0)selectedSources.push(...trailReturnSources);
   if(timedSwim)selectedSources.push(...timedSwimSources);
   let librarySources:V3Workout[]=[];
   if(options.includeLibrary920){
@@ -150,15 +179,20 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   const priorities=study.limiterOrder.map(raw=>({raw,resolution:resolveDetLimiter(raw)}));
   if(priorities[0]?.resolution.status!=='supported')throw Error('Limiteur principal non raccordé : aucune priorité de remplacement n’est inventée.');
   const primaryKey=priorities[0].resolution.key;
+  if((trail||road) && primaryRunningInputProblems(config).length)throw Error(primaryRunningInputProblems(config).join(' '));
   const primaryMatchCache=new Map<ProposedV3Workout,boolean>();
-  const matchesPrimary=(session:ProposedV3Session)=>session.components.some(c=>{
-    if(!road)return false;
+  function componentMatchesPrimary(c:ProposedV3Workout):boolean {
     if(!primaryMatchCache.has(c))primaryMatchCache.set(c,primaryPrescriptionMatch(c,findSource(c.sourceId)!,primaryKey));
     return primaryMatchCache.get(c)!;
-  });
-  const matches=(s:V3Workout,raw:string)=>{
-    const r=resolveDetLimiter(raw);return r.status==='supported'&&limiterSourceAffinity({primaryDomain:s.primaryDomain,limiterKeys:s.prescription.physiologicalIntent.limiterKeys},r.key);
-  };
+  }
+  const matchesPrimary=(session:ProposedV3Session)=>!!(road||trail)&&(session.role==='long'||session.role==='key')&&session.components.some(c=>c.sport==='run'&&componentMatchesPrimary(c));
+  const exposure = new Map<string,number>();
+  const weights = new Map(priorities.map((p,i)=>[p.raw,1/(i+1)]));
+  const priorityScore = (labels:readonly string[]) => labels.reduce((score,label)=>
+    score+(weights.get(label)??0)/(1+(exposure.get(label)??0)),0);
+  const sessionScore = (s:ProposedV3Session) => priorityScore([...new Set(s.components.flatMap(c=>c.limiterMatches))]);
+  const vlamaxReduction = config.physiologicalTrace?.diagnostic.limiters.some(g=>g.metric==='VLamax' &&
+    typeof g.value==='number' && typeof g.target==='number' && g.value>g.target);
   const cache=new Map<string,ProposedV3Workout[]>(),usage=new Map<string,number>();
   const allSlots:ScheduledSport[]=study.weeks.flatMap(week=>week.days.flatMap((day,dayIndex)=>day.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport,isRaceEvent:slot.role==='race'}))));
   const clock=options.clock?clockFor(options.clock,config.planStartDate!):undefined;
@@ -174,8 +208,12 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const brickDoses=normalizeRepairGoal(config.objective)==='half'?V34_SAFE_RUN_BRICKS.flatMap<{targetDurationMin:number;allowWorksetChange:boolean}>(r=>r.bikeId===source.id?[{targetDurationMin:r.bikeMin,allowWorksetChange:false}]:r.runId===source.id?[{targetDurationMin:r.runMin,allowWorksetChange:false}]:[]):[];
     // These are proposed doses inside the source's declared bounds, not human
     // approvals. The qualified runner and its explicit review remain separate.
-    const settings=[pool.doses[source.id]??{},...brickDoses,...(min!==null?[{targetDurationMin:min,allowWorksetChange:false}]:[]),
-      ...(desired!==undefined?[desired,Math.floor(desired/5)*5,Math.ceil(desired/5)*5].map(targetDurationMin=>({targetDurationMin,allowWorksetChange:true})):[])];
+    const introDoses = trailReturnSources.includes(source) ? source.prescription.parameters
+      .filter(p => p.path === '1.count')
+      .flatMap(p => Array.from({length:p.max-p.min+1}, (_,i) =>
+        ({overrides:{'1.count':p.min+i},allowWorksetChange:true}))) : [];
+    const settings=[pool.doses[source.id]??{},...brickDoses,...introDoses,...(min!==null?[{targetDurationMin:min,allowWorksetChange:false}]:[]),
+      ...(desired!==undefined?[desired,...(trail&&knownLevel===0&&trailLimits?[Math.floor(desired)]:[]),Math.floor(desired/5)*5,Math.ceil(desired/5)*5].map(targetDurationMin=>({targetDurationMin,allowWorksetChange:true})):[])];
     const out:ProposedV3Workout[]=[];
     for(const setting of settings)try{
       const timingPaces=library920TimingPaces(source,swimPaces);
@@ -187,14 +225,17 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       if(out.some(c=>JSON.stringify(c.blocks)===JSON.stringify(configured.blocks)))continue;
       out.push({sourceId:source.id,sourceFingerprint:fingerprintV3SportingSource(source),title:source.title,sport:source.sport,
         blocks:configured.blocks,durationMinutes:minutes,distanceM:duration.distanceM,
-        targets:resolveLibrary920Targets(configured,anchors),limiterMatches:priorities.filter(p=>matches(source,p.raw)).map(p=>p.raw),
+        targets:trail&&configured.sport==='run'?{status:'unresolved',targets:[],missing:['run_terrain_effort_review.'+source.id],candidateOnly:true,notScientificValidation:true} as const:resolveLibrary920Targets(configured,anchors),limiterMatches:priorities.filter(p=>hasRankedWork(configured.blocks,source.primaryDomain) && rankedSourceIntent(source,p.raw) && (p.resolution.key!=='vlamax_reduction'||vlamaxReduction)).map(p=>p.raw),
         sourceDomain:source.primaryDomain,zoneMinutes:dose?{low:dose.low,mid:dose.mid,high:dose.high,unknown:dose.unknown}:null,
         review:{minimumRecoveryHours:source.minimumRecoveryHours,prerequisites:[...source.prerequisites],contraindications:[...source.contraindications],stopRule:source.stopRule,minimumLevel:source.minimumLevel}});
     }catch{/* A bounded source/dose that cannot be configured is ineligible. */}
-    cache.set(key,out);return out;
+    const feasible = options.completeSessions && (constrainedTri||expandedCatalogue) ? out.filter(component =>
+      appProfileDetStructure({sport:component.sport,role:'support',components:[component],transitionMinutes:null,
+        knownMinutes:component.durationMinutes??0,durationMinutes:component.durationMinutes}).detStructuredWorkout !== undefined) : out;
+    cache.set(key,feasible);return feasible;
   }
   const result:V3PlanProposal={kind:'v3_plan_proposal',status:'assembled_for_review',athleteId,planningInputFingerprint:app.fingerprint,
-    objective:study.objective,limiterOrder:[...study.limiterOrder],eventCalendar:structuredClone(config.raceGoals??[]),prescriptionAllowed:false,sourceReview:'pending',weeks:[],checks:[]};
+    ...(trailLimits?{trailLongRunLimits:{...trailLimits}}:{}),objective:study.objective,limiterOrder:[...study.limiterOrder],eventCalendar:structuredClone(config.raceGoals??[]),prescriptionAllowed:false,sourceReview:'pending',weeks:[],checks:[]};
   let priorLoad:number|null=null;
   let peakKnownMinutes=0,previousSpecificMinutes=0;
   let previousSpecificPhase:string|null=null;
@@ -203,10 +244,20 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   let doseCeiling:number|undefined;
   const goal=normalizeRepairGoal(config.objective);
   const triObjective=({half:'703',ironman:'IM',sprint:'Sprint',olympic:'Olympic'} as const)[goal as 'half'|'ironman'|'sprint'|'olympic'];
+  // The bike/run evidence rules operate on configured blocks. For VLamax
+  // they describe reduction only when the app actually documents that direction.
+  const triDoseApplicable=!!triObjective&&primaryRunningInputProblems(config).length===0;
+  const triDoseMatch=(c:ProposedV3Workout)=>triDoseApplicable&&c.targets.status==='resolved'&&componentMatchesPrimary(c);
   const ratioObjective=parseAthleteConstraints(config.constraints).bannedSports.length?undefined:triObjective;
   const minuteLedger={swim:0,bike:0,run:0};let minuteLedgerKnown=true;
   const finalLoad=study.weeks.filter(w=>w.weekType==='load'&&!w.days.some(d=>d.slots.some(s=>s.role==='race'))).at(-1)?.week;
-  function weekDomains(week:AppPlanningDetDraft['weeks'][number],includeImported=!!road):{eligible:V3Workout[];slots:Array<{slot:AppPlanningDetDraft['weeks'][number]['days'][number]['slots'][number];dayIndex:number}>;domains:ProposedV3Session[][]}{
+  // A smaller first week also constrains subsequent load weeks. Search the
+  // goal/level-filtered imported recipes throughout that progression.
+  const firstWeekBudget = preparation.weeklyQuotas[1]?.volumeBudget?.maxMinutes ?? config.weeklyHours! * 60;
+  const constrainedTri = !!triObjective && typeof recentTraining === 'number' && Number.isFinite(recentTraining) &&
+    recentTraining > 0 && recentTraining * 60 < firstWeekBudget;
+  const retryWithCatalogue = !!(triObjective && options.completeSessions && librarySources.length && !constrainedTri && !expandedCatalogue);
+  function weekDomains(week:AppPlanningDetDraft['weeks'][number],includeImported=!!road||!!trail||constrainedTri||expandedCatalogue):{eligible:V3Workout[];slots:Array<{slot:AppPlanningDetDraft['weeks'][number]['days'][number]['slots'][number];dayIndex:number}>;domains:ProposedV3Session[][]}{
     const eligible=[...sources,...(includeImported?librarySources:[])].filter(s=>(!week.phase||s.phase.includes(week.phase))&&(week.weekType!=='recovery'||easy(s))&&v3SourceContextProblems(s,config,week.weekType).length===0);
     const slots=week.days.flatMap((day,dayIndex)=>day.slots.map(slot=>({slot,dayIndex})));
     const cardio=slots.filter(s=>s.slot.sport==='run'&&s.slot.role!=='race');
@@ -217,12 +268,15 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // ramp, source bounds and recovery constraints still apply.
     const longWeight=road?.goal==='marathon'?3:2;
     const weight=cardio.reduce((n,s)=>n+(s.slot.role==='long'?longWeight:1),0);
-    const desiredBase=road&&doseCeiling!==undefined&&weight?Math.max(0,doseCeiling-strengthReserve)/weight:undefined;
+    const desiredBase=(road||trail&&trailLimits)&&doseCeiling!==undefined&&weight?Math.max(0,doseCeiling-strengthReserve)/weight:undefined;
     const domains=slots.map(({slot,dayIndex})=>{
       if(slot.role==='race')return [{sport:slot.sport,role:slot.role,components:[],transitionMinutes:null,knownMinutes:0,durationMinutes:null} satisfies ProposedV3Session];
       const longRun=!!road&&knownLevel>=2&&slot.sport==='run'&&slot.role==='long';
       const longFloor=longRun&&week.weekType==='load'&&priorLongRunMinutes!==null?Math.max(slot.minimumMinutes??0,priorLongRunMinutes*.9):slot.minimumMinutes;
-      const longCeiling=longRun?(week.weekType==='recovery'&&priorLongRunMinutes!==null?Math.max(slot.minimumMinutes??0,priorLongRunMinutes*.7):week.weekType==='load'?(priorLongRunMinutes===null?slot.minimumMinutes??Infinity:Math.max(slot.minimumMinutes??0,priorLongRunMinutes*(1+(preparation.weeklyQuotas[week.week]?.volumeBudget?.weeklyIncreasePctMax??.1)))):Infinity):Infinity;
+      const trailLongCeiling = Math.min(trailLimits?.peakMinutes ?? Infinity,
+        priorLongRunMinutes === null ? trailLimits?.recentMinutes ?? Infinity :
+          priorLongRunMinutes * (1 + (config.volumeRamp?.weeklyIncreasePctMax ?? 0)));
+      const longCeiling=trail&&slot.role==='long'?trailLongCeiling:longRun?(week.weekType==='recovery'&&priorLongRunMinutes!==null?Math.max(slot.minimumMinutes??0,priorLongRunMinutes*.7):week.weekType==='load'?(priorLongRunMinutes===null?slot.minimumMinutes??Infinity:Math.max(slot.minimumMinutes??0,priorLongRunMinutes*(1+(preparation.weeklyQuotas[week.week]?.volumeBudget?.weeklyIncreasePctMax??.1)))):Infinity):Infinity;
       const single=(sport:string,min:number|null)=>eligible.filter(s=>s.sport===sport&&
         (sport==='strength'||slot.role==='key'||easy(s)||(road&&slot.role==='long'&&['build','peak'].includes(week.phase??'')&&s.primaryDomain===road.raceDomain)))
         .flatMap(s=>choices(s,min,desiredBase!==undefined&&sport==='run'?Math.max(min??0,Math.min(longCeiling,desiredBase*(slot.role==='long'?longWeight:1))):undefined));
@@ -241,12 +295,19 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
           return [{sport:'brick',role:slot.role,components:[bike,run],transitionMinutes:null,knownMinutes:known,durationMinutes:null} satisfies ProposedV3Session];
         }));
       }else rows=single(slot.sport,slot.sport==='strength'?null:longFloor).map(c=>({sport:slot.sport,role:slot.role,components:[c],transitionMinutes:null,knownMinutes:c.durationMinutes??0,durationMinutes:c.durationMinutes}));
+      if(trail&&slot.sport==='run')rows=rows.filter(row=>row.durationMinutes!==null&&(!trailLimits||row.durationMinutes<=(week.week===1?trailLimits.recentMinutes:trailLimits.peakMinutes)));
+      if(trail&&week.weekType==='load'&&slot.role==='long'){
+        // Native long trail prescriptions contain timed main blocks on slopes or trails.
+        const nativeTerrainLong = ['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092','V3P_RUN_205'];
+        rows=rows.filter(row=>row.components.some(c=>c.sourceDomain==='moderate_lt1' &&
+          (nativeTerrainLong.includes(c.sourceId)||library920SourceMetadata(c.sourceId)?.terrainEffortRequired)));
+      }
       const score=(row:ProposedV3Session)=>{
         const hits=row.components.flatMap(c=>c.limiterMatches);
         return (slot.role==='key'||slot.role==='long'?priorities.reduce((n,p,index)=>n+(hits.includes(p.raw)?10/(index+1):0),0)+(week.limiterFocus.focus&&hits.includes(week.limiterFocus.focus)?20:0):0);
       };
       return rows.filter(row=>!road||row.role==='race'||row.components.every(c=>c.sport!=='run'||c.durationMinutes!==null&&c.targets.status==='resolved'))
-        .filter(row=>!longRun||row.knownMinutes<=longCeiling+1e-7)
+        .filter(row=>!(longRun||trail&&slot.role==='long')||row.knownMinutes<=longCeiling+1e-7)
         .filter(row=>!slot.maximumMinutes||(row.durationMinutes!==null&&row.durationMinutes<=slot.maximumMinutes+1e-7)).filter(row=>proposedRecoveryStatus(row,{week:week.week,dayIndex,sport:slot.sport},allSlots,start)!=='blocked').sort((a,b)=>score(b)-score(a)||
         Number(a.durationMinutes===null)-Number(b.durationMinutes===null)||a.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)-b.components.reduce((n,c)=>n+(usage.get(c.sourceId)??0),0)||
         a.knownMinutes-b.knownMinutes||a.components.map(c=>c.sourceId).join().localeCompare(b.components.map(c=>c.sourceId).join()));
@@ -254,7 +315,14 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const missing=domains.findIndex(domain=>!domain.length);
     if(missing>=0){
       if(!includeImported&&librarySources.length)return weekDomains(week,true);
-      throw Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : aucune dose V3 compatible pour ${slots[missing].slot.sport}. Aucun créneau vide ni remplacement historique n’est produit.`);
+      const slot=slots[missing].slot;
+      const sport=({run:'course',swim:'natation',bike:'vélo',strength:'renforcement',brick:'enchaînement vélo-course'} as Record<string,string>)[slot.sport]??slot.sport;
+      const range=[slot.minimumMinutes!=null?'au moins '+slot.minimumMinutes+' min':'',slot.maximumMinutes!=null?'au plus '+slot.maximumMinutes+' min':''].filter(Boolean).join(', ');
+      const candidates=eligible.filter(s=>s.sport===slot.sport).length;
+      const evidence=slot.sport==='brick'?'Aucune paire vélo-course admissible aux doses prévues.':
+        candidates===0?'Aucune fiche admissible pour cette discipline, cette phase et ce niveau.':
+        `${candidates} fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.`;
+      throw Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : ${sport}${range?' ('+range+')':''}. ${evidence}`);
     }
     // Prove a distinct-source shortage before broadening the established pool.
     // Single-component slots form a bipartite matching problem; bricks remain
@@ -274,15 +342,24 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
   }
   for(const week of study.weeks){
     const budget=preparation.weeklyQuotas[week.week]?.volumeBudget;
-    const baseCeiling=Math.min(config.weeklyHours!*60,budget?.maxMinutes??Infinity);
+    const firstWeekRecentMinutes = options.completeSessions && week.week === 1 && Number.isFinite(recentTraining) && (recentTraining??0)>0
+      ? recentTraining! * 60 : undefined;
+    const baseCeiling=Math.min(config.weeklyHours!*60,budget?.maxMinutes??Infinity,firstWeekRecentMinutes??Infinity);
     const taperIndex=study.weeks.filter(w=>w.weekType==='taper'&&w.week<=week.week).length;
-    const taperCeiling=road&&peakKnownMinutes>0&&['taper','race'].includes(week.weekType)?peakKnownMinutes*(week.weekType==='race'?.4:taperIndex===1?.6:.5):Infinity;
+    const taperCeiling=(road||trail)&&peakKnownMinutes>0&&['taper','race'].includes(week.weekType)?peakKnownMinutes*(week.weekType==='race'?.4:taperIndex===1?.6:.5):Infinity;
     const ceiling=Math.min(baseCeiling,taperCeiling,priorLoad===null?Infinity:week.weekType==='recovery'?priorLoad*0.7:budget?priorLoad*(1+budget.weeklyIncreasePctMax):Infinity);
     doseCeiling=ceiling;
     const {eligible,slots,domains}=weekDomains(week);
     // Do not greedily choose a small load week that makes the next recovery
     // week's existing slot floors impossible. This is an exercise-dose lower
     // bound only; unknown transitions/totals remain explicitly unknown.
+    if(firstWeekRecentMinutes!==undefined){
+      // Lower bound across all slots. Several slots might compete for the same
+      // source, so the true minimum may be higher. Unknown durations contribute zero.
+      const minimum = domains.reduce((n,rows)=>n+Math.min(...rows.map(r=>r.knownMinutes)),0);
+      if(minimum>firstWeekRecentMinutes+1e-7) throw Error(
+        `S1 : les créneaux demandés totalisent au moins ${Math.floor(minimum*10)/10} min pour ${Number(firstWeekRecentMinutes.toFixed(1))} min hebdomadaires récemment réalisées. Revoir le calendrier ou le volume récent avec le coach.`);
+    }
     const next=study.weeks.find(w=>w.week===week.week+1);
     const nextDomains=week.weekType==='load'&&next?.weekType==='recovery'?weekDomains(next).domains:null;
     const floor=Math.max(nextDomains&&nextDomains.every(rows=>rows.every(s=>s.components.every(c=>c.durationMinutes!==null)))?
@@ -292,6 +369,10 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       road&&week.weekType==='load'&&priorLoad!==null?priorLoad*.9:0,
       road&&week.weekType==='taper'?peakKnownMinutes*.4:0);
     const requiresQuality=week.weekType==='load'&&config.ambition!=='finisher'&&!slots.some(s=>s.slot.role==='race');
+    const requirePrimary = requiresQuality && (!!road || !!trail || expandedCatalogue && triDoseApplicable);
+    const weekPrimaryMatch = expandedCatalogue && triDoseApplicable
+      ? (session:ProposedV3Session) => (session.role==='long'||session.role==='key') && session.components.some(triDoseMatch)
+      : matchesPrimary;
     const requiresSpecific=!!road?.raceDomain&&road.ambition!=='finisher'&&(
       week.weekType==='load'&&['build','peak'].includes(week.phase??'')||['taper','race'].includes(week.weekType));
     const specificLoadWeeks=study.weeks.filter(w=>w.weekType==='load'&&['build','peak'].includes(w.phase??''));
@@ -315,15 +396,15 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // limiter focus, source rotation and shorter bounded doses. Polarization is
     // enforced by the solver, not by maximizing long easy sessions up front.
     const order=domains.map((domain,index)=>({domain,index})).sort((a,b)=>
-      Number(slots[a.index].slot.sport==='strength')-Number(slots[b.index].slot.sport==='strength')||Number(slots[b.index].slot.role==='key'&&b.domain.some(quality))-Number(slots[a.index].slot.role==='key'&&a.domain.some(quality))||a.domain.length-b.domain.length||a.index-b.index);
+      Number(slots[a.index].slot.sport==='strength')-Number(slots[b.index].slot.sport==='strength')||Number(slots[b.index].slot.role==='key'&&b.domain.some(quality))-Number(slots[a.index].slot.role==='key'&&a.domain.some(quality))||(trail?Number(slots[b.index].slot.role==='long')-Number(slots[a.index].slot.role==='long'):0)||a.domain.length-b.domain.length||a.index-b.index);
     const programmeCardioSlots=slots.filter(s=>!['strength'].includes(s.slot.sport)&&s.slot.role!=='race').length;
     const programmeStrengthMinimum=domains.reduce((n,rows,index)=>n+(slots[index].slot.sport==='strength'?Math.min(...rows.map(r=>r.knownMinutes)):0),0);
-    const programmeTarget=(config.planningGoalContext||road)&&programmeCardioSlots?Math.max(0,(ceiling-programmeStrengthMinimum)/programmeCardioSlots):null;
+    const programmeTarget=(config.planningGoalContext||road||trail)&&programmeCardioSlots?Math.max(0,(ceiling-programmeStrengthMinimum)/programmeCardioSlots):null;
     const longWeight=road?.goal==='marathon'?3:2;
     const runWeights=slots.filter(s=>s.slot.sport==='run'&&s.slot.role!=='race').reduce((n,s)=>n+(s.slot.role==='long'?longWeight:1),0);
     const programmeDistance=(s:ProposedV3Session)=>{
       if(programmeTarget===null||s.sport==='strength'||s.durationMinutes===null)return 0;
-      const desired=road&&s.sport==='run'&&runWeights?(ceiling-programmeStrengthMinimum)/runWeights*(s.role==='long'?longWeight:1):programmeTarget;
+      const desired=(road||trail)&&s.sport==='run'&&runWeights?(ceiling-programmeStrengthMinimum)/runWeights*(s.role==='long'?longWeight:1):programmeTarget;
       return Math.abs(s.durationMinutes-desired);
     };
     const margin=(session:ProposedV3Session)=>session.components.filter(c=>c.sport!=='strength')
@@ -331,7 +412,9 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     for(const [index,item] of order.entries())item.domain.sort((a,b)=>
       (road&&requiresSpecific&&index===0?Number(specificMinutes(b)>0)-Number(specificMinutes(a)>0):0)||
       (road&&requiresSpecific&&index===0&&specificMinutes(a)>0&&specificMinutes(b)>0?Math.abs(specificMinutes(a)-specificTarget)-Math.abs(specificMinutes(b)-specificTarget):0)||
-      (road&&requiresQuality&&!requiresSpecific&&index===0?Number(matchesPrimary(b))-Number(matchesPrimary(a)):0)||
+      ((road||trail)&&requiresQuality&&!requiresSpecific&&index===0?Number(matchesPrimary(b))-Number(matchesPrimary(a)):0)||
+      (!expandedCatalogue && week.weekType==='load' && priorities.length>1 && ['long','key'].includes(slots[item.index].slot.role) ?
+        sessionScore(b)-sessionScore(a) : 0)||
       (requiresQuality&&index===0?Number(quality(b))-Number(quality(a))||
         (trajectory?Number(b.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))-Number(a.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))||distance(a,item.index)-distance(b,item.index):0):
         distance(a,item.index)-distance(b,item.index)||programmeDistance(a)-programmeDistance(b)||
@@ -349,7 +432,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const demandingSuffix=Array(order.length+1).fill(0) as number[];
     const nonLow=(s:ProposedV3Session)=>s.components.filter(c=>c.sport!=='strength').reduce((n,c)=>n+(c.zoneMinutes?c.zoneMinutes.mid+c.zoneMinutes.high+c.zoneMinutes.unknown:0),0);
     for(let i=order.length-1;i>=0;i--){suffix[i]=suffix[i+1]+Math.min(...order[i].domain.map(c=>c.knownMinutes));maximumSuffix[i]=maximumSuffix[i+1]+Math.max(...order[i].domain.map(c=>c.knownMinutes));specificSuffix[i]=specificSuffix[i+1]+Math.max(...order[i].domain.map(specificMinutes));qualitySuffix[i]=qualitySuffix[i+1]||order[i].domain.some(quality);}
-    for(let i=order.length-1;i>=0;i--){primarySuffix[i]=primarySuffix[i+1]||order[i].domain.some(matchesPrimary);primaryNonLowSuffix[i]=Math.min(primaryNonLowSuffix[i+1],...order[i].domain.filter(matchesPrimary).map(nonLow));}
+    for(let i=order.length-1;i>=0;i--){primarySuffix[i]=primarySuffix[i+1]||order[i].domain.some(weekPrimaryMatch);primaryNonLowSuffix[i]=Math.min(primaryNonLowSuffix[i+1],...order[i].domain.filter(matchesPrimary).map(nonLow));}
     for(let i=order.length-1;i>=0;i--){thresholdNonLowSuffix[i]=Math.min(thresholdNonLowSuffix[i+1],...order[i].domain.filter(thresholdQuality).map(nonLow));demandingSuffix[i]=demandingSuffix[i+1]+Number(order[i].domain.some(demandingRun));}
     const ratioSuffix=order.map(item=>item.domain.map(s=>s.sport==='strength'?{swim:0,bike:0,run:0,transition:0}:exerciseMinutes(s)));
     const ratioBounds=ratioObjective&&minuteLedgerKnown&&week.week===finalLoad&&ratioSuffix.every(d=>d.every(Boolean))?ratioSuffix.map(domain=>Object.fromEntries((['swim','bike','run'] as const).map(sport=>[sport,{min:Math.min(...domain.map(c=>c![sport])),max:Math.max(...domain.map(c=>c![sport]))}])) as Record<'swim'|'bike'|'run',{min:number;max:number}>):null;
@@ -357,13 +440,13 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     const marginSuffix=Array(order.length+1).fill(0) as number[];
     for(let i=order.length-1;i>=0;i--)marginSuffix[i]=marginSuffix[i+1]+Math.max(...order[i].domain.map(margin));
     let nodes=0;
-    if(requiresQuality&&!qualitySuffix[0])throw Object.assign(Error(`S${week.week} : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.`),{code:'v3_quality_source_unavailable',week:week.week,noCompletePlanReturned:true});
+    if(requiresQuality&&!qualitySuffix[0])throw Object.assign(Error(`S${week.week} : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.`),{code:'v3_quality_source_unavailable',retryWithCatalogue,week:week.week,noCompletePlanReturned:true});
     function solve(index:number,total:number):boolean {
       if(++nodes>50000||total+suffix[index]>ceiling+1e-7)return false;
       if(total+maximumSuffix[index]<floor-1e-7)return false;
       if(requiresSpecific&&selected.reduce((n,s)=>n+specificMinutes(s),0)+specificSuffix[index]<specificFloor)return false;
       if(requiresQuality&&!selected.some(quality)&&!qualitySuffix[index])return false;
-      if(road&&requiresQuality&&!selected.some(matchesPrimary)&&!primarySuffix[index])return false;
+      if(requirePrimary&&!selected.some(weekPrimaryMatch)&&!primarySuffix[index])return false;
       if(road&&requiresQuality&&zoneKnown){
         const primaryReserve=selected.some(matchesPrimary)?0:primaryNonLowSuffix[index];
         const thresholdReserve=road.keySessions>=3&&!selected.some(thresholdQuality)?thresholdNonLowSuffix[index]:0;
@@ -405,7 +488,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
           !(requiresSpecific&&selected.reduce((n,s)=>n+specificMinutes(s),0)<specificFloor)&&
           !(demandingTarget!==null&&selected.filter(demandingRun).length<demandingTarget)&&
           !(road&&requiresQuality&&road.keySessions>=3&&!selected.some(thresholdQuality))&&
-          !(road&&requiresQuality&&!selected.some(matchesPrimary))&&
+          !(requirePrimary&&!selected.some(weekPrimaryMatch))&&
           !(requiresQuality&&!selected.some(quality))&&!(week.weekType==='load'&&zones&&!zones.admissible);
       }
       for(const choice of order[index].domain){
@@ -413,7 +496,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         if(ids.some(id=>weekSources.has(id)))continue;
         // Reject only proved same-day overlaps. Unknown clocks/durations stay pending.
         const position=slots[order[index].index];
-        if(road&&demandingRun(choice)){
+        if((road||trail)&&demandingRun(choice)){
           const absoluteDay=7*(week.week-1)+position.dayIndex;
           const current=selected.flatMap((s,i)=>demandingRun(s)?[7*(week.week-1)+slots[order[i].index].dayIndex]:[]);
           if(!demandingRunDaysCompatible([...demandingDays,...current,absoluteDay])||demandingTarget!==null&&current.length>=demandingTarget)continue;
@@ -431,15 +514,29 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
       }
       return false;
     }
-    if(!solve(0,0))throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.`),{code:'v3_proposal_search_refused',week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,previousSpecificMinutes,domains:domains.map(d=>({count:d.length,max:Math.max(...d.map(s=>s.knownMinutes)),specific:Math.max(...d.map(specificMinutes))})),noCompletePlanReturned:true});
+    if(!solve(0,0)){
+      const minimum = minimumDistinctExerciseMinutes(domains);
+      const detail = minimum>ceiling+1e-7 ? `Les créneaux exigent au moins ${Math.floor(minimum*10)/10} min de blocs pour un plafond de ${Number(ceiling.toFixed(1))} min. Vérifier la fréquence et la disponibilité déclarées.` :
+        floor>ceiling+1e-7 ? `La continuité de charge ou la préparation de la décharge exige au moins ${Math.floor(floor*10)/10} min pour un plafond de ${Number(ceiling.toFixed(1))} min.` :
+        nodes>50000 ? 'Le budget de recherche est épuisé. La faisabilité reste indéterminée.' :
+        `Aucune combinaison des doses examinées ne respecte ensemble le plafond de ${Number(ceiling.toFixed(1))} min, la récupération et les exigences sportives de la semaine.`;
+      throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée. ${detail}`),{code:'v3_proposal_search_refused',retryWithCatalogue,week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,previousSpecificMinutes,domains:domains.map(d=>({count:d.length,max:Math.max(...d.map(s=>s.knownMinutes)),specific:Math.max(...d.map(specificMinutes))})),noCompletePlanReturned:true});
+    }
     // Rotate whole source prescriptions AFTER solving the weekly dose ledger.
     // A feasible ratio target must not repeatedly select the same recipe just
     // because its duration wins by a fraction. Alternatives must retain the
     // exact sport/domain/minutes/zone dose and every limiter match; their own
     // recovery and missing anchors are checked. This preserves future budgets.
+    // On a triathlon key/long slot, choose between equivalently dosed
+    // recipes using the existing sport-specific evidence before rotating IDs.
+    const retainedDose=(c:ProposedV3Workout)=>road ? c.sport==='run'&&componentMatchesPrimary(c) : triDoseMatch(c);
+    const comparePrimary=(a:ProposedV3Workout,b:ProposedV3Workout)=>
+      Number(retainedDose(b))-Number(retainedDose(a));
+    const trackPrimary=(session:ProposedV3Session)=>!!(triDoseApplicable||road)&&week.weekType==='load'&&
+      (session.role==='key'||session.role==='long');
     const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if(session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if((trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=eligible.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         (session.role==='key'||s.sport==='strength'||easy(s))).flatMap(s=>choices(s,original.durationMinutes)).filter(c=>
@@ -448,7 +545,8 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         c.zoneMinutes?.low===original.zoneMinutes?.low&&c.zoneMinutes?.mid===original.zoneMinutes?.mid&&c.zoneMinutes?.high===original.zoneMinutes?.high&&c.zoneMinutes?.unknown===original.zoneMinutes?.unknown&&
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
-        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .filter(c=>!trackPrimary(session)||!retainedDose(original)||retainedDose(c))
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(week.weekType==='load'&&priorities.length>1?priorityScore(b.limiterMatches)-priorityScore(a.limiterMatches):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){occupied.delete(original.sourceId);occupied.add(replacement.sourceId);session.components=[replacement];}
     }
@@ -459,7 +557,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // an early week and make a later deload/long slot impossible.
     const importOccupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if(session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if((trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=librarySources.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         v3SourceContextProblems(s,config,week.weekType).length===0&&
@@ -471,18 +569,47 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
         JSON.stringify(c.zoneMinutes)===JSON.stringify(original.zoneMinutes)&&
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
-        .sort((a,b)=>(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .filter(c=>!trackPrimary(session)||!retainedDose(original)||retainedDose(c))
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(week.weekType==='load'&&priorities.length>1?priorityScore(b.limiterMatches)-priorityScore(a.limiterMatches):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){importOccupied.delete(original.sourceId);importOccupied.add(replacement.sourceId);session.components=[replacement];}
     }
     // Restore the exact original calendar positions.
     const calendarSelected=selected.map((session,index)=>({session,index:order[index].index})).sort((a,b)=>a.index-b.index).map(row=>row.session);
+    if(week.weekType==='load'){
+      const work=calendarSelected.flatMap(s=>s.components);
+      for(const [index,p] of priorities.entries()){
+        const sources=work.filter(c=>c.limiterMatches.includes(p.raw));
+        if(!sources.length)continue;
+        exposure.set(p.raw,(exposure.get(p.raw)??0)+1);
+        result.checks.push({code:'ranked_limiter_work',week:week.week,status:'passed',
+          message:`Rang ${index+1} · ${p.raw} · ${sources.map(c=>c.title+' ('+c.sourceId+')').join(', ')}`});
+      }
+    }
     const knownMinutes=selected.reduce((n,s)=>n+s.knownMinutes,0);
     const durationMinutes=selected.every(s=>s.durationMinutes!==null)?knownMinutes:null;
     const days=week.days.map((day,index)=>({day:day.day,rest:!day.slots.length,sessions:calendarSelected.filter((_,i)=>slots[i].dayIndex===index)}));
     for(const session of selected)for(const component of session.components)usage.set(component.sourceId,(usage.get(component.sourceId)??0)+1);
     result.weeks.push({week:week.week,phase:week.phase,weekType:week.weekType,focus:week.limiterFocus.focus,days,knownMinutes,durationMinutes});
     result.checks.push({code:'weekly_minutes',week:week.week,status:durationMinutes===null?'pending':'passed',message:durationMinutes===null?'Durée totale inconnue : allures, durée de force ou transition manquantes ; plafond non certifié.':'Somme des doses calculées dans le plafond horaire.'});
+    if(firstWeekRecentMinutes!==undefined)result.checks.push({code:'initial_recent_volume',week:1,
+      status:durationMinutes===null?'pending':'passed',
+      message:`Volume initial : ${Math.round(knownMinutes)} min de blocs chronométrés pour ${Math.round(firstWeekRecentMinutes)} min hebdomadaires récemment déclarées.`+
+        (durationMinutes===null?' Durée complète en attente, notamment pour les transitions ou la compétition.':'')});
+    if((road||trail)&&week.weekType==='load'){
+      const matching=calendarSelected.filter(s=>(s.role==='long'||s.role==='key')&&matchesPrimary(s));
+      result.checks.push({code:trail?'trail_primary_dose':'primary_dose_coverage',week:week.week,status:matching.length?'passed':requiresQuality?'blocked':'pending',
+        message:`S${week.week} · ${priorities[0].raw} : ${matching.flatMap(s=>s.components.filter(c=>c.sport==='run'&&componentMatchesPrimary(c)).map(c=>c.title+' ('+c.sourceId+', '+c.durationMinutes+' min au total)')).join(', ')||'dose spécifique à revoir'}.`});
+    }
+    if(triObjective&&week.weekType==='load'){
+      const keySlots=calendarSelected.filter(s=>s.role==='key'||s.role==='long');
+      const matches=keySlots.flatMap(s=>s.components.filter(triDoseMatch));
+      const detail=matches.map(c=>c.sport+' '+c.sourceId).join(', ');
+      result.checks.push({code:'tri_primary_component_dose',week:week.week,status:matches.length?'passed':'pending',
+        message:matches.length
+          ?`${priorities[0].raw} · composantes vélo/course dont les blocs satisfont le critère de séance : ${detail}. La couverture de la préparation complète reste à évaluer.`
+          :`${priorities[0].raw} · S${week.week} : aucune dose vélo/course démontrée sur les séances clés ou longues par les critères applicables. Couverture du limiteur à revoir.`});
+    }
     if(week.weekType==='load'){
       const zones=polarization(selected);
       result.checks.push({code:'structured_polarization',week:week.week,status:zones?.complete?'passed':'pending',message:zones?.complete?`Blocs configurés : ${zones.lowPct?.toFixed(1)} % de temps facile, ${zones.unknownPct?.toFixed(1)} % non classé. Cibles de construction respectées, sans attestation sportive.`:'Répartition totale des intensités non vérifiable : durée cardio ou transition inconnue. Les composantes connues ne peuvent pas contourner les cibles existantes.'});
@@ -493,7 +620,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     // Unknown transitions keep the TOTAL pending. They must not disable
     // exercise-volume progression and deloads for the known component doses.
     if(week.weekType==='load')priorLoad=selected.every(s=>s.role!=='race'&&s.components.every(c=>c.durationMinutes!==null))?knownMinutes:null;
-    if(road){
+    if(road||trail){
       for(const [index,s] of calendarSelected.entries())if(demandingRun(s))demandingDays.push(7*(week.week-1)+slots[index].dayIndex);
       if(week.weekType==='load'){peakKnownMinutes=Math.max(peakKnownMinutes,knownMinutes);if(requiresSpecific){previousSpecificMinutes=selected.reduce((n,s)=>n+specificMinutes(s),0);previousSpecificPhase=week.phase;}priorLongRunMinutes=selected.find(s=>s.sport==='run'&&s.role==='long')?.durationMinutes??priorLongRunMinutes;}
     }
@@ -504,6 +631,7 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     }
   }
   const selected=result.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
+  if(trail)result.checks.push({code:'trail_route_review',status:'pending',message:'Projet trail à relire sur les parcours de cet athlète : D+/D− réellement tolérés, descentes, durée de la sortie longue et effort en montée. Les dénivelés de course ne renseignent pas la tolérance individuelle. Les cibles terrain et le guidage restent à préciser.'});
   const missingTargets=[...new Set(selected.flatMap(s=>s.targets.missing))];
   if(options.includeLibrary920){
     const imported=selected.filter(s=>library920SourceMetadata(s.sourceId));
@@ -512,7 +640,17 @@ export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,a
     result.checks.push({code:'athlete_current_context',status:'pending',message:`Contexte actuel : fatigue ${FATIGUE_LABELS[options.currentFatigue??'unknown']}, charge qualitative ${RECENT_LOAD_LABELS[options.recentLoad??'unknown']}. Prérequis, contre-indications et tolérance de la dose à revoir pour cet athlète ; aucun accord déduit d’une donnée absente.`});
   }
   if(missingTargets.length)result.checks.push({code:'individual_targets',status:'pending',message:'Repères encore nécessaires : '+missingTargets.join(', ')});
-  for(const priority of priorities)if(!selected.some(s=>s.limiterMatches.includes(priority.raw)))result.checks.push({code:'limiter_without_source_match',status:'pending',message:`${priority.raw} : aucune source correspondante retenue ; sa couverture n’est pas validée.`});
+  for(const [index,p] of priorities.entries())if(!exposure.has(p.raw)){
+    const reductionRank=priorities.findIndex(other=>other.resolution.key==='vlamax_reduction');
+    if(p.resolution.key==='vo2max' && reductionRank>=0 && reductionRank<index && vlamaxReduction &&
+      resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
+      result.checks.push({code:'ranked_limiter_deferred',status:'pending',message:
+        `Rang ${index+1} · ${p.raw} différé. La priorité VLamax de rang ${reductionRank+1} restreint les blocs VO₂max lourds. Aucun bloc compatible retenu. À réévaluer avec le coach.`});
+      continue;
+    }
+    result.checks.push({code:'limiter_without_source_match',status:options.completeSessions?'blocked':'pending',
+      message:`Rang ${index+1} · ${p.raw} : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.`});
+  }
   result.checks.push({code:'sporting_review',status:'pending',message:'Revue des doses, proportions, progression, récupération, disponibilité et situation actuelle de l’athlète nécessaire avant utilisation. Aucune approbation créée.'});
   result.checks.push(...auditV3ProposalRecovery(result,config.planStartDate!,options.clock),...auditV3ProposalSportMinutes(result,config.constraints),...auditV3ProposalDoseIntegrity(result),...auditV3SportingPrescription(result,config));
   if(options.invalidClockSports?.length)result.checks.push({code:'invalid_entered_clock',status:'blocked',message:'Horaires invalides à corriger : '+options.invalidClockSports.join(', ')});

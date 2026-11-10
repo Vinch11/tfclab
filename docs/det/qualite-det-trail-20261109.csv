@@ -1,0 +1,76 @@
+objectif,niveau,ambition,limiteurs,avant,apres,semaines_charge,semaines_avec_dose_primaire,fiches_distinctes,motif
+TrailShort,auto,finisher,VLamax,refus,projet à relire,8,8,18,
+TrailShort,auto,age_group,VLamax,refus,projet à relire,8,8,25,
+TrailShort,auto,competitor,VLamax / TTE,refus,projet à relire,8,8,25,
+TrailShort,auto,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,8,8,25,
+TrailShort,auto,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,untrained,finisher,VLamax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailShort,untrained,age_group,VLamax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailShort,untrained,competitor,VLamax / TTE,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailShort,untrained,elite,VLamax / TTE / VO2max / VMA,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailShort,untrained,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailShort,light,finisher,VLamax,refus,projet à relire,8,8,17,
+TrailShort,light,age_group,VLamax,refus,projet à relire,8,8,23,
+TrailShort,light,competitor,VLamax / TTE,refus,projet à relire,8,8,23,
+TrailShort,light,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,8,8,23,
+TrailShort,light,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,trained,finisher,VLamax,refus,projet à relire,8,8,23,
+TrailShort,trained,age_group,VLamax,refus,projet à relire,8,8,35,
+TrailShort,trained,competitor,VLamax / TTE,refus,projet à relire,8,8,35,
+TrailShort,trained,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,8,8,35,
+TrailShort,trained,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailShort,highly_trained,finisher,VLamax,refus,projet à relire,8,8,17,
+TrailShort,highly_trained,age_group,VLamax,refus,projet à relire,8,8,35,
+TrailShort,highly_trained,competitor,VLamax / TTE,refus,projet à relire,8,8,35,
+TrailShort,highly_trained,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,8,8,35,
+TrailShort,highly_trained,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailMountain,auto,finisher,VLamax,refus,projet à relire,10,10,16,
+TrailMountain,auto,age_group,VLamax / TTE,refus,projet à relire,10,10,28,
+TrailMountain,auto,competitor,VLamax / TTE,refus,projet à relire,10,10,28,
+TrailMountain,auto,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,10,10,28,
+TrailMountain,auto,world_class,TTE / VLamax / VO2max / VMA,refus,projet à relire,10,10,28,
+TrailMountain,untrained,finisher,VLamax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailMountain,untrained,age_group,VLamax / TTE,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailMountain,untrained,competitor,VLamax / TTE,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailMountain,untrained,elite,VLamax / TTE / VO2max / VMA,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailMountain,untrained,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailMountain,light,finisher,VLamax,refus,projet à relire,10,10,16,
+TrailMountain,light,age_group,VLamax / TTE,refus,projet à relire,10,10,26,
+TrailMountain,light,competitor,VLamax / TTE,refus,projet à relire,10,10,26,
+TrailMountain,light,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,10,10,26,
+TrailMountain,light,world_class,TTE / VLamax / VO2max / VMA,refus,refus,,,,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué."
+TrailMountain,trained,finisher,VLamax,refus,projet à relire,10,10,19,
+TrailMountain,trained,age_group,VLamax / TTE,refus,projet à relire,10,10,27,
+TrailMountain,trained,competitor,VLamax / TTE,refus,projet à relire,10,10,27,
+TrailMountain,trained,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,10,10,27,
+TrailMountain,trained,world_class,TTE / VLamax / VO2max / VMA,refus,projet à relire,10,10,27,
+TrailMountain,highly_trained,finisher,VLamax,refus,projet à relire,10,10,16,
+TrailMountain,highly_trained,age_group,VLamax / TTE,refus,projet à relire,10,10,28,
+TrailMountain,highly_trained,competitor,VLamax / TTE,refus,projet à relire,10,10,28,
+TrailMountain,highly_trained,elite,VLamax / TTE / VO2max / VMA,refus,projet à relire,10,10,28,
+TrailMountain,highly_trained,world_class,TTE / VLamax / VO2max / VMA,refus,projet à relire,10,10,29,
+TrailUltra,auto,finisher,VLamax,refus,projet à relire,12,12,18,
+TrailUltra,auto,age_group,VLamax / TTE / FatMax,refus,projet à relire,12,12,31,
+TrailUltra,auto,competitor,VLamax / TTE / FatMax,refus,projet à relire,12,12,31,
+TrailUltra,auto,elite,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,31,
+TrailUltra,auto,world_class,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,31,
+TrailUltra,untrained,finisher,VLamax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailUltra,untrained,age_group,VLamax / TTE / FatMax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailUltra,untrained,competitor,VLamax / TTE / FatMax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailUltra,untrained,elite,VLamax / TTE / VMA / VO2max / FatMax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailUltra,untrained,world_class,VLamax / TTE / VMA / VO2max / FatMax,refus,refus,,,,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.
+TrailUltra,light,finisher,VLamax,refus,projet à relire,12,12,17,
+TrailUltra,light,age_group,VLamax / TTE / FatMax,refus,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,competitor,VLamax / TTE / FatMax,refus,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,elite,VLamax / TTE / VMA / VO2max / FatMax,refus,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,world_class,VLamax / TTE / VMA / VO2max / FatMax,refus,refus,,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,trained,finisher,VLamax,refus,projet à relire,12,12,20,
+TrailUltra,trained,age_group,VLamax / TTE / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,trained,competitor,VLamax / TTE / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,trained,world_class,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,highly_trained,finisher,VLamax,refus,projet à relire,12,12,17,
+TrailUltra,highly_trained,age_group,VLamax / TTE / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,highly_trained,competitor,VLamax / TTE / FatMax,refus,projet à relire,12,12,37,
+TrailUltra,highly_trained,elite,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,38,
+TrailUltra,highly_trained,world_class,VLamax / TTE / VMA / VO2max / FatMax,refus,projet à relire,12,12,38,

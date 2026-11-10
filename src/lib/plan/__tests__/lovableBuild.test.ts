@@ -71,6 +71,21 @@ describe("Lovable build fingerprints its actual checkout, without Git or prepara
     writeFileSync(catalogue, before);
   }, 20000);
 
+  it("identifies a normal DET selector change without changing either AI component", async () => {
+    const selector = join(temp, "src/lib/det/appPlanningV3Proposal.ts");
+    const before = readFileSync(selector, "utf8");
+    try {
+      writeFileSync(selector, before + "\n// Synthetic DET-only version test\n");
+      const { info } = await calculatePlanRelease(temp);
+      const declared = readDeclaration(root).components;
+      expect(info.components["det-engine"]).not.toBe(declared["det-engine"]);
+      expect(info.components["ai-training-plan"]).toBe(declared["ai-training-plan"]);
+      expect(info.components["ai-training-plan-test"]).toBe(declared["ai-training-plan-test"]);
+    } finally {
+      writeFileSync(selector, before);
+    }
+  }, 20000);
+
   it("an arbitrary archive environment/SHA cannot substitute different contract fingerprints", async () => {
     const declared = readDeclaration(root);
     await expect(checkedPlanRelease(temp, { ...declared, attested: true, provenance: "archived-source", sourceCommit: "a".repeat(40), sourceEpoch: 1, contractHash: "f".repeat(64) })).rejects.toThrow("PLAN_RELEASE_DECLARATION_STALE");

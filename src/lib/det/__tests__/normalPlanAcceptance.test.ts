@@ -4,6 +4,10 @@ import {computeAppAthleteContext, buildAppPlanConfig, type AppPlanFormState} fro
 import {freezeAppPlanningInput, planningInputFor, semanticPlanningPayload} from '../appPlanningInput';
 import {generateAppProfileDetPlan} from '../appProfileDetPlan';
 import type {V3PlanProposal} from '../appPlanningV3Proposal';
+import {primaryPrescriptionMatch} from '../v3SportingPrescription';
+import {findSource} from '../coachDetContext';
+import {resolveDetLimiter} from '../../../../experimental/det-engine/v403-limiter-semantics';
+import {primaryRunningInputProblems} from '../../../../experimental/det-engine/v408-primary-limiter-evidence';
 import {savedDetPreparationTimeline} from '../detPreparationTimeline';
 import {auditV3ProposalDoseIntegrity} from '../appPlanningV3Audit';
 import {library920SourceMetadata} from '../../../../scripts/library-v3/library920Catalogue';
@@ -71,6 +75,21 @@ describe('normal IA input → DET prescriptions → frozen Nolio operations', ()
     expect(proposal.planningInputFingerprint).toBe(app.fingerprint);
     expect(proposal.checks.filter(c=>c.status==='blocked')).toEqual([]);
     expect(auditV3ProposalDoseIntegrity(proposal).every(c=>c.status==='passed')).toBe(true);
+    if(spec.objective==='Ironman 70.3'){
+      const loadWeeks=proposal.weeks.filter(w=>w.weekType==='load');
+      const primary=resolveDetLimiter(proposal.limiterOrder[0]);
+      if(primary.status!=='supported')throw Error('Missing primary in completed triathlon');
+      const reports=proposal.checks.filter(c=>c.code==='tri_primary_component_dose');
+      expect(reports.map(c=>c.week)).toEqual(loadWeeks.map(w=>w.week));
+      const applicable=primaryRunningInputProblems(app.config).length===0;
+      for(const week of loadWeeks){
+        const components=week.days.flatMap(d=>d.sessions).filter(s=>s.role==='key'||s.role==='long').flatMap(s=>s.components);
+        const actual=components.filter(c=>applicable&&c.targets.status==='resolved'&&primaryPrescriptionMatch(c,findSource(c.sourceId)!,primary.key));
+        const report=reports.find(c=>c.week===week.week)!;
+        expect(report.status).toBe(actual.length?'passed':'pending');
+        for(const c of actual)expect(report.message).toContain(c.sport+' '+c.sourceId);
+      }
+    }
     const components=proposal.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
     const levels=['untrained','light','trained','highly_trained'];
     expect(components.every(c=>levels.indexOf(c.review.minimumLevel)<=levels.indexOf(spec.level))).toBe(true);

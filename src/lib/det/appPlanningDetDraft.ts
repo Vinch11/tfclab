@@ -1,6 +1,6 @@
 import { limiterSourceAffinity } from "../../../experimental/det-engine/v411-limiter-source-affinity";
 import type { LimiterMesocycleSchedule, LimiterWeekFocus } from "@/lib/plan/limiterMesocycles";
-import { prepareGenerationContracts } from '@/lib/plan/prepareGenerationContracts';
+import {prepareDetGeneration,trailFamily} from './trailPreparation';
 import { planningFingerprint, planningInputFor, type FrozenAppPlanningInput } from './appPlanningInput';
 import { coachFamilyFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
 import { traceLimiterSemantics, type DetLimiterKey } from '../../../experimental/det-engine/v403-limiter-semantics';
@@ -72,10 +72,14 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   const family = coachFamilyFor(config.objective);
   if (!family) throw Error('Cette famille ne dispose pas encore de sources DET pour un brouillon.');
   const semantics = traceLimiterSemantics(app.limiters.applied, family.key);
-  if (semantics.blocking) throw Error(`Limiteur principal non raccordé : ${semantics.blocking.raw}. Aucune autre priorité n’est substituée.`);
+  // The ordinary proposal has its own block-dose check for running limiters.
+  // The route-reviewed runner retains its separate admission contract.
+  const trailDraft = trailFamily(config) && semantics.resolutions[0]?.status==='supported' &&
+    ['tte','durability_race_relative','vo2max','vlamax_reduction','vma_velocity'].includes(semantics.resolutions[0].key ?? '');
+  if (semantics.blocking && !trailDraft) throw Error(`Limiteur principal non raccordé : ${semantics.blocking.raw}. Aucune autre priorité n’est substituée.`);
   if (!semantics.resolutions.length) throw Error('Le profil partagé ne contient pas de limiteur prioritaire.');
   const priorities = semantics.resolutions.map(resolution => ({ raw: resolution.raw, key: resolution.status === 'supported' ? resolution.key : null }));
-  const prepared = prepareGenerationContracts(athlete, config);
+  const prepared = prepareDetGeneration(athlete, config);
   const pool = familySourcePool(family.key);
   const poolProblems = await poolLibraryProblems(pool);
   if (poolProblems.length) throw Error(poolProblems.join(' '));

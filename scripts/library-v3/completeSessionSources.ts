@@ -42,6 +42,36 @@ export const completeStrengthSources:V3Workout[]=(['base','build','peak','taper'
  w.methodology='Poids du corps uniquement, appui autorisé. Le RPE est une consigne de séance, pas une charge mesurée. Faire au plus les répétitions indiquées pendant la fenêtre de mouvement ; utiliser le temps restant pour récupérer. Les exercices unilatéraux alternent les côtés à mi-créneau. Aucun kilogramme ni 1RM présumé.';
  return w;
 }));
+/** Introductory support for athletes returning to regular training. These
+ * distinct prescriptions are never used as evidence of maximal strength. */
+export const introductoryStrengthSources: V3Workout[] = [
+  ['Assis-debout depuis une chaise stable', 'Pompes debout contre un mur', 'Montées sur les deux pointes avec appui'],
+  ['Pont fessier au sol', 'Charnière de hanche sans charge face à un appui', 'Élévations de talons assis'],
+].map((movements, index) => {
+  const phase = ['base','build','peak','taper'];
+  const blocks: V3Block[] = [
+    time(180, 'Marche facile sur place puis répéter doucement les gestes à vide.', 'warmup'),
+    {kind:'repeat', label:'Deux passages faciles avec récupération dans chaque atelier',
+      count:fixed(2), betweenSec:60, steps:movements.map(movement =>
+        time(60, movement + ' : jusqu’à 4 répétitions confortables pendant 20 secondes maximum, puis repos pendant le reste de la minute.', 'main', [2,3], 4))},
+    time(120, 'Marche lente puis bilan du confort des gestes.', 'cooldown'),
+  ];
+  const workout = finish(strengthBase, 'V3P_STRENGTH_' + (217 + index),
+    'Reprise · renforcement sans charge ' + (index ? 'B' : 'A'), phase, blocks, 24, BODYWEIGHT_POLICY);
+  workout.minimumLevel = 'untrained';
+  workout.primaryIntent = 'mobility_prevention';
+  workout.focus = 'Reprendre des gestes simples et contrôlés au poids du corps.';
+  workout.methodology = 'Séance de soutien TFCLab. Choisir une amplitude confortable, garder un appui stable et finir chaque série avec une marge. Le ressenti proposé est une consigne, sans estimation de charge maximale.';
+  workout.prerequisites = ['Gestes proposés et position de départ tolérés, vérifiés avec le coach'];
+  workout.contraindications = ['Douleur ou instabilité pendant un geste', 'Fatigue incompatible avec une exécution contrôlée'];
+  workout.prescription.physiologicalIntent = {...workout.prescription.physiologicalIntent,
+    primaryIntent:workout.primaryIntent, statement:workout.focus, limiterKeys:['strength_mechanics']};
+  workout.prescription.admissibility = {...workout.prescription.admissibility, minimumLevel:workout.minimumLevel,
+    prerequisites:[...workout.prerequisites], contraindications:[...workout.contraindications]};
+  Object.assign(workout,{equipment:index ? ['tapis','chaise stable'] : ['chaise stable','mur']});
+  return workout;
+});
+
 /** Complete alternatives for trained athletes. RPE and repetition targets are
  * prescriptions, not measured loads or proof of maximal strength adaptation.
  * Principle support: https://pubmed.ncbi.nlm.nih.gov/38165636/ . The exact

@@ -1,0 +1,226 @@
+objectif,niveau saisi,ambition saisie,limiteurs du diagnostic,statut précédent,résultat actuel,motif ou résultat,semaines de charge,semaines avec preuve du limiteur,motif détaillé
+IM,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,9,9,
+IM,auto,age_group,VLamax,assembled,assembled,Projet complet à relire,9,9,
+IM,auto,competitor,Durabilité / VLamax / TTE,assembled,assembled,Projet complet à relire,9,9,
+IM,auto,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,assembled,assembled,Projet complet à relire,9,9,
+IM,auto,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,assembled,assembled,Projet complet à relire,9,9,
+IM,untrained,finisher,VLamax,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+IM,untrained,age_group,VLamax,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+IM,untrained,competitor,Durabilité / VLamax / TTE,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+IM,untrained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+IM,untrained,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+IM,light,finisher,VLamax,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+IM,light,age_group,VLamax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,competitor,Durabilité / VLamax / TTE,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,light,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+IM,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,9,9,
+IM,trained,age_group,VLamax,refused,assembled,Projet complet à relire,9,9,
+IM,trained,competitor,Durabilité / VLamax / TTE,refused,assembled,Projet complet à relire,9,9,
+IM,trained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,refused,assembled,Projet complet à relire,9,9,
+IM,trained,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,refused,assembled,Projet complet à relire,9,9,
+IM,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,9,9,
+IM,highly_trained,age_group,VLamax,assembled,assembled,Projet complet à relire,9,9,
+IM,highly_trained,competitor,Durabilité / VLamax / TTE,assembled,assembled,Projet complet à relire,9,9,
+IM,highly_trained,elite,Durabilité / VLamax / TTE / VO2max / FTP/kg,assembled,assembled,Projet complet à relire,9,9,
+IM,highly_trained,world_class,Durabilité / VLamax / TTE / FTP/kg / VO2max,assembled,assembled,Projet complet à relire,9,9,
+703,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,auto,age_group,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,auto,competitor,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,auto,elite,VLamax / VO2max / TTE / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+703,auto,world_class,VLamax / TTE / VO2max / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+703,untrained,finisher,VLamax,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+703,untrained,age_group,VLamax,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+703,untrained,competitor,VLamax,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+703,untrained,elite,VLamax / VO2max / TTE / FTP/kg,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+703,untrained,world_class,VLamax / TTE / VO2max / FTP/kg,refused,refused,Créneau sans dose admissible,,,"S1 mardi : natation. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+703,light,finisher,VLamax,refused,refused,Créneau sans dose admissible,,,"S5 samedi : vélo (au moins 105 min). 53 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+703,light,age_group,VLamax,refused,refused,Enchaînement sans paire admissible,,,S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues.
+703,light,competitor,VLamax,refused,refused,Enchaînement sans paire admissible,,,S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues.
+703,light,elite,VLamax / VO2max / TTE / FTP/kg,refused,refused,Enchaînement sans paire admissible,,,S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues.
+703,light,world_class,VLamax / TTE / VO2max / FTP/kg,refused,refused,Enchaînement sans paire admissible,,,S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues.
+703,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,trained,age_group,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,trained,competitor,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,trained,elite,VLamax / VO2max / TTE / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+703,trained,world_class,VLamax / TTE / VO2max / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+703,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,highly_trained,age_group,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,highly_trained,competitor,VLamax,assembled,assembled,Projet complet à relire,7,7,
+703,highly_trained,elite,VLamax / VO2max / TTE / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+703,highly_trained,world_class,VLamax / TTE / VO2max / FTP/kg,assembled,assembled,Projet complet à relire,7,7,
+Marathon,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,auto,age_group,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,auto,competitor,Durabilité / VLamax / TTE / VO2max,assembled,assembled,Projet complet à relire,10,10,
+Marathon,auto,elite,Durabilité / VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+Marathon,auto,world_class,Durabilité / VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+Marathon,untrained,finisher,VLamax,refused,refused,Créneau sans dose admissible,,,"S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+Marathon,untrained,age_group,VLamax,refused,refused,Créneau sans dose admissible,,,"S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+Marathon,untrained,competitor,Durabilité / VLamax / TTE / VO2max,refused,refused,Créneau sans dose admissible,,,"S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+Marathon,untrained,elite,Durabilité / VLamax / TTE / VO2max / VMA,refused,refused,Créneau sans dose admissible,,,"S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+Marathon,untrained,world_class,Durabilité / VLamax / TTE / VO2max / VMA,refused,refused,Créneau sans dose admissible,,,"S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+Marathon,light,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,light,age_group,VLamax,refused,refused,Combinaison de contraintes non résolue,,,"S14 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 247.8 min, la récupération et les exigences sportives de la semaine."
+Marathon,light,competitor,Durabilité / VLamax / TTE / VO2max,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+Marathon,light,elite,Durabilité / VLamax / TTE / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+Marathon,light,world_class,Durabilité / VLamax / TTE / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+Marathon,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,trained,age_group,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,trained,competitor,Durabilité / VLamax / TTE / VO2max,assembled,assembled,Projet complet à relire,10,10,
+Marathon,trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+Marathon,trained,world_class,Durabilité / VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+Marathon,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,highly_trained,age_group,VLamax,assembled,assembled,Projet complet à relire,10,10,
+Marathon,highly_trained,competitor,Durabilité / VLamax / TTE / VO2max,assembled,assembled,Projet complet à relire,10,10,
+Marathon,highly_trained,elite,Durabilité / VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+Marathon,highly_trained,world_class,Durabilité / VLamax / TTE / VO2max / VMA,refused,refused,Recherche interrompue,,,S1 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée.
+Semi,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,auto,age_group,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,auto,competitor,VLamax / VO2max,assembled,assembled,Projet complet à relire,5,5,
+Semi,auto,elite,Durabilité / VO2max / VLamax / VMA / TTE,assembled,assembled,Projet complet à relire,5,5,
+Semi,auto,world_class,Durabilité / VO2max / TTE / VLamax / VMA,assembled,assembled,Projet complet à relire,5,5,
+Semi,untrained,finisher,VLamax,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+Semi,untrained,age_group,VLamax,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+Semi,untrained,competitor,VLamax / VO2max,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+Semi,untrained,elite,Durabilité / VO2max / VLamax / VMA / TTE,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+Semi,untrained,world_class,Durabilité / VO2max / TTE / VLamax / VMA,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+Semi,light,finisher,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,light,age_group,VLamax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,competitor,VLamax / VO2max,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,elite,Durabilité / VO2max / VLamax / VMA / TTE,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,light,world_class,Durabilité / VO2max / TTE / VLamax / VMA,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+Semi,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,trained,age_group,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,trained,competitor,VLamax / VO2max,assembled,assembled,Projet complet à relire,5,5,
+Semi,trained,elite,Durabilité / VO2max / VLamax / VMA / TTE,assembled,assembled,Projet complet à relire,5,5,
+Semi,trained,world_class,Durabilité / VO2max / TTE / VLamax / VMA,assembled,assembled,Projet complet à relire,5,5,
+Semi,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,highly_trained,age_group,VLamax,assembled,assembled,Projet complet à relire,5,5,
+Semi,highly_trained,competitor,VLamax / VO2max,assembled,assembled,Projet complet à relire,5,5,
+Semi,highly_trained,elite,Durabilité / VO2max / VLamax / VMA / TTE,assembled,assembled,Projet complet à relire,5,5,
+Semi,highly_trained,world_class,Durabilité / VO2max / TTE / VLamax / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 342 min, la récupération et les exigences sportives de la semaine."
+10K,auto,finisher,,refused,refused,Diagnostic sans priorité,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,auto,age_group,Durabilité / TTE,assembled,assembled,Projet complet à relire,5,5,
+10K,auto,competitor,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,auto,elite,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,auto,world_class,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,untrained,finisher,,refused,refused,Diagnostic sans priorité,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,untrained,age_group,Durabilité / TTE,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+10K,untrained,competitor,TTE / Durabilité / VO2max / VMA,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+10K,untrained,elite,TTE / Durabilité / VO2max / VMA,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+10K,untrained,world_class,TTE / Durabilité / VO2max / VMA,refused,refused,Minimum supérieur au plafond,,,S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 166 min de blocs pour un plafond de 144 min. Vérifier la fréquence et la disponibilité déclarées.
+10K,light,finisher,,refused,refused,Diagnostic sans priorité,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,light,age_group,Durabilité / TTE,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,competitor,TTE / Durabilité / VO2max / VMA,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,elite,TTE / Durabilité / VO2max / VMA,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,light,world_class,TTE / Durabilité / VO2max / VMA,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+10K,trained,finisher,,refused,refused,Diagnostic sans priorité,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,trained,age_group,Durabilité / TTE,assembled,assembled,Projet complet à relire,5,5,
+10K,trained,competitor,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,trained,elite,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,trained,world_class,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,highly_trained,finisher,,refused,refused,Diagnostic sans priorité,,,Le profil partagé ne contient pas de limiteur prioritaire.
+10K,highly_trained,age_group,Durabilité / TTE,assembled,assembled,Projet complet à relire,5,5,
+10K,highly_trained,competitor,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,highly_trained,elite,TTE / Durabilité / VO2max / VMA,assembled,assembled,Projet complet à relire,5,5,
+10K,highly_trained,world_class,TTE / Durabilité / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 342 min, la récupération et les exigences sportives de la semaine."
+StartToRun,auto,finisher,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,auto,age_group,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,auto,competitor,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,auto,elite,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,auto,world_class,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,untrained,finisher,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,untrained,age_group,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,untrained,competitor,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,untrained,elite,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,untrained,world_class,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,light,finisher,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,light,age_group,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,light,competitor,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,light,elite,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,light,world_class,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,trained,finisher,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,trained,age_group,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,trained,competitor,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,trained,elite,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,trained,world_class,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,highly_trained,finisher,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,highly_trained,age_group,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,highly_trained,competitor,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,highly_trained,elite,,outside_det,outside_det,Protocole distinct,,,
+StartToRun,highly_trained,world_class,,outside_det,outside_det,Protocole distinct,,,
+TrailShort,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,auto,age_group,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,auto,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,auto,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,auto,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 420 min, la récupération et les exigences sportives de la semaine."
+TrailShort,untrained,finisher,VLamax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,age_group,VLamax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,competitor,VLamax / TTE,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,elite,VLamax / TTE / VO2max / VMA,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,untrained,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailShort,light,finisher,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,light,age_group,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,light,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,light,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,light,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 252 min, la récupération et les exigences sportives de la semaine."
+TrailShort,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,trained,age_group,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,trained,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,trained,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,trained,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 336 min, la récupération et les exigences sportives de la semaine."
+TrailShort,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,highly_trained,age_group,VLamax,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,highly_trained,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,highly_trained,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,8,8,
+TrailShort,highly_trained,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 396 min, la récupération et les exigences sportives de la semaine."
+TrailMountain,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,auto,age_group,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,auto,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,auto,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,auto,world_class,TTE / VLamax / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,untrained,finisher,VLamax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,age_group,VLamax / TTE,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,competitor,VLamax / TTE,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,elite,VLamax / TTE / VO2max / VMA,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,untrained,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailMountain,light,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,light,age_group,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,light,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,light,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,light,world_class,TTE / VLamax / VO2max / VMA,refused,refused,Combinaison de contraintes non résolue,,,"S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 324 min, la récupération et les exigences sportives de la semaine."
+TrailMountain,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,trained,age_group,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,trained,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,trained,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,trained,world_class,TTE / VLamax / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,highly_trained,age_group,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,highly_trained,competitor,VLamax / TTE,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,highly_trained,elite,VLamax / TTE / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailMountain,highly_trained,world_class,TTE / VLamax / VO2max / VMA,assembled,assembled,Projet complet à relire,10,10,
+TrailUltra,auto,finisher,VLamax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,auto,age_group,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,auto,competitor,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,auto,elite,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,auto,world_class,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,untrained,finisher,VLamax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,age_group,VLamax / TTE / FatMax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,competitor,VLamax / TTE / FatMax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,elite,VLamax / TTE / VMA / VO2max / FatMax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,untrained,world_class,VLamax / TTE / VMA / VO2max / FatMax,refused,refused,Historique de reprise manquant,,,"Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+TrailUltra,light,finisher,VLamax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,light,age_group,VLamax / TTE / FatMax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,competitor,VLamax / TTE / FatMax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,elite,VLamax / TTE / VMA / VO2max / FatMax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,light,world_class,VLamax / TTE / VMA / VO2max / FatMax,refused,refused,Séance de qualité indisponible,,,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+TrailUltra,trained,finisher,VLamax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,trained,age_group,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,trained,competitor,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,trained,elite,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,trained,world_class,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,highly_trained,finisher,VLamax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,highly_trained,age_group,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,highly_trained,competitor,VLamax / TTE / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,highly_trained,elite,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,
+TrailUltra,highly_trained,world_class,VLamax / TTE / VMA / VO2max / FatMax,assembled,assembled,Projet complet à relire,12,12,

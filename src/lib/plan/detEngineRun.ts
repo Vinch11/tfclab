@@ -39,6 +39,7 @@ export function detEngineVersion(): string {
 }
 
 export interface DetRunInput {
+  trailLongRunLimits?:import('@/lib/det/trailPreparation').TrailLongRunLimits;
   athleteId: string;
   athlete: PlanAthleteData;
   config: PlanConfig;
@@ -72,7 +73,7 @@ export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<
   });
   let plan: ParsedPlan;
   try {
-    plan = await generateAppProfileDetPlan(frozen, input.athleteId, {}, detEngineVersion());
+    plan = await generateAppProfileDetPlan(frozen, input.athleteId, {trailLongRunLimits:input.trailLongRunLimits}, detEngineVersion());
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new DetRefusal(message.split("\n").filter(Boolean));

@@ -20,6 +20,8 @@ export function appProfileDetStructure(session:ProposedV3Session):AppStructure{
   return {detStructureRefusal:{reason:'multisport_composition_and_transition_unreviewed'}};
  }
  const c=session.components[0];
+ if(c.sport==='run' && c.targets.status==='unresolved' && c.targets.missing.some(key=>key.startsWith('run_terrain_effort_review.')))
+  return {detStructureRefusal:{reason:'run_terrain_effort_review_required'}};
  const qualitative=timedSwimSources.find(w=>w.id===c.sourceId&&fingerprintV3SportingSource(w)===c.sourceFingerprint);
  const result=previewDetStructuredWorkout({...(qualitative?{qualitativeDomains:qualitative.prescription.physiologicalIntent.domainIds}:{}),sourceId:c.sourceId,sport:c.sport,blocks:c.blocks,targets:c.targets.targets,durationMinutes:c.durationMinutes});
  return result.status==='preview'?{detStructuredWorkout:result.workout,detStructureAdmission:result.sourceAdmission}:{detStructureRefusal:{reason:result.reason}};

@@ -1,0 +1,226 @@
+objectif,niveau_saisi,ambition_saisie,niveau_effectif,source_niveau,ambition_effective,heures_disponibles,horizon_semaines,limiteurs_appliques,avant,apres,motif_refus,activites,fiches_distinctes,semaines_charge,semaines_controle_dose_route_reussi,semaines_composante_velo_course_etablie,semaines_composante_velo_course_en_attente,autres_controles_en_attente
+IM,auto,finisher,trained,auto-tss,finisher,14,16,VLamax,construit,construit,,163,50,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,auto,age_group,trained,auto-tss,age_group,14,16,VLamax,construit,construit,,160,49,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,auto,competitor,trained,auto-tss,competitor,14,16,Durabilité | VLamax | TTE,construit,construit,,172,54,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,auto,elite,trained,auto-tss,elite,14,16,Durabilité | VLamax | TTE | VO2max | FTP/kg,construit,construit,,172,54,9,0,9,0,weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+IM,auto,world_class,trained,auto-tss,elite,14,16,Durabilité | VLamax | TTE | FTP/kg | VO2max,construit,construit,,172,54,9,0,9,0,weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+IM,untrained,finisher,untrained,manual,finisher,14,16,VLamax,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+IM,untrained,age_group,untrained,manual,finisher,14,16,VLamax,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+IM,untrained,competitor,untrained,manual,finisher,14,16,Durabilité | VLamax | TTE,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+IM,untrained,elite,untrained,manual,finisher,14,16,Durabilité | VLamax | TTE | VO2max | FTP/kg,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+IM,untrained,world_class,untrained,manual,finisher,14,16,Durabilité | VLamax | TTE | FTP/kg | VO2max,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+IM,light,finisher,light,manual,finisher,14,16,VLamax,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+IM,light,age_group,light,manual,age_group,14,16,VLamax,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+IM,light,competitor,light,manual,age_group,14,16,Durabilité | VLamax | TTE,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+IM,light,elite,light,manual,age_group,14,16,Durabilité | VLamax | TTE | VO2max | FTP/kg,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+IM,light,world_class,light,manual,age_group,14,16,Durabilité | VLamax | TTE | FTP/kg | VO2max,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+IM,trained,finisher,trained,manual,finisher,14,16,VLamax,construit,construit,,163,58,9,0,9,0,weekly_minutes | athlete_current_context | individual_targets | sporting_review | source_recovery | same_day_overlap
+IM,trained,age_group,trained,manual,age_group,14,16,VLamax,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+IM,trained,competitor,trained,manual,competitor,14,16,Durabilité | VLamax | TTE,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+IM,trained,elite,trained,manual,elite,14,16,Durabilité | VLamax | TTE | VO2max | FTP/kg,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+IM,trained,world_class,trained,manual,elite,14,16,Durabilité | VLamax | TTE | FTP/kg | VO2max,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+IM,highly_trained,finisher,highly_trained,manual,finisher,14,16,VLamax,construit,construit,,163,51,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,highly_trained,age_group,highly_trained,manual,age_group,14,16,VLamax,construit,construit,,160,51,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,highly_trained,competitor,highly_trained,manual,competitor,14,16,Durabilité | VLamax | TTE,construit,construit,,172,55,9,0,9,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+IM,highly_trained,elite,highly_trained,manual,elite,14,16,Durabilité | VLamax | TTE | VO2max | FTP/kg,construit,construit,,172,55,9,0,9,0,weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+IM,highly_trained,world_class,highly_trained,manual,world_class,14,16,Durabilité | VLamax | TTE | FTP/kg | VO2max,construit,construit,,172,55,9,0,9,0,weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,auto,finisher,trained,auto-tss,finisher,8,16,VLamax,construit,construit,,61,30,10,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,auto,age_group,trained,auto-tss,age_group,8,16,VLamax,construit,construit,,77,40,10,10,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,auto,competitor,trained,auto-tss,competitor,8,16,Durabilité | VLamax | TTE | VO2max,construit,construit,,105,52,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,auto,elite,trained,auto-tss,elite,8,16,Durabilité | VLamax | TTE | VO2max | VMA,construit,construit,,105,52,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,auto,world_class,trained,auto-tss,elite,8,16,Durabilité | VLamax | TTE | VO2max | VMA,construit,construit,,105,52,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,untrained,finisher,untrained,manual,finisher,8,16,VLamax,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Marathon,untrained,age_group,untrained,manual,finisher,8,16,VLamax,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Marathon,untrained,competitor,untrained,manual,finisher,8,16,Durabilité | VLamax | TTE | VO2max,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Marathon,untrained,elite,untrained,manual,finisher,8,16,Durabilité | VLamax | TTE | VO2max | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Marathon,untrained,world_class,untrained,manual,finisher,8,16,Durabilité | VLamax | TTE | VO2max | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Marathon,light,finisher,light,manual,finisher,8,16,VLamax,construit,construit,,61,21,10,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,light,age_group,light,manual,age_group,8,16,VLamax,refusé,refusé,"S14 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+Marathon,light,competitor,light,manual,age_group,8,16,Durabilité | VLamax | TTE | VO2max,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+Marathon,light,elite,light,manual,age_group,8,16,Durabilité | VLamax | TTE | VO2max | VMA,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+Marathon,light,world_class,light,manual,age_group,8,16,Durabilité | VLamax | TTE | VO2max | VMA,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+Marathon,trained,finisher,trained,manual,finisher,8,16,VLamax,construit,construit,,61,45,10,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,trained,age_group,trained,manual,age_group,8,16,VLamax,construit,construit,,77,50,10,10,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,trained,competitor,trained,manual,competitor,8,16,Durabilité | VLamax | TTE | VO2max,construit,construit,,105,60,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,trained,elite,trained,manual,elite,8,16,Durabilité | VLamax | TTE | VO2max | VMA,construit,construit,,105,60,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,trained,world_class,trained,manual,elite,8,16,Durabilité | VLamax | TTE | VO2max | VMA,construit,construit,,105,60,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,highly_trained,finisher,highly_trained,manual,finisher,8,16,VLamax,construit,construit,,61,37,10,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,highly_trained,age_group,highly_trained,manual,age_group,8,16,VLamax,construit,construit,,77,44,10,10,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Marathon,highly_trained,competitor,highly_trained,manual,competitor,8,16,Durabilité | VLamax | TTE | VO2max,construit,construit,,105,51,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,highly_trained,elite,highly_trained,manual,elite,8,16,Durabilité | VLamax | TTE | VO2max | VMA,construit,construit,,105,51,10,10,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Marathon,highly_trained,world_class,highly_trained,manual,world_class,8,16,Durabilité | VLamax | TTE | VO2max | VMA,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+703,auto,finisher,trained,auto-tss,finisher,10,12,VLamax,construit,construit,,103,42,7,0,7,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,auto,age_group,trained,auto-tss,age_group,10,12,VLamax,construit,construit,,96,43,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,auto,competitor,trained,auto-tss,competitor,10,12,VLamax,construit,construit,,96,43,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,auto,elite,trained,auto-tss,elite,10,12,VLamax | VO2max | TTE | FTP/kg,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,auto,world_class,trained,auto-tss,elite,10,12,VLamax | TTE | VO2max | FTP/kg,construit,construit,,96,46,7,0,7,0,weekly_minutes | structured_polarization | weekly_focus_unmatched | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+703,untrained,finisher,untrained,manual,finisher,10,12,VLamax,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,untrained,age_group,untrained,manual,finisher,10,12,VLamax,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,untrained,competitor,untrained,manual,finisher,10,12,VLamax,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,untrained,elite,untrained,manual,finisher,10,12,VLamax | VO2max | TTE | FTP/kg,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,untrained,world_class,untrained,manual,finisher,10,12,VLamax | TTE | VO2max | FTP/kg,refusé,refusé,S1 mardi : aucune dose V3 compatible pour swim. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,light,finisher,light,manual,finisher,10,12,VLamax,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+703,light,age_group,light,manual,age_group,10,12,VLamax,refusé,refusé,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,light,competitor,light,manual,age_group,10,12,VLamax,refusé,refusé,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,light,elite,light,manual,age_group,10,12,VLamax | VO2max | TTE | FTP/kg,refusé,refusé,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,light,world_class,light,manual,age_group,10,12,VLamax | TTE | VO2max | FTP/kg,refusé,refusé,S1 samedi : aucune dose V3 compatible pour brick. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+703,trained,finisher,trained,manual,finisher,10,12,VLamax,construit,construit,,103,42,7,0,7,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,trained,age_group,trained,manual,age_group,10,12,VLamax,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,trained,competitor,trained,manual,competitor,10,12,VLamax,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,trained,elite,trained,manual,elite,10,12,VLamax | VO2max | TTE | FTP/kg,construit,construit,,96,45,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,trained,world_class,trained,manual,elite,10,12,VLamax | TTE | VO2max | FTP/kg,construit,construit,,96,47,7,0,7,0,weekly_minutes | structured_polarization | weekly_focus_unmatched | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+703,highly_trained,finisher,highly_trained,manual,finisher,10,12,VLamax,construit,construit,,103,42,7,0,7,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,highly_trained,age_group,highly_trained,manual,age_group,10,12,VLamax,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,highly_trained,competitor,highly_trained,manual,competitor,10,12,VLamax,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,highly_trained,elite,highly_trained,manual,elite,10,12,VLamax | VO2max | TTE | FTP/kg,construit,construit,,96,44,7,0,7,0,weekly_minutes | structured_polarization | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+703,highly_trained,world_class,highly_trained,manual,world_class,10,12,VLamax | TTE | VO2max | FTP/kg,construit,construit,,96,47,7,0,7,0,weekly_minutes | structured_polarization | weekly_focus_unmatched | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+TrailMountain,auto,finisher,trained,auto-tss,finisher,9,16,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,auto,age_group,trained,auto-tss,age_group,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,auto,competitor,trained,auto-tss,competitor,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,auto,elite,trained,auto-tss,elite,9,16,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,auto,world_class,trained,auto-tss,elite,9,16,TTE | VLamax | VO2max | VMA,refusé,refusé,Le calendrier commun ne fournit pas la semaine 1 ; aucun calendrier de remplacement n’est inventé.,,,,,,,
+TrailMountain,untrained,finisher,untrained,manual,finisher,9,16,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,untrained,age_group,untrained,manual,finisher,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,untrained,competitor,untrained,manual,finisher,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,untrained,elite,untrained,manual,finisher,9,16,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,untrained,world_class,untrained,manual,finisher,9,16,TTE | VLamax | VO2max | VMA,refusé,refusé,Le calendrier commun ne fournit pas la semaine 1 ; aucun calendrier de remplacement n’est inventé.,,,,,,,
+TrailMountain,light,finisher,light,manual,finisher,9,16,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,light,age_group,light,manual,age_group,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,light,competitor,light,manual,age_group,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,light,elite,light,manual,age_group,9,16,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,light,world_class,light,manual,age_group,9,16,TTE | VLamax | VO2max | VMA,refusé,refusé,Le calendrier commun ne fournit pas la semaine 1 ; aucun calendrier de remplacement n’est inventé.,,,,,,,
+TrailMountain,trained,finisher,trained,manual,finisher,9,16,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,trained,age_group,trained,manual,age_group,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,trained,competitor,trained,manual,competitor,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,trained,elite,trained,manual,elite,9,16,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,trained,world_class,trained,manual,elite,9,16,TTE | VLamax | VO2max | VMA,refusé,refusé,Le calendrier commun ne fournit pas la semaine 1 ; aucun calendrier de remplacement n’est inventé.,,,,,,,
+TrailMountain,highly_trained,finisher,highly_trained,manual,finisher,9,16,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,highly_trained,age_group,highly_trained,manual,age_group,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,highly_trained,competitor,highly_trained,manual,competitor,9,16,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,highly_trained,elite,highly_trained,manual,elite,9,16,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailMountain,highly_trained,world_class,highly_trained,manual,world_class,9,16,TTE | VLamax | VO2max | VMA,refusé,refusé,Le calendrier commun ne fournit pas la semaine 1 ; aucun calendrier de remplacement n’est inventé.,,,,,,,
+Semi,auto,finisher,trained,auto-tss,finisher,6,8,VLamax,construit,construit,,38,26,5,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,auto,age_group,trained,auto-tss,age_group,6,8,VLamax,construit,construit,,38,26,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,auto,competitor,trained,auto-tss,competitor,6,8,VLamax | VO2max,construit,construit,,44,28,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,auto,elite,trained,auto-tss,elite,6,8,Durabilité | VO2max | VLamax | VMA | TTE,construit,construit,,44,30,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Semi,auto,world_class,trained,auto-tss,elite,6,8,Durabilité | VO2max | TTE | VLamax | VMA,construit,construit,,44,30,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Semi,untrained,finisher,untrained,manual,finisher,6,8,VLamax,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Semi,untrained,age_group,untrained,manual,finisher,6,8,VLamax,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Semi,untrained,competitor,untrained,manual,finisher,6,8,VLamax | VO2max,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Semi,untrained,elite,untrained,manual,finisher,6,8,Durabilité | VO2max | VLamax | VMA | TTE,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Semi,untrained,world_class,untrained,manual,finisher,6,8,Durabilité | VO2max | TTE | VLamax | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+Semi,light,finisher,light,manual,finisher,6,8,VLamax,construit,construit,,38,23,5,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,light,age_group,light,manual,age_group,6,8,VLamax,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+Semi,light,competitor,light,manual,age_group,6,8,VLamax | VO2max,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+Semi,light,elite,light,manual,age_group,6,8,Durabilité | VO2max | VLamax | VMA | TTE,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+Semi,light,world_class,light,manual,age_group,6,8,Durabilité | VO2max | TTE | VLamax | VMA,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+Semi,trained,finisher,trained,manual,finisher,6,8,VLamax,construit,construit,,38,30,5,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,trained,age_group,trained,manual,age_group,6,8,VLamax,construit,construit,,38,25,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,trained,competitor,trained,manual,competitor,6,8,VLamax | VO2max,construit,construit,,44,30,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,trained,elite,trained,manual,elite,6,8,Durabilité | VO2max | VLamax | VMA | TTE,construit,construit,,44,31,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Semi,trained,world_class,trained,manual,elite,6,8,Durabilité | VO2max | TTE | VLamax | VMA,construit,construit,,44,31,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Semi,highly_trained,finisher,highly_trained,manual,finisher,6,8,VLamax,construit,construit,,38,28,5,0,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,highly_trained,age_group,highly_trained,manual,age_group,6,8,VLamax,construit,construit,,38,27,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,highly_trained,competitor,highly_trained,manual,competitor,6,8,VLamax | VO2max,construit,construit,,44,29,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+Semi,highly_trained,elite,highly_trained,manual,elite,6,8,Durabilité | VO2max | VLamax | VMA | TTE,construit,construit,,44,31,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | limiter_without_source_match | sporting_review | source_recovery | same_day_overlap
+Semi,highly_trained,world_class,highly_trained,manual,world_class,6,8,Durabilité | VO2max | TTE | VLamax | VMA,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+TrailUltra,auto,finisher,trained,auto-tss,finisher,12,20,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,auto,age_group,trained,auto-tss,age_group,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,auto,competitor,trained,auto-tss,competitor,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,auto,elite,trained,auto-tss,elite,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,auto,world_class,trained,auto-tss,elite,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,untrained,finisher,untrained,manual,finisher,12,20,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,untrained,age_group,untrained,manual,finisher,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,untrained,competitor,untrained,manual,finisher,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,untrained,elite,untrained,manual,finisher,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,untrained,world_class,untrained,manual,finisher,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,light,finisher,light,manual,finisher,12,20,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,light,age_group,light,manual,age_group,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,light,competitor,light,manual,age_group,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,light,elite,light,manual,age_group,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,light,world_class,light,manual,age_group,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,trained,finisher,trained,manual,finisher,12,20,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,trained,age_group,trained,manual,age_group,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,trained,competitor,trained,manual,competitor,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,trained,elite,trained,manual,elite,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,trained,world_class,trained,manual,elite,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,highly_trained,finisher,highly_trained,manual,finisher,12,20,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,highly_trained,age_group,highly_trained,manual,age_group,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,highly_trained,competitor,highly_trained,manual,competitor,12,20,VLamax | TTE | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,highly_trained,elite,highly_trained,manual,elite,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailUltra,highly_trained,world_class,highly_trained,manual,world_class,12,20,VLamax | TTE | VMA | VO2max | FatMax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+10K,auto,finisher,trained,auto-tss,finisher,6,8,,refusé,refusé,Le profil partagé ne contient pas de limiteur prioritaire.,,,,,,,
+10K,auto,age_group,trained,auto-tss,age_group,6,8,Durabilité | TTE,construit,construit,,38,25,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,auto,competitor,trained,auto-tss,competitor,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,26,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,auto,elite,trained,auto-tss,elite,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,26,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,auto,world_class,trained,auto-tss,elite,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,26,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,untrained,finisher,untrained,manual,finisher,6,8,,refusé,refusé,Le profil partagé ne contient pas de limiteur prioritaire.,,,,,,,
+10K,untrained,age_group,untrained,manual,finisher,6,8,Durabilité | TTE,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+10K,untrained,competitor,untrained,manual,finisher,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+10K,untrained,elite,untrained,manual,finisher,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+10K,untrained,world_class,untrained,manual,finisher,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,S1 mercredi : aucune dose V3 compatible pour strength. Aucun créneau vide ni remplacement historique n’est produit.,,,,,,,
+10K,light,finisher,light,manual,finisher,6,8,,refusé,refusé,Le profil partagé ne contient pas de limiteur prioritaire.,,,,,,,
+10K,light,age_group,light,manual,age_group,6,8,Durabilité | TTE,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+10K,light,competitor,light,manual,age_group,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+10K,light,elite,light,manual,age_group,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+10K,light,world_class,light,manual,age_group,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,"S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié.",,,,,,,
+10K,trained,finisher,trained,manual,finisher,6,8,,refusé,refusé,Le profil partagé ne contient pas de limiteur prioritaire.,,,,,,,
+10K,trained,age_group,trained,manual,age_group,6,8,Durabilité | TTE,construit,construit,,38,26,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,trained,competitor,trained,manual,competitor,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,27,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,trained,elite,trained,manual,elite,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,27,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,trained,world_class,trained,manual,elite,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,27,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,highly_trained,finisher,highly_trained,manual,finisher,6,8,,refusé,refusé,Le profil partagé ne contient pas de limiteur prioritaire.,,,,,,,
+10K,highly_trained,age_group,highly_trained,manual,age_group,6,8,Durabilité | TTE,construit,construit,,38,27,5,5,0,0,weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,highly_trained,competitor,highly_trained,manual,competitor,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,27,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,highly_trained,elite,highly_trained,manual,elite,6,8,TTE | Durabilité | VO2max | VMA,construit,construit,,44,27,5,5,0,0,weekly_focus_unmatched | weekly_minutes | athlete_current_context | sporting_review | source_recovery | same_day_overlap
+10K,highly_trained,world_class,highly_trained,manual,world_class,6,8,TTE | Durabilité | VO2max | VMA,refusé,refusé,"S1 : aucune combinaison V3 trouvée dans le budget, les décharges, les intensités et les proportions vérifiables. Aucun dépassement n’est masqué.",,,,,,,
+StartToRun,auto,finisher,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,auto,age_group,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,auto,competitor,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,auto,elite,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,auto,world_class,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,untrained,finisher,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,untrained,age_group,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,untrained,competitor,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,untrained,elite,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,untrained,world_class,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,light,finisher,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,light,age_group,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,light,competitor,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,light,elite,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,light,world_class,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,trained,finisher,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,trained,age_group,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,trained,competitor,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,trained,elite,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,trained,world_class,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,highly_trained,finisher,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,highly_trained,age_group,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,highly_trained,competitor,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,highly_trained,elite,,,,3,12,,hors DET,hors DET,,,,,,,,
+StartToRun,highly_trained,world_class,,,,3,12,,hors DET,hors DET,,,,,,,,
+TrailShort,auto,finisher,trained,auto-tss,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,auto,age_group,trained,auto-tss,age_group,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,auto,competitor,trained,auto-tss,competitor,7,12,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,auto,elite,trained,auto-tss,elite,7,12,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,auto,world_class,trained,auto-tss,elite,7,12,TTE | VLamax | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : TTE. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,untrained,finisher,untrained,manual,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,untrained,age_group,untrained,manual,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,untrained,competitor,untrained,manual,finisher,7,12,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,untrained,elite,untrained,manual,finisher,7,12,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,untrained,world_class,untrained,manual,finisher,7,12,TTE | VLamax | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : TTE. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,light,finisher,light,manual,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,light,age_group,light,manual,age_group,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,light,competitor,light,manual,age_group,7,12,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,light,elite,light,manual,age_group,7,12,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,light,world_class,light,manual,age_group,7,12,TTE | VLamax | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : TTE. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,trained,finisher,trained,manual,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,trained,age_group,trained,manual,age_group,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,trained,competitor,trained,manual,competitor,7,12,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,trained,elite,trained,manual,elite,7,12,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,trained,world_class,trained,manual,elite,7,12,TTE | VLamax | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : TTE. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,highly_trained,finisher,highly_trained,manual,finisher,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,highly_trained,age_group,highly_trained,manual,age_group,7,12,VLamax,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,highly_trained,competitor,highly_trained,manual,competitor,7,12,VLamax | TTE,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,highly_trained,elite,highly_trained,manual,elite,7,12,VLamax | TTE | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : VLamax. Aucune autre priorité n’est substituée.,,,,,,,
+TrailShort,highly_trained,world_class,highly_trained,manual,world_class,7,12,TTE | VLamax | VO2max | VMA,refusé,refusé,Limiteur principal non raccordé : TTE. Aucune autre priorité n’est substituée.,,,,,,,

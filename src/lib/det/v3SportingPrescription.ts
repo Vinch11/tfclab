@@ -9,6 +9,7 @@ import {AMBITIONS} from '@/lib/raceAnalysis';
 import {getDoctrineDomain} from '@/lib/zones/tfclDoctrine';
 import type {ProposedV3Session,ProposedV3Workout} from './appPlanningV3Proposal';
 import type {DetLimiterKey} from '../../../experimental/det-engine/v403-limiter-semantics';
+import {verifyBikePrimary} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {verifyPrimaryRunningSession} from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 import {structuredV3ZoneDose} from '../../../experimental/det-engine/v310-structured-zone-dose';
 
@@ -68,9 +69,9 @@ export function demandingRunDaysCompatible(days:readonly number[]):boolean{
 /** Reuse the engine's existing exact 20-min threshold / 8-min VO2 / 40-min
  * aerobic prescription tests. This does not admit a source or predict a gain. */
 export function primaryPrescriptionMatch(component:ProposedV3Workout,source:V3Workout,key:DetLimiterKey):boolean{
- if(component.durationMinutes===null||component.sport!=='run')return false;
+ if(component.durationMinutes===null||!['run','bike'].includes(component.sport))return false;
  const dose=structuredV3ZoneDose({id:component.sourceId,sport:source.sport,blocks:component.blocks},{});
- return verifyPrimaryRunningSession({weekNumber:1,weekTheme:'',phase:'',dayName:'',dayIndex:0,sport:'run',title:component.title,details:'',catalogId:component.sourceId,durationMin:component.durationMinutes,isKeySession:true,isRest:false},key,{
-  dose:()=>dose,limiterKeys:()=>source.prescription.physiologicalIntent.limiterKeys,primaryDomain:()=>source.primaryDomain,
- }).verified;
+ const session={weekNumber:1,weekTheme:'',phase:'',dayName:'',dayIndex:0,sport:component.sport,title:component.title,details:'',catalogId:component.sourceId,durationMin:component.durationMinutes,isKeySession:true,isRest:false};
+ const evidence={dose:()=>dose,limiterKeys:()=>source.prescription.physiologicalIntent.limiterKeys,primaryDomain:()=>source.primaryDomain};
+ return component.sport==='bike'?verifyBikePrimary(session,key,evidence):verifyPrimaryRunningSession(session,key,evidence).verified;
 }
