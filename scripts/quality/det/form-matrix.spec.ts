@@ -168,6 +168,29 @@ if (selected.some(s => s.objective === 'IM')) {
 }
 
 if (selected.some(s => s.objective === '703')) {
+  it('changes work blocks when only secondary coach priorities swap', async () => {
+    const scenario=scenarios.find(s=>s.objective==='703')!;
+    const automatic=inputFor(scenario,'trained','elite').config.identifiedLimitersRaw!;
+    expect(automatic.length).toBeGreaterThanOrEqual(3);
+    const reordered=[automatic[0],automatic[2],automatic[1],...automatic.slice(3)];
+    const generate=async (order:string[])=>{
+      const input=inputFor(scenario,'trained','elite',order);
+      const plan=await generateDetPlanFromPageInput(input);
+      const p=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+      expect(p.limiterOrder).toEqual(order);
+      for(const [i,label] of order.entries())expect(p.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.startsWith('Rang '+(i+1)+' · '+label+' ·'))).toBe(true);
+      return {order:p.limiterOrder,weeks:p.weeks.map((w,i)=>{
+        const checked=p.checks.filter(c=>c.code==='ranked_limiter_work'&&c.week===w.week);
+        for(const check of checked)expect(plan.weeks[i].coachNotes).toContain(check.message);
+        return w.days.flatMap(d=>d.sessions.flatMap(s=>s.components.map(c=>c.blocks)));
+      })};
+    };
+    const original=await generate(automatic);
+    const changed=await generate(reordered);
+    const changedWeeks=changed.weeks.flatMap((w,i)=>JSON.stringify(w)!==JSON.stringify(original.weeks[i])?[i+1]:[]);
+    expect(changedWeeks.length).toBeGreaterThan(0);
+    process.stdout.write('RANKED_COACH_BLOCKS '+JSON.stringify({original:original.order,changed:changed.order,changedWeeks})+'\n');
+  },120000);
   it('changes prescribed sessions when the coach promotes another diagnosed 70.3 limiter', async () => {
     const half = scenarios.find(s => s.objective === '703')!;
     const initial = inputFor(half, 'trained', 'elite');

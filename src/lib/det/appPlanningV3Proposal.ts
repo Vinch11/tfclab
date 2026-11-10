@@ -1,3 +1,4 @@
+import {resolveProhibitionKeys} from '@/lib/limiterSessionPatterns';
 import {appProfileDetStructure} from './appProfileDetStructure';
 import {trailReturnSources} from '../../../scripts/library-v3/trailReturnSources';
 import {introductoryStrengthSources,completeStrengthSources,trainedStrengthSources,timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
@@ -11,7 +12,7 @@ import { findSource,FATIGUE_LABELS,RECENT_LOAD_LABELS } from './coachDetContext'
 import { coachFamilyFor,clockFor } from '../../../experimental/det-engine/v401-coach-inputs-core';
 import { primaryRunningInputProblems } from '../../../experimental/det-engine/v408-primary-limiter-evidence';
 import { resolveDetLimiter } from '../../../experimental/det-engine/v403-limiter-semantics';
-import { limiterSourceAffinity } from '../../../experimental/det-engine/v411-limiter-source-affinity';
+import {rankedSourceIntent,hasRankedWork} from './rankedLimiterPrescription';
 import { previewV3SourceDose } from '../../../experimental/det-engine/v31-v3-catalogue';
 import { fingerprintV3SportingSource } from '../../../scripts/library-v3/sportingQualification800';
 import { evaluateV3Workout, type V3Block, type V3Workout } from '../../../scripts/library-v3/catalogueRuntime';
@@ -185,9 +186,13 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     return primaryMatchCache.get(c)!;
   }
   const matchesPrimary=(session:ProposedV3Session)=>!!(road||trail)&&(session.role==='long'||session.role==='key')&&session.components.some(c=>c.sport==='run'&&componentMatchesPrimary(c));
-  const matches=(s:V3Workout,raw:string)=>{
-    const r=resolveDetLimiter(raw);return r.status==='supported'&&limiterSourceAffinity({primaryDomain:s.primaryDomain,limiterKeys:s.prescription.physiologicalIntent.limiterKeys},r.key);
-  };
+  const exposure = new Map<string,number>();
+  const weights = new Map(priorities.map((p,i)=>[p.raw,1/(i+1)]));
+  const priorityScore = (labels:readonly string[]) => labels.reduce((score,label)=>
+    score+(weights.get(label)??0)/(1+(exposure.get(label)??0)),0);
+  const sessionScore = (s:ProposedV3Session) => priorityScore([...new Set(s.components.flatMap(c=>c.limiterMatches))]);
+  const vlamaxReduction = config.physiologicalTrace?.diagnostic.limiters.some(g=>g.metric==='VLamax' &&
+    typeof g.value==='number' && typeof g.target==='number' && g.value>g.target);
   const cache=new Map<string,ProposedV3Workout[]>(),usage=new Map<string,number>();
   const allSlots:ScheduledSport[]=study.weeks.flatMap(week=>week.days.flatMap((day,dayIndex)=>day.slots.map(slot=>({week:week.week,dayIndex,sport:slot.sport,isRaceEvent:slot.role==='race'}))));
   const clock=options.clock?clockFor(options.clock,config.planStartDate!):undefined;
@@ -220,7 +225,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       if(out.some(c=>JSON.stringify(c.blocks)===JSON.stringify(configured.blocks)))continue;
       out.push({sourceId:source.id,sourceFingerprint:fingerprintV3SportingSource(source),title:source.title,sport:source.sport,
         blocks:configured.blocks,durationMinutes:minutes,distanceM:duration.distanceM,
-        targets:trail&&configured.sport==='run'?{status:'unresolved',targets:[],missing:['run_terrain_effort_review.'+source.id],candidateOnly:true,notScientificValidation:true} as const:resolveLibrary920Targets(configured,anchors),limiterMatches:priorities.filter(p=>matches(source,p.raw)).map(p=>p.raw),
+        targets:trail&&configured.sport==='run'?{status:'unresolved',targets:[],missing:['run_terrain_effort_review.'+source.id],candidateOnly:true,notScientificValidation:true} as const:resolveLibrary920Targets(configured,anchors),limiterMatches:priorities.filter(p=>hasRankedWork(configured.blocks,source.primaryDomain) && rankedSourceIntent(source,p.raw) && (p.resolution.key!=='vlamax_reduction'||vlamaxReduction)).map(p=>p.raw),
         sourceDomain:source.primaryDomain,zoneMinutes:dose?{low:dose.low,mid:dose.mid,high:dose.high,unknown:dose.unknown}:null,
         review:{minimumRecoveryHours:source.minimumRecoveryHours,prerequisites:[...source.prerequisites],contraindications:[...source.contraindications],stopRule:source.stopRule,minimumLevel:source.minimumLevel}});
     }catch{/* A bounded source/dose that cannot be configured is ineligible. */}
@@ -408,6 +413,8 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       (road&&requiresSpecific&&index===0?Number(specificMinutes(b)>0)-Number(specificMinutes(a)>0):0)||
       (road&&requiresSpecific&&index===0&&specificMinutes(a)>0&&specificMinutes(b)>0?Math.abs(specificMinutes(a)-specificTarget)-Math.abs(specificMinutes(b)-specificTarget):0)||
       ((road||trail)&&requiresQuality&&!requiresSpecific&&index===0?Number(matchesPrimary(b))-Number(matchesPrimary(a)):0)||
+      (!expandedCatalogue && week.weekType==='load' && priorities.length>1 && ['long','key'].includes(slots[item.index].slot.role) ?
+        sessionScore(b)-sessionScore(a) : 0)||
       (requiresQuality&&index===0?Number(quality(b))-Number(quality(a))||
         (trajectory?Number(b.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))-Number(a.components.some(c=>c.limiterMatches.includes(week.limiterFocus.focus??study.limiterOrder[0])))||distance(a,item.index)-distance(b,item.index):0):
         distance(a,item.index)-distance(b,item.index)||programmeDistance(a)-programmeDistance(b)||
@@ -539,7 +546,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
         .filter(c=>!trackPrimary(session)||!retainedDose(original)||retainedDose(c))
-        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(week.weekType==='load'&&priorities.length>1?priorityScore(b.limiterMatches)-priorityScore(a.limiterMatches):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){occupied.delete(original.sourceId);occupied.add(replacement.sourceId);session.components=[replacement];}
     }
@@ -563,12 +570,22 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         proposedRecoveryStatus({...session,components:[c]},
           {week:week.week,dayIndex:slots[order[selectionIndex].index].dayIndex,sport:session.sport},allSlots,start)!=='blocked')
         .filter(c=>!trackPrimary(session)||!retainedDose(original)||retainedDose(c))
-        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
+        .sort((a,b)=>(trackPrimary(session)?comparePrimary(a,b):0)||(week.weekType==='load'&&priorities.length>1?priorityScore(b.limiterMatches)-priorityScore(a.limiterMatches):0)||(usage.get(a.sourceId)??0)-(usage.get(b.sourceId)??0)||a.sourceId.localeCompare(b.sourceId));
       const replacement=alternatives[0];
       if(replacement){importOccupied.delete(original.sourceId);importOccupied.add(replacement.sourceId);session.components=[replacement];}
     }
     // Restore the exact original calendar positions.
     const calendarSelected=selected.map((session,index)=>({session,index:order[index].index})).sort((a,b)=>a.index-b.index).map(row=>row.session);
+    if(week.weekType==='load'){
+      const work=calendarSelected.flatMap(s=>s.components);
+      for(const [index,p] of priorities.entries()){
+        const sources=work.filter(c=>c.limiterMatches.includes(p.raw));
+        if(!sources.length)continue;
+        exposure.set(p.raw,(exposure.get(p.raw)??0)+1);
+        result.checks.push({code:'ranked_limiter_work',week:week.week,status:'passed',
+          message:`Rang ${index+1} · ${p.raw} · ${sources.map(c=>c.title+' ('+c.sourceId+')').join(', ')}`});
+      }
+    }
     const knownMinutes=selected.reduce((n,s)=>n+s.knownMinutes,0);
     const durationMinutes=selected.every(s=>s.durationMinutes!==null)?knownMinutes:null;
     const days=week.days.map((day,index)=>({day:day.day,rest:!day.slots.length,sessions:calendarSelected.filter((_,i)=>slots[i].dayIndex===index)}));
@@ -623,7 +640,17 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     result.checks.push({code:'athlete_current_context',status:'pending',message:`Contexte actuel : fatigue ${FATIGUE_LABELS[options.currentFatigue??'unknown']}, charge qualitative ${RECENT_LOAD_LABELS[options.recentLoad??'unknown']}. Prérequis, contre-indications et tolérance de la dose à revoir pour cet athlète ; aucun accord déduit d’une donnée absente.`});
   }
   if(missingTargets.length)result.checks.push({code:'individual_targets',status:'pending',message:'Repères encore nécessaires : '+missingTargets.join(', ')});
-  for(const priority of priorities)if(!selected.some(s=>s.limiterMatches.includes(priority.raw)))result.checks.push({code:'limiter_without_source_match',status:'pending',message:`${priority.raw} : aucune source correspondante retenue ; sa couverture n’est pas validée.`});
+  for(const [index,p] of priorities.entries())if(!exposure.has(p.raw)){
+    const reductionRank=priorities.findIndex(other=>other.resolution.key==='vlamax_reduction');
+    if(p.resolution.key==='vo2max' && reductionRank>=0 && reductionRank<index && vlamaxReduction &&
+      resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
+      result.checks.push({code:'ranked_limiter_deferred',status:'pending',message:
+        `Rang ${index+1} · ${p.raw} différé. La priorité VLamax de rang ${reductionRank+1} restreint les blocs VO₂max lourds. Aucun bloc compatible retenu. À réévaluer avec le coach.`});
+      continue;
+    }
+    result.checks.push({code:'limiter_without_source_match',status:options.completeSessions?'blocked':'pending',
+      message:`Rang ${index+1} · ${p.raw} : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.`});
+  }
   result.checks.push({code:'sporting_review',status:'pending',message:'Revue des doses, proportions, progression, récupération, disponibilité et situation actuelle de l’athlète nécessaire avant utilisation. Aucune approbation créée.'});
   result.checks.push(...auditV3ProposalRecovery(result,config.planStartDate!,options.clock),...auditV3ProposalSportMinutes(result,config.constraints),...auditV3ProposalDoseIntegrity(result),...auditV3SportingPrescription(result,config));
   if(options.invalidClockSports?.length)result.checks.push({code:'invalid_entered_clock',status:'blocked',message:'Horaires invalides à corriger : '+options.invalidClockSports.join(', ')});
