@@ -15,4 +15,16 @@ function copyOnWrite(base:Storage):Storage {
 }
 for(const name of ['localStorage','sessionStorage'] as const)
   Object.defineProperty(window,name,{value:copyOnWrite(window[name]),configurable:false});
-void loadHostConfig().then(()=>import('./mount')).catch(()=>{const node=document.getElementById('det-root');if(node)node.textContent='Le parcours DET ne peut pas démarrer. Rechargez cette page depuis TFCLab.';});
+async function start() {
+  let stage = 'configuration publique';
+  try {
+    await loadHostConfig();
+    stage = 'ouverture du formulaire';
+    await import('./mount');
+  } catch (error) {
+    console.error('Initialisation du formulaire DET', stage, error instanceof Error ? error.name + ' ' + error.message : 'Erreur');
+    const node = document.getElementById('det-root');
+    if (node) node.textContent = 'Le parcours DET ne peut pas démarrer (' + stage + '). Rechargez cette page depuis TFCLab.';
+  }
+}
+void start();
