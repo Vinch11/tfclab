@@ -1247,7 +1247,8 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
     return (prio[a.priority] || 3) - (prio[b.priority] || 3);
   });
   const dated = sorted.filter((g: any) => g.raceDate);
-  const eligibleDated = dated.filter((g) => canBeIndependentPeak(g.objective));
+  const peakDated = dated.filter((g) => g.priority !== "B" && g.priority !== "C");
+  const eligibleDated = peakDated.filter((g) => canBeIndependentPeak(g.objective));
   const lastEligibleDated = eligibleDated.length > 0 ? eligibleDated[eligibleDated.length - 1] : null;
 
   return sorted.map((goal: any) => {
@@ -1256,9 +1257,10 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
 
     const idx = dated.indexOf(goal);
     const isLast = idx === dated.length - 1;
+    if (goal.priority === "B" || goal.priority === "C") return { goal, isFullPeak: false, isLast, taperWeeks: 1 };
 
     if (eligibleDated.length === 0) {
-      if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+      if (goal === peakDated[peakDated.length - 1]) return { goal, isFullPeak: true, isLast, taperWeeks };
     } else if (goal === lastEligibleDated) {
       return { goal, isFullPeak: true, isLast, taperWeeks };
     }
@@ -1267,6 +1269,7 @@ export function classifyMultiObjectiveGoals(raceGoals: any[]): ClassifiedRaceGoa
       return { goal, isFullPeak: false, isLast, taperWeeks };
     }
     const next = dated[idx + 1];
+    if (!next?.raceDate) return { goal, isFullPeak: false, isLast, taperWeeks };
     const d1 = new Date(goal.raceDate).getTime();
     const d2 = new Date(next.raceDate).getTime();
     const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));

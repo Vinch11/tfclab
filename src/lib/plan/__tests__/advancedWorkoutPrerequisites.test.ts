@@ -31,16 +31,17 @@ describe("prérequis déterministes — journée double seuil norvégienne", () 
       trainingLevel: "highly_trained",
       trainingLevelSource: "manual",
       weeklyHours: 8,
+      approvedAdvancedSessionIds: [ID],
     })).toBe(false);
   });
 
-  it("permet une décision explicite du coach limitée à cette fiche", () => {
+  it("une décision explicite ne contourne pas le niveau et le volume", () => {
     expect(isLevelPrerequisiteIncompatible(ID, {
       trainingLevel: "light",
       trainingLevelSource: "manual",
       weeklyHours: 4,
       approvedAdvancedSessionIds: [ID],
-    })).toBe(false);
+    })).toBe(true);
     expect(isLevelPrerequisiteIncompatible("NORWEGIAN_WEEK_STRUCTURE_RUN", {
       trainingLevel: "light",
       trainingLevelSource: "manual",

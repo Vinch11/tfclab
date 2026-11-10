@@ -23,7 +23,8 @@ import { computeMultiObjectiveSegments } from "../../../../supabase/functions/ai
  */
 describe("computeObjectiveCycleSegments — décalage d'une semaine sur l'objectif final", () => {
   const raceGoals = [
-    { objective: "Marathon", raceDate: "2026-09-27", priority: "B" as const },
+    // Two full cycles require two A objectives; B remains a tune-up by coach policy.
+    { objective: "Marathon", raceDate: "2026-09-27", priority: "A" as const },
     { objective: "IM", raceDate: "2027-02-01", priority: "A" as const },
   ];
   // planStartDate choisi pour que l'Ironman tombe exactement à totalWeeks+1

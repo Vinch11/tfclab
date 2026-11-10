@@ -1,4 +1,5 @@
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
+import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
 import { PlanPrevalidationPanel } from "@/components/PlanPrevalidationPanel";
@@ -1618,7 +1619,7 @@ export default function AITrainingPlanPage() {
         return n;
       })(),
       maxSessionsPerDay: parseInt(maxSessionsPerDay) || undefined,
-      strengthSessionsPerWeek: parseInt(strengthSessionsPerWeek) || undefined,
+      strengthSessionsPerWeek: (() => { const n = parseInt(strengthSessionsPerWeek, 10); return Number.isFinite(n) && n >= 0 ? n : undefined; })(),
       deloadCadenceWeeks: deloadCadence === "auto" ? undefined : (parseInt(deloadCadence, 10) as 3 | 4),
       // ⚠️ NE PAS résoudre `amb` (clé canonique, ex. "world_class") vers son label
       // AMBITION_OPTIONS ici : ce label inclut l'icône emoji ("👑 Elite"), et
@@ -1644,8 +1645,8 @@ export default function AITrainingPlanPage() {
         const hasAny = Number.isFinite(chronic) || Number.isFinite(recent) || Number.isFinite(weeks);
         if (!hasAny) return undefined;
         return {
-          chronicWeeklyHours: Number.isFinite(chronic) && chronic > 0 ? chronic : undefined,
-          recentWeeklyHours: Number.isFinite(recent) && recent > 0 ? recent : undefined,
+          chronicWeeklyHours: Number.isFinite(chronic) && chronic >= 0 ? chronic : undefined,
+          recentWeeklyHours: Number.isFinite(recent) && recent >= 0 ? recent : undefined,
           recentWeeksCount: Number.isFinite(weeks) && weeks > 0 ? weeks : undefined,
         };
       })(),
@@ -1665,7 +1666,7 @@ export default function AITrainingPlanPage() {
     }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, currentAthlete?.id]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -1700,7 +1701,8 @@ export default function AITrainingPlanPage() {
     athleteIdOverride?: string,
   ): PlanConfig => {
     const base = buildConfigFromDiag(diagnostic, athleteAmbition, objectiveOverride, athleteIdOverride);
-    return lastCoachOverridesPayload ? buildCoachOverrides(lastCoachOverridesPayload, base) : base;
+    return lastCoachOverridesPayload ? buildCoachOverrides({ ...lastCoachOverridesPayload,
+      sessionsPerWeek: lastCoachOverridesPayload.durationMode ? lastCoachOverridesPayload.sessionsPerWeek : base.sessionsPerWeek ?? null }, base) : base;
   }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
 
   useEffect(()=>{
@@ -1991,7 +1993,7 @@ export default function AITrainingPlanPage() {
 
 
     // ─── Durée pilotée par le coach form (mode date OU durée libre) ───
-    config.weeksAvailable = payload.weeksAvailable;
+    config.weeksAvailable = config.weeksAvailable ?? payload.weeksAvailable;
     if (payload.durationMode === "free") {
       // Pas de course datée : on retire raceDate/raceGoals pour que le moteur
       // périodise base→build→peak sur N semaines sans taper de course.
@@ -2152,11 +2154,14 @@ export default function AITrainingPlanPage() {
         continue;
       }
 
-      const config = buildConfigFromDiag(ctx.diagnostic, athleteAmb, undefined, athleteId);
-      // Override objective with athlete's own
-      config.objective = OBJECTIVE_OPTIONS.find(o => o.value === athleteObj)?.label || athleteObj;
+      const base = buildConfigFromDiag(ctx.diagnostic, athleteAmb, athleteObj, athleteId);
+      const policy = readCommittedLimiterPolicy(localStorage, athleteId, athleteObj);
+      const config = policy ? applyCoachProfileOverrides({ ...policy, sessionsPerWeek: base.sessionsPerWeek ?? null }, base, ctx.diagnostic) : base;
 
       try {
+        const preview = await prevalidateTrainingPlan(ctx.data, config);
+        if (preview.status === "blocked") { toast.error(`${athlete.nom} : configuration incompatible, aucune génération lancée.`); continue; }
+        const prepared = prepareGenerationContracts(ctx.data, config);
         const releaseHeaders = await currentPlanReleaseHeaders(PLAN_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
         const resp = await fetch(PLAN_URL, {
           method: "POST",
@@ -2165,7 +2170,12 @@ export default function AITrainingPlanPage() {
             ...releaseHeaders,
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ athleteData: ctx.data, planConfig: config }),
+          body: JSON.stringify({ athleteData: ctx.data, planConfig: { ...config,
+            _weeklyQuotas: prepared.weeklyQuotas, _weeklyQuotasPromptByChunk: prepared.quotasByChunkText },
+            phaseCatalogs: prepared.phaseCatalogs, phaseRepairCatalogs: prepared.phaseRepairCatalogs,
+            chunkCatalogs: prepared.chunkCatalogs, chunkRepairCatalogs: prepared.chunkRepairCatalogs,
+            chunkRegenCatalogs: prepared.chunkRegenCatalogs, chunkRegenRepairCatalogs: prepared.chunkRegenRepairCatalogs,
+            chunkRegenWeeks: prepared.chunkRegenWeeks, catalogDurationStats: prepared.catalogDurationStats }),
         });
 
         if (!resp.ok || !resp.body) {
@@ -2778,6 +2788,8 @@ export default function AITrainingPlanPage() {
     const regenQuotaEntryRaw = computeWeekQuotaEntry(fullPlanConfig.objective || "", regenAmbition, regenHoursAvail, regenWeekType, isLCWPlan, {
       sessionsPerWeek: regenTargetSpw,
       maxSessionsPerDay: fullPlanConfig.maxSessionsPerDay,
+      strengthSessionsPerWeek: fullPlanConfig.strengthSessionsPerWeek,
+      maxDoubleDaysPerWeek: fullPlanConfig.maxDoubleDaysPerWeek,
       bannedSports: regenBannedSports,
     });
     // Correction ciblée "P0 progression individualisée des charges" : même
@@ -4727,6 +4739,7 @@ export default function AITrainingPlanPage() {
         objectiveOptions={OBJECTIVE_OPTIONS}
         onObjectiveChange={setObjective}
         prefill={coachPrefill}
+        planStartDate={format(planStartDate, "yyyy-MM-dd")}
         onSubmit={handleCoachFormSave}
         onGenerate={handleCoachFormGenerate}
         onPrevalidate={payload=>handleCoachFormGenerate(payload,undefined,true)}

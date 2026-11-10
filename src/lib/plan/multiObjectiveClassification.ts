@@ -222,7 +222,8 @@ export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoa
     return (prio[a.priority || "C"] || 3) - (prio[b.priority || "C"] || 3);
   });
   const dated = sorted.filter((g) => g.raceDate);
-  const eligibleDated = dated.filter((g) => canBeIndependentPeak(g.objective));
+  const peakDated = dated.filter(g => g.priority !== "B" && g.priority !== "C");
+  const eligibleDated = peakDated.filter((g) => canBeIndependentPeak(g.objective));
   const lastEligibleDated = eligibleDated.length > 0 ? eligibleDated[eligibleDated.length - 1] : null;
 
   return sorted.map((goal) => {
@@ -231,11 +232,12 @@ export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoa
 
     const idx = dated.indexOf(goal);
     const isLast = idx === dated.length - 1;
+    if (goal.priority === "B" || goal.priority === "C") return { goal, isFullPeak: false, isLast, taperWeeks: 1 };
 
     // Repli : aucun objectif daté éligible dans tout le plan — le dernier
     // objectif daté reste le pic complet (comportement historique).
     if (eligibleDated.length === 0) {
-      if (isLast) return { goal, isFullPeak: true, isLast: true, taperWeeks };
+      if (goal === peakDated[peakDated.length - 1]) return { goal, isFullPeak: true, isLast, taperWeeks };
     } else if (goal === lastEligibleDated) {
       // Le dernier objectif daté ÉLIGIBLE est le pic complet terminal,
       // qu'il soit ou non littéralement le dernier objectif daté du plan.
@@ -246,8 +248,9 @@ export function classifyMultiObjectiveGoalsClient(raceGoals: ClassifiableRaceGoa
       return { goal, isFullPeak: false, isLast, taperWeeks };
     }
     const next = dated[idx + 1];
-    const d1 = new Date(goal.raceDate!).getTime();
-    const d2 = new Date(next.raceDate!).getTime();
+    if (!next?.raceDate) return { goal, isFullPeak: false, isLast, taperWeeks };
+    const d1 = new Date(goal.raceDate).getTime();
+    const d2 = new Date(next.raceDate).getTime();
     const gapWeeks = Math.round((d2 - d1) / (7 * 24 * 3600 * 1000));
     const isFullPeak = Number.isFinite(gapWeeks) && gapWeeks >= minGapWeeksForFullPeak(goal.objective);
     return { goal, isFullPeak, isLast, taperWeeks };

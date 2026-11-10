@@ -140,6 +140,12 @@ export function validateWeeklyQuotas(
         });
       }
     }
+    const doubleDays = [...dayCounts.values()].filter(n => n >= 2).length;
+    if (q.maxDoubleDaysPerWeek !== undefined && doubleDays > q.maxDoubleDaysPerWeek) out.push({
+      severity: "critical", code: "quota_floor_violation", weekNumber: w.weekNumber,
+      reason: `${doubleDays} journées doubles > maximum ${q.maxDoubleDaysPerWeek}`,
+      expected: `≤${q.maxDoubleDaysPerWeek} journées doubles`, observed: `${doubleDays}`,
+    });
 
     // ─── RANGE DRIFT (warnings) ────────────────────────────────────────────
     // PHASE 2A.4 — brick compte comme sollicitation vélo. La fourchette bike

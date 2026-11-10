@@ -45,6 +45,7 @@ export interface RepairWorkoutMetadata {
 }
 
 export interface RepairCompatibilityContext {
+  demandingContext?: import("./demandingSessionPolicy.ts").DemandingContext;
   objective?: string | null;
   phase?: string | null;
   weekType?: string | null;

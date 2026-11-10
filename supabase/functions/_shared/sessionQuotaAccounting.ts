@@ -27,6 +27,7 @@ export function hasWeeklyCalendarCapacity(quota: {
  swim:{min:number;max:number};bike:{min:number;max:number};run:{min:number;max:number};
  brick:{min:number;max:number};strength:{min:number;max:number};
  totalSessions:{min:number;max:number};maxSessionsPerDay:number;minFullRestDays:number;
+ maxDoubleDaysPerWeek?:number;
 }, availableDays:number):boolean {
  const days=Math.max(0,Math.min(availableDays,7-quota.minFullRestDays));
  if(quota.swim.min>days || quota.strength.min>days)return false;
@@ -36,8 +37,10 @@ export function hasWeeklyCalendarCapacity(quota: {
   const brickDayCapacity=Math.min(quota.maxSessionsPerDay,quota.swim.max>0?2:1);
   const capacity=days*quota.maxSessionsPerDay-bricks*(quota.maxSessionsPerDay-brickDayCapacity)
     -quota.strength.min*Math.max(0,quota.maxSessionsPerDay-2);
+  const agendaCapacity = quota.maxDoubleDaysPerWeek === undefined ? capacity : Math.min(capacity,
+    days + Math.min(days, quota.maxDoubleDaysPerWeek) * Math.max(0, quota.maxSessionsPerDay - 1));
   const minimum=quota.swim.min+effective.bike.min+quota.run.min+bricks+quota.strength.min;
-  if(Math.max(minimum,effective.totalSessions.min)<=Math.min(capacity,effective.totalSessions.max))return true;
+  if(Math.max(minimum,effective.totalSessions.min)<=Math.min(agendaCapacity,effective.totalSessions.max))return true;
  }
  return false;
 }

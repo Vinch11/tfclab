@@ -96,7 +96,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
       const isIntermediateRunCycle = catalogObjective !== (planConfig.objective || "")
         && (getCatalogSportFilter(planConfig.objective || "") ?? []).some(s => s === "cyclisme" || s === "bike" || s === "natation" || s === "swim");
       const maintenanceSports: TrainingSport[] | undefined = isIntermediateRunCycle
-        ? (["cyclisme", "natation"] as TrainingSport[])
+        ? ([...(planConfig.crossTrainingMaintenance?.velo ? ["cyclisme" as TrainingSport] : []), ...(planConfig.crossTrainingMaintenance?.natation ? ["natation" as TrainingSport] : [])])
         : undefined;
 
       // Compute catalog duration stats from all phases combined
@@ -427,6 +427,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
           maxSessionsPerDay: planConfig.maxSessionsPerDay,
+          maxDoubleDaysPerWeek: planConfig.maxDoubleDaysPerWeek,
+          strengthSessionsPerWeek: planConfig.strengthSessionsPerWeek,
+          maintenance: isIntermediateRunCycle ? planConfig.crossTrainingMaintenance ?? {} : undefined,
           bannedSports: bannedSportsForQuota,
         });
         if (entry) {
@@ -442,6 +445,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
             availableSports,
+            maintenance: isIntermediateRunCycle,
             raceEvents: declaredRaceSlotsForWeek(planConfig,w),
             dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
@@ -478,7 +482,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         if (scope.length === 0) { quotasByChunkText.push(""); continue; }
         const quotaBlock = buildQuotaPromptBlock(scope, weeklyQuotas);
         const layoutMap: Record<number, WeeklySlotLayout> = {};
-        for (const w of scope) if (weeklyQuotas[w].layout) layoutMap[w] = weeklyQuotas[w].layout!;
+        for (const w of scope) { const layout = weeklyQuotas[w].layout; if (layout) layoutMap[w] = layout; }
         const layoutBlock = Object.keys(layoutMap).length > 0
           ? buildLayoutPromptBlock(scope, layoutMap)
           : "";

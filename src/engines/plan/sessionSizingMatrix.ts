@@ -20,6 +20,7 @@ export interface WeeklyQuota {
   brick: QuotaRange; strength: QuotaRange;
   totalSessions: QuotaRange;
   maxSessionsPerDay: number;
+  maxDoubleDaysPerWeek?: number;
   minFullRestDays: number;
   source: { tier: EvidenceTier; ref: string };
 }
@@ -28,7 +29,7 @@ export interface SizingFloors {
   minSwimPerWeek?: number;        // triathlon uniquement
   longRideWeekly?: boolean;       // 1 SL vélo/sem hors taper
   longRunWeekly?: boolean;        // 1 SL CAP/sem hors taper
-  minStrengthPerWeek: number;     // jamais 0 (Petersen, effet protecteur)
+  minStrengthPerWeek: number;     // recommendation unless explicitly overridden by coach
   /** Durée plancher SL vélo (min). Injectée par format. Recovery ×0.7. */
   slLongRideMin?: number;
   /** Durée plancher SL CAP (min). Injectée par format. Recovery ×0.7. */
@@ -937,6 +938,9 @@ export function computeWeekQuotaEntry(
   opts: {
     sessionsPerWeek?: number | null;
     maxSessionsPerDay?: number;
+    maxDoubleDaysPerWeek?: number;
+    strengthSessionsPerWeek?: number;
+    maintenance?: { velo?: boolean; natation?: boolean };
     bannedSports?: Array<"swim" | "bike" | "run" | "strength" | "any">;
   } = {},
 ): {
@@ -951,12 +955,34 @@ export function computeWeekQuotaEntry(
   let adj = opts.sessionsPerWeek && opts.sessionsPerWeek > 0
     ? applySessionsPerWeekTarget({ quota: q0.quota, floors: q0.floors }, opts.sessionsPerWeek, weekType)
     : { quota: q0.quota, floors: q0.floors };
+  if (Number.isInteger(opts.strengthSessionsPerWeek) && opts.strengthSessionsPerWeek !== undefined && opts.strengthSessionsPerWeek >= 0) {
+    const strength = opts.strengthSessionsPerWeek;
+    adj = { floors: { ...adj.floors, minStrengthPerWeek: strength }, quota: {
+      ...adj.quota, strength: { min: strength, max: strength },
+      totalSessions: { min: adj.quota.totalSessions.min - adj.quota.strength.min + strength,
+        max: adj.quota.totalSessions.max - adj.quota.strength.max + strength },
+    } };
+  }
+  if (opts.maintenance) {
+    // Maintenance is additional to the run allocation: never confiscate key run sessions.
+    const bike = opts.maintenance.velo ? 2 : 0;
+    const swim = opts.maintenance.natation ? 2 : 0;
+    const quota = adj.quota;
+    adj = { floors: { ...adj.floors, minSwimPerWeek: swim, longRideWeekly: false }, quota: {
+      ...quota, bike: { min: bike, max: bike }, swim: { min: swim, max: swim }, brick: { min: 0, max: 0 },
+      totalSessions: { min: quota.totalSessions.min - quota.bike.min - quota.swim.min - quota.brick.min + bike + swim,
+        max: quota.totalSessions.max - quota.bike.max - quota.swim.max - quota.brick.max + bike + swim },
+    } };
+  }
   if (opts.bannedSports && opts.bannedSports.length > 0) {
     const red = applyBannedSportsRedistribution(adj, opts.bannedSports);
     adj = { quota: red.quota, floors: red.floors };
   }
-  if (Number.isInteger(opts.maxSessionsPerDay) && opts.maxSessionsPerDay! > 0) {
-    adj = { ...adj, quota: { ...adj.quota, maxSessionsPerDay: Math.min(adj.quota.maxSessionsPerDay, opts.maxSessionsPerDay!) } };
+  if (Number.isInteger(opts.maxSessionsPerDay) && opts.maxSessionsPerDay !== undefined && opts.maxSessionsPerDay > 0) {
+    adj = { ...adj, quota: { ...adj.quota, maxSessionsPerDay: Math.min(adj.quota.maxSessionsPerDay, opts.maxSessionsPerDay) } };
+  }
+  if (Number.isInteger(opts.maxDoubleDaysPerWeek) && opts.maxDoubleDaysPerWeek !== undefined && opts.maxDoubleDaysPerWeek >= 0) {
+    adj = { ...adj, quota: { ...adj.quota, maxDoubleDaysPerWeek: opts.maxDoubleDaysPerWeek } };
   }
   return { quota: adj.quota, floors: adj.floors, weekType, downgraded: q0.downgraded, downgradeReason: q0.downgradeReason };
 }

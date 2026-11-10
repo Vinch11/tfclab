@@ -75,14 +75,14 @@ function buildSpecializedSections(profile?: SystemPromptProfile): string {
   if (age !== null && age >= 50) {
     blocks.push(`## 🧓 PROFIL MASTER ${age}+ ANS — RÈGLES RENFORCÉES (Tanaka, Seals, Lazarus)
 - **FCmax**: diminue ~1 bpm/an après 30 ans (Tanaka: 208 − 0.7×âge). NE PAS utiliser 220−âge.
-- **Récupération**: +24-48h vs <40 ans après séance VO2max/seuil. Charge 2:1 STRICTE (jamais 3:1).
+- **Récupération**: +24-48h vs <40 ans après séance VO2max/seuil. Suivre les semaines de décharge du contrat hebdomadaire ; à défaut, charge 2:1.
 - **Intensité**: espacement ≥72h entre 2 séances d'intensité (VO2max/seuil), jamais doublées <72h.
 - **Nombre de séances de qualité/sem** : voir "STRUCTURE AMBITION (non négociable)" plus bas — piloté par le niveau d'ambition, JAMAIS par l'âge seul. Les règles d'espacement/charge/récupération de ce bloc s'appliquent à ce nombre, quel qu'il soit.
 - **Volume**: progression plafonnée à +3%/sem (vs +10% jeune). ACWR cible ≤1.1 (marge
   de sécurité TFCL plus stricte que le seuil général ≤1.3 utilisé ailleurs pour ce
   public à risque accru — pas un second chiffre Gabbett distinct ; cf. note ACWR
   dans la section rampe de volume/D+).
-- **Force**: 3x/sem OBLIGATOIRE (sarcopénie). Pliométrie LÉGÈRE uniquement (sauts <30cm, contacts <100/sem).
+- **Force**: respecter le nombre choisi par le coach et le contrat hebdomadaire ; ne pas ajouter de séances. Pliométrie LÉGÈRE uniquement (sauts <30cm, contacts <100/sem).
 - **Sommeil**: 8-9h non négociable. Sieste 20min si disponible.
 - **Hormones**: si masculin, surveiller fatigue chronique = signal testostérone basse → décharge.
 - **Mobilité**: 10-15min/jour (hanches, thoracique). Préventif tendinopathies (Achilles, patellaire).

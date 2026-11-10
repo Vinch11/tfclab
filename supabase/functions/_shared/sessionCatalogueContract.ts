@@ -2,8 +2,9 @@ import { evaluateRepairSportingEquivalence, isCompleteRepairWorkoutMetadata, nor
 import { classifyIntentEvidence } from "./intentEvidence.ts";
 import { catalogueWeeklyUsageCapacity } from "./catalogueWeeklyFrequency.ts";
 import { isRaceDaySession } from "./raceDayIdentity.ts";
+import { demandingSessionReasons } from "./demandingSessionPolicy.ts";
 export interface ContractSession { title?: string; details?: string; sport?: string; catalogId?: string | null; custom?: boolean; durationMin?: number; zones?: string[]; variantKey?: string; }
-export interface CatalogueContract { phase?: string; weekType?: string; objective?: string; catalog: RepairWorkoutMetadata[]; }
+export interface CatalogueContract extends RepairCompatibilityContext { catalog: RepairWorkoutMetadata[]; }
 const maxZone = (zones: string[]) => Math.max(0, ...zones.flatMap(z => [...z.matchAll(/\bZ\s*([1-7])/gi)].map(m => Number(m[1]))));
 /** Only explicit numeric variant ranges are executable. Free prose is not a waiver. */
 function variantRange(text: string | undefined): [number, number] | null {
@@ -13,6 +14,10 @@ function variantRange(text: string | undefined): [number, number] | null {
 }
 export function catalogueEligibility(metadata: RepairWorkoutMetadata, context: RepairCompatibilityContext): string[] {
  if (!isCompleteRepairWorkoutMetadata(metadata)) return ["candidate_metadata_incomplete"];
+ if (context.demandingContext) {
+  const reasons = demandingSessionReasons(metadata.id, context.demandingContext);
+  if (reasons.length) return reasons;
+ }
  // Existing sporting rules validate phase, objective and recovery/taper load.
  const effective = normalizeRepairSport(metadata.sport) === "brick" && !metadata.mainZoneMax
   ? { ...metadata, mainZoneMax: maxZone(metadata.zones) } : metadata;

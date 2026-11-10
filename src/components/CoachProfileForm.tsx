@@ -1,4 +1,5 @@
 import { coachProfileStorageKey } from "@/lib/plan/coachLimiterPolicyStorage";
+import { computeGoalWeekFromDates } from "@/lib/plan/multiObjectiveClassification";
 import { resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 /**
  * CoachProfileForm — Saisie manuelle des limiteurs Lorang par le coach.
@@ -130,6 +131,7 @@ export interface CoachProfilePrefill {
 }
 
 interface Props {
+  planStartDate?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   athleteName?: string;
@@ -150,6 +152,7 @@ interface Props {
 }
 
 export function CoachProfileForm({
+  planStartDate,
   open,
   onOpenChange,
   athleteName,
@@ -262,17 +265,12 @@ export function CoachProfileForm({
     if (durationMode === "date") {
       if (!raceDate) return null;
       try {
-        const race = new Date(raceDate + "T00:00:00");
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const days = Math.floor((race.getTime() - today.getTime()) / 86400000);
-        if (days < 0) return null;
-        return Math.max(1, Math.floor(days / 7) + 1);
+        return computeGoalWeekFromDates(planStartDate, raceDate) ?? null;
       } catch { return null; }
     }
     const n = parseInt(freeWeeks, 10);
     return Number.isFinite(n) && n > 0 ? n : null;
-  }, [durationMode, raceDate, freeWeeks]);
+  }, [durationMode, raceDate, freeWeeks, planStartDate]);
 
   const automaticMetrics = prefill?.limiterMetrics ?? [prefill?.primaryLimiterMetric, prefill?.secondaryLimiterMetric].filter((m):m is string=>!!m);
   const primaryMetric = (touchedPrimary ? LIMITER_OPTIONS.find(o=>o.value===primary)?.metric : prefill?.primaryLimiterMetric) ?? LIMITER_OPTIONS.find(o=>o.value===primary)?.metric;

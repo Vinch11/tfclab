@@ -61,6 +61,7 @@ function midpoint(r: { min: number; max: number }): number {
 }
 
 export interface SlotLayoutOptions {
+  maintenance?: boolean;
   /** Actual compatible catalogue coverage; never drops a mandatory minimum. */
   availableSports?: ReadonlySet<LayoutSport>;
   raceEvents?: Array<{dayName:DayName;sport:"run"|"brick"}>;
@@ -146,6 +147,8 @@ function buildLayout(
   const findDay = (d: DayName) => days.find(x => x.dayName === d)!;
   const canAdd = (d: DayName, sport: LayoutSport): boolean =>
     findDay(d).slots.length < quota.maxSessionsPerDay && !findDay(d).isRest &&
+    !(findDay(d).slots.length === 1 && quota.maxDoubleDaysPerWeek !== undefined &&
+      days.filter(day => day.slots.length >= 2).length >= quota.maxDoubleDaysPerWeek) &&
     !(findDay(d).slots.some(s=>s.sport==="strength") && findDay(d).slots.length>=2) &&
     !(opts.dayBans ?? []).some(b => b.day === d &&
       (b.sport === "any" || b.sport === sport || (sport === "brick" && (b.sport === "bike" || b.sport === "run"))));
@@ -292,6 +295,7 @@ function buildLayout(
   const fillBike = () => {
     for (const d of rrBike) {
       if (remaining.bike <= 0) break;
+      if (opts.maintenance && days[(DAY_ORDER.indexOf(d) + 1) % 7].slots.some(s => s.sport === "run" && s.isLongSession)) continue;
       if (!canAdd(d, "bike") || hasSportOn(d, "bike") || hasSportOn(d, "brick")) continue;
       findDay(d).slots.push({ sport: "bike", isKeySession: !hasSportOn(d, "run") });
       remaining.bike--;
@@ -383,6 +387,8 @@ function solveRequiredSlots(source: WeeklySlotLayout, quota: WeeklyQuota, opts: 
   const count = (sport: LayoutSport) => days.reduce((n,d) => n+d.slots.filter(s => s.sport===sport).length,0);
   const fits = (index: number, sport: LayoutSport) => {
     const day=days[index], slots=day.slots;
+    if(slots.length===1 && quota.maxDoubleDaysPerWeek!==undefined && days.filter(d=>d.slots.length>=2).length>=quota.maxDoubleDaysPerWeek)return false;
+    if(opts.maintenance && sport==="bike" && days[(index+1)%7].slots.some(s=>s.sport==="run"&&s.isLongSession))return false;
     if(day.isRest || slots.length>=quota.maxSessionsPerDay || slots.some(s=>s.sport===sport))return false;
     if((opts.dayBans??[]).some(b=>b.day===day.dayName && (b.sport==="any" || b.sport===sport || (sport==="brick" && (b.sport==="bike" || b.sport==="run")))))return false;
     if((sport==="run" || sport==="bike") && slots.some(s=>s.sport==="brick"))return false;

@@ -1,5 +1,10 @@
 # Roadmap
 
+- [ ] Fiabiliser la configuration : renforcement, doubles et maintien dans les contrats déterministes.
+- [ ] Stabiliser dates, objectifs, trail et choix coach sur les voies simple/groupée/régénération.
+- [ ] Harmoniser ambition, décharge, terrain et autorisations serveur ; tests comportementaux et vérification navigateur sans génération IA.
+- [ ] Vérifier un plan complet réellement généré : autorisation distincte requise pour les appels payants ; aucune donnée athlète écrite ni publication.
+
 - [x] Auditer l’impact de tous les domaines de configuration : rapport `docs/audit-impact-configuration-plan-2026-11-10.md`, 245 tests frontend et 64 tests générateur réussis, sept profils prévalidés sans IA ; contradictions renforcement/doubles/maintien reproduites. Aucun générateur modifié, aucune génération réelle ni publication.
 
 - [x] Relier l'import Nolio aux séances et au protocole TTE D7 vélo / D6 course : seuil préalable D5, segment horodaté, unités et confirmations coach, durée séparée et provenance ; 34 tests passent, séances et 3638 mesures réelles d'Emanuela lues, refus sans confirmation vérifié ordinateur/mobile, fonction déployée. Aucun bilan enregistré ni publication.

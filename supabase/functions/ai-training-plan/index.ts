@@ -118,6 +118,8 @@ serve(async (req) => {
       const defense = enforceAmbitionCap(planConfig?.ambition, tl);
       if (defense.serverDowngraded && planConfig) {
         planConfig.ambition = defense.ambitionEffective;
+        if (planConfig.ambitionMeta) planConfig.ambitionMeta = { ...planConfig.ambitionMeta,
+          effective: defense.ambitionEffective, downgraded: true };
         planConfig._serverAmbitionDefense = {
           saisie: defense.ambitionSaisie,
           effective: defense.ambitionEffective,

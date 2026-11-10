@@ -6,6 +6,7 @@ import type { PlanConfig } from "@/hooks/useAITrainingPlan";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 import type { CoachProfileFormPayload } from "@/components/CoachProfileForm";
 import { computeChantierDurationWeeks } from "@/engines/plan/planConfigBuilder";
+import { applyCoachScheduleOverrides } from "./coachScheduleOverrides";
 /** Pure adapter shared by generation, prevalidation and regeneration. No persistence or model call. */
 export function applyCoachProfileOverrides(
   payload: Partial<CoachProfileFormPayload>,
@@ -168,5 +169,5 @@ export function applyCoachProfileOverrides(
     };
   }
 
-  return cfg;
+  return applyCoachScheduleOverrides(cfg, payload);
 }

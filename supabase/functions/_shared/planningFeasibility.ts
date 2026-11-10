@@ -1,6 +1,6 @@
 import { effectiveSessionQuota, hasWeeklyCalendarCapacity } from "./sessionQuotaAccounting.ts";
 export type MechanicalSport="swim"|"bike"|"run"|"brick"|"strength";
-export interface MechanicalQuota {swim:{min:number;max:number};bike:{min:number;max:number};run:{min:number;max:number};brick:{min:number;max:number};strength:{min:number;max:number};totalSessions:{min:number;max:number};maxSessionsPerDay:number;minFullRestDays:number;}
+export interface MechanicalQuota {swim:{min:number;max:number};bike:{min:number;max:number};run:{min:number;max:number};brick:{min:number;max:number};strength:{min:number;max:number};totalSessions:{min:number;max:number};maxSessionsPerDay:number;minFullRestDays:number;maxDoubleDaysPerWeek?:number;}
 export interface MechanicalSlot {sport:MechanicalSport;isRaceEvent?:boolean;isLongSession?:boolean;isKeySession?:boolean;isActivation?:boolean;minDurationMin?:number;maxDurationMin?:number;}
 export interface MechanicalLayout {days:Array<{dayName:string;isRest:boolean;slots:MechanicalSlot[]}>;requiredEvents?:Array<{dayName:string;sport:string}>;}
 /** Mechanical feasibility only. Never changes a frequency, volume or recovery rule. */
@@ -24,5 +24,6 @@ export function planningFeasibility(quota: MechanicalQuota, layout: MechanicalLa
  if(layout.days.filter(d=>d.slots.length===0).length<quota.minFullRestDays) issues.push('layout_below_full_rest_minimum');
  if(slots.length>effective.totalSessions.max) issues.push('layout_exceeds_total_max');
  if(layout.days.some(d=>d.slots.length>quota.maxSessionsPerDay)) issues.push('layout_exceeds_daily_max');
+ if(quota.maxDoubleDaysPerWeek!==undefined && layout.days.filter(d=>d.slots.length>=2).length>quota.maxDoubleDaysPerWeek)issues.push('layout_exceeds_double_days_max');
  return issues;
 }

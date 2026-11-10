@@ -2065,6 +2065,10 @@ export function handleJSONPlanRequest(input: HandlerInput): Response {
             const phase = regenerateWeek?.phase ?? inferPhaseFromWeek(week, totalWeeks, planConfig?.objective, planConfig);
             const segment = computeMultiObjectiveSegments(planConfig, totalWeeks)?.find(s => week >= s.startWeek && week <= s.endWeek);
             const contract = { phase, objective: segment?.objective ?? planConfig?.catalogObjective ?? planConfig?.objective,
+              demandingContext: { approvedDemandingFamilies: planConfig?.approvedDemandingFamilies,
+                trainingLevel: planConfig?.ambitionMeta?.trainingLevel,
+                trainingLevelSource: planConfig?.ambitionMeta?.trainingLevelSource,
+                weeklyHours: planConfig?.weeklyHours },
               weekType: planConfig?._weeklyQuotas?.[week]?.weekType,
               catalog: repairCatalogsByChunk[ci].filter(m => allowedIds.includes(m.id) && isCompleteRepairWorkoutMetadata(m)) };
             catalogueContractsByWeek[week] = contract;
