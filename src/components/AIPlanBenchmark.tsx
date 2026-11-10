@@ -1,3 +1,4 @@
+import { PlanPhysioTimeline } from "@/components/plan/PlanPhysioTimeline";
 /**
  * AIPlanBenchmark — Benchmarks a generated plan against elite reference standards
  */
@@ -423,81 +424,16 @@ const PHASE_TIMELINE_MIN_TRACK_PX = 340;
  * est toujours affichée à côté, et le track est scrollable horizontalement
  * avec une largeur mini par semaine.
  */
-function PhaseGanttTimeline({ phases, totalWeeks }: { phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
-  // Parse week ranges from phase data — tolérant à tous les séparateurs
-  // ("S1-S6", "S1 → S6", "Semaines 1 à 6", "S4"…). On lit simplement les
-  // nombres présents dans la chaîne.
-  const parsed = phases.map(p => {
-    const nums = (p.weeks || "").match(/\d+/g)?.map(n => parseInt(n, 10)) ?? [];
-    const start = nums.length > 0 ? nums[0] : 1;
-    const end = nums.length > 1 ? Math.max(nums[1], start) : start;
-    const colorIdx = getPhaseColorIdx(p.name);
-    const color = PHASE_COLORS[colorIdx] || "#94a3b8";
-    return { ...p, start, end, color, colorIdx };
-  });
-
-  if (parsed.length < 2) return null;
-
-  // Garde-fou : si `totalWeeks` est absent/incohérent, on le déduit des phases.
-  const span = Math.max(totalWeeks || 0, ...parsed.map(p => p.end), 1);
-  const trackWidthPx = Math.max(span * PHASE_TIMELINE_WEEK_PX, PHASE_TIMELINE_MIN_TRACK_PX);
+function PhaseGanttTimeline({ plan, phases, totalWeeks }: { plan: ParsedPlan; phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
+  void totalWeeks;
+  if (phases.length < 2) return null;
 
   return (
     <div className="space-y-2 pt-2 border-t border-border">
-      <h4 className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-        📊 Timeline de périodisation
+      <h4 className="text-sm font-semibold text-foreground flex items-center gap-1">
+        📊 Timeline de la périodisation
       </h4>
-      <div className="overflow-x-auto">
-        <div style={{ minWidth: `${trackWidthPx}px` }} className="space-y-3">
-          {parsed.map((phase, i) => {
-            const leftPct = ((phase.start - 1) / span) * 100;
-            const widthPct = ((phase.end - phase.start + 1) / span) * 100;
-            return (
-              <TooltipProvider key={i}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="space-y-1 cursor-help">
-                      <div className="flex items-baseline gap-1.5 text-xs">
-                        <span
-                          className="inline-block w-2 h-2 rounded-full shrink-0"
-                          style={{ backgroundColor: phase.color }}
-                        />
-                        <span className="font-medium text-foreground/90">{phase.name}</span>
-                        <span className="text-muted-foreground shrink-0">· S{phase.start}-S{phase.end}</span>
-                      </div>
-                      <div className="relative h-5 bg-muted/30 rounded-md overflow-hidden">
-                        <div
-                          className="absolute top-0.5 bottom-0.5 rounded-md"
-                          style={{
-                            left: `${leftPct}%`,
-                            width: `${Math.max(widthPct, 100 / span)}%`,
-                            backgroundColor: phase.color,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-
-                  <TooltipContent side="top" className="max-w-xs">
-                    <p className="font-semibold text-xs">{phase.name}</p>
-                    <p className="text-[10px] text-muted-foreground">Semaines {phase.start}–{phase.end} ({phase.end - phase.start + 1} sem)</p>
-                    {phase.objective && <p className="text-[10px] text-muted-foreground mt-0.5">{phase.objective}</p>}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          })}
-
-          {/* Week header */}
-          <div className="flex items-end gap-0 pt-1">
-            {Array.from({ length: span }, (_, i) => i + 1).map(w => (
-              <div key={w} className="text-[10px] text-muted-foreground text-center shrink-0" style={{ width: `${100 / span}%` }}>
-                {w % 2 === 1 || span <= 20 ? `S${w}` : ""}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <PlanPhysioTimeline plan={plan} phases={phases} />
     </div>
   );
 }
@@ -913,7 +849,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
         )}
 
         {derivedPhases.length >= 2 && (
-          <PhaseGanttTimeline phases={derivedPhases} totalWeeks={plan.totalWeeks} />
+          <PhaseGanttTimeline plan={plan} phases={derivedPhases} totalWeeks={plan.totalWeeks} />
         )}
 
         <div className="flex items-center justify-between pt-2 border-t border-border text-sm">

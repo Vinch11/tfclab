@@ -1,32 +1,35 @@
 import { useMemo } from "react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { renderPlanTimelineSVG, type TimelinePalette } from "@/lib/plan/timeline/planTimeline";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { renderPlanTimelineSVG, timelineLegendItems, type TimelinePalette, type TimelinePhaseRange } from "@/lib/plan/timeline/planTimeline";
 
 const v = (t: string, a = 1) => (a === 1 ? `hsl(var(--${t}))` : `hsl(var(--${t}) / ${a})`);
 const APP_PALETTE: TimelinePalette = {
   text: v("foreground"), muted: v("muted-foreground"), grid: v("border"), bg: "transparent",
-  moderate: v("success"), heavy: v("warning"), severe: v("destructive"), strength: v("muted-foreground"),
-  unclassified: v("muted"), recovery: v("primary"), race: v("foreground"),
-  phases: [v("primary", 0.12), v("success", 0.14), v("warning", 0.16), v("destructive", 0.12), v("muted"), v("accent", 0.4)],
+  moderate: v("success"), heavy: v("warning"), severe: v("destructive"), strength: v("muted-foreground", 0.7),
+  unclassified: v("muted-foreground", 0.3), recovery: v("primary"), race: v("foreground"),
+  phases: [v("primary", 0.12), v("success", 0.14), v("warning", 0.16), v("destructive", 0.12), v("accent", 0.5), v("muted")],
 };
 
-export function PlanPhysioTimeline({ plan, displayPhase }: { plan: ParsedPlan; displayPhase?: (p: string) => string }) {
-  const svg = useMemo(() => renderPlanTimelineSVG(plan, { palette: APP_PALETTE, displayPhase }), [plan, displayPhase]);
+/** Contenu de la « Timeline de la périodisation » (phases + semaines + intensités). */
+export function PlanPhysioTimeline({ plan, phases, displayPhase }: { plan: ParsedPlan; phases?: TimelinePhaseRange[]; displayPhase?: (p: string) => string }) {
+  const svg = useMemo(() => renderPlanTimelineSVG(plan, { palette: APP_PALETTE, phases, displayPhase }), [plan, phases, displayPhase]);
   if (!svg) return null;
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-base">Ligne du temps physiologique</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <div className="min-w-[640px]" dangerouslySetInnerHTML={{ __html: svg }} />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Hauteur = volume prévu ; couleurs = temps par domaine (LT1 → MLSS → VO₂max). Les séances sans durée ou intensité identifiable restent « non classées ».
-        </p>
-      </CardContent>
-    </Card>
+    <div className="space-y-2">
+      <div className="overflow-x-auto pb-1" dangerouslySetInnerHTML={{ __html: svg }} />
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-foreground/80">
+        {timelineLegendItems(APP_PALETTE).map((l) => (
+          <span key={l.label} className="inline-flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: l.color }} />{l.label}
+          </span>
+        ))}
+        <span>🏁 course</span>
+        <span className="text-destructive">● séance clé</span>
+        <span className="text-primary">allégée = semaine de récupération</span>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps dans chaque zone d'intensité. Survolez une semaine pour le détail.
+      </p>
+    </div>
   );
 }
