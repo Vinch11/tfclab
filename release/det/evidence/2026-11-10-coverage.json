@@ -1,0 +1,6326 @@
+{
+  "worker": "det-fa21a6a1eac41f5e511d96bfb33888f984c9ec62570fd1a4285a297a217d98ab",
+  "synthetic": true,
+  "realAthleteReplay": false,
+  "previousAssembled": 124,
+  "nowAssembled": 141,
+  "fixed": [
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "finisher"
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "age_group"
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "competitor"
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "age_group"
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "competitor"
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "elite"
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "age_group"
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "competitor"
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "elite"
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "age_group"
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "competitor"
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "elite"
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "world_class"
+    }
+  ],
+  "regressions": [],
+  "matrix": [
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 163,
+      "uniqueSources": 53,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 160,
+      "uniqueSources": 51,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 163,
+      "uniqueSources": 57,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 160,
+      "uniqueSources": 77,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 76,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 76,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 76,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 163,
+      "uniqueSources": 53,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 160,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 172,
+      "uniqueSources": 52,
+      "loadWeeks": 9,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 9,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 103,
+      "uniqueSources": 48,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 49,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 49,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 45,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 44,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 103,
+      "uniqueSources": 40,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 40,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 40,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S9 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 441.1 min, la récupération et les exigences sportives de la semaine. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S9 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 441.1 min, la récupération et les exigences sportives de la semaine. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 103,
+      "uniqueSources": 48,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 46,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 46,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 45,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 45,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 103,
+      "uniqueSources": 50,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "tri_taper_exercise_minutes",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 48,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 48,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 45,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 45,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 61,
+      "uniqueSources": 30,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 40,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 49,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 49,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 49,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 61,
+      "uniqueSources": 21,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 31,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 31,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "ranked_limiter_deferred",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 61,
+      "uniqueSources": 46,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 50,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 56,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 56,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 56,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 61,
+      "uniqueSources": 37,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 77,
+      "uniqueSources": 44,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 48,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 48,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S11 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 26,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 26,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 32,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 32,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 32,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 dimanche : course (au moins 55 min). 7 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 26,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 30,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 25,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 34,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 34,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 34,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 27,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 32,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 27,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 25,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 29,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S7 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 126 min de blocs pour un plafond de 90.6 min. Vérifier la fréquence et la disponibilité déclarées. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S7 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 126 min de blocs pour un plafond de 90.6 min. Vérifier la fréquence et la disponibilité déclarées. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S7 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 126 min de blocs pour un plafond de 90.6 min. Vérifier la fréquence et la disponibilité déclarées. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S7 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 126 min de blocs pour un plafond de 90.6 min. Vérifier la fréquence et la disponibilité déclarées. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 24,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 23,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 23,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 23,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 26,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 38,
+      "uniqueSources": 27,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 30,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 30,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 44,
+      "uniqueSources": 28,
+      "loadWeeks": 5,
+      "weeksWithPrimaryDoseCheck": 5,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 18,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 25,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 25,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 26,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 420 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 43,
+      "uniqueSources": 17,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 43,
+      "uniqueSources": 23,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 43,
+      "uniqueSources": 23,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 43,
+      "uniqueSources": 24,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 252 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 23,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 35,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 34,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 33,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 336 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 17,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 35,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 32,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 30,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 396 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 16,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 29,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 29,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 32,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 32,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 57,
+      "uniqueSources": 16,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 57,
+      "uniqueSources": 26,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 57,
+      "uniqueSources": 26,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 57,
+      "uniqueSources": 28,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 324 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 19,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 29,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 29,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 16,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 28,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 28,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "activities": 73,
+      "uniqueSources": 34,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 18,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 36,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 36,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 38,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "auto-tss",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 38,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 71,
+      "uniqueSources": 17,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 71,
+      "uniqueSources": 23,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 71,
+      "uniqueSources": 23,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 20,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 17,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 39,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 43,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "levelSource": "manual",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "activities": 91,
+      "uniqueSources": 43,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
+      ]
+    }
+  ],
+  "extended": [
+    {
+      "objective": "5K",
+      "weeks": 8,
+      "hours": 4,
+      "sessions": 3,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "VO2max",
+        "VMA"
+      ],
+      "firstWeek": 144,
+      "peak": 183,
+      "exportComplete": true,
+      "operations": 30,
+      "scoped": [
+        4,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "5K",
+      "weeks": 12,
+      "hours": 6,
+      "sessions": 4,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "VO2max",
+        "VMA"
+      ],
+      "firstWeek": 220,
+      "peak": 284,
+      "exportComplete": true,
+      "operations": 66,
+      "scoped": [
+        6,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "10K",
+      "weeks": 12,
+      "hours": 3,
+      "sessions": 3,
+      "level": "untrained",
+      "ambition": "age_group",
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 87 min de blocs pour un plafond de 72 min. Vérifier la fréquence et la disponibilité déclarées."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "weeks": 16,
+      "hours": 4,
+      "sessions": 3,
+      "level": "untrained",
+      "ambition": "age_group",
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 97 min de blocs pour un plafond de 96 min. Vérifier la fréquence et la disponibilité déclarées."
+      ]
+    },
+    {
+      "objective": "Sprint",
+      "weeks": 8,
+      "hours": 8,
+      "sessions": 7,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "FTP/kg",
+        "VO2max",
+        "VLamax"
+      ],
+      "firstWeek": 375,
+      "peak": 424,
+      "exportComplete": true,
+      "operations": 62,
+      "scoped": [
+        8,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Olympic",
+      "weeks": 12,
+      "hours": 9,
+      "sessions": 8,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "VLamax",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "firstWeek": 407,
+      "peak": 540,
+      "exportComplete": true,
+      "operations": 105,
+      "scoped": [
+        9,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Sprint",
+      "weeks": 12,
+      "hours": 10,
+      "sessions": 8,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "FTP/kg",
+        "VO2max",
+        "VLamax"
+      ],
+      "firstWeek": 396,
+      "peak": 467,
+      "exportComplete": true,
+      "operations": 105,
+      "scoped": [
+        9,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Olympic",
+      "weeks": 16,
+      "hours": 12,
+      "sessions": 9,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "VLamax",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "firstWeek": 510,
+      "peak": 610,
+      "exportComplete": true,
+      "operations": 162,
+      "scoped": [
+        11,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Cyclisme FTP",
+      "weeks": 8,
+      "hours": 7,
+      "sessions": 5,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "FTP"
+      ],
+      "firstWeek": 322,
+      "peak": 419,
+      "exportComplete": true,
+      "operations": 45,
+      "scoped": [
+        6,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Cyclisme contre-la-montre",
+      "weeks": 8,
+      "hours": 7,
+      "sessions": 5,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "refused",
+      "reasons": [
+        "CLM : revue de la position aéro et durée d’épreuve requises pour cet athlète."
+      ]
+    },
+    {
+      "objective": "Natation 1500m",
+      "weeks": 8,
+      "hours": 4,
+      "sessions": 4,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "CSS"
+      ],
+      "firstWeek": 151,
+      "peak": 160.5,
+      "exportComplete": true,
+      "operations": 37,
+      "scoped": [
+        5,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Marathon",
+      "weeks": 40,
+      "hours": 8,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "firstWeek": 338,
+      "peak": 480,
+      "exportComplete": true,
+      "operations": 261,
+      "scoped": [
+        7,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Semi",
+      "weeks": 30,
+      "hours": 7,
+      "sessions": 4,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "firstWeek": 270,
+      "peak": 420,
+      "exportComplete": true,
+      "operations": 165,
+      "scoped": [
+        6,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Cyclisme FTP",
+      "weeks": 12,
+      "hours": 9,
+      "sessions": 4,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "FTP"
+      ],
+      "firstWeek": 305,
+      "peak": 437,
+      "exportComplete": true,
+      "operations": 56,
+      "scoped": [
+        5,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    },
+    {
+      "objective": "Natation 1500m",
+      "weeks": 12,
+      "hours": 6,
+      "sessions": 5,
+      "level": "trained",
+      "ambition": "competitor",
+      "status": "assembled",
+      "limiters": [
+        "CSS"
+      ],
+      "firstWeek": 180,
+      "peak": 189.5,
+      "exportComplete": true,
+      "operations": 68,
+      "scoped": [
+        6,
+        1
+      ],
+      "exportProblems": [],
+      "refusedBlocks": []
+    }
+  ],
+  "longIronman": [
+    {
+      "weeks": 32,
+      "hours": 18,
+      "sessions": 10,
+      "repairs": [],
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ]
+    },
+    {
+      "weeks": 32,
+      "hours": 14,
+      "sessions": 9,
+      "repairs": [],
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ]
+    },
+    {
+      "weeks": 32,
+      "hours": 14,
+      "sessions": 8,
+      "repairs": [],
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ]
+    },
+    {
+      "weeks": 30,
+      "hours": 12,
+      "sessions": 8,
+      "repairs": [],
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ]
+    },
+    {
+      "weeks": 32,
+      "hours": 18,
+      "sessions": 12,
+      "repairs": [
+        {
+          "code": "adaptive_search",
+          "week": 1,
+          "status": "passed",
+          "message": "Recherche alternative : doses dans les bornes V3, variétés préférées, limites et récupération conservées."
+        }
+      ],
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ]
+    }
+  ],
+  "changedSecondaryOrder": [
+    {
+      "original": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "changed": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "changedWeeks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ],
+  "packagedWorker": [
+    {
+      "version": "det-fa21a6a1eac41f5e511d96bfb33888f984c9ec62570fd1a4285a297a217d98ab",
+      "weeks": 8,
+      "counts": [
+        37,
+        5,
+        1
+      ],
+      "physicalReceipt": false,
+      "fieldObservation": false
+    },
+    {
+      "case": "synthetic-long-IM",
+      "weeks": 32,
+      "ranked": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "repairWeeks": [
+        1
+      ]
+    },
+    {
+      "case": "703",
+      "level": "light",
+      "weeks": 12,
+      "ranked": [
+        "VLamax"
+      ],
+      "sources": [
+        "V3P_BIKE_002",
+        "V3P_BIKE_048",
+        "V3P_BIKE_091",
+        "V3P_BIKE_092",
+        "V3P_BIKE_105",
+        "V3P_BIKE_107",
+        "V3P_BIKE_108",
+        "V3P_BIKE_109",
+        "V3P_BIKE_110",
+        "V3P_BIKE_125",
+        "V3P_BIKE_506",
+        "V3P_BIKE_514",
+        "V3P_RUN_001",
+        "V3P_RUN_032",
+        "V3P_RUN_037",
+        "V3P_RUN_110",
+        "V3P_RUN_115",
+        "V3P_RUN_130",
+        "V3P_RUN_209",
+        "V3P_RUN_868",
+        "V3P_RUN_911",
+        "V3P_STRENGTH_201",
+        "V3P_STRENGTH_202",
+        "V3P_STRENGTH_203",
+        "V3P_STRENGTH_204",
+        "V3P_STRENGTH_205",
+        "V3P_STRENGTH_207",
+        "V3P_STRENGTH_208",
+        "V3P_SWIM_201",
+        "V3P_SWIM_202",
+        "V3P_SWIM_203",
+        "V3P_SWIM_204",
+        "V3P_SWIM_205",
+        "V3P_SWIM_206",
+        "V3P_SWIM_207",
+        "V3P_SWIM_208",
+        "V3P_SWIM_209",
+        "V3P_SWIM_210",
+        "V3P_SWIM_211",
+        "V3P_SWIM_212"
+      ]
+    },
+    {
+      "case": "10K",
+      "level": "light",
+      "weeks": 8,
+      "ranked": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "sources": [
+        "V3P_RUN_001",
+        "V3P_RUN_023",
+        "V3P_RUN_025",
+        "V3P_RUN_027",
+        "V3P_RUN_028",
+        "V3P_RUN_029",
+        "V3P_RUN_031",
+        "V3P_RUN_032",
+        "V3P_RUN_037",
+        "V3P_RUN_130",
+        "V3P_RUN_209",
+        "V3P_RUN_214",
+        "V3P_RUN_500",
+        "V3P_RUN_519",
+        "V3P_RUN_868",
+        "V3P_RUN_887",
+        "V3P_STRENGTH_201",
+        "V3P_STRENGTH_202",
+        "V3P_STRENGTH_203",
+        "V3P_STRENGTH_204",
+        "V3P_STRENGTH_205",
+        "V3P_STRENGTH_207",
+        "V3P_STRENGTH_208"
+      ]
+    }
+  ]
+}
