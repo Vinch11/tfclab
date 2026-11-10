@@ -36,3 +36,26 @@ if(main.kind!=='time')throw Error('long_bike_parent_shape');
 main.seconds={min:108*60,base:117*60,max:162*60};
 endurance.prescription.parameters=endurance.prescription.parameters.map(p=>p.path==='1.seconds'?{...p,...main.seconds}:p);
 export const longBikeSource=endurance;
+
+// These two endurance ranges fill the gap between the short re-entry rides and
+// long events. Selection is restricted to long bike appointments after a
+// recorded starting tolerance, with the athlete's actual ramp checked again.
+export const progressiveReturnRides:V3Workout[]=[
+  {id:'V3P_BIKE_205',title:'Reprise vélo · prolonger le pédalage facile',min:25,base:50,max:75},
+  {id:'V3P_BIKE_206',title:'Reprise vélo · sortie longue en endurance continue',min:70,base:95,max:165},
+].map(recipe=>{
+  const source=structuredClone(returnBikeSources[1]);
+  source.id=recipe.id;source.version='3.6-return-long-bike-candidate';source.title=recipe.title;
+  source.focus='Prolonger l’endurance aérobie à intensité facile, en partant de la durée récemment tolérée.';
+  source.methodology='Parcours plat avec possibilité de raccourcir la boucle. Régler la durée du bloc continu dans les limites de la fiche. Vérifier la tolérance à la sortie précédente et les possibilités de ravitaillement avant toute prolongation.';
+  source.origin='TFCLab · progression de la reprise vélo à partir de la prescription V3P_BIKE_202.';
+  source.prerequisites=['Durée récente de vélo continu confirmée pour cet athlète.','Sortie précédente tolérée, position confortable et récupération vérifiées avant de prolonger.'];
+  source.prescription.physiologicalIntent.statement=source.focus;
+  source.prescription.admissibility.prerequisites=[...source.prerequisites];
+  const main=source.blocks[1];
+  if(main.kind!=='time')throw Error('return_long_bike_parent_shape');
+  main.label='Maintenir un pédalage régulier et une respiration aisée sur le plat.';
+  main.seconds={min:(recipe.min-10)*60,base:(recipe.base-10)*60,max:(recipe.max-10)*60};
+  source.prescription.parameters=source.prescription.parameters.map(param=>param.path==='1.seconds'?{...param,...main.seconds}:param);
+  return source;
+});

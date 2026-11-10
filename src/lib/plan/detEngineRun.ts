@@ -1,3 +1,5 @@
+import {balancedProfileEvidence} from '@/lib/det/balancedProfile';
+import {DetDecisionError, incompatible, missingData, type CoachDecision} from '@/lib/det/coachDecision';
 /**
  * Moteur DET déclenché depuis la page « Plan IA » normale.
  *
@@ -40,7 +42,10 @@ export function detEngineVersion(): string {
 }
 
 export interface DetRunInput {
+  recentLongRideMinutes?:number;
+  trailGuidanceReview?: import('@/lib/det/trailGuidance').TrailGuidanceReview;
   timeTrial?: TimeTrialDeclaration;
+  marathonRecentLongRunMinutes?:number;
   trailLongRunLimits?:import('@/lib/det/trailPreparation').TrailLongRunLimits;
   athleteId: string;
   athlete: PlanAthleteData;
@@ -53,19 +58,34 @@ export interface DetRunInput {
 }
 
 export class DetRefusal extends Error {
-  constructor(public readonly reasons: string[]) { super(reasons.join("\n")); this.name = "DetRefusal"; }
+  constructor(public readonly reasons: string[], public readonly decision: CoachDecision = {kind:"engine_limit", fields:[]}) { super(reasons.join("\n")); this.name = "DetRefusal"; }
 }
 
 /** Génère un plan DET (même forme `ParsedPlan` que l'IA) depuis l'entrée de la page. */
 export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<ParsedPlan> {
+  try {
+    return await generateForCoach(input);
+  } catch (error) {
+    if (error instanceof DetRefusal) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    throw new DetRefusal(message.split("\n").filter(Boolean), error instanceof DetDecisionError ? error.decision : undefined);
+  }
+}
+
+async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
+  if (!input.athleteId || input.diagnostic?.athleteId !== input.athleteId ||
+      input.config.athleteId && input.config.athleteId !== input.athleteId)
+    throw incompatible('Le bilan et le formulaire doivent appartenir au même athlète. Rechargez le profil sélectionné.', 'athleteId', 'diagnostic.athleteId');
   const config = input.timeTrial ? withOrdinaryTimeTrial(input.config,input.athleteId,input.diagnostic.objectif,input.timeTrial) : input.config;
   const objective = String(config.objective ?? "");
   if(isTimeTrial(objective) && (!config.timeTrialContext || config.athleteId!==input.athleteId || config.timeTrialContext.athleteId!==input.athleteId))
-    throw new DetRefusal(['CLM : revue de la position aéro et durée d’épreuve requises pour cet athlète.']);
+    throw missingData('CLM : renseignez la position aéro et la durée d’épreuve de cet athlète.', 'timeTrial');
   if (!detSupportsObjective(objective)) {
-    throw new DetRefusal([`Le moteur DET ne couvre pas encore l'objectif « ${objective} ». Utilisez le moteur IA pour cet objectif.`]);
+    const message = /start.?to.?run/i.test(objective) ? 'Start to Run utilise le protocole marche-course dédié. Ouvrez Start to Run dans l’assistant de démarrage de TFCLab.' :
+      `DET ne couvre pas encore l’objectif « ${objective} ».`;
+    throw new DetRefusal([message]);
   }
-  if (!config.planStartDate) throw new DetRefusal(["Date de début du plan manquante."]);
+  if (!config.planStartDate) throw missingData("Renseignez la date de début du plan.", "planStartDate");
   const applied = [...((config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [])];
   const coachOverride = explicitCoachLimiterOverride(input.pageLimiterOrder, input.coachPayload ?? null, applied);
   const frozen = await freezeAppPlanningInput({
@@ -76,12 +96,9 @@ export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<
     appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(input.diagnostic)).map((g) => g.metric),
     coachOverride,
   });
-  let plan: ParsedPlan;
-  try {
-    plan = await generateAppProfileDetPlan(frozen, input.athleteId, {trailLongRunLimits:input.trailLongRunLimits}, detEngineVersion());
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    throw new DetRefusal(message.split("\n").filter(Boolean));
-  }
+  const balancedMetrics = applied.length ? undefined : balancedProfileEvidence(input.diagnostic,input.athleteId,input.athlete,config);
+  const plan = await generateAppProfileDetPlan(frozen,input.athleteId,{
+    trailGuidanceReview:input.trailGuidanceReview, recentLongRideMinutes:input.recentLongRideMinutes,trailLongRunLimits:input.trailLongRunLimits, marathonRecentLongRunMinutes:input.marathonRecentLongRunMinutes, balancedMetrics,
+  },detEngineVersion());
   return bindAppPlanMetadata(plan, frozen);
 }

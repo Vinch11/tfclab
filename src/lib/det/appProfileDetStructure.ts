@@ -1,3 +1,4 @@
+import {terrainWatchNodes} from './trailGuidance';
 import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
 import {timedSwimSources} from '../../../scripts/library-v3/completeSessionSources';
 import {fingerprintV3SportingSource} from '../../../scripts/library-v3/sportingQualification800';
@@ -26,5 +27,7 @@ export function appProfileDetStructure(session:ProposedV3Session):AppStructure{
  const qualitative=timedSwimSources.find(w=>w.id===c.sourceId&&fingerprintV3SportingSource(w)===c.sourceFingerprint);
  const walkRun=roadReturnSources.some(w=>w.id===c.sourceId&&fingerprintV3SportingSource(w)===c.sourceFingerprint);
  const result=previewDetStructuredWorkout({...(walkRun?{qualitativeDomains:["recovery"]}:qualitative?{qualitativeDomains:qualitative.prescription.physiologicalIntent.domainIds}:{}),sourceId:c.sourceId,sport:c.sport,blocks:c.blocks,targets:c.targets.targets,durationMinutes:c.durationMinutes});
+ if (result.status==='preview' && c.targets.targets.some(t=>t.metric==='coach_field_effort'))
+   return {detStructuredWorkout:{...result.workout,nodes:terrainWatchNodes(result.workout.nodes)},detStructureAdmission:result.sourceAdmission};
  return result.status==='preview'?{detStructuredWorkout:result.workout,detStructureAdmission:result.sourceAdmission}:{detStructureRefusal:{reason:result.reason}};
 }

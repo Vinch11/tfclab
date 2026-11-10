@@ -15,7 +15,7 @@ import {resolveDetLimiter} from '../../../experimental/det-engine/v403-limiter-s
 
 type Check=V3PlanProposal['checks'][number];
 /** Post-selection check of the actual saved blocks, including substitutions. */
-export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfig):Check[]{
+export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfig,timedMarathon=false):Check[]{
  const checks:Check[]=[],road=roadRunningPrescription(config);
  for(const week of plan.weeks){
   const invalid=week.days.flatMap(d=>d.sessions.flatMap(s=>s.components)).flatMap(c=>{
@@ -30,7 +30,7 @@ export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfi
    const matched=keys.filter(s=>s.components.some(c=>{const source=findSource(c.sourceId);return c.sport==='run'&&!!source&&primaryPrescriptionMatch(c,source,primary.key);}));
    checks.push({code:'primary_dose_coverage',week:week.week,status:keys.length&&matched.length/keys.length>=.3?'passed':'blocked',message:`${plan.limiterOrder[0]} : ${matched.length}/${keys.length} séances exigeantes ou longues satisfont les critères de prescription existants. Seuil interne de couverture 30 %, aucune adaptation mesurée présumée.`});
   }
-  if(road.raceDomain&&road.ambition!=='finisher'&&(['taper','race'].includes(week.weekType)||week.weekType==='load'&&['build','peak'].includes(week.phase??''))){
+  if(road.raceDomain&&(road.ambition!=='finisher'||timedMarathon)&&(['taper','race'].includes(week.weekType)||week.weekType==='load'&&['build','peak'].includes(week.phase??''))){
    const minutes=sessions.flatMap(s=>s.components).reduce((n,c)=>n+(c.sport==='run'?domainMinutes(c.blocks,road.raceDomain!):0),0);
    checks.push({code:'race_specific_blocks',week:week.week,status:minutes>0?'passed':'blocked',message:`${minutes} min au domaine spécifique de l’objectif dans les blocs configurés ; une étiquette de séance ne suffit pas.`});
   }

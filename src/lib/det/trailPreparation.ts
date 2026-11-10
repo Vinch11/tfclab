@@ -1,3 +1,4 @@
+import {engineLimit,incompatible,missingData} from './coachDecision';
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
 import {prepareTimeTrialCalendar} from './timeTrialPlanning';
@@ -29,21 +30,25 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
   if (!family) return prepared;
   const race = config.raceGoals?.find(g => g.priority === 'A' && coachFamilyFor(g.objective)?.key === family.key);
   if (!race || !Number.isFinite(race.distanceKm) || (race.distanceKm ?? 0) <= 0 || !Number.isFinite(race.elevationGainM) || (race.elevationGainM ?? 0) <= 0) {
-    throw Error('Trail : préciser la distance et le dénivelé positif de la course A.');
+    const fields: string[] = [], labels: string[] = [];
+    if (!race) throw missingData('Déclarez la course A correspondant à cet objectif trail.', 'raceGoals');
+    if (!(Number.isFinite(race.distanceKm) && Number(race.distanceKm) > 0)) { fields.push('raceGoals.distanceKm'); labels.push('la distance en km'); }
+    if (!(Number.isFinite(race.elevationGainM) && Number(race.elevationGainM) > 0)) { fields.push('raceGoals.elevationGainM'); labels.push('le dénivelé positif en m'); }
+    throw missingData('Trail : renseignez ' + labels.join(' et ') + ' pour la course A.', ...fields);
   }
-  if (config.raceGoals?.length !== 1) throw Error('Trail : le calendrier multi-épreuves doit être relu séparément.');
-  if (config.terrainAvailability === 'plat') throw Error('Trail : les fiches terrain demandent un parcours avec relief. Renseigner le relief accessible ou adapter la préparation sur terrain plat.');
+  if (config.raceGoals?.length !== 1) throw engineLimit('DET prend actuellement en charge une seule épreuve dans ce calendrier trail. Sélectionnez une course A pour cette préparation.');
+  if (config.terrainAvailability === 'plat') throw engineLimit('Les séances trail V3 disponibles demandent un parcours avec relief. DET ne couvre pas encore la préparation sur terrain exclusivement plat.');
   const start = Date.parse(config.planStartDate + 'T00:00:00Z');
   const finish = Date.parse(race.raceDate + 'T00:00:00Z');
   if (!Number.isFinite(start) || !Number.isFinite(finish) || new Date(start).getUTCDay()!==1 ||
       finish<start+(config.weeksAvailable!-1)*7*86400000 || finish>=start+config.weeksAvailable!*7*86400000)
-    throw Error('Trail : vérifier le départ du calendrier le lundi et la course A en dernière semaine de préparation.');
+    throw incompatible('Vérifiez la date de départ (lundi) et placez la course A en dernière semaine de préparation.', 'planStartDate', 'raceGoals.raceDate', 'weeksAvailable');
   const rules = parseAthleteConstraints(config.constraints ?? '');
-  if (rules.ambiguousRestrictions.length) throw Error('Trail : préciser les contraintes de disponibilité ambiguës.');
+  if (rules.ambiguousRestrictions.length) throw missingData('Précisez la disponibilité indiquée dans « ' + rules.ambiguousRestrictions.join(', ') + ' ».','constraints');
   const fixed = (n: number) => ({min:n,max:n});
   const level = config.ambitionMeta?.trainingLevel;
   const explicitLevel = ['manual','auto-tss'].includes(config.ambitionMeta?.trainingLevelSource ?? '');
-  if (!level || !explicitLevel) throw Error('Trail : renseigner le niveau actuel ou une charge récente exploitable.');
+  if (!level || !explicitLevel) throw missingData('Trail : renseignez le niveau actuel d’entraînement.','ambitionMeta.trainingLevel');
   // Four runs in the reviewed trail calendar. Reprise/light use a reduced run frequency.
   const defaultRuns = level === 'untrained' ? 2 : level === 'light' ? 3 : 4;
   const strength = config.strengthSessionsPerWeek ?? 1;
@@ -51,7 +56,7 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
   const swim = Number(config.crossTrainingMaintenance?.natation === true);
   const total = config.sessionsPerWeek ?? defaultRuns + strength + bike + swim;
   const runs = total - strength - bike - swim;
-  if (!Number.isInteger(total) || runs < 2) throw Error('Trail : la fréquence disponible doit permettre deux sorties et les compléments demandés.');
+  if (!Number.isInteger(total) || runs < 2) throw incompatible('La fréquence déclarée laisse moins de deux sorties trail. Libérez un créneau course ou réduisez le nombre de compléments.', 'sessionsPerWeek','strengthSessionsPerWeek','crossTrainingMaintenance');
   const zero = fixed(0);
   for (let w=1; w<=config.weeksAvailable!; w++) {
     const type = inferWeekType(w,config.weeksAvailable!,config.objective,athlete.age,config.deloadCadenceWeeks);
@@ -67,13 +72,13 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
     if (bike) sports.add('bike');
     if (swim) sports.add('swim');
     if (force) sports.add('strength');
-    if (rules.bannedSports.some(s=>s==='any'||sports.has(s as LayoutSport))) throw Error('Trail : une discipline demandée est aussi exclue.');
+    if (rules.bannedSports.some(s=>s==='any'||sports.has(s as LayoutSport))) throw incompatible('Une discipline demandée est aussi exclue. Modifiez les compléments demandés ou confirmez vos disponibilités.', 'constraints','crossTrainingMaintenance');
     const events = declaredRaceSlotsForWeek(config,w);
     const layout = buildWeeklySlotLayout(quota,floors,type,{availableSports:sports,dayBans:rules.dayBans,raceEvents:events,taperRunFrequencyFloor:0});
     const slots = layout.days.flatMap(d=>d.slots);
     if (slots.length!==quota.totalSessions.min || layout.days.some(d=>d.slots.length>quota.maxSessionsPerDay || d.slots.some(s=>rules.dayBans.some(b=>b.day===d.dayName&&(b.sport==='any'||b.sport===s.sport)))) ||
       layout.days.filter(d=>d.slots.length>1).length>(config.maxDoubleDaysPerWeek??7) ||
-      slots.filter(s=>s.isRaceEvent).length!==events.length) throw Error('Trail : fréquence ou course incompatible avec les jours disponibles en semaine '+w+'.');
+      slots.filter(s=>s.isRaceEvent).length!==events.length) throw engineLimit('S'+w+' : DET n’a pas trouvé de placement respectant les jours disponibles, la fréquence et la date de course.');
     prepared.weeklyQuotas[w]={weekType:type,quota,floors,downgraded:false,layout,phase:prepared.phaseCalendar?.[w],limiterFocus:prepared.limiterMesocycles.byWeek[w],
       volumeBudget:buildCoachVolumeBudget(config.volumeRamp,w,type,config.weeklyHoursSource)};
   }

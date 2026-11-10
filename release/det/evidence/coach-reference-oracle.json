@@ -1,0 +1,738 @@
+{
+  "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+  "baselineComplete": 156,
+  "referenceRefusals": [
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 60 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "competitor",
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "firstBlock": "S9 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "elite",
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "firstBlock": "S9 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "world_class",
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "firstBlock": "S9 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "firstBlock": "S1 samedi : vélo (au moins 50 min). 2 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S9 dimanche : course (au moins 95 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "S9 dimanche : course (au moins 95 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "firstBlock": "S9 dimanche : course (au moins 95 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "S9 dimanche : course (au moins 95 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "S9 dimanche : course (au moins 95 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "firstBlock": "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "firstBlock": "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "finisher",
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [],
+      "firstBlock": "Le profil partagé ne contient pas de limiteur prioritaire.",
+      "expectedDecision": "evaluate_diagnostic",
+      "criterion": "Vérifier le bilan du 10 km, les comparaisons exploitables et les ancres. Si le bilan est exploitable sans déficit mesuré, construire pour le 10 km avec une liste vide. Sinon demander le repère décisif."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [],
+      "firstBlock": "Le profil partagé ne contient pas de limiteur prioritaire.",
+      "expectedDecision": "evaluate_diagnostic",
+      "criterion": "Vérifier le bilan du 10 km, les comparaisons exploitables et les ancres. Si le bilan est exploitable sans déficit mesuré, construire pour le 10 km avec une liste vide. Sinon demander le repère décisif."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "firstBlock": "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Rang 1 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Rang 1 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Rang 1 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+      "expectedDecision": "investigate_construction",
+      "criterion": "Rechercher une prescription V3 dans les bornes avec les mêmes données. Si la recherche échoue, signaler sa limite. Une incompatibilité demande une contrainte indépendante des fiches essayées."
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "finisher",
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [],
+      "firstBlock": "Le profil partagé ne contient pas de limiteur prioritaire.",
+      "expectedDecision": "evaluate_diagnostic",
+      "criterion": "Vérifier le bilan du 10 km, les comparaisons exploitables et les ancres. Si le bilan est exploitable sans déficit mesuré, construire pour le 10 km avec une liste vide. Sinon demander le repère décisif."
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "finisher",
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [],
+      "firstBlock": "Le profil partagé ne contient pas de limiteur prioritaire.",
+      "expectedDecision": "evaluate_diagnostic",
+      "criterion": "Vérifier le bilan du 10 km, les comparaisons exploitables et les ancres. Si le bilan est exploitable sans déficit mesuré, construire pour le 10 km avec une liste vide. Sinon demander le repère décisif."
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "limiters": [],
+      "firstBlock": "Le profil partagé ne contient pas de limiteur prioritaire.",
+      "expectedDecision": "evaluate_diagnostic",
+      "criterion": "Vérifier le bilan du 10 km, les comparaisons exploitables et les ancres. Si le bilan est exploitable sans déficit mesuré, construire pour le 10 km avec une liste vide. Sinon demander le repère décisif."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "finisher",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "limiters": [
+        "VLamax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "age_group",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "competitor",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "elite",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "world_class",
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "firstBlock": "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines.",
+      "expectedDecision": "missing_data",
+      "criterion": "Reprendre le volume hebdomadaire et la durée longue tolérée si documentés pour cet athlète. Demander les repères absents du formulaire, y compris le plafond choisi par le coach."
+    }
+  ]
+}

@@ -1,0 +1,654 @@
+{
+  "scenario": "Synthetic 16-week marathon, 187-minute target. Training minutes exclude races.",
+  "command": "DET_MARATHON_REVIEW_JSON=release/det/evidence/marathon-3h07-coach.json node_modules/.bin/vitest run src/lib/det/__tests__/normalPlanSportingQuality.test.ts",
+  "cases": [
+    {
+      "id": "reference",
+      "thresholdSecPerKm": 240,
+      "raceMinutes": 187,
+      "ambition": "competitor",
+      "effectiveAmbition": "competitor",
+      "level": "trained",
+      "availableHours": 8,
+      "recentHours": null,
+      "recentWeeks": null,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "weeks": [
+        {
+          "week": 1,
+          "type": "load",
+          "totalExerciseMinutes": 343,
+          "runMinutes": 281,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 95,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "totalExerciseMinutes": 347,
+          "runMinutes": 285,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 100,
+          "longRunSource": "V3P_RUN_511"
+        },
+        {
+          "week": 3,
+          "type": "recovery",
+          "totalExerciseMinutes": 211,
+          "runMinutes": 180,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 75,
+          "longRunSource": "V3P_RUN_574"
+        },
+        {
+          "week": 4,
+          "type": "load",
+          "totalExerciseMinutes": 357,
+          "runMinutes": 295,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 5,
+          "type": "load",
+          "totalExerciseMinutes": 378,
+          "runMinutes": 298,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 6,
+          "type": "recovery",
+          "totalExerciseMinutes": 231,
+          "runMinutes": 191,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 7,
+          "type": "load",
+          "totalExerciseMinutes": 415,
+          "runMinutes": 335,
+          "marathonPaceMinutes": 30,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_119"
+        },
+        {
+          "week": 8,
+          "type": "load",
+          "totalExerciseMinutes": 440,
+          "runMinutes": 360,
+          "marathonPaceMinutes": 45,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 9,
+          "type": "recovery",
+          "totalExerciseMinutes": 259,
+          "runMinutes": 219,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 10,
+          "type": "load",
+          "totalExerciseMinutes": 480,
+          "runMinutes": 400,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 132,
+          "longRunSource": "V3P_RUN_038"
+        },
+        {
+          "week": 11,
+          "type": "load",
+          "totalExerciseMinutes": 477,
+          "runMinutes": 397,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 145,
+          "longRunSource": "V3P_RUN_084"
+        },
+        {
+          "week": 12,
+          "type": "recovery",
+          "totalExerciseMinutes": 291.5,
+          "runMinutes": 251.5,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 101.5,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 13,
+          "type": "load",
+          "totalExerciseMinutes": 478.5,
+          "runMinutes": 434.5,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 159.5,
+          "longRunSource": "V3P_RUN_085"
+        },
+        {
+          "week": 14,
+          "type": "taper",
+          "totalExerciseMinutes": 267,
+          "runMinutes": 243,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 15,
+          "type": "taper",
+          "totalExerciseMinutes": 226,
+          "runMinutes": 202,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 16,
+          "type": "race",
+          "totalExerciseMinutes": 126,
+          "runMinutes": 114,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        }
+      ]
+    },
+    {
+      "id": "light",
+      "thresholdSecPerKm": 240,
+      "raceMinutes": 187,
+      "ambition": "competitor",
+      "effectiveAmbition": "age_group",
+      "level": "light",
+      "availableHours": 8,
+      "recentHours": 5,
+      "recentWeeks": 4,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "weeks": [
+        {
+          "week": 1,
+          "type": "load",
+          "totalExerciseMinutes": 235.5,
+          "runMinutes": 214.5,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 80,
+          "longRunSource": "V3P_RUN_039"
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "totalExerciseMinutes": 235,
+          "runMinutes": 214,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 88,
+          "longRunSource": "V3P_RUN_040"
+        },
+        {
+          "week": 3,
+          "type": "recovery",
+          "totalExerciseMinutes": 137,
+          "runMinutes": 116,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 60,
+          "longRunSource": "V3P_RUN_575"
+        },
+        {
+          "week": 4,
+          "type": "load",
+          "totalExerciseMinutes": 242,
+          "runMinutes": 221,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 95,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 5,
+          "type": "load",
+          "totalExerciseMinutes": 247,
+          "runMinutes": 226,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 100,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 6,
+          "type": "recovery",
+          "totalExerciseMinutes": 157,
+          "runMinutes": 130,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 70,
+          "longRunSource": "V3P_RUN_589"
+        },
+        {
+          "week": 7,
+          "type": "load",
+          "totalExerciseMinutes": 245,
+          "runMinutes": 218,
+          "marathonPaceMinutes": 6,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 8,
+          "type": "load",
+          "totalExerciseMinutes": 254,
+          "runMinutes": 227,
+          "marathonPaceMinutes": 6,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 9,
+          "type": "recovery",
+          "totalExerciseMinutes": 171,
+          "runMinutes": 144,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_039"
+        },
+        {
+          "week": 10,
+          "type": "load",
+          "totalExerciseMinutes": 266,
+          "runMinutes": 239,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 11,
+          "type": "load",
+          "totalExerciseMinutes": 280,
+          "runMinutes": 253,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 12,
+          "type": "recovery",
+          "totalExerciseMinutes": 178,
+          "runMinutes": 151,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_040"
+        },
+        {
+          "week": 13,
+          "type": "load",
+          "totalExerciseMinutes": 293,
+          "runMinutes": 272,
+          "marathonPaceMinutes": 15,
+          "longRunMinutes": 132,
+          "longRunSource": "V3P_RUN_038"
+        },
+        {
+          "week": 14,
+          "type": "taper",
+          "totalExerciseMinutes": 150,
+          "runMinutes": 141,
+          "marathonPaceMinutes": 4,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 15,
+          "type": "taper",
+          "totalExerciseMinutes": 133,
+          "runMinutes": 124,
+          "marathonPaceMinutes": 4,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 16,
+          "type": "race",
+          "totalExerciseMinutes": 87,
+          "runMinutes": 78,
+          "marathonPaceMinutes": 4,
+          "longRunMinutes": null,
+          "longRunSource": null
+        }
+      ]
+    },
+    {
+      "id": "trained",
+      "thresholdSecPerKm": 240,
+      "raceMinutes": 187,
+      "ambition": "competitor",
+      "effectiveAmbition": "competitor",
+      "level": "trained",
+      "availableHours": 8,
+      "recentHours": 5,
+      "recentWeeks": 4,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "weeks": [
+        {
+          "week": 1,
+          "type": "load",
+          "totalExerciseMinutes": 297,
+          "runMinutes": 235,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 91,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "totalExerciseMinutes": 326,
+          "runMinutes": 264,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 100,
+          "longRunSource": "V3P_RUN_511"
+        },
+        {
+          "week": 3,
+          "type": "recovery",
+          "totalExerciseMinutes": 211,
+          "runMinutes": 180,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 75,
+          "longRunSource": "V3P_RUN_574"
+        },
+        {
+          "week": 4,
+          "type": "load",
+          "totalExerciseMinutes": 358,
+          "runMinutes": 296,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 5,
+          "type": "load",
+          "totalExerciseMinutes": 378,
+          "runMinutes": 298,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 6,
+          "type": "recovery",
+          "totalExerciseMinutes": 231,
+          "runMinutes": 191,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 7,
+          "type": "load",
+          "totalExerciseMinutes": 415,
+          "runMinutes": 335,
+          "marathonPaceMinutes": 30,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_119"
+        },
+        {
+          "week": 8,
+          "type": "load",
+          "totalExerciseMinutes": 440,
+          "runMinutes": 360,
+          "marathonPaceMinutes": 45,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 9,
+          "type": "recovery",
+          "totalExerciseMinutes": 259,
+          "runMinutes": 219,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 10,
+          "type": "load",
+          "totalExerciseMinutes": 480,
+          "runMinutes": 400,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 132,
+          "longRunSource": "V3P_RUN_038"
+        },
+        {
+          "week": 11,
+          "type": "load",
+          "totalExerciseMinutes": 477,
+          "runMinutes": 397,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 145,
+          "longRunSource": "V3P_RUN_084"
+        },
+        {
+          "week": 12,
+          "type": "recovery",
+          "totalExerciseMinutes": 291.5,
+          "runMinutes": 251.5,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 101.5,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 13,
+          "type": "load",
+          "totalExerciseMinutes": 478.5,
+          "runMinutes": 434.5,
+          "marathonPaceMinutes": 60,
+          "longRunMinutes": 159.5,
+          "longRunSource": "V3P_RUN_085"
+        },
+        {
+          "week": 14,
+          "type": "taper",
+          "totalExerciseMinutes": 267,
+          "runMinutes": 243,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 15,
+          "type": "taper",
+          "totalExerciseMinutes": 226,
+          "runMinutes": 202,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 16,
+          "type": "race",
+          "totalExerciseMinutes": 126,
+          "runMinutes": 114,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        }
+      ]
+    },
+    {
+      "id": "limited_availability",
+      "thresholdSecPerKm": 240,
+      "raceMinutes": 187,
+      "ambition": "competitor",
+      "effectiveAmbition": "competitor",
+      "level": "trained",
+      "availableHours": 6,
+      "recentHours": 5,
+      "recentWeeks": 4,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "weeks": [
+        {
+          "week": 1,
+          "type": "load",
+          "totalExerciseMinutes": 259,
+          "runMinutes": 228,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 95,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 2,
+          "type": "load",
+          "totalExerciseMinutes": 272,
+          "runMinutes": 241,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 100,
+          "longRunSource": "V3P_RUN_511"
+        },
+        {
+          "week": 3,
+          "type": "recovery",
+          "totalExerciseMinutes": 166,
+          "runMinutes": 135,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 75,
+          "longRunSource": "V3P_RUN_574"
+        },
+        {
+          "week": 4,
+          "type": "load",
+          "totalExerciseMinutes": 282,
+          "runMinutes": 251,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 5,
+          "type": "load",
+          "totalExerciseMinutes": 293,
+          "runMinutes": 253,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 120,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 6,
+          "type": "recovery",
+          "totalExerciseMinutes": 191,
+          "runMinutes": 151,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 84,
+          "longRunSource": "V3P_RUN_003"
+        },
+        {
+          "week": 7,
+          "type": "load",
+          "totalExerciseMinutes": 305,
+          "runMinutes": 265,
+          "marathonPaceMinutes": 12,
+          "longRunMinutes": 132,
+          "longRunSource": "V3P_RUN_038"
+        },
+        {
+          "week": 8,
+          "type": "load",
+          "totalExerciseMinutes": 331.25,
+          "runMinutes": 291.25,
+          "marathonPaceMinutes": 30,
+          "longRunMinutes": 137,
+          "longRunSource": "V3P_RUN_084"
+        },
+        {
+          "week": 9,
+          "type": "recovery",
+          "totalExerciseMinutes": 212,
+          "runMinutes": 172,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 95,
+          "longRunSource": "V3P_RUN_119"
+        },
+        {
+          "week": 10,
+          "type": "load",
+          "totalExerciseMinutes": 355,
+          "runMinutes": 315,
+          "marathonPaceMinutes": 45,
+          "longRunMinutes": 130,
+          "longRunSource": "V3P_RUN_603"
+        },
+        {
+          "week": 11,
+          "type": "load",
+          "totalExerciseMinutes": 360,
+          "runMinutes": 320,
+          "marathonPaceMinutes": 50,
+          "longRunMinutes": 117,
+          "longRunSource": "V3P_RUN_031"
+        },
+        {
+          "week": 12,
+          "type": "recovery",
+          "totalExerciseMinutes": 200,
+          "runMinutes": 160,
+          "marathonPaceMinutes": 0,
+          "longRunMinutes": 80,
+          "longRunSource": "V3P_RUN_567"
+        },
+        {
+          "week": 13,
+          "type": "load",
+          "totalExerciseMinutes": 358,
+          "runMinutes": 336,
+          "marathonPaceMinutes": 50,
+          "longRunMinutes": 110,
+          "longRunSource": "V3P_RUN_032"
+        },
+        {
+          "week": 14,
+          "type": "taper",
+          "totalExerciseMinutes": 193,
+          "runMinutes": 181,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 15,
+          "type": "taper",
+          "totalExerciseMinutes": 166,
+          "runMinutes": 154,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        },
+        {
+          "week": 16,
+          "type": "race",
+          "totalExerciseMinutes": 98,
+          "runMinutes": 86,
+          "marathonPaceMinutes": 10,
+          "longRunMinutes": null,
+          "longRunSource": null
+        }
+      ]
+    }
+  ]
+}

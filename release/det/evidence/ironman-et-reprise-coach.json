@@ -1,0 +1,319 @@
+{
+  "baseSource": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+  "basis": "Entrées synthétiques du formulaire ordinaire. Référence des 200 configurations DET dans 2026-11-10-reprise.json.",
+  "expectedBeforeCorrection": {
+    "ironmanLight": "Les trois recherches arrêtées en S9 avec le même calendrier 16 semaines, 14 h, 10 séances cardio sont des limites du moteur. Réexaminer les semaines précédentes, les fiches de course et les durées à vélo. Ne lever le refus que si l’horizon, les plafonds de charge, les proportions du triathlon et les priorités passent ensemble.",
+    "longDistanceReturn": "Les 5 configurations Ironman et 5 configurations 70.3 de niveau untrained demandent 50 ou 60 min de vélo en S1. Les seules fiches vélo de reprise vont jusqu’à 30 min. La durée récemment tolérée en continu ne figure pas dans ces entrées, dans leurs valeurs de FTP ou dans le volume hebdomadaire toutes disciplines. Avec la durée fournie, vérifier ce que le calendrier et les sources permettent, puis les rangs du diagnostic."
+  },
+  "ironmanLight": {
+    "weeks": 16,
+    "weeklyAvailableHours": 14,
+    "cardioAppointments": 10,
+    "loadingWeeksBikeAndRunLongMinutes": [
+      [
+        1,
+        80,
+        51
+      ],
+      [
+        2,
+        83,
+        56
+      ],
+      [
+        3,
+        91,
+        61
+      ],
+      [
+        5,
+        100,
+        67
+      ],
+      [
+        6,
+        110,
+        73
+      ],
+      [
+        7,
+        120,
+        80
+      ],
+      [
+        9,
+        130,
+        87
+      ],
+      [
+        10,
+        140,
+        95
+      ],
+      [
+        11,
+        150,
+        100
+      ]
+    ],
+    "longDoseColumns": [
+      "week",
+      "bikeMinutes",
+      "runMinutes"
+    ],
+    "cases": [
+      {
+        "requestedAmbition": "competitor",
+        "effectiveAmbition": "age_group",
+        "rankedLimiters": [
+          "Durabilité",
+          "VLamax",
+          "TTE"
+        ],
+        "knownExerciseMinutesByWeek": [
+          299,
+          326,
+          358,
+          227,
+          393,
+          432,
+          472,
+          305,
+          518,
+          569,
+          613,
+          328.5,
+          355,
+          335,
+          269,
+          219
+        ],
+        "loadSportMinutes": {
+          "swim": 650,
+          "bike": 1879,
+          "run": 1232
+        },
+        "nolioOffline": {
+          "plan": 163,
+          "week9": 11,
+          "singleSession": 1
+        }
+      },
+      {
+        "requestedAmbition": "elite",
+        "effectiveAmbition": "age_group",
+        "rankedLimiters": [
+          "Durabilité",
+          "VLamax",
+          "TTE",
+          "VO2max",
+          "FTP/kg"
+        ],
+        "knownExerciseMinutesByWeek": [
+          299,
+          328,
+          359,
+          227,
+          394,
+          433,
+          476,
+          305,
+          519,
+          569,
+          609,
+          328.5,
+          348,
+          336,
+          265,
+          219
+        ],
+        "loadSportMinutes": {
+          "swim": 650,
+          "bike": 1889,
+          "run": 1228
+        },
+        "nolioOffline": {
+          "plan": 163,
+          "week9": 11,
+          "singleSession": 1
+        }
+      },
+      {
+        "requestedAmbition": "world_class",
+        "effectiveAmbition": "age_group",
+        "rankedLimiters": [
+          "Durabilité",
+          "VLamax",
+          "TTE",
+          "FTP/kg",
+          "VO2max"
+        ],
+        "knownExerciseMinutesByWeek": [
+          299,
+          328,
+          359,
+          227,
+          394,
+          433,
+          476,
+          305,
+          519,
+          569,
+          609,
+          328.5,
+          348,
+          336,
+          265,
+          219
+        ],
+        "loadSportMinutes": {
+          "swim": 650,
+          "bike": 1889,
+          "run": 1228
+        },
+        "nolioOffline": {
+          "plan": 163,
+          "week9": 11,
+          "singleSession": 1
+        }
+      }
+    ],
+    "firstTrainingBrickWeek": 13,
+    "raceReadiness": "Les doses et le premier enchaînement sont affichés au coach dès la S1 pour comparaison avec les efforts de l’athlète et les contraintes de l’épreuve."
+  },
+  "returnWithCyclingTolerance": {
+    "cases": [
+      {
+        "objective": "703",
+        "weeks": 24,
+        "recentWeeklyHours": 3,
+        "availableWeeklyHours": 7,
+        "recentRideMinutes": 50,
+        "firstWeekMinutes": 168,
+        "peakWeeklyMinutes": 301,
+        "lastLoadingLongRideMinutes": 120,
+        "nolioOfflineOperations": 159,
+        "usedAdditionalSources": [
+          "V3P_BIKE_205",
+          "V3P_SWIM_217",
+          "V3P_BIKE_206"
+        ]
+      },
+      {
+        "objective": "703",
+        "weeks": 24,
+        "recentWeeklyHours": 5,
+        "availableWeeklyHours": 7,
+        "recentRideMinutes": 65,
+        "firstWeekMinutes": 168,
+        "peakWeeklyMinutes": 301,
+        "lastLoadingLongRideMinutes": 120,
+        "nolioOfflineOperations": 159,
+        "usedAdditionalSources": [
+          "V3P_BIKE_205",
+          "V3P_BIKE_206",
+          "V3P_SWIM_217"
+        ]
+      },
+      {
+        "objective": "IM",
+        "weeks": 32,
+        "recentWeeklyHours": 6,
+        "availableWeeklyHours": 12,
+        "recentRideMinutes": 90,
+        "firstWeekMinutes": 250,
+        "peakWeeklyMinutes": 381,
+        "lastLoadingLongRideMinutes": 150,
+        "nolioOfflineOperations": 272,
+        "usedAdditionalSources": [
+          "V3P_BIKE_206",
+          "V3P_BIKE_205",
+          "V3P_SWIM_217"
+        ]
+      },
+      {
+        "objective": "IM",
+        "weeks": 36,
+        "recentWeeklyHours": 5,
+        "availableWeeklyHours": 10,
+        "recentRideMinutes": 65,
+        "firstWeekMinutes": 212,
+        "peakWeeklyMinutes": 371.5,
+        "lastLoadingLongRideMinutes": 150,
+        "nolioOfflineOperations": 270,
+        "usedAdditionalSources": [
+          "V3P_BIKE_205",
+          "V3P_BIKE_206",
+          "V3P_SWIM_217"
+        ]
+      }
+    ],
+    "shortCalendarExample": {
+      "objective": "703",
+      "weeks": 12,
+      "recentRideMinutes": 50,
+      "loadingLongAppointments": 7,
+      "maxProgressionPerLoad": 0.1,
+      "reachableByWeek9Minutes": 88.57805,
+      "detCalendarRequiresMinutes": 105,
+      "decision": "engine_limit",
+      "interpretation": "La contradiction vaut pour le calendrier exploré par DET."
+    },
+    "fourRankReturnCases": [
+      {
+        "objective": "703",
+        "weeks": 24,
+        "hours": 7,
+        "sessions": 6,
+        "recentHours": 3,
+        "ride": 50,
+        "priorities": [
+          "VLamax",
+          "FatMax",
+          "FTP/kg",
+          "VO2max"
+        ],
+        "decision": {
+          "kind": "engine_limit",
+          "fields": []
+        },
+        "reasons": [
+          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+        ]
+      },
+      {
+        "objective": "IM",
+        "weeks": 36,
+        "hours": 10,
+        "sessions": 7,
+        "recentHours": 3,
+        "ride": 50,
+        "priorities": [
+          "VLamax",
+          "FatMax",
+          "FTP/kg",
+          "VO2max"
+        ],
+        "decision": {
+          "kind": "engine_limit",
+          "fields": []
+        },
+        "reasons": [
+          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+        ]
+      }
+    ],
+    "raceReadiness": "Dans les reprises de 24 et 36 semaines reproduites, la compétition est la seule activité triathlon combinée. La note coach indique l’absence de séance vélo-course avant épreuve. Les séances de piscine au temps et la capacité à nager la distance en eau libre sont des observations différentes."
+  },
+  "verification": {
+    "tests": [
+      "src/lib/det/__tests__/ironmanProgression.test.ts",
+      "src/lib/det/__tests__/returnTriathlon.test.ts"
+    ],
+    "delivery": "Précontrôle Nolio hors ligne. Le scope complet et les scopes semaine/séance des trois Ironman possèdent les mêmes empreintes de contenu. La réception sur montre et la revue terrain exigent des observations externes."
+  }
+}

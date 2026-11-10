@@ -163,3 +163,29 @@ for(const [i,cue] of ['Chercher un alignement confortable sans accélérer.',
  w.methodology='Un cycle comprend la nage et le repos au mur. Durée totale 11 à 17 minutes. Ne pas déduire une allure de CSS, ni une capacité à nager de la seule catégorie de niveau.';
  timedSwimSources.push(w);
 }
+
+// Two short pool appointments topped out at 34 minutes combined on the
+// 24-week half-distance return. Progress an established short swim without
+// converting CSS to an unmeasured easy pace or assuming open-water competence.
+export const returnSwimProgressionId='V3P_SWIM_217';
+const shortSwim=timedSwimSources.find(source=>source.id==='V3P_SWIM_216')!;
+const returnSwim=structuredClone(shortSwim);
+returnSwim.id=returnSwimProgressionId;
+returnSwim.version='3.6-return-pool-candidate';
+returnSwim.title='Reprise en bassin · maintenir la nage facile';
+returnSwim.focus='Enchaîner des fractions faciles en gardant une respiration confortable et une technique stable.';
+returnSwim.methodology='Après des séances courtes bien tolérées en bassin surveillé, nager deux minutes à allure libre puis récupérer une minute au mur. Réduire le nombre de fractions si la technique se dégrade.';
+returnSwim.prerequisites=[...shortSwim.prerequisites,'Les premières séances de 15 minutes en bassin ont été tolérées ; vérifier le ressenti avant de prolonger.'];
+returnSwim.prescription.admissibility.prerequisites=[...returnSwim.prerequisites];
+returnSwim.prescription.physiologicalIntent.statement=returnSwim.focus;
+const swimRepeat=returnSwim.blocks[1];
+if(swimRepeat.kind!=='repeat'||swimRepeat.steps[0].kind!=='time')throw Error('return_swim_parent_shape');
+swimRepeat.count={min:4,base:5,max:7};
+swimRepeat.steps[0].seconds=fixed(120);
+swimRepeat.steps[0].label='Nager facilement pendant deux minutes avec une respiration confortable.';
+returnSwim.prescription.parameters=returnSwim.prescription.parameters.map(parameter=>{
+  if(parameter.path==='1.count')return {...parameter,...swimRepeat.count};
+  if(parameter.path==='1.0.seconds')return {...parameter,...fixed(120)};
+  return parameter;
+});
+timedSwimSources.push(returnSwim);

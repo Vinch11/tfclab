@@ -81,3 +81,17 @@ for(const c of alternations){
   assert.deepEqual(c.blocks[1].steps[1].rpeRange,{min:1,max:2});
 }
 console.log(JSON.stringify({case:'return-semi',weeks:comeback.weeks.length,alternations:alternations.length}));
+
+const balanced = JSON.parse(readFileSync(from('./ordinary-balanced-10K.json'),'utf8'));
+const neutral = await run({action:'generate',input:balanced});
+assert.deepEqual(neutral._detSourceProposal.limiterOrder,[]);
+assert.equal(neutral.weeks.length,8);
+const neutralFull = await run({action:'preview',plan:neutral,scope:{kind:'all'}});
+assert.equal(neutralFull.precheck.complete,true);
+const neutralWeek = await run({action:'preview',plan:neutral,scope:{kind:'weeks',from:1,to:1}});
+assert.equal(neutralWeek.precheck.complete,true);
+assert(neutralWeek.ops.length>0 && neutralWeek.ops.length<neutralFull.ops.length);
+const neutralSession = await run({action:'preview',plan:neutral,scope:{kind:'sessions',keys:[neutralWeek.ops[0].sessionKey]}});
+assert.equal(neutralSession.precheck.complete,true);
+assert.equal(neutralSession.ops[0].bodySha256,neutralWeek.ops[0].bodySha256);
+console.log(JSON.stringify({case:'balanced-10K',weeks:8,operations:[neutralFull.ops.length,neutralWeek.ops.length,neutralSession.ops.length]}));

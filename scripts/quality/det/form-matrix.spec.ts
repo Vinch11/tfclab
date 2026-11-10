@@ -1,9 +1,10 @@
+import {previewDetGuidance} from '@/lib/det/nolioPreview';
 import {preparePlan} from '../../../supabase/functions/_shared/nolioV2/planDryRun';
 import {sessionsFromPlanJson} from '../../../supabase/functions/_shared/nolioV2/planSessions';
 import {raceIdentityOf} from '../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { appendFileSync, readFileSync, writeFileSync } from 'node:fs';
-import { buildAppPlanConfig, computeAppAthleteContext, type AppPlanFormState } from '@/lib/plan/appPlanningPipeline';
+import {inputFor,type Scenario} from './form-fixture';
 import { DetRefusal, detSupportsObjective, generateDetPlanFromPageInput } from '@/lib/plan/detEngineRun';
 import { auditV3Catalogue } from '../../library-v3/catalogueRuntime';
 import { v3ExtendedCatalogue } from '../../library-v3/supplementalCatalogue';
@@ -12,15 +13,6 @@ import { AMBITION_LEVELS_ORDERED } from '@/types/ambitionLevel';
 import type { V3PlanProposal } from '@/lib/det/appPlanningV3Proposal';
 
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
-
-interface Scenario {
-  objective: string;
-  weeks: number;
-  hours: number;
-  sessions?: number;
-  distanceKm?: number;
-  elevationM?: number;
-}
 
 // One reference configuration per objective. Change one form dimension at a time.
 const scenarios: Scenario[] = [
@@ -70,34 +62,6 @@ it('covers the objectives offered by the normal coach form', () => {
   if (subset) expect(selected.map(s => s.objective).sort()).toEqual([...subset].sort());
 });
 
-function inputFor(s: Scenario, trainingLevel: string, ambition: string, coachOrder: string[] = [], history: Partial<Pick<AppPlanFormState,'recentWeeklyHours' | 'recentWeeksCount'>> = {}, returnProfile=false) {
-  const tri = ['703','IM','Sprint','Olympic'].includes(s.objective);
-  const dedicated=s.objective.startsWith('Cyclisme')||s.objective.startsWith('Natation');
-  const id = 'SYNTHETIC_DET_' + s.objective;
-  const athlete = { id, name: 'Synthetic', objectif: dedicated?'703':s.objective, birth_date: '1988-03-11',
-    sex: 'M', active_snapshot_id: 'SYNTHETIC_SNAPSHOT', refs: {} };
-  const snapshot = { id: athlete.active_snapshot_id, athlete_id: id, date: '2026-11-04', source: 'manual',
-    sport_main: tri ? 'tri' : s.objective.startsWith('Cyclisme') || s.objective==='CLM' ? 'bike' : s.objective.startsWith('Natation') ? 'swim' : 'run', vma: 18, ftp: 300, css: 95, pace_threshold_sec_per_km: 240,
-    tss_7d: 380, fatigue_state: 'ok', vo2max: 58, weight_kg: 72, fc_max: 188,
-    ...(s.objective === '10K' && !returnProfile ? { tte_observed_min_run: 25 } : {}),
-    ...(returnProfile?{vma:13,ftp:170,pace_threshold_sec_per_km:380,tss_7d:90,vo2max:43,
-      vlamax:0.65,vlamax_run:0.65,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC LAB'}:{}) };
-  const context = computeAppAthleteContext(athlete, s.objective, ambition, { snapshots: [snapshot], tests: [], checkins: [], programmeTarget:s.objective==='Cyclisme FTP'?320:s.objective==='Natation 1500m'?90:undefined });
-  if (!context) throw Error('Synthetic snapshot did not produce an app diagnostic');
-  const form: AppPlanFormState = {
-    objective: s.objective, ambition, trainingLevel, planStartDate: new Date(2026, 10, 9),
-    raceName: 'Synthetic ' + s.objective, raceDate: new Date(Date.UTC(2026, 10, 9 + s.weeks*7 - 1)).toISOString().slice(0, 10),
-    raceFormat: 'continuous', raceGoals: [], trailDistanceKm: String(s.distanceKm ?? ''), trailElevationM: String(s.elevationM ?? ''),
-    trailTargetTimeH: '', trailMaxAltitudeM: '', weeksAvailable: s.weeks, weeklyHours: String(s.hours),
-    sessionsPerWeek: String(s.sessions ?? ''), maxSessionsPerDay: '2', strengthSessionsPerWeek: s.objective === 'Marathon' ? '2' : '1',
-    deloadCadence: 'auto', constraints: '', terrainAvailability: 'auto', lockAmbition: false,
-    crossTrainingVelo: false, crossTrainingNatation: false, chronicWeeklyHours: '', recentWeeklyHours: '', recentWeeksCount: '',
-    maxDoubleDaysPerWeek: '', coachLimiterOrder: coachOrder, currentAthleteId: id, ...history,
-  };
-  const config = buildAppPlanConfig(context.diagnostic, form);
-  return { athleteId: id, config, athlete: context.data, diagnostic: context.diagnostic, pageLimiterOrder: coachOrder };
-}
-
 function emit(row: object) {
   const json = JSON.stringify(row);
   if (output) appendFileSync(output, json + '\n');
@@ -120,13 +84,17 @@ for (const scenario of selected) {
           writeFileSync(process.env.DET_INTERVAL_FIXTURES+'/ordinary-high-marathon.json',JSON.stringify(input,null,2)+'\n');
         const meta = input.config.ambitionMeta;
         const diagnostic = { effectiveLevel: meta?.trainingLevel, levelSource: meta?.trainingLevelSource, effectiveAmbition: meta?.effective,
-          limiters: input.config.identifiedLimitersRaw ?? [] };
+          limiters: input.config.identifiedLimitersRaw ?? [],
+          inputs:{recentWeeklyHours:input.config.loadHistory?.recentWeeklyHours??null,
+            snapshot:input.diagnostic._rawInput.snapshotDate,observedRunTte:input.diagnostic._rawInput.tteObservedMinRun??null,
+            peakLongRunMinutes:null,recentLongRunMinutes:null,recentLongRideMinutes:null,diagnosticInsufficient:input.diagnostic.limiter.insufficientData,
+            measuredRunPace:input.athlete.paceThresholdSecPerKm??null,sessions:input.config.sessionsPerWeek??null}};
         let plan;
         try {
           plan = await generateDetPlanFromPageInput(input);
         } catch (error) {
           if (!(error instanceof DetRefusal)||expectedComplete.has([scenario.objective,level,ambition].join('/'))) throw error;
-          emit({ ...row, ...diagnostic, status: 'refused', reasons: error.reasons });
+          emit({ ...row, ...diagnostic, status: 'refused', decision: error.decision, reasons: error.reasons });
           return;
         }
         const p = (plan as typeof plan & { _detSourceProposal: V3PlanProposal })._detSourceProposal;
@@ -142,8 +110,17 @@ for (const scenario of selected) {
         const sessions = p.weeks.flatMap(w => w.days.flatMap(d => d.sessions));
         const components = sessions.flatMap(s => s.components);
         const primary = p.checks.filter(c => c.code === 'primary_dose_coverage' && c.status === 'passed');
-        emit({ ...row, ...diagnostic, status: 'assembled', activities: sessions.length,
-          uniqueSources: new Set(components.map(c => c.sourceId)).size, loadWeeks: p.weeks.filter(w => w.weekType === 'load').length,
+        const receipt=await previewDetGuidance(plan);
+        const unresolved=receipt.precheck.rows.filter(r=>r.status==='refused');
+        const exportCheck={complete:receipt.precheck.complete,operations:receipt.ops.length,
+          problems:receipt.precheck.planProblems,refusals:[...new Set(unresolved.map(r=>r.reason))]};
+        const doseSummary={peakExerciseMinutes:Math.max(...p.weeks.map(w=>w.knownMinutes)),
+          byWeek:p.weeks.map(w=>w.knownMinutes),rankedDoseWeeks:[...new Set(p.checks.filter(c=>c.code==='ranked_limiter_work').map(c=>c.week))].length,
+          deferred:p.checks.filter(c=>c.code==='ranked_limiter_deferred').map(c=>({week:c.week,message:c.message}))};
+        const blockedWeeks=p.weeks.filter(w=>w.knownMinutes>scenario.hours*60+1e-7).map(w=>w.week);
+        expect(blockedWeeks).toEqual([]);
+        emit({ ...row, ...diagnostic, status: 'assembled', doseSummary, exportCheck, activities: sessions.length,
+          uniqueSources: new Set(components.map(c => c.sourceId)).size, sourceIds: [...new Set(components.map(c => c.sourceId))].sort(), loadWeeks: p.weeks.filter(w => w.weekType === 'load').length,
           weeksWithPrimaryDoseCheck: new Set(primary.map(c => c.week)).size,
           weeksWithTrailDose: p.checks.filter(c => c.code === 'trail_primary_dose' && c.status === 'passed').length,
           weeksWithTriComponentDose: p.checks.filter(c => c.code === 'tri_primary_component_dose' && c.status === 'passed').length,
@@ -218,6 +195,29 @@ if (selected.some(s => s.objective === '703')) {
     const changedWeeks=changed.weeks.flatMap((w,i)=>JSON.stringify(w)!==JSON.stringify(original.weeks[i])?[i+1]:[]);
     expect(changedWeeks.length).toBeGreaterThan(0);
     process.stdout.write('RANKED_COACH_BLOCKS '+JSON.stringify({original:original.order,changed:changed.order,changedWeeks})+'\n');
+  },120000);
+  it('retains a verified prescription or a dated deferral for the last coach priority and tests its permutation', async()=>{
+    const scenario={...scenarios.find(s=>s.objective==='703')!,weeks:24};
+    const order=inputFor(scenario,'trained','elite').config.identifiedLimitersRaw!;
+    expect(order.length).toBeGreaterThanOrEqual(4);
+    const swapped=[...order.slice(0,-2),order.at(-1)!,order.at(-2)!];
+    const read=async(labels:string[])=>{
+      const plan=await generateDetPlanFromPageInput(inputFor(scenario,'trained','elite',labels));
+      const p=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+      for(const [rank,metric] of labels.entries()){
+        const rows=p.checks.filter(c=>['ranked_limiter_deferred','ranked_limiter_work'].includes(c.code)&&c.message.startsWith('Rang '+(rank+1)+' · '+metric+' '));
+        expect(rows.length).toBeGreaterThan(0);
+        for(const item of rows) {
+          expect(item.week).toBeGreaterThan(0);
+          expect(plan.weeks[item.week!-1].coachNotes).toContain(item.message);
+        }
+      }
+      return p.weeks.map(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components.map(c=>[c.sourceId,c.blocks]))));
+    };
+    const first=await read(order),second=await read(swapped);
+    const changedWeeks=first.flatMap((week,i)=>JSON.stringify(week)!==JSON.stringify(second[i])?[i+1]:[]);
+    expect(changedWeeks.length).toBeGreaterThan(0);
+    process.stdout.write('LAST_RANK_BLOCKS '+JSON.stringify({order,swapped,changedWeeks})+'\n');
   },120000);
   it('changes prescribed sessions when the coach promotes another diagnosed 70.3 limiter', async () => {
     const half = scenarios.find(s => s.objective === '703')!;

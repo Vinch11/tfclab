@@ -30,14 +30,16 @@ export async function runDet(job, signal) {
     return await new Promise((resolve,reject)=>{
       const stop=()=>reject(new DOMException('Génération annulée.','AbortError'));
       const clean=()=>{clearTimeout(timeout);signal?.removeEventListener('abort',onAbort);};
-      const timeout=setTimeout(()=>{clean();reject(Error('Délai de calcul DET dépassé.'));},180000);
+      const timeout=setTimeout(()=>{clean();reject(Error('Limite du moteur. Le délai de calcul DET est dépassé. La faisabilité reste indéterminée.'));},180000);
       const onAbort=()=>{clean();stop();};
       signal?.addEventListener('abort',onAbort,{once:true});
       worker.onerror=e=>{clean();reject(Error(e.message||'Chargement du moteur DET impossible.'));};
       worker.onmessageerror=()=>{clean();reject(Error('Réponse DET illisible.'));};
       worker.onmessage=({data})=>{
         clean();
-        if(!data.ok || data.version!==version)reject(Error(data.error||'Version DET incohérente.'));
+        if(data.version && data.version!==version)reject(Error('Version DET incohérente.'));
+        else if(!data.ok)reject(Object.assign(Error(data.error||'Réponse DET illisible.'),{decision:data.decision}));
+        else if(data.version!==version)reject(Error('Version DET incohérente.'));
         else resolve(data.value);
       };
       try {worker.postMessage(job);}catch(error){clean();reject(error);}
