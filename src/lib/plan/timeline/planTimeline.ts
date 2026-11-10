@@ -194,7 +194,28 @@ export function renderPlanTimelineSVG(
   {
     const [y, h] = rows.chantier;
     let i = 0;
-    if (!ch.length) o.push(`<text x="${labelW + 4}" y="${y + h / 2 + 4}" font-size="${fs - 1}" fill="${P.muted}">Aucun chantier déclaré dans le récapitulatif stratégique du plan</text>`);
+    if (!ch.length) {
+      // Repli : chantier lu dans le thème de chaque semaine (« Build - Charge 2 : Densification Seuil & SFR »).
+      const themes = plan.weeks.slice().sort((p1, p2) => p1.weekNumber - p2.weekNumber).map((wk) => {
+        const t = (wk.theme || "").trim();
+        const k = t.indexOf(":");
+        return (k >= 0 ? t.slice(k + 1) : "").trim();
+      });
+      let a = 0;
+      let any = false;
+      while (a < n) {
+        let b = a;
+        while (b + 1 < n && themes[b + 1] === themes[a]) b++;
+        if (themes[a]) {
+          any = true;
+          const x = xOf(weeks[a].weekNumber) + 1, w = (b - a + 1) * colW - 2;
+          o.push(`<g><title>Chantier ${a === b ? `S${weeks[a].weekNumber}` : `S${weeks[a].weekNumber}–S${weeks[b].weekNumber}`} : ${esc(themes[a])}</title><rect x="${x}" y="${y + 3}" width="${w}" height="${h - 6}" rx="6" fill="${P.recovery}" opacity="${weeks[a].isRecovery || weeks[a].isTaper ? 0.4 : 0.85}"/>`);
+          o.push(`<text x="${x + 5}" y="${y + h / 2 + 4}" font-size="${fs - 2}" font-weight="600" fill="${P.bg === "transparent" ? "hsl(var(--primary-foreground))" : "#FFFFFF"}">${esc(clip(themes[a], w - 8, fs - 2))}</text></g>`);
+        }
+        a = b + 1;
+      }
+      if (!any) o.push(`<text x="${labelW + 4}" y="${y + h / 2 + 4}" font-size="${fs - 1}" fill="${P.muted}">Aucun chantier identifiable dans ce plan</text>`);
+    }
     while (ch.length && i < n) {
       const top = active[i][0];
       let j = i;
