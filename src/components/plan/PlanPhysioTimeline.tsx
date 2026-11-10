@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { renderPlanTimelineSVG, timelineLegendItems, type TimelinePalette, type TimelinePhaseRange } from "@/lib/plan/timeline/planTimeline";
+import { renderPlanTimelineSVG, type TimelinePalette, type TimelinePhaseRange } from "@/lib/plan/timeline/planTimeline";
 
 const v = (t: string, a = 1) => (a === 1 ? `hsl(var(--${t}))` : `hsl(var(--${t}) / ${a})`);
 const APP_PALETTE: TimelinePalette = {
@@ -10,25 +10,15 @@ const APP_PALETTE: TimelinePalette = {
   phases: [v("primary", 0.12), v("success", 0.14), v("warning", 0.16), v("destructive", 0.12), v("accent", 0.5), v("muted")],
 };
 
-/** Contenu de la « Timeline de la périodisation » (phases + semaines + intensités). */
-export function PlanPhysioTimeline({ plan, phases, displayPhase }: { plan: ParsedPlan; phases?: TimelinePhaseRange[]; displayPhase?: (p: string) => string }) {
-  const svg = useMemo(() => renderPlanTimelineSVG(plan, { palette: APP_PALETTE, phases, displayPhase }), [plan, phases, displayPhase]);
+/** Contenu de la « Timeline de la périodisation » : phases datées, chantier de la semaine, courbe de charge. */
+export function PlanPhysioTimeline({ plan, phases, displayPhase, startDate }: { plan: ParsedPlan; phases?: TimelinePhaseRange[]; displayPhase?: (p: string) => string; startDate?: Date }) {
+  const svg = useMemo(() => renderPlanTimelineSVG(plan, { palette: APP_PALETTE, phases, displayPhase, startDate }), [plan, phases, displayPhase, startDate]);
   if (!svg) return null;
   return (
     <div className="space-y-2">
       <div className="overflow-x-auto pb-1" dangerouslySetInnerHTML={{ __html: svg }} />
-      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-foreground/80">
-        {timelineLegendItems(APP_PALETTE).map((l) => (
-          <span key={l.label} className="inline-flex items-center gap-1.5">
-            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: l.color }} />{l.label}
-          </span>
-        ))}
-        <span>🏁 course</span>
-        <span className="text-destructive">● séance clé</span>
-        <span className="text-primary">allégée = semaine de récupération</span>
-      </div>
       <p className="text-xs text-muted-foreground">
-        Bandes violettes = chantiers (limiteurs travaillés, #1 = priorité) sur leurs semaines. Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps dans chaque zone d'intensité. Survolez une semaine pour le détail.
+        Chaque colonne = une semaine. <b className="text-foreground">Chantier</b> = limiteur prioritaire travaillé (« + n » : autres entretenus). <b className="text-foreground">Charge</b> = volume prévu : la courbe monte, redescend sur <span className="font-semibold text-primary">allège</span> (récupération) et <span className="font-semibold text-warning">affûte</span> (avant course). Survolez pour le détail.
       </p>
     </div>
   );

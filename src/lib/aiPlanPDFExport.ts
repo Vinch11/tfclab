@@ -658,7 +658,7 @@ function buildPlanHTML(
       </div>
     `).join("")}
   </div>` : ""}
-  ${renderPlanTimelineHTML(plan, (p) => displayPhase(p, phaseLabelMap))}
+  ${renderPlanTimelineHTML(plan, (p) => displayPhase(p, phaseLabelMap), startDate ? computeWeekStartDate(startDate, 1) : undefined)}
   <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
   ${weekRows}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">

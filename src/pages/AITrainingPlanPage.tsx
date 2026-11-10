@@ -4551,6 +4551,7 @@ export default function AITrainingPlanPage() {
 
                       <AIPlanBenchmark
                         plan={parsedPlan}
+                        planStartDate={planStartDate}
                         objective={objective}
                         ambition={ambition}
                         ambitionEffective={athleteContext ? buildConfigWithCoachOverrides(athleteContext.diagnostic)?.ambitionMeta?.effective : undefined}

@@ -15,6 +15,7 @@ export interface TimelineWeek {
   domains: Record<TimelineDomain, number>; // minutes
   keySessions: number;
   isRecovery: boolean;
+  isTaper: boolean;
   isRace: boolean;
 }
 
@@ -58,6 +59,7 @@ export function buildPlanTimeline(plan: ParsedPlan): TimelineWeek[] {
       domains,
       keySessions: keys,
       isRecovery: RECOVERY_RE.test(`${w.theme} ${w.phase}`),
+      isTaper: /(affûtage|affutage|taper|pré-course|pre-race)/i.test(`${w.theme} ${w.phase}`),
       isRace: race,
     };
   });
@@ -122,81 +124,128 @@ export function buildPhaseSegments(weeks: TimelineWeek[], ranges?: TimelinePhase
 const fmtVol = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${m % 60 >= 5 ? String(Math.round(m % 60)).padStart(2, "0") : ""}` : `${Math.round(m)}'`);
 const clip = (t: string, px: number, fs: number) => { const max = Math.floor(px / (fs * 0.56)); return t.length <= max ? t : max <= 2 ? "" : t.slice(0, max - 1) + "…"; };
 
+const MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const addDays = (d: Date, n: number) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const dLong = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+const dShort = (d: Date) => `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+interface Chantier { rank: number; name: string; block: string; keySessions: string; start: number; end: number }
+function readChantiers(plan: ParsedPlan): Chantier[] {
+  return (plan.strategicRecap?.limiters ?? []).map((l): Chantier | null => {
+    const nums = (l.weeks || "").match(/\d+/g)?.map(Number) ?? [];
+    return nums.length ? { rank: l.rank, name: l.name, block: l.block, keySessions: l.keySessions, start: nums[0], end: Math.max(nums[nums.length > 1 ? 1 : 0], nums[0]) } : null;
+  }).filter((x): x is Chantier => !!x).sort((a, b) => a.rank - b.rank);
+}
+
 /**
- * SVG lisible : bande de phases (nom + semaines), barres hebdo empilées par
- * domaine avec le volume écrit au-dessus, repères course / semaine allégée,
- * numéros de semaine. Largeur en pixels réels (colonne ≥ 34 px) : le texte
- * n'est jamais réduit ; à l'écran le conteneur défile horizontalement.
+ * Frise à lignes nommées, lisible par coach et athlète :
+ * Phases (avec dates) · Chantier de la semaine · Charge (courbe) · Repères (allège / affûte / course) · Semaines.
+ * Pixels réels (colonne 44 px) à l'écran ; mode `fluid` pour l'impression.
  */
 export function renderPlanTimelineSVG(
   plan: ParsedPlan,
-  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean } = {},
+  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date } = {},
 ): string {
   const P = opts.palette ?? PRINT_TIMELINE_PALETTE;
   const weeks = buildPlanTimeline(plan);
   if (weeks.length === 0) return "";
   const n = weeks.length;
-  const colW = opts.fluid ? Math.max(20, 960 / n) : 38;
-  const chantiers = (plan.strategicRecap?.limiters ?? []).map((l) => {
-    const nums = (l.weeks || "").match(/\d+/g)?.map(Number) ?? [];
-    return nums.length ? { ...l, start: nums[0], end: Math.max(nums[nums.length > 1 ? 1 : 0], nums[0]) } : null;
-  }).filter((x): x is NonNullable<typeof x> => !!x).sort((a, b) => a.rank - b.rank);
-  const laneH = 26, chTop = 4 + 40 + 8 + (chantiers.length ? 16 : 0);
-  const padL = 4, phaseTop = 4, phaseH = 40, barTop = chTop + chantiers.length * laneH + 26, barH = 130;
-  const yBase = barTop + barH;
-  const W = padL * 2 + n * colW, H = yBase + 40;
-  const fs = opts.fluid ? 11 : 12;
+  const labelW = 86;
+  const colW = opts.fluid ? Math.max(18, 900 / n) : 46;
+  const fs = opts.fluid ? 10.5 : 12;
+  const W = labelW + n * colW + 4;
+  const rows = { phase: [0, 50], chantier: [56, 32], charge: [96, 120], marks: [222, 22], week: [248, 34] } as const;
+  const H = 286;
   const first = weeks[0].weekNumber;
-  const xOf = (wk: number) => padL + (wk - first) * colW;
-  const maxVol = Math.max(1, ...weeks.map((w) => w.volumeMin ?? 0));
+  const xOf = (wk: number) => labelW + (wk - first) * colW;
+  const wDate = (wk: number) => (opts.startDate ? addDays(opts.startDate, (wk - 1) * 7) : null);
   const o: string[] = [];
   o.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" ${opts.fluid ? 'width="100%"' : `width="${W}" height="${H}"`} role="img" aria-label="Timeline de la périodisation" style="font-family:-apple-system,'Segoe UI',sans-serif;display:block">`);
-  // Phases
+  // Libellés de lignes
+  const rowLabel = (key: keyof typeof rows, t: string, sub?: string) => {
+    const [y, h] = rows[key];
+    o.push(`<text x="0" y="${y + h / 2 + (sub ? -2 : 4)}" font-size="${fs - 1}" font-weight="700" fill="${P.muted}" letter-spacing="0.4">${t}</text>`);
+    if (sub) o.push(`<text x="0" y="${y + h / 2 + 11}" font-size="${fs - 3}" fill="${P.muted}">${sub}</text>`);
+    o.push(`<line x1="${labelW - 6}" x2="${W}" y1="${y + h + 2}" y2="${y + h + 2}" stroke="${P.grid}" stroke-dasharray="2 3"/>`);
+  };
+  rowLabel("phase", "PHASES");
+  rowLabel("chantier", "CHANTIER", "priorité travaillée");
+  rowLabel("charge", "CHARGE", "volume / semaine");
+  rowLabel("marks", "REPÈRES");
+  rowLabel("week", "SEMAINES");
+
+  // 1. Phases avec dates
   buildPhaseSegments(weeks, opts.phases, opts.displayPhase).forEach((seg, i) => {
     const s0 = Math.max(seg.start, first), e0 = Math.min(seg.end, first + n - 1);
     if (e0 < s0) return;
+    const [y, h] = rows.phase;
     const x = xOf(s0) + 1, w = (e0 - s0 + 1) * colW - 2;
-    const span = seg.start === seg.end ? `S${seg.start}` : `S${seg.start}–S${seg.end}`;
-    o.push(`<g><title>${esc(seg.label)} · ${span}${seg.objective ? " — " + esc(seg.objective) : ""}</title><rect x="${x}" y="${phaseTop}" width="${w}" height="${phaseH}" rx="6" fill="${P.phases[i % P.phases.length]}" stroke="${P.grid}"/>`);
-    o.push(`<text x="${x + 7}" y="${phaseTop + 17}" font-size="${fs}" font-weight="700" fill="${P.text}">${esc(clip(seg.label, w - 12, fs))}</text>`);
-    o.push(`<text x="${x + 7}" y="${phaseTop + 32}" font-size="${fs - 1}" fill="${P.muted}">${esc(clip(`${span} · ${seg.end - seg.start + 1} sem`, w - 12, fs - 1))}</text></g>`);
+    const d0 = wDate(seg.start), d1 = wDate(seg.end);
+    const when = d0 && d1 ? `${dLong(d0)} → ${dLong(addDays(d1, 6))}` : seg.start === seg.end ? `S${seg.start}` : `S${seg.start}–S${seg.end}`;
+    const nb = seg.end - seg.start + 1;
+    o.push(`<g><title>${esc(seg.label)} — ${when} (${nb} sem)${seg.objective ? "\n" + esc(seg.objective) : ""}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${P.phases[i % P.phases.length]}" stroke="${P.grid}"/>`);
+    o.push(`<text x="${x + 7}" y="${y + 18}" font-size="${fs}" font-weight="700" fill="${P.text}">${esc(clip(seg.label, w - 12, fs))}</text>`);
+    o.push(`<text x="${x + 7}" y="${y + 34}" font-size="${fs - 1.5}" fill="${P.muted}">${esc(clip(`${when} · ${nb} sem`, w - 12, fs - 1.5))}</text></g>`);
   });
-  // Chantiers (limiteurs travaillés, par ordre de priorité)
-  if (chantiers.length) o.push(`<text x="${padL + 2}" y="${chTop - 4}" font-size="${fs - 1}" font-weight="700" fill="${P.muted}">CHANTIERS (limiteurs travaillés)</text>`);
-  chantiers.forEach((c, i) => {
-    const s0 = Math.max(c.start, first), e0 = Math.min(c.end, first + n - 1);
-    if (e0 < s0) return;
-    const x = xOf(s0) + 1, w = (e0 - s0 + 1) * colW - 2, y = chTop + i * laneH;
-    const span = c.start === c.end ? `S${c.start}` : `S${c.start}–S${c.end}`;
-    o.push(`<g><title>Chantier #${c.rank} : ${esc(c.name)} — ${esc(c.block)} (${span})${c.keySessions ? "\nSéances clés : " + esc(c.keySessions) : ""}${c.status ? "\nStatut : " + esc(c.status) : ""}</title>`);
-    o.push(`<rect x="${padL}" y="${y + 11}" width="${W - padL * 2}" height="1" fill="${P.grid}"/>`);
-    o.push(`<rect x="${x}" y="${y}" width="${w}" height="${laneH - 4}" rx="11" fill="${P.recovery}" opacity="${Math.max(0.35, 0.95 - i * 0.2)}"/>`);
-    o.push(`<text x="${x + 8}" y="${y + 15}" font-size="${fs - 1}" font-weight="600" fill="#FFFFFF">${esc(clip(`#${c.rank} ${c.name} · ${span}`, w - 14, fs - 1))}</text></g>`);
-  });
-  // Ligne de base
-  o.push(`<line x1="${padL}" x2="${W - padL}" y1="${yBase}" y2="${yBase}" stroke="${P.grid}" stroke-width="1"/>`);
-  const order: TimelineDomain[] = ["moderate", "heavy", "severe", "strength", "unclassified"];
+
+  // 2. Chantier prioritaire actif chaque semaine (segments fusionnés)
+  const ch = readChantiers(plan);
+  const active = weeks.map((w) => ch.filter((c) => w.weekNumber >= c.start && w.weekNumber <= c.end));
+  {
+    const [y, h] = rows.chantier;
+    let i = 0;
+    if (!ch.length) o.push(`<text x="${labelW + 4}" y="${y + h / 2 + 4}" font-size="${fs - 1}" fill="${P.muted}">Aucun chantier déclaré dans le récapitulatif stratégique du plan</text>`);
+    while (ch.length && i < n) {
+      const top = active[i][0];
+      let j = i;
+      while (j + 1 < n && (active[j + 1][0]?.rank ?? -1) === (top?.rank ?? -1)) j++;
+      if (top) {
+        const x = xOf(weeks[i].weekNumber) + 1, w = (j - i + 1) * colW - 2;
+        const others = Array.from(new Set(active.slice(i, j + 1).flat().filter((c) => c !== top).map((c) => c.name)));
+        o.push(`<g><title>Chantier prioritaire : ${esc(top.name)} (#${top.rank}) — ${esc(top.block)}${top.keySessions ? "\nSéances clés : " + esc(top.keySessions) : ""}${others.length ? "\nAussi entretenu : " + esc(others.join(", ")) : ""}</title>`);
+        o.push(`<rect x="${x}" y="${y + 3}" width="${w}" height="${h - 6}" rx="${(h - 6) / 2}" fill="${P.recovery}" opacity="${top.rank === 1 ? 1 : 0.7}"/>`);
+        o.push(`<text x="${x + 10}" y="${y + h / 2 + 4}" font-size="${fs - 0.5}" font-weight="600" fill="${P.bg === "transparent" ? "hsl(var(--primary-foreground))" : "#FFFFFF"}">${esc(clip(top.name + (others.length ? ` + ${others.length}` : ""), w - 18, fs - 0.5))}</text></g>`);
+      }
+      i = j + 1;
+    }
+  }
+
+  // 3. Charge : courbe du volume
+  {
+    const [y, h] = rows.charge;
+    const vols = weeks.map((w) => w.volumeMin);
+    const maxVol = Math.max(1, ...vols.map((v) => v ?? 0));
+    const lo = Math.min(...vols.filter((v): v is number => v != null && v > 0), maxVol) * 0.6;
+    const pt = (i: number) => [xOf(weeks[i].weekNumber) + colW / 2, y + h - 6 - Math.max(0, ((vols[i] ?? 0) - lo) / Math.max(1, maxVol - lo)) * (h - 28)] as const;
+    const known = weeks.map((_, i) => i).filter((i) => vols[i] != null);
+    if (known.length) {
+      const line = known.map((i, k) => `${k ? "L" : "M"}${pt(i)[0].toFixed(1)},${pt(i)[1].toFixed(1)}`).join(" ");
+      const [fx] = pt(known[0]), [lx] = pt(known[known.length - 1]);
+      o.push(`<path d="${line} L${lx},${y + h} L${fx},${y + h} Z" fill="${P.moderate}" opacity="0.12"/>`);
+      o.push(`<path d="${line}" fill="none" stroke="${P.moderate}" stroke-width="2.5" stroke-linejoin="round"/>`);
+    }
+    known.forEach((i) => {
+      const w = weeks[i], [cx, cy] = pt(i);
+      const c = w.isRace ? P.race : w.isTaper ? P.heavy : w.isRecovery ? P.recovery : P.moderate;
+      o.push(`<g><title>S${w.weekNumber} : ${fmtVol(vols[i]!)}${w.keySessions ? ` · ${w.keySessions} séance(s) clé(s)` : ""}</title><circle cx="${cx}" cy="${cy}" r="${w.isRecovery || w.isTaper ? 4.5 : 3.5}" fill="${w.isRecovery || w.isTaper ? (P.bg === "transparent" ? "hsl(var(--background))" : "#FFFFFF") : c}" stroke="${c}" stroke-width="2"/>`);
+      if (colW >= 34) o.push(`<text x="${cx}" y="${cy - 8}" font-size="${fs - 2}" text-anchor="middle" fill="${P.text}">${fmtVol(vols[i]!)}</text>`);
+      o.push(`</g>`);
+    });
+  }
+
+  // 4. Repères + 5. Semaines
   weeks.forEach((w) => {
-    const x = xOf(w.weekNumber);
-    const bw = colW * 0.66, bx = x + (colW - bw) / 2, cx = x + colW / 2;
-    const vol = w.volumeMin ?? 0;
-    const hTot = (vol / maxVol) * barH;
-    const total = order.reduce((a, d) => a + w.domains[d], 0);
-    const tip = [`Semaine ${w.weekNumber}${w.isRecovery ? " (allégée)" : ""}${w.isRace ? " — course" : ""}`, `Volume : ${vol ? fmtVol(vol) : "non précisé"}`,
-      ...order.filter((d) => w.domains[d] > 0).map((d) => `${DOMAIN_LABELS[d]} : ${fmtVol(w.domains[d])}`), w.keySessions ? `${w.keySessions} séance(s) clé(s)` : ""].filter(Boolean).join("\n");
-    o.push(`<g><title>${esc(tip)}</title><rect x="${x}" y="${barTop - 22}" width="${colW}" height="${barH + 22}" fill="transparent"/>`);
-    let y = yBase;
-    if (total > 0) for (const d of order) {
-      const h = (w.domains[d] / total) * hTot; if (h <= 0) continue; y -= h;
-      o.push(`<rect x="${bx}" y="${y}" width="${bw}" height="${h}" fill="${P[d]}" opacity="${w.isRecovery ? 0.45 : 1}"/>`);
-    } else if (vol > 0) { y -= hTot; o.push(`<rect x="${bx}" y="${y}" width="${bw}" height="${hTot}" fill="${P.unclassified}"/>`); }
-    const top = Math.min(y, yBase);
-    if (vol > 0 && colW >= 28) o.push(`<text x="${cx}" y="${top - 5}" font-size="${fs - 2}" text-anchor="middle" fill="${P.muted}">${fmtVol(vol)}</text>`);
-    if (w.isRace) o.push(`<text x="${cx}" y="${top - (colW >= 28 ? 19 : 5)}" font-size="${fs + 2}" text-anchor="middle">🏁</text>`);
-    o.push(`<text x="${cx}" y="${yBase + 15}" font-size="${fs - 1}" font-weight="${w.isRace ? 700 : 500}" text-anchor="middle" fill="${P.text}">${n > 30 && colW < 28 && w.weekNumber % 2 === 0 ? "" : "S" + w.weekNumber}</text>`);
-    if (w.isRecovery) o.push(`<text x="${cx}" y="${yBase + 30}" font-size="${fs - 2}" text-anchor="middle" fill="${P.recovery}">allégée</text>`.replace("allégée", colW >= 34 ? "allégée" : "↓"));
-    else if (w.keySessions > 0) o.push(`<text x="${cx}" y="${yBase + 30}" font-size="${fs - 2}" text-anchor="middle" fill="${P.severe}">${"●".repeat(Math.min(3, w.keySessions))}</text>`);
-    o.push(`</g>`);
+    const cx = xOf(w.weekNumber) + colW / 2;
+    const [my, mh] = rows.marks;
+    const mark = w.isRace ? ["🏁 course", P.race] : w.isTaper ? ["affûte", P.heavy] : w.isRecovery ? ["allège", P.recovery] : null;
+    if (mark) o.push(`<text x="${cx}" y="${my + mh / 2 + 4}" font-size="${fs - 2}" font-weight="700" text-anchor="middle" fill="${mark[1]}">${colW >= 34 || mark[0].startsWith("🏁") ? mark[0].replace("🏁 course", colW >= 40 ? "🏁 course" : "🏁") : mark[0][0].toUpperCase()}</text>`);
+    const [wy] = rows.week;
+    const skip = colW < 24 && w.weekNumber % 2 === 0;
+    if (!skip) {
+      o.push(`<text x="${cx}" y="${wy + 14}" font-size="${fs - 1}" font-weight="700" text-anchor="middle" fill="${P.text}">S${w.weekNumber}</text>`);
+      const d = wDate(w.weekNumber);
+      if (d && colW >= 30) o.push(`<text x="${cx}" y="${wy + 28}" font-size="${fs - 3}" text-anchor="middle" fill="${P.muted}">${dShort(d)}</text>`);
+    }
   });
   o.push(`</svg>`);
   return o.join("");
@@ -208,14 +257,12 @@ export function timelineLegendItems(P: TimelinePalette = PRINT_TIMELINE_PALETTE)
 }
 
 /** Bloc HTML imprimable : version imprimée de la « Timeline de la périodisation ». */
-export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: string) => string): string {
-  const svg = renderPlanTimelineSVG(plan, { displayPhase, phases: plan.phases?.length >= 2 ? plan.phases : undefined, fluid: true });
+export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: string) => string, startDate?: Date): string {
+  const svg = renderPlanTimelineSVG(plan, { displayPhase, phases: plan.phases?.length >= 2 ? plan.phases : undefined, fluid: true, startDate });
   if (!svg) return "";
-  const legend = timelineLegendItems().map((l) => `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;white-space:nowrap;"><span style="width:10px;height:10px;border-radius:2px;background:${l.color};display:inline-block"></span>${esc(l.label)}</span>`).join("");
   return `<section class="keep-together plan-timeline" style="margin:0 0 20px 0;padding:12px 14px;border:1px solid #DAD6CC;border-radius:8px;background:#fff;page-break-inside:avoid;break-inside:avoid;">
   <h2 style="margin:0 0 8px 0;">Timeline de la périodisation</h2>
   ${svg}
-  <div style="margin-top:8px;font-size:10px;color:#14131A;line-height:1.8;">${legend}<span style="margin-right:12px;white-space:nowrap;">🏁 course</span><span style="margin-right:12px;white-space:nowrap;color:#D0433A;">● séance clé</span><span style="color:#5555E0;">allégée = semaine de récupération</span></div>
-  <p style="margin:4px 0 0 0;font-size:9.5px;color:#6E6B78;">Bandes violettes = chantiers (limiteurs travaillés, #1 = priorité) sur leurs semaines. Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps passé dans chaque zone d'intensité. Séances sans durée ou sans intensité identifiable : non classées, aucune valeur inventée.</p>
+  <p style="margin:6px 0 0 0;font-size:9.5px;color:#6E6B78;">Lecture : chaque colonne = une semaine. <b>Chantier</b> = limiteur prioritaire travaillé cette semaine-là (« + n » : autres limiteurs entretenus). <b>Charge</b> = volume prévu ; la courbe monte en construction, redescend sur les semaines <span style="color:#5555E0;font-weight:700">allège</span> (récupération) et <span style="color:#D4711C;font-weight:700">affûte</span> (avant course) ; 🏁 = course.</p>
 </section>`;
 }

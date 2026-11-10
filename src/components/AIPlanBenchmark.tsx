@@ -29,6 +29,8 @@ import { validatePlan, derivePhasesFromWeeks, type LimiterCoverageItem } from "@
 
 interface AIPlanBenchmarkProps {
   plan: ParsedPlan;
+  /** Lundi de la semaine 1 (affichage des dates dans la timeline). */
+  planStartDate?: Date;
   objective: string;
   /** Ambition saisie par l'utilisateur (affichée à titre indicatif). */
   ambition: string;
@@ -424,7 +426,7 @@ const PHASE_TIMELINE_MIN_TRACK_PX = 340;
  * est toujours affichée à côté, et le track est scrollable horizontalement
  * avec une largeur mini par semaine.
  */
-function PhaseGanttTimeline({ plan, phases, totalWeeks }: { plan: ParsedPlan; phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
+function PhaseGanttTimeline({ plan, phases, totalWeeks, startDate }: { plan: ParsedPlan; startDate?: Date; phases: { name: string; weeks: string; objective?: string }[]; totalWeeks: number }) {
   void totalWeeks;
   if (phases.length < 2) return null;
 
@@ -433,12 +435,12 @@ function PhaseGanttTimeline({ plan, phases, totalWeeks }: { plan: ParsedPlan; ph
       <h4 className="text-sm font-semibold text-foreground flex items-center gap-1">
         📊 Timeline de la périodisation
       </h4>
-      <PlanPhysioTimeline plan={plan} phases={phases} />
+      <PlanPhysioTimeline plan={plan} phases={phases} startDate={startDate} />
     </div>
   );
 }
 
-export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, constraintsText }: AIPlanBenchmarkProps) {
+export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, ambitionEffectiveLabel, ambitionSaisieLabel, athleteName, limiterResult, prohibitions, raceWeekNumbers, identifiedLimiters, identifiedLimiterKeys, athleteData, coachLimiterOrder, constraintsText, planStartDate }: AIPlanBenchmarkProps) {
   const metrics = useMemo(() => computePlanMetrics(plan), [plan]);
   // Ambition utilisée pour les standards : effective si déclassement, sinon saisie.
   const ambitionForRef = ambitionEffective || ambition;
@@ -849,7 +851,7 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
         )}
 
         {derivedPhases.length >= 2 && (
-          <PhaseGanttTimeline plan={plan} phases={derivedPhases} totalWeeks={plan.totalWeeks} />
+          <PhaseGanttTimeline plan={plan} startDate={planStartDate} phases={derivedPhases} totalWeeks={plan.totalWeeks} />
         )}
 
         <div className="flex items-center justify-between pt-2 border-t border-border text-sm">
