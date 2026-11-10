@@ -42,6 +42,13 @@ const rankedRegressionCases:Record<string,string[]>={
   TrailMountain:['auto/elite','auto/world_class','light/age_group','light/competitor','light/elite','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
   TrailUltra:['auto/elite','auto/world_class','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
 };
+// These ordinary-form inputs previously returned an incomplete preparation.
+const developmentRegressions:Record<string,string[]>={
+  '703':['light/finisher','light/age_group','light/competitor'],
+  Marathon:['light/age_group','light/competitor'],
+  Semi:['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
+  '10K':['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
+};
 const levels = ['auto', 'untrained', 'light', 'trained', 'highly_trained'];
 const subset = process.env.DET_OBJECTIVES?.split(',');
 const selected = scenarios.filter(s => !subset || subset.includes(s.objective));
@@ -113,6 +120,8 @@ for (const scenario of selected) {
           return;
         }
         const input = inputFor(scenario, level, ambition);
+        if(process.env.DET_INTERVAL_FIXTURES && level==='light' && ambition==='competitor' && ['10K','703'].includes(scenario.objective))
+          writeFileSync(process.env.DET_INTERVAL_FIXTURES+'/ordinary-light-'+scenario.objective+'.json',JSON.stringify(input,null,2)+'\n');
         const meta = input.config.ambitionMeta;
         const diagnostic = { effectiveLevel: meta?.trainingLevel, levelSource: meta?.trainingLevelSource, effectiveAmbition: meta?.effective,
           limiters: input.config.identifiedLimitersRaw ?? [] };
@@ -120,7 +129,8 @@ for (const scenario of selected) {
         try {
           plan = await generateDetPlanFromPageInput(input);
         } catch (error) {
-          if (!(error instanceof DetRefusal)||rankedRegressionCases[scenario.objective]?.includes(level+'/'+ambition)) throw error;
+          const key=level+'/'+ambition;
+          if (!(error instanceof DetRefusal)||rankedRegressionCases[scenario.objective]?.includes(key)||developmentRegressions[scenario.objective]?.includes(key)) throw error;
           emit({ ...row, ...diagnostic, status: 'refused', reasons: error.reasons });
           return;
         }

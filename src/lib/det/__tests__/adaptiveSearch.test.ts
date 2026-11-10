@@ -1,6 +1,7 @@
 import {describe,expect,it} from 'vitest';
 import {alternateKeyDay,shorterSourceSettings} from '../adaptiveSearch';
-import {v3FullCatalogue} from '../../../../scripts/library-v3/catalogueRuntime';
+import {developmentIntervalSources} from '../../../../scripts/library-v3/developmentIntervalSources';
+import {auditV3Catalogue,v3FullCatalogue} from '../../../../scripts/library-v3/catalogueRuntime';
 import {previewV3SourceDose} from '../../../../experimental/det-engine/v31-v3-catalogue';
 import type {AppPlanningDetDraft} from '../appPlanningDetDraft';
 
@@ -26,6 +27,22 @@ describe('DET adaptation limits',()=>{
      expect(JSON.stringify(source.blocks)).toBe(base);
    }
    expect(variants).toBeGreaterThan(0);expect([...sports].sort()).toEqual(['bike','run','swim']);
+ });
+ it('checks the development cards and each repeat count against the actual block duration',()=>{
+   const workouts=developmentIntervalSources;
+   expect(new Set(workouts.map(s=>s.id)).size).toEqual(workouts.length);
+   expect(auditV3Catalogue({...v3FullCatalogue,workouts,count:workouts.length,
+     counts:{run:workouts.filter(s=>s.sport==='run').length,bike:workouts.filter(s=>s.sport==='bike').length,swim:0,strength:0}})).toEqual([]);
+   for(const source of workouts){
+     const repeat=source.blocks[1];
+     if(repeat.kind!=='repeat')throw Error('Interval card needs a repeat');
+     for(let count=repeat.count.min;count<=repeat.count.max;count++){
+       const configured=previewV3SourceDose(source,{overrides:{'1.count':count},allowWorksetChange:true});
+       expect(configured.blocks[1]).toEqual({...repeat,count:{...repeat.count,base:count}});
+       expect(configured.blocks[0]).toEqual(source.blocks[0]);
+       expect(configured.blocks[2]).toEqual(source.blocks[2]);
+     }
+   }
  });
  it('preserves occupied days and does not relocate races, long sessions or coach constraints',()=>{
    const slot=(role:'long'|'key'|'support'|'race',min:number|null=null)=>({sport:'run',role,minimumMinutes:min,candidates:[]});

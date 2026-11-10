@@ -1,3 +1,4 @@
+import {developmentIntervalSources} from '../../../scripts/library-v3/developmentIntervalSources';
 import {returnBikeSources} from '../../../scripts/library-v3/returnBikeSources';
 import {alternateKeyDay,shorterSourceSettings} from './adaptiveSearch';
 import {aeroSlotAccepts, isTimeTrialSource, verifyTimeTrialWeeks} from './timeTrialPlanning';
@@ -121,20 +122,34 @@ function minimumDistinctExerciseMinutes(domains:ProposedV3Session[][]):number{
 
 export async function generateAppPlanningV3Proposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions={}):Promise<V3PlanProposal> {
   let expanded=false;
+  async function build(expand:boolean,repair:boolean){
+    const plan=await assembleProposal(app,athleteId,options,expand,repair);
+    if(options.completeSessions && plan.checks.some(c=>c.code==='limiter_without_source_match'&&c.status==='blocked')){
+      // Replan against the same complete input when a compatible rank was
+      // missed across the horizon. Keep the original evidence on failed repair.
+      try{
+        const ranked=await assembleProposal(app,athleteId,options,expand,true,true);
+        if(!ranked.checks.some(c=>c.status==='blocked'))return ranked;
+      }catch(error){
+        if(!(error instanceof Error && 'code' in error && ['v3_slot_unavailable','v3_quality_source_unavailable','v3_proposal_search_refused'].includes(String(error.code))))throw error;
+      }
+    }
+    return plan;
+  }
   try {
-    try{return await assembleProposal(app,athleteId,options,false,false);}
+    try{return await build(false,false);}
     catch(error){
       if(!(error instanceof Error && 'retryWithCatalogue' in error && error.retryWithCatalogue===true))throw error;
       expanded=true;
-      return await assembleProposal(app,athleteId,options,true,false);
+      return await build(true,false);
     }
   }catch(error){
     if(!options.completeSessions||!(error instanceof Error && 'code' in error &&
       ['v3_slot_unavailable','v3_quality_source_unavailable','v3_proposal_search_refused'].includes(String(error.code))))throw error;
-    return assembleProposal(app,athleteId,options,expanded,true);
+    return build(expanded,true);
   }
 }
-async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions,expandedCatalogue:boolean,allowRepair:boolean):Promise<V3PlanProposal> {
+async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,options:V3ProposalOptions,expandedCatalogue:boolean,allowRepair:boolean,repairRanks=false):Promise<V3PlanProposal> {
   // Reuse the existing identity, fingerprint, family and negative-input guards.
   const study=await buildAppPlanningDetDraft(app,athleteId,options,options.completeSessions);
   const {athlete,config}=planningInputFor(app,'det');
@@ -176,7 +191,8 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     selectedSources.push(findSource(TRAIL_THRESHOLD_ID)!);
   if(options.completeSessions && (trail||road) && study.limiterOrder[0]==='FatMax')
     selectedSources.push(findSource(AEROBIC_MAINTENANCE_ID)!);
-  const wantsRunCeiling = !!(options.completeSessions && (road||trail) &&
+  const lightTri=options.completeSessions && knownLevel===1 && ['half','ironman'].includes(detObjectiveGoal(config.objective));
+  const wantsRunCeiling = !!(options.completeSessions && (road||trail||lightTri) &&
     study.limiterOrder.some(raw=>['vo2max','vma_velocity'].includes(resolveDetLimiter(raw).key??'')) &&
     allowsControlledRunIntervals(config.prohibitions));
   const separateStrength=wantsRunCeiling && requiresStrengthSeparation(config.prohibitions);
@@ -207,6 +223,44 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
   }
   if(options.completeSessions&&knownLevel===0&&!tt)selectedSources.push(...returnBikeSources);
+  if(options.completeSessions && knownLevel===0 && !trail && !tt){
+    for(const id of ['013','021','022','023','101','102','103','104','105']){
+      const source=findSource('V3P_RUN_'+id);
+      if(source&&!selectedSources.some(s=>s.id===source.id))selectedSources.push(source);
+    }
+  }
+  if(options.completeSessions && knownLevel===1 && (road||['half','ironman','sprint','olympic'].includes(detObjectiveGoal(config.objective)))){
+    selectedSources.push(...developmentIntervalSources.filter(s=>s.sport==='run'&&(s.primaryDomain==='mlss'||s.primaryDomain===road?.raceDomain)));
+    if(wantsRunCeiling){
+      if(resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
+        const shortIntervals=findSource('V3P_RUN_215')!;
+        const reviewedBounds=controlledRunDose(shortIntervals);
+        if(reviewedBounds){controlled.set(shortIntervals.id,reviewedBounds);selectedSources.push(shortIntervals);}
+      }else{
+        selectedSources.push(findSource(SHORT_AEROBIC_INTERVALS_ID)!,findSource('V3P_RUN_214')!);
+      }
+    }
+    if(lightTri && study.limiterOrder.some(label=>['ftp','ftp_relative','tte'].includes(resolveDetLimiter(label).key??'')))
+      selectedSources.push(findSource('V3P_BIKE_203')!);
+  }
+  // Existing native light-level endurance progressions also fill long bike
+  // appointments. Source phase, dose, rider level and recovery still filter each choice.
+  const lightBrickRecipes=lightTri && detObjectiveGoal(config.objective)==='half'?[
+    {phase:'base',bikeId:'V3P_BIKE_106',bikeMin:63,runId:'V3P_RUN_001',runMin:28},
+    {phase:'base',bikeId:'V3P_BIKE_108',bikeMin:93,runId:'V3P_RUN_001',runMin:28},
+    {phase:'build',bikeId:'V3P_BIKE_108',bikeMin:93,runId:'V3P_RUN_001',runMin:28},
+    {phase:'build',bikeId:'V3P_BIKE_109',bikeMin:108,runId:'V3P_RUN_001',runMin:28},
+    {phase:'build',bikeId:'V3P_BIKE_109',bikeMin:120,runId:'V3P_RUN_001',runMin:28},
+    {phase:'peak',bikeId:'V3P_BIKE_109',bikeMin:120,runId:'V3P_RUN_001',runMin:28},
+    {phase:'peak',bikeId:'V3P_BIKE_109',bikeMin:108,runId:'V3P_RUN_001',runMin:28}
+  ]:[];
+  if(lightTri){
+    for(const id of ['V3P_BIKE_106','V3P_BIKE_107','V3P_BIKE_108','V3P_BIKE_109','V3P_BIKE_110','V3P_RUN_001']){
+      const source=findSource(id);
+      if(source && !selectedSources.some(s=>s.id===id))selectedSources.push(source);
+    }
+  }
+  const halfBricks=[...V34_SAFE_RUN_BRICKS,...lightBrickRecipes];
   if(timedSwim)selectedSources.push(...timedSwimSources.filter(s=>s.minimumLevel!=='untrained'||knownLevel===0));
   let librarySources:V3Workout[]=[];
   if(options.includeLibrary920){
@@ -278,10 +332,10 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   let adaptive=false;
   function choices(source:V3Workout,min:number|null,desired?:number):ProposedV3Workout[] {
     const key=source.id+':'+min+':'+desired+':'+adaptive;if(cache.has(key))return cache.get(key)!;
-    const brickDoses=detObjectiveGoal(config.objective)==='half'?V34_SAFE_RUN_BRICKS.flatMap<{targetDurationMin:number;allowWorksetChange:boolean}>(r=>r.bikeId===source.id?[{targetDurationMin:r.bikeMin,allowWorksetChange:false}]:r.runId===source.id?[{targetDurationMin:r.runMin,allowWorksetChange:false}]:[]):[];
+    const brickDoses=detObjectiveGoal(config.objective)==='half'?halfBricks.flatMap<{targetDurationMin:number;allowWorksetChange:boolean}>(r=>r.bikeId===source.id?[{targetDurationMin:r.bikeMin,allowWorksetChange:false}]:r.runId===source.id?[{targetDurationMin:r.runMin,allowWorksetChange:false}]:[]):[];
     // These are proposed doses inside the source's declared bounds, not human
     // approvals. The qualified runner and its explicit review remain separate.
-    const introDoses = trailReturnSources.includes(source) ? source.prescription.parameters
+    const introDoses = (trailReturnSources.includes(source) || developmentIntervalSources.includes(source)) ? source.prescription.parameters
       .filter(p => p.path === '1.count')
       .flatMap(p => Array.from({length:p.max-p.min+1}, (_,i) =>
         ({overrides:{'1.count':p.min+i},allowWorksetChange:true}))) : [];
@@ -367,7 +421,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       if(slot.sport==='brick'){
         // For 70.3 base/build/peak, retain only the documented V34 component
         // doses. This does not invoke reviewed composers or approve a transition.
-        const recipes=goal==='half'?V34_SAFE_RUN_BRICKS.filter(r=>r.phase===week.phase):[];
+        const recipes=goal==='half'?halfBricks.filter(r=>r.phase===week.phase):[];
         const bikes=eligible.filter(s=>s.sport==='bike'&&(easy(s)||recipes.some(r=>r.bikeId===s.id))).flatMap(s=>choices(s,null,preferred?.bike));
         const runs=eligible.filter(s=>s.sport==='run'&&easy(s)).flatMap(s=>choices(s,null,preferred?.run));
         rows=bikes.flatMap(bike=>runs.flatMap(run=>{
@@ -506,7 +560,19 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     // never demand an unavailable source merely to preserve exact equality.
     const sourcePhaseChanged=previousSpecificPhase!==null&&previousSpecificPhase!==week.phase;
     const specificFloor=week.weekType==='load'?Math.max(Number.EPSILON,previousSpecificMinutes*(sourcePhaseChanged?.9:1)):Number.EPSILON;
-    const demandingTarget=road&&requiresQuality?Math.max(1,road.keySessions-1):road&&['taper','race'].includes(week.weekType)&&requiresSpecific?1:null;
+    const runDayCount=new Set(slots.filter(s=>s.slot.sport==='run'&&s.slot.role!=='race').map(s=>s.dayIndex)).size;
+    // On the repair path retain an easy run between demanding appointments.
+    // The ambition's weekly frequency is a preference; the actual primary,
+    // race-specific dose, recovery and intensity ceilings remain mandatory.
+    const supportedHardDays=adaptive && road?.goal!=='5k'?Math.max(1,Math.floor(runDayCount/2)):Infinity;
+    const demandingTarget=road&&requiresQuality?Math.min(supportedHardDays,Math.max(1,road.keySessions-1)):road&&['taper','race'].includes(week.weekType)&&requiresSpecific?1:null;
+    // A threshold/VMA primary and a race-pace appointment may need different days.
+    // Admit a second demanding date only on the repair path, when supported by
+    // the running frequency and when no single appointment can meet both needs.
+    const separateStimuli=adaptive && requirePrimary && requiresSpecific &&
+      !domains.some(rows=>rows.some(s=>weekPrimaryMatch(s)&&specificMinutes(s)>0));
+    let demandingMaximum=demandingTarget!==null&&separateStimuli
+      ? Math.min(supportedHardDays,Math.max(2,demandingTarget)) : demandingTarget;
     const trajectory=ratioObjective&&minuteLedgerKnown&&week.weekType==='load'?planTriathlonRatioTrajectory(ratioObjective,
       domains.flatMap((domain,index)=>slots[index].slot.sport==='strength'||slots[index].slot.role==='race'?[]:[{id:String(index),choices:domain.map(exerciseMinutes)}]),minuteLedger,ceiling):null;
     const distance=(session:ProposedV3Session,index:number)=>taper?taper.distance(session,index):trajectory?triathlonCandidateDoseDistance(exerciseMinutes(session),trajectory.preferredBySlot[String(index)]):0;
@@ -538,6 +604,10 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     const waiting = [...priorities.slice(1)].sort((a,b)=>
       (blockExposure.get(a.raw)??0)/(weights.get(a.raw)??1)-(blockExposure.get(b.raw)??0)/(weights.get(b.raw)??1)).find(p=>(!exposure.has(p.raw)||!blockExposure.get(p.raw)) &&
       rankedSlots.some(item=>item.domain.some(s=>s.components.some(c=>c.limiterMatches.includes(p.raw)))));
+    if(repairRanks && road && requirePrimary && waiting && demandingMaximum!==null &&
+      rankedSlots.some(item=>item.domain.some(s=>demandingRun(s)&&s.components.some(c=>c.limiterMatches.includes(waiting.raw))))){
+      demandingMaximum=Math.max(demandingMaximum,Math.min(2,Math.floor(runDayCount/2)));
+    }
     const addressesWaiting = (s:ProposedV3Session)=>waiting && s.components.some(c=>c.limiterMatches.includes(waiting.raw));
     for(const [index,item] of order.entries())item.domain.sort((a,b)=>
       (triPowerPrimary&&requiresQuality&&index===0?Number(weekPrimaryMatch(b))-Number(weekPrimaryMatch(a)):0)||
@@ -593,7 +663,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       if(demandingTarget!==null&&selected.filter(demandingRun).length+demandingSuffix[index]<demandingTarget)return false;
       if(road&&zoneKnown&&week.weekType==='load'){
         const chosenDays=selected.flatMap((s,i)=>demandingRun(s)?[7*(week.week-1)+slots[order[i].index].dayIndex]:[]);
-        const hardFull=demandingTarget!==null&&chosenDays.length>=demandingTarget;
+        const hardFull=demandingMaximum!==null&&chosenDays.length>=demandingMaximum;
         let upperMargin=selected.reduce((n,s)=>n+margin(s),0),upperMinutes=total;
         // Necessary forward bounds after the actual chosen source IDs and hard
         // days. Unavailable repeats or extra hard work cannot inflate the easy
@@ -668,7 +738,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         if((road||trail)&&demandingRun(choice)){
           const absoluteDay=7*(week.week-1)+position.dayIndex;
           const current=selected.flatMap((s,i)=>demandingRun(s)?[7*(week.week-1)+slots[order[i].index].dayIndex]:[]);
-          if(!demandingRunDaysCompatible([...demandingDays,...current,absoluteDay])||demandingTarget!==null&&current.length>=demandingTarget)continue;
+          if(!demandingRunDaysCompatible([...demandingDays,...current,absoluteDay])||demandingMaximum!==null&&current.length>=demandingMaximum)continue;
         }
         const here=start({week:week.week,dayIndex:position.dayIndex,sport:choice.sport,isRaceEvent:choice.role==='race'});
         if(here&&selected.some((prior,i)=>{
@@ -815,8 +885,8 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }catch(error){
       const code=error instanceof Error && 'code' in error?error.code:null;
       if(!allowRepair||!['v3_slot_unavailable','v3_quality_source_unavailable','v3_proposal_search_refused'].includes(String(code)))throw error;
-      if(repairs>=8)throw Error((error instanceof Error?error.message:String(error))+
-        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.');
+      if(repairs>=8)throw Object.assign(Error((error instanceof Error?error.message:String(error))+
+        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.'),{code,week:week.week,noCompletePlanReturned:true});
       if(attempt<1 || attempt===1&&!tt&&alternateKeyDay(original,!!config.constraints?.trim())){
         attempts.set(wi,attempt+1);boundaries.get(wi)!();repairs++;wi--;continue;
       }

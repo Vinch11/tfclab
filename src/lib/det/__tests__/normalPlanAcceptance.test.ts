@@ -57,12 +57,6 @@ describe('normal IA input → DET prescriptions → frozen Nolio operations', ()
       process.stdout.write('NORMAL_ACCEPTANCE '+JSON.stringify({id:spec.id,status:'refused_missing_limiter',providerAcceptance:false})+'\n');
       return;
     }
-    if(spec.id==='semi-light'){
-      await expect(generateAppProfileDetPlan(app,athleteId,{},'SYNTHETIC_ACCEPTANCE')).rejects.toMatchObject({code:'v3_quality_source_unavailable',week:1,noCompletePlanReturned:true});
-      expect(JSON.stringify(app)).toBe(before);
-      process.stdout.write('NORMAL_ACCEPTANCE '+JSON.stringify({id:spec.id,status:'refused_quality_source_at_declared_level',providerAcceptance:false})+'\n');
-      return;
-    }
     const plan=await generateAppProfileDetPlan(app,athleteId,{},'SYNTHETIC_ACCEPTANCE').catch(error=>{
       process.stdout.write('ACCEPTANCE_REFUSAL '+JSON.stringify({id:spec.id,reason:error.message,...error})+'\n');
       throw error;

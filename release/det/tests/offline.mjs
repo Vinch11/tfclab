@@ -39,3 +39,19 @@ assert.equal(proposal.checks.some(c=>c.status==='blocked'),false);
 assert(proposal.weeks.every(w=>w.knownMinutes<=long.config.weeklyHours*60));
 for(const raw of proposal.limiterOrder)assert(proposal.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.includes(' · '+raw+' · ')));
 console.log(JSON.stringify({case:'synthetic-long-IM',weeks:32,ranked:proposal.limiterOrder,repairWeeks:proposal.checks.filter(c=>c.code==='adaptive_search').map(c=>c.week)}));
+
+for (const goal of ['703','10K']){
+  const input=JSON.parse(readFileSync(from('./ordinary-light-'+goal+'.json'),'utf8'));
+  const result=await run({action:'generate',input});
+  const p=result._detSourceProposal;
+  const components=p.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
+  assert.equal(result._provenance.engineVersion,manifest.version);
+  assert.equal(p.weeks.length,input.config.weeksAvailable);
+  assert.deepEqual(p.limiterOrder,input.config.identifiedLimitersRaw);
+  assert(p.weeks.every(w=>w.knownMinutes<=input.config.weeklyHours*60));
+  assert.equal(p.checks.some(c=>c.status==='blocked'),false);
+  assert(components.every(c=>['untrained','light'].includes(c.review.minimumLevel)));
+  for(const label of p.limiterOrder)assert(p.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.includes(' · '+label+' · ')));
+  console.log(JSON.stringify({case:goal,level:'light',weeks:p.weeks.length,ranked:p.limiterOrder,
+    sources:[...new Set(components.map(c=>c.sourceId))].sort()}));
+}
