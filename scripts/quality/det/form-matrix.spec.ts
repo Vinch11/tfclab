@@ -34,24 +34,13 @@ const scenarios: Scenario[] = [
   { objective: 'TrailMountain', weeks: 16, hours: 9, distanceKm: 55, elevationM: 3000 },
   { objective: 'TrailUltra', weeks: 20, hours: 12, distanceKm: 90, elevationM: 4500 },
 ];
-// The 25 previously refused complete inputs at d076c4e. A recorded
-// refusal on any of these cases is a regression, even if the suite can log it.
-const rankedRegressionCases:Record<string,string[]>={
-  Marathon:['auto/elite','auto/world_class','trained/elite','trained/world_class','highly_trained/elite'],
-  TrailShort:['auto/elite','light/competitor','light/elite','trained/elite','highly_trained/elite'],
-  TrailMountain:['auto/elite','auto/world_class','light/age_group','light/competitor','light/elite','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
-  TrailUltra:['auto/elite','auto/world_class','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
+// Every complete case recorded in the released matrix must still yield a
+// complete plan. A newly discovered refusal stays visible in the JSONL report.
+const baseline=JSON.parse(readFileSync('release/det/evidence/2026-11-10-coverage.json','utf8')) as {
+  matrix:{objective:string;level:string;ambition:string;status:string}[]
 };
-// These ordinary-form inputs previously returned an incomplete preparation.
-const developmentRegressions:Record<string,string[]>={
-  '703':['light/finisher','light/age_group','light/competitor','light/elite','light/world_class'],
-  Marathon:['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
-  TrailShort:['auto/world_class','light/world_class','trained/world_class','highly_trained/world_class'],
-  TrailMountain:['light/world_class'],
-  TrailUltra:['light/elite','light/world_class'],
-  Semi:['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
-  '10K':['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
-};
+const expectedComplete=new Set(baseline.matrix.filter(row=>row.status==='assembled')
+  .map(row=>[row.objective,row.level,row.ambition].join('/')));
 const levels = ['auto', 'untrained', 'light', 'trained', 'highly_trained'];
 const subset = process.env.DET_OBJECTIVES?.split(',');
 const selected = scenarios.filter(s => !subset || subset.includes(s.objective));
@@ -134,8 +123,7 @@ for (const scenario of selected) {
         try {
           plan = await generateDetPlanFromPageInput(input);
         } catch (error) {
-          const key=level+'/'+ambition;
-          if (!(error instanceof DetRefusal)||rankedRegressionCases[scenario.objective]?.includes(key)||developmentRegressions[scenario.objective]?.includes(key)) throw error;
+          if (!(error instanceof DetRefusal)||expectedComplete.has([scenario.objective,level,ambition].join('/'))) throw error;
           emit({ ...row, ...diagnostic, status: 'refused', reasons: error.reasons });
           return;
         }
@@ -146,10 +134,8 @@ for (const scenario of selected) {
         if(process.env.DET_PLAN_DETAILS)appendFileSync(process.env.DET_PLAN_DETAILS,JSON.stringify({...row,weeks:p.weeks.map(w=>({
           n:w.week,type:w.weekType,minutes:w.knownMinutes,sessions:w.days.flatMap(d=>d.sessions.map(s=>({sport:s.sport,role:s.role,minutes:s.knownMinutes,ids:s.components.map(c=>c.sourceId)})))
         }))})+'\n');
-        if(rankedRegressionCases[scenario.objective]?.includes(level+'/'+ambition)){
-          for(const [i,label] of p.limiterOrder.entries()){
-            expect(p.checks.some(c=>['ranked_limiter_work','ranked_limiter_deferred'].includes(c.code)&&c.message.startsWith('Rang '+(i+1)+' · '+label))).toBe(true);
-          }
+        for(const [i,label] of p.limiterOrder.entries()){
+          expect(p.checks.some(c=>['ranked_limiter_work','ranked_limiter_deferred'].includes(c.code)&&c.message.startsWith('Rang '+(i+1)+' · '+label))).toBe(true);
         }
         const sessions = p.weeks.flatMap(w => w.days.flatMap(d => d.sessions));
         const components = sessions.flatMap(s => s.components);

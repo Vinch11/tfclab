@@ -1,9 +1,9 @@
 {
-  "worker": "det-fa21a6a1eac41f5e511d96bfb33888f984c9ec62570fd1a4285a297a217d98ab",
+  "worker": "det-a8283fda97edfaedb6a38430cdffa6783eafe96a182846a1404d66a2400a6ac0",
   "synthetic": true,
   "realAthleteReplay": false,
   "previousAssembled": 124,
-  "nowAssembled": 141,
+  "nowAssembled": 151,
   "fixed": [
     {
       "objective": "703",
@@ -21,6 +21,16 @@
       "ambition": "competitor"
     },
     {
+      "objective": "703",
+      "level": "light",
+      "ambition": "elite"
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
       "objective": "Marathon",
       "level": "light",
       "ambition": "age_group"
@@ -38,6 +48,11 @@
     {
       "objective": "Marathon",
       "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
       "ambition": "world_class"
     },
     {
@@ -88,6 +103,41 @@
     {
       "objective": "10K",
       "level": "highly_trained",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "world_class"
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "elite"
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
       "ambition": "world_class"
     }
   ],
@@ -359,7 +409,7 @@
       ],
       "status": "refused",
       "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+        "S9 samedi : vélo (au moins 130 min). 52 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
       ]
     },
     {
@@ -376,7 +426,7 @@
       ],
       "status": "refused",
       "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+        "S9 samedi : vélo (au moins 130 min). 49 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
       ]
     },
     {
@@ -395,7 +445,7 @@
       ],
       "status": "refused",
       "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+        "S9 samedi : vélo (au moins 130 min). 50 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
       ]
     },
     {
@@ -416,7 +466,7 @@
       ],
       "status": "refused",
       "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+        "S9 samedi : vélo (au moins 130 min). 50 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
       ]
     },
     {
@@ -437,7 +487,7 @@
       ],
       "status": "refused",
       "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+        "S9 samedi : vélo (au moins 130 min). 50 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
       ]
     },
     {
@@ -1106,9 +1156,23 @@
         "TTE",
         "FTP/kg"
       ],
-      "status": "refused",
-      "reasons": [
-        "S9 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 441.1 min, la récupération et les exigences sportives de la semaine. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 47,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -1126,9 +1190,23 @@
         "VO2max",
         "FTP/kg"
       ],
-      "status": "refused",
-      "reasons": [
-        "S9 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 441.1 min, la récupération et les exigences sportives de la semaine. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      "status": "assembled",
+      "activities": 96,
+      "uniqueSources": 47,
+      "loadWeeks": 7,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 7,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_minutes",
+        "structured_polarization",
+        "weekly_focus_unmatched",
+        "tri_taper_exercise_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -2139,9 +2217,21 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S11 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      "status": "assembled",
+      "activities": 105,
+      "uniqueSources": 44,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 10,
+      "weeksWithTrailDose": 0,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "athlete_current_context",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -3830,9 +3920,23 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 420 min, la récupération et les exigences sportives de la semaine."
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 24,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -4035,7 +4139,7 @@
       ],
       "status": "assembled",
       "activities": 43,
-      "uniqueSources": 24,
+      "uniqueSources": 23,
       "loadWeeks": 8,
       "weeksWithPrimaryDoseCheck": 0,
       "weeksWithTrailDose": 8,
@@ -4067,9 +4171,23 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 252 min, la récupération et les exigences sportives de la semaine."
+      "status": "assembled",
+      "activities": 43,
+      "uniqueSources": 17,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -4212,9 +4330,23 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 336 min, la récupération et les exigences sportives de la semaine."
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 31,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -4357,9 +4489,23 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 396 min, la récupération et les exigences sportives de la semaine."
+      "status": "assembled",
+      "activities": 55,
+      "uniqueSources": 28,
+      "loadWeeks": 8,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 8,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -4505,7 +4651,7 @@
       ],
       "status": "assembled",
       "activities": 73,
-      "uniqueSources": 32,
+      "uniqueSources": 33,
       "loadWeeks": 10,
       "weeksWithPrimaryDoseCheck": 0,
       "weeksWithTrailDose": 10,
@@ -4724,7 +4870,7 @@
       ],
       "status": "assembled",
       "activities": 57,
-      "uniqueSources": 28,
+      "uniqueSources": 27,
       "loadWeeks": 10,
       "weeksWithPrimaryDoseCheck": 0,
       "weeksWithTrailDose": 10,
@@ -4756,9 +4902,23 @@
         "VO2max",
         "VMA"
       ],
-      "status": "refused",
-      "reasons": [
-        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 324 min, la récupération et les exigences sportives de la semaine."
+      "status": "assembled",
+      "activities": 57,
+      "uniqueSources": 19,
+      "loadWeeks": 10,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 10,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -4904,7 +5064,7 @@
       ],
       "status": "assembled",
       "activities": 73,
-      "uniqueSources": 34,
+      "uniqueSources": 35,
       "loadWeeks": 10,
       "weeksWithPrimaryDoseCheck": 0,
       "weeksWithTrailDose": 10,
@@ -5064,7 +5224,7 @@
       ],
       "status": "assembled",
       "activities": 73,
-      "uniqueSources": 34,
+      "uniqueSources": 35,
       "loadWeeks": 10,
       "weeksWithPrimaryDoseCheck": 0,
       "weeksWithTrailDose": 10,
@@ -5451,9 +5611,23 @@
         "VO2max",
         "FatMax"
       ],
-      "status": "refused",
-      "reasons": [
-        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      "status": "assembled",
+      "activities": 71,
+      "uniqueSources": 23,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -5472,9 +5646,23 @@
         "VO2max",
         "FatMax"
       ],
-      "status": "refused",
-      "reasons": [
-        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      "status": "assembled",
+      "activities": 71,
+      "uniqueSources": 23,
+      "loadWeeks": 12,
+      "weeksWithPrimaryDoseCheck": 0,
+      "weeksWithTrailDose": 12,
+      "weeksWithTriComponentDose": 0,
+      "weeksWithTriComponentPending": 0,
+      "pendingChecks": [
+        "weekly_focus_unmatched",
+        "weekly_minutes",
+        "trail_route_review",
+        "athlete_current_context",
+        "individual_targets",
+        "sporting_review",
+        "source_recovery",
+        "same_day_overlap"
       ]
     },
     {
@@ -6214,7 +6402,7 @@
   ],
   "packagedWorker": [
     {
-      "version": "det-fa21a6a1eac41f5e511d96bfb33888f984c9ec62570fd1a4285a297a217d98ab",
+      "version": "det-a8283fda97edfaedb6a38430cdffa6783eafe96a182846a1404d66a2400a6ac0",
       "weeks": 8,
       "counts": [
         37,
@@ -6241,30 +6429,38 @@
       "level": "light",
       "weeks": 12,
       "ranked": [
-        "VLamax"
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
       ],
       "sources": [
-        "V3P_BIKE_002",
-        "V3P_BIKE_048",
         "V3P_BIKE_091",
-        "V3P_BIKE_092",
         "V3P_BIKE_105",
-        "V3P_BIKE_107",
         "V3P_BIKE_108",
         "V3P_BIKE_109",
         "V3P_BIKE_110",
         "V3P_BIKE_125",
+        "V3P_BIKE_202",
+        "V3P_BIKE_203",
         "V3P_BIKE_506",
         "V3P_BIKE_514",
+        "V3P_BIKE_646",
         "V3P_RUN_001",
         "V3P_RUN_032",
         "V3P_RUN_037",
-        "V3P_RUN_110",
-        "V3P_RUN_115",
         "V3P_RUN_130",
-        "V3P_RUN_209",
+        "V3P_RUN_214",
+        "V3P_RUN_567",
+        "V3P_RUN_569",
+        "V3P_RUN_578",
+        "V3P_RUN_589",
+        "V3P_RUN_851",
+        "V3P_RUN_862",
+        "V3P_RUN_866",
+        "V3P_RUN_867",
         "V3P_RUN_868",
-        "V3P_RUN_911",
+        "V3P_RUN_874",
         "V3P_STRENGTH_201",
         "V3P_STRENGTH_202",
         "V3P_STRENGTH_203",
@@ -6283,7 +6479,9 @@
         "V3P_SWIM_209",
         "V3P_SWIM_210",
         "V3P_SWIM_211",
-        "V3P_SWIM_212"
+        "V3P_SWIM_212",
+        "V3P_SWIM_215",
+        "V3P_SWIM_216"
       ]
     },
     {
@@ -6320,6 +6518,94 @@
         "V3P_STRENGTH_205",
         "V3P_STRENGTH_207",
         "V3P_STRENGTH_208"
+      ]
+    },
+    {
+      "case": "TrailShort",
+      "level": "light",
+      "weeks": 12,
+      "ranked": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "sources": [
+        "V3P_RUN_028",
+        "V3P_RUN_033",
+        "V3P_RUN_086",
+        "V3P_RUN_089",
+        "V3P_RUN_206",
+        "V3P_RUN_215",
+        "V3P_RUN_216",
+        "V3P_RUN_530",
+        "V3P_RUN_532",
+        "V3P_RUN_882",
+        "V3P_RUN_887",
+        "V3P_STRENGTH_201",
+        "V3P_STRENGTH_202",
+        "V3P_STRENGTH_203",
+        "V3P_STRENGTH_204",
+        "V3P_STRENGTH_205",
+        "V3P_STRENGTH_207"
+      ]
+    },
+    {
+      "case": "Marathon",
+      "level": "highly_trained",
+      "weeks": 16,
+      "ranked": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "sources": [
+        "V3P_RUN_001",
+        "V3P_RUN_003",
+        "V3P_RUN_008",
+        "V3P_RUN_024",
+        "V3P_RUN_027",
+        "V3P_RUN_028",
+        "V3P_RUN_029",
+        "V3P_RUN_031",
+        "V3P_RUN_032",
+        "V3P_RUN_038",
+        "V3P_RUN_047",
+        "V3P_RUN_082",
+        "V3P_RUN_084",
+        "V3P_RUN_085",
+        "V3P_RUN_115",
+        "V3P_RUN_125",
+        "V3P_RUN_136",
+        "V3P_RUN_137",
+        "V3P_RUN_139",
+        "V3P_RUN_155",
+        "V3P_RUN_167",
+        "V3P_RUN_190",
+        "V3P_RUN_200",
+        "V3P_RUN_509",
+        "V3P_RUN_511",
+        "V3P_RUN_567",
+        "V3P_RUN_568",
+        "V3P_RUN_575",
+        "V3P_RUN_578",
+        "V3P_RUN_594",
+        "V3P_RUN_602",
+        "V3P_RUN_887",
+        "V3P_RUN_900",
+        "V3P_RUN_911",
+        "V3P_STRENGTH_209",
+        "V3P_STRENGTH_210",
+        "V3P_STRENGTH_211",
+        "V3P_STRENGTH_212",
+        "V3P_STRENGTH_213",
+        "V3P_STRENGTH_214",
+        "V3P_STRENGTH_215",
+        "V3P_STRENGTH_216",
+        "V3P_STRENGTH_451",
+        "V3P_STRENGTH_452"
       ]
     }
   ]
