@@ -973,6 +973,7 @@ export default function AITrainingPlanPage() {
 
     // Brouillon non sauvegardé (régénérations ciblées) — restauré tel quel.
     let hasDraft = false;
+    let draftResponse: string | null = null;
     if (draftKey) {
       try {
         const rawDraft = localStorage.getItem(draftKey);
@@ -983,6 +984,11 @@ export default function AITrainingPlanPage() {
             setIsSaved(false);
             hasDraft = true;
             toast.info("Brouillon de plan non sauvegardé restauré");
+          } else if (typeof draft?.response === "string" && draft.response) {
+            // Plan généré mais pas encore enregistré : restauré après un rechargement de page.
+            draftResponse = draft.response;
+            if (draft.planStartDate) { const d = new Date(draft.planStartDate); if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 })); }
+            toast.info("Plan généré non sauvegardé restauré — pensez à l'enregistrer");
           }
         } else {
           setPlanOverride(null);
@@ -999,8 +1005,9 @@ export default function AITrainingPlanPage() {
     const hasLocalPlan = activeRestored || Boolean(savedState?.response);
     if (!hasDraft) setPlanOverride(null);
     reset();
+    if (draftResponse) setResponse(draftResponse);
     setIsSaved(false);
-    if (!hasLocalPlan) {
+    if (!hasLocalPlan && !draftResponse) {
       setPlanStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1043,13 +1050,16 @@ export default function AITrainingPlanPage() {
   useEffect(() => {
     if (isMultiMode || !draftKey) return;
     try {
+      if (isLoading) return;
       if (planOverride && !isSaved) {
         localStorage.setItem(draftKey, JSON.stringify({ planOverride, savedAt: new Date().toISOString() }));
+      } else if (response && !isSaved && !loadedFromCacheAt) {
+        localStorage.setItem(draftKey, JSON.stringify({ response, planStartDate: format(planStartDate, "yyyy-MM-dd"), savedAt: new Date().toISOString() }));
       } else {
         localStorage.removeItem(draftKey);
       }
     } catch {}
-  }, [draftKey, isMultiMode, planOverride, isSaved]);
+  }, [draftKey, isMultiMode, planOverride, isSaved, isLoading, response, loadedFromCacheAt, planStartDate]);
 
 
 

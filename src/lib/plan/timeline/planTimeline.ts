@@ -153,14 +153,14 @@ function readChantiers(plan: ParsedPlan): Chantier[] {
  */
 export function renderPlanTimelineSVG(
   plan: ParsedPlan,
-  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date } = {},
+  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date; width?: number } = {},
 ): string {
   const P = opts.palette ?? PRINT_TIMELINE_PALETTE;
   const weeks = buildPlanTimeline(plan);
   if (weeks.length === 0) return "";
   const n = weeks.length;
   const labelW = 86;
-  const colW = opts.fluid ? Math.max(18, 900 / n) : 46;
+  const colW = opts.fluid ? Math.max(18, 900 / n) : Math.max(52, opts.width ? (opts.width - 90) / n : 52);
   const fs = opts.fluid ? 10.5 : 12;
   const W = labelW + n * colW + 4;
   const rows = { phase: [0, 50], chantier: [56, 58], charge: [122, 120], marks: [248, 22], week: [274, 34] } as const;
@@ -208,7 +208,7 @@ export function renderPlanTimelineSVG(
       const themes = plan.weeks.slice().sort((p1, p2) => p1.weekNumber - p2.weekNumber).map((wk) => {
         const t = (wk.theme || "").trim();
         const k = t.indexOf(":");
-        return (k >= 0 ? t.slice(k + 1) : "").trim();
+        return (k >= 0 ? t.slice(k + 1) : t.replace(/^(semaine|week|s)\s*\d+\s*[-–—]?\s*/i, "")).trim();
       });
       let a = 0;
       let any = false;
