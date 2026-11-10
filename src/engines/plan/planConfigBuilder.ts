@@ -123,6 +123,8 @@ export interface PlanFormConfig {
    * interdite).
    */
   crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
+  /** Familles de séances exigeantes autorisées par le coach (désactivées par défaut). */
+  approvedDemandingFamilies?: string[];
   /**
    * Correction sprint qualité Marathon/Ironman (oct. 2026), #E : historique
    * de charge DÉCLARATIF (heures), distinct de `weeklyHours` (cible/
@@ -405,6 +407,7 @@ export function buildPlanConfigFromDiagnostic(
     volumeRamp,
     terrainAvailability: formConfig.terrainAvailability,
     crossTrainingMaintenance: formConfig.crossTrainingMaintenance,
+    approvedDemandingFamilies: formConfig.approvedDemandingFamilies,
     // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
     // passthrough, jamais lu par ce builder (voir doc PlanFormConfig.loadHistory).
     loadHistory: formConfig.loadHistory,

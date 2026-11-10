@@ -552,6 +552,8 @@ export interface PlanConfig {
    * resolveCrossTrainingMaintenance (promptHelpers.ts).
    */
   crossTrainingMaintenance?: { velo?: boolean; natation?: boolean };
+  /** Familles de séances exigeantes autorisées par le coach (désactivées par défaut). */
+  approvedDemandingFamilies?: string[];
   /**
    * Rampe de volume des premières semaines — dérivée de `trainingLevel`, puis
    * réconciliée avec la Charge Récente de Référence (CRR) réellement mesurée

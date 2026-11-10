@@ -1,3 +1,4 @@
+import { approvedIdsForFamilies } from "@/lib/plan/demandingSessionFamilies";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -190,6 +191,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             trainingLevel: planConfig.ambitionMeta.trainingLevel,
             trainingLevelSource: planConfig.ambitionMeta.trainingLevelSource,
             weeklyHours: planConfig.weeklyHours ?? null,
+            approvedAdvancedSessionIds: approvedIdsForFamilies(planConfig.approvedDemandingFamilies),
           }
         : null;
 

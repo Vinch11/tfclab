@@ -33,6 +33,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { approvedIdsForFamilies, sanitizeDemandingFamilies } from "@/lib/plan/demandingSessionFamilies";
+import { DemandingSessionsPanel } from "@/components/ai-plan/DemandingSessionsPanel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -383,7 +385,7 @@ async function buildRegenCatalog(
       // P1 (audit "B-5K-BEGINNER round 2") : même protection qu'à la
       // génération complète (useAITrainingPlan.ts) sur régénération.
       beginnerIntensitySignal: cfg.ambitionMeta
-        ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+        ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource, weeklyHours: cfg.weeklyHours ?? null, approvedAdvancedSessionIds: approvedIdsForFamilies(cfg.approvedDemandingFamilies) }
         : null,
     },
   );
@@ -448,7 +450,7 @@ async function buildRegenPhaseCatalogs(
         rotationSeed,
         injuryRisk: toInjuryRiskCatalogOption(cfg.injuryRisk),
         beginnerIntensitySignal: cfg.ambitionMeta
-          ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource }
+          ? { trainingLevel: cfg.ambitionMeta.trainingLevel, trainingLevelSource: cfg.ambitionMeta.trainingLevelSource, weeklyHours: cfg.weeklyHours ?? null, approvedAdvancedSessionIds: approvedIdsForFamilies(cfg.approvedDemandingFamilies) }
           : null,
       },
     );
@@ -758,6 +760,7 @@ export default function AITrainingPlanPage() {
   // récupération active mais la natation bannie à 0% sans option pour l'activer.
   // Défauts = comportement historique (vélo autorisé, natation interdite).
   const [crossTrainingVelo, setCrossTrainingVelo] = useState(true);
+  const [approvedDemandingFamilies, setApprovedDemandingFamilies] = useState<string[]>([]);
   const [crossTrainingNatation, setCrossTrainingNatation] = useState(false);
 
   // Multi-objective state
@@ -893,6 +896,7 @@ export default function AITrainingPlanPage() {
     setMaxSessionsPerDay("3");
     setStrengthSessionsPerWeek("2");
     setDeloadCadence("auto");
+    setApprovedDemandingFamilies([]);
     setTrainingLevel("auto");
     setLockAmbition(false);
     setRaceGoals([]);
@@ -936,6 +940,7 @@ export default function AITrainingPlanPage() {
       if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
       if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
       if (typeof savedState.crossTrainingVelo === "boolean") setCrossTrainingVelo(savedState.crossTrainingVelo);
+      setApprovedDemandingFamilies(sanitizeDemandingFamilies(savedState.approvedDemandingFamilies));
       if (typeof savedState.crossTrainingNatation === "boolean") {
         setCrossTrainingNatation(savedState.crossTrainingNatation);
         // Valeur persistée = un choix réel du coach (même si c'était "false") —
@@ -1077,6 +1082,7 @@ export default function AITrainingPlanPage() {
       terrainAvailability,
       crossTrainingVelo,
       crossTrainingNatation,
+      approvedDemandingFamilies,
       // Ancrage calendaire du plan (sinon dates ré-ancrées au lundi courant après refresh)
       planStartDate: format(planStartDate, "yyyy-MM-dd"),
     };
@@ -1111,7 +1117,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -1627,6 +1633,7 @@ export default function AITrainingPlanPage() {
       terrainAvailability: terrainAvailability === "auto" ? undefined : (terrainAvailability as any),
       lockAmbition,
       crossTrainingMaintenance: { velo: crossTrainingVelo, natation: crossTrainingNatation },
+      approvedDemandingFamilies: approvedDemandingFamilies.length ? approvedDemandingFamilies : undefined,
       // Correction sprint qualité Marathon/Ironman (oct. 2026), #E : simple
       // passthrough déclaratif (heures) — jamais consommé par ce builder
       // pour la rampe de volume/weeklyHours (voir PlanConfig.loadHistory).
@@ -1658,7 +1665,7 @@ export default function AITrainingPlanPage() {
     }).planConfig;
     // P3 diversité : l'ID athlète permet de charger l'historique de fiches déjà servies.
     return { ...built, athleteId: athleteIdOverride ?? currentAthlete?.id };
-  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, currentAthlete?.id]);
+  }, [objective, raceName, raceFormat, raceDate, raceGoals, weeksAvailable, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, ambition, constraints, planStartDate, coachLimiterOrder, trainingLevel, lockAmbition, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, currentAthlete?.id]);
 
 
   // ─── Mémorise le dernier payload du formulaire coach (interdictions, limiteurs
@@ -3805,6 +3812,8 @@ export default function AITrainingPlanPage() {
                     </div>
                   );
                 })()}
+
+                <DemandingSessionsPanel value={approvedDemandingFamilies} onChange={setApprovedDemandingFamilies} />
 
                 {/* Multi-objective section */}
                 {raceGoals.map((goal, idx) => {
