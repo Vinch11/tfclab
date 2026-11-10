@@ -1,0 +1,3845 @@
+{
+  "worker": "det-a062f7500cc476d5ffd78a400d713d92adecfb39b43d7b1e4c27581bcf5a9bbb",
+  "synthetic": true,
+  "realAthleteReplay": false,
+  "matrix": [
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 53,
+      "activities": 163
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 51,
+      "activities": 160
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 300 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 57,
+      "activities": 163
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 77,
+      "activities": 160
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 76,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 76,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 76,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 53,
+      "activities": 163
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 160
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 14,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 52,
+      "activities": 172
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 103
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 49,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 49,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 45,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 44,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 mercredi : course. Aucune fiche admissible pour cette discipline, cette phase et ce niveau."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S5 samedi : vélo (au moins 105 min). 53 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 samedi : enchaînement vélo-course (au moins 90 min). Aucune paire vélo-course admissible aux doses prévues."
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 103
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 46,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 46,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 45,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 45,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 50,
+      "activities": 103
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "VO2max",
+        "TTE",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 45,
+      "activities": 96
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 10,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "FTP/kg"
+      ],
+      "status": "assembled",
+      "uniqueSources": 45,
+      "activities": 96
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 30,
+      "activities": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 40,
+      "activities": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 49,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 49,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 49,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S2 dimanche : course (au moins 50 min). 4 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 21,
+      "activities": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S14 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 247.8 min, la récupération et les exigences sportives de la semaine. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 288 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 46,
+      "activities": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 50,
+      "activities": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 56,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 56,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 56,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 37,
+      "activities": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 44,
+      "activities": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 48,
+      "activities": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 8,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Le budget de recherche est épuisé. La faisabilité reste indéterminée."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 30,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 25,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 27,
+      "activities": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 342 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 25,
+      "activities": 38
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune séance de qualité V3 compatible avec le niveau, les restrictions et la phase de ce profil. L’ambition demandée ne peut pas être satisfaite avec les sources disponibles ; aucun niveau ni limiteur n’est modifié."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 38
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [],
+      "status": "refused",
+      "reasons": [
+        "Le profil partagé ne contient pas de limiteur prioritaire."
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "Durabilité",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 27,
+      "activities": 38
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 30,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 30,
+      "activities": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 8,
+      "hours": 6,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 342 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 3,
+      "status": "outside_det"
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 18,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 25,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 25,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 420 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 17,
+      "activities": 43
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 43
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 43
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 24,
+      "activities": 43
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 252 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 35,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 33,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 336 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 17,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 35,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 30,
+      "activities": 55
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 12,
+      "hours": 7,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 396 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 16,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 32,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 16,
+      "activities": 57
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 57
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 26,
+      "activities": 57
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 57
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 324 min, la récupération et les exigences sportives de la semaine."
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 19,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 29,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 16,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE"
+      ],
+      "status": "assembled",
+      "uniqueSources": 28,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 73
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 16,
+      "hours": 9,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "TTE",
+        "VLamax",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "uniqueSources": 34,
+      "activities": 73
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 18,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 36,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 36,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 38,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 38,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Trail en reprise : renseigner le volume hebdomadaire récent, la sortie longue récemment tolérée et son plafond pour doser les premières semaines."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 17,
+      "activities": 71
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 71
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 23,
+      "activities": 71
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "light",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "refused",
+      "reasons": [
+        "Rang 3 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 20,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "finisher",
+      "limiters": [
+        "VLamax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 17,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "age_group",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "competitor",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 39,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "elite",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 43,
+      "activities": 91
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "weeks": 20,
+      "hours": 12,
+      "effectiveLevel": "highly_trained",
+      "effectiveAmbition": "world_class",
+      "limiters": [
+        "VLamax",
+        "TTE",
+        "VMA",
+        "VO2max",
+        "FatMax"
+      ],
+      "status": "assembled",
+      "uniqueSources": 43,
+      "activities": 91
+    }
+  ],
+  "extended": [
+    {
+      "objective": "5K",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 4,
+      "sessions": 3,
+      "limiters": [
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "operations": 30
+    },
+    {
+      "objective": "5K",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 6,
+      "sessions": 4,
+      "limiters": [
+        "VO2max",
+        "VMA"
+      ],
+      "status": "assembled",
+      "operations": 66
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 12,
+      "hours": 3,
+      "sessions": 3,
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 93 min de blocs pour un plafond de 72 min. Vérifier la fréquence et la disponibilité déclarées."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "age_group",
+      "weeks": 16,
+      "hours": 4,
+      "sessions": 3,
+      "status": "refused",
+      "reasons": [
+        "S1 : aucune combinaison V3 trouvée. Les créneaux exigent au moins 103 min de blocs pour un plafond de 96 min. Vérifier la fréquence et la disponibilité déclarées."
+      ]
+    },
+    {
+      "objective": "Sprint",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 8,
+      "sessions": 7,
+      "limiters": [
+        "FTP/kg",
+        "VO2max",
+        "VLamax"
+      ],
+      "status": "assembled",
+      "operations": 62
+    },
+    {
+      "objective": "Olympic",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 9,
+      "sessions": 8,
+      "limiters": [
+        "VLamax",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "operations": 105
+    },
+    {
+      "objective": "Sprint",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 10,
+      "sessions": 8,
+      "limiters": [
+        "FTP/kg",
+        "VO2max",
+        "VLamax"
+      ],
+      "status": "assembled",
+      "operations": 105
+    },
+    {
+      "objective": "Olympic",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 16,
+      "hours": 12,
+      "sessions": 9,
+      "limiters": [
+        "VLamax",
+        "FTP/kg",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "operations": 162
+    },
+    {
+      "objective": "Cyclisme FTP",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 7,
+      "sessions": 5,
+      "limiters": [
+        "FTP"
+      ],
+      "status": "assembled",
+      "operations": 45
+    },
+    {
+      "objective": "Cyclisme contre-la-montre",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 7,
+      "sessions": 5,
+      "status": "refused",
+      "reasons": [
+        "CLM : revue de la position aéro et durée d’épreuve requises pour cet athlète."
+      ]
+    },
+    {
+      "objective": "Natation 1500m",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 8,
+      "hours": 4,
+      "sessions": 4,
+      "limiters": [
+        "CSS"
+      ],
+      "status": "assembled",
+      "operations": 37
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 40,
+      "hours": 8,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "operations": 261
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 30,
+      "hours": 7,
+      "sessions": 4,
+      "limiters": [
+        "VLamax",
+        "VO2max"
+      ],
+      "status": "assembled",
+      "operations": 165
+    },
+    {
+      "objective": "Cyclisme FTP",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 9,
+      "sessions": 4,
+      "limiters": [
+        "FTP"
+      ],
+      "status": "assembled",
+      "operations": 56
+    },
+    {
+      "objective": "Natation 1500m",
+      "level": "trained",
+      "ambition": "competitor",
+      "weeks": 12,
+      "hours": 6,
+      "sessions": 5,
+      "limiters": [
+        "CSS"
+      ],
+      "status": "assembled",
+      "operations": 68
+    }
+  ]
+}
