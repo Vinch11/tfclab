@@ -1,3 +1,6 @@
+import {ordinarySourceFamily} from './ordinaryObjective';
+import {allowsControlledRunIntervals} from './controlledRunIntervals';
+import {hasAdditionalPrimaryRule} from './rankedLimiterPrescription';
 import { limiterSourceAffinity } from "../../../experimental/det-engine/v411-limiter-source-affinity";
 import type { LimiterMesocycleSchedule, LimiterWeekFocus } from "@/lib/plan/limiterMesocycles";
 import {prepareDetGeneration,trailFamily} from './trailPreparation';
@@ -43,9 +46,11 @@ function affinity(source: V3Workout, key: DetLimiterKey | null): boolean {
 export interface DraftRestrictions { presentContraindications?: readonly string[]; unmetPrerequisites?: readonly string[]; injuryScreen?: string; currentFatigue?: 'ready'|'fatigued'|'unknown'; recentLoad?: 'low'|'moderate'|'high'|'unknown' }
 /** Shared negative restrictions for the study and the proposed V3 assembly.
  * Absence of a restriction never creates a positive athlete clearance. */
-export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAppPlanningInput['config'],'prohibitions'|'injuryRisk'>, restrictions: DraftRestrictions): V3Workout[] {
+export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAppPlanningInput['config'],'prohibitions'|'injuryRisk'>, restrictions: DraftRestrictions, controlledRun?: (source:V3Workout)=>boolean): V3Workout[] {
   const banned = resolveProhibitionKeys(config.prohibitions).map(key => ({key,pattern:PROHIBITION_SESSION_PATTERNS[key]})).filter(row=>!!row.pattern);
+  const explicitRunCeilingVeto=!allowsControlledRunIntervals(config.prohibitions);
   return sources.filter(source => {
+    if(explicitRunCeilingVeto && source.sport==='run' && source.prescription.physiologicalIntent.domainIds.includes('vo2max'))return false;
     if (restrictions.injuryScreen === 'contraindication') return false;
     if(restrictions.currentFatigue==='fatigued'&&source.sport!=='strength'&&source.prescription.physiologicalIntent.domainIds.some(d=>!['recovery','moderate_lt1'].includes(d)))return false;
     if (source.prerequisites.some(key => restrictions.unmetPrerequisites?.includes(key)) || source.contraindications.some(key => restrictions.presentContraindications?.includes(key))) return false;
@@ -54,12 +59,16 @@ export function filterDraftV3Sources(sources: V3Workout[], config: Pick<FrozenAp
     return !banned.some(({key,pattern}) => {
       // The historical VO2 regex also matches the ordinary word "répétitions".
       // V3 has explicit domains: strength repetitions are not a VO2 block.
-      if(key==='vo2_heavy_blocks'&&!source.prescription.physiologicalIntent.domainIds.includes('vo2max'))return false;
+      if(key==='vo2_heavy_blocks'&&(!source.prescription.physiologicalIntent.domainIds.includes('vo2max')||controlledRun?.(source)))return false;
+      if(key==='sprints'){
+        const cues=[source.id,source.title,source.focus,source.methodology,JSON.stringify(source.blocks)].join(' ');
+        return pattern.test(cues.replace(/\bsans sprints?\b/gi,''));
+      }
       return pattern.test(`${source.id} ${source.title} ${source.focus} ${source.methodology} ${JSON.stringify(source.blocks)}`);
     });
   });
 }
-export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expectedAthleteId: string, restrictions: DraftRestrictions = {}): Promise<AppPlanningDetDraft> {
+export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expectedAthleteId: string, restrictions: DraftRestrictions = {}, ordinaryProposal=false): Promise<AppPlanningDetDraft> {
   if (app.athleteId !== expectedAthleteId || app.source !== 'app_planning_pipeline') throw Error('Profil partagé absent ou différent de cet athlète.');
   if (await planningFingerprint(app.athlete, app.config) !== app.fingerprint) throw Error('Profil partagé modifié : rechargez avant de préparer le brouillon.');
   if (JSON.stringify(app.limiters.applied) !== JSON.stringify(app.config.identifiedLimitersRaw ?? [])) throw Error('Ordre des limiteurs incohérent avec la configuration.');
@@ -69,17 +78,25 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   // adjustments; inventing a fixed count here would override that calendar.
   const invalidFrequency=config.sessionsPerWeek!==undefined&&(!Number.isInteger(config.sessionsPerWeek)||config.sessionsPerWeek<1);
   if (!config.objective || !/^\d{4}-\d{2}-\d{2}$/.test(config.planStartDate ?? '') || !Number.isInteger(config.weeksAvailable) || config.weeksAvailable! < 1 || config.weeksAvailable! > 104 || !Number.isFinite(config.weeklyHours) || config.weeklyHours! <= 0 || invalidFrequency) throw Error('Complétez l’objectif, le début, la durée, les heures et les séances dans la configuration commune.');
-  const family = coachFamilyFor(config.objective);
+  const family = ordinaryProposal?ordinarySourceFamily(config.objective):coachFamilyFor(config.objective);
   if (!family) throw Error('Cette famille ne dispose pas encore de sources DET pour un brouillon.');
   const semantics = traceLimiterSemantics(app.limiters.applied, family.key);
   // The ordinary proposal has its own block-dose check for running limiters.
   // The route-reviewed runner retains its separate admission contract.
   const trailDraft = trailFamily(config) && semantics.resolutions[0]?.status==='supported' &&
     ['tte','durability_race_relative','vo2max','vlamax_reduction','vma_velocity'].includes(semantics.resolutions[0].key ?? '');
-  if (semantics.blocking && !trailDraft) throw Error(`Limiteur principal non raccordé : ${semantics.blocking.raw}. Aucune autre priorité n’est substituée.`);
+  const primary=semantics.resolutions[0];
+  const gap=config.physiologicalTrace?.diagnostic.limiters.find(row=>row.metric==='FTP/kg');
+  const documentedBikePower=family.sportFocus==='tri' && primary?.key==='ftp_relative' &&
+    typeof athlete.weightKg==='number'&&athlete.weightKg>0&&typeof athlete.ftp==='number'&&athlete.ftp>0&&
+    typeof gap?.value==='number'&&typeof gap.target==='number'&&gap.value<gap.target&&Math.abs(gap.value-athlete.ftp/athlete.weightKg)<.005;
+  const ordinaryPrimary=ordinaryProposal && (hasAdditionalPrimaryRule(app.limiters.applied[0])||documentedBikePower);
+  if (semantics.blocking && !trailDraft && !ordinaryPrimary) throw Error(`Limiteur principal non raccordé : ${semantics.blocking.raw}. Aucune autre priorité n’est substituée.`);
   if (!semantics.resolutions.length) throw Error('Le profil partagé ne contient pas de limiteur prioritaire.');
   const priorities = semantics.resolutions.map(resolution => ({ raw: resolution.raw, key: resolution.status === 'supported' ? resolution.key : null }));
   const prepared = prepareDetGeneration(athlete, config);
+  if(ordinaryProposal && family.key==='cycling_tt' && !prepared.weeklyQuotas[1]?.layout)
+    throw Error('Contre-la-montre : ce formulaire ne fournit pas le calendrier vélo spécifique. Le parcours CLM dédié utilise la durée de course et les durées en position aéro tolérées, renseignées par le coach.');
   const pool = familySourcePool(family.key);
   const poolProblems = await poolLibraryProblems(pool);
   if (poolProblems.length) throw Error(poolProblems.join(' '));

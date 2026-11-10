@@ -1,3 +1,4 @@
+import {writeFileSync} from 'node:fs';
 import {beforeAll,describe,expect,it,vi} from 'vitest';
 vi.mock('@/integrations/supabase/client',()=>({supabase:{}}));
 import {computeAppAthleteContext,buildAppPlanConfig,type AppPlanFormState} from '@/lib/plan/appPlanningPipeline';
@@ -44,6 +45,7 @@ describe('actual normal marathon prescription, beyond construction/export checks
  });
  it('compares pace to pace in the PDF and names recovery/taper consistently',()=>{
   const html=buildPlanHTML(built.plan,'SYNTHETIC ONLY',new Date(2026,10,9),undefined,'portrait','full',{objective:'Marathon',ambition:'competitor',ambitionEffective:'competitor',weeklyHours:8,vmaKmh:18,thresholdPaceSecPerKm:240});
+  if(process.env.DET_MARATHON_PRINT_HTML)writeFileSync(process.env.DET_MARATHON_PRINT_HTML,html);
   const table=new DOMParser().parseFromString(html,'text/html');
   const row=Array.from(table.querySelectorAll('tr')).find(r=>r.children[0]?.textContent==='Allure course soutenable')!;
   expect(row.children[1].textContent).toContain('/km');expect(row.children[2].textContent).toContain('/km');expect(row.children[3].textContent).toContain('%');

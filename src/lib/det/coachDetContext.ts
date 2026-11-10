@@ -1,3 +1,5 @@
+import {findSubmaximalStrength} from './submaximalStrength';
+import {findRankedRunSource} from './rankedRunSources';
 import {timeTrialProblems,type TimeTrialDeclaration} from '../../../experimental/det-engine/v410-time-trial-contract';
 import type { TrailPlanningDeclaration } from '../../../experimental/det-engine/v407-reviewed-trail-contract';
 import { v3ExtendedCatalogue } from '../../../scripts/library-v3/supplementalCatalogue';
@@ -254,7 +256,7 @@ export function anchorsFromSnapshot(s: CoachDetInputSnapshot): V3AthleteAnchors 
 }
 
 export function findSource(id: string): V3Workout | undefined {
-  return v3ExtendedCatalogue.workouts.find((w) => w.id === id)??findLibrary920Source(id);
+  return findRankedRunSource(id)??findSubmaximalStrength(id)??v3ExtendedCatalogue.workouts.find((w) => w.id === id)??findLibrary920Source(id);
 }
 
 /** Recherche lisible : titre, sport, intention ou focus. L'identifiant reste secondaire. */

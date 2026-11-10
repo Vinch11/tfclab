@@ -22,3 +22,25 @@ export function hasRankedWork(blocks:readonly V3Block[],domain:V3Workout['primar
   return blocks.some(b => b.kind === 'repeat' ? b.count.base > 0 && hasRankedWork(b.steps,domain) :
     b.role === 'main' && b.domain === domain && (b.seconds?.base ?? b.meters?.base ?? b.reps?.base ?? 0)>0);
 }
+
+export const hasAdditionalPrimaryRule = (metric:string) =>
+  ['FatMax','Économie','Robustesse','Durabilité (découplage)',"W'","W' (kJ)"].includes(metric);
+
+/** Only count prescribed work in the source domain. Rest between repeats,
+ * warm-up and unrelated technical work are deliberately absent. */
+export function rankedWorkDose(blocks:readonly V3Block[],domain:V3Workout['primaryDomain']):string {
+  let seconds=0,meters=0,reps=0;
+  function visit(steps:readonly V3Block[],factor:number) {
+    for(const b of steps){
+      if(b.kind==='repeat')visit(b.steps,factor*b.count.base);
+      else if(b.role==='main' && b.domain===domain){
+        if(b.kind==='time')seconds+=factor*(b.seconds?.base??0);
+        if(b.kind==='distance')meters+=factor*(b.meters?.base??0);
+        if(b.kind==='reps')reps+=factor*(b.reps?.base??0);
+      }
+    }
+  }
+  visit(blocks,1);
+  const format=(n:number)=>Number(n.toFixed(2)).toLocaleString('fr-FR');
+  return [seconds?format(seconds/60)+' min':'',meters?format(meters)+' m':'',reps?format(reps)+' rép.':''].filter(Boolean).join(' + ');
+}

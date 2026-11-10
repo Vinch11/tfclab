@@ -45,9 +45,10 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const weekNotes = (week:typeof proposal.weeks[number]) => {
   const ranked=proposal.checks.filter(c=>c.week===week.week&&c.code==='ranked_limiter_work').map(c=>c.message);
   if(trailReview)return [trailWeekNotes(week),...ranked].join('\n');
+  const taper=proposal.checks.find(c=>c.week===week.week&&c.code==='tri_taper_exercise_minutes');
   const volume=week.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':'';
   const dose=proposal.checks.find(c=>c.week===week.week&&['primary_dose_coverage','tri_primary_component_dose'].includes(c.code));
-  return [dose?.message,...ranked,volume].filter(Boolean).join('\n') || undefined;
+  return [dose?.message,...ranked,taper?.message,volume].filter(Boolean).join('\n') || undefined;
  };
  const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:weekNotes(w),sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
   const base={weekNumber:w.week,weekTheme:weekTheme(w),phase:w.phase??'Préparation',dayName:d.day,dayIndex};

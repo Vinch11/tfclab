@@ -1,6 +1,6 @@
 import {library920SourceMetadata,library920EngineeringEligible} from '../../../scripts/library-v3/library920Catalogue';
 import type {V3Workout} from '../../../scripts/library-v3/catalogueRuntime';
-import {coachFamilyFor} from '../../../experimental/det-engine/v401-coach-inputs-core';
+import {coachFamilyFor,coachObjectiveKey} from '../../../experimental/det-engine/v401-coach-inputs-core';
 import {resolveV3IntensityTargets,type V3AthleteAnchors,type V3IntensityResolution} from '../../../scripts/library-v3/resolveV3Intensity';
 
 const levels=['untrained','light','trained','highly_trained'];
@@ -14,7 +14,7 @@ export function library920ContextProblems(w:V3Workout,objective:string,level:str
  const levelIndex=levels.indexOf(level??'');
  if(levelIndex<0)problems.push('athlete_level_unknown');
  else if(levelIndex<levels.indexOf(w.minimumLevel))problems.push('athlete_level_insufficient');
- const family=coachFamilyFor(objective)?.key,goal=family?goalForFamily[family]:undefined;
+ const family=coachFamilyFor(objective)?.key,goal=coachObjectiveKey(objective)==='5k'?'5k':family?goalForFamily[family]:undefined;
  // A generic single-sport session may support the matching single-sport
  // programme. Event-specific recipes keep their declared event scope.
  const programme=family==='cycling_ftp'&&w.sport==='bike'||family==='swimming_css'&&w.sport==='swim';

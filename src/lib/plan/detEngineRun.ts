@@ -16,7 +16,7 @@ import { explicitCoachLimiterOverride, freezeAppPlanningInput } from "@/lib/det/
 import { generateAppProfileDetPlan } from "@/lib/det/appProfileDetPlan";
 import { bindAppPlanMetadata } from "@/lib/plan/generatedPlanMetadata";
 import { CHECKED_IN_PLAN_RELEASE_INFO } from "../../../supabase/functions/_shared/planReleaseManifest";
-import { coachFamilyFor } from "../../../experimental/det-engine/v401-coach-inputs-core";
+import { ordinarySourceFamily } from "@/lib/det/ordinaryObjective";
 
 export type PlanningEngine = "ai" | "det";
 export const PLANNING_ENGINE_STORAGE_KEY = "tfcl_planning_engine";
@@ -28,9 +28,9 @@ export function writePlanningEngine(storage: Pick<Storage, "setItem"> | undefine
   try { storage?.setItem(PLANNING_ENGINE_STORAGE_KEY, engine); } catch { /* préférence locale uniquement */ }
 }
 
-/** Objectifs pour lesquels DET dispose d'une famille de séances qualifiée. */
+/** Objectifs disponibles dans le parcours de proposition DET du coach. */
 export function detSupportsObjective(objective: string): boolean {
-  return coachFamilyFor(objective) !== null;
+  return ordinarySourceFamily(objective) !== null;
 }
 
 export function detEngineVersion(): string {

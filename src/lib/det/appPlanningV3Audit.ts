@@ -5,7 +5,7 @@ import { fingerprintV3SportingSource } from '../../../scripts/library-v3/sportin
 import { evaluateV3Workout,type V3Block } from '../../../scripts/library-v3/catalogueRuntime';
 import { clockFor, type CoachConfirmedClock } from '../../../experimental/det-engine/v401-coach-inputs-core';
 import { calendarOrConfirmedClockRecoverySafe, type ScheduledSport,type ConfirmedSlotStart } from '../../../experimental/det-engine/v39-calendar-safe-recovery';
-import { normalizeRepairGoal } from '../../../supabase/functions/_shared/repairSportingEquivalence';
+import {detObjectiveGoal} from './ordinaryObjective';
 import { hasExactStrictTriathlonRatio, TRIATHLON_STRICT_MINUTE_RANGES } from '../../../experimental/det-engine/v314-cumulative-ratio-search';
 import { parseAthleteConstraints } from '@/lib/plan/constraintRules';
 import { canonicalJson } from '@/lib/plan/appendOnlyPlanVersionSave';
@@ -135,7 +135,7 @@ export function auditV3ProposalRecovery(plan:V3PlanProposal,startDate:string,clo
 }
 
 export function auditV3ProposalSportMinutes(plan:V3PlanProposal,constraints?:string):Check[]{
-  const key=normalizeRepairGoal(plan.objective);
+  const key=detObjectiveGoal(plan.objective);
   const objective=({half:'703',ironman:'IM',sprint:'Sprint',olympic:'Olympic'} as const)[key as 'half'|'ironman'|'sprint'|'olympic'];
   if(!objective)return [];
   if(parseAthleteConstraints(constraints).bannedSports.length)return [{code:'sport_minute_ratios',status:'pending',message:'Une discipline est exclue : proportions adaptées à revoir, sans appliquer le ratio triathlon standard.'}];

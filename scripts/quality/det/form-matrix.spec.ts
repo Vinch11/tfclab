@@ -34,6 +34,14 @@ const scenarios: Scenario[] = [
   { objective: 'TrailMountain', weeks: 16, hours: 9, distanceKm: 55, elevationM: 3000 },
   { objective: 'TrailUltra', weeks: 20, hours: 12, distanceKm: 90, elevationM: 4500 },
 ];
+// The 25 previously refused complete inputs at d076c4e. A recorded
+// refusal on any of these cases is a regression, even if the suite can log it.
+const rankedRegressionCases:Record<string,string[]>={
+  Marathon:['auto/elite','auto/world_class','trained/elite','trained/world_class','highly_trained/elite'],
+  TrailShort:['auto/elite','light/competitor','light/elite','trained/elite','highly_trained/elite'],
+  TrailMountain:['auto/elite','auto/world_class','light/age_group','light/competitor','light/elite','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
+  TrailUltra:['auto/elite','auto/world_class','trained/elite','trained/world_class','highly_trained/elite','highly_trained/world_class'],
+};
 const levels = ['auto', 'untrained', 'light', 'trained', 'highly_trained'];
 const subset = process.env.DET_OBJECTIVES?.split(',');
 const selected = scenarios.filter(s => !subset || subset.includes(s.objective));
@@ -112,7 +120,7 @@ for (const scenario of selected) {
         try {
           plan = await generateDetPlanFromPageInput(input);
         } catch (error) {
-          if (!(error instanceof DetRefusal)) throw error;
+          if (!(error instanceof DetRefusal)||rankedRegressionCases[scenario.objective]?.includes(level+'/'+ambition)) throw error;
           emit({ ...row, ...diagnostic, status: 'refused', reasons: error.reasons });
           return;
         }
@@ -120,6 +128,14 @@ for (const scenario of selected) {
         expect(p.limiterOrder).toEqual(diagnostic.limiters);
         expect(p.weeks).toHaveLength(scenario.weeks);
         expect(p.checks.filter(c => c.status === 'blocked')).toEqual([]);
+        if(process.env.DET_PLAN_DETAILS)appendFileSync(process.env.DET_PLAN_DETAILS,JSON.stringify({...row,weeks:p.weeks.map(w=>({
+          n:w.week,type:w.weekType,minutes:w.knownMinutes,sessions:w.days.flatMap(d=>d.sessions.map(s=>({sport:s.sport,role:s.role,minutes:s.knownMinutes,ids:s.components.map(c=>c.sourceId)})))
+        }))})+'\n');
+        if(rankedRegressionCases[scenario.objective]?.includes(level+'/'+ambition)){
+          for(const [i,label] of p.limiterOrder.entries()){
+            expect(p.checks.some(c=>['ranked_limiter_work','ranked_limiter_deferred'].includes(c.code)&&c.message.startsWith('Rang '+(i+1)+' · '+label))).toBe(true);
+          }
+        }
         const sessions = p.weeks.flatMap(w => w.days.flatMap(d => d.sessions));
         const components = sessions.flatMap(s => s.components);
         const primary = p.checks.filter(c => c.code === 'primary_dose_coverage' && c.status === 'passed');
@@ -145,6 +161,15 @@ if (selected.some(s => s.objective === 'IM')) {
     const evidence = proposal.checks.filter(c => c.code === 'tri_primary_component_dose' && c.status === 'passed');
     expect(evidence.map(c => c.week)).toEqual(loads.map(w => w.week));
     expect(proposal.limiterOrder).toEqual(input.config.identifiedLimitersRaw);
+    const finalWeeks=proposal.weeks.filter(w=>['taper','race'].includes(w.weekType));
+    expect(finalWeeks).toHaveLength(4);
+    const preTaper=loads.slice(-3).reduce((sum,w)=>sum+w.knownMinutes,0)/3;
+    expect(finalWeeks[0].knownMinutes).toBeGreaterThan(preTaper*.5);
+    expect(finalWeeks[0].knownMinutes).toBeLessThan(preTaper*.8);
+    for(const [i,week] of finalWeeks.entries()){
+      if(i)expect(week.knownMinutes).toBeLessThan(finalWeeks[i-1].knownMinutes);
+      expect(plan.weeks[week.week-1].coachNotes).toContain('Compétition et transitions exclues');
+    }
     const saved = JSON.parse(JSON.stringify(plan));
     const sessions = sessionsFromPlanJson(saved).sessions;
     const competition = sessions.map(raceIdentityOf).find(r => r !== null)!;
@@ -219,6 +244,20 @@ if (selected.some(s => s.objective === '703')) {
 }
 
 for (const trail of selected.filter(s => s.objective.startsWith('Trail'))) {
+  if(trail.objective==='TrailUltra'){
+    it('honours a diagnosed FatMax moved to first place in the normal trail form',async()=>{
+      const raw=inputFor(trail,'trained','competitor').config.identifiedLimitersRaw!;
+      expect(raw).toContain('FatMax');
+      const ordered=['FatMax',...raw.filter(label=>label!=='FatMax')];
+      const plan=await generateDetPlanFromPageInput(inputFor(trail,'trained','competitor',ordered));
+      const proposal=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+      expect(proposal.limiterOrder).toEqual(ordered);
+      for(const w of proposal.weeks.filter(w=>w.weekType==='load')){
+        expect(w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)).some(c=>c.limiterMatches.includes('FatMax'))).toBe(true);
+        expect(plan.weeks[w.week-1].coachNotes).toMatch(/Rang 1 · FatMax · .+min de travail/);
+      }
+    },120_000);
+  }
   it(trail.objective + ' produces reviewable terrain sessions within the coach limits', async () => {
     const input = inputFor(trail, 'trained', 'competitor');
     const limits = { recentMinutes: 100, peakMinutes: 150 };
@@ -337,28 +376,58 @@ for (const scenario of selected.filter(s=>['10K','Semi','Marathon','703','IM'].i
 if(process.env.DET_EXTENDED_CASES) {
   const additional: Scenario[] = [
     {objective:'5K',weeks:8,hours:4,sessions:3},
+    {objective:'5K',weeks:12,hours:6,sessions:4},
     {objective:'10K',weeks:12,hours:3,sessions:3},
     {objective:'Semi',weeks:16,hours:4,sessions:3},
     {objective:'Sprint',weeks:8,hours:8,sessions:7},
     {objective:'Olympic',weeks:12,hours:9,sessions:8},
+    {objective:'Sprint',weeks:12,hours:10,sessions:8},
+    {objective:'Olympic',weeks:16,hours:12,sessions:9},
     {objective:'Cyclisme FTP',weeks:8,hours:7,sessions:5},
     {objective:'Cyclisme contre-la-montre',weeks:8,hours:7,sessions:5},
     {objective:'Natation 1500m',weeks:8,hours:4,sessions:4},
+    {objective:'Marathon',weeks:40,hours:8},
+    {objective:'Semi',weeks:30,hours:7,sessions:4},
+    {objective:'Cyclisme FTP',weeks:12,hours:9,sessions:4},
+    {objective:'Natation 1500m',weeks:12,hours:6,sessions:5},
   ];
   it.each(additional)('vérifie le parcours de génération pour $objective ($weeks semaines)',async scenario=>{
-    const level=['10K','Semi'].includes(scenario.objective)?'untrained':'trained';
+    const level=(scenario.objective==='10K'||scenario.objective==='Semi'&&scenario.weeks===16)?'untrained':'trained';
     const ambition=level==='untrained'?'age_group':'competitor';
     if(!detSupportsObjective(scenario.objective)){emit({...scenario,level,ambition,status:'outside_det'});return;}
     const input=inputFor(scenario,level,ambition,[],{recentWeeklyHours:String(scenario.hours),recentWeeksCount:'4'});
     let plan;
     try {plan=await generateDetPlanFromPageInput(input);} catch(error){
-      if(!(error instanceof DetRefusal))throw error;
+      const expectedPlan=(scenario.objective==='5K'&&scenario.weeks===12)||
+        scenario.objective==='Marathon'||scenario.objective==='Semi'&&scenario.weeks===30||
+        scenario.objective==='Cyclisme FTP'&&scenario.weeks===12||['Natation 1500m','Sprint','Olympic'].includes(scenario.objective);
+      if(!(error instanceof DetRefusal)||expectedPlan)throw error;
       emit({...scenario,level,ambition,status:'refused',reasons:error.reasons});return;
     }
     const proposal=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
     expect(proposal.weeks).toHaveLength(scenario.weeks);
     expect(proposal.limiterOrder).toEqual(input.config.identifiedLimitersRaw);
+    const saved=JSON.parse(JSON.stringify(plan));
+    const sessions=sessionsFromPlanJson(saved).sessions;
+    const competition=sessions.map(raceIdentityOf).find(r=>r!==null);
+    const refs={synthetic:true,athleteId:'usr_SYNTHETIC',competition,
+      sportIds:{run:'spt_RUN',bike:'spt_BIKE',swim:'spt_SWIM',strength:'spt_STRENGTH',brick:'spt_TRI'},exerciseIds:{}};
+    const whole=await preparePlan(saved,refs,'SYNTHETIC_EXTENDED');
+    expect(whole.precheck.complete,JSON.stringify(whole.precheck.rows.filter(r=>r.status==='refused'))).toBe(true);
+    const scoped=[];
+    expect(whole.precheck.weeks).toBe(scenario.weeks);
+    const key=sessions.find(s=>s.catalogId)!.sessionKey;
+    for(const scope of [{kind:'weeks',from:1,to:1},{kind:'sessions',keys:[key]}]){
+      const part=await preparePlan(saved,refs,'SYNTHETIC_EXTENDED',scope);
+      expect(part.precheck.complete).toBe(true);
+      expect(part.ops.length).toBeGreaterThan(0);
+      expect(part.ops.every(op=>whole.ops.some(all=>all.sessionKey===op.sessionKey&&all.bodySha256===op.bodySha256))).toBe(true);
+      scoped.push(part.ops.length);
+    }
     emit({...scenario,level,ambition,status:'assembled',limiters:proposal.limiterOrder,
-      firstWeek:proposal.weeks[0].knownMinutes,peak:Math.max(...proposal.weeks.map(w=>w.knownMinutes))});
+      firstWeek:proposal.weeks[0].knownMinutes,peak:Math.max(...proposal.weeks.map(w=>w.knownMinutes)),
+      exportComplete:whole.precheck.complete,operations:whole.ops.length,scoped,
+      exportProblems:whole.precheck.planProblems,refusedBlocks:whole.precheck.rows.filter(r=>r.status==='refused').map(r=>({
+        reason:r.reason,sport:r.sport,title:r.title}))});
   },120000);
 }

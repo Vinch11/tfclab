@@ -1,3 +1,4 @@
+import {hasAdditionalPrimaryRule,hasRankedWork,rankedSourceIntent} from './rankedLimiterPrescription';
 /** Construction rules from the existing app inputs. No assimilation is inferred.
  * Source context is distinct from minimum admission level and catalogue affinity.
  */
@@ -37,6 +38,7 @@ export function v3SourceContextProblems(source:V3Workout,config:PlanConfig,weekT
   const eventDomains=['im_pace','703_pace','marathon_pace','semi_pace'];
   if(/\baltitude\b|\bhypox/.test(title)&&!/(altitude|hypox)/i.test(config.constraints??''))problems.push('altitude_context_not_declared');
   if(eventDomains.includes(source.primaryDomain??'')&&source.primaryDomain!==road.raceDomain)problems.push('different_race_specificity');
+  if(road.goal==='5k' && /(?:specifique|allure|rappel|strategie).*(?:10\s?k|semi|marathon)/.test(title))problems.push('different_race_specificity');
   if(source.primaryIntent==='recovery'){
    const event=/10\s?k/.test(title)?'10k':/semi/.test(title)?'semi':/marathon/.test(title)?'marathon':null;
    if(event&&event!==road.goal)problems.push('recovery_recipe_for_different_event');
@@ -74,4 +76,13 @@ export function primaryPrescriptionMatch(component:ProposedV3Workout,source:V3Wo
  const session={weekNumber:1,weekTheme:'',phase:'',dayName:'',dayIndex:0,sport:component.sport,title:component.title,details:'',catalogId:component.sourceId,durationMin:component.durationMinutes,isKeySession:true,isRest:false};
  const evidence={dose:()=>dose,limiterKeys:()=>source.prescription.physiologicalIntent.limiterKeys,primaryDomain:()=>source.primaryDomain};
  return component.sport==='bike'?verifyBikePrimary(session,key,evidence):verifyPrimaryRunningSession(session,key,evidence).verified;
+}
+
+/** Some signals (e.g. decoupling and FatMax) have no measured change to
+ * certify. For the ordinary plan prove the intent and the configured main set.
+ * Existing running and cycling dose thresholds retain their separate tests. */
+export function coachPrimaryWork(component:ProposedV3Workout,source:V3Workout,metric:string,key:DetLimiterKey|null):boolean {
+ if(key!==null)return primaryPrescriptionMatch(component,source,key);
+ return hasAdditionalPrimaryRule(metric) && component.durationMinutes!==null &&
+   rankedSourceIntent(source,metric) && hasRankedWork(component.blocks,source.primaryDomain);
 }
