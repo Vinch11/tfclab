@@ -25,7 +25,8 @@ import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
 import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
-import { mergeEmptyFields } from "@/lib/nolioV2Records";
+import { NolioPeriodTestFinder } from "@/components/NolioPeriodTestFinder";
+import { mergeEmptyFields, type SnapshotRecordFields } from "@/lib/nolioV2Records";
 import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
 import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
@@ -497,8 +498,21 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     }));
   };
 
+  const applyNolioPeriod = (fields: SnapshotRecordFields, notes: string) => {
+    setNolioFields(prevSet => {
+      const next = new Set(prevSet);
+      Object.entries(fields).forEach(([k, v]) => { if (v && !String((formData as Record<string, unknown>)[k] ?? "").trim()) next.add(k); });
+      return next;
+    });
+    setFormData(prev => ({
+      ...mergeEmptyFields(prev, fields),
+      coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
+    }));
+  };
+
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
+      <NolioPeriodTestFinder athleteName={athleteName} current={formData as unknown as Record<string, unknown>} onApply={applyNolioPeriod} />
       {/* Nolio Import Button */}
       {(() => {
         const latestSnap = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
@@ -521,19 +535,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       })()}
 
       <details className="border-b border-border pb-3">
-        <summary className="cursor-pointer py-3 text-sm font-medium">Nolio v2 — choisir une période de tests</summary>
+        <summary className="cursor-pointer py-3 text-sm font-medium">Nolio — records détaillés (avancé)</summary>
         <p className="text-sm text-muted-foreground">Bilan de {athleteName} · Vérifiez que l’athlète Nolio sélectionné correspond.</p>
-        <NolioPeriodRecords onApply={(fields, notes) => {
-          setNolioFields(prevSet => {
-            const next = new Set(prevSet);
-            Object.entries(fields).forEach(([k, v]) => { if (v && !String((formData as Record<string, unknown>)[k] ?? "").trim()) next.add(k); });
-            return next;
-          });
-          setFormData(prev => ({
-            ...mergeEmptyFields(prev, fields),
-            coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
-          }));
-        }}/>
+        <NolioPeriodRecords onApply={applyNolioPeriod}/>
       </details>
 
       <SnapshotTestDays

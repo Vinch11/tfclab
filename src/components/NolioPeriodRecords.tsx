@@ -8,7 +8,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NolioTestReview } from '@/components/NolioTestReview';
 import { NolioThresholdTestReview } from '@/components/NolioThresholdTestReview';
-import { NolioPeriodTestFinder } from '@/components/NolioPeriodTestFinder';
 import { CriticalEffortsPanel } from '@/components/CriticalEffortsPanel';
 import { Download, Search, Check } from 'lucide-react';
 import { observedFields, recordNotes, recordQueries, readSportsRecords, selectableRecordIndices, type ReviewedRecord, type SnapshotRecordFields } from '@/lib/nolioV2Records';
@@ -84,7 +83,6 @@ export function NolioPeriodRecords({onApply}:{onApply?:(fields:SnapshotRecordFie
     {error && <p role="alert" className="text-sm text-destructive">Lecture impossible : {error}</p>}
     {catalogues && !catalogues.complete && <p className="text-sm text-destructive">Liste Nolio incomplète.</p>}
     <Button onClick={search} disabled={busy||!catalogues||!athlete||!sports.size||!from||!to||from>to}><Search className="mr-2 h-4 w-4"/>{busy?'Lecture…':'Lire les records'}</Button>
-    {athlete&&from&&to&&from<=to&&catalogues?.complete&&<NolioPeriodTestFinder key={`find-${athlete}-${from}-${to}`} athlete={athlete} from={from} to={to} onApply={onApply}/>}
     {mode==='verified'&&athlete&&from&&to&&from<=to&&catalogues?.complete&&<NolioThresholdTestReview key={`tte-${athlete}-${from}-${to}`} athlete={athlete} from={from} to={to} onApply={onApply}/>}
     {period && <>
       <p className="text-sm text-muted-foreground">{records.length} records · {reviewed.length} retenus · {period.from} → {period.to}</p>

@@ -1,26 +1,36 @@
+export const TEST_DAY_GROUPS: Array<{ title: string; fields: DetectedField[] }> = [
+  { title: 'J1 · Sprint', fields: ['pmax_5s', 'p30s_w', 'p60s_w', 'sprint_15s'] },
+  { title: 'J3 · Aérobie max', fields: ['map5min_w', 'vma'] },
+  { title: 'J5 · Seuil', fields: ['test20min_w', 'ftp'] },
+  { title: 'Durabilité, économie et contexte', fields: ['run_hr_drift_pct', 'run_power_cost', 'fc_max'] },
+];
+
 /**
  * « Trouver les tests de la période » — détection des efforts de test dans les
  * séances Nolio d'une période. Règle coach : pour chaque test, le meilleur
  * résultat mesuré de la période est retenu, puis le coach valide.
- * Jamais de VLamax, FTP, CSS ou durée au seuil déduite ici.
+ * Jamais de VLamax, CSS ou durée au seuil déduite ici ; la FTP n'est qu'une
+ * proposition « à vérifier » (95 % d'un test 20 min), remplie seulement par le coach.
  */
 import type { SnapshotRecordFields } from '@/lib/nolioV2Records';
 
 type Stat = { value?: number | null } | null | undefined;
-export interface DetectionLap { distance?: number | null; duration?: number | null; stats?: { heartrate_avg?: Stat; watts_avg?: Stat; elevation_gain?: Stat } | null }
+export interface DetectionLap { distance?: number | null; duration?: number | null; stats?: { heartrate_avg?: Stat; heartrate_max?: Stat; watts_avg?: Stat; elevation_gain?: Stat } | null }
 export interface DetectionSession {
   id: string; name: string; date: string; sportBase: 'cycling' | 'running';
   laps?: DetectionLap[]; bikeLaps?: DetectionLapPower[]; time?: Array<number | null>; watts?: Array<number | null>;
 }
-export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w' | 'run_hr_drift_pct' | 'run_power_cost';
-export interface DetectionLapPower { duration?: number | null; watts?: number | null }
+export type DetectedField = 'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'sprint_15s' | 'vma' | 'test20min_w' | 'run_hr_drift_pct' | 'run_power_cost' | 'ftp' | 'fc_max';
+export interface DetectionLapPower { duration?: number | null; watts?: number | null; hrMax?: number | null }
 export interface DetectedTest {
   field: DetectedField; label: string; value: number; display: string; unit: string;
   sessionId: string; sessionName: string; date: string; evidence: string;
   /** false = information seulement (ex. test 20 min : jamais converti en FTP automatiquement). */
   fillable: boolean;
+  /** measured = effort de test retrouvé ; check = proposition à vérifier ; info = information seulement. */
+  confidence: 'measured' | 'check' | 'info';
   /** Autres séances candidates, du meilleur au moins bon. */
-  alternatives: Array<{ sessionName: string; date: string; display: string }>;
+  alternatives: Array<{ sessionName: string; date: string; display: string; value: number }>;
 }
 
 const BIKE_WINDOWS: Array<[DetectedField, number, string]> = [
@@ -69,8 +79,15 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
     // Test 20 min (protocole FTP) : tour vélo isolé de 19 à 21 min, effort réel du test.
     for (const lap of s.sportBase === 'cycling' ? s.bikeLaps ?? [] : []) {
       const t = Number(lap.duration), w = Number(lap.watts);
-      if (t >= 1140 && t <= 1260 && w > 0) push('test20min_w', { value: Math.round(w), display: `${Math.round(w)} W sur ${Math.round(t / 60)} min`, s, evidence: 'tour de test 20 min (FTP non calculée automatiquement)' });
+      if (t >= 1140 && t <= 1260 && w > 0) {
+        push('test20min_w', { value: Math.round(w), display: `${Math.round(w)} W sur ${Math.round(t / 60)} min`, s, evidence: 'tour de test 20 min' });
+        // Proposition à vérifier : convention 95 % du test 20 min, jamais une mesure.
+        push('ftp', { value: Math.round(w * 0.95), display: `${Math.round(w * 0.95)} W`, s, evidence: `95 % du test 20 min (${Math.round(w)} W) — à vérifier` });
+      }
     }
+    // FC max : plus haute FC enregistrée sur un tour (vélo ou course), à vérifier (capteur, pics parasites).
+    const hrs = [...(s.bikeLaps ?? []).map(l => Number(l.hrMax)), ...(s.laps ?? []).map(l => Number(l.stats?.heartrate_max?.value))].filter(h => Number.isFinite(h) && h >= 120 && h <= 230);
+    if (hrs.length) { const h = Math.max(...hrs); push('fc_max', { value: h, display: `${h} bpm`, s, evidence: 'plus haute FC enregistrée de la séance — à vérifier' }); }
     if (s.sportBase === 'running' && s.laps) {
       for (const lap of s.laps) {
         const d = Number(lap.distance), t = Number(lap.duration);
@@ -110,7 +127,7 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
 
   const labels: Record<DetectedField, [string, string]> = {
     pmax_5s: ['Vélo — sprint 5 s', 'W'], p30s_w: ['Vélo — 30 s', 'W'], p60s_w: ['Vélo — 60 s', 'W'],
-    map5min_w: ['Vélo — puissance 5 min', 'W'], run_hr_drift_pct: ['Course — dérive cardiaque (durabilité, estimation)', '%'], run_power_cost: ['Course — coût en puissance (économie, information)', 'W par km/h'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
+    map5min_w: ['Vélo — puissance 5 min', 'W'], run_hr_drift_pct: ['Course — dérive cardiaque (durabilité, estimation)', '%'], run_power_cost: ['Course — coût en puissance (économie, information)', 'W par km/h'], test20min_w: ['Vélo — test 20 min (protocole FTP)', 'W'], ftp: ['Vélo — FTP', 'W'], fc_max: ['FC max', 'bpm'], sprint_15s: ['Course — distance en 15 s', 'm'], vma: ['Course — VMA', 'km/h'],
   };
   const out: DetectedTest[] = [];
   for (const field of Object.keys(labels) as DetectedField[]) {
@@ -121,8 +138,9 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
     // Une seule alternative par séance.
     const seen = new Set([best.s.id]);
     const alternatives = list.slice(1).filter(c => !seen.has(c.s.id) && seen.add(c.s.id)).slice(0, 3)
-      .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display }));
-    out.push({ field, fillable: field !== 'test20min_w' && field !== 'run_power_cost', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
+      .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display, value: c.value }));
+    const confidence: DetectedTest['confidence'] = field === 'test20min_w' || field === 'run_power_cost' ? 'info' : field === 'ftp' || field === 'fc_max' || field === 'run_hr_drift_pct' ? 'check' : 'measured';
+    out.push({ field, confidence, fillable: confidence !== 'info', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
       sessionId: best.s.id, sessionName: best.s.name, date: best.s.date, evidence: best.evidence, alternatives });
   }
   return out;

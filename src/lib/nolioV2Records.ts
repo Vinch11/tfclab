@@ -3,7 +3,7 @@ export interface NolioV2Record {
   inner_val?: number; training_id?: string; training_name?: string | null; sport_id?: string;
   sport_name?: string; source?: string;
 }
-export type SnapshotRecordFields = Partial<Record<'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'run_power_1s' | 'run_power_5s' | 'run_power_30s' | 'run_power_60s' | 'run_power_5min' | 'fc_max' | 'sprint_15s' | 'vma' | 'tte_observed_min' | 'tte_observed_min_run' | 'run_hr_drift_pct', string>>;
+export type SnapshotRecordFields = Partial<Record<'pmax_5s' | 'p30s_w' | 'p60s_w' | 'map5min_w' | 'run_power_1s' | 'run_power_5s' | 'run_power_30s' | 'run_power_60s' | 'run_power_5min' | 'fc_max' | 'sprint_15s' | 'vma' | 'tte_observed_min' | 'tte_observed_min_run' | 'run_hr_drift_pct' | 'ftp', string>>;
 export type ReviewedRecord = NolioV2Record & { sportBase: string };
 
 export interface NolioRecordSport { id: string; name: string; sport_base: string | null }
