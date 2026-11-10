@@ -3,12 +3,12 @@ const hash = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-2
   .map(b=>b.toString(16).padStart(2,'0')).join('');
 let script;
 async function checkedScript() {
-  const manifest = await fetch(new URL('manifest.json',import.meta.url),{credentials:'omit'}).then(r=>{
+  const manifest = await fetch(new URL('manifest.json',import.meta.url),{credentials:'same-origin'}).then(r=>{
     if(!r.ok) throw Error('Version DET indisponible.'); return r.json();
   });
   if(manifest.schema!==1 || manifest.entry !== 'worker.js.gz' || !/^det-[\da-f]{64}$/.test(manifest.version))
     throw Error('Format de version DET inconnu.');
-  const response=await fetch(new URL(manifest.entry,import.meta.url),{credentials:'omit'});
+  const response=await fetch(new URL(manifest.entry,import.meta.url),{credentials:'same-origin'});
   if(!response.ok)throw Error('Téléchargement du moteur DET impossible.');
   const compressed=await response.arrayBuffer();
   if(compressed.byteLength!==manifest.bytes || await hash(compressed)!==manifest.sha256)
