@@ -137,7 +137,12 @@ export function renderPlanTimelineSVG(
   if (weeks.length === 0) return "";
   const n = weeks.length;
   const colW = opts.fluid ? Math.max(20, 960 / n) : 38;
-  const padL = 4, phaseTop = 4, phaseH = 40, barTop = phaseTop + phaseH + 26, barH = 130;
+  const chantiers = (plan.strategicRecap?.limiters ?? []).map((l) => {
+    const nums = (l.weeks || "").match(/\d+/g)?.map(Number) ?? [];
+    return nums.length ? { ...l, start: nums[0], end: Math.max(nums[nums.length > 1 ? 1 : 0], nums[0]) } : null;
+  }).filter((x): x is NonNullable<typeof x> => !!x).sort((a, b) => a.rank - b.rank);
+  const laneH = 26, chTop = 4 + 40 + 8 + (chantiers.length ? 16 : 0);
+  const padL = 4, phaseTop = 4, phaseH = 40, barTop = chTop + chantiers.length * laneH + 26, barH = 130;
   const yBase = barTop + barH;
   const W = padL * 2 + n * colW, H = yBase + 40;
   const fs = opts.fluid ? 11 : 12;
@@ -155,6 +160,18 @@ export function renderPlanTimelineSVG(
     o.push(`<g><title>${esc(seg.label)} · ${span}${seg.objective ? " — " + esc(seg.objective) : ""}</title><rect x="${x}" y="${phaseTop}" width="${w}" height="${phaseH}" rx="6" fill="${P.phases[i % P.phases.length]}" stroke="${P.grid}"/>`);
     o.push(`<text x="${x + 7}" y="${phaseTop + 17}" font-size="${fs}" font-weight="700" fill="${P.text}">${esc(clip(seg.label, w - 12, fs))}</text>`);
     o.push(`<text x="${x + 7}" y="${phaseTop + 32}" font-size="${fs - 1}" fill="${P.muted}">${esc(clip(`${span} · ${seg.end - seg.start + 1} sem`, w - 12, fs - 1))}</text></g>`);
+  });
+  // Chantiers (limiteurs travaillés, par ordre de priorité)
+  if (chantiers.length) o.push(`<text x="${padL + 2}" y="${chTop - 4}" font-size="${fs - 1}" font-weight="700" fill="${P.muted}">CHANTIERS (limiteurs travaillés)</text>`);
+  chantiers.forEach((c, i) => {
+    const s0 = Math.max(c.start, first), e0 = Math.min(c.end, first + n - 1);
+    if (e0 < s0) return;
+    const x = xOf(s0) + 1, w = (e0 - s0 + 1) * colW - 2, y = chTop + i * laneH;
+    const span = c.start === c.end ? `S${c.start}` : `S${c.start}–S${c.end}`;
+    o.push(`<g><title>Chantier #${c.rank} : ${esc(c.name)} — ${esc(c.block)} (${span})${c.keySessions ? "\nSéances clés : " + esc(c.keySessions) : ""}${c.status ? "\nStatut : " + esc(c.status) : ""}</title>`);
+    o.push(`<rect x="${padL}" y="${y + 11}" width="${W - padL * 2}" height="1" fill="${P.grid}"/>`);
+    o.push(`<rect x="${x}" y="${y}" width="${w}" height="${laneH - 4}" rx="11" fill="${P.recovery}" opacity="${Math.max(0.35, 0.95 - i * 0.2)}"/>`);
+    o.push(`<text x="${x + 8}" y="${y + 15}" font-size="${fs - 1}" font-weight="600" fill="#FFFFFF">${esc(clip(`#${c.rank} ${c.name} · ${span}`, w - 14, fs - 1))}</text></g>`);
   });
   // Ligne de base
   o.push(`<line x1="${padL}" x2="${W - padL}" y1="${yBase}" y2="${yBase}" stroke="${P.grid}" stroke-width="1"/>`);
@@ -199,6 +216,6 @@ export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: stri
   <h2 style="margin:0 0 8px 0;">Timeline de la périodisation</h2>
   ${svg}
   <div style="margin-top:8px;font-size:10px;color:#14131A;line-height:1.8;">${legend}<span style="margin-right:12px;white-space:nowrap;">🏁 course</span><span style="margin-right:12px;white-space:nowrap;color:#D0433A;">● séance clé</span><span style="color:#5555E0;">allégée = semaine de récupération</span></div>
-  <p style="margin:4px 0 0 0;font-size:9.5px;color:#6E6B78;">Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps passé dans chaque zone d'intensité. Séances sans durée ou sans intensité identifiable : non classées, aucune valeur inventée.</p>
+  <p style="margin:4px 0 0 0;font-size:9.5px;color:#6E6B78;">Bandes violettes = chantiers (limiteurs travaillés, #1 = priorité) sur leurs semaines. Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps passé dans chaque zone d'intensité. Séances sans durée ou sans intensité identifiable : non classées, aucune valeur inventée.</p>
 </section>`;
 }

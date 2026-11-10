@@ -28,7 +28,7 @@ export function PlanPhysioTimeline({ plan, phases, displayPhase }: { plan: Parse
         <span className="text-primary">allégée = semaine de récupération</span>
       </div>
       <p className="text-xs text-muted-foreground">
-        Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps dans chaque zone d'intensité. Survolez une semaine pour le détail.
+        Bandes violettes = chantiers (limiteurs travaillés, #1 = priorité) sur leurs semaines. Chaque barre = une semaine : hauteur = volume prévu (écrit au-dessus), couleurs = temps dans chaque zone d'intensité. Survolez une semaine pour le détail.
       </p>
     </div>
   );
