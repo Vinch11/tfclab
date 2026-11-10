@@ -3325,14 +3325,14 @@ export default function AITrainingPlanPage() {
 
   return (
     <AppLayout title="Plan IA TFCL™" showBack>
-      <div className="max-w-5xl mx-auto space-y-6 p-4">
+      <div className="max-w-3xl mx-auto space-y-4 p-3 sm:p-4">
         {/* Header */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
+          <div className="flex-1 min-w-[180px]">
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
               <Sparkles className="h-6 w-6 text-primary" />
               Plan IA TFCL™
             </h1>
@@ -3385,7 +3385,7 @@ export default function AITrainingPlanPage() {
         {/* Athlete Selector */}
         {athletes.length > 0 ? (
           <CollapsibleCard
-            title={isMultiMode ? `Athlètes (${selectedAthleteIds.length}/${athletes.length})` : (currentAthlete?.nom || "Athlète")}
+            title={isMultiMode ? `1 · Athlètes (${selectedAthleteIds.length}/${athletes.length})` : `1 · ${currentAthlete?.nom || "Athlète"}`}
             icon={isMultiMode ? <Users className="h-4 w-4 text-primary" /> : <User className="h-4 w-4 text-primary" />}
             defaultOpen={false}
             storageKey="ai_plan_athlete_selector"
@@ -3518,11 +3518,11 @@ export default function AITrainingPlanPage() {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="space-y-4">
           {/* Left: Configuration Form */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="space-y-4">
             <CollapsibleCard
-              title={<>Configuration {isMultiMode && "(commune)"}</>}
+              title={<>2 · Configuration {isMultiMode && "(commune)"}</>}
               icon={<Target className="h-4 w-4 text-primary" />}
               defaultOpen={false}
               storageKey="ai_plan_configuration"
@@ -4123,7 +4123,7 @@ export default function AITrainingPlanPage() {
             {/* Detected Limiters — editable hierarchy (single mode only) */}
             {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
               <CollapsibleCard
-                title={<span className="text-sm">Hiérarchie des Limiteurs</span>}
+                title={<span className="text-sm">3 · Hiérarchie des Limiteurs</span>}
                 icon={<Zap className="h-4 w-4 text-primary" />}
                 defaultOpen={false}
                 storageKey="ai_plan_limiter_hierarchy"
@@ -4160,7 +4160,7 @@ export default function AITrainingPlanPage() {
                   defaultOpen={false}
                   storageKey="ai_plan_adaptation_projections"
                   icon={<Crosshair className="h-4 w-4 text-primary" />}
-                  title={<span className="text-sm">🔮 Projections Adaptation Predictor™</span>}
+                  title={<span className="text-sm">3b · Projections Adaptation Predictor™</span>}
                 >
                   <AdaptationProjectionSummary
                     projections={projections}
@@ -4185,6 +4185,8 @@ export default function AITrainingPlanPage() {
               </Alert>
             )}
 
+            <div className="space-y-3 rounded-lg border border-primary/30 bg-card p-3 sm:p-4">
+            <p className="text-sm font-semibold flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" />4 · Générer le plan</p>
             {!isMultiMode && (
               <div className="space-y-2 rounded-lg border p-3" role="radiogroup" aria-label="Moteur de génération">
                 <p className="text-sm font-semibold">Moteur de génération</p>
@@ -4299,10 +4301,11 @@ export default function AITrainingPlanPage() {
                 )}
               </div>
             )}
+            </div>
           </div>
 
           {/* Right: Result */}
-          <div className="lg:col-span-2">
+          <div>
             {staticTemplatePlan ? (
               /* Plan Start-to-Run statique (audit "plan Mamou") — vue en
                  lecture, sans les callbacks de régénération IA (sans objet
@@ -4377,9 +4380,9 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
               ) : !isBatchGenerating ? (
-                <Card className="h-full min-h-[400px] flex items-center justify-center">
-                  <div className="text-center space-y-3 p-8">
-                    <Users className="h-12 w-12 text-muted-foreground/30 mx-auto" />
+                <Card className="flex items-center justify-center">
+                  <div className="text-center space-y-1 p-4">
+                    <Users className="h-6 w-6 text-muted-foreground/30 mx-auto" />
                     <h3 className="text-lg font-semibold text-muted-foreground">Plans Multi-Athlètes</h3>
                     <p className="text-sm text-muted-foreground max-w-md">
                       Sélectionnez plusieurs athlètes et générez leurs plans pour les comparer
@@ -4705,10 +4708,10 @@ export default function AITrainingPlanPage() {
                   )}
                 </div>
               ) : (
-                <Card className="h-full min-h-[400px] flex items-center justify-center">
-                  <div className="text-center space-y-3 p-8">
-                    <Sparkles className="h-12 w-12 text-muted-foreground/30 mx-auto" />
-                    <h3 className="text-lg font-semibold text-muted-foreground">Plan IA TFCL™</h3>
+                <Card className="flex items-center justify-center">
+                  <div className="text-center space-y-1 p-4">
+                    <Sparkles className="h-6 w-6 text-muted-foreground/30 mx-auto" />
+                    <h3 className="text-sm font-semibold text-muted-foreground">5 · Le plan apparaîtra ici</h3>
                     <p className="text-sm text-muted-foreground max-w-md">
                       Configurez les paramètres et cliquez sur "Générer" pour obtenir un plan
                       d'entraînement personnalisé basé sur la méthodologie TFCL™ et le profil
