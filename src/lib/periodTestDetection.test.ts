@@ -27,6 +27,12 @@ describe('Trouver les tests de la période', () => {
     expect(tests.find(t => t.field === 'vma')!.value).toBe(14.2);
   });
 
+  it('detects a VMA test split into consecutive 400 m auto-laps', () => {
+    const s: DetectionSession = { id: 'v4', name: 'VMA', date: '2026-10-06', sportBase: 'running',
+      laps: [{ distance: 400, duration: 120 }, ...Array.from({ length: 4 }, () => ({ distance: 400, duration: 100 })), { distance: 400, duration: 120 }] };
+    expect(detectPeriodTests([s]).find(t => t.field === 'vma')!.value).toBe(14.4);
+  });
+
   it('never proposes FTP or threshold duration', () => {
     const s: DetectionSession = { id: 'x', name: 'X', date: '2026-10-21', sportBase: 'cycling', ...flat(3600, 200) };
     const fields = detectPeriodTests([s]).map(t => t.field as string);

@@ -71,11 +71,24 @@ export function detectPeriodTests(sessions: DetectionSession[]): DetectedTest[] 
           const m = Math.round((d * 15) / t * 10) / 10;
           if (m >= 30 && m <= 200) push('sprint_15s', { value: m, display: `${m} m`, s, evidence: `tour de ${Math.round(t)} s · ${Math.round(d * 10) / 10} m` });
         }
-        // Test VMA : tour continu de 5 à 7 min.
-        if (t >= 300 && t <= 420) {
-          const kmh = Math.round((d / t) * 3.6 * 10) / 10;
-          if (kmh >= 8 && kmh <= 30) push('vma', { value: kmh, display: `${kmh} km/h (${paceText(kmh)})`, s, evidence: `tour de ${Math.floor(t / 60)}:${String(Math.round(t % 60)).padStart(2, '0')} · ${Math.round(d)} m` });
+      }
+      // Test VMA : effort continu de 5 à 7 min, en un tour ou en tours consécutifs
+      // (ex. tours automatiques de 400 m). Le meilleur bloc de la séance est retenu.
+      const laps = s.laps.map(l => ({ d: Number(l.distance), t: Number(l.duration) }));
+      let bestVma: { kmh: number; d: number; t: number; n: number } | null = null;
+      for (let i = 0; i < laps.length; i++) {
+        let d = 0, t = 0;
+        for (let j = i; j < laps.length; j++) {
+          if (!Number.isFinite(laps[j].d) || !Number.isFinite(laps[j].t) || laps[j].d <= 0 || laps[j].t <= 0) break;
+          d += laps[j].d; t += laps[j].t;
+          if (t > 420) break;
+          if (t >= 300) { const kmh = (d / t) * 3.6; if (!bestVma || kmh > bestVma.kmh) bestVma = { kmh, d, t, n: j - i + 1 }; }
         }
+      }
+      if (bestVma) {
+        const kmh = Math.round(bestVma.kmh * 10) / 10;
+        if (kmh >= 8 && kmh <= 30) push('vma', { value: kmh, display: `${kmh} km/h (${paceText(kmh)})`, s,
+          evidence: `${bestVma.n > 1 ? bestVma.n + ' tours consécutifs' : 'tour'} · ${Math.floor(bestVma.t / 60)}:${String(Math.round(bestVma.t % 60)).padStart(2, '0')} · ${Math.round(bestVma.d)} m` });
       }
     }
   }
