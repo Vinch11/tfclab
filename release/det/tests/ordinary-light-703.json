@@ -27,26 +27,44 @@
     "strengthSessionsPerWeek": 1,
     "ambition": "age_group",
     "ambitionMeta": {
-      "saisie": "competitor",
+      "saisie": "elite",
       "effective": "age_group",
-      "saisieLabel": "Compétiteur",
+      "saisieLabel": "Qualifiable",
       "effectiveLabel": "Confirmé",
       "downgraded": true,
       "trainingLevel": "light",
       "trainingLevelSource": "manual",
-      "diagnosticNote": "Ambition ajustée Compétiteur → Confirmé en cohérence avec le niveau d'entraînement déclaré (1-3 séances/sem). La physiologie commande, l'ambition module la structure."
+      "diagnosticNote": "Ambition ajustée Qualifiable → Confirmé en cohérence avec le niveau d'entraînement déclaré (1-3 séances/sem). La physiologie commande, l'ambition module la structure."
     },
     "identifiedLimiters": [
       "## 🎯 AMBITION AJUSTÉE",
-      "Ambition ajustée Compétiteur → Confirmé en cohérence avec le niveau d'entraînement déclaré (1-3 séances/sem). La physiologie commande, l'ambition module la structure.",
+      "Ambition ajustée Qualifiable → Confirmé en cohérence avec le niveau d'entraînement déclaré (1-3 séances/sem). La physiologie commande, l'ambition module la structure.",
       "",
       "## CLASSEMENT DES LIMITEURS PAR IMPORTANCE (du plus critique au moins critique)",
-      "Total : 1 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
+      "Total : 4 limiteur(s) détecté(s). Le plan DOIT les adresser TOUS, par ordre de priorité.\n",
       "### Limiteur #1 — VLamax (Impact: 31.2/100)",
       "- Statut : 🔴 CRITIQUE",
       "- Valeur actuelle : 0.41 vs cible : 0.30",
       "- Catégorie séances clés : \"VLamax trop haute (LD)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
       "- 🎯 PRIORITÉ ABSOLUE : Ce limiteur doit recevoir la séance clé #1 de chaque semaine pendant les premières phases (Base/Build).",
+      "",
+      "### Limiteur #2 — VO2max (Impact: 9.1/100)",
+      "- Statut : 🔴 CRITIQUE",
+      "- Valeur actuelle : 58.00 vs cible : 65.30",
+      "- Catégorie séances clés : \"VO2max bas\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+      "- ⚡ PRIORITÉ HAUTE : Ce limiteur doit recevoir la séance clé #2 de chaque semaine.",
+      "",
+      "### Limiteur #3 — TTE (Impact: 6.3/100)",
+      "- Statut : 🟡 SOUS-OPTIMAL",
+      "- Valeur actuelle : 50.00 vs cible : 54.00",
+      "- Catégorie séances clés : \"TTE faible (<40min)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+      "- 📋 PRIORITÉ SECONDAIRE : Adresser via 1-2 séances complémentaires/sem ou intégré dans les phases Build/Spécifique.",
+      "",
+      "### Limiteur #4 — FTP/kg (Impact: 5.0/100)",
+      "- Statut : 🟡 SOUS-OPTIMAL",
+      "- Valeur actuelle : 4.17 vs cible : 4.41",
+      "- Catégorie séances clés : \"FTP/kg bas (puissance au seuil)\" (cf. tableau Séances Clés par Limiteur Dan Lorang)",
+      "- 📋 PRIORITÉ SECONDAIRE : Adresser via 1-2 séances complémentaires/sem ou intégré dans les phases Build/Spécifique.",
       "",
       "## RÈGLE DE PÉRIODISATION SÉQUENTIELLE DES LIMITEURS",
       "- Phase Base : Focus principal sur le Limiteur #1 (séances clés #1 et #2). Limiteur #2 en maintien.",
@@ -59,7 +77,10 @@
       "🎯 LIMITEUR PRIMAIRE : Métabolisme glycolytique — VLamax trop haute : consommation glycogène excessive."
     ],
     "identifiedLimitersRaw": [
-      "VLamax"
+      "VLamax",
+      "VO2max",
+      "TTE",
+      "FTP/kg"
     ],
     "chantierDurationWeeks": 4,
     "fondationDurationWeeks": 4,
@@ -77,8 +98,8 @@
     "activeLevers": [
       "Volume Z2 / Endurance",
       "SFR / Force Endurance",
-      "Force Max",
-      "Train Low / Sleep Low"
+      "Intervalles VO₂max",
+      "Force Max"
     ],
     "prohibitions": [
       "🚫 STRATÉGIE — Blocs VO2 lourds: Incompatible avec le travail de force max. Le travail de force max nécessite une récupération neuromusculaire incompatible avec les blocs VO2 intensifs. Séparer ces stimuli dans le temps."
@@ -272,6 +293,18 @@
           ]
         },
         {
+          "id": "vo2_intervals",
+          "label": "Intervalles VO₂max",
+          "priority": 2,
+          "reason": "VO₂max 11% sous la cible (58 vs 65.3 ml/min/kg) — développer le plafond aérobie",
+          "adaptations": [
+            "5×4min Z5 r3min (classique Billat)",
+            "3×8min Z4-Z5 r4min",
+            "6×3min Z5 r3min",
+            "2x/semaine max en phase Build"
+          ]
+        },
+        {
           "id": "force_max",
           "label": "Force Max",
           "priority": 2,
@@ -282,31 +315,19 @@
             "2–3 séries max",
             "1–2x/semaine (hors semaines de course)"
           ]
-        },
-        {
-          "id": "train_low",
-          "label": "Train Low / Sleep Low",
-          "priority": 3,
-          "reason": "Objectif longue distance — amélioration oxydation lipidique",
-          "adaptations": [
-            "Sorties à jeun ou glycogène réduit",
-            "Max 1–2x/semaine",
-            "Intensité Z1-Z2 uniquement",
-            "Ravitaillement normal post-séance"
-          ]
         }
       ],
       "trainingFocus": {
         "do": [
-          "Zone 2 stricte (60-70% FTP)",
-          "SFR / basse cadence",
-          "Séances low-carb occasionnelles",
-          "Volume aérobie > intensité"
+          "Intervalles courts (30/30, 40/20)",
+          "2-3 séances VO2max / semaine",
+          "Côtes courtes explosives",
+          "Variété des stimuli"
         ],
         "avoid": [
-          "Intervalles courts haute intensité",
-          "Séances > seuil",
-          "Sprint et travail anaérobie"
+          "Trop de volume lent",
+          "Séances longues monotones",
+          "Zone 2 exclusive"
         ]
       },
       "recommendedWeekType": "endurance"
@@ -325,6 +346,30 @@
             "value": 0.41,
             "target": 0.3,
             "weightedImpact": 31.166666666666664
+          },
+          {
+            "metric": "VO2max",
+            "priority": 2,
+            "status": "limiting",
+            "value": 58,
+            "target": 65.3,
+            "weightedImpact": 9.05513016845329
+          },
+          {
+            "metric": "TTE",
+            "priority": 3,
+            "status": "acceptable",
+            "value": 50,
+            "target": 54,
+            "weightedImpact": 6.296296296296296
+          },
+          {
+            "metric": "FTP/kg",
+            "priority": 4,
+            "status": "acceptable",
+            "value": 4.166666666666667,
+            "target": 4.41,
+            "weightedImpact": 4.96598639455782
           }
         ],
         "uncertainty": [
@@ -363,6 +408,18 @@
             ]
           },
           {
+            "id": "vo2_intervals",
+            "label": "Intervalles VO₂max",
+            "priority": 2,
+            "reason": "VO₂max 11% sous la cible (58 vs 65.3 ml/min/kg) — développer le plafond aérobie",
+            "adaptations": [
+              "5×4min Z5 r3min (classique Billat)",
+              "3×8min Z4-Z5 r4min",
+              "6×3min Z5 r3min",
+              "2x/semaine max en phase Build"
+            ]
+          },
+          {
             "id": "force_max",
             "label": "Force Max",
             "priority": 2,
@@ -372,18 +429,6 @@
               "3–5 répétitions par série",
               "2–3 séries max",
               "1–2x/semaine (hors semaines de course)"
-            ]
-          },
-          {
-            "id": "train_low",
-            "label": "Train Low / Sleep Low",
-            "priority": 3,
-            "reason": "Objectif longue distance — amélioration oxydation lipidique",
-            "adaptations": [
-              "Sorties à jeun ou glycogène réduit",
-              "Max 1–2x/semaine",
-              "Intensité Z1-Z2 uniquement",
-              "Ravitaillement normal post-séance"
             ]
           }
         ],
@@ -396,15 +441,15 @@
         ],
         "trainingFocus": {
           "do": [
-            "Zone 2 stricte (60-70% FTP)",
-            "SFR / basse cadence",
-            "Séances low-carb occasionnelles",
-            "Volume aérobie > intensité"
+            "Intervalles courts (30/30, 40/20)",
+            "2-3 séances VO2max / semaine",
+            "Côtes courtes explosives",
+            "Variété des stimuli"
           ],
           "avoid": [
-            "Intervalles courts haute intensité",
-            "Séances > seuil",
-            "Sprint et travail anaérobie"
+            "Trop de volume lent",
+            "Séances longues monotones",
+            "Zone 2 exclusive"
           ]
         },
         "weekType": "endurance"
@@ -418,7 +463,7 @@
             "edge.buildStructuredDiagnosticBlock",
             "server.reconciler"
           ],
-          "detail": "Ordre transmis: VLamax"
+          "detail": "Ordre transmis: VLamax > VO2max > TTE > FTP/kg"
         },
         "activeLevers": {
           "status": "consumed",
@@ -474,7 +519,7 @@
   "diagnostic": {
     "athleteId": "SYNTHETIC_DET_703",
     "objectif": "703",
-    "ambition": "competitor",
+    "ambition": "elite",
     "sportFocus": "bike",
     "effectifs": {
       "vlamax": {
@@ -596,31 +641,31 @@
       "primaryLever": "decrease_vlamax",
       "leverLabel": "↓ VLamax",
       "leverEmoji": "📉",
-      "secondaryLimiter": "none",
-      "secondaryLimiterLabel": null,
-      "secondaryLever": "maintain",
-      "secondaryLeverLabel": null,
+      "secondaryLimiter": "aerobic_engine",
+      "secondaryLimiterLabel": "Moteur aérobie",
+      "secondaryLever": "increase_vo2max",
+      "secondaryLeverLabel": "↑ VO2max",
       "severity": "severe",
       "gapAnalysis": [
         {
           "metric": "FTP/kg",
           "value": 4.166666666666667,
-          "target": 3.92,
-          "gap": 0.24666666666666703,
-          "gapPercent": 6.292517006802731,
-          "status": "optimal",
+          "target": 4.41,
+          "gap": -0.24333333333333318,
+          "gapPercent": -5.517762660619799,
+          "status": "acceptable",
           "weight": 0.9,
-          "weightedImpact": 0
+          "weightedImpact": 4.96598639455782
         },
         {
           "metric": "VO2max",
           "value": 58,
-          "target": 57.6,
-          "gap": 0.3999999999999986,
-          "gapPercent": 0.694444444444442,
-          "status": "optimal",
+          "target": 65.3,
+          "gap": -7.299999999999997,
+          "gapPercent": -11.179173047473197,
+          "status": "limiting",
           "weight": 0.81,
-          "weightedImpact": 0
+          "weightedImpact": 9.05513016845329
         },
         {
           "metric": "VLamax",
@@ -637,7 +682,7 @@
           "measurementDiscipline": "bike",
           "prescriptionApplicable": true,
           "value": null,
-          "target": 20,
+          "target": 22,
           "gap": 0,
           "gapPercent": 0,
           "status": "unknown",
@@ -647,12 +692,12 @@
         {
           "metric": "TTE",
           "value": 50,
-          "target": 50,
-          "gap": 0,
-          "gapPercent": 0,
-          "status": "optimal",
+          "target": 54,
+          "gap": -4,
+          "gapPercent": -7.4074074074074066,
+          "status": "acceptable",
           "weight": 0.85,
-          "weightedImpact": 0
+          "weightedImpact": 6.296296296296296
         },
         {
           "metric": "FatMax",
@@ -695,6 +740,44 @@
           "totalImpact": 31.166666666666664
         },
         {
+          "category": "aerobic_power",
+          "metrics": [
+            {
+              "metric": "VO2max",
+              "value": 58,
+              "target": 65.3,
+              "gap": -7.299999999999997,
+              "gapPercent": -11.179173047473197,
+              "status": "limiting",
+              "weight": 0.81,
+              "weightedImpact": 9.05513016845329
+            }
+          ],
+          "worstGap": -7.299999999999997,
+          "sumImpact": 9.05513016845329,
+          "dominantImpact": 9.05513016845329,
+          "totalImpact": 9.05513016845329
+        },
+        {
+          "category": "metabolic_endurance",
+          "metrics": [
+            {
+              "metric": "TTE",
+              "value": 50,
+              "target": 54,
+              "gap": -4,
+              "gapPercent": -7.4074074074074066,
+              "status": "acceptable",
+              "weight": 0.85,
+              "weightedImpact": 6.296296296296296
+            }
+          ],
+          "worstGap": -4,
+          "sumImpact": 6.296296296296296,
+          "dominantImpact": 6.296296296296296,
+          "totalImpact": 6.296296296296296
+        },
+        {
           "category": "neuromuscular",
           "metrics": [
             {
@@ -720,20 +803,20 @@
       "confidenceLabel": "Très élevée",
       "targetsUsed": {
         "vlamax": {
-          "min": 0.3,
-          "max": 0.48,
-          "optimal": 0.38
+          "min": 0.26,
+          "max": 0.42,
+          "optimal": 0.33
         },
-        "tte_min": 50,
-        "ftp_kg_min": 4,
-        "charge_optimale": 450,
+        "tte_min": 55,
+        "ftp_kg_min": 4.5,
+        "charge_optimale": 520,
         "nutrition_bike_gph": {
-          "min": 75,
-          "max": 95
+          "min": 90,
+          "max": 110
         },
         "nutrition_run_gph": {
-          "min": 50,
-          "max": 70
+          "min": 60,
+          "max": 80
         }
       },
       "version": "1.2.0"
@@ -744,11 +827,11 @@
         "confidence": 0.5,
         "sources": {
           "aerobic": {
-            "value": 100,
+            "value": 88.8208269525268,
             "type": "modeled"
           },
           "tolerance": {
-            "value": 100,
+            "value": 92.5925925925926,
             "type": "modeled"
           },
           "metabolic": {
@@ -812,16 +895,16 @@
           "max": 0.38,
           "optimal": 0.3
         },
-        "tte_min": 50,
-        "ftp_kg_min": 4,
-        "charge_optimale": 450,
+        "tte_min": 55,
+        "ftp_kg_min": 4.5,
+        "charge_optimale": 520,
         "nutrition_bike_gph": {
-          "min": 75,
-          "max": 95
+          "min": 90,
+          "max": 110
         },
         "nutrition_run_gph": {
-          "min": 50,
-          "max": 70
+          "min": 60,
+          "max": 80
         }
       },
       "vlamaxRange": {
@@ -898,15 +981,16 @@
           "lever": "decrease_vlamax",
           "label": "Métabolisme glycolytique"
         },
-        "L2": null
+        "L2": {
+          "limiter": "aerobic_engine",
+          "lever": "increase_vo2max",
+          "label": "Moteur aérobie"
+        }
       },
       "globalScore": null,
       "globalCategory": "ready",
       "alerts": [],
       "strengths": [
-        "FTP/kg au niveau cible",
-        "VO2max au niveau cible",
-        "TTE au niveau cible",
         "FatMax au niveau cible"
       ]
     },
@@ -917,7 +1001,7 @@
       "sex": "M",
       "weightKg": 72,
       "objectif": "703",
-      "ambition": "competitor",
+      "ambition": "elite",
       "sportFocus": "bike",
       "vo2max": 58,
       "ftp": 300,

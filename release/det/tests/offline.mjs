@@ -40,7 +40,7 @@ assert(proposal.weeks.every(w=>w.knownMinutes<=long.config.weeklyHours*60));
 for(const raw of proposal.limiterOrder)assert(proposal.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.includes(' · '+raw+' · ')));
 console.log(JSON.stringify({case:'synthetic-long-IM',weeks:32,ranked:proposal.limiterOrder,repairWeeks:proposal.checks.filter(c=>c.code==='adaptive_search').map(c=>c.week)}));
 
-for (const goal of ['703','10K']){
+for (const goal of ['703','10K','TrailShort']){
   const input=JSON.parse(readFileSync(from('./ordinary-light-'+goal+'.json'),'utf8'));
   const result=await run({action:'generate',input});
   const p=result._detSourceProposal;
@@ -52,6 +52,11 @@ for (const goal of ['703','10K']){
   assert.equal(p.checks.some(c=>c.status==='blocked'),false);
   assert(components.every(c=>['untrained','light'].includes(c.review.minimumLevel)));
   for(const label of p.limiterOrder)assert(p.checks.some(c=>c.code==='ranked_limiter_work'&&c.message.includes(' · '+label+' · ')));
+  if(goal==='TrailShort'){
+    assert(components.some(c=>c.sourceId==='V3P_RUN_216'));
+    assert(components.filter(c=>c.sport==='run').every(c=>c.targets.status==='unresolved' && c.targets.targets.length===0));
+    assert(p.checks.some(c=>c.code==='trail_route_review' && c.status==='pending'));
+  }
   console.log(JSON.stringify({case:goal,level:'light',weeks:p.weeks.length,ranked:p.limiterOrder,
     sources:[...new Set(components.map(c=>c.sourceId))].sort()}));
 }

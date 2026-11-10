@@ -211,6 +211,16 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     !resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
     selectedSources.push(findSource(SHORT_AEROBIC_INTERVALS_ID)!);
   }
+  if(options.completeSessions && trail && knownLevel>=1 && ['tte','durability_race_relative'].includes(resolveDetLimiter(study.limiterOrder[0]).key??'')){
+    selectedSources.push(findSource('V3P_RUN_216')!);
+  }
+  if(wantsRunCeiling && trail && knownLevel===1 && config.terrainAvailability!=='montagne' &&
+    typeof athlete.vma==='number' && typeof athlete.paceThresholdSecPerKm==='number' &&
+    athlete.paceThresholdSecPerKm>0 && athlete.vma/3.6>1.03*1000/athlete.paceThresholdSecPerKm){
+    const source=findSource('V3P_RUN_215')!;
+    const prescription=controlledRunDose(source);
+    if(prescription){controlled.set(source.id,prescription);selectedSources.push(source);}
+  }
   if(wantsRunCeiling){
     const ids=trail?['V3P_RUN_167','V3P_RUN_183','V3P_RUN_184']:['V3P_RUN_167'];
     for(const id of ids) {
@@ -222,7 +232,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       if(!selectedSources.some(s=>s.id===id))selectedSources.push(source);
     }
   }
-  if(options.completeSessions&&knownLevel===0&&!tt)selectedSources.push(...returnBikeSources);
+  if(options.completeSessions&&(knownLevel===0||lightTri&&allowRepair)&&!tt)selectedSources.push(...returnBikeSources);
   if(options.completeSessions && knownLevel===0 && !trail && !tt){
     for(const id of ['013','021','022','023','101','102','103','104','105']){
       const source=findSource('V3P_RUN_'+id);
@@ -230,8 +240,18 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
   }
   if(options.completeSessions && knownLevel===1 && (road||['half','ironman','sprint','olympic'].includes(detObjectiveGoal(config.objective)))){
-    selectedSources.push(...developmentIntervalSources.filter(s=>s.sport==='run'&&(s.primaryDomain==='mlss'||s.primaryDomain===road?.raceDomain)));
-    if(wantsRunCeiling){
+    selectedSources.push(...developmentIntervalSources.filter(s=>s.sport==='run'&&s.id!=='V3P_RUN_216'&&(s.primaryDomain==='mlss'||s.primaryDomain===road?.raceDomain)));
+    if(options.completeSessions && trail && knownLevel>=1 && ['tte','durability_race_relative'].includes(resolveDetLimiter(study.limiterOrder[0]).key??'')){
+    selectedSources.push(findSource('V3P_RUN_216')!);
+  }
+  if(wantsRunCeiling && trail && knownLevel===1 && config.terrainAvailability!=='montagne' &&
+    typeof athlete.vma==='number' && typeof athlete.paceThresholdSecPerKm==='number' &&
+    athlete.paceThresholdSecPerKm>0 && athlete.vma/3.6>1.03*1000/athlete.paceThresholdSecPerKm){
+    const source=findSource('V3P_RUN_215')!;
+    const prescription=controlledRunDose(source);
+    if(prescription){controlled.set(source.id,prescription);selectedSources.push(source);}
+  }
+  if(wantsRunCeiling){
       if(resolveProhibitionKeys(config.prohibitions).includes('vo2_heavy_blocks')){
         const shortIntervals=findSource('V3P_RUN_215')!;
         const reviewedBounds=controlledRunDose(shortIntervals);
@@ -261,7 +281,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
   }
   const halfBricks=[...V34_SAFE_RUN_BRICKS,...lightBrickRecipes];
-  if(timedSwim)selectedSources.push(...timedSwimSources.filter(s=>s.minimumLevel!=='untrained'||knownLevel===0));
+  if(timedSwim)selectedSources.push(...timedSwimSources.filter(s=>s.minimumLevel!=='untrained'||knownLevel===0||lightTri&&allowRepair));
   let librarySources:V3Workout[]=[];
   if(options.includeLibrary920){
     const problems=library920Problems();if(problems.length)throw Error(problems.join('; '));
