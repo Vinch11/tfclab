@@ -1013,7 +1013,7 @@ Rappels non négociables :
 - Objet JSON racine uniquement, pas de Markdown, pas de texte hors JSON.
 - \`sessions[].custom=false\` ⇒ \`catalogId\` DOIT être un ID exact du catalogue injecté ci-dessus.
 - \`sessions[].custom=true\` ⇒ \`catalogId=null\`.
-- \`sessions[].sport="rest"\` ⇒ \`custom=true\`, \`catalogId=null\`, \`durationMin=0\`.`;
+- \`sessions[].sport="rest"\` ⇒ \`custom=true\`, \`catalogId=null\`, \`durationMin=0\`.${catalogueRetryLegend(errList)}`;
 
   const second = await tryOnceWithTransientRetry(retryPrompt);
   second.diagnostic.attempt = 2;
@@ -1059,4 +1059,20 @@ Rappels non négociables :
       attempts: [first.diagnostic, second.diagnostic],
     },
   );
+}
+
+/** Traduit les codes catalogue en consignes lisibles pour la 2ᵉ tentative (aucune règle assouplie). */
+export function catalogueRetryLegend(errList: string): string {
+  const legend: Record<string, string> = {
+    catalogue_sport: "le sport de la séance ne correspond pas au sport de la fiche : choisis une fiche du MÊME sport que la séance, ou garde la fiche et mets le sport de la fiche.",
+    catalogue_intensity_exceeded: "la fiche est plus intense que ce que la semaine autorise : choisis une fiche moins intense parmi celles autorisées pour CETTE semaine.",
+    catalogue_intensity_diluted: "la séance affaiblit l'intensité de la fiche : respecte les zones de la fiche.",
+    catalogue_duration: "la durée sort des bornes de la fiche : utilise une durée de la fiche.",
+    catalogue_structure: "la structure ne reprend pas celle de la fiche : recopie sa structure.",
+    catalogue_physiological_intent: "l'intention physiologique de la fiche ne convient pas à cette semaine : choisis une autre fiche autorisée.",
+    catalogue_variant_unavailable: "la variante demandée n'existe pas pour cette fiche.",
+  };
+  const codes = [...new Set([...errList.matchAll(/catalogue_prescription_incompatible:(catalogue_[a-z_]+)/g)].map(m => m[1]))];
+  const lines = codes.filter(c => legend[c]).map(c => `- ${c} : ${legend[c]}`);
+  return lines.length ? `\n\nSignification des erreurs catalogue (la séance fautive doit être remplacée par une fiche réellement compatible, jamais forcée) :\n${lines.join("\n")}` : "";
 }
