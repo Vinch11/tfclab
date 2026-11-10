@@ -15,7 +15,9 @@ import { appPlanningPriorityGaps } from "@/lib/plan/dedicatedSportGoal";
 import { explicitCoachLimiterOverride, freezeAppPlanningInput } from "@/lib/det/appPlanningInput";
 import { generateAppProfileDetPlan } from "@/lib/det/appProfileDetPlan";
 import { bindAppPlanMetadata } from "@/lib/plan/generatedPlanMetadata";
-import { CHECKED_IN_PLAN_RELEASE_INFO } from "../../../supabase/functions/_shared/planReleaseManifest";
+import { detReleaseVersion } from "@/lib/det/independentVersion";
+import { withOrdinaryTimeTrial } from "@/lib/det/ordinaryTimeTrial";
+import { isTimeTrial, type TimeTrialDeclaration } from "../../../experimental/det-engine/v410-time-trial-contract";
 import { ordinarySourceFamily } from "@/lib/det/ordinaryObjective";
 
 export type PlanningEngine = "ai" | "det";
@@ -34,11 +36,11 @@ export function detSupportsObjective(objective: string): boolean {
 }
 
 export function detEngineVersion(): string {
-  const v = (CHECKED_IN_PLAN_RELEASE_INFO.components as Record<string, string | undefined>)["det-engine"];
-  return v ?? "unknown";
+  return detReleaseVersion;
 }
 
 export interface DetRunInput {
+  timeTrial?: TimeTrialDeclaration;
   trailLongRunLimits?:import('@/lib/det/trailPreparation').TrailLongRunLimits;
   athleteId: string;
   athlete: PlanAthleteData;
@@ -56,18 +58,21 @@ export class DetRefusal extends Error {
 
 /** Génère un plan DET (même forme `ParsedPlan` que l'IA) depuis l'entrée de la page. */
 export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<ParsedPlan> {
-  const objective = String(input.config.objective ?? "");
+  const config = input.timeTrial ? withOrdinaryTimeTrial(input.config,input.athleteId,input.diagnostic.objectif,input.timeTrial) : input.config;
+  const objective = String(config.objective ?? "");
+  if(isTimeTrial(objective) && (!config.timeTrialContext || config.athleteId!==input.athleteId || config.timeTrialContext.athleteId!==input.athleteId))
+    throw new DetRefusal(['CLM : revue de la position aéro et durée d’épreuve requises pour cet athlète.']);
   if (!detSupportsObjective(objective)) {
     throw new DetRefusal([`Le moteur DET ne couvre pas encore l'objectif « ${objective} ». Utilisez le moteur IA pour cet objectif.`]);
   }
-  if (!input.config.planStartDate) throw new DetRefusal(["Date de début du plan manquante."]);
-  const applied = [...((input.config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [])];
+  if (!config.planStartDate) throw new DetRefusal(["Date de début du plan manquante."]);
+  const applied = [...((config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [])];
   const coachOverride = explicitCoachLimiterOverride(input.pageLimiterOrder, input.coachPayload ?? null, applied);
   const frozen = await freezeAppPlanningInput({
     athleteId: input.athleteId,
     athlete: input.athlete,
-    config: input.config,
-    planStartDate: input.config.planStartDate,
+    config,
+    planStartDate: config.planStartDate,
     appAutomaticLimiters: rankPrescriptionGaps(appPlanningPriorityGaps(input.diagnostic)).map((g) => g.metric),
     coachOverride,
   });

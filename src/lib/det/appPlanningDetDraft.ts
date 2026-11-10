@@ -95,8 +95,6 @@ export async function buildAppPlanningDetDraft(app: FrozenAppPlanningInput, expe
   if (!semantics.resolutions.length) throw Error('Le profil partagé ne contient pas de limiteur prioritaire.');
   const priorities = semantics.resolutions.map(resolution => ({ raw: resolution.raw, key: resolution.status === 'supported' ? resolution.key : null }));
   const prepared = prepareDetGeneration(athlete, config);
-  if(ordinaryProposal && family.key==='cycling_tt' && !prepared.weeklyQuotas[1]?.layout)
-    throw Error('Contre-la-montre : ce formulaire ne fournit pas le calendrier vélo spécifique. Le parcours CLM dédié utilise la durée de course et les durées en position aéro tolérées, renseignées par le coach.');
   const pool = familySourcePool(family.key);
   const poolProblems = await poolLibraryProblems(pool);
   if (poolProblems.length) throw Error(poolProblems.join(' '));

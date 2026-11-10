@@ -1,5 +1,4 @@
 import {clockFor} from '../../../experimental/det-engine/v401-coach-inputs-core';
-import {CHECKED_IN_PLAN_RELEASE_INFO} from '../../../supabase/functions/_shared/planReleaseManifest';
 import {renderV3Prescription} from './v3PrescriptionText';
 import {appProfileDetStructure} from './appProfileDetStructure';
 import type {ParsedPlan,ParsedSession} from '@/lib/aiPlanParser';
@@ -43,7 +42,7 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
    dose?.message, 'Dénivelé et effort à confirmer sur les parcours de cet athlète.'].filter(Boolean).join(' ');
  };
  const weekNotes = (week:typeof proposal.weeks[number]) => {
-  const ranked=proposal.checks.filter(c=>c.week===week.week&&c.code==='ranked_limiter_work').map(c=>c.message);
+  const ranked=proposal.checks.filter(c=>c.week===week.week&&['ranked_limiter_work','time_trial_posture'].includes(c.code)).map(c=>c.message);
   if(trailReview)return [trailWeekNotes(week),...ranked].join('\n');
   const taper=proposal.checks.find(c=>c.week===week.week&&c.code==='tri_taper_exercise_minutes');
   const volume=week.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':'';
@@ -53,10 +52,10 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:weekNotes(w),sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
   const base={weekNumber:w.week,weekTheme:weekTheme(w),phase:w.phase??'Préparation',dayName:d.day,dayIndex};
   if(d.rest)return [{...base,sport:'Repos',title:'Repos prévu',details:'',isRest:true}];
-  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?'Épreuve du calendrier ; durée non inventée.':renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
+  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?(config.timeTrialContext?'Durée de course estimée par le coach.':'Épreuve du calendrier ; durée non inventée.'):renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.role==='race'&&config.timeTrialContext?{durationMin:config.timeTrialContext.raceDurationMinutes}:s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
  })}));
  const phases:ParsedPlan['phases']=[];
  for(const w of proposal.weeks){const name=w.phase??'Préparation',last=phases.at(-1);if(last?.name===name){const start=last.weeks.split('-')[0];last.weeks=start===String(w.week)?start:`${start}-${w.week}`;}else phases.push({name,weeks:String(w.week)});}
  const plan:ParsedPlan={title:`Plan TFCL™ — ${proposal.objective}`,diagnostic:trailReview ? `Projet trail à relire pour ${proposal.eventCalendar[0]?.distanceKm} km et ${proposal.eventCalendar[0]?.elevationGainM} m D+. Limiteurs : ${proposal.limiterOrder.join(' → ')}. La durée des séances est proposée. Comparer les sorties longues, le dénivelé cumulé et la tolérance aux descentes avec les parcours réellement pratiqués avant prescription.` : `Limiteurs : ${proposal.limiterOrder.join(' → ')}. Plan construit depuis le profil disponible. Intensités calculées depuis les repères disponibles, à confirmer ; elles ne prouvent pas une mesure individuelle de LT1/MLSS.`,totalWeeks:weeks.length,weeks,weeklyQuotas,finalValidationIssues:[...new Set(proposal.checks.filter(c=>c.status==='pending').map(c=>c.code))].map(code=>({rule:'det_'+code,severity:'warning' as const,message:proposal.checks.find(c=>c.code===code&&c.status==='pending')!.message})),phases};
- return bindAppPlanMetadata({...plan,_nolioV2TargetFormat:PACE_TARGET_FORMAT,_provenance:{schema:PLAN_PROVENANCE_SCHEMA,engine:'det',mode:'app-profile',engineVersion,releaseId:CHECKED_IN_PLAN_RELEASE_INFO.releaseId,planningInput:{source:'app_planning_pipeline',fingerprint:app.fingerprint},prescriptionAllowed:false,sportingAttestation:false,syntheticFixture:false,generatedAt:new Date().toISOString()},_detSourceProposal:proposal} as ParsedPlan,app);
+ return bindAppPlanMetadata({...plan,_nolioV2TargetFormat:PACE_TARGET_FORMAT,_provenance:{schema:PLAN_PROVENANCE_SCHEMA,engine:'det',mode:'app-profile',engineVersion,releaseId:engineVersion,planningInput:{source:'app_planning_pipeline',fingerprint:app.fingerprint},prescriptionAllowed:false,sportingAttestation:false,syntheticFixture:false,generatedAt:new Date().toISOString()},_detSourceProposal:proposal} as ParsedPlan,app);
 }

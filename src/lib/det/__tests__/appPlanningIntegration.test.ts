@@ -147,6 +147,45 @@ describe("[intégration réelle] pipeline de la page → profil figé → IA et 
   it('CLM : original app profile and exact declared posture calendar',async()=>{
     const timeTrialContext:TimeTrialDeclaration={aeroWeeks:[5,6],aeroDayIndex:3,athleteId:A1,raceDurationMinutes:60,observedOn:'2026-10-20',reviewReference:'SYNTHETIC FIELD REVIEW ONLY',bikeFitConfirmed:true,symptomScreenClear:true,longestContinuousAeroMinutes:20,maxAeroMinutesPerSession:60,minimumContinuousAeroMinutes:15,minimumAeroMinutesPerSession:30,minimumAeroSessions:2};
     const p=await pagePipeline(240,TT_OBJECTIVE,8,7,4,20,{ftp:180,vo2max:75,tte_observed_min_run:80,vlamax:0.25,vlamax_run:0.25,vlamax_source:'lab',vlamax_protocol:'SYNTHETIC lactate lab',sport_main:'bike'},{raceTargetMinutes:'60',timeTrialContext,constraints:'pas de vélo le mercredi'});
+    const {generateDetPlanFromPageInput}=await import('@/lib/plan/detEngineRun');
+    // Same form, one explicit A event, with four rides and one strength session in total.
+    const input={athleteId:A1, athlete:p.ctx.data, config:{...p.config,sessionsPerWeek:5}, diagnostic:p.ctx.diagnostic, pageLimiterOrder:[...p.frozen.limiters.applied], timeTrial:timeTrialContext};
+    const ordinary=await generateDetPlanFromPageInput(input);
+    expect(ordinary.weeks).toHaveLength(8);
+    const aero=ordinary.weeks.flatMap(w=>w.sessions.filter(s=>s.catalogId==='V3P_BIKE_087'||s.catalogId==='V3P_BIKE_057'));
+    expect(aero.map(s=>[s.weekNumber,s.dayIndex])).toEqual([[5,3],[6,3]]);
+    const {aeroLedger}=await import('../../../../experimental/det-engine/v410-time-trial-contract');
+    for (const s of aero) {
+      const workout=(s as typeof s & {detStructuredWorkout:Parameters<typeof aeroLedger>[0]}).detStructuredWorkout;
+      const dose=aeroLedger(workout);
+      expect(dose.valid).toBe(true);
+      expect(dose.totalAeroMinutes).toBeGreaterThanOrEqual(30);
+      expect(dose.longestContinuousMinutes).toBeLessThanOrEqual(20);
+    }
+    const saved=JSON.parse(JSON.stringify(ordinary));
+    const {sessionsFromPlanJson}=await import('../../../../supabase/functions/_shared/nolioV2/planSessions');
+    const {raceIdentityOf}=await import('../../../../supabase/functions/_shared/nolioV2/plannedMapper');
+    const {preparePlan}=await import('../../../../supabase/functions/_shared/nolioV2/planDryRun');
+    const sessions=sessionsFromPlanJson(saved).sessions;
+    const competition=sessions.map(raceIdentityOf).find(r=>r!==null);
+    const refs={synthetic:true,athleteId:'usr_SYNTHETIC',competition,sportIds:{bike:'spt_BIKE',strength:'spt_STRENGTH'},exerciseIds:{}};
+    const appointment=sessions.find(s=>s.sessionKey.startsWith('S5-J3-')&&s.catalogId===aero[0].catalogId)!;
+    const operations=[];
+    for(const scope of [undefined,{kind:'weeks',from:5,to:5},{kind:'sessions',keys:[appointment.sessionKey]}]){
+      const prepared=await preparePlan(saved,refs,'SYNTHETIC_CLM',scope);
+      expect(prepared.precheck.complete,JSON.stringify(prepared.precheck.rows.filter(r=>r.status==='refused'))).toBe(true);
+      operations.push(prepared.ops.length);
+    }
+    expect(operations[2]).toBe(1);
+    expect(operations[0]).toBeGreaterThan(operations[1]);
+    expect(saved._coachLimiterOrder).toEqual(input.pageLimiterOrder);
+    expect(saved._detSourceProposal.prescriptionAllowed).toBe(false);
+    await expect(generateDetPlanFromPageInput({...input,timeTrial:{...timeTrialContext,athleteId:'other'}})).rejects.toThrow(/athlète/);
+    await expect(generateDetPlanFromPageInput({...input,timeTrial:{...timeTrialContext,bikeFitConfirmed:false}})).rejects.toThrow(/réglage/);
+    await expect(generateDetPlanFromPageInput({...input,timeTrial:{...timeTrialContext,aeroWeeks:[3,6]}})).rejects.toThrow(/semaine 3/);
+    await expect(generateDetPlanFromPageInput({...input,timeTrial:{...timeTrialContext,longestContinuousAeroMinutes:10}})).rejects.toThrow(/tolérance/);
+    process.stdout.write('CLM_ORDINARY '+JSON.stringify({weeks:8,order:input.pageLimiterOrder,operations,
+      doses:aero.map(s=>[s.weekNumber,s.dayIndex,s.durationMin]),race:saved._raceGoals[0].targetTimeMinutes})+'\n');
     const clock={timeZone:'Europe/Brussels',bySport:{bike:{time:'',days,perDay:[480,360,480,540,600,480,480].map(toHm)},strength:{time:'19:00',days}}};
     const {out,b}=await runDet(p,TT_OBJECTIVE,8,7,4,{clock});
     process.stdout.write('TT_APP '+JSON.stringify({priorities:p.frozen.limiters.applied,kind:out.kind,missing:b.missing,...(out.kind==='engine_refused'?{reason:out.reason,issues:out.blockingIssues}:out.kind==='refused'?{refusals:out.refusals}:{})})+'\n');

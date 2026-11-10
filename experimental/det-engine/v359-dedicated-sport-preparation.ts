@@ -11,7 +11,13 @@ export function prepareDedicatedSport(
   base:ExperimentalAssemblyContract,sport:'bike'|'swim',
 ){
   base.adapt(p,config);
-  const frequency=config.sessionsPerWeek;
+  buildDedicatedSportCalendar(p,config,sport,config.sessionsPerWeek);
+}
+
+export function buildDedicatedSportCalendar(
+  p:ReturnType<typeof prepareGenerationContracts>, config:PlanConfig, sport:'bike'|'swim', frequency:number|undefined,
+){
+
   if(!Number.isSafeInteger(frequency)||!frequency||frequency<3||frequency>6||
      !config.weeklyHours||!config.weeksAvailable||config.raceGoals?.length!==1)
     throw Error('dedicated_sport_requires_explicit_frequency_hours_and_one_event');

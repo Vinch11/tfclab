@@ -1,0 +1,9 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><title>Contrôle DET</title><output id="result">En cours</output><script type="module">
+import {runDet} from '../dist/client.mjs';
+import {receipt} from './receipt.mjs';
+const out=document.querySelector('output');
+try {
+  const input=await fetch('./ordinary-clm.json').then(r=>r.json());
+  out.textContent=JSON.stringify(await receipt(runDet,input));out.dataset.done='ok';
+} catch(e) {out.textContent=String(e);out.dataset.done='error';}
+</script></html>

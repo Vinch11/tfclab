@@ -1,3 +1,5 @@
+import {aeroSlotAccepts, isTimeTrialSource, verifyTimeTrialWeeks} from './timeTrialPlanning';
+import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {ordinarySourceFamily,detObjectiveGoal} from './ordinaryObjective';
 import {SUBMAXIMAL_STRENGTH_IDS} from './submaximalStrength';
 import {triathlonTaperTargets} from './triathlonTaper';
@@ -132,6 +134,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   const study=await buildAppPlanningDetDraft(app,athleteId,options,options.completeSessions);
   const {athlete,config}=planningInputFor(app,'det');
   const preparation=prepareDetGeneration(athlete,config);
+  const tt=isTimeTrial(String(config.objective))?config.timeTrialContext:undefined;
   const road=roadRunningPrescription(config);
   const trail=trailFamily(config);
   const trailLimits=options.trailLongRunLimits;
@@ -351,7 +354,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
           priorLongRunMinutes * (1 + (config.volumeRamp?.weeklyIncreasePctMax ?? 0)));
       const longCeiling=trail&&slot.role==='long'?trailLongCeiling:longRun?(week.weekType==='recovery'&&priorLongRunMinutes!==null?Math.max(slot.minimumMinutes??0,priorLongRunMinutes*.7):week.weekType==='load'?(priorLongRunMinutes===null?slot.minimumMinutes??Infinity:Math.max(slot.minimumMinutes??0,priorLongRunMinutes*(1+(preparation.weeklyQuotas[week.week]?.volumeBudget?.weeklyIncreasePctMax??.1)))):Infinity):Infinity;
       const single=(sport:string,min:number|null)=>eligible.filter(s=>s.sport===sport&&
-        (sport==='strength'||slot.role==='key'||easy(s)||(road&&slot.role==='long'&&['build','peak'].includes(week.phase??'')&&s.primaryDomain===road.raceDomain)))
+        (sport==='strength'||slot.role==='key'||(tt && isTimeTrialSource(s.id))||easy(s)||(road&&slot.role==='long'&&['build','peak'].includes(week.phase??'')&&s.primaryDomain===road.raceDomain)))
         .flatMap(s=>choices(s,min,desiredBase!==undefined&&sport==='run'?Math.max(min??0,Math.min(longCeiling,desiredBase*(slot.role==='long'?longWeight:1))):preferred?.[sport as 'run'|'bike'|'swim']));
       let rows:ProposedV3Session[];
       if(slot.sport==='brick'){
@@ -368,6 +371,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
           return [{sport:'brick',role:slot.role,components:[bike,run],transitionMinutes:null,knownMinutes:known,durationMinutes:null} satisfies ProposedV3Session];
         }));
       }else rows=single(slot.sport,slot.sport==='strength'?null:longFloor).map(c=>({sport:slot.sport,role:slot.role,components:[c],transitionMinutes:null,knownMinutes:c.durationMinutes??0,durationMinutes:c.durationMinutes}));
+      if(tt && slot.sport==='bike')rows=rows.filter(row=>aeroSlotAccepts(row,week.week,dayIndex,tt));
       if(trail&&slot.sport==='run')rows=rows.filter(row=>row.durationMinutes!==null&&(!trailLimits||row.durationMinutes<=(week.week===1?trailLimits.recentMinutes:trailLimits.peakMinutes)));
       if(trail&&week.weekType==='load'&&slot.role==='long'){
         // Native long trail prescriptions contain timed main blocks on slopes or trails.
@@ -639,7 +643,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       (session.role==='key'||session.role==='long');
     const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if((trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if((tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=eligible.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         (session.role==='key'||s.sport==='strength'||easy(s))).flatMap(s=>choices(s,original.durationMinutes)).filter(c=>
@@ -661,7 +665,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     // an early week and make a later deload/long slot impossible.
     const importOccupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if((trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if((tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=librarySources.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         v3SourceContextProblems(s,config,week.weekType).length===0&&
@@ -773,5 +777,6 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   result.checks.push({code:'sporting_review',status:'pending',message:'Revue des doses, proportions, progression, récupération, disponibilité et situation actuelle de l’athlète nécessaire avant utilisation. Aucune approbation créée.'});
   result.checks.push(...auditV3ProposalRecovery(result,config.planStartDate!,options.clock),...auditV3ProposalSportMinutes(result,config.constraints),...auditV3ProposalDoseIntegrity(result),...auditV3SportingPrescription(result,config));
   if(options.invalidClockSports?.length)result.checks.push({code:'invalid_entered_clock',status:'blocked',message:'Horaires invalides à corriger : '+options.invalidClockSports.join(', ')});
+  if(tt)verifyTimeTrialWeeks(result,tt,config.weeklyHours!);
   return result;
 }

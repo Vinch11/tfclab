@@ -1,3 +1,4 @@
+import { TimeTrialFields, emptyTimeTrial, enteredTimeTrial } from '../../release/det/host/TimeTrialFields';
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
@@ -536,6 +537,7 @@ export default function AITrainingPlanPage() {
    */
   const [planOverride, setPlanOverride] = useState<ParsedPlan | null>(null);
   // Choix du moteur de génération par le coach : IA (historique) ou DET (déterministe).
+  const [clmInput,setClmInput]=useState<{key:string;fields:ReturnType<typeof emptyTimeTrial>}|null>(null);
   const [trailLongRuns,setTrailLongRuns]=useState<{athlete:string;objective:string;recent:string;peak:string}|null>(null);
   const [planningEngine, setPlanningEngineState] = useState<PlanningEngine>(() => readPlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage));
   const setPlanningEngine = useCallback((engine: PlanningEngine) => { setPlanningEngineState(engine); writePlanningEngine(typeof localStorage === "undefined" ? undefined : localStorage, engine); }, []);
@@ -1868,6 +1870,7 @@ export default function AITrainingPlanPage() {
   // Moteur DET : même entrée que l'IA (athlète + config de la page), plan installé
   // dans la vue commune (affichage, enregistrement, PDF, export Nolio). Un refus DET
   // est affiché tel quel : l'IA n'est jamais lancée à sa place.
+  const clmKey=[currentAthlete?.id,objective,raceDate,format(planStartDate,'yyyy-MM-dd')].join('/');
   const runDetEngine = async (
     data: PlanAthleteData,
     config: PlanConfig,
@@ -1881,6 +1884,7 @@ export default function AITrainingPlanPage() {
       const plan = await generateDetPlanFromPageInput({
         athleteId: currentAthlete.id, athlete: data, config, diagnostic: athleteContext.diagnostic,
         pageLimiterOrder: coachLimiterOrder, coachPayload,
+        ...(clmInput?.key===clmKey?{timeTrial:enteredTimeTrial(clmInput.fields,currentAthlete.id)}:{}),
         ...(trailLongRuns?.athlete===currentAthlete.id && trailLongRuns.objective===objective && config.objective === objective && /^Trail/.test(objective) &&
           (trailLongRuns.recent||trailLongRuns.peak) ? {trailLongRunLimits:{recentMinutes:Number(trailLongRuns.recent),peakMinutes:Number(trailLongRuns.peak)}} : {}),
       });
@@ -2063,7 +2067,7 @@ export default function AITrainingPlanPage() {
     if (planningEngine === "det") { await runDetEngine(athleteContext.data, config, payload); return; }
     generatePlanWindowed(athleteContext.data, config);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- runDetEngine lit l'état courant de la page
-  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine, trailLongRuns]);
+  }, [athleteContext, buildConfigFromDiag, buildCoachOverrides, generatePlanWindowed, prevalidateTrainingPlan, currentAthlete?.id, currentAthlete?.nom, objective, planningEngine, trailLongRuns, clmInput, clmKey]);
 
   const handleCoachFormSave = useCallback((payload: CoachProfileFormPayload) => {
     setLastCoachSelection({payload,athleteId:currentAthlete?.id,objective:normalizeObjectiveKey(objective)});
@@ -4234,6 +4238,15 @@ export default function AITrainingPlanPage() {
                     </button>
                   ))}
                 </div>
+                {planningEngine === "det" && currentAthlete && (
+                  <div className="mt-3 space-y-2">
+                    <label><input type="checkbox" checked={clmInput?.key===clmKey}
+                      onChange={e=>setClmInput(e.target.checked?{key:clmKey,fields:emptyTimeTrial()}:null)}/>
+                      {' '}Préparer un contre-la-montre vélo pour la course A</label>
+                    {clmInput?.key===clmKey && <TimeTrialFields value={clmInput.fields}
+                      onChange={fields=>setClmInput({key:clmKey,fields})}/>}
+                  </div>
+                )}
                 {planningEngine === "det" && currentAthlete && /^Trail/.test(objective) && (
                   <fieldset className="mt-3 grid gap-2 sm:grid-cols-2">
                     <legend className="text-sm font-medium">Sortie longue trail · repères facultatifs du coach</legend>

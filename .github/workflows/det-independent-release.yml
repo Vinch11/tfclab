@@ -1,0 +1,42 @@
+name: DET — publication indépendante
+on:
+  push:
+    branches: ['release/det-*']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node release/det/tests/offline.mjs
+      - name: Installer le pilote Chromium dans un dossier temporaire
+        run: |
+          npm install --prefix "$RUNNER_TEMP/det-test" --no-audit --no-fund playwright@1.57.0
+          ln -s "$RUNNER_TEMP/det-test/node_modules" release/det/tests/node_modules
+          "$RUNNER_TEMP/det-test/node_modules/.bin/playwright" install --with-deps chromium
+      - run: node release/det/tests/chromium.mjs
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publier uniquement les trois fichiers DET et conserver la version générale du projet
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          version="$(node -p "require('./release/det/dist/manifest.json').version")"
+          if gh release view "$version" >/dev/null 2>&1; then
+            mkdir -p "$RUNNER_TEMP/previous"
+            gh release download "$version" -D "$RUNNER_TEMP/previous"
+            for file in client.mjs manifest.json worker.js.gz; do cmp "release/det/dist/$file" "$RUNNER_TEMP/previous/$file"; done
+          else
+            gh release create "$version" --target "$GITHUB_SHA" --title "DET-ENGINE · contre-la-montre" --latest=false --prerelease --notes 'Version pilote du moteur en navigateur. Aucun déploiement Lovable, Supabase ou IA. La réception sur montre physique et le retour terrain restent à documenter.' release/det/dist/client.mjs release/det/dist/manifest.json release/det/dist/worker.js.gz
+          fi

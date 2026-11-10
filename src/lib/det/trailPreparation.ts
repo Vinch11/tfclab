@@ -1,5 +1,7 @@
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
+import {prepareTimeTrialCalendar} from './timeTrialPlanning';
+import {isTimeTrial} from '../../../experimental/det-engine/v410-time-trial-contract';
 import {parseAthleteConstraints} from '@/lib/plan/constraintRules';
 import {buildWeeklySlotLayout, type LayoutSport} from '@/engines/plan/weeklySlotLayout';
 import {inferWeekType, buildCoachVolumeBudget, type WeeklyQuota} from '@/engines/plan/sessionSizingMatrix';
@@ -19,6 +21,10 @@ export function trailFamily(config: PlanConfig) {
 /** Coach-review calendar. Source/route admission and terrain observations belong to the reviewed trail workflow. */
 export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfig) {
   const prepared = prepareGenerationContracts(athlete, config);
+  if (isTimeTrial(String(config.objective))) {
+    prepareTimeTrialCalendar(prepared,config,athlete);
+    return prepared;
+  }
   const family = trailFamily(config);
   if (!family) return prepared;
   const race = config.raceGoals?.find(g => g.priority === 'A' && coachFamilyFor(g.objective)?.key === family.key);
