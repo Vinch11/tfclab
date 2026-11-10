@@ -45,7 +45,7 @@ const rankedRegressionCases:Record<string,string[]>={
 // These ordinary-form inputs previously returned an incomplete preparation.
 const developmentRegressions:Record<string,string[]>={
   '703':['light/finisher','light/age_group','light/competitor','light/elite','light/world_class'],
-  Marathon:['light/age_group','light/competitor','light/elite','light/world_class'],
+  Marathon:['light/age_group','light/competitor','light/elite','light/world_class','highly_trained/world_class'],
   TrailShort:['auto/world_class','light/world_class','trained/world_class','highly_trained/world_class'],
   TrailMountain:['light/world_class'],
   TrailUltra:['light/elite','light/world_class'],
@@ -125,6 +125,8 @@ for (const scenario of selected) {
         const input = inputFor(scenario, level, ambition);
         if(process.env.DET_INTERVAL_FIXTURES && level==='light' && (scenario.objective==='10K' && ambition==='competitor' || scenario.objective==='703' && ambition==='elite' || scenario.objective==='TrailShort' && ambition==='world_class'))
           writeFileSync(process.env.DET_INTERVAL_FIXTURES+'/ordinary-light-'+scenario.objective+'.json',JSON.stringify(input,null,2)+'\n');
+        if(process.env.DET_INTERVAL_FIXTURES && level==='highly_trained' && ambition==='world_class' && scenario.objective==='Marathon')
+          writeFileSync(process.env.DET_INTERVAL_FIXTURES+'/ordinary-high-marathon.json',JSON.stringify(input,null,2)+'\n');
         const meta = input.config.ambitionMeta;
         const diagnostic = { effectiveLevel: meta?.trainingLevel, levelSource: meta?.trainingLevelSource, effectiveAmbition: meta?.effective,
           limiters: input.config.identifiedLimitersRaw ?? [] };

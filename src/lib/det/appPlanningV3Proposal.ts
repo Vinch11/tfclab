@@ -522,7 +522,14 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   for(let wi=0;wi<study.weeks.length;wi++){
     const original=study.weeks[wi];
     const attempt=attempts.get(wi)??0;
-    adaptive=attempt>0;
+    // A repair that worked in the previous loading week of the same phase
+    // can be tried first. Each week's dose and calendar are still rebuilt.
+    // On failure the second attempt explores the other ordering.
+    const previousLoad=allowRepair && road && original.weekType==='load'
+      ? result.weeks.filter(w=>w.weekType==='load' && w.phase===original.phase).at(-1) : undefined;
+    const repeatRepair=previousLoad!==undefined &&
+      result.checks.some(c=>c.code==='adaptive_search' && c.week===previousLoad.week);
+    adaptive=repeatRepair ? attempt!==1 : attempt>0;
     const alternate=attempt>=2&&!tt?alternateKeyDay(original,!!config.constraints?.trim()):null;
     const week=alternate??original;
     boundaries.set(wi,checkpoint());boundaries.delete(wi-3);
