@@ -96,6 +96,27 @@ try{
   await verify(key,1);
   const stages=await guidance.innerText();
   assert.match(stages,/15 min 30 s/);assert.match(stages,/136,8–158,4 W/);assert.match(stages,/dernière récupération omise/);
+  await racePicker.click();
+  await page.getByRole('option',{name:/^Trail court/}).click();
+  const recent=page.getByLabel('Durée récemment tolérée (min)');
+  const peak=page.getByLabel('Durée maximale en préparation (min)');
+  await recent.fill('75');await peak.fill('50');
+  await page.getByRole('button',{name:'Générer avec DET'}).click();
+  await result.getByRole('alert').filter({hasText:'plafond au moins égal'}).waitFor();
+  await peak.fill('100');
+  await page.evaluate(()=>{
+    const send=Worker.prototype.postMessage;
+    Worker.prototype.postMessage=function(job,...args){
+      if(job?.action==='generate')window.trailWorkerInput={goal:job.input.config.objective,limits:job.input.trailLongRunLimits};
+      return send.call(this,job,...args);
+    };
+  });
+  await page.getByRole('button',{name:'Générer avec DET'}).click();
+  await page.waitForFunction(()=>window.trailWorkerInput);
+  assert.deepEqual(await page.evaluate(()=>window.trailWorkerInput),{goal:'Trail court (20-40 km)',limits:{recentMinutes:75,peakMinutes:100}});
+  await racePicker.click();
+  await page.getByRole('option',{name:/^Ultra trail/}).click();
+  assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
   assert.deepEqual(refused,[]);assert.deepEqual(errors,[]);
   const witness=await ctx.newPage();
   await witness.goto(app+'/index.html');
