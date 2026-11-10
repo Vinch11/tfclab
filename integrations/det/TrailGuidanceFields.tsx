@@ -2,7 +2,7 @@ import {useState} from 'react';
 import {getDoctrineDomain,type DoctrineDomainId} from '@/lib/zones/tfclDoctrine';
 
 type SourceBlock = {kind:string;domain?:DoctrineDomainId|null;steps?:SourceBlock[]};
-export type TrailSource = {sourceId:string;sourceFingerprint:string;title:string;sport:string;blocks:SourceBlock[]};
+export type TrailSource = {sourceId:string;sourceFingerprint:string;title:string;sport:string;targets?:{status:string};blocks:SourceBlock[]};
 export type TrailEvidence = {
   sourceId:string; sourceFingerprint:string; athleteId:string; terrainContextId:string;
   fieldReviewReference:string; coachConfirmsFieldEffortReview:true;

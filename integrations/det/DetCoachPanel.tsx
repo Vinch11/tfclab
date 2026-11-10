@@ -102,6 +102,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   const trailSources=proposal && /trail/i.test(proposal.objective) ?
     [...new Map(proposal.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)))
       .filter(c=>c.sport==='run').map(c=>[c.sourceId,c])).values()] : [];
+  const pendingTerrain=trailSources.filter(source=>source.targets?.status==='unresolved').length;
   return <section className="space-y-3 rounded-lg border p-3" aria-label="Génération déterministe">
     <button className="font-semibold" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>DET-ENGINE</button>
     {open && <div className="space-y-3">
@@ -129,6 +130,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       {result && <div aria-live="polite">
         <h3 className="font-semibold">{result.title}</h3>
         <p>Plan assemblé · Revue sportive du coach en attente.</p>
+        {pendingTerrain>0 && <p>Guidage trail à compléter pour {pendingTerrain} fiche(s) V3. Renseignez le parcours observé, la sortie de référence et les efforts par bloc avant l’export.</p>}
         <p>{result.weeks.length} semaines{result._detSourceProposal.limiterOrder.length>0?' · '+result._detSourceProposal.limiterOrder.join(' → '):''}</p>
         <p className="whitespace-pre-line">{result.diagnostic}</p>
         {!!result.finalValidationIssues?.length && <details><summary>Points à vérifier avant prescription</summary>
