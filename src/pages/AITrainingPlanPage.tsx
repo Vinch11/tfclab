@@ -39,6 +39,7 @@ import { approvedIdsForFamilies, sanitizeDemandingFamilies } from "@/lib/plan/de
 import { DemandingSessionsPanel } from "@/components/ai-plan/DemandingSessionsPanel";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { GenerationProgressPanel } from "@/components/plan/GenerationProgressPanel";
 import {
   ChevronLeft, Sparkles, Calendar, Target, Clock, Loader2,
   AlertTriangle, Zap, User, RotateCcw, Copy, CheckCircle2,
@@ -4508,24 +4509,7 @@ export default function AITrainingPlanPage() {
                   </div>
 
                   {/* Streaming indicator */}
-                  {isLoading && (
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        {chunkProgress && chunkProgress.totalChunks > 1 ? (
-                          <span>
-                            Bloc <strong>{chunkProgress.currentChunk}/{chunkProgress.totalChunks}</strong> en cours...
-                            {" — "}Semaine <strong>{chunkProgress.currentWeek}</strong>/{chunkProgress.totalWeeks}
-                          </span>
-                        ) : (
-                          <span>Génération en cours... Le plan interactif sera disponible à la fin.</span>
-                        )}
-                      </div>
-                      {chunkProgress && chunkProgress.totalChunks > 1 && (
-                        <Progress value={(chunkProgress.currentWeek / chunkProgress.totalWeeks) * 100} className="h-1.5" />
-                      )}
-                    </div>
-                  )}
+                  {isLoading && <GenerationProgressPanel progress={chunkProgress} />}
 
                   {/* Interactive View */}
                   {resultView === "interactive" && parsedPlan ? (
