@@ -20,7 +20,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   useEffect(()=>{
     if(!open||disabled||clm){setTrailKey('');return;}
     const input=readInput();
-    setTrailKey(/^Trail/i.test(String(input.config.objective))?input.athleteId+'/'+input.config.objective:'');
+    setTrailKey(/trail/i.test(String(input.config.objective))?input.athleteId+'/'+input.config.objective:'');
   },[readInput,revision,open,disabled,clm]);
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
@@ -40,7 +40,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       const timeTrial=clm?enteredTimeTrial(fields,input.athleteId):undefined;
       let trailLongRunLimits;
       const currentKey=input.athleteId+'/'+input.config.objective;
-      if(/^Trail/i.test(String(input.config.objective))){
+      if(/trail/i.test(String(input.config.objective))){
         const required=input.config.ambitionMeta?.trainingLevel==='untrained';
         if(required && !(Number(input.config.loadHistory?.recentWeeklyHours)>0))
           throw Error('Renseigner le volume hebdomadaire récemment réalisé dans la configuration du plan.');

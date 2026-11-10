@@ -113,7 +113,7 @@ try{
   });
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await page.waitForFunction(()=>window.trailWorkerInput);
-  assert.deepEqual(await page.evaluate(()=>window.trailWorkerInput),{goal:'TrailShort',limits:{recentMinutes:75,peakMinutes:100}});
+  assert.deepEqual(await page.evaluate(()=>window.trailWorkerInput),{goal:'Trail court (20-40 km)',limits:{recentMinutes:75,peakMinutes:100}});
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
