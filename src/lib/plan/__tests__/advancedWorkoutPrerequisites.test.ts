@@ -26,25 +26,26 @@ describe("prérequis déterministes — journée double seuil norvégienne", () 
     })).toBe(true);
   });
 
-  it("autorise uniquement un profil hautement entraîné avec au moins 8 h", () => {
-    expect(isLevelPrerequisiteIncompatible(ID, {
-      trainingLevel: "highly_trained",
-      trainingLevelSource: "manual",
-      weeklyHours: 8,
-    })).toBe(false);
+  // Depuis la revue lactate/norvégien du 2026-11-09, une vraie double journée
+  // exige en plus une approbation coach nominative
+  // (`workoutSafetyPrerequisites.ts`, `lactateNorwegianReview.test.ts`).
+  it("un profil hautement entraîné avec au moins 8 h ne suffit plus sans approbation nominative", () => {
+    const profile = { trainingLevel: "highly_trained", trainingLevelSource: "manual", weeklyHours: 8 };
+    expect(isLevelPrerequisiteIncompatible(ID, profile)).toBe(true);
+    expect(isLevelPrerequisiteIncompatible(ID, { ...profile, approvedAdvancedSessionIds: [ID] })).toBe(false);
   });
 
-  it("permet une décision explicite du coach limitée à cette fiche", () => {
+  it("l'approbation du coach ne lève ni le niveau ni le volume, et reste limitée à cette fiche", () => {
     expect(isLevelPrerequisiteIncompatible(ID, {
       trainingLevel: "light",
       trainingLevelSource: "manual",
       weeklyHours: 4,
       approvedAdvancedSessionIds: [ID],
-    })).toBe(false);
+    })).toBe(true);
     expect(isLevelPrerequisiteIncompatible("NORWEGIAN_WEEK_STRUCTURE_RUN", {
-      trainingLevel: "light",
+      trainingLevel: "highly_trained",
       trainingLevelSource: "manual",
-      weeklyHours: 4,
+      weeklyHours: 12,
       approvedAdvancedSessionIds: [ID],
     })).toBe(true);
   });

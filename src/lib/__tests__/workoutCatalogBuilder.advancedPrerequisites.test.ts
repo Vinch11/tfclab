@@ -26,13 +26,21 @@ describe("buildWorkoutCatalog — prérequis des protocoles avancés", () => {
     })).not.toContain(ID);
   });
 
-  it("respecte une décision explicite du coach", () => {
+  // Revue lactate/norvégien du 2026-11-09 : l'approbation nominative est
+  // nécessaire, mais ne lève ni le niveau « très chargé » ni les 8 h/sem.
+  it("une approbation du coach ne suffit pas pour un profil light", () => {
     expect(idsFor({
       trainingLevel: "light",
       trainingLevelSource: "manual",
       weeklyHours: 4,
       approvedAdvancedSessionIds: [ID],
-    })).toContain(ID);
+    })).not.toContain(ID);
+  });
+
+  it("respecte une décision explicite du coach pour un profil qui remplit les prérequis", () => {
+    const profile = { trainingLevel: "highly_trained", trainingLevelSource: "manual", weeklyHours: 8 };
+    expect(idsFor(profile)).not.toContain(ID);
+    expect(idsFor({ ...profile, approvedAdvancedSessionIds: [ID] })).toContain(ID);
   });
 
   it("transmet l'intention structurée et marque explicitement les fiches non vérifiées", () => {

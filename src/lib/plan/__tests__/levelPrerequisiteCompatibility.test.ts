@@ -19,7 +19,11 @@ const EIGHT_IDS = [
   "COGGAN_BIKE_CP_DEPLETION",
   "V3_BIKE_VO2_TABATA",
 ];
-const SAFETY_REVIEW_IDS = ["KENYAN_WEEK_STRUCTURE_MARATHON", "V3_BIKE_VO2_TABATA"];
+// Fiches de l'axe historique qui exigent AUSSI une revue coach nominative
+// (`workoutSafetyPrerequisites.ts`) : fermées sans approbation, quel que soit
+// le niveau. `NORWEGIAN_WEEK_STRUCTURE_RUN` les a rejointes avec la revue
+// lactate/norvégien du 2026-11-09.
+const SAFETY_REVIEW_IDS = ["KENYAN_WEEK_STRUCTURE_MARATHON", "V3_BIKE_VO2_TABATA", "NORWEGIAN_WEEK_STRUCTURE_RUN"];
 const LEGACY_LEVEL_ONLY_IDS = EIGHT_IDS.filter(id => !SAFETY_REVIEW_IDS.includes(id));
 
 // Volontairement HORS périmètre — seul critère indépendant = VMA non transmise.
@@ -55,6 +59,13 @@ describe("isLevelPrerequisiteIncompatible — Mission Axe C", () => {
     for (const id of LEGACY_LEVEL_ONLY_IDS) {
       expect(isLevelPrerequisiteIncompatible(id, undefined)).toBe(false);
       expect(isLevelPrerequisiteIncompatible(id, null)).toBe(false);
+    }
+  });
+
+  it("les fiches de l'axe historique à revue nominative restent fermées sans approbation, même très entraîné", () => {
+    for (const id of SAFETY_REVIEW_IDS) {
+      expect(isLevelPrerequisiteIncompatible(id, { trainingLevel: "highly_trained", trainingLevelSource: "manual" }), id).toBe(true);
+      expect(isLevelPrerequisiteIncompatible(id, undefined), id).toBe(true);
     }
   });
 
