@@ -1,6 +1,6 @@
 # Formulaire DET dans TFCLab 2.1
 
-Sur la page de planification, ouvrir **Ouvrir le formulaire DET-ENGINE**. Choisir l’athlète, puis **Configuration** et **Objectif principal (A)**. L’option **Contre-la-montre vélo** utilise le bilan de l’athlète et permet d’ajuster l’ordre dans **Hiérarchie des Limiteurs**. Le coach renseigne ensuite l’observation en position aéro, les durées tolérées et les semaines visées. **Générer avec DET** calcule le plan dans le navigateur.
+Sur la page de planification, choisir le moteur **DET-ENGINE** dans le sélecteur de la page (à l’étape « Générer le plan »), puis choisir l’athlète et renseigner **Configuration** et **Objectif principal (A)**. L’option **Contre-la-montre vélo** utilise le bilan de l’athlète et permet d’ajuster l’ordre dans **Hiérarchie des Limiteurs**. Le coach renseigne ensuite l’observation en position aéro, les durées tolérées et les semaines visées. **Générer avec DET** calcule le plan dans le navigateur.
 
 Dans le plan CLM, **Guidage Nolio V2** permet de vérifier le plan complet, une semaine ou une séance. Pour une séance, la vue affiche les étapes structurées attendues, la durée, les cibles et le traitement de la dernière récupération. Le contrôle utilise des associations de simulation. Son résultat ne constitue pas un accusé de réception de Nolio ou d’une montre.
 
