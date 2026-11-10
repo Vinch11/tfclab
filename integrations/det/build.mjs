@@ -18,6 +18,8 @@ const hash=s=>createHash('sha256').update(s).digest('hex');
 const pilot={
  name:'tfclab-det-coach-form',enforce:'pre',
  transform(code,id){
+   // The detached form uses the OS font stack, keeping all feature assets on this origin.
+   if(id===path.join(root,'src/index.css'))return code.replace(/^@import\s+url\(["']?https:\/\/fonts\.googleapis\.com\/[^\n]*?["']?\);[^\S\r\n]*$/gm,'');
    if(id===path.join(root,'src/pages/AITrainingPlanPage.tsx'))return coachView(code);
    if(id===path.join(root,'src/integrations/supabase/client.ts'))return 'export {supabase} from "/integrations/det/readClient";';
    if(id===path.join(root,'src/hooks/useAITrainingPlan.ts')){
