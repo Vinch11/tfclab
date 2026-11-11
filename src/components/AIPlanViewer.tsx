@@ -1,4 +1,5 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
+import { NolioCyclesPanel } from "@/components/plan/NolioCyclesPanel";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -1728,6 +1729,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       )}
 
 
+
+      {athleteId && <NolioCyclesPanel plan={plan} athleteId={athleteId} athleteName={athleteName} startDate={startDate} />}
 
       {/* Nolio — Top sending panel (unified scopes) */}
       {nolioCtx && (

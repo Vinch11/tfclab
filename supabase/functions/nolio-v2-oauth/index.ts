@@ -2,8 +2,9 @@
 // Actions (POST JSON {action}): start | exchange | status | probe | disconnect.
 // Tokens never leave the server. Read-only: no write call to Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { ownsPersonalConnection, validPeriod, canReadTestSession } from "./recordContract.ts";
+import { handleCycles } from "./cycles.ts";
 
 const AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -78,7 +79,7 @@ Deno.serve(async (req) => {
       u.searchParams.set("response_type", "code");
       u.searchParams.set("client_id", Deno.env.get("NOLIO_V2_CLIENT_ID") ?? "");
       u.searchParams.set("redirect_uri", REDIRECT_URI);
-      u.searchParams.set("scope", SCOPES);
+      u.searchParams.set("scope", SCOPES + (body.write_cycles === true ? " planned:write" : ""));
       u.searchParams.set("state", state);
       u.searchParams.set("code_challenge", await sha256(verifier));
       u.searchParams.set("code_challenge_method", "S256");
@@ -138,7 +139,7 @@ Deno.serve(async (req) => {
       return json({ connected: false });
     }
 
-    if (action === "probe" || action === "records" || action === "catalogues" || action === "test_session" || action === "test_sessions" || action === "protocol_session") {
+    if (action === "cycles" || action === "probe" || action === "records" || action === "catalogues" || action === "test_session" || action === "test_sessions" || action === "protocol_session") {
       if (!conn && !personalKey) return json({ error: "not_connected" }, 400);
       let token = conn ? String(conn.access_token) : personalKey;
       if (!token) return json({ error: "not_connected" }, 403);
@@ -150,6 +151,15 @@ Deno.serve(async (req) => {
           access_token: token, refresh_token: r.body.refresh_token ? String(r.body.refresh_token) : conn.refresh_token,
           expires_at: new Date(Date.now() + Number(r.body.expires_in ?? 86400) * 1000).toISOString(), updated_at: new Date().toISOString(),
         }).eq("user_id", userId);
+      }
+      if (action === 'cycles') {
+        try {
+          const result = await handleCycles(body, userClient, userId, token);
+          return json(result, 'status' in result ? result.status : 200);
+        } catch (e) {
+          const detail = e instanceof Error ? e.message : 'Nolio a refusé la demande.';
+          return json({ error: 'cycle_request_failed', detail }, 502);
+        }
       }
       const get = async (path: string) => {
         const res = await fetch(API + path, { headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } });
