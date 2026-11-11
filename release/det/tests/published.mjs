@@ -79,6 +79,30 @@ try {
     }
     results[sport]=actual;
   }
+  const lowVolume = JSON.parse(await local('./ordinary-balanced-10K.json'));
+  lowVolume.config.loadHistory = {recentWeeklyHours:2.4,recentWeeksCount:4};
+  const compact = await page.evaluate(async ({base,input}) => {
+    const {runDet} = await import(base+'client.mjs');
+    const plan = await runDet({action:'generate',input});
+    const proposal = plan._detSourceProposal;
+    const firstWeek = proposal.weeks[0];
+    const sessions = firstWeek.days.flatMap(day=>day.sessions);
+    const strength = sessions.find(session=>session.sport==='strength');
+    const preview = await runDet({action:'preview',plan,scope:{kind:'all'}});
+    const noStrength = await runDet({action:'generate',input:{...input,
+      config:{...input.config,strengthSessionsPerWeek:0}}});
+    return {version:plan._provenance.engineVersion,weeks:proposal.weeks.length,
+      firstWeekMinutes:firstWeek.knownMinutes,runs:sessions.filter(s=>s.sport==='run').length,
+      source:strength?.components[0].sourceId,strengthMinutes:strength?.knownMinutes,
+      limiters:proposal.limiterOrder,blocked:proposal.checks.filter(c=>c.status==='blocked').length,
+      precheck:preview.precheck.complete,operations:preview.ops.length,
+      zeroStrengthWeeks:noStrength.weeks.length,zeroStrengthSessions:noStrength._detSourceProposal.weeks
+        .flatMap(week=>week.days.flatMap(day=>day.sessions)).filter(s=>s.sport==='strength').length};
+  },{base,input:lowVolume});
+  assert.deepEqual(compact,{version:manifest.version,weeks:8,firstWeekMinutes:141,runs:4,
+    source:'V3P_STRENGTH_201',strengthMinutes:21,limiters:[],blocked:0,precheck:true,
+    operations:38,zeroStrengthWeeks:8,zeroStrengthSessions:0});
+  results.balanced10K144 = compact;
   const marathon=JSON.parse(await local('./witness-marathon.json'));
   const decisions=await page.evaluate(async({base,marathon})=>{
     const {runDet}=await import(base+'client.mjs');
