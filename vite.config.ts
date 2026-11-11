@@ -21,6 +21,8 @@ export default defineConfig(async ({ mode, command }) => {
     __APP_VERSION__: JSON.stringify(APP_VERSION),
     __PLAN_RELEASE_INFO__: JSON.stringify(PLAN_RELEASE),
     __BUILD_TIME__: JSON.stringify(BUILD_DATE.toISOString()),
+    // Main app uses the stable public runtime; the detached coach build overrides this with its hashed runtime.
+    __DET_CLIENT_PATH__: JSON.stringify("/__det/v1/client.mjs"),
   },
   server: {
     host: "::",
