@@ -149,7 +149,12 @@ try{
   await hours.fill('');
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
+  await racePicker.filter({hasText:/Ultra trail/i}).waitFor();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
+  await racePicker.click();
+  await page.getByRole('option',{name:/^Trail court/}).click();
+  await racePicker.filter({hasText:/Trail court/i}).waitFor();
+  assert.equal(await recent.inputValue(),'75');assert.equal(await peak.inputValue(),'100');
   await page.evaluate(()=>{
     const send=Worker.prototype.postMessage;
     Worker.prototype.postMessage=function(job,...args){

@@ -1,6 +1,6 @@
 import {detClientUrl} from './detClientUrl';
 import {marathonTimeLabel,withMarathonTime} from './marathonTarget';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
 import type {AthleteDiagnostic} from '@/engines/diagnostic';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
@@ -42,17 +42,20 @@ function savedHistory(key:string) {
 export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false}:{readInput:()=>PageInput;disabled:boolean;revision:string;clm:boolean;defaultOpen?:boolean}) {
   const [open,setOpen]=useState(defaultOpen);
   const [fields,setFields]=useState(emptyTimeTrial);
-  const [history,setHistory]=useState({key:'',kind:'',time:undefined as number|undefined,...emptyHistory});
-  useEffect(()=>{
-    const record=open && !disabled && !clm ? historyForm(readInput()) : null;
-    setHistory(prev=>{
-      if(!record)return prev.key ? {key:'',kind:'',time:undefined,...emptyHistory} : prev;
-      if(prev.key===record.key && prev.kind===record.kind && prev.time===record.time)return prev;
-      const fields=prev.key===record.key ? prev : savedHistory(record.key);
-      const target=record.time ? marathonTimeLabel(record.time) : prev.key===record.key && prev.time!==undefined ? '' : fields.target;
-      return {...fields,...record,target};
-    });
-  },[readInput,revision,open,disabled,clm]);
+  const record=useMemo(()=>open && !disabled && !clm ? historyForm(readInput()) : null,[readInput,open,disabled,clm]);
+  const [previousHistory,setHistory]=useState({key:'',kind:'',time:undefined as number|undefined,...emptyHistory});
+  let history=previousHistory;
+  if(previousHistory.key!==(record?.key??'') || previousHistory.kind!==(record?.kind??'') || previousHistory.time!==record?.time){
+    // Bind the controlled fields to the new athlete, goal and start date before displaying them.
+    if(record){
+      const fields=previousHistory.key===record.key ? previousHistory : savedHistory(record.key);
+      const target=record.time ? marathonTimeLabel(record.time) : previousHistory.key===record.key && previousHistory.time!==undefined ? '' : fields.target;
+      history={...fields,...record,target};
+    }else{
+      history={key:'',kind:'',time:undefined,...emptyHistory};
+    }
+    setHistory(history);
+  }
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
   const [error,setError]=useState<{message:string;outside:boolean}|null>(null);
