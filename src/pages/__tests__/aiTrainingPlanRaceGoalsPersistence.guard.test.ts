@@ -66,6 +66,6 @@ describe("AITrainingPlanPage — garde-fou anti-régression : les objectifs seco
     expect(
       body,
       "applyLoadedVersion ne restaure plus raceGoals depuis la version sauvegardée — même si _raceGoals est bien en base, il ne serait jamais relu dans le formulaire de régénération.",
-    ).toContain("setRaceGoals(pj._raceGoals)");
+    ).toContain("setRaceGoals(Array.isArray(pj._raceGoals) ? pj._raceGoals : [])");
   });
 });

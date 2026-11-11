@@ -37,7 +37,7 @@ describe("AITrainingPlanPage — garde-fou : aucun plan affiché automatiquement
 
   const restoreEffectBody = sliceBetween(
     "// Restore persisted CONFIG on athlete change (single mode only)",
-    "}, [persistKey]);",
+    "}, [persistKey, currentAthlete?.objectif]);",
   );
 
   it("ne restaure plus automatiquement le contenu du plan depuis le cache activePlanKey (point 5/7 — pas de ré-affichage silencieux à l'ouverture)", () => {

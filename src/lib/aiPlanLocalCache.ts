@@ -14,6 +14,46 @@
  * suppression complète du planning (n'importe où dans l'app) puisse aussi
  * vider ce cache, sans dupliquer le format des clés.
  */
+import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
+
+export interface ObjectiveBoundCacheState {
+  /** Objectif du profil athlète au moment où cette préparation a été enregistrée. */
+  athleteGoal?: unknown;
+  /** Objectif choisi pour cette préparation ou ce brouillon. */
+  objective?: unknown;
+  /** Une version d'historique ne doit pas redevenir la préparation courante. */
+  objectiveSource?: unknown;
+}
+
+function objectiveKey(value: unknown): string | null {
+  return typeof value === "string" && value.trim()
+    ? normalizeObjectiveKey(value.trim())
+    : null;
+}
+
+/**
+ * Une ancienne configuration ne doit pas écraser le nouvel objectif du profil.
+ * Avec provenance, on compare l'objectif du profil au moment de la sauvegarde :
+ * le coach peut donc préparer volontairement un autre objectif sans le perdre
+ * au rechargement. Les anciens caches sans provenance sont acceptés seulement
+ * si leur objectif correspond encore au profil.
+ */
+export function canRestoreObjectiveBoundState(
+  currentAthleteGoal: string | null | undefined,
+  saved: ObjectiveBoundCacheState | null | undefined,
+): boolean {
+  const current = objectiveKey(currentAthleteGoal);
+  if (!current || !saved) return true;
+
+  const planned = objectiveKey(saved.objective);
+  if (saved.objectiveSource === "history" && planned && planned !== current) return false;
+
+  const athleteGoalAtSave = objectiveKey(saved.athleteGoal);
+  if (athleteGoalAtSave) return athleteGoalAtSave === current;
+  if (planned) return planned === current;
+  return true;
+}
+
 export function aiPlanCacheKeys(athleteId: string): {
   /** Dernier formulaire + réponse IA (persistance de session, peut être écrasé). */
   persistKey: string;

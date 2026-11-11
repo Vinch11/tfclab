@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { aiPlanCacheKeys, clearLocalAIPlanCache } from "../aiPlanLocalCache";
+import { aiPlanCacheKeys, canRestoreObjectiveBoundState, clearLocalAIPlanCache } from "../aiPlanLocalCache";
 
 /**
  * Bug réel (retour coach : "j'ai effacé tous les plans de Mamou mais quand
@@ -21,6 +21,35 @@ describe("aiPlanLocalCache", () => {
     expect(keys.persistKey).toBe("tfcl_ai_plan_athlete-123");
     expect(keys.activePlanKey).toBe("plan_active_athlete-123");
     expect(keys.draftKey).toBe("tfcl_ai_plan_draft_athlete-123");
+  });
+
+  it("ne restaure pas l'ancien Long Course Weekend quand le profil de Vince est passé au 10 km", () => {
+    expect(canRestoreObjectiveBoundState("10K", {
+      objective: "703",
+      raceFormat: "lcw_3day",
+    } as any)).toBe(false);
+  });
+
+  it("détecte un changement de profil 70.3 → 10 km même si la préparation portait un autre objectif", () => {
+    expect(canRestoreObjectiveBoundState("10K", {
+      athleteGoal: "703",
+      objective: "Marathon",
+    })).toBe(false);
+  });
+
+  it("conserve une préparation volontairement différente tant que l'objectif du profil n'a pas changé", () => {
+    expect(canRestoreObjectiveBoundState("10K", {
+      athleteGoal: "10K",
+      objective: "Marathon",
+    })).toBe(true);
+  });
+
+  it("ne transforme pas une version 70.3 consultée dans l'historique en préparation courante", () => {
+    expect(canRestoreObjectiveBoundState("10K", {
+      athleteGoal: "10K",
+      objective: "70.3",
+      objectiveSource: "history",
+    })).toBe(false);
   });
 
   it("clearLocalAIPlanCache supprime les 3 clés de cet athlète sans toucher aux autres athlètes", () => {

@@ -10,6 +10,7 @@ import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZoneSet } from "@/lib/zones/deriveTrainingZones";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 import { predictRunMLSSPctFromVLaCE } from "@/lib/v2/runMLSSPredictor";
+import { resolveCurrentAthleteObjective } from "@/lib/currentAthleteObjective";
 
 export interface DerivedZonesBySport {
   bike: DerivedZoneSet;
@@ -42,7 +43,9 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     const dbAthlete = dbAthletes.find((a) => a.id === currentAthlete?.id) ?? null;
     const effective = getEffectiveRefs(dbAthlete, snapshots);
     const snap = getEffectiveSnapshot(dbAthlete, snapshots);
-    const raceObjective = (snap as any)?.objectif ?? (dbAthlete as any)?.goal ?? currentAthlete?.goal ?? null;
+    // Les zones concernent le cycle courant : l'objectif du profil prime sur
+    // l'objectif figé dans un snapshot historique (ex. Vince : 10K, pas Semi).
+    const raceObjective = resolveCurrentAthleteObjective(dbAthlete?.goal, currentAthlete?.objectif, snap?.objectif);
 
     const bike = deriveTrainingZones({
       sport: "bike",
@@ -81,5 +84,5 @@ export function useDerivedTrainingZones(): DerivedZonesBySport {
     });
 
     return { bike, run };
-  }, [currentAthlete?.id, dbAthletes, snapshots]);
+  }, [currentAthlete?.id, currentAthlete?.objectif, dbAthletes, snapshots]);
 }

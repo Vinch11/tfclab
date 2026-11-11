@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Objectif athlète courant : le 10 km de Vince prime sur l’ancien Long Course Weekend dans les caches de préparation et les zones courantes ; brouillon incompatible conservé avec reprise explicite, historique inchangé, propagation du changement au contexte partagé ; 18 tests et scénario navigateur vérifiés, fonctions déployées. Aucun plan généré ni donnée athlète modifiée.
 - [x] Repères critiques : calculs course/vélo avec provenance, étude temporaire accessible depuis bilan/profil et sélection Nolio, export et sollicitation d’un effort continu ; 76 tests ciblés verts, parcours connecté avec efforts fictifs vérifié sur ordinateur/mobile, accord annulé après modification, aucune sauvegarde ni publication.
 - [ ] Vérifier les repères critiques sur des tests Nolio réels identifiés par le coach : aucune séance réelle n’a été déclarée arbitrairement comme test confirmé.
 - [ ] Enregistrement structuré et utilisation dans les plans : migration et écritures athlète non autorisées ; activation des variantes après validation sportive distincte.

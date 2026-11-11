@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ObjectifType } from "@/types/athlete";
 import { deduceSportMainFromGoal, normalizeSportMain } from "@/lib/sportMainDeduction";
+import { useCloudDataContext } from "@/contexts/CloudDataContext";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -51,6 +52,7 @@ export interface AddRaceGoalInput {
 
 export function useAthleteRaceGoals(athleteId: string | null) {
   const queryClient = useQueryClient();
+  const { loadData } = useCloudDataContext();
   const [saving, setSaving] = useState(false);
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -277,8 +279,10 @@ export function useAthleteRaceGoals(athleteId: string | null) {
         }
       }
 
-      // Invalidate athlete cache
+      // Le contexte partagé est du React state, pas une requête React Query :
+      // invalider ['cloud-data'] seul laissait les autres écrans sur l'ancien but.
       queryClient.invalidateQueries({ queryKey: ['cloud-data'] });
+      await loadData();
       
       toast.success(`Objectif mis à jour: ${goal}`);
       return true;
@@ -289,7 +293,7 @@ export function useAthleteRaceGoals(athleteId: string | null) {
     } finally {
       setSaving(false);
     }
-  }, [athleteId, queryClient, raceGoals]);
+  }, [athleteId, queryClient, raceGoals, loadData]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // RESTORE RACE GOAL (set as current)

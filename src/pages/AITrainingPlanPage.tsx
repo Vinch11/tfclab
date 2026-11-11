@@ -74,7 +74,7 @@ import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { AmbitionLevel, DEFAULT_AMBITION, getAthleteAmbition, normalizeAmbitionLevel, AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionLevel";
 import { parseAIPlan, mapSessionsToDates, sanitizeTrailFromTriathlonPlan, type ParsedPlan, type ParsedWeek } from "@/lib/aiPlanParser";
 import { buildStartToRunTemplatePlan, type S2RStrengthDose } from "@/lib/startToRunTemplate";
-import { aiPlanCacheKeys } from "@/lib/aiPlanLocalCache";
+import { aiPlanCacheKeys, canRestoreObjectiveBoundState } from "@/lib/aiPlanLocalCache";
 import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks } from "@/lib/plan/mergePlanChunks";
 import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
@@ -675,6 +675,9 @@ export default function AITrainingPlanPage() {
    * perdre tout le travail de régénération.
    */
   const draftKey = localCacheKeys?.draftKey ?? null;
+  const planContextKey = persistKey && currentAthlete ? `${persistKey}:${currentAthlete.objectif}` : null;
+  const restoredPlanContextRef = useRef<string | null>(null);
+  const planContextChanged = restoredPlanContextRef.current !== planContextKey;
   const [loadedFromCacheAt, setLoadedFromCacheAt] = useState<string | null>(null);
   /**
    * true si un plan était déjà présent dans activePlanKey AVANT la
@@ -707,7 +710,14 @@ export default function AITrainingPlanPage() {
       const raw = localStorage.getItem(persistKey);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
-  }, [persistKey]);
+  }, [persistKey, currentAthlete?.objectif]);
+
+  const [objectiveResetNotice, setObjectiveResetNotice] = useState<{
+    from: string;
+    to: string;
+    hasDraft: boolean;
+  } | null>(null);
+  const [incompatibleDraft, setIncompatibleDraft] = useState<any | null>(null);
 
   const [objective, setObjective] = useState(currentAthlete?.objectif || "703");
   const [raceName, setRaceName] = useState("");
@@ -840,6 +850,23 @@ export default function AITrainingPlanPage() {
     );
   }, [currentAthlete]);
 
+  // Champs qui appartiennent à un objectif précis. Ils ne sont restaurés que
+  // si le profil n'a pas changé d'objectif depuis l'enregistrement du cache.
+  const restoreObjectiveBoundFields = (source: any) => {
+    if (!source) return;
+    if (source.objective) setObjective(source.objective);
+    if (source.raceName) setRaceName(source.raceName);
+    if (source.raceFormat) setRaceFormat(source.raceFormat);
+    if (source.raceDate) setRaceDate(source.raceDate);
+    if (source.planDurationMode) setPlanDurationMode(source.planDurationMode);
+    if (source.planWeeksInput) setPlanWeeksInput(source.planWeeksInput);
+    if (Array.isArray(source.raceGoals)) setRaceGoals(source.raceGoals);
+    if (source.trailDistanceKm) setTrailDistanceKm(source.trailDistanceKm);
+    if (source.trailElevationM) setTrailElevationM(source.trailElevationM);
+    if (source.trailTargetTimeH) setTrailTargetTimeH(source.trailTargetTimeH);
+    if (source.trailMaxAltitudeM) setTrailMaxAltitudeM(source.trailMaxAltitudeM);
+  };
+
   // Restore persisted CONFIG on athlete change (single mode only) — le
   // CONTENU de plan n'est plus jamais restauré automatiquement ici (décision
   // coach 2026-10-22, "gestion et sélection des plans") : trois mécanismes
@@ -858,6 +885,13 @@ export default function AITrainingPlanPage() {
   // "sélection de plan" au sens de la consigne.
   useEffect(() => {
     if (isMultiMode) return;
+
+    const currentGoal = currentAthlete?.objectif ?? null;
+    restoredPlanContextRef.current = planContextKey;
+    const canRestoreSavedObjective = canRestoreObjectiveBoundState(currentGoal, savedState);
+    let deferredDraft: any | null = null;
+    setObjectiveResetNotice(null);
+    setIncompatibleDraft(null);
 
     // Existence du cache (métadonnées seulement — jamais affiché ici).
     let activeRestored = false;
@@ -925,12 +959,7 @@ export default function AITrainingPlanPage() {
     if (savedState) {
       // savedState.response volontairement jamais appliqué ici — cf.
       // commentaire au-dessus de cet effet (décision coach 2026-10-22).
-      if (savedState.objective) setObjective(savedState.objective);
-      if (savedState.raceName) setRaceName(savedState.raceName);
-      if (savedState.raceFormat) setRaceFormat(savedState.raceFormat);
-      if (savedState.raceDate) setRaceDate(savedState.raceDate);
-      if (savedState.planDurationMode) setPlanDurationMode(savedState.planDurationMode);
-      if (savedState.planWeeksInput) setPlanWeeksInput(savedState.planWeeksInput);
+      if (canRestoreSavedObjective) restoreObjectiveBoundFields(savedState);
       if (savedState.weeklyHours) setWeeklyHours(savedState.weeklyHours);
       if (savedState.chronicWeeklyHours) setChronicWeeklyHours(savedState.chronicWeeklyHours);
       if (savedState.recentWeeklyHours) setRecentWeeklyHours(savedState.recentWeeklyHours);
@@ -945,11 +974,6 @@ export default function AITrainingPlanPage() {
       if (savedState.trainingLevel) setTrainingLevel(savedState.trainingLevel);
       if (typeof savedState.lockAmbition === "boolean") setLockAmbition(savedState.lockAmbition);
 
-      if (savedState.raceGoals && Array.isArray(savedState.raceGoals)) setRaceGoals(savedState.raceGoals);
-      if (savedState.trailDistanceKm) setTrailDistanceKm(savedState.trailDistanceKm);
-      if (savedState.trailElevationM) setTrailElevationM(savedState.trailElevationM);
-      if (savedState.trailTargetTimeH) setTrailTargetTimeH(savedState.trailTargetTimeH);
-      if (savedState.trailMaxAltitudeM) setTrailMaxAltitudeM(savedState.trailMaxAltitudeM);
       if (savedState.terrainAvailability) setTerrainAvailability(savedState.terrainAvailability);
       if (typeof savedState.crossTrainingVelo === "boolean") setCrossTrainingVelo(savedState.crossTrainingVelo);
       setApprovedDemandingFamilies(sanitizeDemandingFamilies(savedState.approvedDemandingFamilies));
@@ -963,7 +987,7 @@ export default function AITrainingPlanPage() {
 
     // Ancrage calendaire : restaure la date de début du plan persistée, sinon
     // le plan rechargé serait ré-ancré au lundi de la semaine courante (dates fausses).
-    const startRaw = restoredStart || savedState?.planStartDate || null;
+    const startRaw = canRestoreSavedObjective ? (restoredStart || savedState?.planStartDate || null) : null;
     if (startRaw) {
       try {
         const d = parseISO(startRaw);
@@ -979,7 +1003,18 @@ export default function AITrainingPlanPage() {
         const rawDraft = localStorage.getItem(draftKey);
         if (rawDraft) {
           const draft = JSON.parse(rawDraft);
-          if (draft?.planOverride) {
+          const draftObjective = draft?.objective ?? draft?.planOverride?._objective ?? savedState?.objective;
+          const canRestoreDraft = canRestoreObjectiveBoundState(currentGoal, {
+            athleteGoal: draft?.athleteGoal ?? savedState?.athleteGoal,
+            objective: draftObjective,
+            objectiveSource: draft?.objectiveSource,
+          });
+          if ((draft?.planOverride || draft?.response) && !canRestoreDraft) {
+            // Le brouillon reste dans localStorage : il n'est ni supprimé ni
+            // présenté comme un plan du nouvel objectif. Le coach peut le rouvrir
+            // explicitement via l'alerte affichée au-dessus de la génération.
+            deferredDraft = { ...draft, objective: draftObjective };
+          } else if (draft?.planOverride) {
             setPlanOverride(draft.planOverride as ParsedPlan);
             setIsSaved(false);
             hasDraft = true;
@@ -1002,7 +1037,7 @@ export default function AITrainingPlanPage() {
     // `reset()` vide toujours l'état JSON du hook (sinon le plan de
     // l'athlète précédent resterait visible). Seul `PlanHistoryCard` (clic +
     // confirmation de date) peut désormais afficher une version existante.
-    const hasLocalPlan = activeRestored || Boolean(savedState?.response);
+    const hasLocalPlan = canRestoreSavedObjective && (activeRestored || Boolean(savedState?.response));
     if (!hasDraft) setPlanOverride(null);
     reset();
     if (draftResponse) setResponse(draftResponse);
@@ -1010,8 +1045,42 @@ export default function AITrainingPlanPage() {
     if (!hasLocalPlan && !draftResponse) {
       setPlanStartDate(startOfWeek(new Date(), { weekStartsOn: 1 }));
     }
+
+    const staleObjective = deferredDraft?.objective || (!canRestoreSavedObjective
+      ? (savedState?.objective || savedState?.athleteGoal)
+      : null);
+    if (currentGoal && staleObjective && normalizeObjectiveKey(staleObjective) !== normalizeObjectiveKey(currentGoal)) {
+      setObjectiveResetNotice({ from: staleObjective, to: currentGoal, hasDraft: Boolean(deferredDraft) });
+      if (deferredDraft) setIncompatibleDraft(deferredDraft);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persistKey]);
+  }, [persistKey, currentAthlete?.objectif]);
+
+  const resumeIncompatibleDraft = () => {
+    if (!incompatibleDraft) return;
+    const draft = incompatibleDraft;
+    restoreObjectiveBoundFields({
+      ...savedState,
+      objective: draft.objective || savedState?.objective || draft.athleteGoal,
+    });
+    reset();
+    if (draft.planOverride) {
+      setPlanOverride(draft.planOverride as ParsedPlan);
+    } else if (typeof draft.response === "string") {
+      setPlanOverride(null);
+      setResponse(draft.response);
+    }
+    if (draft.planStartDate) {
+      const d = new Date(draft.planStartDate);
+      if (!isNaN(d.getTime())) setPlanStartDate(startOfWeek(d, { weekStartsOn: 1 }));
+    }
+    setLoadedFromCacheAt(null);
+    setIsSaved(false);
+    setResultView("interactive");
+    setObjectiveResetNotice(null);
+    setIncompatibleDraft(null);
+    toast.info("Ancien brouillon rouvert — il reste associé à son objectif d'origine");
+  };
 
   /**
    * Auto-défaut "Natation en maintien" pour un plan multi-objectifs dont
@@ -1048,18 +1117,20 @@ export default function AITrainingPlanPage() {
   // Persiste le brouillon non sauvegardé (régénérations ciblées) à chaque
   // modification, y compris avant que l'onglet ne soit déchargé.
   useEffect(() => {
-    if (isMultiMode || !draftKey) return;
+    if (isMultiMode || !draftKey || planContextChanged) return;
     try {
       if (isLoading) return;
       if (planOverride && !isSaved) {
-        localStorage.setItem(draftKey, JSON.stringify({ planOverride, savedAt: new Date().toISOString() }));
+        localStorage.setItem(draftKey, JSON.stringify({ planOverride, athleteGoal: currentAthlete?.objectif ?? null, objective, savedAt: new Date().toISOString() }));
       } else if (response && !isSaved && !loadedFromCacheAt) {
-        localStorage.setItem(draftKey, JSON.stringify({ response, planStartDate: format(planStartDate, "yyyy-MM-dd"), savedAt: new Date().toISOString() }));
-      } else {
+        localStorage.setItem(draftKey, JSON.stringify({ response, athleteGoal: currentAthlete?.objectif ?? null, objective, planStartDate: format(planStartDate, "yyyy-MM-dd"), savedAt: new Date().toISOString() }));
+      } else if (isSaved || loadedFromCacheAt) {
         localStorage.removeItem(draftKey);
       }
+      // Sans plan affiché, ne pas effacer un brouillon incompatible qui vient
+      // d'être mis de côté pendant le changement d'objectif.
     } catch {}
-  }, [draftKey, isMultiMode, planOverride, isSaved, isLoading, response, loadedFromCacheAt, planStartDate]);
+  }, [draftKey, isMultiMode, planContextChanged, planOverride, isSaved, isLoading, response, loadedFromCacheAt, planStartDate, currentAthlete?.objectif, objective]);
 
 
 
@@ -1073,9 +1144,11 @@ export default function AITrainingPlanPage() {
 
   // Persist single-athlete plan + config to localStorage after generation completes
   useEffect(() => {
-    if (isMultiMode || !persistKey || isLoading || !response) return;
+    if (isMultiMode || !persistKey || planContextChanged || isLoading || !response) return;
     const state = {
       response,
+      athleteGoal: currentAthlete?.objectif ?? null,
+      objectiveSource: loadedFromCacheAt ? "history" : "coach",
       objective,
       raceName,
       raceFormat,
@@ -1139,7 +1212,7 @@ export default function AITrainingPlanPage() {
       }
     }
 
-  }, [isMultiMode, persistKey, activePlanKey, loadedFromCacheAt, isLoading, response, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, planStartDate, isSaved]);
+  }, [isMultiMode, persistKey, activePlanKey, planContextChanged, loadedFromCacheAt, isLoading, response, currentAthlete?.objectif, objective, raceName, raceFormat, raceDate, planDurationMode, planWeeksInput, weeklyHours, chronicWeeklyHours, recentWeeklyHours, recentWeeksCount, maxDoubleDaysPerWeek, sessionsPerWeek, ambition, constraints, maxSessionsPerDay, strengthSessionsPerWeek, deloadCadence, trainingLevel, lockAmbition, raceGoals, trailDistanceKm, trailElevationM, trailTargetTimeH, trailMaxAltitudeM, terrainAvailability, crossTrainingVelo, crossTrainingNatation, approvedDemandingFamilies, planStartDate, isSaved]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // BUILD DIAGNOSTIC — Replaces manual sub-engine calls
@@ -2326,7 +2399,9 @@ export default function AITrainingPlanPage() {
           _markdown: buildMarkdownFromPlan(parsedPlan),
           _planStartDate: format(planStartDate, "yyyy-MM-dd"),
           _objective: objective,
+          _athleteGoalAtSave: currentAthlete.objectif,
           _raceName: raceName,
+          _raceFormat: raceFormat,
           _raceDate: raceDate,
           // Objectifs secondaires (multi-objectif A/B/C) — cf. bug réel "Manu"
           // (audit fiabilité génération plan IA) : ces objectifs ne vivaient
@@ -2357,7 +2432,7 @@ export default function AITrainingPlanPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceDate, raceGoals, coachLimiterOrder, generatedLimitersKey]);
+  }, [parsedPlan, currentAthlete, planStartDate, response, objective, raceName, raceFormat, raceDate, raceGoals, coachLimiterOrder, generatedLimitersKey]);
 
   const handleSaveToPlan = useCallback(async () => {
     if (!parsedPlan || !currentAthlete) return;
@@ -2655,7 +2730,9 @@ export default function AITrainingPlanPage() {
     // (indispensable pour que la règle d'affûtage déterministe s'applique).
     const loadedObjective = pj._objective || inferObjectiveFromPlan(pj);
     if (loadedObjective) setObjective(loadedObjective);
+    setLoadedFromCacheAt((version as { created_at?: string }).created_at || new Date().toISOString());
     if (pj._raceName !== undefined) setRaceName(pj._raceName || "");
+    setRaceFormat(pj._raceFormat === "lcw_3day" && (loadedObjective === "703" || loadedObjective === "70.3") ? "lcw_3day" : "continuous");
     if (pj._raceDate !== undefined) setRaceDate(pj._raceDate || "");
     // Restaure les objectifs secondaires (multi-objectif A/B/C) sauvegardés
     // avec cette version — cf. commentaire sur `_raceGoals` dans
@@ -2663,7 +2740,7 @@ export default function AITrainingPlanPage() {
     // un autre appareil/navigateur (ou après un cache vidé) affichait bien le
     // plan sauvegardé, mais toute RÉGÉNÉRATION suivante repartait sans les
     // objectifs secondaires (`raceGoals=[]`), silencieusement.
-    if (Array.isArray(pj._raceGoals)) setRaceGoals(pj._raceGoals);
+    setRaceGoals(Array.isArray(pj._raceGoals) ? pj._raceGoals : []);
     setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
     setGeneratedLimitersKey(typeof pj._generatedLimitersKey==='string'?pj._generatedLimitersKey:null);
     setResultView("interactive");
@@ -3579,6 +3656,11 @@ export default function AITrainingPlanPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {!isMultiMode && currentAthlete?.objectif && normalizeObjectiveKey(objective) !== normalizeObjectiveKey(currentAthlete.objectif) && (
+                    <p className="text-[11px] text-muted-foreground" data-testid="plan-profile-objective-gap">
+                      Objectif actuel sur la fiche : <strong>{OBJECTIVE_OPTIONS.find(o => o.value === currentAthlete.objectif)?.label || currentAthlete.objectif}</strong>. Le réglage ci-dessus ne concerne que cette préparation ou cette version historique.
+                    </p>
+                  )}
                   {isMultiMode && (
                     <p className="text-[10px] text-muted-foreground">
                       💡 L'objectif propre de chaque athlète sera utilisé si différent.
@@ -4137,6 +4219,27 @@ export default function AITrainingPlanPage() {
                   />
                 </div>
             </CollapsibleCard>
+
+            {objectiveResetNotice && (
+              <Alert className="border-primary/50 bg-primary/5" data-testid="objective-change-notice">
+                <AlertTriangle className="h-4 w-4 text-primary" />
+                <AlertTitle className="text-sm font-semibold">Nouvel objectif pris en compte</AlertTitle>
+                <AlertDescription className="text-xs space-y-2">
+                  <p>
+                    La préparation utilise maintenant <strong>{OBJECTIVE_OPTIONS.find(o => o.value === objectiveResetNotice.to)?.label || objectiveResetNotice.to}</strong>.
+                    Les réglages de course associés à <strong>{OBJECTIVE_OPTIONS.find(o => o.value === objectiveResetNotice.from)?.label || objectiveResetNotice.from}</strong> n'ont pas été repris.
+                  </p>
+                  {objectiveResetNotice.hasDraft && (
+                    <p>Le brouillon de l'ancien objectif est conservé, mais n'a pas été ouvert automatiquement.</p>
+                  )}
+                  {incompatibleDraft && (
+                    <Button type="button" size="sm" variant="outline" onClick={resumeIncompatibleDraft}>
+                      Rouvrir le brouillon {OBJECTIVE_OPTIONS.find(o => o.value === incompatibleDraft.objective)?.label || incompatibleDraft.objective || "précédent"}
+                    </Button>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Detected Limiters — editable hierarchy (single mode only) */}
             {!isMultiMode && limiter && limiter.gapAnalysis.some(g => g.weightedImpact > 0) && (
