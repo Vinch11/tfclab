@@ -218,6 +218,7 @@ try{
   const trial=result.getByRole('button',{name:'Tester 4 séances cardio par semaine'});
   await originalAlert.waitFor();
   await trial.click();
+  await page.waitForFunction(()=>window.frequencyRequests.length===2);
   await result.getByRole('button',{name:'Annuler l’essai'}).click();
   assert.equal(await originalAlert.count(),1);
   await page.evaluate(()=>{window.trialReply='refuse';});
