@@ -41,7 +41,7 @@ jobs:
         run: |
           set -eu
           for fn in det-nolio-connect det-nolio-callback det-nolio-export; do
-            supabase functions deploy "$fn" --project-ref wtwjkmawntybyehatkjo --use-api
+            supabase functions deploy "$fn" --remote=wtwjkmawntybyehatkjo --use-api --yes
           done
       - name: Vérifier la disponibilité HTTP des fonctions
         run: |
