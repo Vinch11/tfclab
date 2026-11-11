@@ -4,7 +4,7 @@ import {formatPace} from '@/lib/raceAnalysis';
 import {resolveCoachHoursReference} from '@/engines/plan/sessionSizingMatrix';
 import type {AppPlanningDetDraft} from './appPlanningDetDraft';
 import type {V3PlanProposal} from './appPlanningV3Proposal';
-import {engineLimit, incompatible, missingData} from './coachDecision';
+import {engineLimit, missingData} from './coachDecision';
 import {detObjectiveGoal} from './ordinaryObjective';
 import {domainMinutes} from './v3SportingPrescription';
 import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
@@ -44,8 +44,7 @@ export function checkMarathonTarget(config: PlanConfig, threshold: number | null
   const reference = 'Le chrono visé correspond à ' + pace(targetPace) + '. Avec un seuil à ' + pace(threshold) +
     ', le domaine marathon de TFCLab va de ' + pace(threshold / domain.max) + ' à ' + pace(threshold / domain.min) + '.';
   if (fraction > domain.max) {
-    throw incompatible(reference + ' Vérifier l’allure seuil actuelle ou choisir un chrono compatible pour prescrire les blocs spécifiques.',
-      'raceGoals.targetTimeMinutes', 'athlete.paceThresholdSecPerKm');
+    throw engineLimit(reference + ' Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono.');
   }
   if (prescribeSpecificWork) {
     throw engineLimit(reference + ' Cette cible plus lente peut convenir pour finir la course. DET ne sait pas encore composer des blocs spécifiques à ce chrono dans un autre domaine. Le coach peut garder cette échéance et travailler aux allures du profil en retirant la cible de temps.');

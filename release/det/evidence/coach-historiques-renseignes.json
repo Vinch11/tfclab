@@ -1,5 +1,5 @@
 {
-  "workerVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+  "workerVersion": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
   "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
   "protocol": "Rejeu synthétique des cas auxquels DET demande une donnée. Trois heures récentes pendant quatre semaines et, selon la discipline, 75 min de vélo facile, 65 min de sortie longue à pied, 75 min de sortie trail avec plafond à 105 min ou deux fractions de trois minutes au seuil. Les tests renseignent les champs de la première demande. Les minutes de séance et les opérations de précontrôle sont des mesures techniques.",
   "counts": {

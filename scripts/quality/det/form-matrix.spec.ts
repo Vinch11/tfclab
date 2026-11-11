@@ -302,8 +302,21 @@ if (selected.some(s => s.objective === 'TrailShort')) {
   it('refuses an unsupported trail calendar or flat-only terrain', async () => {
     const input = inputFor(scenarios.find(s => s.objective === 'TrailShort')!, 'trained', 'competitor');
     await expect(generateDetPlanFromPageInput({...input, config:{...input.config, terrainAvailability:'plat'}})).rejects.toThrow(/relief/);
-    const raceGoals = input.config.raceGoals!.map(g => ({...g, raceDate:'2026-11-22'}));
-    await expect(generateDetPlanFromPageInput({...input, config:{...input.config, raceGoals}})).rejects.toThrow(/dernière semaine/);
+    const atDate=(date:string)=>input.config.raceGoals!.map(g=>({...g,raceDate:date}));
+    await expect(generateDetPlanFromPageInput({...input,config:{...input.config,raceGoals:atDate('2026-11-22')}})).rejects.toMatchObject({
+      decision:{kind:'engine_limit',fields:[]},message:expect.stringMatching(/course A est en S2.+dernière semaine/),
+    });
+    await expect(generateDetPlanFromPageInput({...input,config:{...input.config,planStartDate:'2026-11-10'}})).rejects.toMatchObject({
+      decision:{kind:'engine_limit',fields:[]},message:expect.stringMatching(/commençant le lundi/),
+    });
+    await expect(generateDetPlanFromPageInput({...input,config:{...input.config,raceGoals:atDate('2026-11-01')}})).rejects.toMatchObject({
+      decision:{kind:'incompatible',fields:['planStartDate','raceGoals.raceDate','weeksAvailable']},message:expect.stringMatching(/en dehors/),
+    });
+    for(const [sessionsPerWeek,kind,reason] of [[2,'engine_limit',/une sortie trail/],[1,'incompatible',/aucun créneau de course/]] as const){
+      await expect(generateDetPlanFromPageInput({...input,config:{...input.config,sessionsPerWeek,strengthSessionsPerWeek:1}})).rejects.toMatchObject({
+        decision:{kind},message:expect.stringMatching(reason),
+      });
+    }
   });
 }
 

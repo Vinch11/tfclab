@@ -1,6 +1,6 @@
 {
   "publicOrigin": "https://tfcl.twoforcoaching.be",
-  "atUtc": "2026-11-11T00:52:58.559146+00:00",
+  "atUtc": "2026-11-11T01:09:21.400348+00:00",
   "referenceOracle": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
   "engineSource": "beb5ecdc60c6f0fdb938e9d235a78149bbbc0a58",
   "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42933380934",
@@ -26,11 +26,11 @@
     "path": "/__det/coach/index.html",
     "httpStatus": 200,
     "moduleScripts": [
-      "/__det/coach/assets/coach-XAoQZhMi.mjs"
+      "/__det/coach/assets/coach-LbNEoI5Q.mjs"
     ],
     "mountPoint": "det-root",
-    "hostResponseSha256": "023af8af20435763dcf6ba33f1f76b1e7e6007b997846de304fa3350426914a0",
-    "gitSha256": "6429e767b9690f3f92022420317b23f67ec9411506f700fed5c3485fc79e20d5",
+    "hostResponseSha256": "fe8898631bbb8ad6c94337148c667d242303ad165f38f198a1d3f230307d77b7",
+    "gitSha256": "f61742970713764a455b3105f8ac2e1cfe9db9f2621a70cfb1ce0b3e3b007ea4",
     "htmlBytesEqual": false
   },
   "matchedFiles": {
@@ -43,24 +43,36 @@
       "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     },
     "/__det/coach/host-release.json": {
-      "bytes": 492,
-      "sha256": "7ad0595543e5d7f6b58dbc8182f770fa6b49e3b6a8ff9a64d39b641e8426299b"
+      "bytes": 650,
+      "sha256": "8805ecc9dddea8d1a5f839b42d2eb65664dff22afa2e1c8ed1ad853f7c35b252"
     },
-    "/__det/coach/assets/coach-XAoQZhMi.mjs": {
+    "/__det/coach/assets/coach-LbNEoI5Q.mjs": {
       "bytes": 3819,
-      "sha256": "44a2614d48edb2f7218cc15dbdd3783d779c91babc012a3a1cd14381ef0310fa"
+      "sha256": "b5cf4ac608d754c8489a94dff8f5ed4514013bed5065a162cb440e6ced2525ef"
+    },
+    "/__det/coach/assets/mount-CQaaT6n1.mjs": {
+      "bytes": 2609548,
+      "sha256": "1e6635f14e3063d3796f1e3cbca431c0866aaf53583534ac5bd70efb3b1fdb8d"
     },
     "/__det/coach/assets/mount-D2mQHqo9.css": {
       "bytes": 210705,
       "sha256": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5"
     },
-    "/__det/coach/assets/mount-PNkm3g-W.mjs": {
-      "bytes": 2609374,
-      "sha256": "15d397084f3c7f95643a1c01c4aa72c6fb21a5d2870926aa7b8ba3f4e8d992a6"
-    },
-    "/__det/coach/assets/nolioRemote-C-N1AZbQ.mjs": {
+    "/__det/coach/assets/nolioRemote-Jau8egrv.mjs": {
       "bytes": 660,
-      "sha256": "8331220e0338b5f0f1ec40c6a3f791430858061a5ffce6029c8e55c737c88388"
+      "sha256": "7252453c5629483af83e69b6dcfe38a8c5d9af8d89366fbd0dc665ccc257f467"
+    },
+    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json": {
+      "bytes": 337,
+      "sha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca"
+    },
+    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs": {
+      "bytes": 2833,
+      "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+    },
+    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz": {
+      "bytes": 803337,
+      "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869"
     }
   },
   "formDelivery": [
@@ -80,6 +92,17 @@
         "https://github.com/Vinch11/tfclab/actions/runs/42934059782"
       ],
       "staticDeployment": "848b4047-2de0-4e74-af62-7a6e9369a1e1"
+    },
+    {
+      "pr": 478,
+      "url": "https://github.com/Vinch11/tfclab/pull/478",
+      "mergeCommit": "dd7e0d5ea12b0e5155b962e18fc5f83ec4c523a3",
+      "verifiedFormWorkflows": [
+        "https://github.com/Vinch11/tfclab/actions/runs/42936129017",
+        "https://github.com/Vinch11/tfclab/actions/runs/42936135139"
+      ],
+      "staticDeployment": "e329d872-a52c-411b-bc89-e413d433f9a7",
+      "runtime": "runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     }
   ],
   "priorPublicChromium": {
@@ -264,5 +287,86 @@
         "line": 16
       }
     ]
+  },
+  "publicChromium": {
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42936885131",
+    "verifyJobId": 130249045476,
+    "result": "success",
+    "observed": {
+      "publicOrigin": "https://tfcl.twoforcoaching.be",
+      "manifestBytes": 337,
+      "manifestSha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca",
+      "runtime": "runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+      "results": {
+        "marathon": {
+          "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+          "weeks": 16,
+          "limiters": [
+            "Durabilité",
+            "VLamax",
+            "TTE"
+          ],
+          "complete": true,
+          "operations": [
+            103,
+            7,
+            1
+          ],
+          "matchingSingle": true,
+          "sport": {
+            "peakRunMinutes": 434.5,
+            "longRunS13": 159.5
+          }
+        },
+        "ironman": {
+          "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+          "weeks": 16,
+          "limiters": [
+            "Durabilité",
+            "VLamax",
+            "TTE"
+          ],
+          "complete": true,
+          "operations": [
+            166,
+            11,
+            1
+          ],
+          "matchingSingle": true,
+          "sport": {
+            "longBikeS11": 150,
+            "longRunS11": 100,
+            "brickWeeks": [
+              3,
+              7,
+              11
+            ]
+          }
+        }
+      },
+      "syntheticInputs": true,
+      "nolioSend": false,
+      "nolioReadback": false,
+      "watchObservation": false
+    }
+  },
+  "reviewSearch": {
+    "pullRequests": [
+      476,
+      477,
+      478
+    ],
+    "formalReviews": [
+      0,
+      0,
+      0
+    ],
+    "prComments": [
+      0,
+      0,
+      0
+    ],
+    "sportingVerdict": null,
+    "scope": "Les trois PR du formulaire et les preuves de recette référencées ne contiennent pas d’avis sportif indépendant signé."
   }
 }

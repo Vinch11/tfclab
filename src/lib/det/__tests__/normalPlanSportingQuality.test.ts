@@ -135,10 +135,10 @@ describe('actual normal marathon prescription, beyond construction/export checks
   }
 
  },120000);
- it('identifies an out-of-domain time goal before searching the schedule',async()=>{
+ it('attributes a target outside the available pace domain to DET before searching the schedule',async()=>{
   await expect(marathonSportingFixture({},260)).rejects.toMatchObject({
-   message:expect.stringMatching(/4:26\/km.+seuil à 4:20\/km/),
-   decision:{kind:'incompatible',fields:['raceGoals.targetTimeMinutes','athlete.paceThresholdSecPerKm']},
+   message:expect.stringMatching(/4:26\/km.+seuil à 4:20\/km.+conserver le chrono/),
+   decision:{kind:'engine_limit',fields:[]},
   });
  });
  it('does not use one race pace silently for two differently timed A marathons',async()=>{

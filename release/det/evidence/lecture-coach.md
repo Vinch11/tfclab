@@ -12,6 +12,8 @@ Le rejeu des mêmes 200 configurations DET conserve les 156 plans complets de r�
 | 10 km | 21 | 4 reprises demandent le volume hebdomadaire récent et la tolérance réelle aux fractions de trois minutes au seuil. |
 | Trail court / montagne / ultra | 20 + 20 + 20 | 15 reprises demandent le volume récent, la sortie longue tolérée et la durée maximale prévue. |
 
+En dehors de la matrice, le calendrier trail distingue un conflit de dates d’une limite de placement. Une course avant le début ou après la fin des semaines choisies demande de modifier les dates ou la durée. Une course en S2 à l’intérieur d’une préparation de 12 semaines révèle une limite du calendrier DET, qui termine actuellement la préparation trail avec l’épreuve. Si les compléments laissent un seul créneau de course, DET indique que sa trame en demande deux. Si les compléments occupent tous les créneaux, le coach voit quels choix entrent en conflit.
+
 Le parcours Start to Run dispose d’un protocole marche-course dans TFCLab. Les 25 combinaisons correspondantes sont essayées séparément. Le formulaire ouvre le parcours du protocole standard. Une demande directe au worker renvoie `outside_det`, y compris sans bilan physiologique. Aucun plan personnalisé DET n’est compté pour cet objectif.
 
 ## Rejeu après saisie de l’historique
@@ -41,6 +43,8 @@ Les trois profils ci-dessous déclarent cinq heures hebdomadaires récentes. Les
 | Entraîné | 8 h | 434,5 min | 159,5 min | 60 min |
 | Entraîné | 6 h | 336 min | 137 min | 50 min |
 
+Avec un seuil mesuré à 4 min 20 s/km, la même cible de 3 h 07 demande environ 4 min 26 s/km. Cette allure sort du domaine utilisé par les fiches spécifiques de TFCLab. Le coach peut garder le chrono comme objectif et examiner le seuil. DET indique que son catalogue ne permet pas de prescrire ces blocs avec le repère actuel. [Contrôles du chrono et du domaine d’allure](../../../src/lib/det/__tests__/normalPlanSportingQuality.test.ts)
+
 Pour l’athlète entraîné à huit heures de disponibilité, le volume de course est de 235 min en S1. En S8, il atteint 360 min, dont 45 min à l’allure marathon. En S13, la sortie longue atteint 159,5 min. Les semaines S14 à S16 comptent ensuite 243, 202 et 114 min de course hors épreuve. Elles conservent chacune 10 min à l’allure marathon. Le coach peut confronter cette réduction et la dose spécifique au comportement de son athlète lors de préparations précédentes. [Semaines et séances du témoin marathon](marathon-3h07-coach.json)
 
 ## Ironman et reprises en course à pied
@@ -57,4 +61,4 @@ Sur les 164 plans assemblés, le précontrôle Nolio du plan complet aboutit pou
 
 ## Recette sur le site et chez Nolio
 
-Le journal de recette identifie les octets du site publié, les contrôles exécutés dans Chromium et les services accessibles. Pour un envoi réel, le formulaire peut présenter l’identifiant confirmé à l’envoi et celui renvoyé par la lecture Nolio, avec la version datée du plan. La revue indépendante et l’observation des étapes sur la montre du pilote restent à documenter. [Preuves de publication et de réception](parcours-publie.json)
+Sur le domaine publié, Chromium a généré les deux témoins de 16 semaines. Les précontrôles du plan, de S1 et d’une séance ont préparé respectivement 103, 7 et 1 opérations pour le marathon et 166, 11 et 1 pour l’Ironman. Les identifiants du pilote, de l’écriture et de la relecture sur Nolio restent à recueillir. Pour un envoi réel, le formulaire peut présenter l’identifiant confirmé à l’envoi et celui renvoyé par la lecture Nolio, avec la version datée du plan. La revue indépendante et l’observation des étapes sur la montre du pilote restent à documenter. [Preuves de publication et de réception](parcours-publie.json)

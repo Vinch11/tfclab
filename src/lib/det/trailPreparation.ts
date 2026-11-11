@@ -42,9 +42,20 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
   if (config.terrainAvailability === 'plat') throw engineLimit('Les séances trail V3 disponibles demandent un parcours avec relief. DET ne couvre pas encore la préparation sur terrain exclusivement plat.');
   const start = Date.parse(config.planStartDate + 'T00:00:00Z');
   const finish = Date.parse(race.raceDate + 'T00:00:00Z');
-  if (!Number.isFinite(start) || !Number.isFinite(finish) || new Date(start).getUTCDay()!==1 ||
-      finish<start+(config.weeksAvailable!-1)*7*86400000 || finish>=start+config.weeksAvailable!*7*86400000)
-    throw incompatible('Vérifiez la date de départ (lundi) et placez la course A en dernière semaine de préparation.', 'planStartDate', 'raceGoals.raceDate', 'weeksAvailable');
+  const horizon = config.weeksAvailable;
+  if (!Number.isFinite(start) || new Date(start).toISOString().slice(0,10)!==config.planStartDate)
+    throw missingData('Renseignez une date de début valide pour la préparation trail.', 'planStartDate');
+  if (!Number.isFinite(finish) || new Date(finish).toISOString().slice(0,10)!==race.raceDate)
+    throw missingData('Renseignez une date valide pour la course A.', 'raceGoals.raceDate');
+  if (horizon===undefined || !Number.isInteger(horizon) || horizon<=0)
+    throw missingData('Renseignez la durée de la préparation trail en semaines entières positives.', 'weeksAvailable');
+  const raceWeek=1+Math.floor((finish-start)/(7*86400000));
+  if(raceWeek<1 || raceWeek>horizon)
+    throw incompatible('La course A du '+race.raceDate+' se trouve en dehors des '+horizon+' semaines commençant le '+config.planStartDate+'. Pour inclure la course, modifiez les dates ou la durée du plan.', 'planStartDate','raceGoals.raceDate','weeksAvailable');
+  if(new Date(start).getUTCDay()!==1)
+    throw engineLimit('La préparation commence le '+config.planStartDate+'. DET sait actuellement placer les sorties trail dans des semaines commençant le lundi. Le coach peut conserver les dates ou choisir un lundi de départ pour essayer ce calendrier.');
+  if(raceWeek!==horizon)
+    throw engineLimit('La course A est en S'+raceWeek+' sur '+horizon+'. DET place actuellement le trail A en dernière semaine et ne sait pas encore construire les semaines suivantes. Le coach peut conserver son calendrier ou demander une préparation se terminant en S'+raceWeek+'.');
   const rules = parseAthleteConstraints(config.constraints ?? '');
   if (rules.ambiguousRestrictions.length) throw missingData('Précisez la disponibilité indiquée dans « ' + rules.ambiguousRestrictions.join(', ') + ' ».','constraints');
   const fixed = (n: number) => ({min:n,max:n});
@@ -58,7 +69,9 @@ export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfi
   const swim = Number(config.crossTrainingMaintenance?.natation === true);
   const total = config.sessionsPerWeek ?? defaultRuns + strength + bike + swim;
   const runs = total - strength - bike - swim;
-  if (!Number.isInteger(total) || runs < 2) throw incompatible('La fréquence déclarée laisse moins de deux sorties trail. Libérez un créneau course ou réduisez le nombre de compléments.', 'sessionsPerWeek','strengthSessionsPerWeek','crossTrainingMaintenance');
+  if (!Number.isInteger(total)) throw missingData('Renseignez un nombre entier de séances par semaine.', 'sessionsPerWeek');
+  if (runs<=0) throw incompatible('Les '+total+' séances hebdomadaires choisies et les compléments demandés ne laissent aucun créneau de course pour le trail. Libérez un créneau ou réduisez les compléments.', 'sessionsPerWeek','strengthSessionsPerWeek','crossTrainingMaintenance');
+  if (runs===1) throw engineLimit('La disponibilité laisse une sortie trail par semaine. Le calendrier DET demande actuellement deux sorties pour répartir la sortie longue et les autres priorités. Le coach peut garder ce créneau ou en déclarer un deuxième s’il est réellement disponible.');
   const zero = fixed(0);
   for (let w=1; w<=config.weeksAvailable!; w++) {
     const type = inferWeekType(w,config.weeksAvailable!,config.objective,athlete.age,config.deloadCadenceWeeks);
