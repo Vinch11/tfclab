@@ -1,3 +1,4 @@
+import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
@@ -1357,7 +1358,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       const dayKey = `${s.weekNumber}:${s.dayIndex}`;
       const sessionIndex = dayCounters.get(dayKey) ?? 0;
       dayCounters.set(dayKey, sessionIndex + 1);
-      const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+      const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details, catalogId: (s as { catalogId?: string | null }).catalogId ?? null });
       const alternatives = getTrailSessionAlternatives({
         sport: s.sport ?? lib?.sport ?? "",
         title: s.title,
@@ -1372,7 +1373,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         id: lib?.id ?? null,
         details: s.details,
         isRest: false,
-        structure: lib?.structure ?? null,
+        structure: nolioStructureForSession({ details: s.details, durationMin: (s as { durationMin?: number }).durationMin, sport: s.sport ?? lib?.sport ?? null }, lib?.structure ?? null),
         wbalProfile: lib?.wbalProfile ?? null,
         avoid: lib?.avoid ?? undefined,
         notes: lib?.notes ?? undefined,
@@ -2221,7 +2222,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
                       const c = p.cleanTitle.trim();
                       const isId = c.length >= 4 && !/\s/.test(c) && /^[A-Z0-9_]+$/.test(c);
                       if (isId) {
-                        const w = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+                        const w = findLibraryWorkoutForSession({ title: s.title, details: s.details, catalogId: (s as { catalogId?: string | null }).catalogId ?? null });
                         if (w?.objectif) return w.objectif;
                       }
                       return c || s.title;

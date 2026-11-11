@@ -24,6 +24,7 @@ import type { ParsedPlan } from "@/lib/aiPlanParser";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
+import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
 
 interface Props {
@@ -89,7 +90,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
     if (!parsedPlan) return [];
     return (parsedPlan.weeks ?? []).flatMap((w) =>
       (w.sessions ?? []).map((s) => {
-        const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details });
+        const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details, catalogId: (s as { catalogId?: string | null }).catalogId ?? null });
         const alternatives = getTrailSessionAlternatives({
           sport: s.sport ?? lib?.sport ?? "",
           title: s.title,
@@ -103,7 +104,7 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
           id: lib?.id ?? null,
           details: s.details,
           isRest: s.isRest,
-          structure: lib?.structure ?? null,
+          structure: nolioStructureForSession({ details: s.details, durationMin: (s as { durationMin?: number }).durationMin, sport: s.sport ?? lib?.sport ?? null, isRest: s.isRest }, lib?.structure ?? null),
           wbalProfile: lib?.wbalProfile ?? null,
           avoid: lib?.avoid ?? undefined,
           notes: lib?.notes ?? undefined,

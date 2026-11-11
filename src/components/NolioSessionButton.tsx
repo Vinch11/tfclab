@@ -2,6 +2,7 @@
  * NolioSessionButton — Bouton "→ Nolio" par séance (envoi unitaire).
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
+import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import { useState, useMemo, type MouseEvent } from "react";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -89,7 +90,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
     e.stopPropagation();
     setSending(true);
     try {
-      const lib = findLibraryWorkoutForSession({ title: session.title, details: session.details });
+      const lib = findLibraryWorkoutForSession({ title: session.title, details: session.details, catalogId: (session as { catalogId?: string | null }).catalogId ?? null });
       const alternatives = getTrailSessionAlternatives({
         sport: session.sport ?? lib?.sport ?? "",
         title: session.title,
@@ -104,7 +105,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
         id: lib?.id ?? null,
         details: session.details,
         isRest: false,
-        structure: lib?.structure ?? null,
+        structure: nolioStructureForSession({ details: session.details, durationMin: (session as { durationMin?: number }).durationMin, sport: session.sport ?? lib?.sport ?? null }, lib?.structure ?? null),
         wbalProfile: lib?.wbalProfile ?? null,
         avoid: lib?.avoid ?? undefined,
         notes: lib?.notes ?? undefined,

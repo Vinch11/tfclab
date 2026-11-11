@@ -92,6 +92,7 @@ import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGeneration
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { shouldAutoEnableNatationMaintenance } from "@/lib/plan/crossTrainingNatationDefault";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
+import { resolvePlanDurationRanges } from "@/lib/plan/resolveDurationRanges";
 import { checkSpecificPaceQuotas, getSpecificPaceOverride } from "@/lib/plan/specificPaceQuotas";
 import { SpecificPaceDoseSelect } from "@/components/plan/SpecificPaceDoseSelect";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
@@ -1854,6 +1855,10 @@ export default function AITrainingPlanPage() {
       athleteContext.data
     );
 
+    // Plans enregistrés : tranches « 20–70 min » converties en durée unique
+    // (même règle que la génération), visibles et envoyées telles quelles.
+    const convertedRanges = resolvePlanDurationRanges(plan as never);
+    if (convertedRanges > 0) console.info(`[info] ${convertedRanges} séance(s) : tranche de durée convertie en durée unique à l'ouverture.`);
     plan.finalValidationIssues = [
       ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
       ...validateCoachLoadIssues(plan, plan.weeklyQuotas),
