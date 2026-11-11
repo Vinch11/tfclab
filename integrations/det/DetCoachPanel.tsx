@@ -12,8 +12,24 @@ type PageInput = {
   athleteId:string; athlete:PlanAthleteData; config:PlanConfig; diagnostic:AthleteDiagnostic;
   pageLimiterOrder:readonly string[]; coachPayload?:{limiterOrder?:string[];excludedLimiterMetrics?:string[]}|null;
 };
-type DetPlan = ParsedPlan & {_provenance:{engine:string;engineVersion:string};_detSourceProposal:{limiterOrder:string[];athleteId:string;objective:string;planningInputFingerprint:string;weeks:{days:{sessions:{components:TrailSource[]}[]}[]}[]}};
+type DetPlan = ParsedPlan & {_provenance:{engine:string;engineVersion:string};_detSourceProposal:{limiterOrder:string[];athleteId:string;objective:string;planningInputFingerprint:string;weeks:{week:number;knownMinutes:number;days:{sessions:{components:TrailSource[]}[]}[]}[]}};
 type WorkerClient = {runDet:(job:unknown,signal:AbortSignal)=>Promise<DetPlan>};
+type GenerationInput = PageInput & {
+  timeTrial?:ReturnType<typeof enteredTimeTrial>;
+  trailLongRunLimits?:{recentMinutes?:number;peakMinutes?:number};
+  recentLongRideMinutes?:number;
+  marathonRecentLongRunMinutes?:number;
+  roadReturnThresholdReps?:number;
+  trailGuidanceReview?:TrailReview;
+};
+type FrequencyTrial = {sessions:number;input:GenerationInput};
+
+async function runGeneration(input:GenerationInput, signal:AbortSignal) {
+  const client:WorkerClient=await import(/* @vite-ignore */ detClientUrl());
+  const plan=await client.runDet({action:'generate',input},signal);
+  if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');
+  return plan;
+}
 
 const emptyHistory = {recent:'', peak:'', ride:'', marathon:'',target:'',thresholdReps:''};
 
@@ -58,14 +74,15 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   }
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
-  const [error,setError]=useState<{message:string;outside:boolean}|null>(null);
+  const [error,setError]=useState<{message:string;outside:boolean;trial?:FrequencyTrial}|null>(null);
+  const [trialStatus,setTrialStatus]=useState<'running'|{message:string}|null>(null);
   const [review,setReview]=useState<TrailReview|null>(null);
   const run=useRef<AbortController|null>(null);
   useEffect(()=>()=>{run.current?.abort();},[]);
   useEffect(()=>{
-    run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);setFields(emptyTimeTrial());
+    run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);setTrialStatus(null);setFields(emptyTimeTrial());
   },[revision]);
-  function resetResult(){run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);}
+  function resetResult(){run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);setTrialStatus(null);}
   function updateHistory(field:keyof typeof emptyHistory,value:string){
     const next={...history,[field]:value};
     resetResult();setHistory(next);
@@ -74,9 +91,10 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   }
   async function generate(trailGuidanceReview?:TrailReview){
     if(!trailGuidanceReview)resetResult();
-    else {run.current?.abort();setError(null);}
+    else {run.current?.abort();setError(null);setTrialStatus(null);}
     const controller=new AbortController();
     run.current=controller;setBusy(true);
+    let submitted:GenerationInput|undefined;
     try {
       const input=readInput();
       const timeTrial=clm?enteredTimeTrial(fields,input.athleteId):undefined;
@@ -88,19 +106,40 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       if(record?.kind.startsWith('marathon'))input.config=withMarathonTime(input.config,values.target);
       const roadReturnThresholdReps=record?.kind==='tenReturn' && values.thresholdReps!=='' ? Number(values.thresholdReps) : undefined;
       const marathonRecentLongRunMinutes=record?.kind==='marathonReturn' && values.marathon ? Number(values.marathon) : undefined;
-      const client:WorkerClient=await import(/* @vite-ignore */ detClientUrl());
-      const plan=await client.runDet({action:'generate',input:{...input,timeTrial,trailLongRunLimits,recentLongRideMinutes,marathonRecentLongRunMinutes,roadReturnThresholdReps,trailGuidanceReview}},controller.signal);
+      submitted=structuredClone({...input,timeTrial,trailLongRunLimits,recentLongRideMinutes,marathonRecentLongRunMinutes,roadReturnThresholdReps,trailGuidanceReview});
+      const plan=await runGeneration(submitted,controller.signal);
       if(controller.signal.aborted)return;
-      if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');
       setResult(plan);setReview(trailGuidanceReview??null);
     }catch(reason){
       if(!controller.signal.aborted) {
-        const kind=(reason as {decision?:{kind?:string}})?.decision?.kind;
+        const decision=(reason as {decision?:{kind?:string;trialCardioSessionsPerWeek?:number}})?.decision;
+        const kind=decision?.kind;
         const label=kind==='missing_data'?'Donnée à compléter':kind==='incompatible'?'Paramètres incompatibles':kind==='engine_limit'?'Limite du moteur':kind==='outside_det'?'Protocole Start to Run':'';
-        setError({message:[label,reason instanceof Error?reason.message:String(reason)].filter(Boolean).join('\n'),outside:kind==='outside_det'});
+        const sessions=decision?.trialCardioSessionsPerWeek;
+        const trial=kind==='engine_limit' && submitted && typeof sessions==='number' && Number.isInteger(sessions) &&
+          sessions>0 && sessions<(submitted.config.sessionsPerWeek??0) ? {sessions,input:submitted} : undefined;
+        setError({message:[label,reason instanceof Error?reason.message:String(reason)].filter(Boolean).join('\n'),outside:kind==='outside_det',trial});
       }
     }finally{if(!controller.signal.aborted)setBusy(false);}
   }
+  async function testFrequency({sessions,input}:FrequencyTrial) {
+    run.current?.abort();
+    const controller=new AbortController();
+    run.current=controller;setTrialStatus('running');
+    try {
+      const plan=await runGeneration({...input,config:{...input.config,sessionsPerWeek:sessions}},controller.signal);
+      if(controller.signal.aborted)return;
+      const weeks=plan._detSourceProposal.weeks;
+      if(!weeks.length || weeks.length!==input.config.weeksAvailable || weeks.length!==plan.weeks.length ||
+        weeks.some((week,i)=>week.week!==i+1) || !Number.isFinite(weeks[0].knownMinutes))
+        throw Error('DET n’a pas confirmé toutes les semaines de cet essai.');
+      const minutes=weeks[0].knownMinutes.toLocaleString('fr-BE',{maximumFractionDigits:1});
+      setTrialStatus({message:`Avec ${sessions} séances cardio par semaine, DET a assemblé les ${weeks.length} semaines. La semaine 1 totalise ${minutes} min de blocs. Pour utiliser cette fréquence, indiquez ${sessions} dans Configuration → Séances/sem ou dans le réglage du profil coach qui fixe cette fréquence, puis cliquez sur « Générer avec DET ».`});
+    } catch(reason) {
+      if(!controller.signal.aborted)setTrialStatus({message:`Essai à ${sessions} séances cardio par semaine. ${reason instanceof Error?reason.message:String(reason)}`});
+    }
+  }
+  const trial=error?.trial;
   const proposal=result?._detSourceProposal;
   const trailSources=proposal && /trail/i.test(proposal.objective) ?
     [...new Map(proposal.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)))
@@ -130,6 +169,13 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       <button type="button" className="rounded-md border px-3 py-2" disabled={disabled||busy} onClick={()=>void generate()}>{busy?'Calcul DET en cours…':'Générer avec DET'}</button>
       {busy && <button type="button" className="ml-2" onClick={resetResult}>Annuler</button>}
       {error && <p role="alert" className="whitespace-pre-line">{error.message}{error.outside && <a className="mt-2 block underline" href="/planning/ai-plan">Ouvrir la planification TFCLab</a>}</p>}
+      {trial && <div className="space-y-2">
+        <button type="button" className="rounded-md border px-3 py-2" disabled={disabled||trialStatus==='running'} onClick={()=>void testFrequency(trial)}>
+          Tester {trial.sessions} séances cardio par semaine
+        </button>
+        {trialStatus==='running' && <button type="button" className="ml-2" onClick={()=>{run.current?.abort();setTrialStatus(null);}}>Annuler l’essai</button>}
+        {trialStatus && <p role="status">{trialStatus==='running'?'Calcul de l’essai en cours…':trialStatus.message}</p>}
+      </div>}
       {result && <div aria-live="polite">
         <h3 className="font-semibold">{result.title}</h3>
         <p>Plan assemblé · Revue sportive du coach en attente.</p>
