@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
+  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List, KeyRound,
 } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -76,6 +76,11 @@ import { RegenerationConstraintsDialog, type RegenerationScope } from "@/compone
 
 
 type NolioScope = "selected" | "single" | "range" | "all";
+
+/** Respect the stored status, including false; legacy plans may carry an explicit key emoji. */
+function hasKeySessionLabel(session: ParsedSession): boolean {
+  return !session.isRest && (session.isKeySession ?? /🔑/.test(`${session.title} ${session.details ?? ""}`));
+}
 
 function getSportIcon(sport: string) {
   const s = sport.toLowerCase().trim();
@@ -415,10 +420,10 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
 
   return (
     <div
-      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)}`}
+      className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${getSportColor(session.sport)} ${hasKeySessionLabel(session) ? "border-l-4 border-l-primary" : ""}`}
       onClick={() => setExpanded(!expanded)}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {nolioCtx && selKey && !session.isRest && session.dayIndex >= 0 && (
           <Checkbox
             checked={isChecked}
@@ -440,6 +445,11 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
         )}
       </div>
       <div className="flex items-center gap-2 mt-1 flex-wrap">
+        {hasKeySessionLabel(session) && (
+          <Badge variant="outline" className="gap-1.5 border-primary/30 bg-background text-primary text-xs font-semibold shrink-0">
+            <KeyRound className="h-3.5 w-3.5" aria-hidden="true" /> Séance clé
+          </Badge>
+        )}
         {(() => {
           const parsed = parseSessionTitle(session.title);
           const SPORT_TOKENS = new Set([
@@ -467,7 +477,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
                   {t}
                 </Badge>
               ))}
-              <p className="text-sm font-semibold flex-1" title={parsed.catalogId ?? undefined}>
+              <p className="text-sm font-semibold basis-full sm:basis-auto sm:flex-1 min-w-0 break-words" title={parsed.catalogId ?? undefined}>
                 {(() => {
                   const clean = parsed.cleanTitle.trim();
                   const looksLikeId = clean.length >= 4 && !/\s/.test(clean) && /^[A-Z0-9_]+$/.test(clean);
@@ -676,7 +686,7 @@ function computeWeekQuality(week: ParsedWeek): { score: number; label: string; i
   }
 
   // 2. Check for key sessions (🔑)
-  const hasKeySessions = active.some(s => s.title.includes("🔑") || s.details?.includes("🔑"));
+  const hasKeySessions = active.some(hasKeySessionLabel);
   if (!hasKeySessions && active.length > 0) {
     score -= 15;
     details.push("Aucune séance clé 🔑 identifiée");
@@ -818,6 +828,10 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
             <WeekQualityBadge week={week} />
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
+            <Badge variant="outline" className="gap-1.5 text-xs text-primary border-primary/30">
+              <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+              {week.sessions.filter(hasKeySessionLabel).length} séance(s) clé(s)
+            </Badge>
           </div>
 
         </div>
