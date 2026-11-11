@@ -188,6 +188,59 @@ try{
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await page.waitForFunction(()=>window.marathonWorkerInput?.objective==='Marathon');
   assert.equal(await page.evaluate(()=>window.marathonWorkerInput.targetTimeMinutes),187);
+
+  // The engine release tests exercise the refusal and a real full plan. Control
+  // the worker reply here to test the panel's trial, cancellation and form state.
+  await page.evaluate(version=>{
+    window.frequencyRequests=[];
+    window.trialReply='hold';
+    const send=Worker.prototype.postMessage;
+    Worker.prototype.postMessage=function(job,...rest){
+      if(job.action!=='generate'||job.input.config.objective!=='Marathon')return send.call(this,job,...rest);
+      window.frequencyRequests.push(job.input);
+      const {sessionsPerWeek,weeksAvailable}=job.input.config;
+      const fail=(error,decision)=>({ok:false,version,error,decision});
+      let response;
+      if(sessionsPerWeek===5)response=fail('Refus synthétique de la demande initiale.',{kind:'engine_limit',trialCardioSessionsPerWeek:4});
+      else if(window.trialReply==='hold')return;
+      else if(window.trialReply==='refuse')response=fail('Refus synthétique de l’essai.',{kind:'engine_limit'});
+      else{
+        const weeks=Array.from({length:weeksAvailable},(_,i)=>({week:i+1,knownMinutes:141}));
+        response={ok:true,version,value:{_provenance:{engine:'det',engineVersion:version},_detSourceProposal:{weeks},weeks}};
+      }
+      queueMicrotask(()=>this.dispatchEvent(new MessageEvent('message',{data:response})));
+    };
+  },pinned.version);
+  const frequency=page.getByText('Séances/sem',{exact:true}).locator('..').getByRole('spinbutton');
+  await frequency.fill('5');
+  await result.getByRole('button',{name:'Générer avec DET'}).click();
+  const originalAlert=result.getByRole('alert').filter({hasText:'Refus synthétique de la demande initiale.'});
+  const trial=result.getByRole('button',{name:'Tester 4 séances cardio par semaine'});
+  await originalAlert.waitFor();
+  await trial.click();
+  await result.getByRole('button',{name:'Annuler l’essai'}).click();
+  assert.equal(await originalAlert.count(),1);
+  await page.evaluate(()=>{window.trialReply='refuse';});
+  await trial.click();
+  await result.getByRole('status').filter({hasText:'Refus synthétique de l’essai.'}).waitFor();
+  assert.equal(await originalAlert.count(),1);
+  await page.evaluate(()=>{window.trialReply='accept';});
+  await trial.click();
+  await result.getByRole('status').filter({hasText:/DET a assemblé les 8 semaines.+141 min.+Générer avec DET/}).waitFor();
+  const attempts=await page.evaluate(()=>window.frequencyRequests);
+  const expected=structuredClone(attempts[0]);expected.config.sessionsPerWeek=4;
+  assert.equal(attempts.length,4);
+  for(const attempted of attempts.slice(1))assert.deepEqual(attempted,expected);
+  assert.equal(await frequency.inputValue(),'5');
+  assert.equal(await originalAlert.count(),1);
+  assert.equal(await result.getByRole('heading').count(),0);
+  assert.equal(await result.getByRole('region',{name:'Guidage Nolio V2'}).count(),0);
+  await page.evaluate(()=>{window.trialReply='hold';});
+  await trial.click();
+  await frequency.fill('6');
+  await trial.waitFor({state:'detached'});
+  assert.equal(await result.getByRole('status').count(),0);
+
   await racePicker.click();
   await page.getByRole('option',{name:/^Start to Run/}).click();
   const standard=page.getByRole('status').filter({hasText:/Start to Run utilise le protocole marche-course/});
