@@ -17,3 +17,5 @@ La distribution du Worker est sous `public/__det/v1/`. Le formulaire se construi
 Pour **Start to Run**, le formulaire indique comment ouvrir le protocole marche-course standard dans la planification de TFCLab. En reprise, une case vide donne lieu à une demande précise. Le chiffre zéro indique une absence de pratique. Le coach peut fixer un plafond futur de sortie longue inférieur à une sortie déjà tolérée.
 
 Après un envoi, **Identifiants d’envoi et de relecture Nolio** affiche la version du plan, la séance datée, l’identifiant conservé à l’écriture et celui rendu par Nolio à la lecture. Cette liste apparaît lorsque Nolio a renvoyé les mêmes activités avec les étapes attendues. La synchronisation et les étapes visibles sur la montre du pilote se constatent ensuite sur l’appareil.
+
+Le formulaire publié utilise les trois fichiers de la version vérifiée sous un chemin propre au moteur et à son client. Le même chemin sert à la génération et au précontrôle Nolio lorsqu’un navigateur a déjà mis en cache une ancienne version de DET.

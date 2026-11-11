@@ -1,3 +1,4 @@
+import {detClientUrl} from './detClientUrl';
 import {marathonTimeLabel,withMarathonTime} from './marathonTarget';
 import {useEffect, useRef, useState} from 'react';
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
@@ -84,8 +85,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       if(record?.kind.startsWith('marathon'))input.config=withMarathonTime(input.config,values.target);
       const roadReturnThresholdReps=record?.kind==='tenReturn' && values.thresholdReps!=='' ? Number(values.thresholdReps) : undefined;
       const marathonRecentLongRunMinutes=record?.kind==='marathonReturn' && values.marathon ? Number(values.marathon) : undefined;
-      const url=new URL('/__det/v1/client.mjs',window.location.origin);
-      const client:WorkerClient=await import(/* @vite-ignore */ url.href);
+      const client:WorkerClient=await import(/* @vite-ignore */ detClientUrl());
       const plan=await client.runDet({action:'generate',input:{...input,timeTrial,trailLongRunLimits,recentLongRideMinutes,marathonRecentLongRunMinutes,roadReturnThresholdReps,trailGuidanceReview}},controller.signal);
       if(controller.signal.aborted)return;
       if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');

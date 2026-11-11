@@ -1,3 +1,4 @@
+import {detClientUrl} from './detClientUrl';
 import {NolioConnection} from './NolioConnection';
 import {deliverToNolio,scopeFor,type NolioReceipt} from './nolioDelivery';
 import {useEffect, useRef, useState} from 'react';
@@ -61,7 +62,7 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
     setBusy(true);setError('');setReceipt(null);
     try{
       const scope=scopeFor(selection);
-      const client:Client=await import(/* @vite-ignore */ new URL('/__det/v1/client.mjs',window.location.origin).href);
+      const client:Client=await import(/* @vite-ignore */ detClientUrl());
       const result=await client.runDet({action:'preview',plan,scope},controller.signal);
       if(!controller.signal.aborted)setReceipt(result);
     }catch(e){if(!controller.signal.aborted)setError(e instanceof Error?e.message:String(e));}
