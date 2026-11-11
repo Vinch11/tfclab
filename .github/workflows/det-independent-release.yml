@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - run: node release/det/tests/nolio-backend.mjs
       - run: node release/det/tests/offline.mjs
       - name: Installer le pilote Chromium dans un dossier temporaire
         run: |

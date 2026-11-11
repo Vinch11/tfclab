@@ -8,6 +8,7 @@ if(!target || target===root || target.startsWith(path.join(root,'supabase')+path
 const supabase=path.join(root,'supabase');
 const entries=[['nolio-v2-connect','det-nolio-connect'],['nolio-v2-oauth-callback','det-nolio-callback'],['det-nolio-export','det-nolio-export']];
 const sharedDir=path.join(supabase,'functions/_shared/nolioV2');
+const sharedPackage='_shared/det-nolio-v2';
 const required=new Set();
 function namespaced(text){
   return text.replaceAll('nolio_v2_','det_nolio_v2_').replaceAll('nv2_','det_nv2_')
@@ -24,19 +25,18 @@ for(const [source,destination] of entries){
   for(const file of await readdir(path.join(supabase,'functions',source))){
     if(!file.endsWith('.ts') || file.endsWith('.test.ts'))continue;
     const text=await readFile(path.join(supabase,'functions',source,file),'utf8');
-    const prefix=destination==='det-nolio-export'?'./lib/':'../det-nolio-export/lib/';
     const rewritten=text.replaceAll(/\.\.\/_shared\/nolioV2\/([\w-]+\.ts)/g,(_match,dependency)=>{
       required.add(dependency);
-      return prefix+dependency;
+      return `../${sharedPackage}/${dependency}`;
     });
     await write(path.join('functions',destination,file),namespaced(rewritten));
   }
 }
-// Keep the three entry points self-contained. None of the shared files of the main app are replaced.
+// Each Edge Function is deployed separately. Only its own files and _shared travel with it.
 for(const file of required){
   const text=await readFile(path.join(sharedDir,file),'utf8');
   for(const match of text.matchAll(/(?:from\s*|import\s*)['"]\.\/([\w-]+\.ts)['"]/g))required.add(match[1]);
-  await write(path.join('functions/det-nolio-export/lib',file),namespaced(text));
+  await write(path.join('functions',sharedPackage,file),namespaced(text));
 }
 const sql=await readFile(path.join(supabase,'migrations/20261108220000_nolio_v2_production.sql'),'utf8');
 await write('migrations/20261111010000_det_nolio_export.sql',namespaced(sql));

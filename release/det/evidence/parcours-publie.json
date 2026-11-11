@@ -117,36 +117,101 @@
     }
   ],
   "nolioServices": {
-    "atUtc": "2026-11-11T01:21:09.241229+00:00",
+    "atUtc": "2026-11-11T09:00:29.715705+00:00",
+    "projectRef": "wtwjkmawntybyehatkjo",
+    "origin": "https://tfcl.twoforcoaching.be",
     "method": "OPTIONS",
     "functions": {
-      "nolio-v2-oauth": {
+      "det-nolio-connect": {
         "status": 200
       },
-      "det-nolio-connect": {
-        "status": 404,
-        "code": "NOT_FOUND"
-      },
       "det-nolio-callback": {
-        "status": 404,
-        "code": "NOT_FOUND"
+        "status": 405
       },
       "det-nolio-export": {
-        "status": 404,
-        "code": "NOT_FOUND"
-      },
-      "nolio-v2-export-plan": {
-        "status": 404,
-        "code": "NOT_FOUND"
+        "status": 200
       }
+    },
+    "anonymousChecks": [
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-connect",
+        "status": 200,
+        "allowOrigin": "*"
+      },
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-callback",
+        "status": 405
+      },
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-export",
+        "status": 200,
+        "allowOrigin": "*"
+      },
+      {
+        "method": "POST",
+        "function": "det-nolio-connect",
+        "status": 401,
+        "appStatus": "REFUSED",
+        "reason": "unauthorized"
+      },
+      {
+        "method": "GET",
+        "function": "det-nolio-callback",
+        "status": 303,
+        "redirectOrigin": "https://tfcl.twoforcoaching.be",
+        "redirectPath": "/__det/coach/index.html",
+        "redirectParameterNames": [
+          "nolio_v2"
+        ]
+      },
+      {
+        "method": "POST",
+        "function": "det-nolio-export",
+        "status": 401,
+        "appStatus": "REFUSED",
+        "reason": "unauthorized"
+      }
+    ],
+    "conditions": "Sans jeton coach, cookie, code ni état OAuth. POST status pour la connexion, POST vide pour l’export et GET du callback sans suivre la redirection.",
+    "publicManifest": {
+      "httpStatus": 200,
+      "length": 337,
+      "sha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
+      "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+      "equalsGitHubBytes": true,
+      "githubCommit": "55e5d0fb2cd492b44deef248b8971144afd4cabd"
     }
   },
   "nolioServiceDeployment": {
-    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42934250538",
-    "job": 130240269892,
-    "result": "failure",
-    "failedStep": "Vérifier l’accès au projet Supabase",
-    "cause": "Le job de publication ne disposait pas de SUPABASE_ACCESS_TOKEN. Aucune fonction n’a été déployée par ce job."
+    "provider": "Supabase géré par Lovable, projet TFCLab 2.1",
+    "source": "55e5d0fb2cd492b44deef248b8971144afd4cabd",
+    "commit": "https://github.com/Vinch11/tfclab/commit/55e5d0fb2cd492b44deef248b8971144afd4cabd",
+    "result": "trois_fonctions_det_joignables",
+    "operatorReport": {
+      "origin": "Compte rendu de déploiement transmis par le coach le 11 novembre 2026.",
+      "deployedWithoutAppGeneration": true,
+      "newMigration": false,
+      "connect": {
+        "status": 200,
+        "configured": true,
+        "connected": false
+      },
+      "callback": "Redirection vers l’application.",
+      "exportEmptyRequest": {
+        "status": 400
+      },
+      "oauthCompleted": false,
+      "realExportAttempted": false
+    },
+    "localPackageCheck": {
+      "sharedModulesPath": "supabase/functions/_shared/det-nolio-v2",
+      "functionFilesEqualToGitHubBytes": 29,
+      "migrationBytesEqual": true,
+      "regressionTest": "release/det/tests/nolio-backend.mjs"
+    }
   },
   "database": {
     "source": "48c85f3ce9007bc5317826baf37cc47d805d120c",
@@ -248,6 +313,10 @@
     "pairedWatchSteps": {
       "status": "sans_observation",
       "evidence": null
+    },
+    "nolioOAuth": {
+      "status": "compte_teste_deconnecte_selon_le_compte_rendu",
+      "grantObserved": false
     }
   },
   "previewsAreLocal": true,
@@ -564,5 +633,37 @@
     },
     "trailCalendarControls": "dates avant le départ, course A en S2, départ un mardi, un créneau course ou aucun.",
     "sourceTypes": "success"
+  },
+  "previousNolioServices": {
+    "atUtc": "2026-11-11T01:21:09.241229+00:00",
+    "method": "OPTIONS",
+    "functions": {
+      "nolio-v2-oauth": {
+        "status": 200
+      },
+      "det-nolio-connect": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "det-nolio-callback": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "det-nolio-export": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "nolio-v2-export-plan": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      }
+    }
+  },
+  "previousNolioDeploymentWorkflow": {
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42934250538",
+    "job": 130240269892,
+    "result": "failure",
+    "failedStep": "Vérifier l’accès au projet Supabase",
+    "cause": "Le job de publication ne disposait pas de SUPABASE_ACCESS_TOKEN. Aucune fonction n’a été déployée par ce job."
   }
 }
