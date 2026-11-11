@@ -1,0 +1,923 @@
+{
+  "workerVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+  "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+  "protocol": "Rejeu synthétique des cas auxquels DET demande une donnée. Trois heures récentes pendant quatre semaines et, selon la discipline, 75 min de vélo facile, 65 min de sortie longue à pied, 75 min de sortie trail avec plafond à 105 min ou deux fractions de trois minutes au seuil. Les tests renseignent les champs de la première demande. Les minutes de séance et les opérations de précontrôle sont des mesures techniques.",
+  "counts": {
+    "engine_limit": 26,
+    "assembled": 8
+  },
+  "objectives": {
+    "703": {
+      "engine_limit": 5
+    },
+    "IM": {
+      "engine_limit": 5
+    },
+    "Marathon": {
+      "assembled": 2,
+      "engine_limit": 3
+    },
+    "10K": {
+      "assembled": 4
+    },
+    "TrailShort": {
+      "assembled": 2,
+      "engine_limit": 3
+    },
+    "TrailMountain": {
+      "engine_limit": 5
+    },
+    "TrailUltra": {
+      "engine_limit": 5
+    }
+  },
+  "cases": [
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 191 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 191 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 191 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 191 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "recentLongRideMinutes": 75
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 : les fiches V3 essayées totalisent au moins 191 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "marathonRecentLongRunMinutes": 65
+      },
+      "status": "assembled",
+      "weeks": 16,
+      "exportComplete": true,
+      "operations": 61,
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "marathonRecentLongRunMinutes": 65
+      },
+      "status": "assembled",
+      "weeks": 16,
+      "exportComplete": true,
+      "operations": 61,
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "marathonRecentLongRunMinutes": 65
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "marathonRecentLongRunMinutes": 65
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ]
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "marathonRecentLongRunMinutes": 65
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 8,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "roadReturnThresholdReps": 2
+      },
+      "status": "assembled",
+      "weeks": 8,
+      "exportComplete": true,
+      "operations": 38,
+      "firstRequest": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 8,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "roadReturnThresholdReps": 2
+      },
+      "status": "assembled",
+      "weeks": 8,
+      "exportComplete": true,
+      "operations": 38,
+      "firstRequest": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 8,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "roadReturnThresholdReps": 2
+      },
+      "status": "assembled",
+      "weeks": 8,
+      "exportComplete": true,
+      "operations": 38,
+      "firstRequest": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ]
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 8,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "roadReturnThresholdReps": 2
+      },
+      "status": "assembled",
+      "weeks": 8,
+      "exportComplete": true,
+      "operations": 38,
+      "firstRequest": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "assembled",
+      "weeks": 12,
+      "exportComplete": false,
+      "operations": 12,
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "assembled",
+      "weeks": 12,
+      "exportComplete": false,
+      "operations": 12,
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 2 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 2 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+        "Rang 3 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+        "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 12,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+        "Rang 3 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+        "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation trail montagne. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation trail montagne. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation trail montagne. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation trail montagne. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 16,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation trail montagne. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "finisher",
+      "horizon": 20,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation ultra trail. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "age_group",
+      "horizon": 20,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation ultra trail. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "competitor",
+      "horizon": 20,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation ultra trail. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "elite",
+      "horizon": 20,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation ultra trail. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "world_class",
+      "horizon": 20,
+      "history": {
+        "recentWeeklyHours": "3",
+        "recentWeeksCount": "4"
+      },
+      "supplied": {
+        "trailLongRunLimits": {
+          "recentMinutes": 75,
+          "peakMinutes": 105
+        }
+      },
+      "status": "refused",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "S1 dimanche : course. Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation ultra trail. Sortie récemment tolérée : 75 min. Plafond choisi : 105 min."
+      ],
+      "firstRequest": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ]
+    }
+  ]
+}

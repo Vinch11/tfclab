@@ -116,7 +116,13 @@ describe("Nolio V2 — bilan relu dans le calendrier (jamais déduit du seul jou
       listPage: async () => ({ ok: false as const, detail: "unused" }),
       getDetail: async (_path: string, id: string) => id === "ptrn_A1" ? { ok: true as const, item: { ...a.body, id } } : { ok: false as const, detail: "http_404" },
     };
-    const v = await verifyConfirmedBatch({ prepared: p, confirmed, http, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000 });
+    const matches:import('../../../../supabase/functions/_shared/nolioV2/exportPlan').MatchedReadback[]=[];
+    const v = await verifyConfirmedBatch({ prepared: p, confirmed, http, athleteRef: refs.athleteId, fromIndex: 0, deadline: Date.now() + 60_000, onMatched:row=>matches.push(row) });
+    expect(matches).toEqual([{opKey:a.opKey,sessionKey:a.sessionKey,path:a.source.path,date:p.rows.find(r=>r.sessionKey===a.sessionKey)?.date??null,sentId:"ptrn_A1",readId:"ptrn_A1"}]);
+    const otherId={...http,getDetail:async()=>({ok:true as const,item:{...a.body,id:"ptrn_OTHER"}})};
+    const mismatch=await verifyConfirmedBatch({prepared:p,confirmed:[rows[0]],http:otherId,athleteRef:refs.athleteId,fromIndex:0,deadline:Date.now()+60_000,onMatched:row=>matches.push(row)});
+    expect(mismatch.present).toBe(0);
+    expect(matches).toHaveLength(1);
     expect(v.present).toBe(1);
     expect(v.missing.map(m => m.title)).toEqual(["Endurance"]);
     expect(v.nextIndex).toBeNull();

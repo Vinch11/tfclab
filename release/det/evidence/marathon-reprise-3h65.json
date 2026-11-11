@@ -1,0 +1,797 @@
+{
+  "inputs": {
+    "objective": "Marathon",
+    "weeks": 16,
+    "trainingLevel": "untrained",
+    "weeklyHoursAvailable": 8,
+    "recentWeeklyHours": 3,
+    "recentWeeksCount": 4,
+    "recentLongRunMinutes": 65,
+    "recentLongRunFraction": "inconnue",
+    "observedRunTte": null,
+    "thresholdSecPerKm": 240,
+    "targetTime": null
+  },
+  "scope": "Entrée ordinaire du formulaire. Les trois refus sont réexaminés à partir des semaines de la proposition avant sa validation. Les contrôles d’export des deux projets utilisent des références Nolio simulées. La pertinence sportive du marathon reste à évaluer.",
+  "cases": [
+    {
+      "ambition": "finisher",
+      "effectiveAmbition": "finisher",
+      "limiterOrder": [
+        "VLamax"
+      ],
+      "status": "assembled_for_review",
+      "reasons": [],
+      "operations": 61,
+      "actualLongest": {
+        "week": 13,
+        "source": "V3P_RUN_220",
+        "totalMinutes": 122,
+        "runMinutes": 32,
+        "walkMinutes": 90
+      },
+      "availableSourceMaximum": {
+        "totalMinutes": 122,
+        "runMinutes": 32
+      },
+      "sportingReview": "En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+      "weeks": [
+        {
+          "week": 1,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 2,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 142,
+          "longMinutes": 70,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 3,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 75,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 4,
+          "phase": "base",
+          "type": "recovery",
+          "knownMinutes": 99,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 5,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 152,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 6,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 160,
+          "longMinutes": 87,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 7,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 172,
+          "longMinutes": 94,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 8,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 119,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 9,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 183,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 10,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 195,
+          "longMinutes": 108,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 11,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 208,
+          "longMinutes": 115,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 12,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 144,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 13,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 221,
+          "longMinutes": 122,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 14,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 122,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 15,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 110,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 16,
+          "phase": "taper",
+          "type": "race",
+          "knownMinutes": 69,
+          "longMinutes": null,
+          "longSource": null
+        }
+      ]
+    },
+    {
+      "ambition": "age_group",
+      "effectiveAmbition": "finisher",
+      "limiterOrder": [
+        "VLamax"
+      ],
+      "status": "assembled_for_review",
+      "reasons": [],
+      "operations": 61,
+      "actualLongest": {
+        "week": 13,
+        "source": "V3P_RUN_220",
+        "totalMinutes": 122,
+        "runMinutes": 32,
+        "walkMinutes": 90
+      },
+      "availableSourceMaximum": {
+        "totalMinutes": 122,
+        "runMinutes": 32
+      },
+      "sportingReview": "En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+      "weeks": [
+        {
+          "week": 1,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 2,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 142,
+          "longMinutes": 70,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 3,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 75,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 4,
+          "phase": "base",
+          "type": "recovery",
+          "knownMinutes": 99,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 5,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 152,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 6,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 160,
+          "longMinutes": 87,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 7,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 172,
+          "longMinutes": 94,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 8,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 119,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 9,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 183,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 10,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 195,
+          "longMinutes": 108,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 11,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 208,
+          "longMinutes": 115,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 12,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 144,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 13,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 221,
+          "longMinutes": 122,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 14,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 122,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 15,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 110,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 16,
+          "phase": "taper",
+          "type": "race",
+          "knownMinutes": 69,
+          "longMinutes": null,
+          "longSource": null
+        }
+      ]
+    },
+    {
+      "ambition": "competitor",
+      "effectiveAmbition": "finisher",
+      "limiterOrder": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max"
+      ],
+      "status": "engine_limit",
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+      ],
+      "actualLongest": {
+        "week": 13,
+        "source": "V3P_RUN_220",
+        "totalMinutes": 122,
+        "runMinutes": 32,
+        "walkMinutes": 90
+      },
+      "availableSourceMaximum": {
+        "totalMinutes": 122,
+        "runMinutes": 32
+      },
+      "sportingReview": "En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+      "weeks": [
+        {
+          "week": 1,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 2,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 142,
+          "longMinutes": 70,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 3,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 75,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 4,
+          "phase": "base",
+          "type": "recovery",
+          "knownMinutes": 99,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 5,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 152,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 6,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 160,
+          "longMinutes": 87,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 7,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 172,
+          "longMinutes": 94,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 8,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 119,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 9,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 183,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 10,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 195,
+          "longMinutes": 108,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 11,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 208,
+          "longMinutes": 115,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 12,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 144,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 13,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 221,
+          "longMinutes": 122,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 14,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 122,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 15,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 110,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 16,
+          "phase": "taper",
+          "type": "race",
+          "knownMinutes": 69,
+          "longMinutes": null,
+          "longSource": null
+        }
+      ]
+    },
+    {
+      "ambition": "elite",
+      "effectiveAmbition": "finisher",
+      "limiterOrder": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "engine_limit",
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ],
+      "actualLongest": {
+        "week": 13,
+        "source": "V3P_RUN_220",
+        "totalMinutes": 122,
+        "runMinutes": 32,
+        "walkMinutes": 90
+      },
+      "availableSourceMaximum": {
+        "totalMinutes": 122,
+        "runMinutes": 32
+      },
+      "sportingReview": "En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+      "weeks": [
+        {
+          "week": 1,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 2,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 142,
+          "longMinutes": 70,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 3,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 75,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 4,
+          "phase": "base",
+          "type": "recovery",
+          "knownMinutes": 99,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 5,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 152,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 6,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 160,
+          "longMinutes": 87,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 7,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 172,
+          "longMinutes": 94,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 8,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 119,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 9,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 183,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 10,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 195,
+          "longMinutes": 108,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 11,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 208,
+          "longMinutes": 115,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 12,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 144,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 13,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 221,
+          "longMinutes": 122,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 14,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 122,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 15,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 110,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 16,
+          "phase": "taper",
+          "type": "race",
+          "knownMinutes": 69,
+          "longMinutes": null,
+          "longSource": null
+        }
+      ]
+    },
+    {
+      "ambition": "world_class",
+      "effectiveAmbition": "finisher",
+      "limiterOrder": [
+        "Durabilité",
+        "VLamax",
+        "TTE",
+        "VO2max",
+        "VMA"
+      ],
+      "status": "engine_limit",
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil. Le coach a renseigné 3 h/semaine et une sortie longue de 65 min, marche comprise. En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ],
+      "actualLongest": {
+        "week": 13,
+        "source": "V3P_RUN_220",
+        "totalMinutes": 122,
+        "runMinutes": 32,
+        "walkMinutes": 90
+      },
+      "availableSourceMaximum": {
+        "totalMinutes": 122,
+        "runMinutes": 32
+      },
+      "sportingReview": "En S13, la plus longue séance (V3P_RUN_220) dure 122 min, dont 32 min courues et 90 min marchées. Cette séance atteint le maximum de la fiche. Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.",
+      "weeks": [
+        {
+          "week": 1,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 2,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 142,
+          "longMinutes": 70,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 3,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 145,
+          "longMinutes": 75,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 4,
+          "phase": "base",
+          "type": "recovery",
+          "knownMinutes": 99,
+          "longMinutes": 65,
+          "longSource": "V3P_RUN_219"
+        },
+        {
+          "week": 5,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 152,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 6,
+          "phase": "base",
+          "type": "load",
+          "knownMinutes": 160,
+          "longMinutes": 87,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 7,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 172,
+          "longMinutes": 94,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 8,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 119,
+          "longMinutes": 80,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 9,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 183,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 10,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 195,
+          "longMinutes": 108,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 11,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 208,
+          "longMinutes": 115,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 12,
+          "phase": "build",
+          "type": "recovery",
+          "knownMinutes": 144,
+          "longMinutes": 101,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 13,
+          "phase": "build",
+          "type": "load",
+          "knownMinutes": 221,
+          "longMinutes": 122,
+          "longSource": "V3P_RUN_220"
+        },
+        {
+          "week": 14,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 122,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 15,
+          "phase": "taper",
+          "type": "taper",
+          "knownMinutes": 110,
+          "longMinutes": null,
+          "longSource": null
+        },
+        {
+          "week": 16,
+          "phase": "taper",
+          "type": "race",
+          "knownMinutes": 69,
+          "longMinutes": null,
+          "longSource": null
+        }
+      ]
+    }
+  ]
+}

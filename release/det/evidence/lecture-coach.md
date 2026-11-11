@@ -6,13 +6,30 @@ Le rejeu des mêmes 200 configurations DET conserve les 156 plans complets de r�
 
 | Objectif | Plans assemblés | Données demandées ou limite rencontrée |
 |---|---:|---|
-| Ironman / 70.3 | 20 + 20 | 10 reprises demandent la durée de la sortie vélo facile récemment tolérée. |
+| Ironman / 70.3 | 20 + 20 | 10 reprises demandent le volume hebdomadaire réellement pratiqué et la durée de vélo facile récemment tolérée. DET réutilise chaque valeur déjà renseignée. |
 | Marathon | 20 | 5 reprises demandent le volume hebdomadaire récent et la durée de sortie longue à pied tolérée. |
 | Semi-marathon | 23 | 2 reprises sur huit semaines gardent une limite moteur. Le coach voit les rangs sans dose admissible pour Durabilité et VO₂max. |
 | 10 km | 21 | 4 reprises demandent le volume hebdomadaire récent et la tolérance réelle aux fractions de trois minutes au seuil. |
 | Trail court / montagne / ultra | 20 + 20 + 20 | 15 reprises demandent le volume récent, la sortie longue tolérée et la durée maximale prévue. |
 
-Le parcours Start to Run dispose d’un protocole marche-course dans TFCLab. Les 25 combinaisons correspondantes sont essayées séparément. Le formulaire explique où ouvrir le protocole standard. Aucun plan personnalisé DET n’est compté pour cet objectif.
+Le parcours Start to Run dispose d’un protocole marche-course dans TFCLab. Les 25 combinaisons correspondantes sont essayées séparément. Le formulaire ouvre le parcours du protocole standard. Une demande directe au worker renvoie `outside_det`, y compris sans bilan physiologique. Aucun plan personnalisé DET n’est compté pour cet objectif.
+
+## Rejeu après saisie de l’historique
+
+Les 34 demandes initiales ont aussi été rejouées avec un historique précis. Chaque profil déclare trois heures par semaine sur quatre semaines. Le coach indique ensuite la sortie récente ou les fractions effectivement tolérées. Huit projets se construisent. Les 26 autres dossiers reçoivent une explication de limite moteur.
+
+| Historique synthétique ajouté | Projets assemblés | Limite moteur après saisie |
+|---|---:|---:|
+| 75 min de vélo facile, Ironman / 70.3 | 0 / 0 | 5 / 5 |
+| 65 min de sortie longue à pied, marathon | 2 | 3 |
+| 2 × 3 min au seuil tolérées, 10 km | 4 | 0 |
+| Sortie trail de 75 min, plafond futur 105 min, court / montagne / ultra | 2 / 0 / 0 | 3 / 5 / 5 |
+
+Le premier calendrier de reprise demande dix créneaux sur Ironman et huit sur 70.3. Les doses V3 admissibles essayées en S1 totalisent au moins 243 et 191 min respectivement pour 180 min réellement pratiquées. Avec cinq heures récentes et la même sortie vélo de 75 min, deux des cinq profils Ironman vont au bout des 16 semaines. Le vélo facile peut se répéter sur deux jours non consécutifs. La semaine 6 contient 334 min, dans le plafond de 352 min résultant des 320 min de S5. Les trois autres profils indiquent les rangs sans dose sportive admissible.
+
+En reprise marathon, les cinq montages atteignent 122 min sur les pieds en S13, dont 32 courues et 90 marchées. Deux arrivent jusqu’au précontrôle. Pour les trois autres, le coach voit les priorités sans dose. Dans les cinq cas, la part courue des 65 min récentes et la stratégie de course-marche en compétition restent à apprécier. [Doses par semaine et par ambition](marathon-reprise-3h65.json)
+
+En reprise trail montagne et ultra, le coach voit que la sortie longue sur sentier n’a aucune fiche V3 admissible à son niveau dès le dimanche de S1. En trail court, le moteur accepte un plafond futur inférieur à une sortie passée et vérifie les durées résultantes. Un plafond explicite de **0 min** entre en conflit avec les sorties longues demandées par cet objectif. Un historique de **0 h** est une déclaration de reprise sans pratique. Une case laissée vide reste une demande de donnée. [Motifs et observations des 34 rejeux](coach-historiques-renseignes.json)
 
 ## Marathon en 3 h 07
 
@@ -37,3 +54,7 @@ Pour les quatre 10 km de reprise, un exemple avec trois heures hebdomadaires ré
 Sur le 70.3 de 12 semaines, permuter les rangs 2 et 3 change les blocs de S1 à S9. Sur la préparation de 24 semaines, permuter les rangs 3 et 4 change S13 à S21. Le plan consigne la dose des priorités travaillées et la date de réévaluation des priorités différées. [Comparaisons à données constantes et cas supplémentaires](coach-complements.json)
 
 Sur les 164 plans assemblés, le précontrôle Nolio du plan complet aboutit pour 104 avec les données du scénario initial. Les 60 trails ont besoin de cibles d’effort associées au terrain observé. Trois tests supplémentaires couvrent le court, la montagne et l’ultra avec des observations synthétiques renseignées pour les fiches utilisées. Le précontrôle vérifie alors les étapes, les RPE et les trois portées d’export. L’envoi réel, la relecture Nolio et la réception sur montre font chacun l’objet d’une preuve distincte. [Matrice et raisons par configuration](coach-matrix.json)
+
+## Recette sur le site et chez Nolio
+
+Le journal de recette identifie les octets du site publié, les contrôles exécutés dans Chromium et les services accessibles. Pour un envoi réel, le formulaire peut présenter l’identifiant confirmé à l’envoi et celui renvoyé par la lecture Nolio, avec la version datée du plan. La revue indépendante et l’observation des étapes sur la montre du pilote restent à documenter. [Preuves de publication et de réception](parcours-publie.json)

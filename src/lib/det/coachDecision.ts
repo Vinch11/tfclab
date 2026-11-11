@@ -1,4 +1,4 @@
-export type CoachDecisionKind = 'missing_data' | 'incompatible' | 'engine_limit';
+export type CoachDecisionKind = 'missing_data' | 'incompatible' | 'engine_limit' | 'outside_det';
 
 export interface CoachDecision {
   kind: CoachDecisionKind;

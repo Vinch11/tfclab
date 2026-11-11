@@ -7,6 +7,9 @@ import type {V3PlanProposal} from './appPlanningV3Proposal';
 import {engineLimit, incompatible, missingData} from './coachDecision';
 import {detObjectiveGoal} from './ordinaryObjective';
 import {domainMinutes} from './v3SportingPrescription';
+import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
+import {evaluateV3Workout} from '../../../scripts/library-v3/catalogueRuntime';
+import {previewV3SourceDose} from '../../../experimental/det-engine/v31-v3-catalogue';
 
 const marathonKm = 42.195;
 const minutes = (value: number) => Number(value.toFixed(1)).toLocaleString('fr-FR');
@@ -54,6 +57,11 @@ export function checkMarathonTarget(config: PlanConfig, threshold: number | null
  * outing, and a short outing can remain an engine limit on this calendar. */
 export function marathonReturnHistory(config: PlanConfig, recentLong: number | undefined, weeks: AppPlanningDetDraft['weeks']) {
   const recentHours = config.loadHistory?.recentWeeklyHours;
+  if (recentHours===0||recentLong===0) {
+    const known=[recentHours===0?'0 h d’entraînement hebdomadaire récent':null,
+      recentLong===0?'0 min de sortie longue récemment tolérée':null].filter(Boolean).join(' et ');
+    throw engineLimit('Reprise marathon. Le coach a déclaré '+known+'. DET ne dispose pas d’une progression marathon partant de cette absence de pratique. Prévoir une première période de reprise, puis réévaluer le volume et la sortie effectivement tolérés.');
+  }
   const absent: Array<[string, string]> = [];
   if (!Number.isFinite(recentHours) || (recentHours ?? 0) <= 0) {
     absent.push(['loadHistory.recentWeeklyHours','le volume hebdomadaire récemment réalisé (heures/semaine)']);
@@ -97,6 +105,34 @@ export function marathonLongRunFloors(weeks: AppPlanningDetDraft['weeks'], weekl
     next = minimum;
   }
   return floors;
+}
+
+/** Coach-declared time on foot and the actual run/walk content of the longest selected session. */
+export function marathonReturnExposure(weeks:V3PlanProposal['weeks'], recentLong:number, recentHours:number) {
+  const sessions=weeks.flatMap(week=>week.days.flatMap(day=>day.sessions.filter(s=>s.role==='long'&&s.sport==='run')
+    .map(s=>({week:week.week,session:s}))));
+  const longest=sessions.reduce<typeof sessions[number]|undefined>((best,row)=>
+    !best||row.session.knownMinutes>best.session.knownMinutes?row:best,undefined);
+  const prescription=longest?.session.components[0];
+  const recipe=roadReturnSources.find(s=>s.id===prescription?.sourceId);
+  const history='Le coach a renseigné '+minutes(recentHours)+' h/semaine et une sortie longue de '+minutes(recentLong)+' min, marche comprise.';
+  let detail='';
+  if(longest&&prescription&&recipe){
+    const total=longest.session.knownMinutes,run=domainMinutes(prescription.blocks,'moderate_lt1');
+    detail=' En S'+longest.week+', la plus longue séance ('+recipe.id+') dure '+minutes(total)+' min, dont '+minutes(run)+' min courues et '+minutes(total-run)+' min marchées.';
+    const count=recipe.blocks[1];
+    if(count?.kind==='repeat'){
+      const max=previewV3SourceDose(recipe,{overrides:{'1.count':count.count.max},allowWorksetChange:true});
+      const duration=evaluateV3Workout(max);
+      if(duration.status==='confirmed'){
+        const maxRun=domainMinutes(max.blocks,'moderate_lt1');
+        detail+=duration.minutes===total?' Cette séance atteint le maximum de la fiche.':
+          ' À sa dose maximale, cette fiche prévoit '+minutes(duration.minutes)+' min, dont '+minutes(maxRun)+' min courues.';
+      }
+    }
+  }
+  const exposure=(detail+' Pour les 42,195 km, vérifier le temps sur les pieds, la part réellement courue lors des sorties tolérées et la stratégie course-marche prévue le jour de l’épreuve. La préparation de la distance reste à évaluer avec le coach.').trim();
+  return {history,exposure};
 }
 
 /** Work already prescribed in this plan, excluding competition. Unknown exercise

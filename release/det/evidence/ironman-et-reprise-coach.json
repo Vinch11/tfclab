@@ -3,7 +3,7 @@
   "basis": "Entrées synthétiques du formulaire ordinaire. Référence des 200 configurations DET dans 2026-11-10-reprise.json.",
   "expectedBeforeCorrection": {
     "ironmanLight": "Les trois recherches arrêtées en S9 avec le même calendrier 16 semaines, 14 h, 10 séances cardio sont des limites du moteur. Réexaminer les semaines précédentes, les fiches de course et les durées à vélo. Ne lever le refus que si l’horizon, les plafonds de charge, les proportions du triathlon et les priorités passent ensemble.",
-    "longDistanceReturn": "Les 5 configurations Ironman et 5 configurations 70.3 de niveau untrained demandent 50 ou 60 min de vélo en S1. Les seules fiches vélo de reprise vont jusqu’à 30 min. La durée récemment tolérée en continu ne figure pas dans ces entrées, dans leurs valeurs de FTP ou dans le volume hebdomadaire toutes disciplines. Avec la durée fournie, vérifier ce que le calendrier et les sources permettent, puis les rangs du diagnostic."
+    "longDistanceReturn": "Les dix configurations de reprise Ironman et 70.3 ont des sorties initiales de 50 ou 60 min à vélo. Les champs d’historique hebdomadaire et de vélo continu sont vides. Les heures disponibles, la rampe estimée et la FTP ne fournissent pas ces mesures. Vérifier ensemble les deux observations puis les rangs et limites du calendrier."
   },
   "ironmanLight": {
     "weeks": 16,
@@ -271,9 +271,9 @@
           "fields": []
         },
         "reasons": [
-          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
-          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
-          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande un travail ciblé sur FatMax. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance.",
+          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande des blocs de puissance à vélo sous le seuil, au seuil ou dans le domaine VO₂max. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance.",
+          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande des fractions dans le domaine VO₂max. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance."
         ]
       },
       {
@@ -289,13 +289,165 @@
           "fields": []
         },
         "reasons": [
-          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
-          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
-          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+          "Rang 2 · FatMax : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande un travail ciblé sur FatMax. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance.",
+          "Rang 3 · FTP/kg : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande des blocs de puissance à vélo sous le seuil, au seuil ou dans le domaine VO₂max. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance.",
+          "Rang 4 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Le critère de DET demande des fractions dans le domaine VO₂max. Aucune fiche V3 admissible à ce niveau de reprise pour cet objectif ne fournit ce travail. La durée du vélo facile renseigne la tolérance en endurance."
         ]
       }
     ],
     "raceReadiness": "Les deux 70.3 de 24 semaines proposent chacun cinq enchaînements de charge dès S3. Les Ironman de 32 et 36 semaines en proposent sept et huit. Les enchaînements sont placés après deux semaines de charge avec pratique séparée des deux disciplines. Les fiches vélo faciles et la marche-course portent leurs propres blocs guidés. Le temps disponible réserve cinq minutes pour le changement de chaussures. Les durées prescrites en piscine et la tolérance de la distance en eau libre restent deux observations différentes."
+  },
+  "sixthWeekWithMeasuredHistory": {
+    "sourceReference": "5dc1f98",
+    "objective": "IM",
+    "weeks": 16,
+    "weeklyAvailableHours": 14,
+    "cardioAppointments": 10,
+    "level": "untrained",
+    "originalReplay": {
+      "measuredRideMinutes": 75,
+      "measuredWeeklyHours": null,
+      "ambitions": 5,
+      "previousDecision": "engine_limit",
+      "previousWeek": 6,
+      "previousCeilingMinutes": 321.15,
+      "currentDecision": "missing_data",
+      "currentFields": [
+        "loadHistory.recentWeeklyHours"
+      ]
+    },
+    "emptyHistoryFields": [
+      "loadHistory.recentWeeklyHours",
+      "recentLongRideMinutes"
+    ],
+    "observationsAtZero": "0 h/semaine ou 0 min de vélo sont conservés. DET signale sa limite pour une préparation partant de cette absence de pratique.",
+    "threeHoursAnd75Minutes": {
+      "ambitionsTested": 5,
+      "week": 1,
+      "measuredCapMinutes": 180,
+      "minimumMinutesAcrossTriedCandidates": 243,
+      "decision": "engine_limit",
+      "firstReason": "S1 : les fiches V3 essayées totalisent au moins 243 min pour 180 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget. Examiner la fréquence demandée et le calendrier de préparation."
+    },
+    "fiveHoursAnd75Minutes": {
+      "decisions": [
+        {
+          "ambition": "finisher",
+          "decision": "generated",
+          "NolioOfflineOperations": 166
+        },
+        {
+          "ambition": "age_group",
+          "decision": "generated",
+          "NolioOfflineOperations": 166
+        },
+        {
+          "ambition": "competitor",
+          "decision": "engine_limit",
+          "uncovered": [
+            "Durabilité",
+            "TTE"
+          ]
+        },
+        {
+          "ambition": "elite",
+          "decision": "engine_limit",
+          "uncovered": [
+            "Durabilité",
+            "TTE",
+            "VO2max",
+            "FTP/kg"
+          ]
+        },
+        {
+          "ambition": "world_class",
+          "decision": "engine_limit",
+          "uncovered": [
+            "Durabilité",
+            "TTE",
+            "FTP/kg",
+            "VO2max"
+          ]
+        }
+      ],
+      "successfulPlans": {
+        "actualMinutesByWeek": [
+          286,
+          290,
+          314,
+          172,
+          320,
+          334,
+          361,
+          230,
+          375,
+          393,
+          426,
+          251,
+          191,
+          144.5,
+          127,
+          112
+        ],
+        "bikeAndRunLongDoses": [
+          [
+            1,
+            75,
+            58
+          ],
+          [
+            2,
+            82,
+            60
+          ],
+          [
+            3,
+            90,
+            65
+          ],
+          [
+            5,
+            99,
+            70
+          ],
+          [
+            6,
+            108,
+            75
+          ],
+          [
+            7,
+            118,
+            80
+          ],
+          [
+            9,
+            129,
+            87
+          ],
+          [
+            10,
+            140,
+            94
+          ],
+          [
+            11,
+            150,
+            101
+          ]
+        ],
+        "columns": [
+          "week",
+          "bikeMinutes",
+          "runMinutes"
+        ],
+        "firstWeekLongRunWalk": "58 min dont 24 min courues et 34 min marchées",
+        "sourceRepeatedOnSeparateDates": "V3P_BIKE_202, vélo facile à 12 h de récupération minimum. Les répétitions vérifiées sont le mardi et le jeudi dans neuf semaines de charge.",
+        "week6Budget": {"priorWeekMinutes": 320, "maximumGrowth": 0.1, "ceilingMinutes": 352, "prescribedMinutes": 334, "bikeLongMinutes": 108, "runWalkLongMinutes": 75},
+        "firstTrainingBrick": 3
+      },
+      "interpretation": "Pour les trois autres ambitions, les deux observations permettent d’assembler la préparation, puis la vérification des limiteurs ne trouve aucune fiche V3 admissible correspondant aux rangs affichés. Les blocs faciles ne sont pas crédités au seuil, à VO₂max ou en puissance spécifique."
+    }
   },
   "comparisonAcrossTrainedAmbitions": {
     "levels": [
@@ -324,7 +476,7 @@
   "verification": {
     "tests": ["src/lib/det/__tests__/ironmanProgression.test.ts", "src/lib/det/__tests__/returnTriathlon.test.ts", "src/lib/det/__tests__/transitionPracticeProof.ts"],
     "delivery": "Précontrôle Nolio hors ligne. Les deux parties de chaque enchaînement ont la date et les doses du plan. La sélection du premier enchaînement seul sur les trois Ironman légers produit les mêmes deux empreintes que le scope complet. La transition sans mesure reste une consigne entre les deux activités. La réception sur montre et la revue terrain exigent des observations externes.",
-    "assertions": "17 tests permanents pour les deux fichiers de référence. Ils couvrent les refus motivés, le niveau des fiches, les décharges, les rampes, les limites de disponibilité, la traçabilité des rangs et les deux opérations datées des enchaînements.",
+    "assertions": "33 tests permanents dans les trois fichiers de référence. Ils couvrent les refus motivés, le niveau des fiches, les décharges, les rampes, les limites de disponibilité, la traçabilité des rangs et les deux opérations datées des enchaînements.",
     "transitionSources": "En reprise et au niveau léger, les composantes vélo V3P_BIKE_201 et V3P_BIKE_202 précèdent la marche-course sur plat V3P_RUN_217. Chez les finishers entraînés et très entraînés, V3P_BIKE_001 précède les 15 minutes de course continue de V3P_RUN_862."
   },
   "otherFinishers": [

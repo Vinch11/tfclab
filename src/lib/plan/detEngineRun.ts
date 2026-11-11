@@ -75,6 +75,8 @@ export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<
 }
 
 async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
+  if (/start.?to.?run/i.test(String(input.config?.objective??'')))
+    throw new DetRefusal(['Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course.'],{kind:'outside_det',fields:[]});
   if(!input.athleteId)throw missingData('Sélectionnez l’athlète à préparer.', 'athleteId');
   if(!input.diagnostic?.athleteId)throw missingData('Sélectionnez le bilan de cet athlète pour l’objectif demandé.', 'diagnostic');
   if (input.diagnostic.athleteId !== input.athleteId ||
@@ -85,9 +87,7 @@ async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
   if(isTimeTrial(objective) && (!config.timeTrialContext || config.athleteId!==input.athleteId || config.timeTrialContext.athleteId!==input.athleteId))
     throw missingData('CLM : renseignez la position aéro et la durée d’épreuve de cet athlète.', 'timeTrial');
   if (!detSupportsObjective(objective)) {
-    const message = /start.?to.?run/i.test(objective) ? 'DET ne construit pas de plan V3 individualisé pour Start to Run. Dans la page de planification TFCLab, « Assigner Start-to-Run standard » ouvre le protocole marche-course.' :
-      `DET ne couvre pas encore l’objectif « ${objective} ».`;
-    throw new DetRefusal([message]);
+    throw new DetRefusal([`DET ne couvre pas encore l’objectif « ${objective} ».`]);
   }
   if (!config.planStartDate) throw missingData("Renseignez la date de début du plan.", "planStartDate");
   const applied = [...((config as { identifiedLimitersRaw?: string[] }).identifiedLimitersRaw ?? [])];

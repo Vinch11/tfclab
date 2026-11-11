@@ -63,6 +63,7 @@ export function returnThresholdRepetitions(config:PlanConfig, threshold:number|n
   if (exclusion) throw engineLimit(first+'Le seuil en fractions est exclu. '+exclusion+' Réexaminer la séance après récupération.');
   if (!recoveryAvailable) throw engineLimit(first+'DET ne trouve aucun créneau de construction ou de pic laissant les 48 h de récupération de la fiche de seuil avant la prochaine séance de course. Vérifier les jours et les horaires du calendrier.');
   if (declared===0||declared===1) throw engineLimit(first+'Le coach a confirmé '+declared+' fraction de 3 min au seuil pour cette séance. La plus petite dose de seuil de reprise proposée par DET est de 2 × 3 min. DET ne sait pas transposer une séance d’une autre forme. Privilégier la course facile tolérée et réexaminer ce travail au prochain bilan.');
+  if (config.loadHistory?.recentWeeklyHours===0) throw engineLimit(first+'Le coach a indiqué 0 h de course ou d’entraînement récent. DET ne sait pas calibrer cette progression au seuil depuis une semaine sans pratique.');
   const fields:string[]=[], labels:string[]=[];
   if (!(typeof declared==='number' && Number.isSafeInteger(declared) && declared>=2)) {
     labels.push('le nombre de fractions de 3 min au seuil réellement courues et tolérées depuis la reprise, sur le plat, avec 10 min faciles avant, 3 min au trot entre les fractions et 6 min faciles après (0 si aucune)');
@@ -78,12 +79,12 @@ export function returnThresholdRepetitions(config:PlanConfig, threshold:number|n
   return Math.min(declared!,3);
 }
 
-export function returnRankGap(raw:string, sources:V3Workout[]) {
+export function returnRankGap(raw:string, sources:V3Workout[], event:'semi-marathon'|'marathon'='semi-marathon') {
   const key=resolveDetLimiter(raw).key;
   const threshold=key==='tte'||key==='durability_race_relative';
   if(!threshold && key!=='vo2max' && key!=='vma_velocity') return '';
   if (sources.some(s=>s.sport==='run' && rankedSourceIntent(s,raw) && hasRankedWork(s.blocks,s.primaryDomain))) return '';
   return threshold
-    ? ' Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.'
-    : ' Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.';
+    ? ' Aucune fiche de course au seuil admissible au niveau de reprise pour ce '+event+'. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.'
+    : ' Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce '+event+' en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.';
 }

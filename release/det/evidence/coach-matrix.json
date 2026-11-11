@@ -1,6 +1,6 @@
 {
  "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
- "workerVersion": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f",
+ "workerVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
  "summary": {
   "referenceCount": 225,
   "detCases": 200,
@@ -57,7 +57,7 @@
   {
    "objective": "StartToRun",
    "status": {
-    "engine_limit": 25
+    "outside_det": 25
    }
   },
   {
@@ -92,10 +92,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "IM",
@@ -106,10 +107,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "IM",
@@ -120,10 +122,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "IM",
@@ -134,10 +137,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "IM",
@@ -148,10 +152,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "IM",
@@ -186,10 +191,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "703",
@@ -200,10 +206,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "703",
@@ -214,10 +221,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "703",
@@ -228,10 +236,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "703",
@@ -242,10 +251,11 @@
    "result": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
-   "reason": "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
   },
   {
    "objective": "Marathon",
@@ -1347,11 +1357,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -1381,11 +1392,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -1417,11 +1429,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -1455,11 +1468,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -1493,11 +1507,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -4209,11 +4224,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -4243,11 +4259,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -4277,11 +4294,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -4314,11 +4332,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -4351,11 +4370,12 @@
    "decision": {
     "kind": "missing_data",
     "fields": [
+     "loadHistory.recentWeeklyHours",
      "recentLongRideMinutes"
     ]
    },
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -12883,7 +12903,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12896,7 +12916,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12909,7 +12929,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12922,7 +12942,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12935,7 +12955,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12948,7 +12968,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12961,7 +12981,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12974,7 +12994,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -12987,7 +13007,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13000,7 +13020,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13013,7 +13033,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13026,7 +13046,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13039,7 +13059,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13052,7 +13072,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13065,7 +13085,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13078,7 +13098,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13091,7 +13111,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13104,7 +13124,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13117,7 +13137,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13130,7 +13150,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13143,7 +13163,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13156,7 +13176,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13169,7 +13189,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13182,7 +13202,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"
@@ -13195,7 +13215,7 @@
    "hours": 3,
    "status": "outside_det",
    "decision": {
-    "kind": "engine_limit",
+    "kind": "outside_det",
     "fields": []
    },
    "protocol": "Start to Run"

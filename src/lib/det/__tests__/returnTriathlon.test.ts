@@ -22,8 +22,13 @@ afterAll(()=>{vi.unstubAllGlobals();vi.restoreAllMocks();});
 const history=(hours:number)=>({recentWeeklyHours:String(hours),recentWeeksCount:'4'});
 const short={objective:'703',weeks:12,hours:10,sessions:8};
 
-it('asks specifically for continuous cycling tolerance when the training history is multisport',async()=>{
+it('asks for both observations on an empty 70.3 return history and only the missing ride when weekly hours are known',async()=>{
+  const empty=inputFor(short,'untrained','finisher');
+  await expect(generateDetPlanFromPageInput(empty)).rejects.toMatchObject({
+    decision:{kind:'missing_data',fields:['loadHistory.recentWeeklyHours','recentLongRideMinutes']},
+  });
   const input=inputFor(short,'untrained','finisher',[],history(3));
+  expect(input.config.loadHistory?.recentWeeklyHours).toBe(3);
   await expect(generateDetPlanFromPageInput(input)).rejects.toMatchObject({
     message:expect.stringContaining('50 min de vélo'),decision:{kind:'missing_data',fields:['recentLongRideMinutes']},
   });
@@ -44,6 +49,7 @@ it.each([
   {objective:'IM',weeks:36,hours:10,sessions:7,recent:5,ride:65},
 ])('keeps $objective return doses within prior tolerance and exports $weeks weeks ($ride min)',async scenario=>{
   const input=inputFor(scenario,'untrained','finisher',[],history(scenario.recent));
+  expect(input.config.loadHistory?.recentWeeklyHours).toBe(scenario.recent);
   const plan=await generateDetPlanFromPageInput({...input,recentLongRideMinutes:scenario.ride});
   const proposal=(plan as typeof plan&{_detSourceProposal:V3PlanProposal})._detSourceProposal;
   expect(proposal.weeks).toHaveLength(scenario.weeks);

@@ -34,5 +34,8 @@ export function inputFor(s: Scenario, trainingLevel: string, ambition: string, c
     maxDoubleDaysPerWeek: '', coachLimiterOrder: coachOrder, currentAthleteId: id, ...history,
   };
   const config = buildAppPlanConfig(context.diagnostic, form);
+  // The live 2.1 form retains an explicit zero in its recent-history field.
+  if (form.recentWeeklyHours.trim()!=='' && Number(form.recentWeeklyHours)===0)
+    config.loadHistory={...config.loadHistory,recentWeeklyHours:0};
   return { athleteId: id, config, athlete: context.data, diagnostic: context.diagnostic, pageLimiterOrder: coachOrder };
 }

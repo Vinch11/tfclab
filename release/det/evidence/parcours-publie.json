@@ -1,0 +1,177 @@
+{
+  "publicOrigin": "https://tfcl.twoforcoaching.be",
+  "atUtc": "2026-11-11T00:06:17.402942+00:00",
+  "worker": {
+    "schema": 1,
+    "version": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f",
+    "entry": "worker.js.gz",
+    "encoding": "gzip",
+    "bytes": 801767,
+    "sha256": "bd97c8f9d6551652f559323e11059404363b67d000d78cc6de987c12cc65d88d",
+    "workerSha256": "1453b2b9051f411659b2751180436ec235c882a834a7a6b1ee77b129bde49a91"
+  },
+  "coachAssets": {
+    "upstreamRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
+    "assets": {
+      "coach-DuutUn2K.mjs": "b90f59b94b076dd1d2ccafbd93c7d11c8b9b07d7d8aa736b1c6c15980394faf5",
+      "mount-Bio6eZ0C.mjs": "990c23ee30bc30e95f54a9849f835bb287e4976e080fd248a0e305f7d96a1d92",
+      "mount-D2mQHqo9.css": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5",
+      "nolioRemote-CKGt7kzr.mjs": "07dc9bf94881841e51ba95e9d61133b1de2dc0eae5ba2def76fe11b533fcbede"
+    }
+  },
+  "generalRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
+  "allArtifactDigestsVerified": true,
+  "publicManifestBytes": {
+    "atUtc": "2026-11-11T00:13:36.289216+00:00",
+    "httpStatus": 200,
+    "byteLength": 337,
+    "sha256": "b8ba2b8eab9e28792e3f3cdbeddfe3b384131932f4d8723ed930e3d95b8690fa",
+    "equalsGitHubManifestFile": true
+  },
+  "releaseSource": "5dc1f98f51c2491cbe43f9b3ca04f517898abf37",
+  "formDelivery": {
+    "pr": 476,
+    "merged": true,
+    "mergeCommit": "b8316d34166c026a2fd88d3cf36e400ba81ca26e",
+    "verifiedDetFormWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42927805248",
+    "generalCI": "Sept assertions IA/QA échouaient aussi sur le parent général 77b79a9d5ffd7383417039334b2e0add62f564c4."
+  },
+  "publicChromium": {
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42928746315",
+    "verifyJobId": 130221824316,
+    "result": "success",
+    "scope": "Chromium sur le domaine publié, marathon synthétique, version du worker identique, seize semaines construites et précontrôle de la première semaine. Aucun envoi vers Nolio."
+  },
+  "nolioServices": {
+    "atUtc": "2026-11-11T00:12:40.134496+00:00",
+    "method": "OPTIONS",
+    "functions": {
+      "nolio-v2-oauth": {
+        "status": 200
+      },
+      "det-nolio-export": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "det-nolio-connect": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "det-nolio-callback": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "nolio-v2-export-plan": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      }
+    }
+  },
+  "acceptance": {
+    "independentSportReview": {
+      "status": "sans_preuve",
+      "evidence": null
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    }
+  },
+  "database": {
+    "source": "48c85f3ce9007bc5317826baf37cc47d805d120c",
+    "atUtc": "2026-11-11T00:26:19.817Z",
+    "applied": "20261111010000_det_nolio_export.sql",
+    "catalogueChecksOnly": true,
+    "tables": [
+      {
+        "anonymous_select": false,
+        "coach_insert": false,
+        "name": "det_nolio_v2_athlete_links",
+        "rls": true,
+        "service_access": true
+      },
+      {
+        "anonymous_select": false,
+        "coach_insert": false,
+        "name": "det_nolio_v2_grants",
+        "rls": true,
+        "service_access": true
+      },
+      {
+        "anonymous_select": false,
+        "coach_insert": false,
+        "name": "det_nolio_v2_oauth_states",
+        "rls": true,
+        "service_access": true
+      },
+      {
+        "anonymous_select": false,
+        "coach_insert": false,
+        "name": "det_nolio_v2_operation_releases",
+        "rls": true,
+        "service_access": true
+      },
+      {
+        "anonymous_select": false,
+        "coach_insert": false,
+        "name": "det_nolio_v2_operations",
+        "rls": true,
+        "service_access": true
+      }
+    ],
+    "procedures": [
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_claim_operation",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_grant_connect",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_refresh_begin",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_refresh_commit",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_refresh_fail",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_release_deleted_operation",
+        "service_execute": true
+      },
+      {
+        "coach_execute": false,
+        "name": "det_nolio_v2_transition_operation",
+        "service_execute": true
+      }
+    ]
+  },
+  "followupForm": {
+    "pr": 477,
+    "url": "https://github.com/Vinch11/tfclab/pull/477",
+    "candidateVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10"
+  }
+}

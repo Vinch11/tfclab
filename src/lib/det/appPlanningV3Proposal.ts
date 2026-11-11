@@ -1,13 +1,13 @@
 import {isReturnThresholdTenK,returnThresholdRepetitions,returnThresholdRecovery,returnRankGap} from './roadReturnIntensity';
 import {roadReturnThresholdSource,RETURN_THRESHOLD_ID} from '../../../scripts/library-v3/roadReturnThreshold';
 import {addLimiterBlockReview} from './limiterBlockReview';
-import {checkMarathonTarget,marathonLongRunFloors,marathonReturnHistory} from './roadMarathonReview';
+import {checkMarathonTarget,marathonLongRunFloors,marathonReturnHistory,marathonReturnExposure} from './roadMarathonReview';
 import {checkAvailabilityInput,verifyCoachAvailability} from './coachAvailability';
 import {DetDecisionError,engineLimit,incompatible,missingData} from './coachDecision';
 import {developmentIntervalSources} from '../../../scripts/library-v3/developmentIntervalSources';
 import {roadReturnSources} from '../../../scripts/library-v3/roadReturnSources';
 import {returnBikeSources,longBikeSource,progressiveReturnRides} from '../../../scripts/library-v3/returnBikeSources';
-import {prepareReturnBikeProgression,adjustReturnLongFloors,type ReturnTriathlonTrace} from './returnTriathlon';
+import {prepareReturnBikeProgression,adjustReturnLongFloors,returnTriathlonRankGap,type ReturnTriathlonTrace} from './returnTriathlon';
 import {longTriathlonTargets,reviewTriathlonExposure,planTransitionPractice,transitionCadences,type TransitionPractice} from './triathlonProgression';
 import {alternateKeyDay,shorterSourceSettings} from './adaptiveSearch';
 import {aeroSlotAccepts, isTimeTrialSource, verifyTimeTrialWeeks} from './timeTrialPlanning';
@@ -137,6 +137,11 @@ function minimumDistinctExerciseMinutes(domains:ProposedV3Session[][]):number{
   return exhausted||!Number.isFinite(best)?suffix[0]:best;
 }
 
+function isLongTrailPrescription(id:string, domain:V3Workout['primaryDomain']) {
+  return domain==='moderate_lt1' && (['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092','V3P_RUN_205'].includes(id)
+    || Boolean(library920SourceMetadata(id)?.terrainEffortRequired));
+}
+
 function verifyTrailHistory(app:FrozenAppPlanningInput, options:V3ProposalOptions) {
   const trail = trailFamily(app.config), trailLimits=options.trailLongRunLimits;
   const recentTraining=app.config.loadHistory?.recentWeeklyHours;
@@ -144,6 +149,13 @@ function verifyTrailHistory(app:FrozenAppPlanningInput, options:V3ProposalOption
     ['manual','auto-tss'].includes(app.config.ambitionMeta.trainingLevelSource);
   if (trailLimits && !trail) throw incompatible('Les repères de sortie longue trail doivent correspondre à un objectif trail.', 'objective');
   if (trail && (returning || trailLimits)) {
+    if (trailLimits?.peakMinutes===0)
+      throw incompatible('Le plafond choisi pour toutes les sorties longues est de 0 min. La préparation trail demande des sorties sur sentier. Modifiez ce plafond ou l’objectif.', 'objective','trailLongRunLimits.peakMinutes');
+    if ((returning && recentTraining===0) || trailLimits?.recentMinutes===0) {
+      const observed=[returning && recentTraining===0?'0 h de pratique hebdomadaire récente':null,
+        trailLimits?.recentMinutes===0?'aucune sortie longue récemment tolérée':null].filter(Boolean).join(' et ');
+      throw engineLimit('Reprise trail : le coach a indiqué '+observed+'. DET ne dispose pas d’une progression pour partir de cette situation vers cet objectif. Le parcours Start to Run est disponible pour une reprise en marche-course.');
+    }
     const missing: Array<[string,string]> = [];
     if (returning && !(Number.isFinite(recentTraining) && Number(recentTraining) > 0))
       missing.push(['loadHistory.recentWeeklyHours','le volume hebdomadaire récent (h/semaine)']);
@@ -152,8 +164,6 @@ function verifyTrailHistory(app:FrozenAppPlanningInput, options:V3ProposalOption
     if (!(Number.isFinite(trailLimits?.peakMinutes) && Number(trailLimits?.peakMinutes) > 0))
       missing.push(['trailLongRunLimits.peakMinutes','le plafond de sortie longue choisi par le coach (min)']);
     if (missing.length) throw missingData('Trail en reprise : renseigner ' + missing.map(([,label])=>label).join(', ') + '.', ...missing.map(([field])=>field));
-    if (trailLimits!.peakMinutes < trailLimits!.recentMinutes)
-      throw incompatible('Le plafond de préparation est inférieur à la sortie récente. Confirmez les deux durées ou adaptez le plafond de sortie longue.', 'trailLongRunLimits.recentMinutes','trailLongRunLimits.peakMinutes');
   }
 }
 
@@ -257,7 +267,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     returnReps=returnThresholdRepetitions(config,athlete.paceThresholdSecPerKm,options.roadReturnThresholdReps,exclusion,hasSlot);
   }
   const triReturn=options.completeSessions&&knownLevel===0&&['half','ironman'].includes(detObjectiveGoal(config.objective))
-    ? prepareReturnBikeProgression(study.weeks,options.recentLongRideMinutes,config.volumeRamp?.weeklyIncreasePctMax??0):null;
+    ? prepareReturnBikeProgression(study.weeks,options.recentLongRideMinutes,recentTraining,config.volumeRamp?.weeklyIncreasePctMax??0):null;
   const triReturnTrace=triReturn?adjustReturnLongFloors(study.weeks,triReturn,config.volumeRamp?.weeklyIncreasePctMax??0):undefined;
   const measuredMarathonLong = options.completeSessions && road?.goal==='marathon' && knownLevel===0
     ? marathonReturnHistory(config,options.marathonRecentLongRunMinutes,study.weeks) : undefined;
@@ -337,6 +347,10 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     const combined=declaredClock({week,dayIndex,sport:'brick'});
     return !!original&&!!combined&&original.minuteOfDay===combined.minuteOfDay&&original.utcOffsetMinutes===combined.utcOffsetMinutes;
   },cadence):[];
+  // Some return calendars prescribe three short rides in a loading week,
+  // including the cycling leg of a transition. There are two short sources.
+  const repeatReturnRide=!!triReturn&&study.weeks.some(week=>week.weekType==='load'&&week.days.flatMap(d=>d.slots)
+    .filter(s=>s.role!=='long'&&s.role!=='race'&&['bike','brick'].includes(s.sport)).length>returnBikeSources.length);
   if(practices.length&&trainedTri)selectedSources.push(findSource('V3P_BIKE_001')!,findSource('V3P_RUN_001')!);
   if(practices.length&&lightTri&&!allowRepair)selectedSources.push(...returnBikeSources);
   if(practices.length&&!triReturn&&!trainedTri)selectedSources.push(roadReturnSources.find(s=>s.id==='V3P_RUN_217')!);
@@ -612,12 +626,10 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         const cap = week.week===1 ? measuredMarathonLong : priorLongRunMinutes*(1+(config.volumeRamp?.weeklyIncreasePctMax??0));
         rows=rows.filter(row=>row.knownMinutes<=cap+1e-7);
       }
-      if(trail&&slot.sport==='run')rows=rows.filter(row=>row.durationMinutes!==null&&(!trailLimits||row.durationMinutes<=(week.week===1?trailLimits.recentMinutes:trailLimits.peakMinutes)));
+      if(trail&&slot.sport==='run')rows=rows.filter(row=>row.durationMinutes!==null&&(!trailLimits||row.durationMinutes<=Math.min(trailLimits.peakMinutes,week.week===1?trailLimits.recentMinutes:Infinity)));
       if(trail&&week.weekType==='load'&&slot.role==='long'){
         // Native long trail prescriptions contain timed main blocks on slopes or trails.
-        const nativeTerrainLong = ['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092','V3P_RUN_205'];
-        rows=rows.filter(row=>row.components.some(c=>c.sourceDomain==='moderate_lt1' &&
-          (nativeTerrainLong.includes(c.sourceId)||library920SourceMetadata(c.sourceId)?.terrainEffortRequired)));
+        rows=rows.filter(row=>row.components.some(c=>isLongTrailPrescription(c.sourceId,c.sourceDomain)));
       }
       const score=(row:ProposedV3Session)=>{
         const hits=row.components.flatMap(c=>c.limiterMatches);
@@ -659,11 +671,20 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       const candidates=eligible.filter(s=>s.sport===slot.sport).length;
       const returnLongLimit = measuredMarathonLong && slot.sport==='run' && slot.role==='long' && priorLongRunMinutes!==null
         ? (week.week===1 ? measuredMarathonLong : priorLongRunMinutes*(1+(config.volumeRamp?.weeklyIncreasePctMax??0))) : undefined;
-      const evidence=returnLongLimit!==undefined
+      let trailReason:string|undefined;
+      if (trail && slot.sport==='run' && slot.role==='long' && week.weekType==='load') {
+        const terrain=eligible.filter(s=>s.sport==='run' && isLongTrailPrescription(s.id,s.primaryDomain));
+        const familyLabel=trail.label.toLocaleLowerCase('fr');
+        const reference=trailLimits ? ' Sortie récemment tolérée : '+trailLimits.recentMinutes+' min. Plafond choisi : '+trailLimits.peakMinutes+' min.' : '';
+        trailReason=(terrain.length
+          ? 'DET ne trouve pas de dose de sortie longue sur sentier compatible avec cette semaine parmi les fiches admissibles ('+terrain.map(s=>s.id).join(', ')+').'
+          : 'Le catalogue DET ne propose aucune sortie longue sur sentier admise pour ce niveau et cette phase de la préparation '+familyLabel+'.')+reference;
+      }
+      const evidence=trailReason??(returnLongLimit!==undefined
         ? 'La sortie longue de référence est de '+Number(priorLongRunMinutes!.toFixed(1))+' min. Les fiches de reprise essayées doivent tenir dans '+Number(returnLongLimit.toFixed(1))+' min. DET ne trouve pas de dose compatible dans ce calendrier.'
         : slot.sport==='brick'?'Aucune paire vélo-course admissible aux doses prévues.':
         candidates===0?'Aucune fiche admissible pour cette discipline, cette phase et ce niveau.':
-        `${candidates} fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.`;
+        `${candidates} fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération.`);
       throw Object.assign(Error(`S${week.week} ${week.days[slots[missing].dayIndex].day} : ${sport}${range?' ('+range+')':''}. ${evidence}`),{code:'v3_slot_unavailable',week:week.week});
     }
     // Prove a distinct-source shortage before broadening the established pool.
@@ -745,7 +766,11 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       // source, so the true minimum may be higher. Unknown durations contribute zero.
       const minimum = domains.reduce((n,rows)=>n+Math.min(...rows.map(r=>r.knownMinutes)),0);
       if(minimum>firstWeekRecentMinutes+1e-7) {
-        throw Error(`S1 : les fiches V3 essayées totalisent au moins ${Math.floor(minimum*10)/10} min pour ${Number(firstWeekRecentMinutes.toFixed(1))} min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget.`);
+        const reason=Error(`S1 : les fiches V3 essayées totalisent au moins ${Math.floor(minimum*10)/10} min pour ${Number(firstWeekRecentMinutes.toFixed(1))} min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget.`+
+          (triReturn?' Examiner la fréquence demandée et le calendrier de préparation.':''));
+        if(triReturn && adaptive)throw engineLimit(reason.message);
+        if(triReturn)throw Object.assign(reason,{code:'v3_proposal_search_refused',week:1});
+        throw reason;
       }
     }
     const next=study.weeks.find(w=>w.week===week.week+1);
@@ -886,7 +911,8 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       const easySwim=(lightTri||triReturn)&&session.sport==='swim'&&source&&easy(source)&&['key','support'].includes(session.role);
       const easyEndurance=(session.role==='support'||knownLevel===0&&roadReturnSources.some(s=>s.id===component.sourceId))&&
         component.sourceDomain==='moderate_lt1'&&source?.primaryIntent==='moderate_lt1';
-      return !!(easySwim||easyEndurance)&&component.zoneMinutes?.mid===0&&component.zoneMinutes.high===0&&component.zoneMinutes.unknown===0;
+      const easyReturnBike=repeatReturnRide&&session.sport==='bike'&&returnBikeSources.some(s=>s.id===component.sourceId);
+      return !!(easySwim||easyEndurance||easyReturnBike)&&component.zoneMinutes?.mid===0&&component.zoneMinutes.high===0&&component.zoneMinutes.unknown===0;
     };
     function solve(index:number,total:number):boolean {
       if(++nodes>50000||total+suffix[index]>ceiling+1e-7)return false;
@@ -964,8 +990,15 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       for(const choice of candidates){
         const ids=choice.components.map(c=>c.sourceId);
         if(nodes>=50000)break;
-        if(ids.some(id=>weekSources.has(id))&&!(reusable(choice)&&selected.every((other,i)=>
-          !other.components.some(c=>ids.includes(c.sourceId))||reusable(other)&&slots[order[i].index].dayIndex!==slots[order[index].index].dayIndex)))continue;
+        if(ids.some(id=>weekSources.has(id))&&!(reusable(choice)&&selected.every((other,i)=>{
+          if(!other.components.some(c=>ids.includes(c.sourceId)))return true;
+          const otherDay=slots[order[i].index].dayIndex,chosenDay=slots[order[index].index].dayIndex;
+          if(!reusable(other)||chosenDay===otherDay)return false;
+          if(!repeatReturnRide||choice.sport!=='bike'||!returnBikeSources.some(s=>s.id===ids[0]))return true;
+          const first=chosenDay<otherDay?choice:other;
+          const pair=[Math.min(chosenDay,otherDay),Math.max(chosenDay,otherDay)].map(dayIndex=>({week:week.week,dayIndex,sport:'bike'}));
+          return proposedRecoveryStatus(first,pair[0],pair,start)==='passed';
+        })))continue;
         const newIds=ids.filter(id=>!weekSources.has(id));
         // Reject only proved same-day overlaps. Unknown clocks/durations stay pending.
         const position=slots[order[index].index];
@@ -1024,9 +1057,12 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       Number(retainedDose(b))-Number(retainedDose(a));
     const trackPrimary=(session:ProposedV3Session)=>!!(triDoseApplicable||road)&&week.weekType==='load'&&
       (session.role==='key'||session.role==='long');
+    const fixedReturnRide=(s:ProposedV3Session)=>repeatReturnRide&&s.sport==='bike'&&
+      s.components.some(c=>returnBikeSources.some(source=>source.id===c.sourceId))&&selected.some(other=>
+        other!==s&&other.components.some(c=>c.sourceId===s.components[0].sourceId));
     const occupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if((tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if(fixedReturnRide(session)||(tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=eligible.filter(s=>(session.role==='long'||!progressiveReturnRides.some(ride=>ride.id===s.id))&&s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         (session.role==='key'||s.sport==='strength'||easy(s))).flatMap(s=>choices(s,original.durationMinutes)).filter(c=>
@@ -1048,7 +1084,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     // an early week and make a later deload/long slot impossible.
     const importOccupied=new Set(selected.flatMap(s=>s.components.map(c=>c.sourceId)));
     for(const [selectionIndex,session] of selected.entries()){
-      if((tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
+      if(fixedReturnRide(session)||(tt&&session.sport==='bike')||(trail&&(session.role==='key'||session.role==='long'))||session.role==='race'||session.components.length!==1||session.durationMinutes===null)continue;
       const original=session.components[0];
       const alternatives=librarySources.filter(s=>s.sport===original.sport&&s.primaryDomain===original.sourceDomain&&
         v3SourceContextProblems(s,config,week.weekType).length===0&&
@@ -1161,20 +1197,19 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   if (!priorities.length && options.balancedMetrics?.length)
     result.checks.push({code:'balanced_profile', status:'passed', message:'Aucun déficit dominant identifié parmi les repères évalués (' +
       options.balancedMetrics.join(', ') + '). La progression suit le niveau actuel, les disponibilités et les exigences de l’épreuve.'});
+  if(triReturn && recentTraining){
+    const first=result.weeks[0];
+    const foot=first.days.flatMap(d=>d.sessions).find(s=>s.sport==='run'&&s.role==='long')?.components[0];
+    const walkRun=foot&&roadReturnSources.some(s=>s.id===foot.sourceId)&&foot.durationMinutes!==null
+      ? ' La sortie longue à pied totalise '+foot.durationMinutes+' min, dont '+domainMinutes(foot.blocks,'moderate_lt1')+' min courues en alternance avec la marche.' : '';
+    result.checks.push({code:'tri_race_readiness_review',week:1,status:'pending',message:
+      'Le volume hebdomadaire récent déclaré est de '+(60*recentTraining)+' min toutes disciplines. S1 prévoit '+first.knownMinutes+' min de blocs.'+walkRun+' Comparer ces doses au volume et aux efforts à pied déjà tolérés avant prescription.'});
+  }
   if(triReturn||lightTri&&allowRepair)result.checks.push({code:'tri_race_readiness_review',week:1,status:'pending',
     message:reviewTriathlonExposure(result.weeks)});
   const selected=result.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)));
-  if(measuredMarathonLong){
-    const longest=result.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.filter(s=>s.role==='long'&&s.sport==='run')))
-      .reduce<ProposedV3Session|undefined>((best,s)=>!best||s.knownMinutes>best.knownMinutes?s:best,undefined);
-    const recipe=longest?.components[0];
-    const walkRun=recipe && roadReturnSources.some(source=>source.id===recipe.sourceId);
-    const run=walkRun?domainMinutes(recipe.blocks,'moderate_lt1'):null;
-    const detail=longest && run!==null
-      ? 'La plus longue séance dure '+longest.knownMinutes+' min, dont '+run+' min courues et '+(longest.knownMinutes-run)+' min marchées.'
-      : 'Comparer la sortie longue prescrite avec les sorties effectivement tolérées.';
-    result.checks.push({code:'marathon_return_race_review',status:'pending',message:detail+' Pour les 42,195 km, le coach doit vérifier la stratégie de course et de marche, le temps sur les pieds et la tolérance aux impacts avant prescription.'});
-  }
+  const marathonReview=measuredMarathonLong ? marathonReturnExposure(result.weeks,measuredMarathonLong,recentTraining!) : undefined;
+  if(marathonReview)result.checks.push({code:'marathon_return_race_review',status:'pending',message:marathonReview.exposure});
   if(trail)result.checks.push({code:'trail_route_review',status:'pending',message:'Projet trail à relire sur les parcours de cet athlète : D+/D− réellement tolérés, descentes, durée de la sortie longue et effort en montée. Les dénivelés de course ne renseignent pas la tolérance individuelle. Les cibles terrain et le guidage restent à préciser.'});
   const missingTargets=[...new Set(selected.flatMap(s=>s.targets.missing))];
   if(options.includeLibrary920){
@@ -1212,7 +1247,9 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
     result.checks.push({code:'limiter_without_source_match',status:options.completeSessions?'blocked':'pending',
       message:`Rang ${index+1} · ${p.raw} : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.`+
-        (options.completeSessions&&knownLevel===0&&road?.goal==='semi'?returnRankGap(p.raw,[...sources,...librarySources]):'')});
+        (triReturn?returnTriathlonRankGap(p.raw,[...sources,...librarySources]):'')+
+        (options.completeSessions&&knownLevel===0&&(road?.goal==='semi'||marathonReview)?returnRankGap(p.raw,[...sources,...librarySources],marathonReview?'marathon':'semi-marathon'):'')+
+        (marathonReview&&index===0?' '+marathonReview.history+' '+marathonReview.exposure:'')});
   }
   if(options.completeSessions && road?.goal==='5k' && road.ambition!=='finisher'){
     const specific=result.weeks.filter(w=>w.weekType==='load'&&['build','peak'].includes(w.phase??''))

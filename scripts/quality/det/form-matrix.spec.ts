@@ -10,6 +10,7 @@ import { auditV3Catalogue } from '../../library-v3/catalogueRuntime';
 import { v3ExtendedCatalogue } from '../../library-v3/supplementalCatalogue';
 import { parseV3PlanProposal } from '@/lib/det/v3ProposalLocalSave';
 import { AMBITION_LEVELS_ORDERED } from '@/types/ambitionLevel';
+import type {appProfileDetStructure} from '@/lib/det/appProfileDetStructure';
 import type { V3PlanProposal } from '@/lib/det/appPlanningV3Proposal';
 
 vi.mock('@/integrations/supabase/client', () => ({ supabase: {} }));
@@ -76,9 +77,9 @@ for (const scenario of selected) {
         if (!detSupportsObjective(scenario.objective)) {
           const outside=inputFor(scenario,level,ambition);
           await expect(generateDetPlanFromPageInput(outside)).rejects.toMatchObject({
-            decision:{kind:'engine_limit',fields:[]},message:expect.stringContaining('protocole marche-course'),
+            decision:{kind:'outside_det',fields:[]},message:expect.stringContaining('protocole marche-course'),
           });
-          emit({ ...row, status: 'outside_det',decision:{kind:'engine_limit',fields:[]},protocol:'Start to Run'});
+          emit({ ...row, status: 'outside_det',decision:{kind:'outside_det',fields:[]},protocol:'Start to Run'});
           return;
         }
         const input = inputFor(scenario, level, ambition);
@@ -273,7 +274,8 @@ for (const trail of selected.filter(s => s.objective.startsWith('Trail'))) {
     expect(parseV3PlanProposal(JSON.parse(JSON.stringify(p))).trailLongRunLimits).toEqual(limits);
     expect(p.weeks).toHaveLength(trail.weeks);
     expect(p.prescriptionAllowed).toBe(false);
-    const runSessions = plan.weeks.flatMap(w => w.sessions).filter(s => s.sport === 'run' && s.catalogId);
+    const runSessions = plan.weeks.flatMap(w => w.sessions).filter(s => s.sport === 'run' && s.catalogId)
+      .map(s=>s as typeof s & ReturnType<typeof appProfileDetStructure>);
     expect(runSessions.length).toBeGreaterThan(0);
     expect(runSessions.every(s => s.detStructureRefusal?.reason === 'run_terrain_effort_review_required' && !s.detStructuredWorkout)).toBe(true);
     expect(p.checks.some(c => c.code === 'trail_route_review' && c.status === 'pending')).toBe(true);
@@ -285,7 +287,14 @@ for (const trail of selected.filter(s => s.objective.startsWith('Trail'))) {
       }
     }
     if (process.env.DET_TRAIL_EXAMPLES) writeFileSync(process.env.DET_TRAIL_EXAMPLES + '/' + trail.objective + '.json', JSON.stringify(p));
-    await expect(generateDetPlanFromPageInput({ ...input, trailLongRunLimits: {recentMinutes:100,peakMinutes:50} })).rejects.toThrow();
+    try {
+      const lower=await generateDetPlanFromPageInput({...input,trailLongRunLimits:{recentMinutes:100,peakMinutes:50}});
+      const limited=(lower as typeof lower & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+      expect(limited.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.filter(s=>s.sport==='run' && s.role!=='race'))).every(s=>s.knownMinutes<=50)).toBe(true);
+    } catch (error) {
+      if (!(error instanceof DetRefusal)) throw error;
+      expect(error.decision.kind).toBe('engine_limit');
+    }
   }, 120_000);
 }
 
@@ -516,14 +525,15 @@ if(process.env.DET_HISTORY_FOLLOWUP==='1'){
     if(!isTrail && !isTri && !['10K','Marathon'].includes(scenario.objective))continue;
     const ambitions=AMBITION_LEVELS_ORDERED.filter(a=>scenario.objective!=='10K'||a!=='finisher');
     it.each(ambitions)('après données de reprise '+scenario.objective+' / %s',async ambition=>{
-      const history=isTri ? {} : {recentWeeklyHours:'3',recentWeeksCount:'4'};
+      const history={recentWeeklyHours:'3',recentWeeksCount:'4'};
       const supplied=isTrail ? {trailLongRunLimits:{recentMinutes:75,peakMinutes:105}} : isTri ? {recentLongRideMinutes:75} :
         scenario.objective==='Marathon'?{marathonRecentLongRunMinutes:65}:{roadReturnThresholdReps:2};
       const input=inputFor(scenario,'untrained',ambition,[],history);
       const info={objective:scenario.objective,level:'untrained',ambition,horizon:scenario.weeks,history,supplied};
       try{
         const plan=await generateDetPlanFromPageInput({...input,...supplied});
-        const proposal=readProposal(plan),preview=await previewDetGuidance(plan);
+        const proposal=(plan as typeof plan & {_detSourceProposal:V3PlanProposal})._detSourceProposal;
+        const preview=await previewDetGuidance(plan);
         expect(proposal.weeks.length).toBe(scenario.weeks);
         expect(proposal.checks.some(c=>c.status==='blocked')).toBe(false);
         emit({...info,status:'assembled',weeks:proposal.weeks.length,exportComplete:preview.precheck.complete,operations:preview.ops.length});
@@ -531,6 +541,10 @@ if(process.env.DET_HISTORY_FOLLOWUP==='1'){
         if(!(error instanceof DetRefusal))throw error;
         expect(error.reasons.length).toBeGreaterThan(0);
         expect(error.decision.kind,'Les observations demandées viennent d’être fournies.').not.toBe('missing_data');
+        if (scenario.objective==='TrailMountain' || scenario.objective==='TrailUltra') {
+          expect(error.decision.kind).toBe('engine_limit');
+          expect(error.reasons.join(' ')).toMatch(/sortie longue sur sentier/);
+        }
         emit({...info,status:'refused',decision:error.decision,reasons:error.reasons});
       }
     },120_000);

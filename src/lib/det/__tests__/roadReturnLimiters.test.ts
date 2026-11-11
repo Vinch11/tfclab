@@ -102,6 +102,7 @@ it('distinguishes a different or unknown session, insufficient volume, fatigue, 
   const expectFailure=(data:Parameters<typeof generateDetPlanFromPageInput>[0],kind:string,part:string)=>
     expect(generateDetPlanFromPageInput(data)).rejects.toMatchObject({decision:{kind},message:expect.stringContaining(part)});
   await expectFailure(input,'missing_data','fractions de 3 min');
+  await expectFailure({...input,config:{...input.config,loadHistory:{recentWeeklyHours:0,recentWeeksCount:3}},roadReturnThresholdReps:2},'engine_limit','0 h');
   for(const declared of [0,1]) await expectFailure({...input,roadReturnThresholdReps:declared},'engine_limit','2 × 3 min');
   await expectFailure({...input,roadReturnThresholdReps:3,athlete:{...input.athlete,paceThresholdSecPerKm:null}},'missing_data','allure individuelle au seuil');
   const small=inputFor(scenario,'untrained','competitor',[],{recentWeeklyHours:'0.5',recentWeeksCount:'4'});
