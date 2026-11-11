@@ -1,10 +1,10 @@
 {
-  "upstreamRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
+  "upstreamRelease": "19fe789e44a272a4fa7d8ca201f9b6782e2f8f422872bb6438f7e963a2e7f14e",
   "assets": {
-    "coach-CM0n7RBt.mjs": "ef1895fef9191a0b0626a556046925e36ab29c3d888fba5f766f452d83361e8d",
+    "coach-DWTtQr5e.mjs": "949907c48d04986df5cdb248ef9dc526a16e59a81cc1fcf0d7b36c6fdefaa3ee",
+    "mount-BoNOS111.mjs": "6d8ef2f412bb1258d4ad59559e7d12a08f8e94a83eeba8090001d558a927739a",
     "mount-D2mQHqo9.css": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5",
-    "mount-DsRhNnPJ.mjs": "780e4851679bb494d06aeeedce75491074b7da74cbce93b9583c2b76897a0670",
-    "nolioRemote-PtMvqdZg.mjs": "66903437c24e83226922bdcc4a00258a82e607b9024a6c127d9dde54c760c6c4"
+    "nolioRemote-Z95kp75K.mjs": "29735d0ea2a6bf29d9ee2441216cdde7c0e3d814536af4cd60302a5875c618c5"
   },
   "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
 }
