@@ -1,0 +1,272 @@
+{
+  "dateBrussels": "2026-11-12",
+  "source": "2389d6fdb00ae8ff99eae23ac86a7a68100b4a94",
+  "githubWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/43123069606",
+  "formDeliveries": [
+    {
+      "pr": 476,
+      "mergedAt": "2026-11-11T00:03:25Z",
+      "commit": "b8316d34166c026a2fd88d3cf36e400ba81ca26e",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 477,
+      "mergedAt": "2026-11-11T00:48:37Z",
+      "commit": "512d889a02c1ce69fa28cfe9beb534ca97b9ef05",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 478,
+      "mergedAt": "2026-11-11T01:07:10Z",
+      "commit": "dd7e0d5ea12b0e5155b962e18fc5f83ec4c523a3",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 479,
+      "mergedAt": "2026-11-11T01:18:51Z",
+      "commit": "b712a6fdaa48db40297bedff8a7cb071187fcada",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 480,
+      "mergedAt": "2026-11-11T09:43:13Z",
+      "commit": "516ba1aacfcb67e51092bd222244fef4bd9df71d",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 481,
+      "mergedAt": "2026-11-11T10:04:48Z",
+      "commit": "0b0d01ace2bdf7f1ccb34e111683b2be65f0d1c0",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    },
+    {
+      "pr": 482,
+      "mergedAt": "2026-11-11T15:55:19Z",
+      "commit": "04d8be2bc0f416df5fc6a78016768dd4a5ebd59a",
+      "formalReviews": 0,
+      "issueComments": 0,
+      "reviewComments": 0
+    }
+  ],
+  "publicManifest": {
+    "bytes": 337,
+    "sha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+    "identicalToMainAndRelease": true
+  },
+  "worker": {
+    "schema": 1,
+    "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+    "entry": "worker.js.gz",
+    "encoding": "gzip",
+    "bytes": 804727,
+    "sha256": "419ff8aca16368f84c1e3dd274eb20db08427faf6592a0b35e157c5e046f8025",
+    "workerSha256": "7a8f44c16e1a70e07571aac862771be206300d9d2b3b5b559758cb8f0733fbe1"
+  },
+  "publicChromium": {
+    "publicOrigin": "https://tfcl.twoforcoaching.be",
+    "manifestBytes": 337,
+    "manifestSha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+    "runtime": "runtime/det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+    "generalRelease": "fc128ce0d817ca11fc83d65965f73be73c1e776a2d0a4911367c2bbea1cea614",
+    "formBuiltAgainst": "abdba7ae82cc70ba8410bae9250c800bf43f3998afe24c07dd33683d550b6acb",
+    "results": {
+      "marathon": {
+        "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+        "weeks": 16,
+        "limiters": [
+          "Durabilité",
+          "VLamax",
+          "TTE"
+        ],
+        "complete": true,
+        "operations": [
+          103,
+          7,
+          1
+        ],
+        "matchingSingle": true,
+        "sport": {
+          "peakRunMinutes": 434.5,
+          "longRunS13": 159.5
+        }
+      },
+      "ironman": {
+        "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+        "weeks": 16,
+        "limiters": [
+          "Durabilité",
+          "VLamax",
+          "TTE"
+        ],
+        "complete": true,
+        "operations": [
+          166,
+          11,
+          1
+        ],
+        "matchingSingle": true,
+        "sport": {
+          "longBikeS11": 150,
+          "longRunS11": 100,
+          "brickWeeks": [
+            3,
+            7,
+            11
+          ]
+        }
+      },
+      "balanced10K144": {
+        "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+        "weeks": 8,
+        "firstWeekMinutes": 141,
+        "runs": 4,
+        "source": "V3P_STRENGTH_201",
+        "strengthMinutes": 21,
+        "limiters": [],
+        "blocked": 0,
+        "precheck": true,
+        "operations": 38,
+        "zeroStrengthWeeks": 8,
+        "zeroStrengthSessions": 0
+      }
+    },
+    "decisions": {
+      "standard": {
+        "decision": {
+          "kind": "outside_det",
+          "fields": []
+        },
+        "message": "Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course."
+      },
+      "assessment": {
+        "decision": {
+          "kind": "missing_data",
+          "fields": [
+            "diagnostic"
+          ]
+        },
+        "message": "Sélectionnez le bilan de cet athlète pour l’objectif demandé."
+      },
+      "excludedRun": {
+        "decision": {
+          "kind": "incompatible",
+          "fields": [
+            "objective",
+            "constraints"
+          ]
+        },
+        "message": "L’objectif demande la course à pied et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée."
+      },
+      "paceDomain": {
+        "decision": {
+          "kind": "engine_limit",
+          "fields": []
+        },
+        "message": "Le chrono visé correspond à 4:26/km. Avec un seuil à 4:20/km, le domaine marathon de TFCLab va de 4:37/km à 4:55/km. Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono."
+      }
+    },
+    "syntheticInputs": true,
+    "nolioSend": false,
+    "nolioReadback": false,
+    "watchObservation": false
+  },
+  "publicWorkerTrial": {
+    "origin": "https://tfcl.twoforcoaching.be/__det/",
+    "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+    "form": "mount-Bgbj93vn.mjs",
+    "refusal": "S1 : aucune combinaison V3 trouvée. Pour travailler le limiteur prioritaire « TTE », le calcul le plus favorable parmi les doses V3 examinées compte au moins 45 min sur un créneau et 116 min sur les autres. Cela porte le minimum de la semaine à 161 min de blocs pour un plafond de 144 min.",
+    "trialWeeks": 8,
+    "firstWeek": 143,
+    "priorities": [
+      "TTE",
+      "Durabilité",
+      "VO2max",
+      "VMA"
+    ]
+  },
+  "matrix": {
+    "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+    "total": 225,
+    "det": 200,
+    "all156OriginalSuccessesPreserved": true,
+    "decisionsUnchangedFromS1_144": true,
+    "casesWithPriorDecisions": "s1-144.json",
+    "outcomes": {
+      "assembled": 164,
+      "missing_data": 34,
+      "engine_limit": 2,
+      "outside_det": 25
+    },
+    "fullPlanPrecheck": {
+      "complete": 104,
+      "incomplete": 60
+    },
+    "remainingEngineLimits": [
+      {
+        "objective": "Semi",
+        "level": "untrained",
+        "ambition": "elite",
+        "outcome": "engine_limit",
+        "fields": [],
+        "reasons": [
+          "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+          "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+          "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+          "Rang 5 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+        ]
+      },
+      {
+        "objective": "Semi",
+        "level": "untrained",
+        "ambition": "world_class",
+        "outcome": "engine_limit",
+        "fields": [],
+        "reasons": [
+          "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+          "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+          "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+          "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+        ]
+      }
+    ]
+  },
+  "acceptance": {
+    "independentSportReview": {
+      "status": "sans_preuve",
+      "evidence": null
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    },
+    "nolioOAuth": {
+      "status": "compte_teste_deconnecte_selon_le_compte_rendu",
+      "grantObserved": false
+    }
+  },
+  "proofScope": "Relecture des résultats de la matrice de la version ccd8cd85 par objectif, niveau et ambition. Les simulations et les précontrôles utilisent des profils synthétiques. Les PR 476 à 482 et le dossier de recette ne contiennent ni revue sportive indépendante des témoins, ni reçu apparié Nolio V2, ni observation des étapes sur montre."
+}

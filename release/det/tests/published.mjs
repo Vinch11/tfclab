@@ -31,7 +31,14 @@ try {
   assert.deepEqual(publicManifest,expectedManifest,'Octets du manifeste canonique');
   const host=JSON.parse(await publicFile('/__det/coach/host-release.json'));
   assert.equal(host.runtime,runtime);
-  assert.equal(JSON.parse(await publicFile('/plan-release.json')).releaseId,host.upstreamRelease);
+  const generalRelease=JSON.parse(await publicFile('/plan-release.json')).releaseId;
+  assert.match(generalRelease,/^[a-f0-9]{64}$/);
+  assert.match(host.upstreamRelease,/^[a-f0-9]{64}$/);
+  for(const [asset,expected] of Object.entries(host.assets)){
+    assert.equal(hash(await publicFile('/__det/coach/assets/'+asset)),expected,asset);
+  }
+  const generalPage=(await publicFile('/index.html')).toString();
+  for(const name of ['tfcl-det-project','tfcl-det-public-key'])assert.ok(generalPage.includes('name="'+name+'"'),name);
   const base='/__det/coach/'+runtime+'/';
   assert.deepEqual(await publicFile(base+'manifest.json'),expectedManifest);
   const page=await context.newPage();
@@ -133,5 +140,5 @@ try {
   }
   for(const name of ['client.mjs','manifest.json',manifest.entry])assert.ok(observed.has(base+name),name);
   console.log(JSON.stringify({publicOrigin:origin,manifestBytes:publicManifest.length,manifestSha256:hash(publicManifest),
-    runtime,results,decisions,syntheticInputs:true,nolioSend:false,nolioReadback:false,watchObservation:false}));
+    runtime,generalRelease,formBuiltAgainst:host.upstreamRelease,results,decisions,syntheticInputs:true,nolioSend:false,nolioReadback:false,watchObservation:false}));
 } finally {await browser.close();}

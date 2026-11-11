@@ -1,4 +1,11 @@
 {
+  "latestReceipt": {
+    "dateBrussels": "2026-11-12",
+    "file": "recette-2026-11-12.json",
+    "workerVersion": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43123069606"
+  },
+  "snapshotBelowAtUtc": "2026-11-11T10:07:12.109624+00:00",
   "publicOrigin": "https://tfcl.twoforcoaching.be",
   "atUtc": "2026-11-11T10:07:12.109624+00:00",
   "referenceOracle": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",

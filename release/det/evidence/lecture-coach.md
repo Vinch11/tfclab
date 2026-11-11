@@ -1,6 +1,12 @@
 # DET 2.1 — lecture des plans de référence
 
-## Blocage de S1 à 144 minutes
+## Recette du 12 novembre après la PR 482
+
+Le formulaire publié utilise la version DET `ccd8cd85`. Sur le 10 km témoin avec cinq courses et un renforcement, la plus courte séance qui travaille le TTE prioritaire dure 45 minutes. Les autres créneaux exigent ensemble au moins 116 minutes. DET explique pourquoi les doses V3 examinées dépassent le plafond de 144 minutes. Si le coach choisit de tester quatre courses, les huit semaines se construisent avec 143 minutes en S1. Le réglage original est conservé. [Recette et décisions](recette-2026-11-12.json)
+
+Sur cette version, les 156 succès d’origine sont préservés. Les 200 cas DET donnent 164 plans, 34 demandes de données et deux limites de recherche. Les 25 cas Start to Run suivent le protocole marche-course. Chromium a rejoué l’Ironman et le marathon en 3 h 07 sur le site. La revue sportive indépendante et la réception Nolio et montre du pilote restent à documenter. [Rejeu publié](https://github.com/Vinch11/tfclab/actions/runs/43123069606)
+
+## Premier témoin de S1 à 144 minutes
 
 Sur le site publié, un 10 km témoin de huit semaines déclare 2 h 24 d’entraînement hebdomadaire sur les quatre dernières semaines. Le coach demande quatre courses et un renforcement. L’ancienne recherche exigeait au minimum 146 minutes avec les fiches distinctes examinées. DET peut désormais choisir le renforcement général V3 de 21 minutes déjà disponible. S1 totalise 141 minutes et les huit semaines se construisent. Avec zéro renforcement demandé, les huit semaines respectent aussi ce choix. Le message signalé par le coach ne permet pas de retrouver ses réglages exacts. [Doses et décisions des 225 cas](s1-144.json)
 
