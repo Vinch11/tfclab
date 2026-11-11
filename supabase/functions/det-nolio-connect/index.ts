@@ -12,11 +12,11 @@
  * getClaims + propriété de l'athlète (RLS) AVANT tout accès service-role.
  * Aucun jeton ni secret n'est jamais renvoyé.
  */
-import { corsHeaders } from "../det-nolio-export/lib/cors.ts";
-import { authenticate, json, nativeFetch, ownsAthlete } from "../det-nolio-export/lib/edgeAuth.ts";
-import { appOriginFrom, fetchManagedAthletes, loadConfig, NOLIO_BASE, startConnect, type OAuthStore } from "../det-nolio-export/lib/oauth.ts";
-import { autoSportIds, readGrant, readLink, readyGrant, validateSportIds } from "../det-nolio-export/lib/prodConnection.ts";
-import { fetchRemoteRefs } from "../det-nolio-export/lib/refs.ts";
+import { corsHeaders } from "../_shared/det-nolio-v2/cors.ts";
+import { authenticate, json, nativeFetch, ownsAthlete } from "../_shared/det-nolio-v2/edgeAuth.ts";
+import { appOriginFrom, fetchManagedAthletes, loadConfig, NOLIO_BASE, startConnect, type OAuthStore } from "../_shared/det-nolio-v2/oauth.ts";
+import { autoSportIds, readGrant, readLink, readyGrant, validateSportIds } from "../_shared/det-nolio-v2/prodConnection.ts";
+import { fetchRemoteRefs } from "../_shared/det-nolio-v2/refs.ts";
 
 const FIELDS: Record<string, string[]> = {
   status: ["action", "athleteId"], start: ["action"], refresh_athletes: ["action"],

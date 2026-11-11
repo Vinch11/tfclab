@@ -1,10 +1,10 @@
-import {corsHeaders} from './lib/cors.ts';
-import {authenticate,json,nativeFetch,ownsAthlete,UUID} from './lib/edgeAuth.ts';
-import {loadConfig} from './lib/oauth.ts';
-import {confirmedOpKeys,connectionFromGrant,readLink,readyGrant,refsFromLink} from './lib/prodConnection.ts';
-import {confirmedRowsForPlan,sendExportBatch,verifyConfirmedBatch,type MatchedReadback,type LedgerRow} from './lib/exportPlan.ts';
-import {fetchNolioV2Http} from './lib/httpFetch.ts';
-import {supabaseNolioV2Ledger} from './lib/ledgerSupabase.ts';
+import {corsHeaders} from '../_shared/det-nolio-v2/cors.ts';
+import {authenticate,json,nativeFetch,ownsAthlete,UUID} from '../_shared/det-nolio-v2/edgeAuth.ts';
+import {loadConfig} from '../_shared/det-nolio-v2/oauth.ts';
+import {confirmedOpKeys,connectionFromGrant,readLink,readyGrant,refsFromLink} from '../_shared/det-nolio-v2/prodConnection.ts';
+import {confirmedRowsForPlan,sendExportBatch,verifyConfirmedBatch,type MatchedReadback,type LedgerRow} from '../_shared/det-nolio-v2/exportPlan.ts';
+import {fetchNolioV2Http} from '../_shared/det-nolio-v2/httpFetch.ts';
+import {supabaseNolioV2Ledger} from '../_shared/det-nolio-v2/ledgerSupabase.ts';
 import {archiveIdentity,isDetArchive,prepareDetScope} from './contract.ts';
 
 const refused=(reason:string,status=200)=>json(status,{status:'REFUSED',reason});

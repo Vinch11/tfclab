@@ -6,7 +6,7 @@
  * redirection ni les journaux.
  */
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { appOriginFrom, handleCallback, returnLocation, type OAuthStore } from "../det-nolio-export/lib/oauth.ts";
+import { appOriginFrom, handleCallback, returnLocation, type OAuthStore } from "../_shared/det-nolio-v2/oauth.ts";
 
 const redirect = (location: string) => new Response(null, { status: 303, headers: { Location: location, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } });
 

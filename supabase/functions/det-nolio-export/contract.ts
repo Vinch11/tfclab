@@ -1,7 +1,7 @@
-import {canonicalJson,type NolioV2Refs} from './lib/plannedMapper.ts';
-import {preparePlan} from './lib/planDryRun.ts';
-import {operationKey} from './lib/marker.ts';
-import type {PreparedExport} from './lib/exportPlan.ts';
+import {canonicalJson,type NolioV2Refs} from '../_shared/det-nolio-v2/plannedMapper.ts';
+import {preparePlan} from '../_shared/det-nolio-v2/planDryRun.ts';
+import {operationKey} from '../_shared/det-nolio-v2/marker.ts';
+import type {PreparedExport} from '../_shared/det-nolio-v2/exportPlan.ts';
 
 type ReviewedPlan = {
   _detNolioAthleteRef?:string;
