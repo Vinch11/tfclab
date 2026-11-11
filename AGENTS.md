@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Export AI plan cycles through Nolio v2 as one non-overlapping banner per existing phase, with parallel ranked workstreams in its text; resolve the stored athlete link server-side, preview before confirmation, preserve foreign/edited cycles and verify created cycles by readback. Why: calendar phases must not duplicate sessions, overwrite coach work or target a guessed athlete.
+
 - Preserve VO2max and VMA as distinct ranked coach priorities in plan coverage, explicitly sharing their aerobic stimulus without duplicating session totals; latest page order overrides a restored coach payload. Why: family deduplication and stale policies hid the coach's L2.
 - Catalogue duration deviations are warnings in final plan validation, while incompatible sport, phase, intensity and structure retain their content checks. Why: a volume adjustment must not be treated as a fundamental goal/content conflict.
 

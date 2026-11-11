@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Envoyer la périodisation et les chantiers en cycles Nolio v2 : aperçu daté, confirmation athlète, collisions préservées et lecture après création ; quatre cycles du dernier plan Vince réellement créés et relus dans Nolio, reconnus ensuite sans doublon sur téléphone ; 11 tests verts, fonction déployée avec succès. Aucune séance envoyée ou modifiée, aucune génération IA ni publication.
+
 - [x] Corriger l’ordre coach dans génération/rapport/sauvegarde : VO₂max et VMA distincts, stimulus partagé explicite, ordre récent prioritaire sur la politique restaurée ; écarts de durée catalogue en avertissement. 165 tests ciblés verts ; plan réel de Vince chargé, changement d’ordre visible dans le rapport et « Sauvegarder quand même » vérifiés en session connectée, sans confirmer l’écriture. Deux fonctions du générateur déployées avec succès ; aucune génération IA ni publication.
 
 - [x] Objectif athlète courant : le 10 km de Vince prime sur l’ancien Long Course Weekend dans les caches de préparation et les zones courantes ; brouillon incompatible conservé avec reprise explicite, historique inchangé, propagation du changement au contexte partagé ; 18 tests et scénario navigateur vérifiés, fonctions déployées. Aucun plan généré ni donnée athlète modifiée.
