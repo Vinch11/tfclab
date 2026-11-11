@@ -1,3 +1,4 @@
+import './nolio-delivery.test.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createServer} from 'node:http';
@@ -47,12 +48,25 @@ try{
   page.on('console',msg=>{if(msg.type()==='error')console.error('Console du profil synthétique',msg.text().slice(0,350));});
   page.on('requestfailed',r=>console.error('Lecture du profil synthétique',new URL(r.url()).pathname,r.failure()?.errorText));
   const keys={'tfcl_ai_multi_plan':JSON.stringify({isMultiMode:true}), 'sb-detfixture-auth-token':JSON.stringify(session),'vinceslab-selected-athlete':athlete,['tfcl_ai_plan_'+athlete]:JSON.stringify(form)};
-  const refused=[],requested=[],errors=[];
+  const refused=[],requested=[],errors=[],delivery=[];
+  let expectedScope=null;
   await page.addInitScript(values=>{for(const [k,v] of Object.entries(values))localStorage.setItem(k,v);},keys);
   await page.route('**/*',async route=>{
     const req=route.request(),u=new URL(req.url());
     requested.push(u.pathname);
     if(u.origin===app)return route.continue();
+    if(expectedScope && u.origin===project && u.pathname==='/functions/v1/det-nolio-export' && ['OPTIONS','POST'].includes(req.method())){
+      const headers={'access-control-allow-origin':app,'access-control-allow-headers':req.headers()['access-control-request-headers']||'*','access-control-allow-methods':'POST,OPTIONS','content-type':'application/json'};
+      if(req.method()==='OPTIONS')return route.fulfill({status:200,headers,body:'{}'});
+      const job=req.postDataJSON();delivery.push(job.action);
+      if(job.action==='archive'){
+        assert.equal(job.plan._detSourceProposal.athleteId,athlete);
+        return route.fulfill({status:200,headers,body:JSON.stringify({status:'ARCHIVED',planVersionId:'version-simulee'})});
+      }
+      assert.deepEqual(job.scope,expectedScope);assert.equal(job.planVersionId,'version-simulee');
+      const sample={prepare:{status:'PREPARED',confirmed:0,total:1},send:{status:'DONE',confirmed:1,total:1},verify:{status:'VERIFIED',expected:1,totalConfirmed:1,present:1,nextIndex:null}}[job.action];
+      assert.ok(sample);return route.fulfill({status:200,headers,body:JSON.stringify(sample)});
+    }
     if(u.origin!==project || !['GET','HEAD','OPTIONS'].includes(req.method()) || !(u.pathname.startsWith('/rest/v1/')||u.pathname==='/auth/v1/user')){
       refused.push(req.method()+' '+u.origin+u.pathname);return route.abort();
     }
@@ -79,7 +93,7 @@ try{
   await page.locator('[aria-label="Génération déterministe"]').locator('h3,[role=alert]').first().waitFor({timeout:90000});
   const result=page.locator('[aria-label="Génération déterministe"]');
   assert.equal(await result.locator('[role=alert]').allTextContents().then(r=>r.join(' ')),'');
-  assert.equal(await result.locator('details').count(),8);
+  assert.equal(await result.locator('details').filter({has:page.locator('summary',{hasText:/^Semaine /})}).count(),8);
   assert.match(await result.innerText(),/FTP\/kg/);
   const pinned=JSON.parse(await readFile(path.join(publicFiles,'__det/v1/manifest.json'),'utf8'));
   assert((await result.getByTestId('det-provenance').innerText()).includes(pinned.version));
@@ -95,6 +109,11 @@ try{
   assert.ok(key,'Séance CLM du jeudi de la cinquième semaine');
   await verify(key,1);
   const stages=await guidance.innerText();
+  assert.deepEqual(delivery,[]);
+  expectedScope={kind:'sessions',keys:[key]};
+  await guidance.getByRole('button',{name:'Exporter la séance vers Nolio'}).click();
+  await guidance.getByText(/1 activité\(s\) relue\(s\) sur Nolio/).waitFor();
+  assert.deepEqual(delivery,['archive','prepare','send','verify']);expectedScope=null;
   assert.match(stages,/15 min 30 s/);assert.match(stages,/136,8–158,4 W/);assert.match(stages,/dernière récupération omise/);
   await racePicker.click();
   await page.getByRole('option',{name:/^Trail court/}).click();
@@ -102,7 +121,7 @@ try{
   const peak=page.getByLabel('Durée maximale en préparation (min)');
   await recent.fill('75');await peak.fill('50');
   await page.getByRole('button',{name:'Générer avec DET'}).click();
-  await result.getByRole('alert').filter({hasText:'plafond au moins égal'}).waitFor();
+  await result.getByRole('alert').filter({hasText:/plafond.*(inférieur|au moins égal)/}).waitFor();
   await peak.fill('100');
   await page.evaluate(()=>{
     const send=Worker.prototype.postMessage;
@@ -117,6 +136,19 @@ try{
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
+  await page.evaluate(()=>{
+    const send=Worker.prototype.postMessage;
+    Worker.prototype.postMessage=function(job,...args){
+      if(job?.action==='generate')window.marathonWorkerInput=job.input.config.raceGoals?.find(g=>g.priority==='A');
+      return send.call(this,job,...args);
+    };
+  });
+  await racePicker.click();
+  await page.getByRole('option',{name:'Marathon',exact:true}).click();
+  await page.getByLabel('Chrono marathon visé (h:mm:ss ou minutes)').fill('3:07:00');
+  await page.getByRole('button',{name:'Générer avec DET'}).click();
+  await page.waitForFunction(()=>window.marathonWorkerInput?.objective==='Marathon');
+  assert.equal(await page.evaluate(()=>window.marathonWorkerInput.targetTimeMinutes),187);
   assert.deepEqual(refused,[]);assert.deepEqual(errors,[]);
   const witness=await ctx.newPage();
   await witness.goto(app+'/index.html');
