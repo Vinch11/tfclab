@@ -1,5 +1,7 @@
 import { validateCoachLoadIssues } from "../coachVolumeValidation";
 import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
+import { checkRemainingDurationRanges } from "../resolveDurationRanges";
+import { isKeySessionObjectiveMismatch } from "../keySessionObjective";
 /**
  * Audit scientifique P0 — F12. Point d'entrée UNIQUE pour brancher B13/B14
  * (validation finale post-mutations) sur un pipeline de génération RÉEL
@@ -156,6 +158,13 @@ export function computeFinalValidationIssues(
   const ambitionGapIssues = ambitionPhysiology
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
-  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
+  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
+}
+
+function keySessionObjectiveIssues(plan: FinalValidationPlanLike, objective?: string | null): FinalValidationIssue[] {
+  if (!objective) return [];
+  return plan.weeks.flatMap(w => w.sessions.filter(s => (s as { isKeySession?: boolean }).isKeySession && isKeySessionObjectiveMismatch((s as { catalogId?: string | null }).catalogId, objective))
+    .map(s => ({ rule: "key_session_objective_mismatch", severity: "warning" as const,
+      message: `S${w.weekNumber} « ${s.title} » : séance clé tirée d'une fiche prévue pour un autre objectif.` })));
 }

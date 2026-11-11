@@ -1,3 +1,5 @@
+import { resolvePlanDurationRanges } from "@/lib/plan/resolveDurationRanges";
+import { demoteMismatchedKeySessions } from "@/lib/plan/keySessionObjective";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { mergeWindowEvidence, type GenerationWindow } from "@/lib/plan/contractScope";
 import { prepareControlledPrescription } from "@/lib/plan/controlledPrescription";
@@ -1234,6 +1236,13 @@ export function useAITrainingPlan() {
               }
             } catch (nerr) {
               console.error("[useAITrainingPlan] normalizeWeeksAndPhases (json) failed:", nerr);
+            }
+            try {
+              const fixedRanges = resolvePlanDurationRanges(merged);
+              if (fixedRanges > 0) semanticRepairs.push(`[info] duration_ranges_resolved: ${fixedRanges} séance(s) — tranche remplacée par une durée unique`);
+              for (const t of demoteMismatchedKeySessions(merged, planConfig.objective ?? "")) semanticRepairs.push(`[info] key_session_objective_demoted: ${t}`);
+            } catch (dErr) {
+              console.error("[useAITrainingPlan] précision des séances failed:", dErr);
             }
             const parsed = jsonPlanToParsedPlan(merged);
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
