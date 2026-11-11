@@ -1,5 +1,4 @@
 import {detClientUrl} from './detClientUrl';
-import {NolioConnection} from './NolioConnection';
 import {deliverToNolio,scopeFor,type NolioReceipt} from './nolioDelivery';
 import {useEffect, useRef, useState} from 'react';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
@@ -45,7 +44,7 @@ function Blocks({blocks}:{blocks:Block[]}){
 }
 
 /** Read the structured Nolio translation, including repeats. No remote account or operation is used. */
-export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}){
+export function PlanGuidance({plan}:{plan:ParsedPlan}){
   const [selection,setSelection]=useState('all');
   const [receipt,setReceipt]=useState<Receipt|null>(null);
   const [error,setError]=useState('');
@@ -82,7 +81,6 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
   return <section className="space-y-2 border-t pt-3" aria-label="Guidage Nolio V2">
     <h4 className="font-semibold">Guidage Nolio V2</h4>
     <p>Ce contrôle prépare les étapes sur des associations simulées. L’envoi au calendrier Nolio et la réception sur la montre demandent une vérification séparée.</p>
-    <NolioConnection key={athleteId} athleteId={athleteId}/>
     <label>Portée du contrôle <select value={selection} onChange={e=>{running.current?.abort();setBusy(false);setReceipt(null);setError('');setDelivery('');setRemoteReceipt(null);setSelection(e.target.value);}}>
       <option value="all">Plan complet</option>
       <optgroup label="Semaines">{plan.weeks.map(w=><option key={w.weekNumber} value={'week-'+w.weekNumber}>Semaine {w.weekNumber}</option>)}</optgroup>

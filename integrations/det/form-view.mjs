@@ -18,7 +18,8 @@ export function coachView(source){
     <h1 className="text-2xl font-bold">Plan d’entraînement · DET-ENGINE</h1>
     <label>Athlète <select value={currentAthlete?.id ?? ''} onChange={e=>setSelectedAthleteId(e.target.value)}>
       {athletes.map(a=><option key={a.id} value={a.id}>{a.nom}</option>)}</select></label>
-    {currentAthlete && <>`;
+    {currentAthlete && <>
+      {objective!=='StartToRun' && <NolioConnection key={currentAthlete.id} athleteId={currentAthlete.id}/>}`;
   // Render the form only when a profile is selected. Its regular JSX appears verbatim.
   const rendered=view+config+`
     {objective==='StartToRun' && <p role="status">Start to Run utilise le protocole marche-course. <a href="/planning/ai-plan">Ouvrir la planification TFCLab et choisir « Assigner Start-to-Run standard »</a></p>}
@@ -26,5 +27,5 @@ export function coachView(source){
     {objective!=='StartToRun' && athleteContext && <DetCoachPanel key={currentAthlete.id} clm={objective==='Cyclisme contre-la-montre'} disabled={!hasData} revision={JSON.stringify([athleteContext.data,athleteContext.diagnostic,buildConfigWithCoachOverrides(athleteContext.diagnostic),coachLimiterOrder,lastCoachOverridesPayload])}
       readInput={()=>({athleteId:currentAthlete.id,athlete:athleteContext.data,diagnostic:athleteContext.diagnostic,config:buildConfigWithCoachOverrides(athleteContext.diagnostic),pageLimiterOrder:coachLimiterOrder,coachPayload:lastCoachOverridesPayload})}/>}
     </>}</main>`;
-  return 'import {DetCoachPanel} from "/integrations/det/DetCoachPanel";\n'+source.slice(0,begin)+rendered+source.slice(end+'</AppLayout>'.length);
+  return 'import {DetCoachPanel} from "/integrations/det/DetCoachPanel";\nimport {NolioConnection} from "/integrations/det/NolioConnection";\n'+source.slice(0,begin)+rendered+source.slice(end+'</AppLayout>'.length);
 }
