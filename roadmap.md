@@ -46,7 +46,7 @@
 
 ## Séances précises (plan 2026-11-11)
 - [x] Étape 1 — tranches de durée → durée unique (génération complète)
-- [x] Étape 1b — régénération d’une semaine et plans enregistrés revérifiés (quotas)
+- [ ] Étape 1b — conversion des tranches de durée à l’ouverture des plans enregistrés (quotas déjà revérifiés à l’ouverture et en régénération de semaine)
 - [ ] Étape 2 — séances structurées vers Nolio (attend : athlète Nolio de test)
 - [x] Étape 3 — quotas d’allure de course (avertissements) actifs
 - [x] Étape 4 — fiche d'un autre objectif retirée des séances clés + avertissement
