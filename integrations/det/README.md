@@ -21,3 +21,5 @@ Après un envoi, **Identifiants d’envoi et de relecture Nolio** affiche la ver
 Le formulaire publié utilise les trois fichiers de la version vérifiée sous un chemin propre au moteur et à son client. Le même chemin sert à la génération et au précontrôle Nolio lorsqu’un navigateur a déjà mis en cache une ancienne version de DET.
 
 Le chemin utilisé par la page se lit dans la propriété `runtime` de `/__det/coach/host-release.json`. Après un changement d’objectif ou de date de début, le formulaire affiche les observations enregistrées pour cette préparation. Revenir au trail court après avoir choisi un ultra restaure les durées du trail court.
+
+Les fichiers dont le nom contient une empreinte et les versions de DET déjà publiées sont conservés lors de la livraison suivante. Un onglet ouvert peut ainsi terminer avec la version du formulaire qu’il a chargée.
