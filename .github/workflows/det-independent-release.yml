@@ -25,6 +25,7 @@ jobs:
             "$RUNNER_TEMP/det-test/node_modules/.bin/playwright" install --with-deps chromium
           fi
       - run: node release/det/tests/chromium.mjs
+      - run: node release/det/tests/published.mjs https://tfcl.twoforcoaching.be
   publish:
     needs: verify
     runs-on: ubuntu-latest
