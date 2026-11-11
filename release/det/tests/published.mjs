@@ -79,7 +79,35 @@ try {
     }
     results[sport]=actual;
   }
+  const marathon=JSON.parse(await local('./witness-marathon.json'));
+  const decisions=await page.evaluate(async({base,marathon})=>{
+    const {runDet}=await import(base+'client.mjs');
+    const currentThreshold={...marathon,athlete:{...marathon.athlete,paceThresholdSecPerKm:260},
+      diagnostic:{...marathon.diagnostic,_rawInput:{...marathon.diagnostic._rawInput,paceThresholdSecPerKm:260}}};
+    const inputs={
+      standard:{config:{objective:'StartToRun'}},
+      assessment:{...marathon,diagnostic:null},
+      excludedRun:{...marathon,config:{...marathon.config,constraints:'Course à pied interdite'}},
+      paceDomain:currentThreshold,
+    };
+    const answers={};
+    for(const [caseName,input] of Object.entries(inputs)){
+      try{await runDet({action:'generate',input});}
+      catch(error){answers[caseName]={decision:error.decision,message:error.message};}
+    }
+    return answers;
+  },{base,marathon});
+  const expected={
+    standard:['outside_det',[],/protocole marche-course/],
+    assessment:['missing_data',['diagnostic'],/bilan/],
+    excludedRun:['incompatible',['objective','constraints'],/course à pied/],
+    paceDomain:['engine_limit',[],/4:26\/km.+4:20\/km.+conserver le chrono/],
+  };
+  for(const [caseName,[kind,fields,reason]] of Object.entries(expected)){
+    assert.deepEqual(decisions[caseName]?.decision,{kind,fields},caseName);
+    assert.match(decisions[caseName].message,reason);
+  }
   for(const name of ['client.mjs','manifest.json',manifest.entry])assert.ok(observed.has(base+name),name);
   console.log(JSON.stringify({publicOrigin:origin,manifestBytes:publicManifest.length,manifestSha256:hash(publicManifest),
-    runtime,results,syntheticInputs:true,nolioSend:false,nolioReadback:false,watchObservation:false}));
+    runtime,results,decisions,syntheticInputs:true,nolioSend:false,nolioReadback:false,watchObservation:false}));
 } finally {await browser.close();}
