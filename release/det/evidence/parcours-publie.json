@@ -1,42 +1,42 @@
 {
   "publicOrigin": "https://tfcl.twoforcoaching.be",
-  "atUtc": "2026-11-11T01:09:21.400348+00:00",
+  "atUtc": "2026-11-11T01:20:54.248187+00:00",
   "referenceOracle": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
-  "engineSource": "beb5ecdc60c6f0fdb938e9d235a78149bbbc0a58",
-  "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42933380934",
+  "engineSource": "98a3205b3c4b5d5226009de1a80fb69077d71d1a",
+  "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42937349986",
   "generalRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
   "worker": {
     "schema": 1,
-    "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+    "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
     "entry": "worker.js.gz",
     "encoding": "gzip",
-    "bytes": 803337,
-    "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869",
-    "workerSha256": "5b1b32cf7c8a1c6850c24292e5342f9c220cf5a51a647e714af18e57be3cd8fb"
+    "bytes": 803770,
+    "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8",
+    "workerSha256": "0c9ddb5306ec1f6dec56f0d9f66f5b6e0c4b17f55c65011d6a51c7a7bda80362"
   },
   "workerDecompressedVerified": true,
   "publicManifestBytes": {
     "status": 200,
     "url": "https://tfcl.twoforcoaching.be/__det/v1/manifest.json",
     "bytes": 337,
-    "sha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca",
+    "sha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
     "equalsGitHubBytes": true
   },
   "formHtml": {
     "path": "/__det/coach/index.html",
     "httpStatus": 200,
     "moduleScripts": [
-      "/__det/coach/assets/coach-LbNEoI5Q.mjs"
+      "/__det/coach/assets/coach-CM0n7RBt.mjs"
     ],
     "mountPoint": "det-root",
-    "hostResponseSha256": "fe8898631bbb8ad6c94337148c667d242303ad165f38f198a1d3f230307d77b7",
-    "gitSha256": "f61742970713764a455b3105f8ac2e1cfe9db9f2621a70cfb1ce0b3e3b007ea4",
+    "hostResponseSha256": "77afb71d97527bb93c64dc5d45f39741678fceb0f549b70dc41419b7d003f4fe",
+    "gitSha256": "fa87ea95d14776d0c172fe6bac5091cdffd20fcf326b26862db51cf98456df6f",
     "htmlBytesEqual": false
   },
   "matchedFiles": {
     "/__det/v1/worker.js.gz": {
-      "bytes": 803337,
-      "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869"
+      "bytes": 803770,
+      "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8"
     },
     "/__det/v1/client.mjs": {
       "bytes": 2833,
@@ -44,35 +44,35 @@
     },
     "/__det/coach/host-release.json": {
       "bytes": 650,
-      "sha256": "8805ecc9dddea8d1a5f839b42d2eb65664dff22afa2e1c8ed1ad853f7c35b252"
+      "sha256": "29d12f7806e3cbc6c4ed2a86df453c45a991716258f0d5b8221044aa984776f2"
     },
-    "/__det/coach/assets/coach-LbNEoI5Q.mjs": {
+    "/__det/coach/assets/coach-CM0n7RBt.mjs": {
       "bytes": 3819,
-      "sha256": "b5cf4ac608d754c8489a94dff8f5ed4514013bed5065a162cb440e6ced2525ef"
-    },
-    "/__det/coach/assets/mount-CQaaT6n1.mjs": {
-      "bytes": 2609548,
-      "sha256": "1e6635f14e3063d3796f1e3cbca431c0866aaf53583534ac5bd70efb3b1fdb8d"
+      "sha256": "ef1895fef9191a0b0626a556046925e36ab29c3d888fba5f766f452d83361e8d"
     },
     "/__det/coach/assets/mount-D2mQHqo9.css": {
       "bytes": 210705,
       "sha256": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5"
     },
-    "/__det/coach/assets/nolioRemote-Jau8egrv.mjs": {
+    "/__det/coach/assets/mount-DsRhNnPJ.mjs": {
+      "bytes": 2609548,
+      "sha256": "780e4851679bb494d06aeeedce75491074b7da74cbce93b9583c2b76897a0670"
+    },
+    "/__det/coach/assets/nolioRemote-PtMvqdZg.mjs": {
       "bytes": 660,
-      "sha256": "7252453c5629483af83e69b6dcfe38a8c5d9af8d89366fbd0dc665ccc257f467"
+      "sha256": "66903437c24e83226922bdcc4a00258a82e607b9024a6c127d9dde54c760c6c4"
     },
-    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json": {
+    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json": {
       "bytes": 337,
-      "sha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca"
+      "sha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164"
     },
-    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs": {
+    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs": {
       "bytes": 2833,
       "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     },
-    "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz": {
-      "bytes": 803337,
-      "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869"
+    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz": {
+      "bytes": 803770,
+      "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8"
     }
   },
   "formDelivery": [
@@ -103,31 +103,35 @@
       ],
       "staticDeployment": "e329d872-a52c-411b-bc89-e413d433f9a7",
       "runtime": "runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+    },
+    {
+      "pr": 479,
+      "url": "https://github.com/Vinch11/tfclab/pull/479",
+      "mergeCommit": "b712a6fdaa48db40297bedff8a7cb071187fcada",
+      "verifiedFormWorkflows": [
+        "https://github.com/Vinch11/tfclab/actions/runs/42937713006",
+        "https://github.com/Vinch11/tfclab/actions/runs/42937719752"
+      ],
+      "staticDeployment": "11eeed09-f244-45c3-b6fc-06b32b54c169",
+      "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     }
   ],
-  "priorPublicChromium": {
-    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42928746315",
-    "verifyJobId": 130221824316,
-    "result": "success",
-    "scope": "Chromium sur le domaine publié, marathon synthétique, version du worker identique, seize semaines construites et précontrôle de la première semaine. Aucun envoi vers Nolio.",
-    "version": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f"
-  },
   "nolioServices": {
-    "atUtc": "2026-11-11T00:58:40.854613+00:00",
+    "atUtc": "2026-11-11T01:21:09.241229+00:00",
     "method": "OPTIONS",
     "functions": {
       "nolio-v2-oauth": {
         "status": 200
-      },
-      "det-nolio-export": {
-        "status": 404,
-        "code": "NOT_FOUND"
       },
       "det-nolio-connect": {
         "status": 404,
         "code": "NOT_FOUND"
       },
       "det-nolio-callback": {
+        "status": 404,
+        "code": "NOT_FOUND"
+      },
+      "det-nolio-export": {
         "status": 404,
         "code": "NOT_FOUND"
       },
@@ -253,7 +257,8 @@
     "testsPassed": 152,
     "reference": "coach-matrix.json",
     "inputFollowups": "coach-historiques-renseignes.json",
-    "rankAndExtended": "coach-complements.json"
+    "rankAndExtended": "coach-complements.json",
+    "workerVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10"
   },
   "generalCI": {
     "baseline": "77b79a9d5ffd7383417039334b2e0add62f564c4",
@@ -286,20 +291,30 @@
         "path": "src/hooks/__tests__/useAITrainingPlan.prevalidation.test.tsx",
         "line": 16
       }
-    ]
+    ],
+    "latestWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42937719748",
+    "latestFindings": {
+      "jobs": {
+        "ESLint (fichiers modifiés uniquement)": "success",
+        "Deno test (edge functions)": "success",
+        "Vitest (frontend)": "failure",
+        "Playwright E2E (Chromium)": "success"
+      },
+      "matchesPreviousSeven": true
+    }
   },
   "publicChromium": {
-    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42936885131",
-    "verifyJobId": 130249045476,
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42938333824",
+    "verifyJobId": 130253814249,
     "result": "success",
     "observed": {
       "publicOrigin": "https://tfcl.twoforcoaching.be",
       "manifestBytes": 337,
-      "manifestSha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca",
-      "runtime": "runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+      "manifestSha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
+      "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
       "results": {
         "marathon": {
-          "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+          "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
           "weeks": 16,
           "limiters": [
             "Durabilité",
@@ -319,7 +334,7 @@
           }
         },
         "ironman": {
-          "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+          "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
           "weeks": 16,
           "limiters": [
             "Durabilité",
@@ -344,6 +359,41 @@
           }
         }
       },
+      "decisions": {
+        "standard": {
+          "decision": {
+            "kind": "outside_det",
+            "fields": []
+          },
+          "message": "Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course."
+        },
+        "assessment": {
+          "decision": {
+            "kind": "missing_data",
+            "fields": [
+              "diagnostic"
+            ]
+          },
+          "message": "Sélectionnez le bilan de cet athlète pour l’objectif demandé."
+        },
+        "excludedRun": {
+          "decision": {
+            "kind": "incompatible",
+            "fields": [
+              "objective",
+              "constraints"
+            ]
+          },
+          "message": "L’objectif demande la course à pied et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée."
+        },
+        "paceDomain": {
+          "decision": {
+            "kind": "engine_limit",
+            "fields": []
+          },
+          "message": "Le chrono visé correspond à 4:26/km. Avec un seuil à 4:20/km, le domaine marathon de TFCLab va de 4:37/km à 4:55/km. Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono."
+        }
+      },
       "syntheticInputs": true,
       "nolioSend": false,
       "nolioReadback": false,
@@ -354,9 +404,11 @@
     "pullRequests": [
       476,
       477,
-      478
+      478,
+      479
     ],
     "formalReviews": [
+      0,
       0,
       0,
       0
@@ -364,9 +416,153 @@
     "prComments": [
       0,
       0,
+      0,
       0
     ],
     "sportingVerdict": null,
-    "scope": "Les trois PR du formulaire et les preuves de recette référencées ne contiennent pas d’avis sportif indépendant signé."
+    "scope": "Les PR 476 à 479 du formulaire et les pièces de recette consultées ne contiennent pas d’avis sportif indépendant sur les deux plans publiés."
+  },
+  "previousFormAvailability": {
+    "atUtc": "2026-11-11T01:21:04.022271+00:00",
+    "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+    "verifiedByteForByte": [
+      {
+        "path": "/__det/coach/assets/coach-LbNEoI5Q.mjs",
+        "bytes": 3819,
+        "sha256": "b5cf4ac608d754c8489a94dff8f5ed4514013bed5065a162cb440e6ced2525ef"
+      },
+      {
+        "path": "/__det/coach/assets/mount-CQaaT6n1.mjs",
+        "bytes": 2609548,
+        "sha256": "1e6635f14e3063d3796f1e3cbca431c0866aaf53583534ac5bd70efb3b1fdb8d"
+      },
+      {
+        "path": "/__det/coach/assets/mount-D2mQHqo9.css",
+        "bytes": 210705,
+        "sha256": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5"
+      },
+      {
+        "path": "/__det/coach/assets/nolioRemote-Jau8egrv.mjs",
+        "bytes": 660,
+        "sha256": "7252453c5629483af83e69b6dcfe38a8c5d9af8d89366fbd0dc665ccc257f467"
+      },
+      {
+        "path": "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json",
+        "bytes": 337,
+        "sha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca"
+      },
+      {
+        "path": "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs",
+        "bytes": 2833,
+        "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+      },
+      {
+        "path": "/__det/coach/runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz",
+        "bytes": 803337,
+        "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869"
+      }
+    ]
+  },
+  "earlierChromiumReceipts": [
+    {
+      "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42928746315",
+      "verifyJobId": 130221824316,
+      "result": "success",
+      "scope": "Chromium sur le domaine publié, marathon synthétique, version du worker identique, seize semaines construites et précontrôle de la première semaine. Aucun envoi vers Nolio.",
+      "version": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f"
+    },
+    {
+      "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42936885131",
+      "verifyJobId": 130249045476,
+      "result": "success",
+      "observed": {
+        "publicOrigin": "https://tfcl.twoforcoaching.be",
+        "manifestBytes": 337,
+        "manifestSha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca",
+        "runtime": "runtime/det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+        "results": {
+          "marathon": {
+            "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              103,
+              7,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "peakRunMinutes": 434.5,
+              "longRunS13": 159.5
+            }
+          },
+          "ironman": {
+            "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              166,
+              11,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "longBikeS11": 150,
+              "longRunS11": 100,
+              "brickWeeks": [
+                3,
+                7,
+                11
+              ]
+            }
+          }
+        },
+        "syntheticInputs": true,
+        "nolioSend": false,
+        "nolioReadback": false,
+        "watchObservation": false
+      }
+    }
+  ],
+  "currentRegression": {
+    "workerVersion": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+    "detSuiteFiles": 14,
+    "detSuiteAssertions": 141,
+    "referenceMatrix": {
+      "referenceCount": 225,
+      "detCases": 200,
+      "assembled": 164,
+      "completeReferencePlansPreserved": 156,
+      "refusalByDecision": {
+        "missing_data": 34,
+        "engine_limit": 2
+      },
+      "outsideDet": 25,
+      "syntheticFullPlanPrecheck": {
+        "complete": 104,
+        "incomplete": 60
+      },
+      "catalogueSourcesUsed": 325
+    },
+    "completedHistories": {
+      "engine_limit": 26,
+      "assembled": 8
+    },
+    "additionalConfigurations": {
+      "assembled": 18,
+      "explained": 5
+    },
+    "trailCalendarControls": "dates avant le départ, course A en S2, départ un mardi, un créneau course ou aucun.",
+    "sourceTypes": "success"
   }
 }
