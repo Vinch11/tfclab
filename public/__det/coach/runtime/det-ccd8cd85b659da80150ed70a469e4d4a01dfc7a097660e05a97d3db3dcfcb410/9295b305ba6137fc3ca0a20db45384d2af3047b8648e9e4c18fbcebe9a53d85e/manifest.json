@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+  "entry": "worker.js.gz",
+  "encoding": "gzip",
+  "bytes": 804727,
+  "sha256": "419ff8aca16368f84c1e3dd274eb20db08427faf6592a0b35e157c5e046f8025",
+  "workerSha256": "7a8f44c16e1a70e07571aac862771be206300d9d2b3b5b559758cb8f0733fbe1"
+}
