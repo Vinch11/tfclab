@@ -48,5 +48,5 @@
 - [x] Étape 1 — tranches de durée → durée unique (génération complète)
 - [ ] Étape 1b — conversion proposée à l'ouverture des plans existants + régénération d'une semaine
 - [ ] Étape 2 — séances structurées vers Nolio (attend : athlète Nolio de test)
-- [ ] Étape 3 — quotas d'allure spécifique (attend : validation coach du tableau)
+- [x] Étape 3 — quotas d’allure de course (avertissements) actifs
 - [x] Étape 4 — fiche d'un autre objectif retirée des séances clés + avertissement

@@ -15,6 +15,7 @@ import { isKeySessionObjectiveMismatch } from "../keySessionObjective";
  */
 import { checkB13, checkB13ToValidationIssues, type FinalValidationPlanLike } from "./checkB13";
 import { checkB14, checkB14ToValidationIssues } from "./checkB14";
+import { checkSpecificPaceQuotas } from "../specificPaceQuotas";
 import { checkB15, checkB15ToValidationIssues, type AmbitionPhysiologyInput } from "./checkB15";
 
 export interface FinalValidationIssue {
@@ -158,7 +159,7 @@ export function computeFinalValidationIssues(
   const ambitionGapIssues = ambitionPhysiology
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
-  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
+  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...checkSpecificPaceQuotas(plan, ambitionPhysiology?.objective, ambitionPhysiology?.ambition), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }
 
