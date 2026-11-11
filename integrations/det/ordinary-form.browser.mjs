@@ -157,6 +157,12 @@ try{
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await page.waitForFunction(()=>window.marathonWorkerInput?.objective==='Marathon');
   assert.equal(await page.evaluate(()=>window.marathonWorkerInput.targetTimeMinutes),187);
+  await racePicker.click();
+  await page.getByRole('option',{name:/^Start to Run/}).click();
+  const standard=page.getByRole('status').filter({hasText:/Start to Run utilise le protocole marche-course/});
+  await standard.waitFor();
+  assert.equal(await standard.getByRole('link').getAttribute('href'),'/planning/ai-plan');
+  assert.equal(await page.getByRole('button',{name:'Générer avec DET'}).count(),0);
   assert.deepEqual(refused,[]);assert.deepEqual(errors,[]);
   const witness=await ctx.newPage();
   await witness.goto(app+'/index.html');

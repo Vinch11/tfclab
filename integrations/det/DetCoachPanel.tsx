@@ -54,14 +54,14 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   },[readInput,revision,open,disabled,clm]);
   const [busy,setBusy]=useState(false);
   const [result,setResult]=useState<DetPlan|null>(null);
-  const [error,setError]=useState('');
+  const [error,setError]=useState<{message:string;outside:boolean}|null>(null);
   const [review,setReview]=useState<TrailReview|null>(null);
   const run=useRef<AbortController|null>(null);
   useEffect(()=>()=>{run.current?.abort();},[]);
   useEffect(()=>{
-    run.current?.abort();setResult(null);setReview(null);setError('');setBusy(false);setFields(emptyTimeTrial());
+    run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);setFields(emptyTimeTrial());
   },[revision]);
-  function resetResult(){run.current?.abort();setResult(null);setReview(null);setError('');setBusy(false);}
+  function resetResult(){run.current?.abort();setResult(null);setReview(null);setError(null);setBusy(false);}
   function updateHistory(field:keyof typeof emptyHistory,value:string){
     const next={...history,[field]:value};
     resetResult();setHistory(next);
@@ -70,7 +70,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
   }
   async function generate(trailGuidanceReview?:TrailReview){
     if(!trailGuidanceReview)resetResult();
-    else {run.current?.abort();setError('');}
+    else {run.current?.abort();setError(null);}
     const controller=new AbortController();
     run.current=controller;setBusy(true);
     try {
@@ -93,8 +93,8 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
     }catch(reason){
       if(!controller.signal.aborted) {
         const kind=(reason as {decision?:{kind?:string}})?.decision?.kind;
-        const label=kind==='missing_data'?'Donnée à compléter':kind==='incompatible'?'Paramètres incompatibles':kind==='engine_limit'?'Limite du moteur':'';
-        setError([label,reason instanceof Error?reason.message:String(reason)].filter(Boolean).join('\n'));
+        const label=kind==='missing_data'?'Donnée à compléter':kind==='incompatible'?'Paramètres incompatibles':kind==='engine_limit'?'Limite du moteur':kind==='outside_det'?'Protocole Start to Run':'';
+        setError({message:[label,reason instanceof Error?reason.message:String(reason)].filter(Boolean).join('\n'),outside:kind==='outside_det'});
       }
     }finally{if(!controller.signal.aborted)setBusy(false);}
   }
@@ -126,7 +126,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       {clm && <TimeTrialFields value={fields} onChange={v=>{resetResult();setFields(v);}}/>}
       <button type="button" className="rounded-md border px-3 py-2" disabled={disabled||busy} onClick={()=>void generate()}>{busy?'Calcul DET en cours…':'Générer avec DET'}</button>
       {busy && <button type="button" className="ml-2" onClick={resetResult}>Annuler</button>}
-      {error && <p role="alert" className="whitespace-pre-line">{error}</p>}
+      {error && <p role="alert" className="whitespace-pre-line">{error.message}{error.outside && <a className="mt-2 block underline" href="/planning/ai-plan">Ouvrir la planification TFCLab</a>}</p>}
       {result && <div aria-live="polite">
         <h3 className="font-semibold">{result.title}</h3>
         <p>Plan assemblé · Revue sportive du coach en attente.</p>
