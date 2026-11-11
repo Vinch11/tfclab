@@ -3771,6 +3771,7 @@ function buildLimiterMatchText(session: ParsedSession): string {
 function detectLimiterKeyFromText(limiterText: string): string | null {
   const lower = limiterText.toLowerCase();
   if (/vo2max/i.test(lower)) return "vo2max";
+  if (/\bvma\b/i.test(lower)) return "vma";
   if (/vlamax/i.test(lower)) return "vlamax";
   if (/tte|time.to.exhaust/i.test(lower)) return "tte";
   if (/fatmax|fat\s*ox|lipid/i.test(lower)) return "fatmax";
@@ -3783,7 +3784,8 @@ function detectLimiterKeyFromText(limiterText: string): string | null {
 
 function detectLimiterKeyFromMetric(metric: string): string | null {
   const lower = metric.toLowerCase();
-  if (/vo2max|vma/i.test(lower)) return "vo2max";
+  if (/vo2max/i.test(lower)) return "vo2max";
+  if (/\bvma\b/i.test(lower)) return "vma";
   if (/vlamax/i.test(lower)) return "vlamax";
   if (/tte/i.test(lower)) return "tte";
   if (/fatmax|fat\s*ox|lipid/i.test(lower)) return "fatmax";
@@ -3891,7 +3893,7 @@ function computeLimiterHitsForWeeks(
       // Assign to highest-priority matching limiter
       let assignedKey: string | null = null;
       for (const lKey of limiterKeys) {
-        const pattern = LIMITER_SESSION_PATTERNS[lKey];
+        const pattern = LIMITER_SESSION_PATTERNS[lKey === "vma" ? "vo2max" : lKey];
         if (pattern && pattern.test(text)) {
           limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
           assignedKey = lKey;
@@ -3903,7 +3905,7 @@ function computeLimiterHitsForWeeks(
       // try a relaxed match (e.g. "Z5" → vo2max, "seuil" → tte, "sortie longue" → durabilité)
       if (!assignedKey) {
         for (const lKey of limiterKeys) {
-          const fallback = FALLBACK_ZONE_MAP[lKey];
+          const fallback = FALLBACK_ZONE_MAP[lKey === "vma" ? "vo2max" : lKey];
           if (fallback && fallback.test(text)) {
             limiterHits[lKey] = (limiterHits[lKey] || 0) + 1;
             assignedKey = lKey;
@@ -3915,6 +3917,14 @@ function computeLimiterHitsForWeeks(
       // Double-counting for proven VLamax co-contributors:
       // If session was assigned to TTE or Économie, also count it for VLamax (if VLamax is a limiter)
       let isLimiterRelevant = assignedKey !== null;
+
+      // Distinct coach priorities, shared aerobic stimulus: report both without
+      // adding another session to the denominator or inventing a separate dose.
+      if (assignedKey === "vo2max" && limiterKeys.includes("vma")) {
+        limiterHits.vma = (limiterHits.vma || 0) + 1;
+      } else if (assignedKey === "vma" && limiterKeys.includes("vo2max")) {
+        limiterHits.vo2max = (limiterHits.vo2max || 0) + 1;
+      }
 
       if (hasVlamaxLimiter && assignedKey !== "vlamax" && (assignedKey === "tte" || assignedKey === "économie" || assignedKey === "ftp")) {
         if (VLAMAX_CO_CONTRIBUTOR_PATTERNS.test(text)) {

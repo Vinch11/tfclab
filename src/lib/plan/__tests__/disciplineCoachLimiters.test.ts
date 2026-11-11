@@ -277,10 +277,10 @@ it("a deliberate coach exclusion is also respected by the existing final limiter
     status: "limiting",
   }, { metric: "VMA", weightedImpact: 30, status: "limiting" }];
   expect(deriveLimiterKeysFromGapAnalysis(gaps, undefined, ["VMA", "VLamax"]))
-    .toEqual(["vlamax", "vo2max"]);
+    .toEqual(["vlamax", "vma"]);
   expect(deriveLimiterKeysFromGapAnalysis(gaps)).toEqual([
     "vlamax",
     "fatmax",
-    "vo2max",
+    "vma",
   ]);
 });

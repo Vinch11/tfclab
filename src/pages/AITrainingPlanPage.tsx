@@ -1799,8 +1799,9 @@ export default function AITrainingPlanPage() {
   ): PlanConfig => {
     const base = buildConfigFromDiag(diagnostic, athleteAmbition, objectiveOverride, athleteIdOverride);
     return lastCoachOverridesPayload ? buildCoachOverrides({ ...lastCoachOverridesPayload,
+      limiterOrder: coachLimiterOrder.length > 0 ? coachLimiterOrder : lastCoachOverridesPayload.limiterOrder,
       sessionsPerWeek: lastCoachOverridesPayload.durationMode ? lastCoachOverridesPayload.sessionsPerWeek : base.sessionsPerWeek ?? null }, base) : base;
-  }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload]);
+  }, [buildConfigFromDiag, buildCoachOverrides, lastCoachOverridesPayload, coachLimiterOrder]);
 
   useEffect(()=>{
     const policy=readCommittedLimiterPolicy(localStorage,currentAthlete?.id,objective);

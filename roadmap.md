@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Corriger l’ordre coach dans génération/rapport/sauvegarde : VO₂max et VMA distincts, stimulus partagé explicite, ordre récent prioritaire sur la politique restaurée ; écarts de durée catalogue en avertissement. 165 tests ciblés verts ; plan réel de Vince chargé, changement d’ordre visible dans le rapport et « Sauvegarder quand même » vérifiés en session connectée, sans confirmer l’écriture. Deux fonctions du générateur déployées avec succès ; aucune génération IA ni publication.
+
 - [x] Objectif athlète courant : le 10 km de Vince prime sur l’ancien Long Course Weekend dans les caches de préparation et les zones courantes ; brouillon incompatible conservé avec reprise explicite, historique inchangé, propagation du changement au contexte partagé ; 18 tests et scénario navigateur vérifiés, fonctions déployées. Aucun plan généré ni donnée athlète modifiée.
 - [x] Repères critiques : calculs course/vélo avec provenance, étude temporaire accessible depuis bilan/profil et sélection Nolio, export et sollicitation d’un effort continu ; 76 tests ciblés verts, parcours connecté avec efforts fictifs vérifié sur ordinateur/mobile, accord annulé après modification, aucune sauvegarde ni publication.
 - [ ] Vérifier les repères critiques sur des tests Nolio réels identifiés par le coach : aucune séance réelle n’a été déclarée arbitrairement comme test confirmé.

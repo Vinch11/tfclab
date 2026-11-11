@@ -12,7 +12,7 @@ export function validateSessionCataloguePlan(plan: PlanLike, objective?: string)
   const catalogId = extractCatalogId(session.title ?? "", session.details ?? "", session.catalogId);
   const result = checkSessionCatalogue({ ...session, catalogId }, { catalog, terrainAvailability: plan.weeklyQuotas?.[week.weekNumber]?.terrainAvailability, objective: week.cycleObjective || objective, weekType: plan.weeklyQuotas?.[week.weekNumber]?.weekType, phase: plan.weeklyQuotas?.[week.weekNumber]?.phase ?? (["base", "build", "peak", "taper"].includes(week.phase) ? week.phase : [...parseWhenPhases(week.phase)][0]) });
   return [
-   ...result.errors.map(code => ({ rule: "catalogue_prescription_incompatible", severity: "error" as const, week: week.weekNumber,
+   ...result.errors.map(code => ({ rule: code === "catalogue_duration" ? "catalogue_duration" : "catalogue_prescription_incompatible", severity: code === "catalogue_duration" ? "warning" as const : "error" as const, week: week.weekNumber,
     message: `S${week.weekNumber} séance ${index + 1} [${catalogId ?? "événement"}] : ${code}` })),
    ...result.unknown.map(code => ({ rule: "catalogue_prescription_unverified", severity: "warning" as const, week: week.weekNumber,
     message: `S${week.weekNumber} séance ${index + 1} [${catalogId ?? "sans ID"}] : ${code}` })),

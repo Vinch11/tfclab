@@ -379,6 +379,7 @@ const LIMITER_KEY_LABELS: Record<string, string> = {
 
 function limiterLabelFromKey(key: string): string {
   const k = key.toLowerCase().trim();
+  if (k === "vma") return "VMA";
   return LIMITER_KEY_LABELS[k] || key.replace(/_/g, " ");
 }
 
@@ -796,6 +797,9 @@ export function AIPlanBenchmark({ plan, objective, ambition, ambitionEffective, 
               </Badge>
             </div>
             <div className="space-y-1.5">
+              {validationResult.limiterCoverage.some(item => item.key === "vma") && validationResult.limiterCoverage.some(item => item.key === "vo2max") && (
+                <p className="text-xs text-muted-foreground">VO₂max et VMA : priorités distinctes, couverture aérobie partagée ; leurs pourcentages ne s’additionnent pas.</p>
+              )}
               {validationResult.limiterCoverage.map((item) => {
                 const barColor =
                   item.status === "ok"

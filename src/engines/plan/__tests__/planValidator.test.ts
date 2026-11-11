@@ -455,6 +455,24 @@ describe("planValidator", () => {
   });
 
   // Lot 4 — Lorang A/B/C/D distribution
+  it("keeps Vince's four coach priorities distinct with a shared VO2max/VMA stimulus", () => {
+    const order = ["VO2max", "VMA", "VLamax", "FatMax"];
+    const gaps = order.map((metric, index) => ({ metric, weightedImpact: [1, 5, 19, 2][index], status: "limiting" }));
+    const keys = deriveLimiterKeysFromGapAnalysis(gaps, order, order);
+    expect(keys).toEqual(["vo2max", "vma", "vlamax", "fatmax"]);
+    const plan = makePlan([1, 2, 3].map(n => makeWeek(n, [
+      { title: "VO2max VMA 5x3min Z5", details: "VO2max", isKeySession: true },
+      { title: "Endurance fondamentale Z2 long 60min", details: "Z2", isKeySession: true },
+    ])));
+    const result = validatePlan(plan, "10K", undefined, undefined, order, keys, undefined, order);
+    expect(result.limiterCoverage.map(c => c.key)).toEqual(keys);
+    expect(result.limiterCoverage[0].hits).toBe(3);
+    expect(result.limiterCoverage[1].hits).toBe(3);
+    expect(result.limiterCoverage[0].totalKeySessions).toBe(6);
+    expect(result.limiterCoverage[2].rank).toBe(3);
+    expect(result.limiterCoverage[3].rank).toBe(4);
+  });
+
   it("Lot 4: detects a week without any A or B (HIT/seuil) session as an error", () => {
     const plan = makePlan([
       makeWeek(1, [

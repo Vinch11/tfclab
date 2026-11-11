@@ -1,5 +1,8 @@
 # Architecture rules
 
+- Preserve VO2max and VMA as distinct ranked coach priorities in plan coverage, explicitly sharing their aerobic stimulus without duplicating session totals; latest page order overrides a restored coach payload. Why: family deduplication and stale policies hid the coach's L2.
+- Catalogue duration deviations are warnings in final plan validation, while incompatible sport, phase, intensity and structure retain their content checks. Why: a volume adjustment must not be treated as a fundamental goal/content conflict.
+
 - Critical metrics (CP/W′, CS/D′) are stored per snapshot with status estimate|confirmed, separate from the legacy CP/VLamax model; only coach-confirmed recent values produce plan interval proposals, applied only when the coach accepts each one. Why: record fits must not silently become measurements or rewrite sessions.
 
 - Explicit strength frequency and double-day limits are carried in weekly quota contracts shared by layout, prevalidation and final validation; run-cycle maintenance adds only selected sports without removing run targets. Why: prompt-only choices contradicted imposed calendars.

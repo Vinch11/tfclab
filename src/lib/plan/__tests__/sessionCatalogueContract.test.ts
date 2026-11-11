@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { WorkoutLibrary } from "@/lib/workoutLibrary";
 import { buildRepairWorkoutMetadata } from "../repairCatalogMetadata";
 import { checkSessionCatalogue, catalogueForWeek } from "../../../../supabase/functions/_shared/sessionCatalogueContract";
+import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
 const metadata = (id: string) => buildRepairWorkoutMetadata(WorkoutLibrary.find(w => w.id === id)!);
 const cases = [
  ["S1", "B_BRICK_RACE_PACE_SHORT_703", "brick", "base", 120, ["Z1","Z2"], "Brique Introductive Vélo-Course", "Vélo :90min endurance fondamentale Z2. Course :30min Z1-Z2", "phase:base"],
@@ -10,6 +11,17 @@ const cases = [
  ["S10", "A_RUN_DURABILITY_LONG", "run", "build", 95, ["Z2"], "Sortie longue endurance & durabilité", "Warm-up:15min Z1-Z2. Main:75min Z2. Cool-down:5min", "catalogue_duration"],
 ] as const;
 describe("contrat initial — prescriptions transcrites du PDF, métadonnées réelles", () => {
+ it("a catalogue duration mismatch is a warning, not a fundamental content error", () => {
+  const plan = { weeks: [{ weekNumber: 1, phase: "base", sessions: [{ catalogId: "LYDIARD_RUN_AEROBIC_BASE_MEDIUM", sport: "run", title: "Endurance", durationMin: 35, zones: ["Z2"] }] }] };
+  const issues = validateSessionCataloguePlan(plan, "10K");
+  expect(issues).toContainEqual(expect.objectContaining({ rule: "catalogue_duration", severity: "warning" }));
+  expect(issues.some(i => i.severity === "error" && i.message.includes("catalogue_duration"))).toBe(false);
+  expect(plan.weeks[0].sessions[0].durationMin).toBe(35);
+ });
+ it("duration warnings do not downgrade a real phase incompatibility", () => {
+  const issues = validateSessionCataloguePlan({ weeks: [{ weekNumber: 1, phase: "peak", sessions: [{ catalogId: "LYDIARD_RUN_AEROBIC_BASE_MEDIUM", sport: "run", title: "Endurance", durationMin: 35, zones: ["Z2"] }] }] }, "10K");
+  expect(issues).toContainEqual(expect.objectContaining({ rule: "catalogue_prescription_incompatible", severity: "error", message: expect.stringContaining("phase:peak") }));
+ });
  it.each(cases)("%s : incompatibilité explicite, aucune mutation", (_, id, sport, phase, durationMin, zones, title, details, expected) => {
   const session = { day: "samedi", custom: false, catalogId: id, sport, durationMin, zones: [...zones], title, details };
   const contract = { catalog: [metadata(id)], phase, objective: "703" };
