@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List, KeyRound,
+  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
 } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -447,7 +447,7 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
       <div className="flex items-center gap-2 mt-1 flex-wrap">
         {hasKeySessionLabel(session) && (
           <Badge variant="outline" className="gap-1.5 border-primary/30 bg-background text-primary text-xs font-semibold shrink-0">
-            <KeyRound className="h-3.5 w-3.5" aria-hidden="true" /> Séance clé
+            <span aria-hidden="true">🔑</span> Séance clé
           </Badge>
         )}
         {(() => {
@@ -829,7 +829,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
             <Badge className={`text-[10px] ${getPhaseColor(week.phase)}`}>{displayPhase(week.phase, phaseLabelMap)}</Badge>
             <Badge variant="secondary" className="text-[10px]">{activeSessions} séances</Badge>
             <Badge variant="outline" className="gap-1.5 text-xs text-primary border-primary/30">
-              <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+              <span aria-hidden="true">🔑</span>
               {week.sessions.filter(hasKeySessionLabel).length} séance(s) clé(s)
             </Badge>
           </div>
