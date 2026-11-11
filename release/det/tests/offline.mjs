@@ -117,3 +117,13 @@ const noStrength = await run({action:'generate',input:{...balanced,config:{...ba
   loadHistory:{recentWeeklyHours:2.4,recentWeeksCount:4},strengthSessionsPerWeek:0}}});
 assert.equal(noStrength.weeks.length,8);
 assert.ok(noStrength._detSourceProposal.weeks.every(w=>w.days.every(d=>d.sessions.every(s=>s.sport!=='strength'))));
+
+const belowBudget = {...balanced,config:{...balanced.config,
+  loadHistory:{recentWeeklyHours:2.25,recentWeeksCount:4}}};
+await assert.rejects(run({action:'generate',input:belowBudget}),error=>{
+  assert.match(error.message,/S1.+plafond de 135 min.+volume hebdomadaire récent/s);
+  assert.match(error.message,/mercredi renforcement 21 min/);
+  assert.match(error.message,/dimanche course 50 min/);
+  assert.match(error.message,/reste indéterminée/);
+  return true;
+});

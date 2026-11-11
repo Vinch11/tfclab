@@ -1,0 +1,2381 @@
+{
+  "atUtc": "2026-11-11T10:07:12.109624+00:00",
+  "engineSource": "f1f8af0e855015c41609e452407daaf76d3a65df",
+  "main": "0b0d01ace2bdf7f1ccb34e111683b2be65f0d1c0",
+  "publishedChromium": "https://github.com/Vinch11/tfclab/actions/runs/43000919948",
+  "publicManifest": {
+    "status": 200,
+    "url": "https://tfcl.twoforcoaching.be/__det/v1/manifest.json",
+    "bytes": 337,
+    "sha256": "f162a51dbdcd5a04555eebb8c212e03c707cd03b49f64804bfe607f21bd9dd5a",
+    "equalsGitHubBytes": true
+  },
+  "publicWorker": {
+    "schema": 1,
+    "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
+    "entry": "worker.js.gz",
+    "encoding": "gzip",
+    "bytes": 804167,
+    "sha256": "5b9d9319bd640ca01ed9863755950cdd9f7986c4b8275227e4748881fa4810c2",
+    "workerSha256": "5b0eb51880ba4ac09908e11220a02a774dfef34745fe1b4c1b2d4e6ab7ca69e2"
+  },
+  "reportedCase": {
+    "symptom": "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine.",
+    "originalSettingsProvidedByCoach": false,
+    "exactOriginalRequestReplayed": false
+  },
+  "syntheticReproduction": {
+    "fixture": "../tests/ordinary-balanced-10K.json",
+    "override": {
+      "config.loadHistory": {
+        "recentWeeklyHours": 2.4,
+        "recentWeeksCount": 4
+      }
+    },
+    "before": {
+      "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "message": "S1 : aucune combinaison V3 trouvée. Aucune combinaison des doses examinées ne respecte ensemble le plafond de 144 min, la récupération et les exigences sportives de la semaine.",
+      "minimumDistinctSessionMinutesInExaminedDomains": 146
+    },
+    "after": {
+      "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
+      "decision": "assembled",
+      "weeklyMinutes": [
+        141,
+        152,
+        166,
+        109,
+        180,
+        198,
+        116,
+        79
+      ],
+      "firstWeek": [
+        {
+          "sport": "run",
+          "role": "key",
+          "source": [
+            "V3P_RUN_172"
+          ],
+          "min": 25
+        },
+        {
+          "sport": "run",
+          "role": "key",
+          "source": [
+            "V3P_RUN_851"
+          ],
+          "min": 25
+        },
+        {
+          "sport": "strength",
+          "role": "support",
+          "source": [
+            "V3P_STRENGTH_201"
+          ],
+          "min": 21
+        },
+        {
+          "sport": "run",
+          "role": "key",
+          "source": [
+            "V3P_RUN_867"
+          ],
+          "min": 20
+        },
+        {
+          "sport": "run",
+          "role": "long",
+          "source": [
+            "V3P_RUN_027"
+          ],
+          "min": 50
+        }
+      ],
+      "strengthRequested": 1,
+      "precheckOperationsPlanWeekSession": [
+        38,
+        5,
+        1
+      ],
+      "sameBodyForFirstSession": true,
+      "dominantLimiterAssigned": false
+    },
+    "zeroStrengthVariant": {
+      "override": {
+        "config.strengthSessionsPerWeek": 0
+      },
+      "weeks": 8,
+      "totalStrengthSessions": 0,
+      "firstWeekMinutes": 136
+    },
+    "nearbyLimits": [
+      {
+        "firstWeekCeiling": 120,
+        "decision": {
+          "kind": "engine_limit",
+          "fields": []
+        },
+        "message": "S1 : les fiches V3 essayées totalisent au moins 131 min pour 120 min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget."
+      },
+      {
+        "firstWeekCeiling": 135,
+        "decision": {
+          "kind": "engine_limit",
+          "fields": []
+        },
+        "message": "S1 : aucune combinaison V3 trouvée. Avec un plafond de 135 min de blocs limité par le volume hebdomadaire récent renseigné, DET ne trouve pas d’assemblage. Pour chaque créneau pris séparément, les minima examinés sont mardi course 20 min, mercredi course 20 min, mercredi renforcement 21 min, vendredi course 20 min, dimanche course 50 min. La compatibilité de ces doses avec la récupération et les exigences de la semaine reste indéterminée."
+      }
+    ]
+  },
+  "otherPublishedWitnesses": {
+    "marathon": {
+      "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
+      "weeks": 16,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "complete": true,
+      "operations": [
+        103,
+        7,
+        1
+      ],
+      "matchingSingle": true,
+      "sport": {
+        "peakRunMinutes": 434.5,
+        "longRunS13": 159.5
+      }
+    },
+    "ironman": {
+      "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
+      "weeks": 16,
+      "limiters": [
+        "Durabilité",
+        "VLamax",
+        "TTE"
+      ],
+      "complete": true,
+      "operations": [
+        166,
+        11,
+        1
+      ],
+      "matchingSingle": true,
+      "sport": {
+        "longBikeS11": 150,
+        "longRunS11": 100,
+        "brickWeeks": [
+          3,
+          7,
+          11
+        ]
+      }
+    }
+  },
+  "decisionControls": {
+    "standard": {
+      "decision": {
+        "kind": "outside_det",
+        "fields": []
+      },
+      "message": "Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course."
+    },
+    "assessment": {
+      "decision": {
+        "kind": "missing_data",
+        "fields": [
+          "diagnostic"
+        ]
+      },
+      "message": "Sélectionnez le bilan de cet athlète pour l’objectif demandé."
+    },
+    "excludedRun": {
+      "decision": {
+        "kind": "incompatible",
+        "fields": [
+          "objective",
+          "constraints"
+        ]
+      },
+      "message": "L’objectif demande la course à pied et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée."
+    },
+    "paceDomain": {
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "message": "Le chrono visé correspond à 4:26/km. Avec un seuil à 4:20/km, le domaine marathon de TFCLab va de 4:37/km à 4:55/km. Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono."
+    }
+  },
+  "originalOracle": {
+    "commit": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+    "file": "2026-11-10-reprise.json",
+    "comparedBy": [
+      "objective",
+      "level",
+      "ambition"
+    ],
+    "referenceInputs": "scripts/quality/det/form-fixture.ts",
+    "referenceDate": "2026-11-09T08:00:00Z",
+    "results": {
+      "scenarios": 225,
+      "det": 200,
+      "outsideDetStartToRun": 25,
+      "originalAssembled": 156,
+      "allOriginalAssembledPreserved": 156,
+      "previousAssembled": 164,
+      "allPreviousAssembledPreserved": 164,
+      "outcomes": {
+        "assembled": 164,
+        "missing_data": 34,
+        "engine_limit": 2,
+        "outside_det": 25
+      },
+      "fullPlanPrechecks": {
+        "complete": 104,
+        "incomplete": 60
+      },
+      "catalogueSourcesInGeneratedPlans": 325,
+      "objectiveOutcomes": {
+        "10K": {
+          "assembled": 21,
+          "missing_data": 4
+        },
+        "703": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "IM": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "Marathon": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "Semi": {
+          "assembled": 23,
+          "engine_limit": 2
+        },
+        "StartToRun": {
+          "outside_det": 25
+        },
+        "TrailMountain": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "TrailShort": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "TrailUltra": {
+          "assembled": 20,
+          "missing_data": 5
+        }
+      },
+      "originalRefusalsNowAssembled": [
+        [
+          "10K",
+          "auto",
+          "finisher"
+        ],
+        [
+          "10K",
+          "highly_trained",
+          "finisher"
+        ],
+        [
+          "10K",
+          "light",
+          "finisher"
+        ],
+        [
+          "10K",
+          "trained",
+          "finisher"
+        ],
+        [
+          "10K",
+          "untrained",
+          "finisher"
+        ],
+        [
+          "IM",
+          "light",
+          "competitor"
+        ],
+        [
+          "IM",
+          "light",
+          "elite"
+        ],
+        [
+          "IM",
+          "light",
+          "world_class"
+        ]
+      ],
+      "changedSincePrevious": []
+    }
+  },
+  "caseByCase": [
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ],
+      "reason": "10 km en reprise. Rang 1 · Durabilité. Pour doser le travail de seuil, renseigner le nombre de fractions de 3 min au seuil réellement courues et tolérées depuis la reprise, sur le plat, avec 10 min faciles avant, 3 min au trot entre les fractions et 6 min faciles après (0 si aucune) et le volume hebdomadaire récent, en heures par semaine."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ],
+      "reason": "10 km en reprise. Rang 1 · TTE. Pour doser le travail de seuil, renseigner le nombre de fractions de 3 min au seuil réellement courues et tolérées depuis la reprise, sur le plat, avec 10 min faciles avant, 3 min au trot entre les fractions et 6 min faciles après (0 si aucune) et le volume hebdomadaire récent, en heures par semaine."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ],
+      "reason": "10 km en reprise. Rang 1 · TTE. Pour doser le travail de seuil, renseigner le nombre de fractions de 3 min au seuil réellement courues et tolérées depuis la reprise, sur le plat, avec 10 min faciles avant, 3 min au trot entre les fractions et 6 min faciles après (0 si aucune) et le volume hebdomadaire récent, en heures par semaine."
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "10K",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "roadReturnThresholdReps",
+        "loadHistory.recentWeeklyHours"
+      ],
+      "reason": "10 km en reprise. Rang 1 · TTE. Pour doser le travail de seuil, renseigner le nombre de fractions de 3 min au seuil réellement courues et tolérées depuis la reprise, sur le plat, avec 10 min faciles avant, 3 min au trot entre les fractions et 6 min faciles après (0 si aucune) et le volume hebdomadaire récent, en heures par semaine."
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "703",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "703",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "703",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "703",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": true,
+      "operations": 103
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "703",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 166
+    },
+    {
+      "objective": "IM",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 178
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "IM",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "recentLongRideMinutes"
+      ],
+      "reason": "Reprise en triathlon : renseignez le volume hebdomadaire récemment réalisé toutes disciplines confondues (heures/semaine) et la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 77
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 61
+    },
+    {
+      "objective": "Marathon",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": true,
+      "operations": 105
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ],
+      "reason": "Pour dimensionner la reprise marathon, renseigner le volume hebdomadaire récemment réalisé (heures/semaine) et la durée d’une sortie longue à pied récemment tolérée, marche comprise (minutes)."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ],
+      "reason": "Pour dimensionner la reprise marathon, renseigner le volume hebdomadaire récemment réalisé (heures/semaine) et la durée d’une sortie longue à pied récemment tolérée, marche comprise (minutes)."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ],
+      "reason": "Pour dimensionner la reprise marathon, renseigner le volume hebdomadaire récemment réalisé (heures/semaine) et la durée d’une sortie longue à pied récemment tolérée, marche comprise (minutes)."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ],
+      "reason": "Pour dimensionner la reprise marathon, renseigner le volume hebdomadaire récemment réalisé (heures/semaine) et la durée d’une sortie longue à pied récemment tolérée, marche comprise (minutes)."
+    },
+    {
+      "objective": "Marathon",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "marathonRecentLongRunMinutes"
+      ],
+      "reason": "Pour dimensionner la reprise marathon, renseigner le volume hebdomadaire récemment réalisé (heures/semaine) et la durée d’une sortie longue à pied récemment tolérée, marche comprise (minutes)."
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 44
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "engine_limit",
+      "fields": [],
+      "reason": "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.\nRang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.\nRang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.\nRang 5 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 8,
+      "precheckComplete": true,
+      "operations": 38
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "engine_limit",
+      "fields": [],
+      "reason": "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.\nRang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.\nRang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.\nRang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "StartToRun",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "outside_det"
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 16,
+      "precheckComplete": false,
+      "operations": 16
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailMountain",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 12,
+      "precheckComplete": false,
+      "operations": 12
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailShort",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "auto",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "highly_trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "light",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "age_group",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "competitor",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "elite",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "finisher",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "trained",
+      "ambition": "world_class",
+      "decision": "assembled",
+      "weeks": 20,
+      "precheckComplete": false,
+      "operations": 20
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "age_group",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "competitor",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "elite",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "finisher",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    },
+    {
+      "objective": "TrailUltra",
+      "level": "untrained",
+      "ambition": "world_class",
+      "decision": "missing_data",
+      "fields": [
+        "loadHistory.recentWeeklyHours",
+        "trailLongRunLimits.recentMinutes",
+        "trailLongRunLimits.peakMinutes"
+      ],
+      "reason": "Trail en reprise : renseigner le volume hebdomadaire récent (h/semaine), la durée de la sortie longue récemment tolérée (min), le plafond de sortie longue choisi par le coach (min)."
+    }
+  ],
+  "independentSportReview": {
+    "status": "sans_preuve",
+    "evidence": null
+  },
+  "pilot": {
+    "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+  },
+  "nolioV2Send": {
+    "status": "sans_preuve",
+    "operationId": null,
+    "eventId": null
+  },
+  "nolioV2Readback": {
+    "status": "sans_preuve",
+    "matchingEventId": null
+  },
+  "pairedWatchSteps": {
+    "status": "sans_observation",
+    "evidence": null
+  }
+}

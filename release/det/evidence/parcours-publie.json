@@ -1,42 +1,42 @@
 {
   "publicOrigin": "https://tfcl.twoforcoaching.be",
-  "atUtc": "2026-11-11T01:20:54.248187+00:00",
+  "atUtc": "2026-11-11T10:07:12.109624+00:00",
   "referenceOracle": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
-  "engineSource": "98a3205b3c4b5d5226009de1a80fb69077d71d1a",
-  "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42937349986",
-  "generalRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
+  "engineSource": "f1f8af0e855015c41609e452407daaf76d3a65df",
+  "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42999046906",
+  "generalRelease": "19fe789e44a272a4fa7d8ca201f9b6782e2f8f422872bb6438f7e963a2e7f14e",
   "worker": {
     "schema": 1,
-    "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+    "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
     "entry": "worker.js.gz",
     "encoding": "gzip",
-    "bytes": 803770,
-    "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8",
-    "workerSha256": "0c9ddb5306ec1f6dec56f0d9f66f5b6e0c4b17f55c65011d6a51c7a7bda80362"
+    "bytes": 804167,
+    "sha256": "5b9d9319bd640ca01ed9863755950cdd9f7986c4b8275227e4748881fa4810c2",
+    "workerSha256": "5b0eb51880ba4ac09908e11220a02a774dfef34745fe1b4c1b2d4e6ab7ca69e2"
   },
   "workerDecompressedVerified": true,
   "publicManifestBytes": {
     "status": 200,
     "url": "https://tfcl.twoforcoaching.be/__det/v1/manifest.json",
     "bytes": 337,
-    "sha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
+    "sha256": "f162a51dbdcd5a04555eebb8c212e03c707cd03b49f64804bfe607f21bd9dd5a",
     "equalsGitHubBytes": true
   },
   "formHtml": {
     "path": "/__det/coach/index.html",
     "httpStatus": 200,
     "moduleScripts": [
-      "/__det/coach/assets/coach-CM0n7RBt.mjs"
+      "/__det/coach/assets/coach-Ba-4GZin.mjs"
     ],
     "mountPoint": "det-root",
-    "hostResponseSha256": "77afb71d97527bb93c64dc5d45f39741678fceb0f549b70dc41419b7d003f4fe",
-    "gitSha256": "fa87ea95d14776d0c172fe6bac5091cdffd20fcf326b26862db51cf98456df6f",
+    "hostResponseSha256": "397b4bf331525df28571659a66142cd9e7a058adaf9303efee9222dae9437f9a",
+    "gitSha256": "bb93e3b93af15436d3d0a6fb358a9151f45335627cb200fd88a55b519ff65ece",
     "htmlBytesEqual": false
   },
   "matchedFiles": {
     "/__det/v1/worker.js.gz": {
-      "bytes": 803770,
-      "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8"
+      "bytes": 804167,
+      "sha256": "5b9d9319bd640ca01ed9863755950cdd9f7986c4b8275227e4748881fa4810c2"
     },
     "/__det/v1/client.mjs": {
       "bytes": 2833,
@@ -44,35 +44,35 @@
     },
     "/__det/coach/host-release.json": {
       "bytes": 650,
-      "sha256": "29d12f7806e3cbc6c4ed2a86df453c45a991716258f0d5b8221044aa984776f2"
+      "sha256": "d8c67d09c6bfa279443c7785a6d59270efc8472ec97e884e3e879e6dbe8ce8ef"
     },
-    "/__det/coach/assets/coach-CM0n7RBt.mjs": {
+    "/__det/coach/assets/coach-Ba-4GZin.mjs": {
       "bytes": 3819,
-      "sha256": "ef1895fef9191a0b0626a556046925e36ab29c3d888fba5f766f452d83361e8d"
+      "sha256": "7a1ef17f006583fd80c505f0164aad15294f06b28a033ed88fc506dbace6de64"
+    },
+    "/__det/coach/assets/mount-C3q59BvT.mjs": {
+      "bytes": 2615589,
+      "sha256": "44677b99d148394724cfd4a9674ddf6598210878803593c6515a3cd21b9fc608"
     },
     "/__det/coach/assets/mount-D2mQHqo9.css": {
       "bytes": 210705,
       "sha256": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5"
     },
-    "/__det/coach/assets/mount-DsRhNnPJ.mjs": {
-      "bytes": 2609548,
-      "sha256": "780e4851679bb494d06aeeedce75491074b7da74cbce93b9583c2b76897a0670"
-    },
-    "/__det/coach/assets/nolioRemote-PtMvqdZg.mjs": {
+    "/__det/coach/assets/nolioRemote-BzBG8Q_Y.mjs": {
       "bytes": 660,
-      "sha256": "66903437c24e83226922bdcc4a00258a82e607b9024a6c127d9dde54c760c6c4"
+      "sha256": "82f79006145506b945553d16c107623d6d5a8db5dacc7a1f1a24997ee6e235c0"
     },
-    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json": {
+    "/__det/coach/runtime/det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/manifest.json": {
       "bytes": 337,
-      "sha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164"
+      "sha256": "f162a51dbdcd5a04555eebb8c212e03c707cd03b49f64804bfe607f21bd9dd5a"
     },
-    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs": {
+    "/__det/coach/runtime/det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/client.mjs": {
       "bytes": 2833,
       "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     },
-    "/__det/coach/runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz": {
-      "bytes": 803770,
-      "sha256": "8e3b40bd142d4ae71ef11727da01e89fabfbccba2f290ec5789fde2a5532add8"
+    "/__det/coach/runtime/det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e/worker.js.gz": {
+      "bytes": 804167,
+      "sha256": "5b9d9319bd640ca01ed9863755950cdd9f7986c4b8275227e4748881fa4810c2"
     }
   },
   "formDelivery": [
@@ -114,6 +114,27 @@
       ],
       "staticDeployment": "11eeed09-f244-45c3-b6fc-06b32b54c169",
       "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+    },
+    {
+      "pr": 480,
+      "url": "https://github.com/Vinch11/tfclab/pull/480",
+      "mergeCommit": "516ba1aacfcb67e51092bd222244fef4bd9df71d",
+      "verifiedFormWorkflows": [
+        "https://github.com/Vinch11/tfclab/actions/runs/42995664496"
+      ],
+      "staticDeployment": "ca87daca-1842-4db6-aa47-144421d0b789",
+      "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+    },
+    {
+      "pr": 481,
+      "url": "https://github.com/Vinch11/tfclab/pull/481",
+      "mergeCommit": "0b0d01ace2bdf7f1ccb34e111683b2be65f0d1c0",
+      "verifiedFormWorkflows": [
+        "https://github.com/Vinch11/tfclab/actions/runs/42999251856",
+        "https://github.com/Vinch11/tfclab/actions/runs/42999421280"
+      ],
+      "staticDeployment": "aaa2c087-eafc-44f9-b16e-c87bf59f92cf",
+      "runtime": "runtime/det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
     }
   ],
   "nolioServices": {
@@ -361,29 +382,29 @@
         "line": 16
       }
     ],
-    "latestWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42937719748",
+    "latestWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42999421238",
     "latestFindings": {
-      "jobs": {
-        "ESLint (fichiers modifiés uniquement)": "success",
-        "Deno test (edge functions)": "success",
-        "Vitest (frontend)": "failure",
-        "Playwright E2E (Chromium)": "success"
-      },
-      "matchesPreviousSeven": true
+      "head": "a4268ec9af9ea157f5db60e25c2d2dead87ddfff",
+      "base": "516ba1aacfcb67e51092bd222244fef4bd9df71d",
+      "identicalSourceAnnotationsInVitestFailures": 7,
+      "detFormBrowser": "success",
+      "eslint": "success",
+      "deno": "success",
+      "playwright": "success"
     }
   },
   "publicChromium": {
-    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42938333824",
-    "verifyJobId": 130253814249,
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43000919948",
+    "verifyJobId": 130456532910,
     "result": "success",
     "observed": {
       "publicOrigin": "https://tfcl.twoforcoaching.be",
       "manifestBytes": 337,
-      "manifestSha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
-      "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+      "manifestSha256": "f162a51dbdcd5a04555eebb8c212e03c707cd03b49f64804bfe607f21bd9dd5a",
+      "runtime": "runtime/det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
       "results": {
         "marathon": {
-          "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+          "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
           "weeks": 16,
           "limiters": [
             "Durabilité",
@@ -403,7 +424,7 @@
           }
         },
         "ironman": {
-          "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+          "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
           "weeks": 16,
           "limiters": [
             "Durabilité",
@@ -426,6 +447,20 @@
               11
             ]
           }
+        },
+        "balanced10K144": {
+          "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
+          "weeks": 8,
+          "firstWeekMinutes": 141,
+          "runs": 4,
+          "source": "V3P_STRENGTH_201",
+          "strengthMinutes": 21,
+          "limiters": [],
+          "blocked": 0,
+          "precheck": true,
+          "operations": 38,
+          "zeroStrengthWeeks": 8,
+          "zeroStrengthSessions": 0
         }
       },
       "decisions": {
@@ -474,9 +509,13 @@
       476,
       477,
       478,
-      479
+      479,
+      480,
+      481
     ],
     "formalReviews": [
+      0,
+      0,
       0,
       0,
       0,
@@ -486,10 +525,12 @@
       0,
       0,
       0,
+      0,
+      0,
       0
     ],
     "sportingVerdict": null,
-    "scope": "Les PR 476 à 479 du formulaire et les pièces de recette consultées ne contiennent pas d’avis sportif indépendant sur les deux plans publiés."
+    "scope": "Les PR 476 à 481 du formulaire et les pièces de recette consultées ne contiennent pas d’avis sportif indépendant sur les plans des témoins."
   },
   "previousFormAvailability": {
     "atUtc": "2026-11-11T01:21:04.022271+00:00",
@@ -601,38 +642,209 @@
         "nolioReadback": false,
         "watchObservation": false
       }
+    },
+    {
+      "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42938333824",
+      "verifyJobId": 130253814249,
+      "result": "success",
+      "observed": {
+        "publicOrigin": "https://tfcl.twoforcoaching.be",
+        "manifestBytes": 337,
+        "manifestSha256": "352631923832c1678d3578eef68ccc2b5ce9de552d620298c08a8803e5d66164",
+        "runtime": "runtime/det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+        "results": {
+          "marathon": {
+            "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              103,
+              7,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "peakRunMinutes": 434.5,
+              "longRunS13": 159.5
+            }
+          },
+          "ironman": {
+            "version": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              166,
+              11,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "longBikeS11": 150,
+              "longRunS11": 100,
+              "brickWeeks": [
+                3,
+                7,
+                11
+              ]
+            }
+          }
+        },
+        "decisions": {
+          "standard": {
+            "decision": {
+              "kind": "outside_det",
+              "fields": []
+            },
+            "message": "Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course."
+          },
+          "assessment": {
+            "decision": {
+              "kind": "missing_data",
+              "fields": [
+                "diagnostic"
+              ]
+            },
+            "message": "Sélectionnez le bilan de cet athlète pour l’objectif demandé."
+          },
+          "excludedRun": {
+            "decision": {
+              "kind": "incompatible",
+              "fields": [
+                "objective",
+                "constraints"
+              ]
+            },
+            "message": "L’objectif demande la course à pied et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée."
+          },
+          "paceDomain": {
+            "decision": {
+              "kind": "engine_limit",
+              "fields": []
+            },
+            "message": "Le chrono visé correspond à 4:26/km. Avec un seuil à 4:20/km, le domaine marathon de TFCLab va de 4:37/km à 4:55/km. Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono."
+          }
+        },
+        "syntheticInputs": true,
+        "nolioSend": false,
+        "nolioReadback": false,
+        "watchObservation": false
+      }
     }
   ],
   "currentRegression": {
-    "workerVersion": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
-    "detSuiteFiles": 14,
-    "detSuiteAssertions": 141,
+    "workerVersion": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a",
     "referenceMatrix": {
-      "referenceCount": 225,
-      "detCases": 200,
-      "assembled": 164,
-      "completeReferencePlansPreserved": 156,
-      "refusalByDecision": {
+      "scenarios": 225,
+      "det": 200,
+      "outsideDetStartToRun": 25,
+      "originalAssembled": 156,
+      "allOriginalAssembledPreserved": 156,
+      "previousAssembled": 164,
+      "allPreviousAssembledPreserved": 164,
+      "outcomes": {
+        "assembled": 164,
         "missing_data": 34,
-        "engine_limit": 2
+        "engine_limit": 2,
+        "outside_det": 25
       },
-      "outsideDet": 25,
-      "syntheticFullPlanPrecheck": {
+      "fullPlanPrechecks": {
         "complete": 104,
         "incomplete": 60
       },
-      "catalogueSourcesUsed": 325
+      "catalogueSourcesInGeneratedPlans": 325,
+      "objectiveOutcomes": {
+        "10K": {
+          "assembled": 21,
+          "missing_data": 4
+        },
+        "703": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "IM": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "Marathon": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "Semi": {
+          "assembled": 23,
+          "engine_limit": 2
+        },
+        "StartToRun": {
+          "outside_det": 25
+        },
+        "TrailMountain": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "TrailShort": {
+          "assembled": 20,
+          "missing_data": 5
+        },
+        "TrailUltra": {
+          "assembled": 20,
+          "missing_data": 5
+        }
+      },
+      "originalRefusalsNowAssembled": [
+        [
+          "10K",
+          "auto",
+          "finisher"
+        ],
+        [
+          "10K",
+          "highly_trained",
+          "finisher"
+        ],
+        [
+          "10K",
+          "light",
+          "finisher"
+        ],
+        [
+          "10K",
+          "trained",
+          "finisher"
+        ],
+        [
+          "10K",
+          "untrained",
+          "finisher"
+        ],
+        [
+          "IM",
+          "light",
+          "competitor"
+        ],
+        [
+          "IM",
+          "light",
+          "elite"
+        ],
+        [
+          "IM",
+          "light",
+          "world_class"
+        ]
+      ],
+      "changedSincePrevious": []
     },
-    "completedHistories": {
-      "engine_limit": 26,
-      "assembled": 8
-    },
-    "additionalConfigurations": {
-      "assembled": 18,
-      "explained": 5
-    },
-    "trailCalendarControls": "dates avant le départ, course A en S2, départ un mardi, un créneau course ou aucun.",
-    "sourceTypes": "success"
+    "specificCase": "s1-144.json",
+    "verification": "Tests sur le worker distribué et le domaine publié. Précontrôles locaux sur des cas synthétiques."
   },
   "previousNolioServices": {
     "atUtc": "2026-11-11T01:21:09.241229+00:00",
@@ -665,5 +877,90 @@
     "result": "failure",
     "failedStep": "Vérifier l’accès au projet Supabase",
     "cause": "Le job de publication ne disposait pas de SUPABASE_ACCESS_TOKEN. Aucune fonction n’a été déployée par ce job."
+  },
+  "priorRegressionAtPreviousVersion": {
+    "workerVersion": "det-e893a24a8e65b93564af51a663e121bb4500c38cec54c8bf75fb98868051db6a",
+    "detSuiteFiles": 14,
+    "detSuiteAssertions": 141,
+    "referenceMatrix": {
+      "referenceCount": 225,
+      "detCases": 200,
+      "assembled": 164,
+      "completeReferencePlansPreserved": 156,
+      "refusalByDecision": {
+        "missing_data": 34,
+        "engine_limit": 2
+      },
+      "outsideDet": 25,
+      "syntheticFullPlanPrecheck": {
+        "complete": 104,
+        "incomplete": 60
+      },
+      "catalogueSourcesUsed": 325
+    },
+    "completedHistories": {
+      "engine_limit": 26,
+      "assembled": 8
+    },
+    "additionalConfigurations": {
+      "assembled": 18,
+      "explained": 5
+    },
+    "trailCalendarControls": "dates avant le départ, course A en S2, départ un mardi, un créneau course ou aucun.",
+    "sourceTypes": "success"
+  },
+  "latestAnonymousNolioChecks": {
+    "utc": "2026-11-11T10:15:10.432070+00:00",
+    "projectRef": "wtwjkmawntybyehatkjo",
+    "origin": "https://tfcl.twoforcoaching.be",
+    "anonymousChecks": [
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-connect",
+        "status": 200,
+        "allowOrigin": "*"
+      },
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-callback",
+        "status": 405
+      },
+      {
+        "method": "OPTIONS",
+        "function": "det-nolio-export",
+        "status": 200,
+        "allowOrigin": "*"
+      },
+      {
+        "method": "POST",
+        "function": "det-nolio-connect",
+        "status": 401,
+        "appStatus": "REFUSED",
+        "reason": "unauthorized"
+      },
+      {
+        "method": "GET",
+        "function": "det-nolio-callback",
+        "status": 303,
+        "redirectOrigin": "https://tfcl.twoforcoaching.be",
+        "redirectPath": "/__det/coach/index.html",
+        "redirectParameterNames": [
+          "nolio_v2"
+        ]
+      },
+      {
+        "method": "POST",
+        "function": "det-nolio-export",
+        "status": 401,
+        "appStatus": "REFUSED",
+        "reason": "unauthorized"
+      }
+    ],
+    "publicManifest": {
+      "httpStatus": 200,
+      "length": 337,
+      "sha256": "f162a51dbdcd5a04555eebb8c212e03c707cd03b49f64804bfe607f21bd9dd5a",
+      "version": "det-3478af24e45d4f816b0de466478e993228d8f6e687810f50c72c57dc4eb23a4a"
+    }
   }
 }
