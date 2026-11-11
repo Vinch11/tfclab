@@ -70,6 +70,15 @@ export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<
   } catch (error) {
     if (error instanceof DetRefusal) throw error;
     const message = error instanceof Error ? error.message : String(error);
+    const frequency = input.config?.sessionsPerWeek;
+    if (error instanceof Error && 'minimumMinutesWithPrimary' in error &&
+        Number.isFinite(error.minimumMinutesWithPrimary) && 'week' in error && error.week === 1 &&
+        Number.isInteger(frequency) && frequency !== undefined && frequency > 3 && frequency <= 14 &&
+        ordinarySourceFamily(input.config.objective)?.sportFocus === 'run') {
+      throw new DetRefusal([message], {
+        kind: 'engine_limit', fields: [], trialCardioSessionsPerWeek: frequency - 1,
+      });
+    }
     throw new DetRefusal(message.split("\n").filter(Boolean), error instanceof DetDecisionError ? error.decision : undefined);
   }
 }

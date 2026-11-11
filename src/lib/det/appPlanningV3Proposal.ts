@@ -138,6 +138,38 @@ function minimumDistinctExerciseMinutes(domains:ProposedV3Session[][]):number{
   return exhausted||!Number.isFinite(best)?suffix[0]:best;
 }
 
+function primaryDoseBudgetDetail(
+  domains: ProposedV3Session[][],
+  matches: (session: ProposedV3Session) => boolean,
+  limiter: string,
+  ceiling: number,
+): {message: string; minimumMinutesWithPrimary?: number} | undefined {
+  const minima = domains.map(rows => Math.min(...rows.map(row => row.knownMinutes)));
+  const baseline = minima.reduce((sum, minutes) => sum + minutes, 0);
+  let best: {primary: number; other: number; total: number} | undefined;
+  for (const [index, rows] of domains.entries()) {
+    const primary = Math.min(...rows.filter(matches).map(row => row.knownMinutes));
+    if (!Number.isFinite(primary)) continue;
+    // Replace one independent minimum. Source uniqueness, recovery and the
+    // other weekly requirements can only increase this lower bound.
+    const other = baseline - minima[index];
+    const total = other + primary;
+    if (!best || total < best.total) best = {primary, other, total};
+  }
+  if (!best) {
+    return {message: `Aucune des doses V3 examinées sur les créneaux de cette semaine ne couvre le limiteur prioritaire « ${limiter} ».`};
+  }
+  if (best.total <= ceiling + 1e-7) return undefined;
+  const minimumMinutes = (minutes: number) => Math.floor((minutes + 1e-9) * 10) / 10;
+  const ceilingMinutes = Math.ceil((ceiling - 1e-9) * 10) / 10;
+  if (minimumMinutes(best.total) <= ceilingMinutes) return undefined;
+  return {
+    minimumMinutesWithPrimary: best.total,
+    message: `Pour travailler le limiteur prioritaire « ${limiter} », le calcul le plus favorable parmi les doses V3 examinées compte au moins ${minimumMinutes(best.primary)} min sur un créneau et ${minimumMinutes(best.other)} min sur les autres. ` +
+      `Cela porte le minimum de la semaine à ${minimumMinutes(best.total)} min de blocs pour un plafond de ${ceilingMinutes} min.`,
+  };
+}
+
 function isLongTrailPrescription(id:string, domain:V3Workout['primaryDomain']) {
   return domain==='moderate_lt1' && (['V3P_RUN_086','V3P_RUN_089','V3P_RUN_092','V3P_RUN_205'].includes(id)
     || Boolean(library920SourceMetadata(id)?.terrainEffortRequired));
@@ -732,7 +764,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   const noGoods=new Map<number,Set<string>>();
   const signatures=new Map<number,string>();
   let repairs=0;
-  let furthestBlock:{week:number;message:string}|undefined;
+  let furthestBlock:{week:number;message:string;minimumMinutesWithPrimary?:number}|undefined;
   for(let wi=0;wi<study.weeks.length;wi++){
     const original=study.weeks[wi];
     const attempt=attempts.get(wi)??0;
@@ -1042,16 +1074,20 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
     if(!solve(0,0)){
       const minimum = adaptive?suffix[0]:minimumDistinctExerciseMinutes(domains);
+      const primaryDetail = requirePrimary && minimum<=ceiling+1e-7 && floor<=ceiling+1e-7
+        ? primaryDoseBudgetDetail(domains, weekPrimaryMatch, priorities[0].raw, ceiling) : undefined;
       const slotMinima=slots.map(({slot,dayIndex},i)=>week.days[dayIndex].day+' '+(sportNames[slot.sport]??slot.sport)+' '+
         Math.floor(Math.min(...domains[i].map(s=>s.knownMinutes))*10)/10+' min');
       const cappedByRecent=firstWeekRecentMinutes!==undefined && Math.abs(calendarCeiling-firstWeekRecentMinutes)<1e-7;
       const detail = minimum>ceiling+1e-7 ? `Les créneaux exigent au moins ${Math.floor(minimum*10)/10} min de blocs pour un plafond de ${Number(ceiling.toFixed(1))} min. Vérifier la fréquence et la disponibilité déclarées.` :
         floor>ceiling+1e-7 ? `La continuité de charge ou la préparation de la décharge exige au moins ${Math.floor(floor*10)/10} min pour un plafond de ${Number(ceiling.toFixed(1))} min.` :
-        nodes>=50000 ? 'Le budget de recherche est épuisé. La faisabilité reste indéterminée.' :
+        primaryDetail?.message ?? (nodes>=50000 ? 'Le budget de recherche est épuisé. La faisabilité reste indéterminée.' :
         `Avec un plafond de ${Number(ceiling.toFixed(1))} min de blocs${cappedByRecent?' limité par le volume hebdomadaire récent renseigné':''}, DET ne trouve pas d’assemblage. `+
         `Pour chaque créneau pris séparément, les minima examinés sont ${slotMinima.join(', ')}. `+
-        'La compatibilité de ces doses avec la récupération et les exigences de la semaine reste indéterminée.';
-      throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée. ${detail}`),{code:'v3_proposal_search_refused',retryWithCatalogue,week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,previousSpecificMinutes,domains:domains.map(d=>({count:d.length,max:Math.max(...d.map(s=>s.knownMinutes)),specific:Math.max(...d.map(specificMinutes))})),noCompletePlanReturned:true});
+        'La compatibilité de ces doses avec la récupération et les exigences de la semaine reste indéterminée.');
+      throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée. ${detail}`),{code:'v3_proposal_search_refused',retryWithCatalogue,week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,
+        ...(primaryDetail?.minimumMinutesWithPrimary !== undefined ? {minimumMinutesWithPrimary:primaryDetail.minimumMinutesWithPrimary} : {}),
+        previousSpecificMinutes,domains:domains.map(d=>({count:d.length,max:Math.max(...d.map(s=>s.knownMinutes)),specific:Math.max(...d.map(specificMinutes))})),noCompletePlanReturned:true});
     }
     signatures.set(wi,signature());
     if(alternate)result.checks.push({code:'revised_key_days',week:week.week,status:'passed',message:'Séance clé déplacée entre deux créneaux de même sport et de mêmes limites.'});
@@ -1194,14 +1230,19 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
       const code=error instanceof Error && 'code' in error?error.code:null;
       if(!allowRepair||!['v3_slot_unavailable','v3_quality_source_unavailable','v3_proposal_search_refused'].includes(String(code)))throw error;
       const message=error instanceof Error?error.message:String(error);
-      if (!furthestBlock || week.week>=furthestBlock.week) furthestBlock={week:week.week,message};
+      if (!furthestBlock || week.week>=furthestBlock.week) {
+        furthestBlock={week:week.week,message};
+        if(error instanceof Error && 'minimumMinutesWithPrimary' in error && typeof error.minimumMinutesWithPrimary==='number')
+          furthestBlock.minimumMinutesWithPrimary=error.minimumMinutesWithPrimary;
+      }
+      const primaryEvidence=furthestBlock.minimumMinutesWithPrimary===undefined?{}:{minimumMinutesWithPrimary:furthestBlock.minimumMinutesWithPrimary};
       const stopped=furthestBlock.week>week.week
         ? Object.assign(Error(furthestBlock.message+
           ` Une variante a permis d’assembler les semaines précédant S${furthestBlock.week}. DET a réexaminé S${week.week} sans trouver de suite complète.`),
-          {code:'v3_proposal_search_refused',week:furthestBlock.week,noCompletePlanReturned:true})
+          {code:'v3_proposal_search_refused',week:furthestBlock.week,...primaryEvidence,noCompletePlanReturned:true})
         : error;
       if(repairs>=8)throw Object.assign(Error((stopped instanceof Error?stopped.message:String(stopped))+
-        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.'),{code,week:furthestBlock.week,noCompletePlanReturned:true});
+        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.'),{code,week:furthestBlock.week,...primaryEvidence,noCompletePlanReturned:true});
       if(attempt<1 || attempt===1&&!tt&&alternateKeyDay(original,!!config.constraints?.trim())){
         attempts.set(wi,attempt+1);boundaries.get(wi)!();repairs++;wi--;continue;
       }

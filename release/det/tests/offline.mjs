@@ -20,7 +20,11 @@ async function run(job){
   const worker=new Worker(shim+workerSource.toString()+subscriber,{eval:true});
   try{return await new Promise((resolve,reject)=>{
     worker.once('error',reject);
-    worker.once('message',r=>r.ok&&r.version===manifest.version?resolve(r.value):reject(Error(r.error??'Version incorrecte')));
+    worker.once('message',r=>{
+      if (r.version!==manifest.version) return reject(Error('Version incorrecte'));
+      if (r.ok) return resolve(r.value);
+      reject(Object.assign(Error(r.error),{decision:r.decision}));
+    });
     worker.postMessage(job);
   });}finally{await worker.terminate();}
 }
@@ -125,5 +129,31 @@ await assert.rejects(run({action:'generate',input:belowBudget}),error=>{
   assert.match(error.message,/mercredi renforcement 21 min/);
   assert.match(error.message,/dimanche course 50 min/);
   assert.match(error.message,/reste indéterminée/);
+  assert.equal(error.decision.trialCardioSessionsPerWeek,undefined);
   return true;
 });
+
+// Match the six-slot report through the same worker that serves the coach.
+// The 144-minute ceiling here comes from the level-based entry ramp.
+const ranked = JSON.parse(readFileSync(from('./ordinary-light-10K.json'),'utf8'));
+const fiveRuns = {...ranked,config:{...ranked.config,weeklyHours:4,sessionsPerWeek:5,
+  volumeRamp:{...ranked.config.volumeRamp,weeklyHoursTarget:4,week1HoursMax:2.4}}};
+await assert.rejects(run({action:'generate',input:fiveRuns}),error=>{
+  assert.equal(error.decision.kind,'engine_limit');
+  assert.equal(error.decision.trialCardioSessionsPerWeek,4);
+  assert.match(error.message,/S1.*TTE.*45 min.*116 min.*161 min.*144 min/s);
+  return true;
+});
+const fourRuns = {...fiveRuns,config:{...fiveRuns.config,sessionsPerWeek:4}};
+const trial = (await run({action:'generate',input:fourRuns}))._detSourceProposal;
+assert.equal(trial.weeks.length,8);
+assert.deepEqual(trial.limiterOrder,fiveRuns.config.identifiedLimitersRaw);
+assert.ok(!trial.checks.some(c=>c.status==='blocked'));
+for (const week of trial.weeks.filter(w=>w.weekType==='load')) {
+  assert.ok(trial.checks.some(c=>c.week===week.week && c.code==='primary_dose_coverage' && c.status==='passed'));
+}
+const entrySessions=trial.weeks[0].days.flatMap(d=>d.sessions);
+assert.equal(entrySessions.filter(s=>s.sport==='run').length,4);
+assert.equal(entrySessions.filter(s=>s.sport==='strength').length,1);
+assert.equal(trial.weeks[0].knownMinutes,143);
+console.log(JSON.stringify({case:'five-runs-ranked-144',lowerBound:161,trialWeeks:trial.weeks.length,trialFirstWeekMinutes:trial.weeks[0].knownMinutes}));

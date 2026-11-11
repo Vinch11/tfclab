@@ -3,6 +3,8 @@ export type CoachDecisionKind = 'missing_data' | 'incompatible' | 'engine_limit'
 export interface CoachDecision {
   kind: CoachDecisionKind;
   fields: string[];
+  /** A different explicit frequency for the coach to try, not an assembled plan. */
+  trialCardioSessionsPerWeek?: number;
 }
 
 export class DetDecisionError extends Error {
