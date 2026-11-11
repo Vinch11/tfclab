@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.nolio-training-load-daily]
 verify_jwt = false
+
+[functions.det-nolio-callback]
+verify_jwt = false

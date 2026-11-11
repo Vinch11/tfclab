@@ -13,3 +13,7 @@ Pour vérifier le parcours réel, garder ensemble l’athlète pilote, la date, 
 ## Distribution
 
 La distribution du Worker est sous `public/__det/v1/`. Le formulaire se construit avec `node integrations/det/build.mjs public/__det/coach`. Le manifeste `host-release.json` identifie la version du formulaire source et les empreintes de ses fichiers. La recette Chromium part d’un compte synthétique, de lignes de bilan au format de la base, et du menu ordinaire. Elle vérifie le plan et les trois portées de contrôle. Une fois le test réussi, le workflow de la branche DET y enregistre les fichiers exercés.
+
+Pour **Start to Run**, le formulaire indique comment ouvrir le protocole marche-course standard dans la planification de TFCLab. En reprise, une case vide donne lieu à une demande précise. Le chiffre zéro indique une absence de pratique. Le coach peut fixer un plafond futur de sortie longue inférieur à une sortie déjà tolérée.
+
+Après un envoi, **Identifiants d’envoi et de relecture Nolio** affiche la version du plan, la séance datée, l’identifiant conservé à l’écriture et celui rendu par Nolio à la lecture. Cette liste apparaît lorsque Nolio a renvoyé les mêmes activités avec les étapes attendues. La synchronisation et les étapes visibles sur la montre du pilote se constatent ensuite sur l’appareil.
