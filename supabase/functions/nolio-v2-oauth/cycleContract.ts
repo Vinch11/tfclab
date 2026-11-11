@@ -1,4 +1,4 @@
-export type Cycle = { name: string; description: string; date_start: string; date_end: string; id?: string };
+export type Cycle = { name: string; description: string; date_start: string; date_end: string; id?: string; color?: string };
 export function overlapping(a: Cycle, b: Cycle) { return a.date_start <= b.date_end && b.date_start <= a.date_end; }
 export function sameCycle(a: Cycle, b: Cycle) {
   return a.name === b.name && a.date_start === b.date_start && a.date_end === b.date_end && a.description === b.description;

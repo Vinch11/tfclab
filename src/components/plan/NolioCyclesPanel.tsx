@@ -3,7 +3,7 @@ import { FunctionsHttpError } from '@supabase/supabase-js';
 import { Calendar, Loader2, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import type { ParsedPlan } from '@/lib/aiPlanParser';
-import { buildNolioCycles } from '@/lib/plan/nolioCycles';
+import { buildNolioCycles, NOLIO_SOFT_COLORS } from '@/lib/plan/nolioCycles';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { CollapsibleCard } from '@/components/ui/collapsible-card';
@@ -34,7 +34,9 @@ export function NolioCyclesPanel({ plan, athleteId, athleteName, startDate }: { 
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [needsConnect, setNeedsConnect] = useState(false);
-  const cycles = useMemo(() => buildNolioCycles(plan, date), [plan, date]);
+  const [colors, setColors] = useState<Record<number, string>>({});
+  const base = useMemo(() => buildNolioCycles(plan, date), [plan, date]);
+  const cycles = useMemo(() => base.map((c, i) => ({ ...c, color: colors[i] ?? c.color })), [base, colors]);
   useEffect(() => { setDate(startDate ? format(startDate, 'yyyy-MM-dd') : ''); }, [startDate]);
   useEffect(() => { setPreview(null); setAccepted(false); setMessage(null); setNeedsConnect(false); }, [cycles, athleteId]);
   const conflicts = preview?.entries.filter(e => e.state === 'conflict').length ?? 0;
@@ -69,7 +71,7 @@ export function NolioCyclesPanel({ plan, athleteId, athleteName, startDate }: { 
         <div className="space-y-1"><Label htmlFor="nolio-cycle-start">Début du plan</Label><Input id="nolio-cycle-start" type="date" value={date} disabled={busy} onChange={e => setDate(e.target.value)} className="w-44" /></div>
         <Button variant="outline" disabled={busy || !cycles.length} onClick={() => send(false)}>{busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calendar className="mr-2 h-4 w-4" />}Vérifier les cycles Nolio</Button>
       </div>
-      <ul className="divide-y divide-border">{cycles.map(c => <li key={c.date_start} className="py-2 text-sm"><p className="font-medium break-words">{c.name}</p><p className="text-muted-foreground">{c.date_start} → {c.date_end}</p><p className="whitespace-pre-line text-xs text-muted-foreground mt-1 break-words">{c.description}</p></li>)}</ul>
+      <ul className="divide-y divide-border">{cycles.map((c, i) => <li key={c.date_start} className="py-2 text-sm border-l-4 pl-3" style={{ borderLeftColor: c.color }}><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-medium break-words">{c.name}</p><div className="flex items-center gap-1" role="group" aria-label={`Couleur du cycle ${c.name}`}>{NOLIO_SOFT_COLORS.map(col => <button key={col} type="button" disabled={busy} aria-label={`Couleur ${col}`} aria-pressed={c.color === col} onClick={() => setColors(p => ({ ...p, [i]: col }))} className={`h-6 w-6 rounded-full border border-border ${c.color === col ? 'ring-2 ring-ring ring-offset-1' : ''}`} style={{ backgroundColor: col }} />)}<input type="color" disabled={busy} aria-label="Autre couleur" value={c.color} onChange={e => setColors(p => ({ ...p, [i]: e.target.value.toUpperCase() }))} className="h-6 w-7 cursor-pointer bg-transparent" /></div></div><p className="text-muted-foreground">{c.date_start} → {c.date_end}</p><p className="whitespace-pre-line text-xs text-muted-foreground mt-1 break-words">{c.description}</p></li>)}</ul>
       {!cycles.length && <p className="text-sm text-muted-foreground">Aucun cycle daté disponible.</p>}
       {preview && <div className="space-y-3">
         <ul className="space-y-1 text-sm">{preview.entries.map(e => <li key={e.cycle.date_start} className={e.state === 'conflict' ? 'text-destructive' : 'text-foreground'}>{e.cycle.name} — {e.state === 'conflict' ? 'Chevauche un cycle Nolio existant : aucun envoi' : e.state === 'existing' ? 'Déjà présent, non dupliqué' : 'À créer'}</li>)}</ul>

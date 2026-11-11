@@ -1,7 +1,19 @@
 import type { ParsedPlan } from '@/lib/aiPlanParser';
 import { buildPhaseSegments, buildPlanTimeline } from './timeline/planTimeline';
 
-export type NolioCycleDraft = { name: string; description: string; date_start: string; date_end: string };
+export type NolioCycleDraft = { name: string; description: string; date_start: string; date_end: string; color: string };
+
+/** Soft pastel banners chosen by default; the coach may replace each one before sending. */
+export const NOLIO_SOFT_COLORS = ['#A8C5E8', '#B5DCC4', '#F3D9A4', '#F2B8B5', '#CDBDE6', '#A9DCDC', '#E6C9B0', '#C9D1D9'] as const;
+export function defaultCycleColor(label: string, index: number): string {
+  const l = label.toLowerCase();
+  if (/fond|base|prép|prep|général|general/.test(l)) return '#B5DCC4';
+  if (/constr|build|dével|devel/.test(l)) return '#A8C5E8';
+  if (/spéc|spec|peak|pic|intens/.test(l)) return '#F3D9A4';
+  if (/aff|taper|course|race|compét/.test(l)) return '#F2B8B5';
+  if (/récup|recov|transition|repos/.test(l)) return '#C9D1D9';
+  return NOLIO_SOFT_COLORS[index % NOLIO_SOFT_COLORS.length];
+}
 
 /** One banner per existing phase; parallel workstreams stay inside its description. */
 export function buildNolioCycles(plan: ParsedPlan, startDate: string): NolioCycleDraft[] {
@@ -9,7 +21,7 @@ export function buildNolioCycles(plan: ParsedPlan, startDate: string): NolioCycl
   if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== startDate) return [];
   const weeks = buildPlanTimeline(plan);
   const day = (n: number) => { const d = new Date(date); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-  return buildPhaseSegments(weeks, plan.phases).flatMap(seg => {
+  return buildPhaseSegments(weeks, plan.phases).flatMap((seg, index) => {
     const selected = plan.weeks.filter(w => w.weekNumber >= seg.start && w.weekNumber <= seg.end).sort((a, b) => a.weekNumber - b.weekNumber);
     if (!selected.length) return [];
     const first = selected[0].weekNumber, last = selected[selected.length - 1].weekNumber;
@@ -23,7 +35,7 @@ export function buildNolioCycles(plan: ParsedPlan, startDate: string): NolioCycl
     return [{
       name: `${seg.label}${names.length ? ' · ' + names.join(' / ') : ''}`.slice(0, 255),
       description: [`${plan.title} — S${first}–S${last}`, seg.objective, workstreams.length ? 'Chantiers\n' + workstreams.join('\n\n') : null, themes.join('\n')].filter(Boolean).join('\n\n').slice(0, 12000),
-      date_start: day((first - 1) * 7), date_end: day(last * 7 - 1),
+      date_start: day((first - 1) * 7), date_end: day(last * 7 - 1), color: defaultCycleColor(seg.label, index),
     }];
   });
 }

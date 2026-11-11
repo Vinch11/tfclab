@@ -4,7 +4,7 @@ import { classifyCycles, overlapping, sameCycle, type Cycle } from './cycleContr
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s);
 const schema = z.object({ action: z.literal('cycles'), athlete_id: z.string().uuid(), confirm: z.boolean().default(false),
-  cycles: z.array(z.object({ name: z.string().trim().min(1).max(255), description: z.string().max(12000), date_start: date, date_end: date })
+  cycles: z.array(z.object({ name: z.string().trim().min(1).max(255), description: z.string().max(12000), date_start: date, date_end: date, color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional() })
     .refine(c => c.date_start <= c.date_end)).min(1).max(104),
 }).superRefine((body, ctx) => {
   if (body.cycles.some((c, i) => body.cycles.slice(i + 1).some(other => overlapping(c, other)))) ctx.addIssue({ code: 'custom', message: 'Les cycles proposés se chevauchent.' });
@@ -48,7 +48,7 @@ export async function handleCycles(body: unknown, client: SupabaseClient, userId
       const created = await request('planned/cycles/', { method: 'POST', body: JSON.stringify({ ...entry.cycle, athletes: [ref] }) });
       if (typeof created?.id !== 'string' || !/^pcyc_[A-Za-z0-9_-]+$/.test(created.id)) throw new Error('Création non confirmée par Nolio.');
       const read = await request(`planned/cycles/${encodeURIComponent(created.id)}/?athlete=${encodeURIComponent(ref)}`);
-      if (!sameCycle(entry.cycle, read)) throw new Error('Le cycle relu dans Nolio diffère du cycle envoyé.');
+      if (!sameCycle(entry.cycle, read) || (entry.cycle.color && String(read?.color ?? '').toLowerCase() !== entry.cycle.color.toLowerCase())) throw new Error('Le cycle relu dans Nolio diffère du cycle envoyé.');
       results.push({ name: entry.cycle.name, state: 'created', id: created.id });
     } catch (e) { return { results, error: e instanceof Error ? e.message : 'Envoi interrompu.', confirmed: false }; }
   }

@@ -35,3 +35,10 @@ describe('Cycles Nolio', () => {
     expect(sameCycle(cycle, { ...cycle, description: 'Perdue' })).toBe(false);
   });
 });
+import { defaultCycleColor } from '@/lib/plan/nolioCycles';
+describe('couleurs douces des cycles', () => {
+  it('donne une couleur pastel par phase', () => {
+    expect(defaultCycleColor('Fondation', 0)).toBe('#B5DCC4');
+    expect(defaultCycleColor('Affûtage', 3)).toBe('#F2B8B5');
+  });
+});
