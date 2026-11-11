@@ -23,3 +23,5 @@ Le formulaire publié utilise les trois fichiers de la version vérifiée sous u
 Le chemin utilisé par la page se lit dans la propriété `runtime` de `/__det/coach/host-release.json`. Après un changement d’objectif ou de date de début, le formulaire affiche les observations enregistrées pour cette préparation. Revenir au trail court après avoir choisi un ultra restaure les durées du trail court.
 
 Les fichiers dont le nom contient une empreinte et les versions de DET déjà publiées sont conservés lors de la livraison suivante. Un onglet ouvert peut ainsi terminer avec la version du formulaire qu’il a chargée.
+
+Un chrono marathon hors des allures disponibles garde sa place comme objectif du coach. DET indique la limite de ses blocs et cite l’allure calculée et le seuil utilisé. Pour le trail, une course à l’intérieur de la préparation peut dépasser les capacités de placement de DET. Si elle tombe en dehors de la période indiquée, le message précise les dates ou le nombre de semaines à revoir.
