@@ -1,49 +1,96 @@
 {
   "publicOrigin": "https://tfcl.twoforcoaching.be",
-  "atUtc": "2026-11-11T00:06:17.402942+00:00",
+  "atUtc": "2026-11-11T00:52:58.559146+00:00",
+  "referenceOracle": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+  "engineSource": "beb5ecdc60c6f0fdb938e9d235a78149bbbc0a58",
+  "releaseWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42933380934",
+  "generalRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
   "worker": {
     "schema": 1,
-    "version": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f",
+    "version": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10",
     "entry": "worker.js.gz",
     "encoding": "gzip",
-    "bytes": 801767,
-    "sha256": "bd97c8f9d6551652f559323e11059404363b67d000d78cc6de987c12cc65d88d",
-    "workerSha256": "1453b2b9051f411659b2751180436ec235c882a834a7a6b1ee77b129bde49a91"
+    "bytes": 803337,
+    "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869",
+    "workerSha256": "5b1b32cf7c8a1c6850c24292e5342f9c220cf5a51a647e714af18e57be3cd8fb"
   },
-  "coachAssets": {
-    "upstreamRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
-    "assets": {
-      "coach-DuutUn2K.mjs": "b90f59b94b076dd1d2ccafbd93c7d11c8b9b07d7d8aa736b1c6c15980394faf5",
-      "mount-Bio6eZ0C.mjs": "990c23ee30bc30e95f54a9849f835bb287e4976e080fd248a0e305f7d96a1d92",
-      "mount-D2mQHqo9.css": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5",
-      "nolioRemote-CKGt7kzr.mjs": "07dc9bf94881841e51ba95e9d61133b1de2dc0eae5ba2def76fe11b533fcbede"
+  "workerDecompressedVerified": true,
+  "publicManifestBytes": {
+    "status": 200,
+    "url": "https://tfcl.twoforcoaching.be/__det/v1/manifest.json",
+    "bytes": 337,
+    "sha256": "4fb48c0eeb90b7a3ecf7ed5545e66a99f4e94380ca78d0a3e99cc6a21ef019ca",
+    "equalsGitHubBytes": true
+  },
+  "formHtml": {
+    "path": "/__det/coach/index.html",
+    "httpStatus": 200,
+    "moduleScripts": [
+      "/__det/coach/assets/coach-XAoQZhMi.mjs"
+    ],
+    "mountPoint": "det-root",
+    "hostResponseSha256": "023af8af20435763dcf6ba33f1f76b1e7e6007b997846de304fa3350426914a0",
+    "gitSha256": "6429e767b9690f3f92022420317b23f67ec9411506f700fed5c3485fc79e20d5",
+    "htmlBytesEqual": false
+  },
+  "matchedFiles": {
+    "/__det/v1/worker.js.gz": {
+      "bytes": 803337,
+      "sha256": "e14f85ed5268486f1b3df117bb2be69ebba270a65fe4426361e56032835c5869"
+    },
+    "/__det/v1/client.mjs": {
+      "bytes": 2833,
+      "sha256": "9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e"
+    },
+    "/__det/coach/host-release.json": {
+      "bytes": 492,
+      "sha256": "7ad0595543e5d7f6b58dbc8182f770fa6b49e3b6a8ff9a64d39b641e8426299b"
+    },
+    "/__det/coach/assets/coach-XAoQZhMi.mjs": {
+      "bytes": 3819,
+      "sha256": "44a2614d48edb2f7218cc15dbdd3783d779c91babc012a3a1cd14381ef0310fa"
+    },
+    "/__det/coach/assets/mount-D2mQHqo9.css": {
+      "bytes": 210705,
+      "sha256": "54170f801afe28115abc8ffc2c05963ce86036d151601a0864e21720e12870e5"
+    },
+    "/__det/coach/assets/mount-PNkm3g-W.mjs": {
+      "bytes": 2609374,
+      "sha256": "15d397084f3c7f95643a1c01c4aa72c6fb21a5d2870926aa7b8ba3f4e8d992a6"
+    },
+    "/__det/coach/assets/nolioRemote-C-N1AZbQ.mjs": {
+      "bytes": 660,
+      "sha256": "8331220e0338b5f0f1ec40c6a3f791430858061a5ffce6029c8e55c737c88388"
     }
   },
-  "generalRelease": "0e501333f5764897cb175b4192187ec1b4f474cb2f4f42e08de24b14f631e513",
-  "allArtifactDigestsVerified": true,
-  "publicManifestBytes": {
-    "atUtc": "2026-11-11T00:13:36.289216+00:00",
-    "httpStatus": 200,
-    "byteLength": 337,
-    "sha256": "b8ba2b8eab9e28792e3f3cdbeddfe3b384131932f4d8723ed930e3d95b8690fa",
-    "equalsGitHubManifestFile": true
-  },
-  "releaseSource": "5dc1f98f51c2491cbe43f9b3ca04f517898abf37",
-  "formDelivery": {
-    "pr": 476,
-    "merged": true,
-    "mergeCommit": "b8316d34166c026a2fd88d3cf36e400ba81ca26e",
-    "verifiedDetFormWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42927805248",
-    "generalCI": "Sept assertions IA/QA échouaient aussi sur le parent général 77b79a9d5ffd7383417039334b2e0add62f564c4."
-  },
-  "publicChromium": {
+  "formDelivery": [
+    {
+      "pr": 476,
+      "merged": true,
+      "mergeCommit": "b8316d34166c026a2fd88d3cf36e400ba81ca26e",
+      "verifiedDetFormWorkflow": "https://github.com/Vinch11/tfclab/actions/runs/42927805248",
+      "generalCI": "Sept assertions IA/QA échouaient aussi sur le parent général 77b79a9d5ffd7383417039334b2e0add62f564c4."
+    },
+    {
+      "pr": 477,
+      "mergeCommit": "512d889a02c1ce69fa28cfe9beb534ca97b9ef05",
+      "url": "https://github.com/Vinch11/tfclab/pull/477",
+      "verifiedFormWorkflows": [
+        "https://github.com/Vinch11/tfclab/actions/runs/42934052199",
+        "https://github.com/Vinch11/tfclab/actions/runs/42934059782"
+      ],
+      "staticDeployment": "848b4047-2de0-4e74-af62-7a6e9369a1e1"
+    }
+  ],
+  "priorPublicChromium": {
     "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42928746315",
     "verifyJobId": 130221824316,
     "result": "success",
-    "scope": "Chromium sur le domaine publié, marathon synthétique, version du worker identique, seize semaines construites et précontrôle de la première semaine. Aucun envoi vers Nolio."
+    "scope": "Chromium sur le domaine publié, marathon synthétique, version du worker identique, seize semaines construites et précontrôle de la première semaine. Aucun envoi vers Nolio.",
+    "version": "det-2973514e4db511e342bb64cc8a9b2abc4c1b317381eb36558cc5a1d038c01a3f"
   },
   "nolioServices": {
-    "atUtc": "2026-11-11T00:12:40.134496+00:00",
+    "atUtc": "2026-11-11T00:58:40.854613+00:00",
     "method": "OPTIONS",
     "functions": {
       "nolio-v2-oauth": {
@@ -67,27 +114,12 @@
       }
     }
   },
-  "acceptance": {
-    "independentSportReview": {
-      "status": "sans_preuve",
-      "evidence": null
-    },
-    "pilot": {
-      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
-    },
-    "nolioV2Send": {
-      "status": "sans_preuve",
-      "operationId": null,
-      "eventId": null
-    },
-    "nolioV2Readback": {
-      "status": "sans_preuve",
-      "matchingEventId": null
-    },
-    "pairedWatchSteps": {
-      "status": "sans_observation",
-      "evidence": null
-    }
+  "nolioServiceDeployment": {
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/42934250538",
+    "job": 130240269892,
+    "result": "failure",
+    "failedStep": "Vérifier l’accès au projet Supabase",
+    "cause": "Le job de publication ne disposait pas de SUPABASE_ACCESS_TOKEN. Aucune fonction n’a été déployée par ce job."
   },
   "database": {
     "source": "48c85f3ce9007bc5317826baf37cc47d805d120c",
@@ -169,9 +201,68 @@
       }
     ]
   },
-  "followupForm": {
-    "pr": 477,
-    "url": "https://github.com/Vinch11/tfclab/pull/477",
-    "candidateVersion": "det-00d3e1a876ed90fc643aba55f535d5e456141c096d59e3851f6349f6973b3b10"
+  "acceptance": {
+    "independentSportReview": {
+      "status": "sans_preuve",
+      "evidence": null
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    }
+  },
+  "previewsAreLocal": true,
+  "ordinaryFormWitnessesUseSyntheticIdentities": true,
+  "targetedRegression": {
+    "testFiles": 15,
+    "testsPassed": 152,
+    "reference": "coach-matrix.json",
+    "inputFollowups": "coach-historiques-renseignes.json",
+    "rankAndExtended": "coach-complements.json"
+  },
+  "generalCI": {
+    "baseline": "77b79a9d5ffd7383417039334b2e0add62f564c4",
+    "persistingAssertions": [
+      {
+        "path": "src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts",
+        "line": 31
+      },
+      {
+        "path": "src/pages/__tests__/criticalBlockingGate.test.ts",
+        "line": 82
+      },
+      {
+        "path": "src/pages/__tests__/criticalBlockingGate.test.ts",
+        "line": 38
+      },
+      {
+        "path": "src/lib/__tests__/workoutCatalogBuilder.advancedPrerequisites.test.ts",
+        "line": 35
+      },
+      {
+        "path": "src/hooks/__tests__/useAITrainingPlan.windowing.test.ts",
+        "line": 304
+      },
+      {
+        "path": "src/hooks/__tests__/useAITrainingPlan.windowing.test.ts",
+        "line": 202
+      },
+      {
+        "path": "src/hooks/__tests__/useAITrainingPlan.prevalidation.test.tsx",
+        "line": 16
+      }
+    ]
   }
 }

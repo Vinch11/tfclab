@@ -666,7 +666,7 @@
    ],
    "status": "refused",
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 50 min de vélo. Ces repères déterminent les doses de départ."
    ]
   },
   {
@@ -684,7 +684,7 @@
    ],
    "status": "refused",
    "reasons": [
-    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+    "Reprise en triathlon : renseignez la durée du vélo facile en continu récemment tolérée (minutes). La sortie de S1 prévoit au moins 60 min de vélo. Ces repères déterminent les doses de départ."
    ]
   }
  ]
