@@ -1,5 +1,5 @@
 import {NolioConnection} from './NolioConnection';
-import {deliverToNolio,scopeFor} from './nolioDelivery';
+import {deliverToNolio,scopeFor,type NolioReceipt} from './nolioDelivery';
 import {useEffect, useRef, useState} from 'react';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
 
@@ -50,6 +50,7 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
   const [delivery,setDelivery]=useState('');
+  const [remoteReceipt,setRemoteReceipt]=useState<NolioReceipt|null>(null);
   const running=useRef<AbortController|null>(null);
   useEffect(()=>()=>running.current?.abort(),[]);
   const sessions=plan.weeks.flatMap(w=>w.sessions.map((s,i)=>({session:s,key:'S'+w.weekNumber+'-J'+s.dayIndex+'-'+i})));
@@ -69,11 +70,11 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
   async function send(){
     running.current?.abort();
     const controller=new AbortController();running.current=controller;
-    setError('');setDelivery('Vérification de la connexion et de l’athlète Nolio…');setBusy(true);
+    setError('');setRemoteReceipt(null);setDelivery('Vérification de la connexion et de l’athlète Nolio…');setBusy(true);
     try{
       const {callNolio}=await import('./nolioRemote');
       const result=await deliverToNolio(callNolio,plan,scopeFor(selection),controller.signal,message=>{if(!controller.signal.aborted)setDelivery(message);});
-      if(!controller.signal.aborted)setDelivery(result);
+      if(!controller.signal.aborted){setDelivery(result.message);setRemoteReceipt(result);}
     }catch(error){if(!controller.signal.aborted){setDelivery('');setError(error instanceof Error?error.message:String(error));}}
     finally{if(!controller.signal.aborted)setBusy(false);}
   }
@@ -81,7 +82,7 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
     <h4 className="font-semibold">Guidage Nolio V2</h4>
     <p>Ce contrôle prépare les étapes sur des associations simulées. L’envoi au calendrier Nolio et la réception sur la montre demandent une vérification séparée.</p>
     <NolioConnection key={athleteId} athleteId={athleteId}/>
-    <label>Portée du contrôle <select value={selection} onChange={e=>{running.current?.abort();setBusy(false);setReceipt(null);setError('');setDelivery('');setSelection(e.target.value);}}>
+    <label>Portée du contrôle <select value={selection} onChange={e=>{running.current?.abort();setBusy(false);setReceipt(null);setError('');setDelivery('');setRemoteReceipt(null);setSelection(e.target.value);}}>
       <option value="all">Plan complet</option>
       <optgroup label="Semaines">{plan.weeks.map(w=><option key={w.weekNumber} value={'week-'+w.weekNumber}>Semaine {w.weekNumber}</option>)}</optgroup>
       <optgroup label="Séances">{sessions.filter(row=>!row.session.isRest).map(row=><option key={row.key} value={row.key}>{row.key} · {row.session.title}</option>)}</optgroup>
@@ -89,6 +90,10 @@ export function PlanGuidance({plan,athleteId}:{plan:ParsedPlan;athleteId:string}
     <button type="button" className="rounded border px-2 py-1" disabled={busy} onClick={()=>void verify()}>{busy?'Vérification…':'Vérifier sans envoyer'}</button>
     <button type="button" className="rounded border px-2 py-1" disabled={busy} onClick={()=>void send()}>Exporter {selection==='all'?'le plan':selection.startsWith('week-')?'la semaine':'la séance'} vers Nolio</button>
     {!!delivery&&<p role="status">{delivery}</p>}
+    {remoteReceipt && <details><summary>Identifiants d’envoi et de relecture Nolio</summary>
+      <p>Version TFCLab · {remoteReceipt.planVersionId}</p>
+      <ul>{remoteReceipt.matched.map(row=><li key={row.opKey}>{row.date} · {row.sessionKey} · Identifiant envoyé {row.sentId} · Identifiant relu {row.readId}</li>)}</ul>
+    </details>}
     {error&&<p role="alert" className="whitespace-pre-line">{error}</p>}
     {receipt&&<div aria-live="polite"><p>{receipt.ops.length} opération(s) préparée(s) en simulation locale. {receipt.precheck.complete?'Traduction complète.':'Traduction incomplète.'}</p>
       {receipt.precheck.planProblems.map(reason=><p key={reason}>{reason}</p>)}

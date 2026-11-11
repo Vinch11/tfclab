@@ -79,7 +79,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
       const record=historyForm(input);
       const values=record?.key===history.key ? history : emptyHistory;
       const trailLongRunLimits=record?.kind==='trail' && (values.recent || values.peak)
-        ? {recentMinutes:Number(values.recent),peakMinutes:Number(values.peak)} : undefined;
+        ? {recentMinutes:values.recent===''?undefined:Number(values.recent),peakMinutes:values.peak===''?undefined:Number(values.peak)} : undefined;
       const recentLongRideMinutes=record?.kind==='bike' && values.ride ? Number(values.ride) : undefined;
       if(record?.kind.startsWith('marathon'))input.config=withMarathonTime(input.config,values.target);
       const roadReturnThresholdReps=record?.kind==='tenReturn' && values.thresholdReps!=='' ? Number(values.thresholdReps) : undefined;
@@ -119,7 +119,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
           history.kind==='marathon'? [['target','Chrono marathon visé (h:mm:ss ou minutes)']] as const :
           [['ride','Sortie vélo facile la plus longue récemment tolérée (min)']] as const).map(([field,label])=>
           <label key={field} className="grid gap-1">{label}
-            <input type={field==='target'?'text':'number'} min={field==='target'?undefined:1} className="rounded border p-2" value={history[field]}
+            <input type={field==='target'?'text':'number'} min={field==='target'?undefined:0} className="rounded border p-2" value={history[field]}
               onChange={e=>updateHistory(field,e.target.value)}/>
           </label>)}
       </fieldset>}

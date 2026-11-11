@@ -104,6 +104,7 @@ export async function sendExportBatch(a: {
 
 // ---------------- Relecture du calendrier Nolio ----------------
 export type LedgerRow = { op_key: string; session_key: string; path: string; state: string; remote_id: string | null };
+export type MatchedReadback = { opKey:string; sessionKey:string; date:string|null; path:string; sentId:string; readId:string };
 export type VerifyResult = {
   checked: number; present: number;
   missing: Array<{ opKey: string; remoteId: string; sessionKey: string; title: string; date: string | null }>;
@@ -122,7 +123,7 @@ export function confirmedRowsForPlan(prepared: PreparedExport, rows: LedgerRow[]
  * dans Nolio ; toute autre lecture non concluante = inconnue (jamais « présente »).
  */
 export async function verifyConfirmedBatch(a: {
-  prepared: PreparedExport; confirmed: LedgerRow[]; http: NolioV2Http; athleteRef: string; fromIndex: number; deadline: number; maxReads?: number;
+  prepared: PreparedExport; confirmed: LedgerRow[]; http: NolioV2Http; athleteRef: string; fromIndex: number; deadline: number; maxReads?: number; onMatched?:(row:MatchedReadback)=>void;
 }): Promise<VerifyResult> {
   const out: VerifyResult = { checked: 0, present: 0, missing: [], unknown: [], nextIndex: null, totalConfirmed: a.confirmed.length };
   const rowOf = (key: string) => a.prepared.rows.find((r) => r.sessionKey === key.replace(/~(bike|run)$/, ""));
@@ -135,7 +136,10 @@ export async function verifyConfirmedBatch(a: {
     out.checked++;
     if (d.ok === true) {
       const sent = a.prepared.ops.find(op => op.opKey === r.op_key);
-      if (sent && d.item.id === r.remote_id && exactRemoteMatch(d.item, sent.body)) out.present++;
+      if (sent && r.remote_id && d.item.id === r.remote_id && exactRemoteMatch(d.item, sent.body)) {
+        out.present++;
+        a.onMatched?.({opKey:r.op_key,sessionKey:r.session_key,date:info.date,path:r.path,sentId:r.remote_id,readId:d.item.id});
+      }
       else out.unknown.push({ ...info, detail: "prescription_changed" });
       continue;
     }

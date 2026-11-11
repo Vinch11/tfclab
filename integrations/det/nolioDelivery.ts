@@ -1,7 +1,9 @@
 export type ExportScope={kind:'all'}|{kind:'weeks';from:number;to:number}|{kind:'sessions';keys:string[]};
+export type NolioMatch={opKey:string;sessionKey:string;date:string|null;path:string;sentId:string;readId:string};
+export type NolioReceipt={planVersionId:string;matched:NolioMatch[];message:string};
 type RemoteResult={status:string;reason?:string;planVersionId?:string;total?:number;confirmed?:number;createdThisBatch?:number;
   expected?:number;present?:number;totalConfirmed?:number;nextIndex?:number|null;missing?:unknown[];unknown?:unknown[];
-  problems?:string[];refused?:{session:string;reason:string}[]};
+  matched?:NolioMatch[];problems?:string[];refused?:{session:string;reason:string}[]};
 export type CallNolio=(input:Record<string,unknown>,signal:AbortSignal)=>Promise<RemoteResult>;
 const reasons:Record<string,string>={athlete_not_linked:'Associez cet athlète TFCLab à son profil Nolio V2.',scopes_missing_reconnect:'La connexion Nolio doit autoriser la lecture et l’écriture des séances planifiées.',not_connected:'Connectez le compte Nolio du coach pour l’export DET.',scope_incomplete:'Des séances de la sélection restent sans traduction complète.',link_read_failed:'Le service ne peut pas lire l’association de cet athlète.',ledger_read_failed:'Le journal Nolio est inaccessible. Vérifiez les opérations déjà envoyées.',athlete_link_from_previous_connection_relink:'Vérifiez l’association de cet athlète après le changement de connexion Nolio.'};
 function expectStatus(value:RemoteResult,status:string){
@@ -32,17 +34,26 @@ export async function deliverToNolio(call:CallNolio,plan:unknown,scope:ExportSco
       throw Error('Envoi interrompu. Relancez la même sélection pour reprendre depuis le journal Nolio.');
     confirmed=batch.confirmed;
   }
-  let present=0,fromIndex=0;
+  const matched:NolioMatch[]=[];
+  const seenOps=new Set<string>(), seenIds=new Set<string>();
+  let fromIndex=0;
   for(;;){
     const verify=await call({action:'verify',...base,fromIndex},signal);
     expectStatus(verify,'VERIFIED');
     if(verify.expected!==total||verify.totalConfirmed!==total||verify.missing?.length||verify.unknown?.length)
       throw Error('Nolio n’a pas confirmé la présence et le contenu de chaque activité. Le journal conserve les opérations déjà envoyées.');
-    present+=verify.present??0;
+    if(verify.planVersionId!==saved.planVersionId || !Array.isArray(verify.matched) || verify.matched.length!==verify.present)
+      throw Error('Identifiants de relecture Nolio incomplets pour cette version du plan.');
+    for(const row of verify.matched){
+      const remote=row.path+'/'+row.readId;
+      if(!row.opKey || !row.sessionKey || !row.sentId || row.readId!==row.sentId || seenOps.has(row.opKey) || seenIds.has(remote))
+        throw Error('Les identifiants de l’envoi et de la relecture Nolio ne concordent pas.');
+      seenOps.add(row.opKey);seenIds.add(remote);matched.push(row);
+    }
     if(verify.nextIndex==null)break;
     if(verify.nextIndex<=fromIndex || verify.nextIndex>=total)throw Error('La relecture Nolio doit être reprise.');
     fromIndex=verify.nextIndex;
   }
-  if(present!==total)throw Error('Relecture Nolio incomplète.');
-  return total+' activité(s) relue(s) sur Nolio avec les étapes prévues. La réception sur la montre reste à vérifier.';
+  if(matched.length!==total)throw Error('Relecture Nolio incomplète.');
+  return {planVersionId:saved.planVersionId,matched,message:total+' activité(s) relue(s) sur Nolio avec les étapes prévues. La réception sur la montre reste à vérifier.'} satisfies NolioReceipt;
 }

@@ -64,7 +64,7 @@ try{
         return route.fulfill({status:200,headers,body:JSON.stringify({status:'ARCHIVED',planVersionId:'version-simulee'})});
       }
       assert.deepEqual(job.scope,expectedScope);assert.equal(job.planVersionId,'version-simulee');
-      const sample={prepare:{status:'PREPARED',confirmed:0,total:1},send:{status:'DONE',confirmed:1,total:1},verify:{status:'VERIFIED',expected:1,totalConfirmed:1,present:1,nextIndex:null}}[job.action];
+      const sample={prepare:{status:'PREPARED',confirmed:0,total:1},send:{status:'DONE',confirmed:1,total:1},verify:{status:'VERIFIED',expected:1,totalConfirmed:1,present:1,nextIndex:null,planVersionId:'version-simulee',matched:[{opKey:'operation-simulee',sessionKey:'S5-J3-0',date:'2026-12-03',path:'/api/v2/planned/trainings/',sentId:'id-simule',readId:'id-simule'}]}}[job.action];
       assert.ok(sample);return route.fulfill({status:200,headers,body:JSON.stringify(sample)});
     }
     if(u.origin!==project || !['GET','HEAD','OPTIONS'].includes(req.method()) || !(u.pathname.startsWith('/rest/v1/')||u.pathname==='/auth/v1/user')){
@@ -114,25 +114,33 @@ try{
   await guidance.getByRole('button',{name:'Exporter la séance vers Nolio'}).click();
   await guidance.getByText(/1 activité\(s\) relue\(s\) sur Nolio/).waitFor();
   assert.deepEqual(delivery,['archive','prepare','send','verify']);expectedScope=null;
+  await guidance.getByText('Identifiants d’envoi et de relecture Nolio',{exact:true}).click();
+  assert.match(await guidance.innerText(),/Identifiant envoyé id-simule · Identifiant relu id-simule/);
   assert.match(stages,/15 min 30 s/);assert.match(stages,/136,8–158,4 W/);assert.match(stages,/dernière récupération omise/);
   await racePicker.click();
   await page.getByRole('option',{name:/^Trail court/}).click();
   const recent=page.getByLabel('Durée récemment tolérée (min)');
   const peak=page.getByLabel('Durée maximale en préparation (min)');
-  await recent.fill('75');await peak.fill('50');
+  await recent.fill('75');
   await page.getByRole('button',{name:'Générer avec DET'}).click();
-  await result.getByRole('alert').filter({hasText:/plafond.*(inférieur|au moins égal)/}).waitFor();
+  await result.getByRole('alert').filter({hasText:/plafond de sortie longue choisi/}).waitFor();
+  await peak.fill('0');
+  await page.getByRole('button',{name:'Générer avec DET'}).click();
+  await result.getByRole('alert').filter({hasText:/plafond choisi.*0 min/}).waitFor();
   await peak.fill('100');
+  const hours=page.getByText('Charge récente réelle (h/sem)',{exact:true}).locator('..').getByRole('spinbutton');
+  await hours.fill('0');
   await page.evaluate(()=>{
     const send=Worker.prototype.postMessage;
     Worker.prototype.postMessage=function(job,...args){
-      if(job?.action==='generate')window.trailWorkerInput={goal:job.input.config.objective,limits:job.input.trailLongRunLimits};
+      if(job?.action==='generate')window.trailWorkerInput={goal:job.input.config.objective,limits:job.input.trailLongRunLimits,recentHours:job.input.config.loadHistory?.recentWeeklyHours};
       return send.call(this,job,...args);
     };
   });
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await page.waitForFunction(()=>window.trailWorkerInput);
-  assert.deepEqual(await page.evaluate(()=>window.trailWorkerInput),{goal:'Trail court (20-40 km)',limits:{recentMinutes:75,peakMinutes:100}});
+  assert.deepEqual(await page.evaluate(()=>window.trailWorkerInput),{goal:'Trail court (20-40 km)',limits:{recentMinutes:75,peakMinutes:100},recentHours:0});
+  await hours.fill('');
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');

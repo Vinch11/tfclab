@@ -2,7 +2,7 @@ import {corsHeaders} from './lib/cors.ts';
 import {authenticate,json,nativeFetch,ownsAthlete,UUID} from './lib/edgeAuth.ts';
 import {loadConfig} from './lib/oauth.ts';
 import {confirmedOpKeys,connectionFromGrant,readLink,readyGrant,refsFromLink} from './lib/prodConnection.ts';
-import {confirmedRowsForPlan,sendExportBatch,verifyConfirmedBatch,type LedgerRow} from './lib/exportPlan.ts';
+import {confirmedRowsForPlan,sendExportBatch,verifyConfirmedBatch,type MatchedReadback,type LedgerRow} from './lib/exportPlan.ts';
 import {fetchNolioV2Http} from './lib/httpFetch.ts';
 import {supabaseNolioV2Ledger} from './lib/ledgerSupabase.ts';
 import {archiveIdentity,isDetArchive,prepareDetScope} from './contract.ts';
@@ -61,8 +61,9 @@ Deno.serve(async req=>{
     const {data,error}=await admin.from('det_nolio_v2_operations').select('op_key,session_key,path,state,remote_id').eq('coach_id',coachId).eq('plan_version_id',id);
     if(error||!Array.isArray(data))return refused('ledger_read_failed',502);
     const confirmed=confirmedRowsForPlan(prepared,data as LedgerRow[]);
-    const result=await verifyConfirmedBatch({prepared,confirmed,http,athleteRef:refs.athleteId,fromIndex:Number(body.fromIndex),deadline});
-    return json(200,{...result,status:'VERIFIED',expected:prepared.ops.length});
+    const matched:MatchedReadback[]=[];
+    const result=await verifyConfirmedBatch({prepared,confirmed,http,athleteRef:refs.athleteId,fromIndex:Number(body.fromIndex),deadline,onMatched:row=>matched.push(row)});
+    return json(200,{...result,matched,planVersionId:id,status:'VERIFIED',expected:prepared.ops.length});
   }
   const result=await sendExportBatch({prepared,planVersionId:id,refs,connection:connectionFromGrant(ready.grant),http,ledger:supabaseNolioV2Ledger(admin,coachId),
     dryFetch:(u,i)=>fetch(u,i),accessToken,confirmedKeys:keys,batchSize:6,deadline});
