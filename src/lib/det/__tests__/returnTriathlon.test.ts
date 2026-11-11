@@ -8,6 +8,7 @@ import {auditV3Catalogue} from '../../../../scripts/library-v3/catalogueRuntime'
 import {sessionsFromPlanJson} from '../../../../supabase/functions/_shared/nolioV2/planSessions';
 import {raceIdentityOf} from '../../../../supabase/functions/_shared/nolioV2/plannedMapper';
 import {preparePlan} from '../../../../supabase/functions/_shared/nolioV2/planDryRun';
+import {verifyTransitionPractice} from './transitionPracticeProof';
 import type {V3PlanProposal} from '../appPlanningV3Proposal';
 
 vi.mock('@/integrations/supabase/client',()=>({supabase:{}}));
@@ -49,17 +50,18 @@ it.each([
   expect(proposal.weeks[0].knownMinutes).toBeLessThanOrEqual(scenario.recent*60);
   expect(proposal.returnTriathlon?.recentLongRideMinutes).toBe(scenario.ride);
   expect(plan.weeks[0].coachNotes).toContain(`Sortie vélo récemment tolérée déclarée par le coach : ${scenario.ride} min`);
-  expect(plan.weeks[0].coachNotes).toContain('aucun enchaînement vélo-course avant la compétition');
+  expect(plan.weeks[0].coachNotes).toMatch(/Premier enchaînement vélo-course en S[2-9]\./);
   expect(parseV3PlanProposal(JSON.parse(JSON.stringify(proposal))).returnTriathlon).toEqual(proposal.returnTriathlon);
   const allIds=new Set<string>();
   let lastRide=0,lastLoad=0;
   const ramp=input.config.volumeRamp!.weeklyIncreasePctMax;
   for(const w of proposal.weeks){
     const sessions=w.days.flatMap(d=>d.sessions);
-    expect(w.knownMinutes).toBeLessThanOrEqual(scenario.hours*60);
+    const elapsedAllowance=w.knownMinutes+(proposal.transitionPractice?.some(p=>p.week===w.week)?5:0);
+    expect(elapsedAllowance).toBeLessThanOrEqual(scenario.hours*60);
     if(w.weekType==='recovery')expect(w.knownMinutes).toBeLessThanOrEqual(lastLoad*.7+1e-7);
     if(w.weekType==='load'){
-      if(lastLoad)expect(w.knownMinutes).toBeLessThanOrEqual(lastLoad*(1+ramp)+1e-7);
+      if(lastLoad)expect(elapsedAllowance).toBeLessThanOrEqual(lastLoad*(1+ramp)+1e-7);
       lastLoad=w.knownMinutes;
       const ride=sessions.find(s=>s.role==='long'&&(s.sport==='bike'||s.sport==='brick'))?.components.find(c=>c.sport==='bike')?.durationMinutes;
       if(ride){
@@ -81,9 +83,11 @@ it.each([
   const full=await preparePlan(plan,refs,'SYNTHETIC_RETURN');
   expect(full.precheck.complete,JSON.stringify(full.precheck.rows.filter(row=>row.status==='refused'))).toBe(true);
   expect(full.precheck.weeks).toBe(scenario.weeks);
+  const practices=verifyTransitionPractice(proposal,full,sessions);
+  expect(parseV3PlanProposal(JSON.parse(JSON.stringify(proposal))).transitionPractice).toEqual(proposal.transitionPractice);
   if(process.env.DET_TRI_PROOF)appendFileSync(process.env.DET_TRI_PROOF,JSON.stringify({...scenario,
     firstWeek:proposal.weeks[0].knownMinutes,lastLongRide:lastRide,weeklyPeak:Math.max(...proposal.weeks.map(w=>w.knownMinutes)),
-    operations:full.ops.length,additionalSources:[...allIds].filter(id=>['V3P_BIKE_205','V3P_BIKE_206','V3P_SWIM_217'].includes(id))})+'\n');
+    practices,operations:full.ops.length,additionalSources:[...allIds].filter(id=>['V3P_BIKE_205','V3P_BIKE_206','V3P_SWIM_217'].includes(id))})+'\n');
 },120000);
 
 it.each([

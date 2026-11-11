@@ -1,3 +1,4 @@
+import {isReturnThresholdTenK} from '@/lib/det/roadReturnIntensity';
 import {balancedProfileEvidence} from '@/lib/det/balancedProfile';
 import {DetDecisionError, incompatible, missingData, type CoachDecision} from '@/lib/det/coachDecision';
 /**
@@ -46,6 +47,7 @@ export interface DetRunInput {
   trailGuidanceReview?: import('@/lib/det/trailGuidance').TrailGuidanceReview;
   timeTrial?: TimeTrialDeclaration;
   marathonRecentLongRunMinutes?:number;
+  roadReturnThresholdReps?:number;
   trailLongRunLimits?:import('@/lib/det/trailPreparation').TrailLongRunLimits;
   athleteId: string;
   athlete: PlanAthleteData;
@@ -73,7 +75,9 @@ export async function generateDetPlanFromPageInput(input: DetRunInput): Promise<
 }
 
 async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
-  if (!input.athleteId || input.diagnostic?.athleteId !== input.athleteId ||
+  if(!input.athleteId)throw missingData('Sélectionnez l’athlète à préparer.', 'athleteId');
+  if(!input.diagnostic?.athleteId)throw missingData('Sélectionnez le bilan de cet athlète pour l’objectif demandé.', 'diagnostic');
+  if (input.diagnostic.athleteId !== input.athleteId ||
       input.config.athleteId && input.config.athleteId !== input.athleteId)
     throw incompatible('Le bilan et le formulaire doivent appartenir au même athlète. Rechargez le profil sélectionné.', 'athleteId', 'diagnostic.athleteId');
   const config = input.timeTrial ? withOrdinaryTimeTrial(input.config,input.athleteId,input.diagnostic.objectif,input.timeTrial) : input.config;
@@ -81,7 +85,7 @@ async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
   if(isTimeTrial(objective) && (!config.timeTrialContext || config.athleteId!==input.athleteId || config.timeTrialContext.athleteId!==input.athleteId))
     throw missingData('CLM : renseignez la position aéro et la durée d’épreuve de cet athlète.', 'timeTrial');
   if (!detSupportsObjective(objective)) {
-    const message = /start.?to.?run/i.test(objective) ? 'Start to Run utilise le protocole marche-course dédié. Ouvrez Start to Run dans l’assistant de démarrage de TFCLab.' :
+    const message = /start.?to.?run/i.test(objective) ? 'DET ne construit pas de plan V3 individualisé pour Start to Run. Dans la page de planification TFCLab, « Assigner Start-to-Run standard » ouvre le protocole marche-course.' :
       `DET ne couvre pas encore l’objectif « ${objective} ».`;
     throw new DetRefusal([message]);
   }
@@ -97,8 +101,11 @@ async function generateForCoach(input: DetRunInput): Promise<ParsedPlan> {
     coachOverride,
   });
   const balancedMetrics = applied.length ? undefined : balancedProfileEvidence(input.diagnostic,input.athleteId,input.athlete,config);
+  const fatigue=input.diagnostic._rawInput?.fatigueState;
+  const returnFatigue=isReturnThresholdTenK(config) && fatigue
+    ? ['fatigued','high','injured'].includes(fatigue)?'fatigued' : ['fresh','ok'].includes(fatigue)?'ready':undefined : undefined;
   const plan = await generateAppProfileDetPlan(frozen,input.athleteId,{
-    trailGuidanceReview:input.trailGuidanceReview, recentLongRideMinutes:input.recentLongRideMinutes,trailLongRunLimits:input.trailLongRunLimits, marathonRecentLongRunMinutes:input.marathonRecentLongRunMinutes, balancedMetrics,
+    currentFatigue:returnFatigue, roadReturnThresholdReps:input.roadReturnThresholdReps, trailGuidanceReview:input.trailGuidanceReview, recentLongRideMinutes:input.recentLongRideMinutes,trailLongRunLimits:input.trailLongRunLimits, marathonRecentLongRunMinutes:input.marathonRecentLongRunMinutes, balancedMetrics,
   },detEngineVersion());
   return bindAppPlanMetadata(plan, frozen);
 }

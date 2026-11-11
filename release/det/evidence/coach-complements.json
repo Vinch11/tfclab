@@ -1,0 +1,691 @@
+{
+ "synthetic": true,
+ "changes": [
+  {
+   "original": [
+    "VLamax",
+    "VO2max",
+    "TTE",
+    "FTP/kg"
+   ],
+   "changed": [
+    "VLamax",
+    "TTE",
+    "VO2max",
+    "FTP/kg"
+   ],
+   "changedWeeks": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+   ]
+  },
+  {
+   "order": [
+    "VLamax",
+    "VO2max",
+    "TTE",
+    "FTP/kg"
+   ],
+   "swapped": [
+    "VLamax",
+    "VO2max",
+    "FTP/kg",
+    "TTE"
+   ],
+   "changedWeeks": [
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21
+   ]
+  }
+ ],
+ "extended": [
+  {
+   "objective": "5K",
+   "weeks": 8,
+   "hours": 4,
+   "sessions": 3,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "VO2max",
+    "VMA"
+   ],
+   "firstWeek": 144,
+   "peak": 183,
+   "exportComplete": true,
+   "operations": 30,
+   "scoped": [
+    4,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "5K",
+   "weeks": 12,
+   "hours": 6,
+   "sessions": 4,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "VO2max",
+    "VMA"
+   ],
+   "firstWeek": 220,
+   "peak": 284,
+   "exportComplete": true,
+   "operations": 66,
+   "scoped": [
+    6,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "10K",
+   "weeks": 12,
+   "hours": 3,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "age_group",
+   "status": "refused",
+   "reasons": [
+    "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif.",
+    "Rang 2 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif."
+   ]
+  },
+  {
+   "objective": "Semi",
+   "weeks": 16,
+   "hours": 4,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "age_group",
+   "status": "refused",
+   "reasons": [
+    "S9 dimanche : course (au moins 75 min). 11 fiche(s) admissible(s) avant vérification des durées, des cibles et de la récupération. Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible."
+   ]
+  },
+  {
+   "objective": "Sprint",
+   "weeks": 8,
+   "hours": 8,
+   "sessions": 7,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "FTP/kg",
+    "VO2max",
+    "VLamax"
+   ],
+   "firstWeek": 375,
+   "peak": 428,
+   "exportComplete": true,
+   "operations": 62,
+   "scoped": [
+    8,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Olympic",
+   "weeks": 12,
+   "hours": 9,
+   "sessions": 8,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "VLamax",
+    "FTP/kg",
+    "VO2max"
+   ],
+   "firstWeek": 407,
+   "peak": 540,
+   "exportComplete": true,
+   "operations": 105,
+   "scoped": [
+    9,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Sprint",
+   "weeks": 12,
+   "hours": 10,
+   "sessions": 8,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "FTP/kg",
+    "VO2max",
+    "VLamax"
+   ],
+   "firstWeek": 396,
+   "peak": 467,
+   "exportComplete": true,
+   "operations": 105,
+   "scoped": [
+    9,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Olympic",
+   "weeks": 16,
+   "hours": 12,
+   "sessions": 9,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "VLamax",
+    "FTP/kg",
+    "VO2max"
+   ],
+   "firstWeek": 510,
+   "peak": 584,
+   "exportComplete": true,
+   "operations": 162,
+   "scoped": [
+    11,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Cyclisme FTP",
+   "weeks": 8,
+   "hours": 7,
+   "sessions": 5,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "FTP"
+   ],
+   "firstWeek": 322,
+   "peak": 419,
+   "exportComplete": true,
+   "operations": 45,
+   "scoped": [
+    6,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Cyclisme contre-la-montre",
+   "weeks": 8,
+   "hours": 7,
+   "sessions": 5,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "refused",
+   "reasons": [
+    "CLM : renseignez la position aéro et la durée d’épreuve de cet athlète."
+   ]
+  },
+  {
+   "objective": "Natation 1500m",
+   "weeks": 8,
+   "hours": 4,
+   "sessions": 4,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "CSS"
+   ],
+   "firstWeek": 151,
+   "peak": 160.5,
+   "exportComplete": true,
+   "operations": 37,
+   "scoped": [
+    5,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Marathon",
+   "weeks": 40,
+   "hours": 8,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "Durabilité",
+    "VLamax",
+    "TTE",
+    "VO2max"
+   ],
+   "firstWeek": 338,
+   "peak": 480,
+   "exportComplete": true,
+   "operations": 261,
+   "scoped": [
+    7,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Semi",
+   "weeks": 30,
+   "hours": 7,
+   "sessions": 4,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "firstWeek": 270,
+   "peak": 420,
+   "exportComplete": true,
+   "operations": 165,
+   "scoped": [
+    6,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Cyclisme FTP",
+   "weeks": 12,
+   "hours": 9,
+   "sessions": 4,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "FTP"
+   ],
+   "firstWeek": 305,
+   "peak": 437,
+   "exportComplete": true,
+   "operations": 56,
+   "scoped": [
+    5,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "Natation 1500m",
+   "weeks": 12,
+   "hours": 6,
+   "sessions": 5,
+   "level": "trained",
+   "ambition": "competitor",
+   "status": "assembled",
+   "limiters": [
+    "CSS"
+   ],
+   "firstWeek": 180,
+   "peak": 189.5,
+   "exportComplete": true,
+   "operations": 68,
+   "scoped": [
+    6,
+    1
+   ],
+   "exportProblems": [],
+   "refusedBlocks": []
+  },
+  {
+   "objective": "5K",
+   "weeks": 12,
+   "hours": 3,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_217",
+    "V3P_RUN_218",
+    "V3P_RUN_219"
+   ],
+   "exportOperations": 45,
+   "weeklyMinutes": [
+    62,
+    62,
+    66,
+    46,
+    72,
+    76,
+    81,
+    56.5,
+    86,
+    91,
+    52.5,
+    36
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "5K",
+   "weeks": 16,
+   "hours": 3,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_217",
+    "V3P_RUN_218",
+    "V3P_RUN_219"
+   ],
+   "exportOperations": 60,
+   "weeklyMinutes": [
+    62,
+    62,
+    66,
+    46,
+    72,
+    76,
+    81,
+    56.5,
+    86,
+    91,
+    96,
+    66.5,
+    96,
+    96,
+    56,
+    36
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "10K",
+   "weeks": 16,
+   "hours": 4,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_217",
+    "V3P_RUN_218",
+    "V3P_RUN_219",
+    "V3P_RUN_220"
+   ],
+   "exportOperations": 60,
+   "weeklyMinutes": [
+    95,
+    104,
+    112.5,
+    76,
+    122,
+    133,
+    145,
+    100,
+    156,
+    168,
+    179,
+    125,
+    190,
+    204,
+    119,
+    69
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "10K",
+   "weeks": 20,
+   "hours": 4,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_217",
+    "V3P_RUN_218",
+    "V3P_RUN_219",
+    "V3P_RUN_220"
+   ],
+   "exportOperations": 75,
+   "weeklyMinutes": [
+    95,
+    104,
+    112.5,
+    76,
+    122,
+    133,
+    145,
+    100,
+    156,
+    168,
+    179,
+    125,
+    190,
+    204,
+    219,
+    152,
+    231,
+    238,
+    123,
+    69
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "Semi",
+   "weeks": 20,
+   "hours": 5,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_218",
+    "V3P_RUN_219",
+    "V3P_RUN_220"
+   ],
+   "exportOperations": 75,
+   "weeklyMinutes": [
+    120,
+    130,
+    138,
+    95,
+    145,
+    156,
+    168,
+    116,
+    179,
+    190,
+    204,
+    141,
+    219,
+    231,
+    238,
+    166,
+    245,
+    245,
+    123,
+    69
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "Semi",
+   "weeks": 24,
+   "hours": 5,
+   "sessions": 3,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "VO2max"
+   ],
+   "status": "assembled",
+   "returnSources": [
+    "V3P_RUN_218",
+    "V3P_RUN_219",
+    "V3P_RUN_220"
+   ],
+   "exportOperations": 90,
+   "weeklyMinutes": [
+    120,
+    130,
+    138,
+    95,
+    145,
+    156,
+    168,
+    116,
+    179,
+    190,
+    204,
+    141,
+    219,
+    231,
+    238,
+    166,
+    245,
+    245,
+    245,
+    170,
+    245,
+    245,
+    123,
+    69
+   ],
+   "deferred": [
+    {
+     "code": "ranked_limiter_deferred",
+     "week": 4,
+     "status": "pending",
+     "message": "Rang 2 · VO2max : travail direct différé pendant la reprise en marche-course. Rang 1 · VLamax traité. Bilan coach en fin de S4 : vérifier les séances réellement tolérées et réexaminer le classement et le niveau avant de programmer des intervalles. Aucune minute VO₂max prescrite. Réévaluation le 6/12/26."
+    }
+   ]
+  },
+  {
+   "objective": "703",
+   "weeks": 24,
+   "hours": 7,
+   "sessions": 6,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "FatMax",
+    "FTP/kg",
+    "VO2max"
+   ],
+   "status": "refused",
+   "reasons": [
+    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 50 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   ]
+  },
+  {
+   "objective": "IM",
+   "weeks": 36,
+   "hours": 10,
+   "sessions": 7,
+   "level": "untrained",
+   "ambition": "finisher",
+   "limiters": [
+    "VLamax",
+    "FatMax",
+    "FTP/kg",
+    "VO2max"
+   ],
+   "status": "refused",
+   "reasons": [
+    "Reprise en triathlon : quelle durée de vélo facile en continu l’athlète a-t-il récemment tolérée ? La sortie de S1 prévoit au moins 60 min de vélo. Renseignez la durée en minutes pour calibrer le départ."
+   ]
+  }
+ ]
+}

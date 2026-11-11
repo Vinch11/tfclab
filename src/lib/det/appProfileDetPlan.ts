@@ -19,6 +19,18 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  if(options.trailGuidanceReview)applyTrailGuidance(proposal,options.trailGuidanceReview);
  const {athlete,config}=planningInputFor(app,'det');
  const weeklyQuotas=structuredClone(prepareDetGeneration(athlete,config).weeklyQuotas);
+ for(const practice of proposal.transitionPractice??[]){
+  const entry=weeklyQuotas[practice.week];
+  const slot=entry.layout.days[practice.dayIndex].slots[practice.slotIndex];
+  if(slot.sport!==practice.originalSport||slot.isLongSession||slot.isRaceEvent)throw Error('Créneau de transition DET incohérent.');
+  slot.sport='brick';
+  entry.quota.totalSessions={min:entry.quota.totalSessions.min+1,max:entry.quota.totalSessions.max+1};
+  entry.quota.brick={min:1,max:Math.max(1,entry.quota.brick.max)};
+  if(practice.originalSport==='run'){
+    entry.quota.run={min:Math.max(0,entry.quota.run.min-1),max:Math.max(0,entry.quota.run.max-1)};
+    entry.quota.bike={min:entry.quota.bike.min+1,max:entry.quota.bike.max+1};
+  }
+ }
  for(const adjustment of proposal.returnTriathlon?.adjustments??[]){
   const quota=weeklyQuotas[adjustment.week];
   const slot=quota?.layout.days.flatMap(d=>d.slots).find(s=>s.isLongSession&&s.sport===adjustment.sport);
@@ -62,7 +74,7 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  };
  const marathonNotes = marathonProgressionNotes(proposal,config);
  const weekNotes = (week:typeof proposal.weeks[number]) => {
-  const ranked=proposal.checks.filter(c=>c.week===week.week&&['ranked_limiter_work','ranked_limiter_deferred','ranked_block_review','adaptive_search','time_trial_posture','recent_long_bike','tri_race_readiness_review'].includes(c.code)).map(c=>c.message);
+  const ranked=proposal.checks.filter(c=>c.week===week.week&&['ranked_limiter_work','ranked_limiter_deferred','ranked_block_review','adaptive_search','time_trial_posture','recent_long_bike','tri_race_readiness_review','early_tri_transition'].includes(c.code)).map(c=>c.message);
   if(trailReview)return [trailWeekNotes(week),...ranked].join('\n');
   const taper=proposal.checks.find(c=>c.week===week.week&&c.code==='tri_taper_exercise_minutes');
   const volume=week.durationMinutes===null?'Volume total non certifié : certaines durées restent à préciser.':'';
@@ -72,7 +84,7 @@ export async function generateAppProfileDetPlan(app:FrozenAppPlanningInput,athle
  const weeks=proposal.weeks.map(w=>({weekNumber:w.week,theme:weekTheme(w),phase:w.phase??'Préparation',coachNotes:weekNotes(w),sessions:w.days.flatMap((d,dayIndex):ParsedSession[]=>{
   const base={weekNumber:w.week,weekTheme:weekTheme(w),phase:w.phase??'Préparation',dayName:d.day,dayIndex};
   if(d.rest)return [{...base,sport:'Repos',title:'Repos prévu',details:'',isRest:true}];
-  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?(config.timeTrialContext?'Durée de course estimée par le coach.':'Épreuve du calendrier ; durée non inventée.'):renderV3Prescription(s.components,true)+(s.sport==='brick'?'\nTransition : durée à préciser.':''),isRest:false,isKeySession:s.role==='key',...(s.role==='race'&&config.timeTrialContext?{durationMin:config.timeTrialContext.raceDurationMinutes}:s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
+  return d.sessions.map(s=>({...base,sport:s.sport,title:s.role==='race'?raceTitle(w.week,dayIndex):s.components.map(c=>c.title).join(' + '),details:s.role==='race'?(config.timeTrialContext?'Durée de course estimée par le coach.':'Épreuve du calendrier ; durée non inventée.'):renderV3Prescription(s.components,true)+(s.sport==='brick'?(proposal.transitionPractice?.some(p=>p.week===w.week&&p.dayIndex===dayIndex)?'\nAprès le vélo, prévoir au plus 5 min pour le changement de chaussures avant la course facile.':'\nTransition : durée à préciser.'):''),isRest:false,isKeySession:s.role==='key',...(s.role==='race'&&config.timeTrialContext?{durationMin:config.timeTrialContext.raceDurationMinutes}:s.durationMinutes!==null?{durationMin:s.durationMinutes}:{}),...(s.components.length===1?{catalogId:s.components[0].sourceId}:{}),detSourceComponents:structuredClone(s.components),...appProfileDetStructure(s),...sessionClock(w.week,dayIndex,s.sport,s.role==='race')}));
  })}));
  const phases:ParsedPlan['phases']=[];
  for(const w of proposal.weeks){const name=w.phase??'Préparation',last=phases.at(-1);if(last?.name===name){const start=last.weeks.split('-')[0];last.weeks=start===String(w.week)?start:`${start}-${w.week}`;}else phases.push({name,weeks:String(w.week)});}

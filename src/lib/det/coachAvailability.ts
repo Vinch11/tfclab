@@ -1,6 +1,7 @@
 import type {PlanConfig} from '@/hooks/useAITrainingPlan';
 import {parseAthleteConstraints,WEEK_DAYS} from '@/lib/plan/constraintRules';
 import {incompatible,missingData} from './coachDecision';
+import {ordinarySourceFamily} from './ordinaryObjective';
 import type {V3PlanProposal} from './appPlanningV3Proposal';
 
 export function checkAvailabilityInput(config: PlanConfig) {
@@ -8,6 +9,13 @@ export function checkAvailabilityInput(config: PlanConfig) {
   if (rules.ambiguousRestrictions.length)
     throw missingData('Précisez dans quelles conditions la séance est possible pour cette restriction : « ' +
       rules.ambiguousRestrictions.join(' », « ') + ' ».','constraints');
+  const focus=ordinarySourceFamily(config.objective)?.sportFocus;
+  const required=focus==='tri' ? ['swim','bike','run'] : focus==='trail' ? ['run'] : [focus];
+  const excluded=rules.bannedSports.find(s=>required.some(r=>r===s));
+  if(excluded){
+    const sport={bike:'le vélo',run:'la course à pied',swim:'la natation'}[excluded]??excluded;
+    throw incompatible('L’objectif demande '+sport+' et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée.', 'objective','constraints');
+  }
   const closed=new Set(rules.dayBans.filter(b=>b.sport==='any').map(b=>b.day));
   if (closed.size === WEEK_DAYS.length || rules.bannedSports.includes('any'))
     throw incompatible('Tous les créneaux d’entraînement sont interdits. Ouvrez au moins un jour disponible ou corrigez la restriction saisie.', 'constraints');

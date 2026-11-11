@@ -74,7 +74,11 @@ for (const scenario of selected) {
       it.each(AMBITION_LEVELS_ORDERED)(level + ' / %s', async ambition => {
         const row = { objective: scenario.objective, level, ambition, weeks: scenario.weeks, hours: scenario.hours };
         if (!detSupportsObjective(scenario.objective)) {
-          emit({ ...row, status: 'outside_det' });
+          const outside=inputFor(scenario,level,ambition);
+          await expect(generateDetPlanFromPageInput(outside)).rejects.toMatchObject({
+            decision:{kind:'engine_limit',fields:[]},message:expect.stringContaining('protocole marche-course'),
+          });
+          emit({ ...row, status: 'outside_det',decision:{kind:'engine_limit',fields:[]},protocol:'Start to Run'});
           return;
         }
         const input = inputFor(scenario, level, ambition);
@@ -501,4 +505,34 @@ if(process.env.DET_RETURN_CASES){
       emit({...scenario,level:'untrained',ambition:'finisher',limiters,status:'refused',reasons:error.reasons});
     }
   },120000);
+}
+
+// Repeat the 34 reference cells after supplying exactly the observations asked for.
+// These samples describe a single return history per event. Their feasibility is tested independently.
+if(process.env.DET_HISTORY_FOLLOWUP==='1'){
+  for(const scenario of selected){
+    const isTrail=scenario.objective.startsWith('Trail');
+    const isTri=['IM','703'].includes(scenario.objective);
+    if(!isTrail && !isTri && !['10K','Marathon'].includes(scenario.objective))continue;
+    const ambitions=AMBITION_LEVELS_ORDERED.filter(a=>scenario.objective!=='10K'||a!=='finisher');
+    it.each(ambitions)('après données de reprise '+scenario.objective+' / %s',async ambition=>{
+      const history=isTri ? {} : {recentWeeklyHours:'3',recentWeeksCount:'4'};
+      const supplied=isTrail ? {trailLongRunLimits:{recentMinutes:75,peakMinutes:105}} : isTri ? {recentLongRideMinutes:75} :
+        scenario.objective==='Marathon'?{marathonRecentLongRunMinutes:65}:{roadReturnThresholdReps:2};
+      const input=inputFor(scenario,'untrained',ambition,[],history);
+      const info={objective:scenario.objective,level:'untrained',ambition,horizon:scenario.weeks,history,supplied};
+      try{
+        const plan=await generateDetPlanFromPageInput({...input,...supplied});
+        const proposal=readProposal(plan),preview=await previewDetGuidance(plan);
+        expect(proposal.weeks.length).toBe(scenario.weeks);
+        expect(proposal.checks.some(c=>c.status==='blocked')).toBe(false);
+        emit({...info,status:'assembled',weeks:proposal.weeks.length,exportComplete:preview.precheck.complete,operations:preview.ops.length});
+      }catch(error){
+        if(!(error instanceof DetRefusal))throw error;
+        expect(error.reasons.length).toBeGreaterThan(0);
+        expect(error.decision.kind,'Les observations demandées viennent d’être fournies.').not.toBe('missing_data');
+        emit({...info,status:'refused',decision:error.decision,reasons:error.reasons});
+      }
+    },120_000);
+  }
 }

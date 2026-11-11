@@ -27,3 +27,9 @@ try{
   assert.equal(await result.getAttribute('data-done'),'ok',await result.innerText());
   console.log(await result.innerText());
 }finally{await browser?.close();server.close();}
+
+// A receipt branch runs only after the tested version has reached the public site.
+if(process.env.GITHUB_REF_NAME?.startsWith('release/det-published-receipt-')){
+  process.argv[2]='https://tfcl.twoforcoaching.be';
+  await import('./published.mjs');
+}

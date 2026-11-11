@@ -1,3 +1,5 @@
+import {RETURN_THRESHOLD_ID} from '../../../scripts/library-v3/roadReturnThreshold';
+import {isReturnThresholdTenK} from './roadReturnIntensity';
 import type { V3PlanProposal, ProposedV3Workout,ProposedV3Session } from './appPlanningV3Proposal';
 import { findSource } from './coachDetContext';
 import {library920TimingPaces} from './library920Selection';
@@ -20,6 +22,11 @@ export function auditV3SportingPrescription(plan:V3PlanProposal,config:PlanConfi
  for(const week of plan.weeks){
   const invalid=week.days.flatMap(d=>d.sessions.flatMap(s=>s.components)).flatMap(c=>{
    const source=findSource(c.sourceId);
+   if(c.sourceId===RETURN_THRESHOLD_ID){
+     const repeat=c.blocks[1],cap=plan.roadReturnThresholdReps;
+     if(!isReturnThresholdTenK(config)||!cap||repeat?.kind!=='repeat'||repeat.count.base>cap)
+       return [c.sourceId+' : la dose de reprise dépasse les fractions confirmées pour cet objectif.'];
+   }
    return source?v3SourceContextProblems(source,config,week.weekType).map(reason=>c.sourceId+':'+reason):[c.sourceId+':source_missing'];
   });
   checks.push({code:'source_prescription_context',week:week.week,status:invalid.length?'blocked':'passed',message:invalid.length?invalid.join(', '):'Objectif, niveau et contexte des sources retenues compatibles ; ce contrôle ne mesure pas l’assimilation.'});

@@ -10,176 +10,117 @@
     "weeklyAvailableHours": 14,
     "cardioAppointments": 10,
     "loadingWeeksBikeAndRunLongMinutes": [
-      [
-        1,
-        80,
-        51
-      ],
-      [
-        2,
-        83,
-        56
-      ],
-      [
-        3,
-        91,
-        61
-      ],
-      [
-        5,
-        100,
-        67
-      ],
-      [
-        6,
-        110,
-        73
-      ],
-      [
-        7,
-        120,
-        80
-      ],
-      [
-        9,
-        130,
-        87
-      ],
-      [
-        10,
-        140,
-        95
-      ],
-      [
-        11,
-        150,
-        100
-      ]
+      [1, 80, 51],
+      [2, 83, 56],
+      [3, 91, 61],
+      [5, 100, 67],
+      [6, 110, 73],
+      [7, 120, 80],
+      [9, 130, 87],
+      [10, 140, 95],
+      [11, 150, 100]
     ],
-    "longDoseColumns": [
-      "week",
-      "bikeMinutes",
-      "runMinutes"
-    ],
+    "longDoseColumns": ["week", "bikeMinutes", "runMinutes"],
     "cases": [
       {
         "requestedAmbition": "competitor",
         "effectiveAmbition": "age_group",
-        "rankedLimiters": [
-          "Durabilité",
-          "VLamax",
-          "TTE"
-        ],
-        "knownExerciseMinutesByWeek": [
-          299,
-          326,
-          358,
-          227,
-          393,
-          432,
-          472,
-          305,
-          518,
-          569,
-          613,
-          328.5,
-          355,
-          335,
-          269,
-          219
-        ],
+        "rankedLimiters": ["Durabilité", "VLamax", "TTE"],
+        "knownExerciseMinutesByWeek": [300, 329, 354, 222, 388, 425, 462, 305, 508, 558, 573.5, 328.5, 286, 266, 252, 214],
         "loadSportMinutes": {
           "swim": 650,
-          "bike": 1879,
-          "run": 1232
+          "bike": 1843,
+          "run": 1185.5
         },
         "nolioOffline": {
-          "plan": 163,
+          "plan": 166,
           "week9": 11,
-          "singleSession": 1
+          "singleSession": 1,
+          "singleFirstBrick": 2
+        },
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_201", 19, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [11, "V3P_BIKE_202", 20, "V3P_RUN_217", 14.5]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["94ffaeba2e4175c17722f47229180f5e423e5ea026616b9e72e0495bfe58d909", "39a82817f5673be03d1527d3b22999acba2dd924821f53c7acb80fd4124657c9"]
+          }
         }
       },
       {
         "requestedAmbition": "elite",
         "effectiveAmbition": "age_group",
-        "rankedLimiters": [
-          "Durabilité",
-          "VLamax",
-          "TTE",
-          "VO2max",
-          "FTP/kg"
-        ],
-        "knownExerciseMinutesByWeek": [
-          299,
-          328,
-          359,
-          227,
-          394,
-          433,
-          476,
-          305,
-          519,
-          569,
-          609,
-          328.5,
-          348,
-          336,
-          265,
-          219
-        ],
+        "rankedLimiters": ["Durabilité", "VLamax", "TTE", "VO2max", "FTP/kg"],
+        "knownExerciseMinutesByWeek": [300, 329, 354, 222, 388, 425, 462, 305, 508, 558, 573.5, 328.5, 286, 266, 252, 214],
         "loadSportMinutes": {
           "swim": 650,
-          "bike": 1889,
-          "run": 1228
+          "bike": 1843,
+          "run": 1185.5
         },
         "nolioOffline": {
-          "plan": 163,
+          "plan": 166,
           "week9": 11,
-          "singleSession": 1
+          "singleSession": 1,
+          "singleFirstBrick": 2
+        },
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_201", 19, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [11, "V3P_BIKE_202", 20, "V3P_RUN_217", 14.5]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["94ffaeba2e4175c17722f47229180f5e423e5ea026616b9e72e0495bfe58d909", "39a82817f5673be03d1527d3b22999acba2dd924821f53c7acb80fd4124657c9"]
+          }
         }
       },
       {
         "requestedAmbition": "world_class",
         "effectiveAmbition": "age_group",
-        "rankedLimiters": [
-          "Durabilité",
-          "VLamax",
-          "TTE",
-          "FTP/kg",
-          "VO2max"
-        ],
-        "knownExerciseMinutesByWeek": [
-          299,
-          328,
-          359,
-          227,
-          394,
-          433,
-          476,
-          305,
-          519,
-          569,
-          609,
-          328.5,
-          348,
-          336,
-          265,
-          219
-        ],
+        "rankedLimiters": ["Durabilité", "VLamax", "TTE", "FTP/kg", "VO2max"],
+        "knownExerciseMinutesByWeek": [300, 329, 354, 222, 388, 425, 462, 305, 508, 558, 573.5, 328.5, 286, 266, 252, 214],
         "loadSportMinutes": {
           "swim": 650,
-          "bike": 1889,
-          "run": 1228
+          "bike": 1843,
+          "run": 1185.5
         },
         "nolioOffline": {
-          "plan": 163,
+          "plan": 166,
           "week9": 11,
-          "singleSession": 1
+          "singleSession": 1,
+          "singleFirstBrick": 2
+        },
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_201", 19, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [11, "V3P_BIKE_202", 20, "V3P_RUN_217", 14.5]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["94ffaeba2e4175c17722f47229180f5e423e5ea026616b9e72e0495bfe58d909", "39a82817f5673be03d1527d3b22999acba2dd924821f53c7acb80fd4124657c9"]
+          }
         }
       }
     ],
-    "firstTrainingBrickWeek": 13,
-    "raceReadiness": "Les doses et le premier enchaînement sont affichés au coach dès la S1 pour comparaison avec les efforts de l’athlète et les contraintes de l’épreuve."
+    "firstTrainingBrickWeek": 3,
+    "raceReadiness": "Les trois attentes de S9 sont franchies. Dans les trois ambitions, les enchaînements de charge ont lieu en S3, S7 et S11. Les séances de natation et les composantes vélo/course les plus longues sont communiquées en S1 pour comparaison avec les efforts de l’athlète et les contraintes de son épreuve."
   },
   "returnWithCyclingTolerance": {
     "cases": [
@@ -190,14 +131,27 @@
         "availableWeeklyHours": 7,
         "recentRideMinutes": 50,
         "firstWeekMinutes": 168,
-        "peakWeeklyMinutes": 301,
+        "peakWeeklyMinutes": 321,
         "lastLoadingLongRideMinutes": 120,
-        "nolioOfflineOperations": 159,
-        "usedAdditionalSources": [
-          "V3P_BIKE_205",
-          "V3P_SWIM_217",
-          "V3P_BIKE_206"
-        ]
+        "nolioOfflineOperations": 164,
+        "usedAdditionalSources": ["V3P_BIKE_205", "V3P_SWIM_217", "V3P_BIKE_206"],
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_202", 20, "V3P_RUN_217", 14.5],
+            [7, "V3P_BIKE_202", 20, "V3P_RUN_217", 17],
+            [11, "V3P_BIKE_202", 20, "V3P_RUN_217", 17],
+            [15, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [19, "V3P_BIKE_202", 20, "V3P_RUN_217", 12]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["3ead050acf066ab99ff9ecd2787dddedbc1142936d5f0df51ffc65194a6a148f", "4bfeb9eecb86b96b3a8ec45c39e6cea23f92a2e2d1554fee068469e3a18d52fa"]
+          }
+        }
       },
       {
         "objective": "703",
@@ -206,14 +160,27 @@
         "availableWeeklyHours": 7,
         "recentRideMinutes": 65,
         "firstWeekMinutes": 168,
-        "peakWeeklyMinutes": 301,
+        "peakWeeklyMinutes": 325,
         "lastLoadingLongRideMinutes": 120,
-        "nolioOfflineOperations": 159,
-        "usedAdditionalSources": [
-          "V3P_BIKE_205",
-          "V3P_BIKE_206",
-          "V3P_SWIM_217"
-        ]
+        "nolioOfflineOperations": 164,
+        "usedAdditionalSources": ["V3P_BIKE_205", "V3P_BIKE_206", "V3P_SWIM_217"],
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_202", 15, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_202", 15, "V3P_RUN_217", 14.5],
+            [11, "V3P_BIKE_202", 15, "V3P_RUN_217", 17],
+            [15, "V3P_BIKE_202", 15, "V3P_RUN_217", 14.5],
+            [19, "V3P_BIKE_202", 15, "V3P_RUN_217", 12]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["ac92258221f0f1f55521a37b4df5dad094b769933d8f4f7298ab858b2fb14acf", "9489ad4c355161212810ed03d60b49c8965f9aa10646a45f1982e092ae48de4e"]
+          }
+        }
       },
       {
         "objective": "IM",
@@ -222,14 +189,29 @@
         "availableWeeklyHours": 12,
         "recentRideMinutes": 90,
         "firstWeekMinutes": 250,
-        "peakWeeklyMinutes": 381,
+        "peakWeeklyMinutes": 411,
         "lastLoadingLongRideMinutes": 150,
-        "nolioOfflineOperations": 272,
-        "usedAdditionalSources": [
-          "V3P_BIKE_206",
-          "V3P_BIKE_205",
-          "V3P_SWIM_217"
-        ]
+        "nolioOfflineOperations": 279,
+        "usedAdditionalSources": ["V3P_BIKE_206", "V3P_SWIM_217", "V3P_BIKE_205"],
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [11, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [15, "V3P_BIKE_201", 20, "V3P_RUN_217", 12],
+            [19, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [23, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [27, "V3P_BIKE_201", 15, "V3P_RUN_217", 12]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["326bee63c7014fa3c9c609e11c6288f8f75fb6e652b01705c8eb351dea8615a4", "a299dfa36588ac9da40509399b9a10d87afabfb393c0b21fa2730578ff384edc"]
+          }
+        }
       },
       {
         "objective": "IM",
@@ -238,14 +220,30 @@
         "availableWeeklyHours": 10,
         "recentRideMinutes": 65,
         "firstWeekMinutes": 212,
-        "peakWeeklyMinutes": 371.5,
+        "peakWeeklyMinutes": 376.5,
         "lastLoadingLongRideMinutes": 150,
-        "nolioOfflineOperations": 270,
-        "usedAdditionalSources": [
-          "V3P_BIKE_205",
-          "V3P_BIKE_206",
-          "V3P_SWIM_217"
-        ]
+        "nolioOfflineOperations": 278,
+        "usedAdditionalSources": ["V3P_BIKE_205", "V3P_BIKE_206", "V3P_SWIM_217"],
+        "transitionPractice": {
+          "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+          "practices": [
+            [3, "V3P_BIKE_202", 15, "V3P_RUN_217", 12],
+            [7, "V3P_BIKE_201", 15, "V3P_RUN_217", 12],
+            [11, "V3P_BIKE_202", 20, "V3P_RUN_217", 17],
+            [15, "V3P_BIKE_202", 15, "V3P_RUN_217", 14.5],
+            [19, "V3P_BIKE_202", 15, "V3P_RUN_217", 12],
+            [23, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [27, "V3P_BIKE_202", 20, "V3P_RUN_217", 12],
+            [31, "V3P_BIKE_202", 20, "V3P_RUN_217", 14.5]
+          ],
+          "firstPractice": {
+            "date": "2026-11-25",
+            "day": "mercredi",
+            "replaces": "run",
+            "transitionAllowanceMinutes": 5,
+            "nolioBodySha256InOrder": ["2230d979555689e50939f5d8229c7b6498696b7d6f23a46afabc0d00b71f9a68", "3f42f6831cb90f6edcddf9ede636956149b16046b60da8f2e9403bc51bd1ea39"]
+          }
+        }
       }
     ],
     "shortCalendarExample": {
@@ -267,12 +265,7 @@
         "sessions": 6,
         "recentHours": 3,
         "ride": 50,
-        "priorities": [
-          "VLamax",
-          "FatMax",
-          "FTP/kg",
-          "VO2max"
-        ],
+        "priorities": ["VLamax", "FatMax", "FTP/kg", "VO2max"],
         "decision": {
           "kind": "engine_limit",
           "fields": []
@@ -290,12 +283,7 @@
         "sessions": 7,
         "recentHours": 3,
         "ride": 50,
-        "priorities": [
-          "VLamax",
-          "FatMax",
-          "FTP/kg",
-          "VO2max"
-        ],
+        "priorities": ["VLamax", "FatMax", "FTP/kg", "VO2max"],
         "decision": {
           "kind": "engine_limit",
           "fields": []
@@ -307,13 +295,145 @@
         ]
       }
     ],
-    "raceReadiness": "Dans les reprises de 24 et 36 semaines reproduites, la compétition est la seule activité triathlon combinée. La note coach indique l’absence de séance vélo-course avant épreuve. Les séances de piscine au temps et la capacité à nager la distance en eau libre sont des observations différentes."
+    "raceReadiness": "Les deux 70.3 de 24 semaines proposent chacun cinq enchaînements de charge dès S3. Les Ironman de 32 et 36 semaines en proposent sept et huit. Les enchaînements sont placés après deux semaines de charge avec pratique séparée des deux disciplines. Les fiches vélo faciles et la marche-course portent leurs propres blocs guidés. Le temps disponible réserve cinq minutes pour le changement de chaussures. Les durées prescrites en piscine et la tolérance de la distance en eau libre restent deux observations différentes."
+  },
+  "comparisonAcrossTrainedAmbitions": {
+    "levels": [
+      "trained",
+      "highly_trained"
+    ],
+    "requestedAmbitions": [
+      "finisher",
+      "age_group",
+      "competitor",
+      "elite",
+      "world_class"
+    ],
+    "generated": 20,
+    "firstTrainingBrickWeekByGoal": {
+      "703": [
+        1,
+        3
+      ],
+      "IM": [
+        3
+      ]
+    },
+    "scope": "Entrée ordinaire. 70.3 de 12 semaines et 10 h disponibles. Ironman de 16 semaines et 14 h disponibles."
   },
   "verification": {
-    "tests": [
-      "src/lib/det/__tests__/ironmanProgression.test.ts",
-      "src/lib/det/__tests__/returnTriathlon.test.ts"
-    ],
-    "delivery": "Précontrôle Nolio hors ligne. Le scope complet et les scopes semaine/séance des trois Ironman possèdent les mêmes empreintes de contenu. La réception sur montre et la revue terrain exigent des observations externes."
-  }
+    "tests": ["src/lib/det/__tests__/ironmanProgression.test.ts", "src/lib/det/__tests__/returnTriathlon.test.ts", "src/lib/det/__tests__/transitionPracticeProof.ts"],
+    "delivery": "Précontrôle Nolio hors ligne. Les deux parties de chaque enchaînement ont la date et les doses du plan. La sélection du premier enchaînement seul sur les trois Ironman légers produit les mêmes deux empreintes que le scope complet. La transition sans mesure reste une consigne entre les deux activités. La réception sur montre et la revue terrain exigent des observations externes.",
+    "assertions": "17 tests permanents pour les deux fichiers de référence. Ils couvrent les refus motivés, le niveau des fiches, les décharges, les rampes, les limites de disponibilité, la traçabilité des rangs et les deux opérations datées des enchaînements.",
+    "transitionSources": "En reprise et au niveau léger, les composantes vélo V3P_BIKE_201 et V3P_BIKE_202 précèdent la marche-course sur plat V3P_RUN_217. Chez les finishers entraînés et très entraînés, V3P_BIKE_001 précède les 15 minutes de course continue de V3P_RUN_862."
+  },
+  "otherFinishers": [
+    {
+      "goal": "703",
+      "level": "light",
+      "weeks": 12,
+      "requestedAmbition": "finisher",
+      "nolioOfflineOperations": 105,
+      "transitionPractice": {
+        "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+        "practices": [
+          [3, "V3P_BIKE_201", 20, "V3P_RUN_217", 12],
+          [7, "V3P_BIKE_202", 25, "V3P_RUN_217", 12]
+        ],
+        "firstPractice": {
+          "date": "2026-11-25",
+          "day": "mercredi",
+          "replaces": "run",
+          "transitionAllowanceMinutes": 5,
+          "nolioBodySha256InOrder": ["61b128f151df983cd58839118f936defc58d60a3c629c3e528d322ba769b2a3f", "45820eb58f406985c26d55b36bc892f200496079e0632956ebfe7907ce3afad2"]
+        }
+      }
+    },
+    {
+      "goal": "703",
+      "level": "trained",
+      "weeks": 12,
+      "requestedAmbition": "finisher",
+      "nolioOfflineOperations": 105,
+      "transitionPractice": {
+        "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+        "practices": [
+          [3, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [7, "V3P_BIKE_001", 35, "V3P_RUN_862", 15]
+        ],
+        "firstPractice": {
+          "date": "2026-11-25",
+          "day": "mercredi",
+          "replaces": "run",
+          "transitionAllowanceMinutes": 5,
+          "nolioBodySha256InOrder": ["d8a626cb712d327e2ba6e4641eef418976a352f1958953f860ccf2e6c804c275", "9541a2e809e766372a1477e2282d6955c93eff7593e2335fa0e6e614948f69e0"]
+        }
+      }
+    },
+    {
+      "goal": "703",
+      "level": "highly_trained",
+      "weeks": 12,
+      "requestedAmbition": "finisher",
+      "nolioOfflineOperations": 105,
+      "transitionPractice": {
+        "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+        "practices": [
+          [3, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [7, "V3P_BIKE_001", 35, "V3P_RUN_862", 15]
+        ],
+        "firstPractice": {
+          "date": "2026-11-25",
+          "day": "mercredi",
+          "replaces": "run",
+          "transitionAllowanceMinutes": 5,
+          "nolioBodySha256InOrder": ["d8a626cb712d327e2ba6e4641eef418976a352f1958953f860ccf2e6c804c275", "9541a2e809e766372a1477e2282d6955c93eff7593e2335fa0e6e614948f69e0"]
+        }
+      }
+    },
+    {
+      "goal": "IM",
+      "level": "trained",
+      "weeks": 16,
+      "requestedAmbition": "finisher",
+      "nolioOfflineOperations": 166,
+      "transitionPractice": {
+        "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+        "practices": [
+          [3, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [7, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [11, "V3P_BIKE_001", 35, "V3P_RUN_862", 15]
+        ],
+        "firstPractice": {
+          "date": "2026-11-25",
+          "day": "mercredi",
+          "replaces": "run",
+          "transitionAllowanceMinutes": 5,
+          "nolioBodySha256InOrder": ["d8a626cb712d327e2ba6e4641eef418976a352f1958953f860ccf2e6c804c275", "9541a2e809e766372a1477e2282d6955c93eff7593e2335fa0e6e614948f69e0"]
+        }
+      }
+    },
+    {
+      "goal": "IM",
+      "level": "highly_trained",
+      "weeks": 16,
+      "requestedAmbition": "finisher",
+      "nolioOfflineOperations": 166,
+      "transitionPractice": {
+        "sourceColumns": ["week", "bikeSource", "bikeMinutes", "runSource", "runMinutes"],
+        "practices": [
+          [3, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [7, "V3P_BIKE_001", 35, "V3P_RUN_862", 15],
+          [11, "V3P_BIKE_001", 35, "V3P_RUN_862", 15]
+        ],
+        "firstPractice": {
+          "date": "2026-11-25",
+          "day": "mercredi",
+          "replaces": "run",
+          "transitionAllowanceMinutes": 5,
+          "nolioBodySha256InOrder": ["d8a626cb712d327e2ba6e4641eef418976a352f1958953f860ccf2e6c804c275", "9541a2e809e766372a1477e2282d6955c93eff7593e2335fa0e6e614948f69e0"]
+        }
+      }
+    }
+  ]
 }

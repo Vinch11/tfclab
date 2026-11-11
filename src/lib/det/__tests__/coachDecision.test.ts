@@ -29,6 +29,11 @@ describe('coach decisions at the application entry point',()=>{
     await expect(generateDetPlanFromPageInput(ranked)).rejects.toMatchObject({decision:{kind:'incompatible',fields:['identifiedLimitersRaw']}});
     await expect(generateDetPlanFromPageInput({...ranked,athleteId:'OTHER'})).rejects.toMatchObject({decision:{kind:'incompatible'}});
   });
+  it('distinguishes an absent assessment and an explicit exclusion of a required sport',async()=>{
+    const input=inputFor(ten,'trained','finisher');
+    await expect(generateDetPlanFromPageInput({...input,diagnostic:undefined as never})).rejects.toMatchObject({decision:{kind:'missing_data',fields:['diagnostic']}});
+    await expect(generateDetPlanFromPageInput({...input,config:{...input.config,constraints:'Course à pied interdite'}})).rejects.toMatchObject({decision:{kind:'incompatible',fields:['objective','constraints']}});
+  });
   it('asks only for absent trail history and identifies a conflicting ceiling',async()=>{
     const withVolume=inputFor(trail,'untrained','finisher',[],{recentWeeklyHours:'3',recentWeeksCount:'4'});
     const missing=inputFor(trail,'untrained','finisher');

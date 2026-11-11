@@ -1,3 +1,4 @@
+import {prepareRoadReturnCalendar} from './roadReturnIntensity';
 import {engineLimit,incompatible,missingData} from './coachDecision';
 import type {PlanAthleteData, PlanConfig} from '@/hooks/useAITrainingPlan';
 import {prepareGenerationContracts} from '@/lib/plan/prepareGenerationContracts';
@@ -22,6 +23,7 @@ export function trailFamily(config: PlanConfig) {
 /** Coach-review calendar. Source/route admission and terrain observations belong to the reviewed trail workflow. */
 export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfig) {
   const prepared = prepareGenerationContracts(athlete, config);
+  prepareRoadReturnCalendar(config,prepared.weeklyQuotas);
   if (isTimeTrial(String(config.objective))) {
     prepareTimeTrialCalendar(prepared,config,athlete);
     return prepared;

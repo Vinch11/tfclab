@@ -1,0 +1,398 @@
+{
+  "scope": "Six situations synthétiques utilisant le formulaire ordinaire et les blocs réellement assemblés. Les exports sont simulés hors ligne.",
+  "source": "V3P_RUN_221, proposition de reprise sur le plat. Principe de seuil fractionné dans le guide débutant 10 km de la British Heart Foundation (2019). Cette dose TFCLab est plafonnée par la séance de reprise effectivement déclarée.",
+  "sourceReference": "https://www.bhf.org.uk/how-you-can-help/events/running-training-schedules",
+  "cases": [
+    {
+      "objective": "10K",
+      "ambition": "age_group",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "baseline": {
+        "observedRunTte": 25,
+        "kind": "missing_data",
+        "fields": [
+          "roadReturnThresholdReps",
+          "loadHistory.recentWeeklyHours"
+        ]
+      },
+      "supplied": {
+        "recentWeeklyHours": 3,
+        "recentWeeksCount": 4,
+        "toleratedThreeMinuteReps": 2
+      },
+      "actualWeeklyMinutes": [
+        142.5,
+        155,
+        169,
+        116,
+        170,
+        177,
+        96,
+        70
+      ],
+      "actualThreshold": [
+        {
+          "week": 5,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        },
+        {
+          "week": 6,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        }
+      ],
+      "limiterOrder": [
+        "Durabilité",
+        "TTE"
+      ],
+      "deferred": [],
+      "thresholdCriterion": "La dose de 20 min au seuil utilisée pour la preuve complète du premier rang reste à vérifier.",
+      "offlineGuidance": {
+        "all": 38,
+        "week5": 5,
+        "selectedSession": 1,
+        "complete": true
+      }
+    },
+    {
+      "objective": "10K",
+      "ambition": "competitor",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "baseline": {
+        "observedRunTte": 25,
+        "kind": "missing_data",
+        "fields": [
+          "roadReturnThresholdReps",
+          "loadHistory.recentWeeklyHours"
+        ]
+      },
+      "supplied": {
+        "recentWeeklyHours": 3,
+        "recentWeeksCount": 4,
+        "toleratedThreeMinuteReps": 2
+      },
+      "actualWeeklyMinutes": [
+        142.5,
+        155,
+        169,
+        116,
+        170,
+        177,
+        96,
+        70
+      ],
+      "actualThreshold": [
+        {
+          "week": 5,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        },
+        {
+          "week": 6,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        }
+      ],
+      "limiterOrder": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "deferred": [
+        "Rang 3 · VO2max : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26.",
+        "Rang 4 · VMA : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26."
+      ],
+      "thresholdCriterion": "La dose de 20 min au seuil utilisée pour la preuve complète du premier rang reste à vérifier.",
+      "offlineGuidance": {
+        "all": 38,
+        "week5": 5,
+        "selectedSession": 1,
+        "complete": true
+      }
+    },
+    {
+      "objective": "10K",
+      "ambition": "elite",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "baseline": {
+        "observedRunTte": 25,
+        "kind": "missing_data",
+        "fields": [
+          "roadReturnThresholdReps",
+          "loadHistory.recentWeeklyHours"
+        ]
+      },
+      "supplied": {
+        "recentWeeklyHours": 3,
+        "recentWeeksCount": 4,
+        "toleratedThreeMinuteReps": 2
+      },
+      "actualWeeklyMinutes": [
+        142.5,
+        155,
+        169,
+        116,
+        170,
+        177,
+        96,
+        70
+      ],
+      "actualThreshold": [
+        {
+          "week": 5,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        },
+        {
+          "week": 6,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        }
+      ],
+      "limiterOrder": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "deferred": [
+        "Rang 3 · VO2max : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26.",
+        "Rang 4 · VMA : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26."
+      ],
+      "thresholdCriterion": "La dose de 20 min au seuil utilisée pour la preuve complète du premier rang reste à vérifier.",
+      "offlineGuidance": {
+        "all": 38,
+        "week5": 5,
+        "selectedSession": 1,
+        "complete": true
+      }
+    },
+    {
+      "objective": "10K",
+      "ambition": "world_class",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "baseline": {
+        "observedRunTte": 25,
+        "kind": "missing_data",
+        "fields": [
+          "roadReturnThresholdReps",
+          "loadHistory.recentWeeklyHours"
+        ]
+      },
+      "supplied": {
+        "recentWeeklyHours": 3,
+        "recentWeeksCount": 4,
+        "toleratedThreeMinuteReps": 2
+      },
+      "actualWeeklyMinutes": [
+        142.5,
+        155,
+        169,
+        116,
+        170,
+        177,
+        96,
+        70
+      ],
+      "actualThreshold": [
+        {
+          "week": 5,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        },
+        {
+          "week": 6,
+          "day": "mercredi",
+          "source": "V3P_RUN_221",
+          "totalMinutes": 25,
+          "thresholdMinutes": 6,
+          "thresholds": [
+            {
+              "unit": "sec_per_km",
+              "min": 233,
+              "max": 247.4
+            }
+          ],
+          "recoveryHours": 48
+        }
+      ],
+      "limiterOrder": [
+        "TTE",
+        "Durabilité",
+        "VO2max",
+        "VMA"
+      ],
+      "deferred": [
+        "Rang 3 · VO2max : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26.",
+        "Rang 4 · VMA : travail direct différé pendant la reprise. La séance tolérée documente le seuil. Aucune dose à vitesse aérobie n’est retenue. Revoir les fractions et la récupération effectivement tolérées avant d’ajouter ce travail. Réévaluation le 6/12/26."
+      ],
+      "thresholdCriterion": "La dose de 20 min au seuil utilisée pour la preuve complète du premier rang reste à vérifier.",
+      "offlineGuidance": {
+        "all": 38,
+        "week5": 5,
+        "selectedSession": 1,
+        "complete": true
+      }
+    },
+    {
+      "objective": "10K",
+      "ambition": "competitor",
+      "toleratedThreeMinuteReps": 4,
+      "maxRepetitions": 3,
+      "actualDose": [
+        {
+          "source": "V3P_RUN_221",
+          "totalMinutes": 31,
+          "thresholdMinutes": 9
+        },
+        {
+          "source": "V3P_RUN_221",
+          "totalMinutes": 31,
+          "thresholdMinutes": 9
+        }
+      ]
+    },
+    {
+      "objective": "Semi",
+      "ambition": "elite",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "observedRunTte": null,
+      "limiterOrder": [
+        "Durabilité",
+        "VO2max",
+        "VLamax",
+        "VMA",
+        "TTE"
+      ],
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 5 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "ambition": "world_class",
+      "trainingLevel": "untrained",
+      "effectiveAmbition": "finisher",
+      "weeks": 8,
+      "weeklyHours": 6,
+      "formSessions": 4,
+      "observedRunTte": null,
+      "limiterOrder": [
+        "Durabilité",
+        "VO2max",
+        "TTE",
+        "VLamax",
+        "VMA"
+      ],
+      "decision": {
+        "kind": "engine_limit",
+        "fields": []
+      },
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ]
+    }
+  ]
+}
