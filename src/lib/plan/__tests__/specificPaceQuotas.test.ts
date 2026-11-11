@@ -21,3 +21,12 @@ describe("quotas d'allure spécifique", () => {
     expect(issues[0]).toMatchObject({ rule: "specific_pace_quota_low", severity: "warning" });
   });
 });
+
+describe("niveau et coefficient coach", () => {
+  it("débutant plafonné ×0,6 en spécifique", () => {
+    expect(expectedSpecificMinutes("10 km", "specific", "competitor", undefined, { trainingLevel: "untrained" })).toEqual([15, 24]);
+  });
+  it("coefficient coach remplace l'ambition", () => {
+    expect(expectedSpecificMinutes("10 km", "specific", "finisher", undefined, { coachCoef: 1.2 })).toEqual([30, 48]);
+  });
+});

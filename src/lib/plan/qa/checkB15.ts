@@ -44,6 +44,10 @@ export interface AmbitionPhysiologyInput {
    *  convention que `buildTargetTable`/GapAmbitionPanel : la physiologie
    *  commande, l'écart se calcule vers ce que le plan construit réellement. */
   ambition: string;
+  /** Niveau d'entraînement (quotas d'allure de course). */
+  trainingLevel?: string | null;
+  /** Athlète : lit le coefficient d'allure de course forcé par le coach. */
+  athleteId?: string | null;
 }
 
 export function checkB15(input: AmbitionPhysiologyInput): CheckResult {

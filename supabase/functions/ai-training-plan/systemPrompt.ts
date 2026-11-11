@@ -1064,6 +1064,7 @@ ${keySessionContentLine}
 - Détails natation, vélo, CAP, renfo complets (durée, zone, allure, %FTP/VMA, reps, etc.).
 ${keySessionTitleExampleLine}
 - Varier d'une semaine à l'autre — PAS DE COPIER-COLLER.
+- Blocs à allure de course : écrire TOUJOURS les minutes suivies du mot « allure » et de l'objectif, ex. « 3×8' allure 10 km », « 2×20' allure marathon », « 3×20' allure 70.3 ». Une distance seule (« 3×3 km ») ne suffit pas : ajouter la durée.
 
 ## ⛔ UNITÉS D'ALLURE — RÈGLE ABSOLUE
 - **Natation** : TOUJOURS exprimer l'allure en **sec/100m** ou **min:sec/100m** (ex: 1:25/100m, @CSS-2s/100m). **JAMAIS min/km** pour la natation.

@@ -1261,6 +1261,8 @@ export function useAITrainingPlan() {
                 thresholdPaceSecPerKm: athleteData.paceThresholdSecPerKm ?? null,
                 objective: planConfig.objective ?? "",
                 ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? "",
+                trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
+                athleteId: planConfig.athleteId ?? null,
               });
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);

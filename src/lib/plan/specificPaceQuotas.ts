@@ -48,10 +48,36 @@ export function quotaPhase(raw: string | null | undefined): QuotaPhase | null {
 }
 
 /** Fourchette attendue (minutes) après ambition et plafond de volume. */
-export function expectedSpecificMinutes(objective: string, phase: QuotaPhase, ambition: string, weeklyMinutes?: number): Range | null {
+export interface QuotaOptions {
+  /** Niveau d'entraînement : untrained/light = débutant, plafonné ×0,6 en spécifique. */
+  trainingLevel?: string | null;
+  /** Coefficient forcé par le coach pour cet athlète (remplace l'ambition). */
+  coachCoef?: number | null;
+}
+
+export function quotaCoefficient(phase: QuotaPhase, ambition: string, opts: QuotaOptions = {}): number {
+  if (opts.coachCoef && opts.coachCoef > 0) return opts.coachCoef;
+  let k = AMBITION_COEFFICIENT[ambition] ?? 1;
+  if (phase === "specific" && (opts.trainingLevel === "untrained" || opts.trainingLevel === "light")) k = Math.min(k, 0.6);
+  return k;
+}
+
+const OVERRIDE_KEY = (athleteId: string) => `tfcl:specific-pace-coef:${athleteId}`;
+export function getSpecificPaceOverride(athleteId: string | null | undefined): number | null {
+  if (!athleteId || typeof localStorage === "undefined") return null;
+  const v = Number(localStorage.getItem(OVERRIDE_KEY(athleteId)));
+  return Number.isFinite(v) && v > 0 ? v : null;
+}
+export function setSpecificPaceOverride(athleteId: string, coef: number | null): void {
+  if (typeof localStorage === "undefined") return;
+  if (coef && coef > 0) localStorage.setItem(OVERRIDE_KEY(athleteId), String(coef));
+  else localStorage.removeItem(OVERRIDE_KEY(athleteId));
+}
+
+export function expectedSpecificMinutes(objective: string, phase: QuotaPhase, ambition: string, weeklyMinutes?: number, opts: QuotaOptions = {}): Range | null {
   const key = quotaObjectiveKey(objective);
   if (!key) return null;
-  const k = AMBITION_COEFFICIENT[ambition] ?? 1;
+  const k = quotaCoefficient(phase, ambition, opts);
   let [lo, hi] = SPECIFIC_PACE_QUOTAS[key][phase].map(v => Math.round(v * k)) as Range;
   if (weeklyMinutes && weeklyMinutes > 0) {
     const cap = Math.round(weeklyMinutes * volumeShareCap(phase, ambition));
@@ -74,14 +100,14 @@ export function racePaceMinutes(text: string): number {
 
 interface Week { weekNumber: number; phase: string; sessions: Array<{ title: string; details: string; isRest: boolean; durationMin?: number }> }
 
-export function checkSpecificPaceQuotas(plan: { weeks: Week[] }, objective: string | null | undefined, ambition: string | null | undefined) {
+export function checkSpecificPaceQuotas(plan: { weeks: Week[] }, objective: string | null | undefined, ambition: string | null | undefined, opts: QuotaOptions = {}) {
   if (!quotaObjectiveKey(objective)) return [];
   const issues: Array<{ rule: string; severity: "warning"; message: string }> = [];
   for (const w of plan.weeks) {
     const phase = quotaPhase(w.phase);
     if (!phase) continue;
     const weekly = w.sessions.reduce((a, s) => a + (s.isRest ? 0 : s.durationMin ?? 0), 0);
-    const range = expectedSpecificMinutes(objective!, phase, ambition || "competitor", weekly);
+    const range = expectedSpecificMinutes(objective!, phase, ambition || "competitor", weekly, opts);
     if (!range) continue;
     const done = w.sessions.reduce((a, s) => a + (s.isRest ? 0 : racePaceMinutes(`${s.title} ${s.details}`)), 0);
     if (done < range[0]) issues.push({ rule: "specific_pace_quota_low", severity: "warning",

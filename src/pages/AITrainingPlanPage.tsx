@@ -92,6 +92,8 @@ import { isJsonBetaEnabled, setJsonBetaEnabled } from "@/lib/plan/planGeneration
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { shouldAutoEnableNatationMaintenance } from "@/lib/plan/crossTrainingNatationDefault";
 import { computeAmbitionEffective } from "@/lib/ambitionDowngrade";
+import { checkSpecificPaceQuotas, getSpecificPaceOverride } from "@/lib/plan/specificPaceQuotas";
+import { SpecificPaceDoseSelect } from "@/components/plan/SpecificPaceDoseSelect";
 import { validatePlanPaces } from "@/lib/validatePlanPaces";
 import { applyTaperVolumeOverride } from "@/lib/taperVolumeOverride";
 import { resolveEffectiveWeeklyHours } from "@/lib/defaultWeeklyHours";
@@ -1855,7 +1857,11 @@ export default function AITrainingPlanPage() {
     plan.finalValidationIssues = [
       ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
       ...validateCoachLoadIssues(plan, plan.weeklyQuotas),
-    ];
+    ].filter(i => !i.rule.startsWith("specific_pace_quota_"));
+    // Plans enregistrés : quotas d'allure de course revérifiés à l'ouverture.
+    plan.finalValidationIssues.push(...checkSpecificPaceQuotas(plan, objective || config.objective || "",
+      (config as { ambitionMeta?: { effective?: string } }).ambitionMeta?.effective ?? (config as { ambition?: string }).ambition ?? "",
+      { trainingLevel: (config as { ambitionMeta?: { trainingLevel?: string } }).ambitionMeta?.trainingLevel ?? null, coachCoef: getSpecificPaceOverride(currentAthlete?.id) }));
 
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
     // Idempotent — no-op si le plan respecte déjà la règle (cas normal après
@@ -3162,6 +3168,8 @@ export default function AITrainingPlanPage() {
           thresholdPaceSecPerKm: athleteContext.data?.paceThresholdSecPerKm ?? null,
           objective: fullPlanConfig.objective ?? "",
           ambition: fullPlanConfig.ambitionMeta?.effective ?? fullPlanConfig.ambition ?? "",
+          trainingLevel: fullPlanConfig.ambitionMeta?.trainingLevel ?? null,
+          athleteId: currentAthlete?.id ?? null,
         });
         mergedPlan.finalValidationIssues = finalValidation.issues.length > 0 ? finalValidation.issues : undefined;
         if (finalValidation.hasCritical) {
@@ -4339,6 +4347,7 @@ export default function AITrainingPlanPage() {
                 readInput={()=>({athleteId:currentAthlete.id,athlete:athleteContext.data,diagnostic:athleteContext.diagnostic,config:buildConfigWithCoachOverrides(athleteContext.diagnostic),pageLimiterOrder:coachLimiterOrder,coachPayload:lastCoachOverridesPayload})}/>
             )}
             {planEngine==='ia' && <>
+            {currentAthlete && <SpecificPaceDoseSelect athleteId={currentAthlete.id}/>}
             <Button variant="outline" disabled={isLoading||!hasData} onClick={()=>{void handleGenerate(undefined,true);}}>Prévalider sans IA</Button>
             <PlanPrevalidationPanel report={prevalidation}/>
             {/* Generate Button */}
