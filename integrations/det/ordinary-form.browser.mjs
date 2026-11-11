@@ -48,13 +48,20 @@ try{
   page.on('console',msg=>{if(msg.type()==='error')console.error('Console du profil synthétique',msg.text().slice(0,350));});
   page.on('requestfailed',r=>console.error('Lecture du profil synthétique',new URL(r.url()).pathname,r.failure()?.errorText));
   const keys={'tfcl_ai_multi_plan':JSON.stringify({isMultiMode:true}), 'sb-detfixture-auth-token':JSON.stringify(session),'vinceslab-selected-athlete':athlete,['tfcl_ai_plan_'+athlete]:JSON.stringify(form)};
-  const refused=[],requested=[],errors=[],delivery=[];
+  const refused=[],requested=[],errors=[],delivery=[],connectionChecks=[];
   let expectedScope=null;
   await page.addInitScript(values=>{for(const [k,v] of Object.entries(values))localStorage.setItem(k,v);},keys);
   await page.route('**/*',async route=>{
     const req=route.request(),u=new URL(req.url());
     requested.push(u.pathname);
     if(u.origin===app)return route.continue();
+    if(u.origin===project && u.pathname==='/functions/v1/det-nolio-connect' && ['OPTIONS','POST'].includes(req.method())){
+      const headers={'access-control-allow-origin':app,'access-control-allow-headers':req.headers()['access-control-request-headers']||'*','access-control-allow-methods':'POST,OPTIONS','content-type':'application/json'};
+      if(req.method()==='OPTIONS')return route.fulfill({status:200,headers,body:'{}'});
+      assert.deepEqual(req.postDataJSON(),{action:'status',athleteId:athlete});
+      connectionChecks.push(athlete);
+      return route.fulfill({status:200,headers,body:JSON.stringify({status:'OK',configured:true,connected:false})});
+    }
     if(expectedScope && u.origin===project && u.pathname==='/functions/v1/det-nolio-export' && ['OPTIONS','POST'].includes(req.method())){
       const headers={'access-control-allow-origin':app,'access-control-allow-headers':req.headers()['access-control-request-headers']||'*','access-control-allow-methods':'POST,OPTIONS','content-type':'application/json'};
       if(req.method()==='OPTIONS')return route.fulfill({status:200,headers,body:'{}'});
@@ -77,6 +84,13 @@ try{
   });
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(app+'/__det/coach/index.html');
+  await page.getByText('Compte et athlète Nolio',{exact:true}).click();
+  const connectionStatus=page.getByRole('button',{name:'Vérifier la connexion Nolio'});
+  await connectionStatus.click();
+  await page.getByRole('button',{name:'Autoriser l’export DET sur mon compte Nolio'}).waitFor();
+  assert.deepEqual(connectionChecks,[athlete]);
+  assert.deepEqual(delivery,[]);
+  assert.equal(await page.getByRole('button',{name:/^Exporter .* vers Nolio/}).count(),0);
   await page.getByRole('button',{name:'DET-ENGINE',exact:true}).click({timeout:25000});
   assert(!requested.some(url=>url.endsWith('worker.js.gz')));
   await page.getByRole('button',{name:/^(?:\d+\s*·\s*)?Configuration$/}).click();
@@ -130,6 +144,12 @@ try{
   await recent.fill('75');
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await result.getByRole('alert').filter({hasText:/plafond de sortie longue choisi/}).waitFor();
+  await Promise.all([
+    page.waitForResponse(r=>r.url().endsWith('/det-nolio-connect') && r.request().method()==='POST'),
+    connectionStatus.click(),
+  ]);
+  assert.deepEqual(connectionChecks,[athlete,athlete]);
+  assert.equal(await page.getByRole('button',{name:/^Exporter .* vers Nolio/}).count(),0);
   await peak.fill('0');
   await page.getByRole('button',{name:'Générer avec DET'}).click();
   await result.getByRole('alert').filter({hasText:/plafond choisi.*0 min/}).waitFor();

@@ -146,7 +146,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
         {proposal && trailSources.length>0 && <TrailGuidanceFields key={proposal.planningInputFingerprint}
           sources={trailSources} review={review} athleteId={proposal.athleteId} fingerprint={proposal.planningInputFingerprint}
           busy={busy} onApply={value=>void generate(value)}/>}
-        <PlanGuidance key={result._provenance.engineVersion+JSON.stringify(review)} plan={result} athleteId={result._detSourceProposal.athleteId}/>
+        <PlanGuidance key={result._provenance.engineVersion+JSON.stringify(review)} plan={result}/>
       </div>}
     </div>}
   </section>;
