@@ -96,6 +96,12 @@ try{
   assert.equal(await result.locator('details').filter({has:page.locator('summary',{hasText:/^Semaine /})}).count(),8);
   assert.match(await result.innerText(),/FTP\/kg/);
   const pinned=JSON.parse(await readFile(path.join(publicFiles,'__det/v1/manifest.json'),'utf8'));
+  const host=JSON.parse(await readFile(path.join(publicFiles,'__det/coach/host-release.json'),'utf8'));
+  assert(host.runtime.startsWith('runtime/'+pinned.version+'/'));
+  for(const file of ['client.mjs','manifest.json','worker.js.gz']){
+    assert(requested.includes('/__det/coach/'+host.runtime+'/'+file));
+    assert(!requested.includes('/__det/v1/'+file));
+  }
   assert((await result.getByTestId('det-provenance').innerText()).includes(pinned.version));
   const guidance=page.getByRole('region',{name:'Guidage Nolio V2'});
   async function verify(scope,expected){
@@ -143,7 +149,12 @@ try{
   await hours.fill('');
   await racePicker.click();
   await page.getByRole('option',{name:/^Ultra trail/}).click();
+  await racePicker.filter({hasText:/Ultra trail/i}).waitFor();
   assert.equal(await recent.inputValue(),'');assert.equal(await peak.inputValue(),'');
+  await racePicker.click();
+  await page.getByRole('option',{name:/^Trail court/}).click();
+  await racePicker.filter({hasText:/Trail court/i}).waitFor();
+  assert.equal(await recent.inputValue(),'75');assert.equal(await peak.inputValue(),'100');
   await page.evaluate(()=>{
     const send=Worker.prototype.postMessage;
     Worker.prototype.postMessage=function(job,...args){
