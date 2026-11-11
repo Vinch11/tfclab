@@ -23,6 +23,23 @@ export function trailFamily(config: PlanConfig) {
 /** Coach-review calendar. Source/route admission and terrain observations belong to the reviewed trail workflow. */
 export function prepareDetGeneration(athlete: PlanAthleteData, config: PlanConfig) {
   const prepared = prepareGenerationContracts(athlete, config);
+  // The common race template can reserve strength when the coach has selected
+  // zero. Keep all the remaining appointments on their original days.
+  if (config.strengthSessionsPerWeek === 0) {
+    for (const entry of Object.values(prepared.weeklyQuotas)) {
+      const {quota,layout} = entry;
+      if (!layout) continue;
+      entry.floors = {...entry.floors,minStrengthPerWeek:0};
+      entry.quota = {...quota,strength:{min:0,max:0},totalSessions:{
+        min:Math.max(0,quota.totalSessions.min-quota.strength.min),
+        max:Math.max(0,quota.totalSessions.max-quota.strength.max),
+      }};
+      entry.layout = {...layout,targetsBySport:{...layout.targetsBySport,strength:0},days:layout.days.map(day=>{
+        const slots=day.slots.filter(slot=>slot.sport!=='strength');
+        return {...day,slots,isRest:day.isRest||slots.length===0};
+      })};
+    }
+  }
   prepareRoadReturnCalendar(config,prepared.weeklyQuotas);
   if (isTimeTrial(String(config.objective))) {
     prepareTimeTrialCalendar(prepared,config,athlete);

@@ -99,6 +99,7 @@ export interface V3ProposalOptions extends DraftRestrictions {
 }
 const easy=(source:V3Workout)=>source.sport==='strength'||
   source.prescription.physiologicalIntent.domainIds.every(d=>d==='recovery'||d==='moderate_lt1');
+const sportNames:Record<string,string>={run:'course',swim:'natation',bike:'vélo',strength:'renforcement',brick:'enchaînement vélo-course'};
 const thresholdQuality=(session:ProposedV3Session)=>session.components.some(c=>
   c.zoneMinutes!==null&&c.zoneMinutes.high>0&&['mlss','vo2max'].includes(c.sourceDomain??''));
 function polarization(sessions:readonly ProposedV3Session[]){
@@ -274,9 +275,16 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   const timedSwim=options.completeSessions&&(!options.swimDomainPaces?.recovery||!options.swimDomainPaces?.moderate_lt1);
   const selectedSources=pool.ids.map(findSource).filter((s):s is V3Workout=>!!s).filter(s=>!options.completeSessions||s.sport!=='strength').filter(s=>!timedSwim||s.sport!=='swim');
   if(returnReps)selectedSources.push(roadReturnThresholdSource);
+  const roadFinisherStrength = options.completeSessions && road?.ambition==='finisher' && knownLevel>=2;
   if(options.completeSessions){
     const strengthSources = knownLevel===0 ? introductoryStrengthSources : road&&knownLevel>=2 ? trainedStrengthSources : completeStrengthSources;
     selectedSources.push(...strengthSources);
+    // After the standard search fails, general strength is also a valid support
+    // session for a trained road finisher. Keep the declared frequency and all
+    // source, calendar and ranked-work checks for the completed plan.
+    if (allowRepair && roadFinisherStrength) {
+      selectedSources.push(...completeStrengthSources);
+    }
   }
   if(options.completeSessions && (cyclingFtp||['sprint','olympic'].includes(detObjectiveGoal(config.objective)??'')) &&
     study.limiterOrder.some(raw=>['ftp','ftp_relative'].includes(resolveDetLimiter(raw).key??''))){
@@ -666,7 +674,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     if(missing>=0){
       if(!includeImported&&librarySources.length)return weekDomains(week,true);
       const slot=slots[missing].slot;
-      const sport=({run:'course',swim:'natation',bike:'vélo',strength:'renforcement',brick:'enchaînement vélo-course'} as Record<string,string>)[slot.sport]??slot.sport;
+      const sport=sportNames[slot.sport]??slot.sport;
       const range=[slot.minimumMinutes!=null?'au moins '+slot.minimumMinutes+' min':'',slot.maximumMinutes!=null?'au plus '+slot.maximumMinutes+' min':''].filter(Boolean).join(', ');
       const candidates=eligible.filter(s=>s.sport===slot.sport).length;
       const returnLongLimit = measuredMarathonLong && slot.sport==='run' && slot.role==='long' && priorLongRunMinutes!==null
@@ -724,6 +732,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
   const noGoods=new Map<number,Set<string>>();
   const signatures=new Map<number,string>();
   let repairs=0;
+  let furthestBlock:{week:number;message:string}|undefined;
   for(let wi=0;wi<study.weeks.length;wi++){
     const original=study.weeks[wi];
     const attempt=attempts.get(wi)??0;
@@ -769,7 +778,7 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
         const reason=Error(`S1 : les fiches V3 essayées totalisent au moins ${Math.floor(minimum*10)/10} min pour ${Number(firstWeekRecentMinutes.toFixed(1))} min hebdomadaires récemment réalisées. DET n’a pas trouvé de combinaison dans ce budget.`+
           (triReturn?' Examiner la fréquence demandée et le calendrier de préparation.':''));
         if(triReturn && adaptive)throw engineLimit(reason.message);
-        if(triReturn)throw Object.assign(reason,{code:'v3_proposal_search_refused',week:1});
+        if(triReturn || roadFinisherStrength && !allowRepair)throw Object.assign(reason,{code:'v3_proposal_search_refused',week:1});
         throw reason;
       }
     }
@@ -1033,10 +1042,15 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }
     if(!solve(0,0)){
       const minimum = adaptive?suffix[0]:minimumDistinctExerciseMinutes(domains);
+      const slotMinima=slots.map(({slot,dayIndex},i)=>week.days[dayIndex].day+' '+(sportNames[slot.sport]??slot.sport)+' '+
+        Math.floor(Math.min(...domains[i].map(s=>s.knownMinutes))*10)/10+' min');
+      const cappedByRecent=firstWeekRecentMinutes!==undefined && Math.abs(calendarCeiling-firstWeekRecentMinutes)<1e-7;
       const detail = minimum>ceiling+1e-7 ? `Les créneaux exigent au moins ${Math.floor(minimum*10)/10} min de blocs pour un plafond de ${Number(ceiling.toFixed(1))} min. Vérifier la fréquence et la disponibilité déclarées.` :
         floor>ceiling+1e-7 ? `La continuité de charge ou la préparation de la décharge exige au moins ${Math.floor(floor*10)/10} min pour un plafond de ${Number(ceiling.toFixed(1))} min.` :
         nodes>=50000 ? 'Le budget de recherche est épuisé. La faisabilité reste indéterminée.' :
-        `Aucune combinaison des doses examinées ne respecte ensemble le plafond de ${Number(ceiling.toFixed(1))} min, la récupération et les exigences sportives de la semaine.`;
+        `Avec un plafond de ${Number(ceiling.toFixed(1))} min de blocs${cappedByRecent?' limité par le volume hebdomadaire récent renseigné':''}, DET ne trouve pas d’assemblage. `+
+        `Pour chaque créneau pris séparément, les minima examinés sont ${slotMinima.join(', ')}. `+
+        'La compatibilité de ces doses avec la récupération et les exigences de la semaine reste indéterminée.';
       throw Object.assign(Error(`S${week.week} : aucune combinaison V3 trouvée. ${detail}`),{code:'v3_proposal_search_refused',retryWithCatalogue,week:week.week,searchNodes:nodes,priorSportMinutes:{...minuteLedger},priorExerciseMinutes:priorLoad,ceilingMinutes:ceiling,minimumMinutes:floor,previousSpecificMinutes,domains:domains.map(d=>({count:d.length,max:Math.max(...d.map(s=>s.knownMinutes)),specific:Math.max(...d.map(specificMinutes))})),noCompletePlanReturned:true});
     }
     signatures.set(wi,signature());
@@ -1179,15 +1193,22 @@ async function assembleProposal(app:FrozenAppPlanningInput,athleteId:string,opti
     }catch(error){
       const code=error instanceof Error && 'code' in error?error.code:null;
       if(!allowRepair||!['v3_slot_unavailable','v3_quality_source_unavailable','v3_proposal_search_refused'].includes(String(code)))throw error;
-      if(repairs>=8)throw Object.assign(Error((error instanceof Error?error.message:String(error))+
-        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.'),{code,week:week.week,noCompletePlanReturned:true});
+      const message=error instanceof Error?error.message:String(error);
+      if (!furthestBlock || week.week>=furthestBlock.week) furthestBlock={week:week.week,message};
+      const stopped=furthestBlock.week>week.week
+        ? Object.assign(Error(furthestBlock.message+
+          ` Une variante a permis d’assembler les semaines précédant S${furthestBlock.week}. DET a réexaminé S${week.week} sans trouver de suite complète.`),
+          {code:'v3_proposal_search_refused',week:furthestBlock.week,noCompletePlanReturned:true})
+        : error;
+      if(repairs>=8)throw Object.assign(Error((stopped instanceof Error?stopped.message:String(stopped))+
+        ' Les variantes de doses, de placement et de semaines voisines explorées n’ont pas donné de plan complet. Ce résultat ne prouve pas que la préparation est impossible.'),{code,week:furthestBlock.week,noCompletePlanReturned:true});
       if(attempt<1 || attempt===1&&!tt&&alternateKeyDay(original,!!config.constraints?.trim())){
         attempts.set(wi,attempt+1);boundaries.get(wi)!();repairs++;wi--;continue;
       }
       // Try another feasible prescription one or two weeks back; each revised
       // prefix must pass all weekly checks and the independent end-of-plan audits.
       const back=[wi-1,wi-2].find(i=>boundaries.has(i)&&signatures.has(i)&&(noGoods.get(i)?.size??0)<2);
-      if(back===undefined)throw error;
+      if(back===undefined)throw stopped;
       const excluded=noGoods.get(back)??new Set<string>();excluded.add(signatures.get(back)!);noGoods.set(back,excluded);
       boundaries.get(back)!();attempts.set(back,1);
       for(let i=back+1;i<=wi;i++){noGoods.delete(i);attempts.delete(i);signatures.delete(i);}

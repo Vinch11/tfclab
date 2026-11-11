@@ -95,3 +95,25 @@ const neutralSession = await run({action:'preview',plan:neutral,scope:{kind:'ses
 assert.equal(neutralSession.precheck.complete,true);
 assert.equal(neutralSession.ops[0].bodySha256,neutralWeek.ops[0].bodySha256);
 console.log(JSON.stringify({case:'balanced-10K',weeks:8,operations:[neutralFull.ops.length,neutralWeek.ops.length,neutralSession.ops.length]}));
+
+const lowVolume = await run({action:'generate',input:{...balanced,config:{...balanced.config,
+  loadHistory:{recentWeeklyHours:2.4,recentWeeksCount:4}}}});
+const compact = lowVolume._detSourceProposal;
+assert.equal(compact.weeks.length,8);
+assert.deepEqual(compact.limiterOrder,[]);
+assert.equal(compact.checks.some(check=>check.status==='blocked'),false);
+const first = compact.weeks[0];
+const sessions = first.days.flatMap(day=>day.sessions);
+assert.ok(first.knownMinutes<=144);
+assert.equal(sessions.filter(s=>s.sport==='run').length,balanced.config.sessionsPerWeek);
+assert.equal(sessions.filter(s=>s.sport==='run' && s.role==='long').length,1);
+const strength = sessions.filter(s=>s.sport==='strength');
+assert.equal(strength.length,balanced.config.strengthSessionsPerWeek);
+assert.ok(['V3P_STRENGTH_201','V3P_STRENGTH_202'].includes(strength[0].components[0].sourceId));
+assert.ok(compact.weeks[3].knownMinutes<=0.7*compact.weeks[2].knownMinutes);
+console.log(JSON.stringify({case:'balanced-10K-144-min',weeks:compact.weeks.length,firstWeekMinutes:first.knownMinutes,
+  strengthSource:strength[0].components[0].sourceId,strengthMinutes:strength[0].knownMinutes}));
+const noStrength = await run({action:'generate',input:{...balanced,config:{...balanced.config,
+  loadHistory:{recentWeeklyHours:2.4,recentWeeksCount:4},strengthSessionsPerWeek:0}}});
+assert.equal(noStrength.weeks.length,8);
+assert.ok(noStrength._detSourceProposal.weeks.every(w=>w.days.every(d=>d.sessions.every(s=>s.sport!=='strength'))));
