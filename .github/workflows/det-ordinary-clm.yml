@@ -19,7 +19,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Construire la vue DET avec le formulaire et les limiteurs de cette version
         run: |
-          rm -rf public/__det/coach
           node integrations/det/build.mjs public/__det/coach
       - name: Installer le navigateur de recette
         run: |
