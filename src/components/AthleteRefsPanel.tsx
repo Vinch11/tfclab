@@ -120,6 +120,7 @@ export function AthleteRefsPanel({
   // État local du formulaire (valeurs profil uniquement)
   const [form, setForm] = useState<Record<string, string>>({});
   const [birthDate, setBirthDate] = useState(athlete.birth_date || "");
+  const [sex, setSex] = useState(athlete.sex ?? 'unknown');
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isCompactExpanded, setIsCompactExpanded] = useState(false);
@@ -137,8 +138,9 @@ export function AthleteRefsPanel({
     });
     setForm(newForm);
     setBirthDate(athlete.birth_date || "");
+    setSex(athlete.sex ?? 'unknown');
     setIsDirty(false);
-  }, [athlete.refs, athlete.birth_date]);
+  }, [athlete.id, athlete.refs, athlete.birth_date, athlete.sex]);
 
   const handleBirthDateChange = (value: string) => {
     setBirthDate(value);
@@ -170,7 +172,8 @@ export function AthleteRefsPanel({
 
       const success = await updateAthlete(athlete.id, { 
         refs: currentRefs as any,
-        birth_date: birthDate || null
+        birth_date: birthDate || null,
+        sex: sex === 'M' || sex === 'F' ? sex : null,
       });
       if (success) {
         toast.success("Profil mis à jour");
@@ -490,6 +493,7 @@ export function AthleteRefsPanel({
             Profil
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="space-y-2"><Label htmlFor="athlete-sex">Sexe</Label><Select value={sex} onValueChange={v => { setSex(v); setIsDirty(true); }}><SelectTrigger id="athlete-sex" aria-label="Sexe de l’athlète"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="unknown">Non renseigné</SelectItem><SelectItem value="F">Femme</SelectItem><SelectItem value="M">Homme</SelectItem></SelectContent></Select></div>
             {/* Date de naissance */}
             <div className="space-y-2">
               <div className="flex items-center gap-1">

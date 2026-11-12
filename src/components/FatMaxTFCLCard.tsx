@@ -62,7 +62,7 @@ export function FatMaxTFCLCard({
   const [showDetails, setShowDetails] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
   const isRunning = useIsRunningOnly();
-  const refLabel = isRunning ? "Seuil" : "FTP";
+  const refLabel = "FTP vélo";
 
   const fatmax = useMemo(() => {
     // Normaliser l'objectif
@@ -83,7 +83,7 @@ export function FatMaxTFCLCard({
   }, [vlamaxEffectif, vlamaxConfidence, vo2max, tteEffectif, tteConfidence, fatigueIndex, objectif, ftp]);
 
   // État indisponible
-  if (!fatmax) {
+  if (!fatmax || isRunning) {
     return (
       <Card className={cn("overflow-hidden opacity-60", className)}>
         <CardHeader className="pb-2">
@@ -95,8 +95,8 @@ export function FatMaxTFCLCard({
         <CardContent>
           <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
             <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
-            <p className="text-sm text-center">Estimation indisponible</p>
-            <p className="text-xs mt-1">VLamax requise pour le calcul</p>
+            <p className="text-sm text-center">{isRunning ? 'FatMax course non mesurée' : 'Estimation indisponible'}</p>
+            <p className="text-xs mt-1">{isRunning ? 'Une zone en %FTP vélo ne définit pas une allure FatMax course.' : 'VLamax requise pour le calcul'}</p>
           </div>
         </CardContent>
       </Card>
@@ -145,7 +145,7 @@ export function FatMaxTFCLCard({
         {/* FatMax PHYSIOLOGIQUE (réalité biologique de l'athlète) */}
         <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-lg border border-orange-200/50 dark:border-orange-800/30">
           <div className="flex items-center justify-center gap-1.5 mb-1">
-            <p className="text-xs text-muted-foreground">FatMax physiologique</p>
+            <p className="text-xs text-muted-foreground">FatMax vélo modélisée — non mesurée</p>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
@@ -153,8 +153,7 @@ export function FatMaxTFCLCard({
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
                   <p className="text-xs">
-                    Réalité biologique de l'athlète, basée sur VLamax + VO2max + TTE + fatigue.
-                    Indépendante de l'objectif de course.
+                    Hypothèse de modèle basée sur les données disponibles, pas une mesure de l'oxydation lipidique. Ne prouve pas la préparation à une course.
                   </p>
                 </TooltipContent>
               </Tooltip>

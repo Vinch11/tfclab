@@ -59,7 +59,7 @@ const PILLAR_CONFIG = [
   {
     key: "Endurance Spécifique",
     icon: "🏋️",
-    description: "TTE et durabilité (vs durée course)",
+    description: "Indice historique au seuil — durabilité non évaluée",
     metrics: ["TTE", "Durabilité"],
   },
   {
@@ -203,21 +203,21 @@ export function SyntheseExecutiveCard({
   
   if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
-    const hasRun = tteEffectifRun && tteEffectifRun.source === "observed" && tteEffectifRun.tte_min > 0;
+    const hasRun = sportFocus !== 'run' && tteEffectifRun && tteEffectifRun.tte_min > 0;
     items.push({
-      label: hasRun ? "TTE vélo" : "TTE",
+      label: sportFocus === 'run' ? 'TTE course' : 'TTE vélo',
       value: `${tteEffectif.tte_min} min`,
       status: eval_.status,
       source: tteEffectif.source,
       target: eval_.target,
     });
-    if (hasRun) {
-      const evalRun = evaluateTTE(tteEffectifRun!.tte_min, objectif, ambition, athleteAge);
+    if (hasRun && tteEffectifRun) {
+      const evalRun = evaluateTTE(tteEffectifRun.tte_min, objectif, ambition, athleteAge);
       items.push({
-        label: "TTE CAP",
-        value: `${tteEffectifRun!.tte_min} min`,
+        label: "TTE course",
+        value: `${tteEffectifRun.tte_min} min`,
         status: evalRun.status,
-        source: tteEffectifRun!.source,
+        source: tteEffectifRun.source,
         target: evalRun.target,
       });
     }

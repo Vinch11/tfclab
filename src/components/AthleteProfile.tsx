@@ -77,7 +77,7 @@ export function AthleteProfile({
   const snapshot = getDernierSnapshot(athlete);
   // ✅ Utiliser VLamax/TTE effectifs en priorité, sinon calcul legacy
   const vlamax = vlamaxEffectif?.value ?? 0;
-  const tte = tteEffectif?.tte_min ?? (snapshot ? estimerTTE(snapshot.ftp, snapshot.tss_7j) : 0);
+  const tte = tteEffectif?.tte_min ?? 0;
   const confiance = vlamaxEffectif?.confidence ?? (snapshot ? scoreConfiance(snapshot) / 100 : 0);
 
   // Handle goal change with cloud sync
@@ -228,7 +228,7 @@ export function AthleteProfile({
               <Label className="text-muted-foreground">Sexe</Label>
               <div className="flex gap-2">
                 {(["M", "F"] as SexeType[]).map((s) => (
-                  <button
+                  <Button
                     key={s}
                     type="button"
                     onClick={() => handleInputChange("sexe", s)}
@@ -240,7 +240,7 @@ export function AthleteProfile({
                     )}
                   >
                     {s === "M" ? "Homme" : "Femme"}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>

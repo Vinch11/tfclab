@@ -56,6 +56,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 import type { LucideIcon } from "lucide-react";
+import { diagnosticMetricPresentation } from '@/lib/diagnosticMetricPresentation';
+import { metricSourceLabel } from '@/lib/coachingCompass/presentation';
 
 interface AnalyseSectionProps {
   diagnostic: AthleteDiagnostic;
@@ -445,8 +447,9 @@ function SortableMetricRow({ id, gap, metricInfo, isReorderMode }: {
 
 export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
+  const referenceView = diagnosticMetricPresentation(diagnostic);
   const gapAnalysis = useMemo<AnalysisGap[]>(
-    () => limiter.gapAnalysis.map((gap) => gap.metric === "VLamax"
+    () => referenceView.scored.map((gap) => gap.metric === "VLamax"
       ? {
           ...gap,
           target: diagnostic.targets.vlamaxRange.optimal,
@@ -646,6 +649,14 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
           </div>
         )}
 
+        <section className="space-y-2 border-b border-border pb-4" data-testid="analysis-informational-references">
+          <h4 className="text-sm font-semibold">Repères à interpréter</h4>
+          {referenceView.references.filter(g => /^W['′]/i.test(g.metric)).map(g => <p key={g.metric} className="text-xs">W′ vélo : {diagnostic.sportFocus === 'run' ? 'non pertinent pour la réserve course' : g.value != null && g.value > 0 ? `${g.value} kJ · estimation à confirmer` : 'Données insuffisantes'} — travail au-dessus de CP, pas une note de capacité anaérobie.</p>)}
+          <p className="text-xs">TTE {diagnostic.sportFocus === 'run' ? 'course' : 'vélo'} : {referenceView.tte ? `${referenceView.tte.tte_min} min · ${metricSourceLabel(referenceView.tte.source)}` : 'Données insuffisantes'} — durée au seuil ; un effort arrêté volontairement ne donne qu’un minimum.</p>
+          <p className="text-xs">Durabilité : non évaluée — le TTE ou la dérive seuls ne prouvent pas la résistance après plusieurs heures.</p>
+          <p className="text-xs">FatMax : {diagnostic.sportFocus === 'run' ? 'pas de conversion des %FTP vélo en allure course' : 'zone lipidique modélisée, pas une mesure ni une note de préparation à la course'}.</p>
+          <p className="text-xs text-muted-foreground">Classement actuel du moteur conservé pour les plans ; les repères ci-dessus ne sont pas des déficits démontrés.</p>
+        </section>
         {/* Liste des métriques */}
         <div>
           <div className="flex items-center justify-between mb-3">

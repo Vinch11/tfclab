@@ -44,13 +44,13 @@ const LIMITER_PEDAGOGY: Record<string, {
   },
   durability: {
     title: "Durabilité",
-    whatItMeans: "Ta performance se dégrade significativement au fil du temps. La dérive cardiaque, la baisse de puissance et la fatigue musculaire arrivent trop tôt.",
-    whyItMatters: "La durabilité est cruciale sur toutes les distances > 2h. Un athlète « durable » perd moins de 5% de sa puissance après 3h.",
+    whatItMeans: "Catégorie historique du moteur : à confirmer par un protocole après effort prolongé. Le TTE et la dérive seuls ne prouvent pas une dégradation des capacités.",
+    whyItMatters: "La résistance à la dégradation après effort prolongé est distincte du temps tenu au seuil.",
     analogy: "C'est comme un pneu qui s'use trop vite — tu roules bien les premiers kilomètres mais la performance chute.",
   },
   neuromuscular: {
     title: "Neuromusculaire",
-    whatItMeans: "Ta puissance explosive (W', sprint) et ton économie de mouvement limitent ta performance. Les fibres rapides et la coordination motrice sont à travailler.",
+    whatItMeans: "Catégorie historique du moteur, à interpréter avec le coach. W′ décrit le travail au-dessus de CP, pas la force ni la puissance de sprint ; un W′ vélo ne démontre pas une faiblesse en course.",
     whyItMatters: "L'efficience neuromusculaire impacte l'économie de course/pédalage. Moins d'énergie gaspillée = plus d'endurance effective.",
     analogy: "C'est comme courir avec des chaussures lourdes — le moteur est bon mais le rendement est faible.",
   },

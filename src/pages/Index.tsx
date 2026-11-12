@@ -277,6 +277,7 @@ const Index = () => {
       vo2max: contextCurrentAthlete.vo2max,
       active_snapshot_id: contextCurrentAthlete.active_snapshot_id,
       birth_date: contextCurrentAthlete.dateNaissance,
+      sex: contextCurrentAthlete.sexe === 'M' || contextCurrentAthlete.sexe === 'F' ? contextCurrentAthlete.sexe : null,
       is_hidden: contextCurrentAthlete.is_hidden ?? false,
       coach_id: "", // Non utilisé dans Index
       created_at: "", // Non utilisé dans Index
@@ -1919,6 +1920,8 @@ const Index = () => {
               <AthleteProfile
                 athlete={legacyAthlete}
                 onUpdate={() => {}}
+                athleteId={currentAthlete?.id}
+                onSaveToCloud={currentAthlete ? async changes => { await updateAthlete(currentAthlete.id, changes); } : undefined}
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
                 onOpenSnapshots={() => setShowSnapshots(true)}

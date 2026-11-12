@@ -395,16 +395,16 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
     why: "Intensité maximale soutenable en état d'équilibre. Au-dessus, le lactate s'accumule rapidement.",
   },
   "W'": {
-    desc: "Réserve anaérobie — énergie au-dessus du seuil",
-    why: "Quantité d'énergie disponible pour les efforts supra-seuil (attaques, bosses). Se reconstitue partiellement au repos.",
+    desc: "Travail disponible au-dessus de la puissance critique",
+    why: "Paramètre d'un modèle CP/W′, spécifique au sport et aux efforts retenus ; ni VLamax, ni mesure globale de capacité anaérobie.",
   },
   "Éco.": {
     desc: "Économie de course — coût énergétique du mouvement",
     why: "À VO₂max et VLamax égaux, l'athlète le plus économique ira plus vite. Améliorable par la technique et le renforcement.",
   },
   "Durabilité": {
-    desc: "Robustesse aérobie — dérivée directement du TTE (Time to Exhaustion)",
-    why: "Mesure combien de temps vous pouvez tenir au seuil. Un TTE élevé = meilleure résistance en course longue. Purement physiologique, sans influence de la fatigue.",
+    desc: "Résistance à la dégradation des capacités après effort prolongé",
+    why: "Le TTE au seuil et la dérive cardiaque ne suffisent pas à mesurer la durabilité. Un protocole prolongé documenté est nécessaire.",
   },
 };
 

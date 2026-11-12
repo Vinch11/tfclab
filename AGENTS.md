@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Use `diagnosticMetricPresentation` to classify W′, TTE, durability and FatMax as unscored dashboard references without mutating diagnostic outputs. Why: a modeled threshold duration or lipid zone cannot certify long-event readiness.
+
 - Store Nolio running-power CP/W′ under `critical_metrics.runningPower`, never under running CS/D′ or cycling CP/W′; records remain estimates and cannot feed plan prescriptions. Why: sensor-derived running watts are not distances or interchangeable cycling watts.
 
 - Compass presentation is a read-only projection of diagnostic outputs; TTE labels, provenance and missing-data states must never mutate limiter rankings or IA/DET contracts. Why: clearer displays must not silently change future plans.
