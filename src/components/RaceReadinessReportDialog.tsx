@@ -386,8 +386,7 @@ export function RaceReadinessReportDialog({
               <CardContent className="pt-4 pb-4">
                 <div className="text-sm font-semibold mb-1">Cartographie de ta forme</div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Comparée à la cohorte <strong>{peerRef.cohortLabel}</strong> : le trait gris marque la moyenne ({peerRef.peerAvg}),
-                  le trait violet le seuil « au-dessus de la moyenne » ({peerRef.peerAbove}+ ★). La ligne verte à 100 = ta cible d'ambition.
+                  Repères des cibles internes. Les estimations restent à confirmer ; une donnée absente n’est pas une faiblesse démontrée.
                 </p>
                 <div
                   className="w-full max-w-md mx-auto"
@@ -452,10 +451,10 @@ export function RaceReadinessReportDialog({
                 {readiness.strengths.length > 0 && (
                   <Card className="border-emerald-200 bg-emerald-50/40 dark:bg-emerald-950/10">
                     <CardContent className="pt-3 pb-3">
-                      <div className="text-xs font-semibold text-emerald-700 mb-1">Points forts à exploiter</div>
-                      <p className="text-[11px] text-muted-foreground mb-2">Tes appuis solides pour construire la course.</p>
+                      <div className="text-xs font-semibold text-emerald-700 mb-1">Cibles internes proches ou atteintes</div>
+                      <p className="text-[11px] text-muted-foreground mb-2">À confirmer selon la provenance des données.</p>
                       <div className="flex flex-wrap gap-1">
-                        {readiness.strengths.map(s => (
+                        {readiness.strengths.filter(a => a.value != null && a.value > 0).map(s => (
                           <Badge key={s.key} className="bg-emerald-600 text-white text-xs">{s.label}</Badge>
                         ))}
                       </div>
@@ -466,9 +465,9 @@ export function RaceReadinessReportDialog({
                   <Card className="border-sky-200 bg-sky-50/40 dark:bg-sky-950/10">
                     <CardContent className="pt-3 pb-3">
                       <div className="text-xs font-semibold text-sky-700 mb-1">Leviers de progression</div>
-                      <p className="text-[11px] text-muted-foreground mb-2">Pas des faiblesses — des marges de gain à activer.</p>
+                      <p className="text-[11px] text-muted-foreground mb-2">Écarts internes à confirmer ; le diagnostic détermine les priorités.</p>
                       <div className="flex flex-wrap gap-1">
-                        {readiness.gaps.map(g => (
+                        {readiness.gaps.filter(a => a.value != null && a.value > 0).map(g => (
                           <Badge key={g.key} className="bg-sky-600 text-white text-xs">{g.label}</Badge>
                         ))}
                       </div>
