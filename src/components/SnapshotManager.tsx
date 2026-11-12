@@ -49,6 +49,7 @@ import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
 import { checkSnapshotForm } from "@/lib/snapshotTestDays";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
+import { NolioCriticalRecordsImporter } from "@/components/NolioCriticalRecordsImporter";
 import { parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
 
 // CAP objectives where running economy is critical
@@ -513,6 +514,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
       <NolioPeriodTestFinder athleteName={athleteName} current={formData as unknown as Record<string, unknown>} onApply={applyNolioPeriod} />
+      <NolioCriticalRecordsImporter athleteName={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = parseStoredCriticalMetrics((prev as Record<string, unknown>).critical_metrics); if (m[sport] || !value) return prev; m[sport] = value; return { ...prev, critical_metrics: JSON.stringify(m) }; })} />
       {/* Nolio Import Button */}
       {(() => {
         const latestSnap = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);

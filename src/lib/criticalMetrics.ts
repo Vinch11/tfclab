@@ -20,7 +20,8 @@ export interface StoredCriticalSport {
   /** Coach opinion; 'reject' blocks session proposals even for confirmed values. */
   coachReview?: { verdict: 'valid' | 'reserve' | 'reject'; text: string; date: string };
 }
-export type StoredCriticalMetrics = Partial<Record<CriticalSport, StoredCriticalSport>>;
+export type CriticalMetricKey = CriticalSport | 'runningPower';
+export type StoredCriticalMetrics = Partial<Record<CriticalMetricKey, StoredCriticalSport>>;
 
 export function toStoredCritical(fit: CriticalFit, efforts: CriticalEffort[], coachApproved: boolean, today: string): StoredCriticalSport | null {
   if (fit.status === 'insufficient' || !(fit.critical > 0) || !(fit.reserve > 0)) return null;
@@ -40,7 +41,7 @@ export function parseStoredCriticalMetrics(raw: unknown): StoredCriticalMetrics 
   if (typeof raw === 'string') { try { value = JSON.parse(raw); } catch { return {}; } }
   if (!value || typeof value !== 'object') return {};
   const out: StoredCriticalMetrics = {};
-  for (const sport of ['running', 'cycling'] as const) {
+  for (const sport of ['running', 'cycling', 'runningPower'] as const) {
     const s = (value as Record<string, unknown>)[sport] as Partial<StoredCriticalSport> | undefined;
     if (!s || !finitePositive(s.critical) || !finitePositive(s.reserve) || (s.status !== 'estimate' && s.status !== 'confirmed')) continue;
     out[sport] = { ...s, efforts: Array.isArray(s.efforts) ? s.efforts : [], warnings: Array.isArray(s.warnings) ? s.warnings : [], latestEffortDate: s.latestEffortDate ?? '', savedAt: s.savedAt ?? '', r2: s.r2 ?? null, residualPct: s.residualPct ?? 0, sensitivityPct: s.sensitivityPct ?? null } as StoredCriticalSport;
@@ -52,6 +53,7 @@ export function parseStoredCriticalMetrics(raw: unknown): StoredCriticalMetrics 
 export function criticalForSessions(metrics: StoredCriticalMetrics, sport: CriticalSport, today: string): { value: StoredCriticalSport | null; reason: string | null } {
   const m = metrics[sport];
   if (!m) return { value: null, reason: 'Données insuffisantes' };
+  if (sport === 'running' && m.efforts.some(e => e.measurement === 'power')) return { value: null, reason: 'Puissance course : aucune prescription automatique' };
   if (m.status !== 'confirmed') return { value: null, reason: 'Estimation non validée par le coach' };
   if (m.coachReview?.verdict === 'reject') return { value: null, reason: 'Écarté par l’avis du coach' };
   const age = (Date.parse(today + 'T00:00:00Z') - Date.parse(m.latestEffortDate + 'T00:00:00Z')) / 86400000;

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Import Nolio des records course/vélo par période : puissances séparées, aperçu CP/W′ course et vélo, sélection coach, capteur documenté, enregistrement comme estimation sans changer les limiteurs.
+
 - [x] Préparer le plan de revue du compass : présentation et provenance d'abord, hiérarchie prescriptive conservée ; toute évolution scientifique du diagnostic soumise à une validation séparée.
 - [x] Revue de présentation du compass : projection en lecture seule, TTE/robustesse séparés, provenance et W′ manquant clarifiés, ordre coach affiché distinctement ; propositions non activées dans docs/compass-review-2026-11-12.md.
 

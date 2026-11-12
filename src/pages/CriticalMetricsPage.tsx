@@ -62,8 +62,9 @@ export default function CriticalMetricsPage() {
   const snap = pickReferenceSnapshot(snapshots, currentAthlete?.id, (currentAthlete as { active_snapshot_id?: string | null } | null)?.active_snapshot_id ?? null);
   const metrics = parseStoredCriticalMetrics((snap as { critical_metrics?: unknown } | null)?.critical_metrics);
   const save = async (sport: CriticalSport, review: StoredCriticalSport['coachReview']) => {
-    if (!snap || !metrics[sport]) return;
-    const next = { ...metrics, [sport]: { ...metrics[sport]!, coachReview: review } };
+    const value = metrics[sport];
+    if (!snap || !value) return;
+    const next = { ...metrics, [sport]: { ...value, coachReview: review } };
     await updateSnapshot(snap.id, { critical_metrics: next as never });
   };
   return <main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
@@ -76,6 +77,7 @@ export default function CriticalMetricsPage() {
       <SportCard sport="cycling" m={metrics.cycling} onReview={r => save('cycling', r)} />
       <SportCard sport="running" m={metrics.running} onReview={r => save('running', r)} />
     </div>}
+    {metrics.runningPower && <Card><CardHeader><CardTitle className="text-lg">Course · Puissance critique / W′</CardTitle></CardHeader><CardContent className="space-y-3"><Badge variant="secondary">Estimation sur records · à vérifier</Badge><p className="text-2xl font-semibold">CP {Math.round(metrics.runningPower.critical)} W · W′ {(metrics.runningPower.reserve / 1000).toFixed(1)} kJ</p><p className="text-sm text-muted-foreground">Puissance course spécifique au capteur, distincte du vélo et de VC/D′ ; aucune modification des limiteurs ni des séances.</p><ul className="space-y-2 text-sm">{metrics.runningPower.efforts.map(e => <li key={e.id}>{e.date} · {fmtDur(e.durationSec)} · {Math.round(e.value)} W · {e.session} · {e.conditions}</li>)}</ul></CardContent></Card>}
     <Button variant="outline" onClick={() => navigate('/')}>Modifier les efforts dans le bilan</Button>
   </main>;
 }
