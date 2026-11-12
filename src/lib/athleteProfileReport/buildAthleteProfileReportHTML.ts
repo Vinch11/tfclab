@@ -224,7 +224,7 @@ function metricCard(m: ReportMetric): string {
     </div>
     ${insufficient ? "" : gaugeSVG(m)}
     <div style="margin-top:8px;font-size:10.3px;color:${RK.muted};line-height:1.45">${rich(m.meaning)}</div>
-    ${m.source ? `<div style="margin-top:5px;font-size:9px;color:${RK.faint}">Source : ${esc(m.source)}</div>` : ""}
+    ${m.source ? `<div style="margin-top:5px;font-size:9px;color:${RK.faint}">Source : ${esc(metricSourceLabel(m.source))}</div>` : ""}
     <div style="height:2px;background:${color}22;border-radius:2px;margin-top:8px"></div>
   </div>`;
 }

@@ -29,6 +29,7 @@ import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
 import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
+import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { AMBER, MINT, PERI, ROSE, SKY, VIOL } from "./charts";
 import type {
   PerfBlock,
@@ -45,7 +46,7 @@ import type {
 const STRENGTH_COPY: Record<string, { emoji: string; title: string; detail: (v: number | null) => string }> = {
   VO2max: { emoji: "🫁", title: "Cylindrée aérobie", detail: (v) => `VO₂max ${v ?? "—"} ml/kg/min au-dessus de ta cible — le plafond aérobie n'est pas ton point faible.` },
   VLamax: { emoji: "🩸", title: "Profil métabolique économe", detail: (v) => `VLamax ${v ?? "—"} mmol/L/s — tu épargnes le glycogène et déplaces peu le seuil vers le bas.` },
-  TTE: { emoji: "⏱️", title: "Durabilité au seuil", detail: () => "Tu tiens ton allure seuil au moins aussi longtemps que ta cible — la fatigue en fin d'épreuve n'est pas le premier risque." },
+  TTE: { emoji: "⏱️", title: "Indice au seuil", detail: () => "Temps tenu au seuil selon sa provenance ; ne prouve pas la robustesse après effort prolongé." },
   "FTP/kg": { emoji: "⚡", title: "Puissance relative au poids", detail: (v) => `FTP/kg ${v ?? "—"} — un bon rapport puissance/poids pour ton objectif.` },
   VMA: { emoji: "🏃", title: "Vitesse maximale aérobie", detail: (v) => `VMA ${v ?? "—"} km/h — une bonne base de vitesse pour construire l'allure spécifique.` },
   "W' (kJ)": { emoji: "🔋", title: "Réserve anaérobie", detail: () => "Ta capacité de travail au-dessus du seuil (W') est dans la cible — de la marge pour les relances et le final." },
@@ -54,7 +55,7 @@ const STRENGTH_COPY: Record<string, { emoji: string; title: string; detail: (v: 
 function buildStrengths(gapAnalysis: Array<{ metric: string; value: number | null; status: string; weightedImpact: number }> | undefined): PerfStrength[] {
   if (!Array.isArray(gapAnalysis)) return [];
   return gapAnalysis
-    .filter((g) => g.status === "optimal" && STRENGTH_COPY[g.metric])
+    .filter((g) => g.status === "optimal" && STRENGTH_COPY[g.metric] && !/^W['′]/i.test(g.metric))
     .sort((a, b) => a.weightedImpact - b.weightedImpact)
     .slice(0, 3)
     .map((g) => {
@@ -142,6 +143,8 @@ export function computePerformanceReport(
   const refs = payload?.effectiveRefs ?? {};
   const snap = payload?.effectiveSnapshot ?? null;
   const compass = payload?.coachingCompass;
+  const compassRows = compass ? compassReportRows(compass) : [];
+  const isRunning = compass?.presentation?.sport === 'run';
   const limiterResult = payload?.unifiedLimiter;
 
   const vo2max = num(refs?.vo2max);
@@ -166,7 +169,7 @@ export function computePerformanceReport(
   // "hors cible" par rapport à la bande générique.
   const vlamaxTarget = getVlamaxTarget(payload?.athlete?.goal ?? null, "run");
 
-  const hasModel = vo2max != null && vlamax != null && weightKg != null;
+  const hasModel = !isRunning && vo2max != null && vlamax != null && weightKg != null;
   const profile: MaderProfile | null = hasModel
     ? { vo2max, vlamax, weight: weightKg, efficiency: 0.23 }
     : null;
@@ -201,7 +204,7 @@ export function computePerformanceReport(
     { label: "VO₂max", value: fr(vo2max, 1), unit: "ml/kg/min" },
     { label: "VLamax", value: fr(vlamax, 2), unit: "mmol/L/s" },
     { label: "FatMax", value: fr(fatMax ? fatMax.fatMaxPower : null, 0), unit: "W" },
-    { label: "Durabilité (TTE)", value: fr(tteMin, 0), unit: "min" },
+    { label: "TTE — indice au seuil", value: fr(tteMin, 0), unit: "min" },
   ];
 
   const gauges: PerfGaugeRow[] = [
@@ -320,12 +323,12 @@ export function computePerformanceReport(
       pill: pill(carbMax?.power == null ? null : true),
     },
     {
-      name: "Durabilité (TTE)",
+      name: "TTE — indice au seuil",
       detail: fr(tteMin, 0, "min"),
-      verdict: tteMin == null ? "Données insuffisantes" : tteMin >= 45 ? "Bonne résistance" : "Durabilité limitante",
+      verdict: tteMin == null ? "Données insuffisantes" : "À interpréter selon la provenance",
       meaning:
-        "Le temps tenable au seuil. Deux athlètes de même MLSS ne tiennent pas la même durée : c'est la durabilité qui fait la différence en course.",
-      pill: pill(tteMin == null ? null : tteMin >= 45),
+        "Le temps tenu au seuil est distinct de la robustesse après plusieurs heures. Durabilité non évaluée.",
+      pill: pill(null),
     },
   ];
 
@@ -563,7 +566,7 @@ export function computePerformanceReport(
       horizon: "12 semaines",
     },
     {
-      marker: "Durabilité (TTE)",
+      marker: "TTE — indice au seuil",
       current: fr(tteMin, 0, "min"),
       target: tteMin != null ? fr(Math.min(90, tteMin + 10), 0, "min") : "—",
       horizon: "12 semaines",
@@ -600,8 +603,9 @@ export function computePerformanceReport(
     generatedAt: opts.generatedAt,
     snapshotDate: snap?.date ?? null,
     logoBase64: opts.logoBase64 ?? null,
-    kpis,
-    gauges,
+    compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'compass-performance', 'Compass — repères communs aux rapports') : null,
+    kpis: compass?.presentation ? compassRows.map(r => ({ label: r.label, value: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), unit: r.unit })) : kpis,
+    gauges: compass?.presentation ? compassRows.filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, unit: r.unit, value: r.value, display: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), scale: [0, Math.max((r.target ?? 1) * 1.5, (r.value ?? 1) * 1.2)] as [number, number], target: r.target != null ? [r.target, r.target] as [number, number] : null, color: PERI })) : gauges,
     overview,
     consequence,
     physio: {
@@ -611,8 +615,8 @@ export function computePerformanceReport(
       mlssWkg,
       mlssPctVo2,
       vo2W,
-      fatMaxW: fatMax?.fatMaxPower ?? null,
-      fatMaxG: fatMax?.fatMaxGrams ?? null,
+      fatMaxW: compass?.presentation ? (() => { const axis = compassRows.find(r => r.key === 'fatmax'); return axis?.value != null && ftp != null ? Math.round(ftp * axis.value / 100) : null; })() : fatMax?.fatMaxPower ?? null,
+      fatMaxG: compass?.presentation ? null : fatMax?.fatMaxGrams ?? null,
       carbMaxGH: carbMax?.targetCarbGH ?? null,
       carbMaxW: carbMax?.power ?? null,
       tteMin,
@@ -629,7 +633,7 @@ export function computePerformanceReport(
       glycogenStoreG: glycogenStore.totalG,
       glycogenStoreKcal: glycogenStore.kcal,
     },
-    parameterRows,
+    parameterRows: compass?.presentation ? compassRows.map(r => ({ name: r.label, detail: `${fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1, r.unit)} · cible interne ${fr(r.target, 2, r.unit)}`, verdict: r.assessment, meaning: r.key === 'tte' ? 'Indice au seuil — durabilité non évaluée.' : r.key === 'fatmax' ? 'Zone lipidique modélisée, non mesurée.' : 'Valeur et cible du compass ; interprétation selon la source.', pill: pill(null) })) : parameterRows,
     curve,
     zones,
     zoneSourceLabel,
@@ -640,7 +644,7 @@ export function computePerformanceReport(
     blockStructure,
     actions,
     controls,
-    targets,
+    targets: compass?.presentation ? compassRows.filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ marker: r.label, current: fr(r.value, 2, r.unit), target: fr(r.target, 2, r.unit), horizon: 'Cible interne actuelle' })) : targets,
     missingNote: missing.length
       ? `Données manquantes : ${missing.join(", ")}. Les sections concernées affichent « Données insuffisantes ».`
       : null,

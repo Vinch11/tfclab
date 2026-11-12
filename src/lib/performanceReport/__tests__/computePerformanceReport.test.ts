@@ -54,7 +54,7 @@ describe("computePerformanceReport — points forts", () => {
     const result = computePerformanceReport(BASE_PAYLOAD, opts);
     expect(result.strengths.length).toBeGreaterThan(0);
     expect(result.strengths.map((s) => s.title)).toContain("Cylindrée aérobie");
-    expect(result.strengths.map((s) => s.title)).toContain("Durabilité au seuil");
+    expect(result.strengths.map((s) => s.title)).toContain("Indice au seuil");
     // VLamax est "acceptable", pas "optimal" — ne doit pas apparaître en point fort.
     expect(result.strengths.map((s) => s.title)).not.toContain("Profil métabolique économe");
   });

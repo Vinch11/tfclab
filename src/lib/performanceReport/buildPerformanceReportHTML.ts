@@ -33,7 +33,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     eyebrow: "Rapport de performance métabolique",
     title: input.athleteName,
     intro:
-      "Analyse complète de ton moteur : puissance aérobie, puissance glycolytique, seuil réel, utilisation des carburants et durabilité. Chaque chiffre est relié à une décision d'entraînement.",
+      "Repères du compass, sources et cibles internes ; modèles complémentaires selon le sport. La durabilité après effort prolongé reste à évaluer.",
     identity: input.identity,
     highlights: input.kpis,
     footnote: `Modèle Mader-Heck calibré (α = 1,98 · N = 44 profils laboratoire) — plafonds de progression Inscyd 2025. Généré le ${input.generatedAt}${input.snapshotDate ? ` · snapshot du ${input.snapshotDate}` : ""}.`,
@@ -49,7 +49,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     <div class="grid3" style="margin:12px 0 14px">${input.kpis.map(kpiCell).join("")}</div>
     <div class="card">
       <h3>Position de chaque paramètre par rapport à la plage attendue</h3>
-      ${gaugesSVG(input.gauges, "Bande verte = plage de référence pour ton niveau et ton objectif.")}
+      ${gaugesSVG(input.gauges, "Cibles internes du compass — pas une probabilité de réussite en course.")}
     </div>
     <div class="note" style="margin-top:12px"><strong>Ce que ça implique.</strong> ${esc(input.consequence)}</div>
     ${input.missingNote ? `<div class="note warn" style="margin-top:9px">${esc(input.missingNote)}</div>` : ""}
@@ -123,7 +123,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     <div class="grid3" style="margin-top:12px">
       <div class="kpi"><div class="k">MLSS</div><div class="v">${p.mlssW ?? "—"}<span class="u">W</span></div></div>
       <div class="kpi"><div class="k">FatMax</div><div class="v">${p.fatMaxW ?? "—"}<span class="u">W</span></div></div>
-      <div class="kpi"><div class="k">Durabilité</div><div class="v">${p.tteMin ?? "—"}<span class="u">min</span></div></div>
+      <div class="kpi"><div class="k">TTE — indice au seuil</div><div class="v">${p.tteMin ?? "—"}<span class="u">min</span></div><p class="muted">Durabilité après effort prolongé non évaluée.</p></div>
     </div>
     <div class="note" style="margin-top:12px">
       <strong>Lecture coach.</strong> Une contribution glycolytique élevée dès les intensités
@@ -300,7 +300,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
 
   return reportDocument({
     title: `Rapport de Performance TFCL — ${input.athleteName}`,
-    body: `${cover}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}`,
+    body: `${cover}${input.compassSummaryHTML ? `<section class="page flow">${input.compassSummaryHTML}</section>` : ''}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}`,
   });
 
 }

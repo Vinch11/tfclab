@@ -10,6 +10,7 @@
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
+import { compassReportRows } from '@/lib/coachingCompass/reportPresentation';
 
 import {
   deriveTrainingZones,
@@ -390,7 +391,14 @@ export function mapExportPayloadToProfileReport(
         "Voici l'état actuel de ton potentiel physiologique.",
     },
     profileNarrative: narrative || "Profil en cours de constitution : réalise les tests recommandés pour l'affiner.",
-    metrics: metrics.filter(m => !(compass?.presentation?.sport === 'run' && ['ftpkg', 'fatmax'].includes(m.key)) && !(compass?.presentation?.sport === 'triathlon' && m.key === 'tte')).map(m => ({ ...m, label: compass?.presentation?.sport === 'triathlon' && ['vlamax', 'ftpkg', 'fatmax'].includes(m.key) ? `${m.label} · vélo` : m.label })),
+    metrics: compass ? compassReportRows(compass).map(axis => ({
+      key: axis.key, label: axis.label, value: axis.value, unit: axis.unit,
+      decimals: axis.unit === 'mmol/L/s' ? 2 : 1,
+      target: axis.target != null ? [axis.target, axis.target] as [number, number] : undefined,
+      status: axis.value == null || axis.value <= 0 ? 'missing' as const : axis.source !== 'observed' && axis.source !== 'test_labo' ? 'warn' as const : axis.score >= 100 ? 'ok' as const : 'warn' as const,
+      source: axis.source,
+      meaning: axis.key === 'tte' ? 'Durée au seuil ; ne mesure pas la robustesse après effort prolongé.' : axis.key === 'fatmax' ? 'Zone lipidique vélo modélisée, non mesurée ; pas une note de préparation.' : 'Repère et cible interne issus du compass ; interprétation selon la provenance.',
+    })) : [],
     sportReferences: compass?.presentation?.sportReferences,
     sportTte: [compass?.presentation?.tteBike ? { label: 'TTE vélo', value: compass.presentation.tteBike.tte_min, source: compass.presentation.tteBike.source } : null, compass?.presentation?.tteRun ? { label: 'TTE course', value: compass.presentation.tteRun.tte_min, source: compass.presentation.tteRun.source } : null].filter((v): v is { label: string; value: number; source: string } => v !== null),
     radar: (compass?.presentation?.axes ?? compass?.radarAxes ?? []).map((a: any) => ({
@@ -412,7 +420,7 @@ export function mapExportPayloadToProfileReport(
           unit: compass.economyModifier.unit,
         }
       : null,
-    targetProgress,
+    targetProgress: compass ? compassReportRows(compass).filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, current: r.value, target: r.target, unit: r.unit, decimals: r.unit === 'mmol/L/s' ? 2 : 1, progress: r.score, reached: r.value != null && r.value > 0 && r.score >= 100 })) : [],
     limiters,
     levers,
     decision: compass?.decision
@@ -432,7 +440,7 @@ export function mapExportPayloadToProfileReport(
       { term: "VO₂max", definition: "Quantité maximale d'oxygène utilisable par minute : la cylindrée de ton moteur." },
       { term: "VLamax", definition: "Vitesse maximale de production de lactate : ton « moteur sucre »." },
       { term: "Seuil (MLSS)", definition: "Intensité la plus haute que tu peux tenir sans accumuler de lactate." },
-      { term: "TTE", definition: "Temps que tu peux tenir à ton seuil : ta durabilité." },
+      { term: "TTE", definition: "Temps tenu au seuil selon sa provenance ; distinct de la robustesse après effort prolongé." },
       { term: "FatMax", definition: "Intensité où tu brûles le plus de graisses par minute." },
       { term: "Limiteur", definition: "Le maillon faible qui plafonne ta performance aujourd'hui." },
       { term: "Levier", definition: "Le type d'entraînement qui corrige un limiteur donné." },

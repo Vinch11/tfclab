@@ -83,6 +83,7 @@ import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals"
 import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassification";
 // ✅ NEW: Coaching Compass (5 axes)
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
+import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compassReportRows } from '@/lib/coachingCompass/reportPresentation';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -630,8 +631,14 @@ export function buildFatMaxTFCLHTML(payload: ExportPayload): string {
   const defLabel = isAthlete ? "Définition" : "Définition TFCL™";
   // Label de référence dynamique : "Allure Seuil" en mode Running, "FTP" sinon
   const isRunningMode = isRunningFocusModeActive(athlete?.goal);
-  const refLabel = isRunningMode ? "Allure Seuil" : "FTP";
-  const refLabelShort = isRunningMode ? "Seuil" : "FTP";
+  const refLabel = "FTP vélo";
+  const refLabelShort = "FTP vélo";
+
+  if (isRunningMode) return `<section id="fatmax-tfcl" class="section pagebreakAvoid"><h2>FatMax course</h2><p>Données insuffisantes : FatMax course non mesurée. Une zone en %FTP vélo ne définit pas une allure FatMax course.</p></section>`;
+  if (payload.coachingCompass) {
+    const axis = compassReportRows(payload.coachingCompass).find(r => r.key === 'fatmax');
+    return `<section id="fatmax-tfcl" class="section pagebreakAvoid"><h2>FatMax vélo — zone lipidique modélisée</h2><p>${axis?.value != null ? `${axis.value}% FTP vélo · ${metricSourceLabel(axis.source)}` : 'Données insuffisantes'}</p><p>Repère identique au compass, non mesuré ; pas une note de préparation à la course.</p></section>`;
+  }
   
   if (!fatmaxTFCL) {
     return `
@@ -2140,7 +2147,7 @@ function buildExportPayload(
         criticalMetrics: (effectiveSnapshot as { critical_metrics?: unknown } | null)?.critical_metrics,
         objectif: athlete.goal || "IM",
         ambition: ambition,
-        sportFocus: resolveCompassSportFocus(effectiveSnapshot, athlete, "bike"),
+        sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
         athleteAge: athleteAge,
       };
       return computeCoachingCompass(compassInput);
@@ -3232,6 +3239,10 @@ function buildLeviersActionHTML(payload: ExportPayload): string {
 // =============================================
 
 function buildCpWprimeWbalHTML(payload: ExportPayload): string {
+  return `<section id="cp-wprime-wbal" class="section pagebreakAvoid"><h2>CP / W′ et vitesse critique / D′ — repères complémentaires</h2>${buildCompassReportReferencesHTML(payload.coachingCompass)}</section>`;
+}
+
+function buildLegacyCpWprimeWbalHTML(payload: ExportPayload): string {
   const snap = payload.effectiveSnapshot;
   const ftp = payload.effectiveRefs.ftp ?? null;
   const poids = payload.effectiveRefs.weightKg ?? null;
@@ -4209,7 +4220,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // même si estimé (LOAD). Avant on n'affichait que si `source === "observed"`
   // → TTE run invisible pour la majorité des athlètes tri.
   const isTriObjectif = /tri|ironman|\bIM\b|70\.?3|olymp|sprint/i.test(athlete.goal || "");
-  const showTteRun = (tteRun.tte_min ?? 0) > 0 && (tteRun.source === "observed" || isTriObjectif);
+  const showTteRun = payload.coachingCompass.presentation?.sport === 'triathlon' && (tteRun.tte_min ?? 0) > 0;
 
   // =============================================
   // CONSTANTES BRANDING REPOSITIONNÉ (NON DOGMATIQUE)
@@ -4523,11 +4534,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
                 ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<br><span class="muted" style="font-size:9px;font-style:italic;">Seuils ajustés pour ' + ageAdjustment.aai.label + '</span>' : ''}
               </div>
               <div>
-                <span class="muted">TTE${showTteRun ? ' vélo' : ''}</span><br>
-                <span class="medium ${tte.tte_min < (tte.target || 45) ? 'warning' : 'success'}">${tte.tte_min} min</span>
-                <br><span class="badge ${tteStatus.cssClass}" style="font-size:9px;">${tteStatus.icon} ${tteStatus.label}</span>
-                <br><span class="muted" style="font-size:10px;">${tte.target != null ? `Cible: ${tte.target} min` : 'Cible : données insuffisantes'}</span>
-                ${showTteRun ? `<br><span class="muted" style="font-size:10px;margin-top:2px;display:inline-block;">CAP: <b>${tteRun.tte_min} min</b>${tteRun.target != null ? ` (cible ${tteRun.target} min)` : ''}</span>` : ''}
+                ${payload.coachingCompass.presentation?.tteBike ? `<p>TTE vélo : ${payload.coachingCompass.presentation.tteBike.tte_min > 0 ? `${payload.coachingCompass.presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(payload.coachingCompass.presentation.tteBike.source)}</p>` : ''}
+                ${payload.coachingCompass.presentation?.tteRun ? `<p>TTE course : ${payload.coachingCompass.presentation.tteRun.tte_min > 0 ? `${payload.coachingCompass.presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(payload.coachingCompass.presentation.tteRun.source)}</p>` : ''}
+                <p class="muted">Durabilité après effort prolongé non évaluée.</p>
               </div>
             </div>
           </div>
@@ -4536,9 +4545,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <div class="kv">
               <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
               <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
-              <div class="k">FTP</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>
+              ${payload.coachingCompass.presentation?.sport !== 'run' ? `<div class="k">FTP vélo</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>` : ''}
               <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
-              <div class="k">FTP/kg</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>
+              ${payload.coachingCompass.presentation?.sport !== 'run' ? `<div class="k">FTP/kg vélo</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>` : ''}
             </div>
             ${ageAdjustment.age !== null ? `
             <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
@@ -6824,17 +6833,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
               : `<b>Profil équilibré</b> → Répartition standard avec focus sur les zones correspondant à votre objectif (${getObjectifLabel(athlete.goal)}).`
           }
           <br><br>
-          ${tte.target == null
-            ? `<b>TTE${showTteRun ? ' vélo' : ''} (${tte.tte_min} min)</b> — cible objectif indisponible (données insuffisantes) → recommandation neutre : maintenir un mix Z2/Z3/Z4a.`
-            : tte.tte_min < tte.target
-            ? `<b style="color:var(--warning)">TTE${showTteRun ? ' vélo' : ''} insuffisant (${tte.tte_min} min vs cible ${tte.target} min)</b> → Prioriser Z4a et Z5 pour développer l'endurance au seuil.`
-            : `<b style="color:var(--success)">TTE${showTteRun ? ' vélo' : ''} satisfaisant (${tte.tte_min} min)</b> → Maintenir avec du travail Z2/Z3 de fond.`
-          }
-          ${showTteRun && tteRun.target != null ? `<br><br>${
-            tteRun.tte_min < tteRun.target
-              ? `<b style="color:var(--warning)">TTE run insuffisant (${tteRun.tte_min} min vs cible ${tteRun.target} min)</b> → intégrer des sorties longues à allure marathon + finish rapide.`
-              : `<b style="color:var(--success)">TTE run satisfaisant (${tteRun.tte_min} min)</b> → maintenir avec des sorties longues Z2 dominantes.`
-          }` : ''}
+          ${buildCompassReportReferencesHTML(payload.coachingCompass)}
         </p>
       </div>
     </section>
@@ -8439,13 +8438,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   
   // Map des sections vers leur contenu HTML
   const sectionHTMLMap: Record<keyof ReportSections, string> = {
-    synthese: executifHTML,
+    synthese: buildCompassReportSummaryHTML(payload.coachingCompass, 'executif', 'Synthèse — mêmes repères que le compass'),
     compass: compassHTML,
-    profilMetabolique: profilMetaboliqueHTML,
+    profilMetabolique: buildCompassReportSummaryHTML(payload.coachingCompass, 'profil-metabolique', 'Profil physiologique — compass'),
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     runMLSSCoherence: buildRunMLSSCoherenceHTML(payload),
-    indicateurs: indicateursHTML,
+    indicateurs: buildCompassReportSummaryHTML(payload.coachingCompass, 'indicateurs', 'Indicateurs et provenance'),
     pacingEnvelope: (() => {
+      if (payload.coachingCompass.presentation?.sport === 'run') return buildCompassReportSummaryHTML(payload.coachingCompass, 'pacing-envelope', 'Repères course — sans transfert des watts vélo');
       const goal = payload.athlete.goal || "";
       const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra");
       const hours = RACE_DURATION_HOURS_E[goal] ?? 0;
@@ -8471,11 +8471,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </section>`;
       return main + ld + (isAthlete ? "" : refs);
     })(),
-    potentielPhysiologiqueRunning: buildPotentielPhysiologiqueRunningHTML(payload),
+    potentielPhysiologiqueRunning: buildCompassReportSummaryHTML(payload.coachingCompass, 'potentiel-running', 'Repères course — cibles internes'),
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
-    ambitionTargets: ambitionTargetsHTML,
+    ambitionTargets: buildCompassReportSummaryHTML(payload.coachingCompass, 'ambition-targets', 'Cibles internes de l’ambition sélectionnée'),
     ambitionPredictions: ambitionPredictionsHTML,
     evolutionCharts: evolutionChartsHTML,
     ageAdjustment: aaiHTML,
@@ -8490,10 +8490,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     comprendre: comprendreHTML,
     qualite: qualiteHTML,
     roadmap: buildRoadmapHTML(payload),
-    lactateCurve: buildLactateCurveHTML(payload),
-    substrateCurve: buildSubstrateCurveHTML(payload),
-    performancePrediction: buildPerformancePredictionHTML(payload),
-    facteursLimitants: buildFacteursLimitantsHTML(payload),
+    lactateCurve: payload.coachingCompass.presentation?.sport === 'run' ? '<section id="lactate-curve" class="section"><h2>Courbe lactate course</h2><p>Données insuffisantes : le modèle vélo en watts ne définit pas une courbe lactate course.</p></section>' : buildLactateCurveHTML(payload),
+    substrateCurve: buildCompassReportSummaryHTML(payload.coachingCompass, 'substrate-curve', 'Oxydation lipidique — repères du modèle'),
+    performancePrediction: buildCompassReportSummaryHTML(payload.coachingCompass, 'performance-prediction', 'Repères de performance — cibles internes'),
+    facteursLimitants: buildCompassReportSummaryHTML(payload.coachingCompass, 'facteurs-limitants', 'Priorités et repères du diagnostic'),
     leviersAction: buildLeviersActionHTML(payload),
     cpWprimeWbal: buildCpWprimeWbalHTML(payload),
     lactateCorrespondence: buildLactateCorrespondenceHTML(payload),
@@ -8522,7 +8522,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       </head>
       <body>
         ${coverHTML}
-        ${buildExecutiveSummaryHTML(payload)}
+        ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture d’ensemble — compass')}
         
         <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <button onclick="${EMBEDDED_PRINT_ONCLICK}" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
@@ -10080,7 +10080,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     });
     try {
       const logoBase64 = await imageToBase64(logoUrl);
-      const html = buildBeginnerReportHTML(payload, logoBase64);
+      const html = buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString('fr-FR'), logoBase64 }));
       const fileName = `mon-rapport-simple-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
       openPrintableHTML(html, {
         filenameHint: fileName,
@@ -10118,7 +10118,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
     
     try {
       const logoBase64 = await imageToBase64(logoUrl);
-      const html = buildAthleteReportHTML(payload, logoBase64);
+      const html = buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString('fr-FR'), logoBase64 }));
       const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
 
       openPrintableHTML(html, {

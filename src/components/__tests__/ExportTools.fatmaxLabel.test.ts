@@ -3,7 +3,7 @@
  * TESTS — Label FatMax dans le PDF Export
  * 
  * Vérifie que la section FatMax du rapport PDF Staff affiche :
- *   - "% Allure Seuil" / "% Seuil" quand l'athlète est en Running Focus Mode
+ *   - aucune conversion des % FTP vélo en allure course
  *   - "% FTP" en mode cycling, triathlon ou objectif non-running
  * ═══════════════════════════════════════════════════════════════════════════════
  */
@@ -45,15 +45,15 @@ describe("buildFatMaxTFCLHTML — label de référence selon le sport", () => {
     const runningGoals = ["Marathon", "Semi", "10K", "5K", "Trail", "TrailUltra"];
 
     runningGoals.forEach((goal) => {
-      it(`affiche "Seuil" et JAMAIS "% FTP" pour l'objectif "${goal}"`, () => {
+      it(`ne convertit pas la FatMax vélo pour l'objectif "${goal}"`, () => {
         const html = buildFatMaxTFCLHTML(makePayload({ goal }));
         
         // Doit contenir le label running
-        expect(html).toContain("% Seuil");
+        expect(html).toContain("FatMax course non mesurée");
         
         // Ne doit JAMAIS contenir "% FTP" en mode running
         expect(html).not.toContain("% FTP");
-        expect(html).not.toContain("%FTP");
+        expect(html).not.toContain("65% Seuil");
       });
     });
   });
@@ -75,9 +75,9 @@ describe("buildFatMaxTFCLHTML — label de référence selon le sport", () => {
   });
 
   describe("Cohérence du libellé centre", () => {
-    it("affiche 'Centre : 65% Seuil' en mode Marathon", () => {
+    it("ne calcule pas un centre FatMax course depuis les pourcentages vélo", () => {
       const html = buildFatMaxTFCLHTML(makePayload({ goal: "Marathon" }));
-      expect(html).toContain("65% Seuil");
+      expect(html).not.toContain("65% Seuil");
     });
 
     it("affiche 'Centre : 65% FTP' en mode Ironman", () => {
@@ -87,10 +87,10 @@ describe("buildFatMaxTFCLHTML — label de référence selon le sport", () => {
   });
 
   describe("Tableau des ajustements", () => {
-    it("la ligne 'base' utilise '% Seuil' en mode running", () => {
+    it("aucune ligne d'ajustement vélo n'est convertie en seuil course", () => {
       const html = buildFatMaxTFCLHTML(makePayload({ goal: "Semi" }));
       // L'ajustement base affiche "65% Seuil" (valeur + unité)
-      expect(html).toContain("65% Seuil");
+      expect(html).not.toContain("65% Seuil");
     });
 
     it("la ligne 'base' utilise '% FTP' en mode vélo", () => {

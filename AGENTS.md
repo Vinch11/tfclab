@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Reports consume `coachingCompass/reportPresentation` for displayed values, targets, sources and sport references; never infer alternative report targets or relabel bike FatMax as running pace. Why: PDF and screen must present the same diagnostic projection without changing plan contracts.
+
 - Use `diagnosticMetricPresentation` to classify W′, TTE, durability and FatMax as unscored dashboard references without mutating diagnostic outputs. Why: a modeled threshold duration or lipid zone cannot certify long-event readiness.
 
 - Store Nolio running-power CP/W′ under `critical_metrics.runningPower`, never under running CS/D′ or cycling CP/W′; records remain estimates and cannot feed plan prescriptions. Why: sensor-derived running watts are not distances or interchangeable cycling watts.
