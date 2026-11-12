@@ -7,6 +7,7 @@
 import type { RaceReadinessResult } from "./computeRaceReadiness";
 import { buildReadinessRadarSVG } from "./buildReadinessRadarSVG";
 import { type PeerReference, peerVerdict } from "./peerReference";
+import { axisAssessment, metricSourceLabel } from "../coachingCompass/presentation";
 import { getReadinessVerdict } from "./readinessVerdict";
 
 interface BuildOpts {
@@ -71,17 +72,19 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   const verdictColor = (tone: string) =>
     tone === "above" ? "#7A56C2" : tone === "around" ? "#5C5966" : "#8A5A08";
 
-  const axisRows = result.axes.map(a => {
-    const interp = axisInterpretation[a.key] ?? "";
-    const v = peerRef ? peerVerdict(a.score, peerRef) : null;
+  const displayAxes = result.presentationAxes ?? result.axes;
+  const axisRows = displayAxes.map(a => {
+    const interp = a.key === "tte" ? "Temps tenu au seuil, distinct de la robustesse après plusieurs heures." : axisInterpretation[a.key] ?? "";
+    const v = peerRef && a.value != null && a.value > 0 ? peerVerdict(a.score, peerRef) : null;
     return `
     <tr>
       <td>
         <div style="font-weight:600;">${esc(a.label)}</div>
         ${interp ? `<div style="font-size:8.5pt; color:#6E6B78; margin-top:2pt; font-style:italic;">${esc(interp)}</div>` : ""}
+        <div>${esc(metricSourceLabel(a.source ?? "unknown"))}</div>
         ${v ? `<div style="font-size:8.5pt; margin-top:2pt; color:${verdictColor(v.tone)}; font-weight:600;">${v.tone === "above" ? "★ " : ""}${esc(v.label)} <span style="color:#97949F; font-weight:400;">vs ${esc(peerRef!.cohortLabel)} (${peerRef!.peerAvg})</span></div>` : ""}
       </td>
-      <td style="text-align:center; font-weight:700; color:${colorFor(a.status)};">${a.score}/100</td>
+      <td style="text-align:center; font-weight:700; color:${colorFor(a.status)};">${a.value != null && a.value > 0 ? `${a.score}/100` : "—"}</td>
       <td style="text-align:center;">${a.value != null ? `${a.value}${esc(a.unit)}` : "—"}</td>
       <td style="text-align:center; color:#666;">${a.target != null ? `${a.target}${esc(a.unit)}` : "—"}</td>
     </tr>`;
@@ -126,9 +129,9 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
 
   <div class="hero">
     <div class="verdict-emoji">${verdict.emoji}</div>
-    <div class="verdict-label">${esc(verdict.label)}</div>
-    <div class="verdict-tagline">${esc(verdict.tagline)}</div>
-    <div class="level-tag">${esc(result.levelLabel)}</div>
+    <div class="verdict-label">Alignement aux cibles internes</div>
+    <div class="verdict-tagline">À confirmer avec le coach — pas une probabilité de réussite.</div>
+    <div class="level-tag">Durabilité après effort prolongé non évaluée</div>
     <div class="countdown">J-${daysRemaining} avant la course</div>
   </div>
 
@@ -138,12 +141,12 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <h2>Cartographie de ta forme</h2>
   <div style="display:flex; gap:16pt; align-items:center; flex-wrap:wrap;">
     <div style="flex:1 1 320pt; min-width:280pt;">
-      ${buildReadinessRadarSVG({ axes: result.axes, size: 320, peerRef })}
+      ${buildReadinessRadarSVG({ axes: displayAxes, size: 320, peerRef: null })}
     </div>
     <div style="flex:1 1 220pt; font-size:10pt; color:#5C5966;">
-      <p style="margin:0 0 6pt;"><strong>Chaque axe = un pilier de ta performance.</strong></p>
+      <p style="margin:0 0 6pt;"><strong>Chaque axe = un repère interne, pas un classement des limiteurs.</strong></p>
       ${peerRef ? `<p style="margin:0 0 6pt;">Comparé à la cohorte <strong>${esc(peerRef.cohortLabel)}</strong> : ligne grise = moyenne (${peerRef.peerAvg}), ligne violette = seuil <strong>« au-dessus de la moyenne »</strong> (${peerRef.peerAbove}+ ★). Ligne verte à 100 = cible d'ambition.</p>` : ""}
-      <p style="margin:0; color:#6E6B78;">Les axes les plus internes ne sont pas des faiblesses : ce sont tes <strong>leviers de progression</strong>, les zones où chaque effort produira le plus de gain.</p>
+      <p style="margin:0; color:#6E6B78;">Une donnée absente n’est pas une faiblesse démontrée. TTE et robustesse prolongée ne sont pas interchangeables.</p>
     </div>
   </div>
 
@@ -153,15 +156,15 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     <tbody>${axisRows}</tbody>
   </table>
 
-  ${result.strengths.length ? `
-  <h2>Tes points forts à exploiter le jour J</h2>
+  ${result.strengths.filter(a => a.value != null && a.value > 0).length ? `
+  <h2>Cibles internes proches ou atteintes — à confirmer</h2>
   <p style="font-size:10pt; color:#5C5966; margin:4pt 0;">Ce sont les leviers sur lesquels t'appuyer pour construire ta course.</p>
-  <div class="strengths">${result.strengths.map(s => `<span class="chip strong">${esc(s.label)} (${s.score}/100)</span>`).join("")}</div>` : ""}
+  <div class="strengths">${result.strengths.filter(a => a.value != null && a.value > 0).map(s => `<span class="chip strong">${esc(s.label)} (${s.score}/100)</span>`).join("")}</div>` : ""}
 
-  ${result.gaps.length ? `
+  ${result.gaps.filter(a => a.value != null && a.value > 0).length ? `
   <h2>Leviers de progression identifiés</h2>
-  <p style="font-size:10pt; color:#5C5966; margin:4pt 0;">Pas des faiblesses — des marges de gain. Garde-les en tête, mais ne laisse pas ces axes te freiner mentalement : ta préparation reste solide sur l'ensemble.</p>
-  <div class="gaps">${result.gaps.map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
+  <p style="font-size:10pt; color:#5C5966; margin:4pt 0;">Écarts aux cibles internes, à interpréter selon la provenance. Le diagnostic et les choix du coach déterminent les priorités du plan.</p>
+  <div class="gaps">${result.gaps.filter(a => a.value != null && a.value > 0).map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
 
   <h2>Le jour J — pacing &amp; gestion mentale</h2>

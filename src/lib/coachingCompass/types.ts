@@ -111,6 +111,16 @@ export interface TFCLReadinessState {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface TFCLCoachingCompassResult {
+  /** Read-only presentation, separate from the legacy calculated contracts. */
+  presentation?: {
+    axes: RadarAxis[];
+    priorityMetrics: string[];
+    wprimeReview: boolean;
+    tteBike: CoachingCompassInput["tteEffectif"] | null;
+    tteRun: CoachingCompassInput["tteEffectif"] | null;
+    decouplingRun: number | null;
+    economy: RadarAxis;
+  };
   // Les 4 niveaux
   profile: TFCLPhysiologicalProfile;
   limiter: TFCLLimiter;
@@ -142,6 +152,8 @@ export interface TFCLCoachingCompassResult {
 }
 
 export interface RadarAxis {
+  /** Presentation provenance only; never a prescription input. */
+  source?: string;
   key: string;
   label: string;
   shortLabel: string;
@@ -195,6 +207,7 @@ export interface CoachingCompassInput {
     limiterEmoji?: string;
     limiterExplanation?: string;
     gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number; prescriptionApplicable?: boolean }>;
+    categoryRanking?: Array<{ category: string; metrics: Array<{ metric: string; weightedImpact: number; prescriptionApplicable?: boolean }> }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;
   } | null;
@@ -243,6 +256,7 @@ export interface CoachingCompassInput {
   ambition: string;
   sportFocus: "bike" | "run" | "triathlon" | null;
   athleteAge: number | null;
+  athleteId?: string;
 
   /**
    * Temps de course cible prédit (src/lib/raceTimePredictor.ts — Riegel sur

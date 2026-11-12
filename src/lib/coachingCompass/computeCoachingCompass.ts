@@ -44,6 +44,7 @@ import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor, getFatmaxTar
 import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { calibrateVO2maxFromFTP } from "@/lib/v2/metabolicSimulator";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
+import { buildCompassPresentation } from "./presentation";
 
 export const COACHING_COMPASS_VERSION = "1.0.0";
 
@@ -77,7 +78,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
   // 7. Fatigue warning
   const fatigueWarning = buildFatigueWarning(input);
 
-  return {
+  const result: TFCLCoachingCompassResult = {
     profile,
     limiter,
     leverage,
@@ -93,6 +94,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
       dataCompleteness: profile.dataCompleteness,
     },
   };
+  return { ...result, presentation: buildCompassPresentation(input, result) };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

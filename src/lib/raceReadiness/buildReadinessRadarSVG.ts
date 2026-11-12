@@ -87,12 +87,13 @@ export function buildReadinessRadarSVG({ axes, size = 320, peerRef = null }: Opt
     const y = padTop + i * rowH;
     const barY = y + 10;
     const barH = 14;
-    const w = Math.max(2, (trackW * score) / 100);
+    const hasValue = a.value != null && a.value > 0;
+    const w = hasValue ? Math.max(2, (trackW * score) / 100) : 0;
     const c = barColor(score);
-    const tag = barLabel(score, peerRef);
+    const tag = !hasValue ? "Données insuffisantes" : a.source !== "test_labo" && a.source !== "observed" ? "À confirmer" : score >= 100 ? "Cible atteinte" : "À développer";
 
     // pastille "au-dessus" si dépassement du seuil peerAbove
-    const aboveBadge = peerRef && score >= peerRef.peerAbove
+    const aboveBadge = hasValue && peerRef && score >= peerRef.peerAbove
       ? `<text x="${trackX + w - 4}" y="${barY + barH - 3}" text-anchor="end" font-size="8" font-weight="700" fill="#fff">★</text>`
       : "";
 
@@ -101,7 +102,7 @@ export function buildReadinessRadarSVG({ axes, size = 320, peerRef = null }: Opt
       <rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="7" ry="7" fill="#F2F0E9"/>
       <rect x="${trackX}" y="${barY}" width="${w.toFixed(1)}" height="${barH}" rx="7" ry="7" fill="${c}"/>
       ${aboveBadge}
-      <text x="${trackX + trackW + 6}" y="${barY + barH - 3}" font-size="11" font-weight="700" fill="${c}">${score}</text>
+      <text x="${trackX + trackW + 6}" y="${barY + barH - 3}" font-size="11" font-weight="700" fill="${c}">${hasValue ? score : "—"}</text>
       <text x="${labelW}" y="${y + 30}" text-anchor="end" font-size="8" fill="#6E6B78">${tag}</text>
     `;
   }).join("");

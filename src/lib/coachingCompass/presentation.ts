@@ -1,0 +1,51 @@
+import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
+
+// Read-only view: never write these values back into diagnosis or plan contracts.
+export function metricSourceLabel(source: string): string {
+  if (source === "test_labo") return "🧪 Labo";
+  if (source === "observed") return "🏃 Test terrain déclaré";
+  if (source === "test_terrain" || source === "test") return "🏃 Terrain — à confirmer";
+  if (source === "snapshot") return "📋 Bilan — provenance à confirmer";
+  if (source === "records") return "📐 Estimation par records";
+  if (source === "unknown") return "Données insuffisantes";
+  return "📐 Estimation";
+}
+
+export function axisAssessment(axis: RadarAxis): string {
+  if (axis.value == null || !Number.isFinite(axis.value) || axis.value <= 0) return "Données insuffisantes";
+  if (axis.source !== "test_labo" && axis.source !== "observed") return "À confirmer";
+  return axis.score >= 100 ? "Cible interne atteinte" : "À développer";
+}
+
+export function buildCompassPresentation(input: CoachingCompassInput, compass: TFCLCoachingCompassResult) {
+  const metricKeys: Record<string, keyof TFCLCoachingCompassResult["profile"]> = {
+    vo2max: "vo2max", vlamax: "vlamax", ftpkg: "ftpKg", vma: "vma", fatmax: "fatmax", wprime: "wPrime",
+  };
+  const axes = compass.radarAxes.map(axis => {
+    if (axis.key === "durability") {
+      const isTri = input.sportFocus === "triathlon";
+      const tte = isTri && input.tteEffectifRun && input.tteEffectifRun.tte_min > 0 &&
+        input.tteEffectifRun.tte_min < input.tteEffectif.tte_min ? input.tteEffectifRun : input.tteEffectif;
+      return { ...axis, key: "tte", label: "Endurance au seuil (indice TTE)", shortLabel: "TTE", value: tte.tte_min > 0 ? tte.tte_min : null,
+        // Same internal benchmark as the historical axis, expressed in minutes.
+        target: axis.value && axis.target && tte.tte_min > 0 ? Math.round(tte.tte_min / axis.value * axis.target) : null,
+        unit: "min", source: tte.source };
+    }
+    const key = metricKeys[axis.key];
+    const metric = key ? compass.profile[key] : null;
+    const source = metric && typeof metric === "object" ? metric.source : "unknown";
+    return { ...axis, source: axis.key === "vo2max" && !input.vo2max ? "estimation" : source };
+  });
+  // Preserve the engine's ranked categories and their original metric order.
+  const ranked = input.limiterResult?.categoryRanking?.flatMap(c => c.metrics) ?? input.limiterResult?.gapAnalysis ?? [];
+  const priorityMetrics = ranked.filter(g => g.weightedImpact > 0 && g.prescriptionApplicable !== false).map(g => g.metric);
+  return {
+    axes,
+    priorityMetrics,
+    wprimeReview: priorityMetrics.some(m => /^W['′]/i.test(m)),
+    tteBike: input.sportFocus !== "run" ? input.tteEffectif : null,
+    tteRun: input.sportFocus === "run" ? input.tteEffectif : input.tteEffectifRun ?? null,
+    decouplingRun: input.hrDriftPct,
+    economy: { ...compass.economyModifier, source: compass.profile.runningEconomy.source },
+  };
+}

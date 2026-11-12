@@ -981,6 +981,10 @@ const Index = () => {
       } : null,
       limiterResult: unifiedLimiterResult ? {
         primaryLimiter: unifiedLimiterResult.primaryLimiter,
+        categoryRanking: unifiedLimiterResult.categoryRanking,
+        limiterLabel: unifiedLimiterResult.limiterLabel,
+        limiterExplanation: unifiedLimiterResult.limiterExplanation,
+        limiterEmoji: unifiedLimiterResult.limiterEmoji,
         gapAnalysis: unifiedLimiterResult.gapAnalysis,
         confidence: unifiedLimiterResult.confidence,
         fatigueWarning: (unifiedLimiterResult as any).fatigueWarning ?? null,
@@ -1015,6 +1019,7 @@ const Index = () => {
         ? "run"
         : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      athleteId: currentAthlete.id,
       targetRacePrediction,
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);

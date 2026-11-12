@@ -325,7 +325,7 @@ export function RaceReadinessReportDialog({
           <div className="space-y-5">
             {/* Hero verdict (qualitatif, plus pédagogique qu'un % brut) */}
             {(() => {
-              const verdict = getReadinessVerdict(readiness.scorePct);
+              const verdict = { emoji: "🧭", label: "Alignement aux cibles internes", tagline: "À confirmer avec le coach — pas une probabilité de réussite. Durabilité prolongée non évaluée." };
               return (
                 <Card className={cn("border-0 bg-gradient-to-br shadow-lg", levelStyles(readiness.level))}>
                   <CardContent className="pt-6 pb-5 text-center">
@@ -392,7 +392,7 @@ export function RaceReadinessReportDialog({
                 <div
                   className="w-full max-w-md mx-auto"
                   dangerouslySetInnerHTML={{
-                    __html: buildReadinessRadarSVG({ axes: readiness.axes, size: 300, peerRef }),
+                    __html: buildReadinessRadarSVG({ axes: readiness.presentationAxes ?? readiness.axes, size: 300, peerRef: null }),
                   }}
                 />
               </CardContent>
@@ -402,8 +402,8 @@ export function RaceReadinessReportDialog({
             <div>
               <h3 className="text-sm font-semibold mb-2">Détail par axe physiologique</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {readiness.axes.map(a => {
-                  const v = peerVerdict(a.score, peerRef);
+                {(readiness.presentationAxes ?? readiness.axes).map(a => {
+                  const v = { tone: "around", label: a.value != null && a.value > 0 ? "À confirmer" : "Données insuffisantes" };
                   return (
                   <div key={a.key} className="p-2.5 rounded-md border bg-card text-xs">
                     <div className="flex items-center justify-between">
@@ -418,7 +418,7 @@ export function RaceReadinessReportDialog({
                           v.tone === "around" && "text-slate-600",
                           v.tone === "below" && "text-amber-700",
                         )}>
-                          {v.tone === "above" && "★ "}{v.label} <span className="text-muted-foreground font-normal">vs {peerRef.cohortLabel} ({peerRef.peerAvg})</span>
+                          {v.tone === "above" && "★ "}{v.label} <span className="text-muted-foreground font-normal"></span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
@@ -436,7 +436,7 @@ export function RaceReadinessReportDialog({
                             a.status === "gap" && "border-sky-600 text-sky-800",
                           )}
                         >
-                          {a.score}
+                          {a.value != null && a.value > 0 ? a.score : "—"}
                         </Badge>
                       </div>
                     </div>

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
+import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
@@ -37,19 +39,19 @@ const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
   },
   vlamax: {
     short: "VLamax (Glycolyse)",
-    detail: "Vitesse de production de lactate. Un score élevé signifie une VLamax basse et bien maîtrisée — tu brûles plus de graisses et moins de glycogène.",
+    detail: "Profil glycolytique, à interpréter selon sa provenance et les exigences de l’épreuve.",
   },
   fatmax: {
     short: "FatMax (Oxydation des graisses)",
-    detail: "Intensité à laquelle tu brûles le plus de graisses. Plus ce score est haut, mieux tu épargnes tes réserves de glycogène en course.",
+    detail: "Intensité estimée ou mesurée d’oxydation lipidique maximale. Ce repère seul ne mesure ni l’endurance longue ni la quantité de graisses oxydées.",
   },
-  durability: {
-    short: "Robustesse (Durabilité)",
-    detail: "Résistance à la dégradation de la performance dans le temps. Combine TTE, dérive cardiaque et stabilité de la puissance/allure.",
+  tte: {
+    short: "Endurance au seuil — TTE",
+    detail: "Temps tenu au seuil : une estimation ou une durée minimale ne constitue pas un test jusqu’à épuisement. Ce repère ne mesure pas la robustesse après plusieurs heures.",
   },
   wprime: {
     short: "W′ (Capacité Anaérobie)",
-    detail: "Réserve d'énergie mobilisable au-dessus de la puissance critique (sprints, relances, côtes). La cible dépend de ton objectif : élevée pour un format court (Sprint), plus basse pour un format long (IM, Marathon).",
+    detail: "Travail disponible au-dessus de la puissance critique dans les limites du modèle. Information pour les efforts intenses ; ce n’est pas une mesure de force ou de robustesse Ironman.",
   },
   economy: {
     short: "Économie de mouvement",
@@ -233,7 +235,7 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
               fontSize={12}
               fontWeight={800}
             >
-              {axis.score}/100
+              {axis.value != null && axis.value > 0 ? `${axis.score}/100` : "—"}
             </text>
           </g>
         );
@@ -410,52 +412,17 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const profile = compass.profile;
   const isRunning = sportFocus === "run";
 
-  // Compute targets from ambition/objectif
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
-  const targets = getTargetsForAmbition(objectif, ambition);
-  const sportForTargets =
-    input.sportFocus === "run" ? "cap" :
-    input.sportFocus === "bike" ? "bike" :
-    input.sportFocus === "triathlon" ? "tri" :
-    undefined;
-  const vlamaxRange = getVLamaxRange(objectif, ambition, sportForTargets);
-  const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
-  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cette
-  // grille avait sa propre table VO2max (sans ajustement par âge) et sa
-  // propre table TTE (indexée par ambition, ignorant l'objectif) —
-  // divergentes du radar principal juste au-dessus, qui utilise
-  // getVo2maxTarget (age-adjusted) et le diviseur objectif-dépendant de
-  // deriveDurabilityFromTTE. Pour un même athlète, le radar pouvait dire
-  // "cible atteinte" pendant que cette grille disait "X points manquants"
-  // sur la même carte. Les deux utilisent désormais la même source.
-  const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge ?? null);
-  // Même correctif que vo2Target ci-dessus, étendu à FTP/kg (manquant lors du
-  // fix initial) : evaluateFtpKg (ambitionThresholds.ts, utilisée par
-  // SyntheseExecutiveCard) ajuste déjà ftp_kg_min par l'âge — cette grille ne
-  // le faisait pas, donc les deux cartes pouvaient afficher une cible FTP/kg
-  // différente pour un même athlète masters.
-  const ftpKgTarget = targets.ftp_kg_min != null
-    ? Math.round(targets.ftp_kg_min * getPerformanceAgeFactor(input.athleteAge ?? null) * 100) / 100
-    : targets.ftp_kg_min;
-  const durabilityTargets: Record<string, number> = { finisher: 60, age_group: 70, competitor: 80, elite: 90 };
-  const economyTargets: Record<string, number> = { finisher: 55, age_group: 65, competitor: 75, elite: 85 };
-  const fatmaxTargets: Record<string, number> = { finisher: 120, age_group: 160, competitor: 200, elite: 240 };
-  const wprimeTargets: Record<string, number> = { finisher: 15, age_group: 20, competitor: 25, elite: 30 };
-
+  const vlamaxRange = getVLamaxRange(objectif, ambition, isRunning ? "cap" : "bike");
+  const displayAxes = compass.presentation?.axes ?? compass.radarAxes;
+  const targetFor = (key: string) => displayAxes.find(a => a.key === key)?.target ?? null;
   const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
-    "VO₂max": { target: vo2Target },
-    "VLamax": { target: vlamaxRange.optimal, inverse: true },
-    "FTP": { target: input.poids && ftpKgTarget ? Math.round(ftpKgTarget * input.poids) : null },
-    "FTP/kg": { target: ftpKgTarget },
-    "VMA": { target: vmaTarget },
-    "TTE": { target: getDurabilityTargetMinutes(objectif) },
-    "FatMax": { target: fatmaxTargets[ambition] || 160 },
-    "LT1": { target: null },
-    "LT2": { target: null },
-    "W'": { target: wprimeTargets[ambition] || 20 },
-    "Éco.": { target: economyTargets[ambition] || 65 },
-    "Durabilité": { target: durabilityTargets[ambition] || 70 },
+    "VO₂max": { target: targetFor("vo2max") }, "VLamax": { target: targetFor("vlamax"), inverse: true },
+    "FTP": { target: input.poids && targetFor("ftpkg") ? Math.round((targetFor("ftpkg") ?? 0) * input.poids) : null },
+    "FTP/kg": { target: targetFor("ftpkg") }, "VMA": { target: targetFor("vma") },
+    "TTE": { target: targetFor("tte") }, "FatMax": { target: targetFor("fatmax") },
+    "W'": { target: targetFor("wprime") }, "Éco.": { target: compass.economyModifier.target },
   };
 
   // Running mode: convert LT1/LT2 from watts to % VMA
@@ -498,20 +465,19 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
     ] : []),
     { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" }, secondaryInfo: null as string | null },
     { key: "TTE", m: profile.tte, secondaryInfo: null as string | null },
-    { key: "FatMax", m: isRunning ? { ...profile.fatmax, unit: profile.fatmax.value ? "W (estimé)" : "W" } : profile.fatmax, secondaryInfo: null as string | null },
+    { key: "FatMax", m: profile.fatmax, secondaryInfo: null as string | null },
     { key: "LT1", m: lt1Running, secondaryInfo: isRunning && profile.lt1.value ? `(${Math.round(profile.lt1.value)} W)` : null },
     { key: "LT2", m: lt2Running, secondaryInfo: isRunning && profile.lt2.value ? `(${Math.round(profile.lt2.value)} W)` : null },
     ...(!isRunning ? [{ key: "W'", m: profile.wPrime, secondaryInfo: null as string | null }] : []),
     { key: "Éco.", m: profile.runningEconomy, secondaryInfo: null as string | null },
-    { key: "Durabilité", m: profile.durability, secondaryInfo: null as string | null },
+
   ].filter(r => r.m?.value !== null);
 
   if (metrics.length === 0) return null;
 
   const confidenceLabel = (c: number) =>
     c >= 0.8 ? "Fiable" : c >= 0.5 ? "Modérée" : "Faible";
-  const sourceLabel = (s: string) =>
-    s === "snapshot" ? "📋 Mesuré" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
+  const sourceLabel = metricSourceLabel;
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
@@ -519,7 +485,8 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   return (
     <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
-      <button
+      <Button
+        variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors"
       >
@@ -530,7 +497,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
           "h-3.5 w-3.5 text-muted-foreground/60 transition-transform",
           isOpen && "rotate-180"
         )} />
-      </button>
+      </Button>
       {isOpen && (
         <div className="px-3 pb-3 space-y-1.5">
           {metrics.map(({ key, m, secondaryInfo }) => {
@@ -636,6 +603,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
+  const coachPolicy = useMemo(() => input.athleteId
+    ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null,
+    [input.athleteId, input.objectif]);
 
   // ─── Données insuffisantes ───
   if (compass.meta.dataCompleteness < 10) {
@@ -661,6 +631,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   }
 
   const { limiter, leverage, decision } = compass;
+  const presentation = compass.presentation;
+  const displayAxes = presentation?.axes ?? compass.radarAxes;
   const _ambition = (input.ambition || "age_group") as AmbitionLevel;
   const _objectif = input.objectif || "IM";
   const _sportForTargets =
@@ -722,7 +694,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             </div>
             <Badge variant="outline" className="text-[9px] shrink-0">
               {input.targetRacePrediction.confidence >= 0.7 ? "Fiabilité élevée" : input.targetRacePrediction.confidence >= 0.5 ? "Fiabilité modérée" : "Fiabilité limitée"}
-              {" · "}{Math.round(input.targetRacePrediction.confidence * 100)}%
+
             </Badge>
           </div>
         )}
@@ -738,10 +710,10 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 Niveau 1 — Profil physiologique
               </span>
               <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
-                Le radar visualise tes 6 piliers physiologiques (VO₂max, VLamax, Aérobie, Durabilité, FatMax, W′). Plus ta surface est grande, plus tu es prêt. L'<strong>économie</strong> est affichée à part comme modulateur secondaire d'efficience.
+                Repères par rapport aux cibles internes — pas une probabilité de réussite en course. Les priorités du diagnostic sont présentées séparément.
               </p>
               <div className="mt-1">
-                <SignatureRadar axes={compass.radarAxes} size={320} />
+                <SignatureRadar axes={displayAxes} size={320} />
               </div>
               
               {/* Completeness bar */}
@@ -760,24 +732,39 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               {/* Légende couleurs */}
               <div className="flex items-center gap-4 mt-2 px-2">
                 <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Optimal
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Proche de la cible
                 </span>
                 <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50-74 Correct
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50–74 Écart à la cible
                 </span>
                 <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 À travailler
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 Écart important
                 </span>
               </div>
 
+              <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
+                <h3 className="text-sm font-semibold">Priorités du diagnostic</h3>
+                <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{presentation?.priorityMetrics.join(" → ") || "Aucune priorité étayée disponible"}</p>
+                {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
+                {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
+                {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
+              </div>
+              <h3 className="mt-4 text-sm font-semibold">Informations complémentaires</h3>
+              {presentation && <div className="mt-2 border-b border-border pb-3 text-xs space-y-1" data-testid="compass-durability">
+                <p className="font-medium">Robustesse à l’effort prolongé : durabilité non évaluée</p>
+                {presentation.decouplingRun != null && <p className="text-muted-foreground">Découplage course : {presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>}
+                {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {metricSourceLabel(presentation.tteBike.source)}</p>}
+                {presentation.tteRun && <p>TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : "Données insuffisantes"} · {metricSourceLabel(presentation.tteRun.source)}</p>}
+              </div>}
               {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
-                {compass.radarAxes.map((axis) => {
+                {displayAxes.map((axis) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
                   const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-                  const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
+                  const statusLabel = axisAssessment(axis);
 
-                  const hasValues = axis.value != null && axis.target != null;
+                  const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
                   const isInverse = axis.key === "vlamax"; // lower is better
                   const delta = hasValues ? (axis.value as number) - (axis.target as number) : null;
                   const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
@@ -787,21 +774,23 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   return (
                     <div key={axis.key} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
+                      statusLabel === "Données insuffisantes" ? "bg-muted/20 border-border" :
                       axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
                       axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
                       "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
                     )}>
                       <span className="text-base mt-0.5">{emoji}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-bold">{explanation.short}</p>
                           <Badge variant="outline" className={cn(
                             "text-[9px] h-4 px-1.5",
+                            statusLabel === "Données insuffisantes" ? "border-border text-muted-foreground" :
                             axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
                             axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
                             "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
                           )}>
-                            {axis.score}/100 — {statusLabel}
+                            {statusLabel}
                           </Badge>
                         </div>
 
@@ -815,7 +804,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                             </div>
                             <span className="text-muted-foreground/40 text-[10px]">→</span>
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
-                              <span className="text-muted-foreground">Cible</span>
+                              <span className="text-muted-foreground">Cible interne</span>
                               <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
                               <span className="text-muted-foreground/60">{axis.unit}</span>
                               {axis.key === "vlamax" && vlamaxRange && (
@@ -824,7 +813,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                                 </span>
                               )}
                             </div>
-                            {delta !== null && (
+                            {delta !== null && displayDelta !== null && axis.value !== null && (
                               <Badge
                                 variant="outline"
                                 className={cn(
@@ -834,12 +823,13 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                                     : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
                                 )}
                               >
-                                {remainsToWork ? `Δ ${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} à combler` : `✓ +${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} d'avance`}
+                                {remainsToWork ? `Δ ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} à combler` : "Cible interne atteinte"}
                               </Badge>
                             )}
                           </div>
                         )}
 
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{metricSourceLabel(axis.source ?? "unknown")}</p>
                         <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
                       </div>
                     </div>
@@ -850,7 +840,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               {/* MODULATEUR ÉCONOMIE — facteur secondaire d'efficience */}
               {compass.economyModifier && (() => {
                 const eco = compass.economyModifier;
-                const ecoStatus = eco.score >= 75 ? "Bonus" : eco.score >= 50 ? "Neutre" : "Pénalité";
+                const ecoStatus = axisAssessment(presentation?.economy ?? eco);
                 const ecoColor = eco.score >= 75 ? "success" : eco.score >= 50 ? "warning" : "destructive";
                 return (
                   <div className="mt-3 px-1">
@@ -871,7 +861,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                             "text-[9px] h-4 px-1.5",
                             `border-[hsl(var(--${ecoColor})/0.4)] text-[hsl(var(--${ecoColor}))]`
                           )}>
-                            {eco.score}/100 — {ecoStatus}
+                            {ecoStatus}
                           </Badge>
                         </div>
                         <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">

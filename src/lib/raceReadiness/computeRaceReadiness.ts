@@ -9,6 +9,7 @@
 import type { TFCLCoachingCompassResult, RadarAxis } from "@/lib/coachingCompass/types";
 
 export interface AxisAlignment {
+  source?: string;
   key: string;
   label: string;
   score: number;          // 0-100 (issu du compass)
@@ -19,6 +20,8 @@ export interface AxisAlignment {
 }
 
 export interface RaceReadinessResult {
+  /** Display-only projection; legacy score and prescription are unchanged. */
+  presentationAxes?: AxisAlignment[];
   scorePct: number;             // 0-100
   level: "low" | "moderate" | "good" | "excellent";
   levelLabel: string;
@@ -44,6 +47,7 @@ function axisToAlignment(a: RadarAxis): AxisAlignment {
     value: a.value,
     target: a.target,
     unit: a.unit,
+    source: a.source,
     status: statusFromScore(a.score),
   };
 }
@@ -86,6 +90,7 @@ export function computeRaceReadiness(compass: TFCLCoachingCompassResult | null):
     : null;
 
   return {
+    presentationAxes: compass.presentation?.axes.map(axisToAlignment),
     scorePct,
     level,
     levelLabel,

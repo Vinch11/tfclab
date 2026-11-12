@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Compass presentation is a read-only projection of diagnostic outputs; TTE labels, provenance and missing-data states must never mutate limiter rankings or IA/DET contracts. Why: clearer displays must not silently change future plans.
+
 - Export AI plan cycles through Nolio v2 as one non-overlapping banner per existing phase, with parallel ranked workstreams in its text; resolve the stored athlete link server-side, preview before confirmation, preserve foreign/edited cycles and verify created cycles by readback. Why: calendar phases must not duplicate sessions, overwrite coach work or target a guessed athlete.
 
 - Preserve VO2max and VMA as distinct ranked coach priorities in plan coverage, explicitly sharing their aerobic stimulus without duplicating session totals; latest page order overrides a restored coach payload. Why: family deduplication and stale policies hid the coach's L2.

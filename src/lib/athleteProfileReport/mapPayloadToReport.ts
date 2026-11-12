@@ -162,7 +162,7 @@ export function mapExportPayloadToProfileReport(
           : undefined,
       ),
       meaning:
-        "Le temps que tu peux tenir à ton seuil. C'est ta durabilité : deux athlètes avec le même seuil ne tiennent pas le même temps.",
+        "Temps tenu au seuil, mesuré ou estimé selon la source. Distinct de la robustesse après plusieurs heures d'effort.",
       source: payload.tte?.source ?? null,
       confidence: payload.tte?.confidence ?? null,
     },
@@ -189,13 +189,13 @@ export function mapExportPayloadToProfileReport(
     {
       key: "fatmax",
       label: "FatMax — intensité de meilleure combustion des graisses",
-      value: payload.fatmaxTFCL?.fatmaxPctFTP ?? compass?.profile?.fatmax?.value ?? null,
+      value: compass?.profile?.fatmax?.value ?? payload.fatmaxTFCL?.fatmaxPctFTP ?? null,
       unit: "% FTP",
       decimals: 0,
       scale: [40, 90],
       target: [60, 78],
       status: statusFromRange(
-        payload.fatmaxTFCL?.fatmaxPctFTP ?? compass?.profile?.fatmax?.value ?? null,
+        compass?.profile?.fatmax?.value ?? payload.fatmaxTFCL?.fatmaxPctFTP ?? null,
         [60, 78],
       ),
       meaning:
@@ -391,7 +391,8 @@ export function mapExportPayloadToProfileReport(
     },
     profileNarrative: narrative || "Profil en cours de constitution : réalise les tests recommandés pour l'affiner.",
     metrics,
-    radar: (compass?.radarAxes ?? []).map((a: any) => ({
+    radar: (compass?.presentation?.axes ?? compass?.radarAxes ?? []).map((a: any) => ({
+      source: a.source,
       label: a.label,
       shortLabel: a.shortLabel,
       score: a.score,

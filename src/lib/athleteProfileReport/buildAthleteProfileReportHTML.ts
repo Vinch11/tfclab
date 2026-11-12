@@ -124,7 +124,7 @@ function radarSVG(axes: ReportRadarAxis[]): string {
       const anchor = Math.abs(x - cx) < 12 ? "middle" : x > cx ? "start" : "end";
       return `
         <text x="${x.toFixed(1)}" y="${(y - 2).toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="${RK.ink}">${esc(a.shortLabel)}</text>
-        <text x="${x.toFixed(1)}" y="${(y + 11).toFixed(1)}" text-anchor="${anchor}" font-size="10" fill="${RK.muted}">${Math.round(a.score)}/100</text>`;
+        <text x="${x.toFixed(1)}" y="${(y + 11).toFixed(1)}" text-anchor="${anchor}" font-size="10" fill="${RK.muted}">${a.value != null && a.value > 0 ? `${Math.round(a.score)}/100` : "—"}</text>`;
     })
     .join("");
 
@@ -383,7 +383,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       <div class="grid2" style="grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:center">
         <div>
           ${radarSVG(d.radar)}
-          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Chaque axe est noté sur 100 par rapport aux exigences de ton objectif.</div>
+          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Repères des cibles internes, pas une probabilité de réussite. Le TTE ne mesure pas la robustesse après effort prolongé. Durabilité non évaluée.</div>
         </div>
         <div>
           <div style="font-size:11.8px;line-height:1.65;color:${RK.inkSoft}">${rich(d.profileNarrative)}</div>

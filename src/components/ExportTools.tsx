@@ -82,6 +82,7 @@ import { useAthleteRaceRecords } from "@/hooks/useAthleteRaceRecords";
 import { useAthleteRaceGoals, type RaceGoal } from "@/hooks/useAthleteRaceGoals";
 import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassification";
 // ✅ NEW: Coaching Compass (5 axes)
+import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -2118,6 +2119,11 @@ function buildExportPayload(
         fatmax: null,
         vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
         tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
+        tteEffectifRun: computeTTEEffectif({
+          objectif: athlete.goal || "IM", sport: "run", age: athleteAge,
+          tte_observed_min_run: effectiveSnapshot?.tte_observed_min_run ?? null,
+          tss_7d: effectiveSnapshot?.tss_7d ?? null,
+        }),
         fatigueEffectif: null,
         limiterResult: unifiedLimiter as any,
         potentielPhysiologique: {
@@ -2130,7 +2136,7 @@ function buildExportPayload(
         },
         strategyResult: lorangResult,
         lactateThresholds: null,
-        wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
+        wprimeKj: cpResultForPayload && !cpResultForPayload.cpBounded ? cpResultForPayload.wprimeKJ : null,
         objectif: athlete.goal || "IM",
         ambition: ambition,
         sportFocus: resolveCompassSportFocus(effectiveSnapshot, athlete, "bike"),
@@ -4866,7 +4872,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   
   // ✅ Coaching Compass 5 axes (source unique de vérité)
   const cc = payload.coachingCompass;
-  const axes = cc.radarAxes;
+  const axes = cc.presentation?.axes ?? cc.radarAxes;
   const nAxes = axes.length;
   
   // Construire le SVG pentagonal (5 axes)
@@ -4902,7 +4908,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     return `
       <circle cx="${px}" cy="${py}" r="6" fill="#5555E0" stroke="#fff" stroke-width="2"/>
       <text x="${lx}" y="${ly - 5}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#3C3CB8">${a.icon} ${a.shortLabel}</text>
-      <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#5555E0">${a.score}/100</text>
+      <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#5555E0">${a.value != null && a.value > 0 ? `${a.score}/100` : "—"}</text>
     `;
   }).join("\n");
 
@@ -4912,12 +4918,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   
   // ✅ Économie = modulateur secondaire (badge séparé)
   const ecoMod = cc.economyModifier;
-  const ecoStatus = ecoMod && ecoMod.score >= 75 ? "Bonus" : ecoMod && ecoMod.score >= 50 ? "Neutre" : "Pénalité";
+  const ecoStatus = ecoMod ? axisAssessment(cc.presentation?.economy ?? ecoMod) : "Données insuffisantes";
   const ecoBadgeClass = ecoMod && ecoMod.score >= 75 ? "badgeSuccess" : ecoMod && ecoMod.score >= 50 ? "badgeWarning" : "badgeError";
 
   const compassHTML = `
     <section id="compass" class="section pagebreak">
-      <h2>3. TFCL Coaching Compass™ — 4 Piliers + Modulateur Économie</h2>
+      <h2>3. TFCL Coaching Compass™ — Priorités et repères</h2>
       
       <!-- CRR -->
       <div class="card mb" style="border-left: 4px solid ${crrCardColor};">
@@ -4937,7 +4943,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="card cardHighlight">
         <div style="text-align:center;margin-bottom:16px;">
           <div style="font-size:16px;font-weight:700;">TFCL Coaching Compass™</div>
-          <div class="muted">4 Piliers (VO₂max · VLamax · Aérobie · Durabilité) — Économie en modulateur secondaire</div>
+          <div class="muted">Cibles internes — pas une probabilité de réussite. TTE et durabilité distincts.</div>
         </div>
         
         <div style="display:flex;justify-content:center;margin:20px 0;">
@@ -4952,7 +4958,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         
         <div style="text-align:center;margin-top:16px;">
           <span class="badge ${globalBadgeClass2}" style="font-size:16px;padding:10px 20px;">
-            Score Global (4 piliers) : ${globalScore}/100
+            Repères internes — interprétation à confirmer
           </span>
           <div class="muted mt" style="font-size:11px;">Complétude: ${cc.meta.dataCompleteness}%</div>
         </div>
@@ -4972,7 +4978,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       
       <!-- 4 PILIERS DÉTAILLÉS -->
       <div class="card mt">
-        <h3>📐 Détail des 4 Piliers</h3>
+        <h3>Priorités du diagnostic</h3>
+        <p>${htmlEscape(cc.limiter.label)} · ${htmlEscape(cc.presentation?.priorityMetrics.join(" → ") ?? "")}</p>
+        ${cc.presentation?.wprimeReview ? '<p>W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>' : ''}
+        <p><b>Robustesse à l’effort prolongé : durabilité non évaluée.</b></p>
+        ${cc.presentation?.decouplingRun != null ? `<p>Découplage course : ${cc.presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>` : ''}
+        ${cc.presentation?.tteBike ? `<p>TTE vélo : ${cc.presentation.tteBike.tte_min > 0 ? `${cc.presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteBike.source)}</p>` : ''}
+        ${cc.presentation?.tteRun ? `<p>TTE course : ${cc.presentation.tteRun.tte_min > 0 ? `${cc.presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteRun.source)}</p>` : ''}
+        <h3>Informations complémentaires</h3>
         <table>
           <thead>
             <tr>
@@ -4985,12 +4998,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
           </thead>
           <tbody>
             ${axes.map(a => {
-              const delta = a.score >= 100 ? "✓" : `-${100 - a.score}%`;
+              const delta = axisAssessment(a);
               const deltaColor = a.score >= 100 ? "#1F9D6B" : a.score >= 70 ? "#C8860D" : "#D0433A";
               const fmtVal = (v: number | null, u: string) => v === null ? "—" : v < 10 ? `${v.toFixed(2)} ${u}` : `${v.toFixed(1)} ${u}`;
               return `<tr>
                 <td><b>${a.icon} ${htmlEscape(a.label)}</b></td>
-                <td><span class="badge" style="background:${a.score >= 75 ? '#E4F5EE' : a.score >= 50 ? '#FBF0DA' : '#FAE6E4'};color:${a.score >= 75 ? '#1F9D6B' : a.score >= 50 ? '#a16207' : '#D0433A'};font-weight:700;">${a.score}/100</span></td>
+                <td><span class="badge" style="background:${a.score >= 75 ? '#E4F5EE' : a.score >= 50 ? '#FBF0DA' : '#FAE6E4'};color:${a.score >= 75 ? '#1F9D6B' : a.score >= 50 ? '#a16207' : '#D0433A'};font-weight:700;">${a.value != null && a.value > 0 ? `${a.score}/100` : "—"}</span></td>
                 <td>${fmtVal(a.value, a.unit)}</td>
                 <td>${a.target !== null ? fmtVal(a.target, a.unit) : "—"}</td>
                 <td style="font-weight:700;color:${deltaColor};">${delta}</td>
@@ -8763,14 +8776,14 @@ function buildAthleteReadinessFromPayload(payload: ExportPayload): AthleteReadin
   const axisRow = (label: string, score: number | null | undefined, emoji: string): CompassAxisRow | null => {
     if (score === null || score === undefined) return null;
     const s = Math.round(score);
-    const comment = s >= 75 ? "Excellent" : s >= 60 ? "Bon niveau" : s >= 45 ? "À développer" : "Priorité de travail";
+    const comment = s >= 100 ? "Cible interne atteinte — à confirmer" : "Écart à la cible interne — à confirmer";
     return { label, score: s, emoji, comment };
   };
   const compassAxes: CompassAxisRow[] = [
     axisRow("Capacité aérobie", aerobic, "🫁"),
     axisRow("Profil métabolique", metabolic, "⚗️"),
     axisRow("Tolérance à l'effort", endurance, "⏱️"),
-    axisRow("Robustesse / Fraîcheur", robust, "🛡️"),
+    axisRow("Disponibilité / Fraîcheur", robust, "🛡️"),
   ].filter(Boolean) as CompassAxisRow[];
 
   const tss7d = snap?.tss_7j ?? snap?.tss_7d ?? null;

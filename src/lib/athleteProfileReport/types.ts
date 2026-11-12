@@ -28,6 +28,7 @@ export interface ReportMetric {
 }
 
 export interface ReportRadarAxis {
+  source?: string;
   label: string;
   shortLabel: string;
   score: number; // 0-100
