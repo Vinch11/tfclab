@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Import Nolio des records course/vélo par période : puissances séparées, aperçu CP/W′ course et vélo, sélection coach, capteur documenté, enregistrement comme estimation sans changer les limiteurs.
+- [x] Import Nolio des records course/vélo par période : puissances séparées, aperçu CP/W′ course et vélo, sélection coach, capteur documenté, ajout au bilan comme estimation sans remplacer les repères existants ni changer les limiteurs ; 54 tests ciblés et 6 contrôles de version verts, aperçu connecté ordinateur/téléphone vérifié avec 128 records réels d'Emanuela, sans sauvegarde. Générateurs redéployés avec succès.
+- [ ] Vérifier l’import des records de Vince et la sauvegarde/relecture de son bilan : Vince absent de la liste Nolio accessible au compte connecté ; aucun autre athlète importé dans son bilan.
 
 - [x] Préparer le plan de revue du compass : présentation et provenance d'abord, hiérarchie prescriptive conservée ; toute évolution scientifique du diagnostic soumise à une validation séparée.
 - [x] Revue de présentation du compass : projection en lecture seule, TTE/robustesse séparés, provenance et W′ manquant clarifiés, ordre coach affiché distinctement ; propositions non activées dans docs/compass-review-2026-11-12.md.

@@ -9,6 +9,11 @@ const sports = [{ id: 'run', name: 'Course à pied', sport_base: 'r' }, { id: 't
 const records = (sportBase: string, cp: number, reserve: number): ReviewedRecord[] => [180, 420, 720].map(t => ({ cat: 'ppr', record_type: 'time', inner_val: t, value: cp + reserve / t, unit: 'W', sportBase, date: today, training_id: `trn_${t}`, sport_name: 'capteur' }));
 
 describe('import records critiques Nolio course/vélo', () => {
+  it('ne demande que les variantes présentes dans les séances de la période', async () => {
+    const calls: string[] = [];
+    await readCriticalPeriodRecords(sports, async id => { calls.push(id); return { records: [], complete: true }; }, new Set(['run', 'ht']));
+    expect(calls).toEqual(['run', 'ht']);
+  });
   it('lit chaque variante course/vélo et exclut la natation', async () => {
     const calls: string[] = [];
     await readCriticalPeriodRecords(sports, async id => { calls.push(id); return { records: [], complete: true }; });

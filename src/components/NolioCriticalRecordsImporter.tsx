@@ -13,7 +13,7 @@ import type { CriticalMetricKey, StoredCriticalMetrics, StoredCriticalSport } fr
 type Catalogues = { complete: boolean; athletes: { id: string; name: string; has_api_access: boolean }[]; sports: NolioRecordSport[] };
 async function call(body: Record<string, string>) {
   const { data, error } = await supabase.functions.invoke('nolio-v2-oauth', { body });
-  if (error) throw new Error('Lecture Nolio impossible.');
+  if (error) throw new Error('Lecture Nolio indisponible ou limitée : aucun import effectué, réessayez plus tard.');
   return data;
 }
 
@@ -43,7 +43,10 @@ export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { 
     if (!catalogues || !athlete || !from || !to || from > to) return;
     setBusy(true); setError(''); reset();
     try {
-      const result = await readCriticalPeriodRecords(catalogues.sports, id => call({ action: 'records', athlete, sport: id, from, to, cat: 'ppr', record_type: 'time' }));
+      const sessions = await call({ action: 'test_sessions', athlete, from, to });
+      if (!sessions?.complete || !Array.isArray(sessions.sessions)) throw new Error('Liste des séances incomplète : import suspendu.');
+      const activeSports = new Set<string>(sessions.sessions.map((s: { sport: string }) => s.sport));
+      const result = await readCriticalPeriodRecords(catalogues.sports, id => call({ action: 'records', athlete, sport: id, from, to, cat: 'ppr', record_type: 'time' }), activeSports);
       setRecords(result);
     } catch (e) { setError(e instanceof Error ? e.message : 'Lecture impossible.'); }
     finally { setBusy(false); }
@@ -63,7 +66,7 @@ export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { 
       <label className="flex min-h-11 items-center gap-3 text-sm"><Checkbox checked={identity} onCheckedChange={v => setIdentity(v === true)} />Je confirme que l’athlète Nolio correspond à {athleteName ?? 'ce bilan'}.</label>
       <div><Label htmlFor="critical-nolio-sensor">Capteur course et capteur vélo</Label><Input id="critical-nolio-sensor" placeholder="Course : Stryd… · Vélo : capteur…" value={sensor} onChange={e => { setSensor(e.target.value); setSameSensor(false); }} /></div>
       <label className="flex min-h-11 items-center gap-3 text-sm"><Checkbox checked={sameSensor} disabled={!sensor.trim()} onCheckedChange={v => setSameSensor(v === true)} />Les efforts que je retiens proviennent du même capteur pour chaque sport, dans des conditions comparables.</label>
-      <CriticalEffortsPanel recordsOnly key={`${athlete}-${from}-${to}`} records={records} athleteLabel={`${athleteName ?? 'Bilan'} · ${from} → ${to}`} stored={stored} onSave={identity && sameSensor ? (sport, value) => {
+      <CriticalEffortsPanel recordsOnly key={`${athlete}-${from}-${to}`} records={records} athleteLabel={`Nolio : ${catalogues?.athletes.find(a => a.id === athlete)?.name ?? 'athlète sélectionné'} · Bilan : ${athleteName ?? 'en cours'} · ${from} → ${to}`} stored={stored} onSave={identity && sameSensor ? (sport, value) => {
         if (stored[sport]) return;
         onSave(sport, value ? { ...value, status: 'estimate', efforts: value.efforts.map(e => ({ ...e, confirmed: false, conditions: `${e.conditions} · ${sensor.trim()}` })), warnings: [...value.warnings, 'Import de records : estimation, pas test confirmé.'] } : null);
       } : undefined} />
