@@ -649,7 +649,11 @@ const Index = () => {
     });
   }, [effectiveCloudSnapshot]);
 
-  const wprimeKjForLimiter = cpResultForLimiter?.wprimeKJ ?? null;
+  // CP incohérent avec la FTP (écart > 20 W) : le W′ issu de la même régression
+  // n'est pas fiable — on affiche « Données insuffisantes » plutôt qu'un chiffre.
+  const wprimeKjForLimiter = cpResultForLimiter && !cpResultForLimiter.cpBounded
+    ? (cpResultForLimiter.wprimeKJ ?? null)
+    : null;
 
   // ✅ UNIFIED LIMITER - Pour Roadmap Stratégique
   // F-24 — Durabilité : `targetRaceDurationMin` est désormais alimenté par un prédicteur
@@ -671,7 +675,7 @@ const Index = () => {
       ambition: AMBITION_LEVEL_TO_PREDICTOR[currentAmbition],
       raceChronos: chronos,
       vmaKmh: effectiveCloudSnapshot?.vma ?? null,
-      thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_km ?? null,
+      thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_per_km ?? null,
       ftp: effectiveCloudSnapshot?.ftp ?? null,
       weightKg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
       // Ne jamais retomber sur snapshot.vlamax (VLamax vélo) — même garde-fou
