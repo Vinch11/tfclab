@@ -29,14 +29,14 @@ describe("Read-only compass presentation", () => {
     expect({ limiter: result.limiter, leverage: result.leverage, decision: result.decision, readiness: result.readiness, axes: result.radarAxes }).toEqual(contracts);
     expect(result.limiter.label).toBe("Endurance au seuil");
     expect(view.priorityMetrics).toEqual(["TTE"]);
-    expect(view.axes.find(a => a.key === "tte")?.value).toBe(35);
+    if (view.sport === 'triathlon') expect(view.axes.some(a => a.key === 'tte')).toBe(false);
+    else expect(view.axes.find(a => a.key === "tte")?.value).toBe(40);
     expect(result.radarAxes.find(a => a.key === "durability")?.value).not.toBe(35);
   });
   it("does not turn absent W′ into a demonstrated weakness", () => {
     const result = computeCoachingCompass(fixture());
-    const axis = result.presentation?.axes.find(a => a.key === "wprime");
-    expect(axis?.value).toBeNull();
-    expect(axis && axisAssessment(axis)).toBe("Données insuffisantes");
+    expect(result.presentation?.axes.some(a => a.key === 'wprime')).toBe(false);
+    expect(result.presentation?.sportReferences.find(r => r.label === 'W′ vélo')?.value).toBeNull();
     expect(result.presentation?.priorityMetrics).not.toContain("W'");
   });
   it("retains W′ when the current diagnostic ranks it", () => {
@@ -68,6 +68,6 @@ describe("Read-only compass presentation", () => {
     const legacy = computeRaceReadiness({ ...result, presentation: undefined });
     expect(readiness?.scorePct).toBe(legacy?.scorePct);
     expect(readiness?.governingAxis).toEqual(legacy?.governingAxis);
-    expect(readiness?.presentationAxes?.find(a => a.key === "tte")?.value).toBe(35);
+    expect(readiness?.presentationAxes?.some(a => a.key === "tte")).toBe(false);
   });
 });

@@ -26,6 +26,7 @@ import type {
   ReportZoneSet,
 } from "./types";
 import { buildPhasePedagogy } from "./phasePedagogy";
+import { metricSourceLabel } from '../coachingCompass/presentation';
 
 const STATUS_COLOR: Record<string, string> = {
   ok: RK.mint,
@@ -400,6 +401,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     </div>
 
     <div class="metrics" style="margin-top:12px">${d.metrics.map(metricCard).join("")}</div>
+    ${(d.sportTte ?? []).map(r => `<p>${esc(r.label)} : ${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'} · ${esc(metricSourceLabel(r.source))}</p>`).join('')}
+    ${(d.sportReferences ?? []).length ? `<h2>Repères course / vélo</h2>${(d.sportReferences ?? []).map(r => `<p>${esc(r.label)} : ${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'} · ${esc(metricSourceLabel(r.source))}${r.conditions ? ` · ${esc(r.conditions)}` : ''}</p>`).join('')}` : ''}
 
     ${
       d.targetProgress.length

@@ -7,6 +7,7 @@
  */
 
 import type { TFCLCoachingCompassResult, RadarAxis } from "@/lib/coachingCompass/types";
+import type { SportReference } from '@/lib/coachingCompass/sportPresentation';
 
 export interface AxisAlignment {
   source?: string;
@@ -22,6 +23,9 @@ export interface AxisAlignment {
 export interface RaceReadinessResult {
   /** Display-only projection; legacy score and prescription are unchanged. */
   presentationAxes?: AxisAlignment[];
+  sportReferences?: SportReference[];
+  tteBike?: { tte_min: number; source: string } | null;
+  tteRun?: { tte_min: number; source: string } | null;
   scorePct: number;             // 0-100
   level: "low" | "moderate" | "good" | "excellent";
   levelLabel: string;
@@ -91,6 +95,9 @@ export function computeRaceReadiness(compass: TFCLCoachingCompassResult | null):
 
   return {
     presentationAxes: compass.presentation?.axes.map(axisToAlignment),
+    sportReferences: compass.presentation?.sportReferences,
+    tteBike: compass.presentation?.tteBike,
+    tteRun: compass.presentation?.tteRun,
     scorePct,
     level,
     levelLabel,

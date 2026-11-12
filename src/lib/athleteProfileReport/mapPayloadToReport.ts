@@ -390,7 +390,9 @@ export function mapExportPayloadToProfileReport(
         "Voici l'état actuel de ton potentiel physiologique.",
     },
     profileNarrative: narrative || "Profil en cours de constitution : réalise les tests recommandés pour l'affiner.",
-    metrics,
+    metrics: metrics.filter(m => !(compass?.presentation?.sport === 'run' && ['ftpkg', 'fatmax'].includes(m.key)) && !(compass?.presentation?.sport === 'triathlon' && m.key === 'tte')).map(m => ({ ...m, label: compass?.presentation?.sport === 'triathlon' && ['vlamax', 'ftpkg', 'fatmax'].includes(m.key) ? `${m.label} · vélo` : m.label })),
+    sportReferences: compass?.presentation?.sportReferences,
+    sportTte: [compass?.presentation?.tteBike ? { label: 'TTE vélo', value: compass.presentation.tteBike.tte_min, source: compass.presentation.tteBike.source } : null, compass?.presentation?.tteRun ? { label: 'TTE course', value: compass.presentation.tteRun.tte_min, source: compass.presentation.tteRun.source } : null].filter((v): v is { label: string; value: number; source: string } => v !== null),
     radar: (compass?.presentation?.axes ?? compass?.radarAxes ?? []).map((a: any) => ({
       source: a.source,
       label: a.label,

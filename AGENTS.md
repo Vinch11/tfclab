@@ -3,6 +3,7 @@
 - Store Nolio running-power CP/W′ under `critical_metrics.runningPower`, never under running CS/D′ or cycling CP/W′; records remain estimates and cannot feed plan prescriptions. Why: sensor-derived running watts are not distances or interchangeable cycling watts.
 
 - Compass presentation is a read-only projection of diagnostic outputs; TTE labels, provenance and missing-data states must never mutate limiter rankings or IA/DET contracts. Why: clearer displays must not silently change future plans.
+- Resolve display-only sport and critical references through `coachingCompass/sportPresentation`; never radar-score W′/D′ or convert cycling thresholds into running thresholds. Why: complementary sensor-specific reserves and sport-specific measures must not imply cross-sport weaknesses.
 
 - Export AI plan cycles through Nolio v2 as one non-overlapping banner per existing phase, with parallel ranked workstreams in its text; resolve the stored athlete link server-side, preview before confirmation, preserve foreign/edited cycles and verify created cycles by readback. Why: calendar phases must not duplicate sessions, overwrite coach work or target a guessed athlete.
 

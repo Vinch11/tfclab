@@ -410,7 +410,7 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
 
 function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
   const profile = compass.profile;
-  const isRunning = sportFocus === "run";
+  const isRunning = compass.presentation?.sport === 'run' || sportFocus === "run";
 
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
@@ -444,16 +444,17 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const lt2PctVma = lt2Ratio ? Math.round(lt2Ratio * ftpPctVma * 100) : null;
 
   // Build running-aware LT metrics
-  const lt1Running = isRunning && lt1PctVma ? {
+  const lt1Running = isRunning ? {
     ...profile.lt1,
-    value: lt1PctVma,
+    value: null,
     unit: "% VMA",
   } : profile.lt1;
 
-  const lt2Running = isRunning && lt2PctVma ? {
+  const lt2Running = isRunning ? {
     ...profile.lt2,
-    value: lt2PctVma,
-    unit: "% VMA",
+    value: input.paceThresholdSecPerKm && input.paceThresholdSecPerKm > 0 ? 3600 / input.paceThresholdSecPerKm : null,
+    unit: "km/h",
+    source: input.paceThresholdSecPerKm ? 'snapshot' : 'unknown',
   } : profile.lt2;
 
   const metrics = [
@@ -465,10 +466,9 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
     ] : []),
     { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" }, secondaryInfo: null as string | null },
     { key: "TTE", m: profile.tte, secondaryInfo: null as string | null },
-    { key: "FatMax", m: profile.fatmax, secondaryInfo: null as string | null },
-    { key: "LT1", m: lt1Running, secondaryInfo: isRunning && profile.lt1.value ? `(${Math.round(profile.lt1.value)} W)` : null },
-    { key: "LT2", m: lt2Running, secondaryInfo: isRunning && profile.lt2.value ? `(${Math.round(profile.lt2.value)} W)` : null },
-    ...(!isRunning ? [{ key: "W'", m: profile.wPrime, secondaryInfo: null as string | null }] : []),
+    ...(!isRunning ? [{ key: "FatMax", m: profile.fatmax, secondaryInfo: null as string | null }] : []),
+    { key: "LT1", m: lt1Running, secondaryInfo: null as string | null },
+    { key: "LT2", m: lt2Running, secondaryInfo: null as string | null },
     { key: "Éco.", m: profile.runningEconomy, secondaryInfo: null as string | null },
 
   ].filter(r => r.m?.value !== null);
@@ -752,6 +752,13 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               </div>
               <h3 className="mt-4 text-sm font-semibold">Informations complémentaires</h3>
               {presentation && <div className="mt-2 border-b border-border pb-3 text-xs space-y-1" data-testid="compass-durability">
+                <div className="space-y-3 py-2" data-testid="compass-sport-references">
+                  {(['running', 'cycling'] as const).map(sport => {
+                    const refs = presentation.sportReferences.filter(r => r.sport === sport);
+                    return refs.length ? <section key={sport} className="space-y-1"><h4 className="font-semibold">{sport === 'running' ? 'Repères course' : 'Repères vélo'}</h4>{refs.map(r => <p key={r.label}>{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {metricSourceLabel(r.source)}{r.conditions && <span className="block text-muted-foreground">{r.conditions}</span>}</p>)}</section> : null;
+                  })}
+                  <p className="text-muted-foreground">W′/D′ : repères complémentaires, pas une note générale de capacité anaérobie ; les watts course dépendent du capteur.</p>
+                </div>
                 <p className="font-medium">Robustesse à l’effort prolongé : durabilité non évaluée</p>
                 {presentation.decouplingRun != null && <p className="text-muted-foreground">Découplage course : {presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>}
                 {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {metricSourceLabel(presentation.tteBike.source)}</p>}
@@ -782,7 +789,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                       <span className="text-base mt-0.5">{emoji}</span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-xs font-bold">{explanation.short}</p>
+                          <p className="text-xs font-bold">{axis.label}</p>
                           <Badge variant="outline" className={cn(
                             "text-[9px] h-4 px-1.5",
                             statusLabel === "Données insuffisantes" ? "border-border text-muted-foreground" :

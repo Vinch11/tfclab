@@ -120,6 +120,8 @@ export interface TFCLCoachingCompassResult {
     tteRun: CoachingCompassInput["tteEffectif"] | null;
     decouplingRun: number | null;
     economy: RadarAxis;
+    sport: 'run' | 'bike' | 'triathlon';
+    sportReferences: import('./sportPresentation').SportReference[];
   };
   // Les 4 niveaux
   profile: TFCLPhysiologicalProfile;
@@ -250,6 +252,8 @@ export interface CoachingCompassInput {
   
   // W' pré-calculé
   wprimeKj: number | null;
+  /** Read-only, sport-separated snapshot references; never used to rank limiters. */
+  criticalMetrics?: unknown;
   
   // Contexte
   objectif: string;

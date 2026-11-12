@@ -1,4 +1,5 @@
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
+import { buildSportReferences, compassDisplaySport } from './sportPresentation';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
 export function metricSourceLabel(source: string): string {
@@ -18,14 +19,14 @@ export function axisAssessment(axis: RadarAxis): string {
 }
 
 export function buildCompassPresentation(input: CoachingCompassInput, compass: TFCLCoachingCompassResult) {
+  const sport = compassDisplaySport(input);
   const metricKeys: Record<string, keyof TFCLCoachingCompassResult["profile"]> = {
     vo2max: "vo2max", vlamax: "vlamax", ftpkg: "ftpKg", vma: "vma", fatmax: "fatmax", wprime: "wPrime",
   };
-  const axes = compass.radarAxes.map(axis => {
+  const axes = compass.radarAxes.filter(axis => axis.key !== 'wprime' && !(sport === 'triathlon' && axis.key === 'durability') && !(sport === 'run' && ['ftpkg', 'fatmax'].includes(axis.key)) && !(sport === 'bike' && axis.key === 'vma')).map(axis => {
     if (axis.key === "durability") {
-      const isTri = input.sportFocus === "triathlon";
-      const tte = isTri && input.tteEffectifRun && input.tteEffectifRun.tte_min > 0 &&
-        input.tteEffectifRun.tte_min < input.tteEffectif.tte_min ? input.tteEffectifRun : input.tteEffectif;
+      const tte = sport === 'run' && input.sportFocus !== 'run' ? input.tteEffectifRun : input.tteEffectif;
+      if (!tte) return { ...axis, key: 'tte', label: 'TTE course', shortLabel: 'TTE course', value: null, target: null, score: 0, unit: 'min', source: 'unknown' };
       return { ...axis, key: "tte", label: "Endurance au seuil (indice TTE)", shortLabel: "TTE", value: tte.tte_min > 0 ? tte.tte_min : null,
         // Same internal benchmark as the historical axis, expressed in minutes.
         target: axis.value && axis.target && tte.tte_min > 0 ? Math.round(tte.tte_min / axis.value * axis.target) : null,
@@ -34,18 +35,24 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     const key = metricKeys[axis.key];
     const metric = key ? compass.profile[key] : null;
     const source = metric && typeof metric === "object" ? metric.source : "unknown";
-    return { ...axis, source: axis.key === "vo2max" && !input.vo2max ? "estimation" : source };
+    if (axis.key === 'vlamax' && sport === 'run' && input.sportFocus !== 'run') return { ...axis, label: 'VLamax course', shortLabel: 'VLamax course', value: null, score: 0, source: 'unknown' };
+    if (sport === 'run' && axis.key === 'vo2max' && !input.vo2max) return { ...axis, value: null, score: 0, source: 'unknown' };
+    const qualifier = sport === 'triathlon' && ['vlamax', 'fatmax', 'ftpkg'].includes(axis.key) ? ' vélo' : '';
+    if (qualifier && input.sportFocus === 'run') return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, value: null, score: 0, source: 'unknown' };
+    return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, source: axis.key === "vo2max" && !input.vo2max ? "estimation" : source };
   });
   // Preserve the engine's ranked categories and their original metric order.
   const ranked = input.limiterResult?.categoryRanking?.flatMap(c => c.metrics) ?? input.limiterResult?.gapAnalysis ?? [];
   const priorityMetrics = ranked.filter(g => g.weightedImpact > 0 && g.prescriptionApplicable !== false).map(g => g.metric);
   return {
     axes,
+    sport,
+    sportReferences: buildSportReferences(input),
     priorityMetrics,
     wprimeReview: priorityMetrics.some(m => /^W['′]/i.test(m)),
-    tteBike: input.sportFocus !== "run" ? input.tteEffectif : null,
-    tteRun: input.sportFocus === "run" ? input.tteEffectif : input.tteEffectifRun ?? null,
-    decouplingRun: input.hrDriftPct,
+    tteBike: sport !== 'run' && input.sportFocus !== 'run' ? input.tteEffectif : null,
+    tteRun: sport === 'bike' ? null : input.sportFocus === "run" ? input.tteEffectif : input.tteEffectifRun ?? null,
+    decouplingRun: sport === 'bike' ? null : input.hrDriftPct,
     economy: { ...compass.economyModifier, source: compass.profile.runningEconomy.source },
   };
 }

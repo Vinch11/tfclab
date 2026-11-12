@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
+import { metricSourceLabel } from '@/lib/coachingCompass/presentation';
 import { computeRaceReadiness, type RaceReadinessResult } from "@/lib/raceReadiness/computeRaceReadiness";
 import { buildRaceReadinessHTML } from "@/lib/raceReadiness/buildRaceReadinessHTML";
 import { useAppLogo } from "@/hooks/useAppLogo";
@@ -446,28 +447,29 @@ export function RaceReadinessReportDialog({
             </div>
 
             {/* Strengths / Leviers (ton positif) */}
+            {readiness.sportReferences && <section className="space-y-2 border-y border-border py-3"><h3 className="text-sm font-semibold">Repères course / vélo</h3>{readiness.sportReferences.map(r => <p key={r.label} className="text-xs">{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {r.source !== 'unknown' ? metricSourceLabel(r.source) : ''}</p>)}{readiness.tteBike && <p className="text-xs">TTE vélo : {readiness.tteBike.tte_min > 0 ? `${readiness.tteBike.tte_min} min` : 'Données insuffisantes'} · {metricSourceLabel(readiness.tteBike.source)}</p>}{readiness.tteRun && <p className="text-xs">TTE course : {readiness.tteRun.tte_min > 0 ? `${readiness.tteRun.tte_min} min` : 'Données insuffisantes'} · {metricSourceLabel(readiness.tteRun.source)}</p>}</section>}
             {(readiness.strengths.length > 0 || readiness.gaps.length > 0) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {readiness.strengths.length > 0 && (
+                {(readiness.presentationAxes ?? readiness.axes).some(a => a.score >= 80 && a.value != null && a.value > 0) && (
                   <Card className="border-emerald-200 bg-emerald-50/40 dark:bg-emerald-950/10">
                     <CardContent className="pt-3 pb-3">
                       <div className="text-xs font-semibold text-emerald-700 mb-1">Cibles internes proches ou atteintes</div>
                       <p className="text-[11px] text-muted-foreground mb-2">À confirmer selon la provenance des données.</p>
                       <div className="flex flex-wrap gap-1">
-                        {readiness.strengths.filter(a => a.value != null && a.value > 0).map(s => (
+                        {(readiness.presentationAxes ?? readiness.axes).filter(a => a.score >= 80 && a.value != null && a.value > 0).map(s => (
                           <Badge key={s.key} className="bg-emerald-600 text-white text-xs">{s.label}</Badge>
                         ))}
                       </div>
                     </CardContent>
                   </Card>
                 )}
-                {readiness.gaps.length > 0 && (
+                {(readiness.presentationAxes ?? readiness.axes).some(a => a.score < 60 && a.value != null && a.value > 0) && (
                   <Card className="border-sky-200 bg-sky-50/40 dark:bg-sky-950/10">
                     <CardContent className="pt-3 pb-3">
                       <div className="text-xs font-semibold text-sky-700 mb-1">Leviers de progression</div>
                       <p className="text-[11px] text-muted-foreground mb-2">Écarts internes à confirmer ; le diagnostic détermine les priorités.</p>
                       <div className="flex flex-wrap gap-1">
-                        {readiness.gaps.filter(a => a.value != null && a.value > 0).map(g => (
+                        {(readiness.presentationAxes ?? readiness.axes).filter(a => a.score < 60 && a.value != null && a.value > 0).map(g => (
                           <Badge key={g.key} className="bg-sky-600 text-white text-xs">{g.label}</Badge>
                         ))}
                       </div>

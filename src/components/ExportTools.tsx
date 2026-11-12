@@ -2137,6 +2137,7 @@ function buildExportPayload(
         strategyResult: lorangResult,
         lactateThresholds: null,
         wprimeKj: cpResultForPayload && !cpResultForPayload.cpBounded ? cpResultForPayload.wprimeKJ : null,
+        criticalMetrics: (effectiveSnapshot as { critical_metrics?: unknown } | null)?.critical_metrics,
         objectif: athlete.goal || "IM",
         ambition: ambition,
         sportFocus: resolveCompassSportFocus(effectiveSnapshot, athlete, "bike"),
@@ -4986,6 +4987,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${cc.presentation?.tteBike ? `<p>TTE vélo : ${cc.presentation.tteBike.tte_min > 0 ? `${cc.presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteBike.source)}</p>` : ''}
         ${cc.presentation?.tteRun ? `<p>TTE course : ${cc.presentation.tteRun.tte_min > 0 ? `${cc.presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteRun.source)}</p>` : ''}
         <h3>Informations complémentaires</h3>
+        ${cc.presentation?.sportReferences.map(r => `<p><b>${htmlEscape(r.label)}</b> : ${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${htmlEscape(r.unit)}` : 'Données insuffisantes'} · ${htmlEscape(metricSourceLabel(r.source))}${r.conditions ? ` · ${htmlEscape(r.conditions)}` : ''}</p>`).join('') ?? ''}
         <table>
           <thead>
             <tr>

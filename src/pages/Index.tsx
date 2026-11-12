@@ -1013,6 +1013,7 @@ const Index = () => {
       } : null,
       lactateThresholds: lactateThresholdsForCompass,
       wprimeKj: wprimeKjForLimiter ?? null,
+      criticalMetrics: (effectiveCloudSnapshot as { critical_metrics?: unknown }).critical_metrics,
       objectif: currentAthlete.goal || "IM",
       ambition: currentAmbition,
       sportFocus: isRunningOnly

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Séparer les repères course/vélo du compass et des rapports : W′/D′ complémentaires hors radar, références critiques par sport, TTE triathlon séparés, absence course non comblée par watts vélo, seuil course sans conversion FTP ; contrats diagnostic/IA/DET inchangés. 95 tests ciblés + 6 contrôles de version verts ; Vince/Emanuela connectés, ordinateur/téléphone et bilan pré-objectif en mode impression vérifiés sans erreur ; générateurs redéployés avec succès. Aucun bilan/plan modifié ni publication ; rapport Staff complet non parcouru intégralement.
+
 - [x] Import Nolio des records course/vélo par période : puissances séparées, aperçu CP/W′ course et vélo, sélection coach, capteur documenté, ajout au bilan comme estimation sans remplacer les repères existants ni changer les limiteurs ; 54 tests ciblés et 6 contrôles de version verts, aperçu connecté ordinateur/téléphone vérifié avec 128 records réels d'Emanuela, sans sauvegarde. Générateurs redéployés avec succès.
 - [ ] Vérifier l’import des records de Vince et la sauvegarde/relecture de son bilan : Vince absent de la liste Nolio accessible au compte connecté ; aucun autre athlète importé dans son bilan.
 

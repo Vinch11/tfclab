@@ -156,15 +156,19 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
     <tbody>${axisRows}</tbody>
   </table>
 
-  ${result.strengths.filter(a => a.value != null && a.value > 0).length ? `
+  <h2>Repères course / vélo</h2>
+  ${result.tteBike ? `<p>TTE vélo : ${result.tteBike.tte_min > 0 ? `${result.tteBike.tte_min} min` : 'Données insuffisantes'} · ${esc(metricSourceLabel(result.tteBike.source))}</p>` : ''}
+  ${result.tteRun ? `<p>TTE course : ${result.tteRun.tte_min > 0 ? `${result.tteRun.tte_min} min` : 'Données insuffisantes'} · ${esc(metricSourceLabel(result.tteRun.source))}</p>` : ''}
+  ${(result.sportReferences ?? []).map(r => `<p>${esc(r.label)} : ${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'} · ${esc(metricSourceLabel(r.source))}</p>`).join('')}
+  ${displayAxes.filter(a => a.score >= 80 && a.value != null && a.value > 0).length ? `
   <h2>Cibles internes proches ou atteintes — à confirmer</h2>
   <p style="font-size:10pt; color:#5C5966; margin:4pt 0;">Ce sont les leviers sur lesquels t'appuyer pour construire ta course.</p>
-  <div class="strengths">${result.strengths.filter(a => a.value != null && a.value > 0).map(s => `<span class="chip strong">${esc(s.label)} (${s.score}/100)</span>`).join("")}</div>` : ""}
+  <div class="strengths">${displayAxes.filter(a => a.score >= 80 && a.value != null && a.value > 0).map(s => `<span class="chip strong">${esc(s.label)} (${s.score}/100)</span>`).join("")}</div>` : ""}
 
-  ${result.gaps.filter(a => a.value != null && a.value > 0).length ? `
+  ${displayAxes.filter(a => a.score < 60 && a.value != null && a.value > 0).length ? `
   <h2>Leviers de progression identifiés</h2>
   <p style="font-size:10pt; color:#5C5966; margin:4pt 0;">Écarts aux cibles internes, à interpréter selon la provenance. Le diagnostic et les choix du coach déterminent les priorités du plan.</p>
-  <div class="gaps">${result.gaps.filter(a => a.value != null && a.value > 0).map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
+  <div class="gaps">${displayAxes.filter(a => a.score < 60 && a.value != null && a.value > 0).map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
 
   <h2>Le jour J — pacing &amp; gestion mentale</h2>

@@ -132,6 +132,8 @@ export interface AthleteProfileReportInput {
   profileNarrative: string;
   metrics: ReportMetric[];
   radar: ReportRadarAxis[];
+  sportReferences?: import('../coachingCompass/sportPresentation').SportReference[];
+  sportTte?: Array<{ label: string; value: number; source: string }>;
   economyAxis: ReportRadarAxis | null;
   targetProgress: ReportTargetProgress[];
 
