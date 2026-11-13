@@ -1,6 +1,6 @@
 import type { CoachingCompassInput, RadarAxis } from './types';
 import { getTTETargetByAmbition } from '@/lib/physiologicalTargets';
-import { computeRunningCompassDiagnostic } from '@/engines/diagnostic';
+import { computeRunningCompassDiagnostic, computeCyclingCompassDiagnostic } from '@/engines/diagnostic';
 import type { AmbitionLevel } from '@/types/ambitionLevel';
 
 /** Display-only comparison: keep the triathlon objective and never transfer bike reserves or lipid zones. */
@@ -18,5 +18,6 @@ export function buildDisciplineAxes(input: CoachingCompassInput, axes: RadarAxis
   const target = getTTETargetByAmbition(input.objectif, ambition, input.athleteAge);
   const value = tte && Number.isFinite(tte.tte_min) && tte.tte_min > 0 ? tte.tte_min : null;
   bike.push({ key: 'tte', label: 'Endurance au seuil vélo — TTE', shortLabel: 'TTE', value, target, score: value != null && target > 0 ? Math.min(100, Math.round(value / target * 100)) : 0, unit: 'min', source: value != null ? tte?.source : 'unknown', icon: '⏱️', color: 'hsl(var(--primary))' });
-  return { bike, run, runningDiagnostic };
+  const cyclingDiagnostic = computeCyclingCompassDiagnostic({ axes: bike, ftp: input.sportFocus === 'run' ? null : input.ftp, vo2Shared: true });
+  return { bike, run, runningDiagnostic, cyclingDiagnostic };
 }

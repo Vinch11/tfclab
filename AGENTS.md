@@ -1,6 +1,6 @@
 # Architecture rules
 
-- Triathlon compass axes and its independent running diagnostic use `engines/diagnostic/runningCompassDiagnostic`, running observations and existing objective targets without feeding plan rankings; shared VO₂max and global-load TTE cannot rank running priorities. Why: side-by-side comparisons must not transfer cycling measurements into running or silently change prescription.
+- Compass sport diagnostics use `engines/diagnostic/{running,cycling}CompassDiagnostic`, sport-specific observations and existing targets without feeding plan rankings; shared VO₂max and load-derived TTE cannot rank priorities. Why: parallel diagnoses must not transfer measurements across sports or change prescription.
 
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 

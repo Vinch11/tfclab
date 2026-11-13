@@ -124,6 +124,7 @@ export interface TFCLCoachingCompassResult {
     sportReferences: import('./sportPresentation').SportReference[];
     disciplineAxes?: { bike: RadarAxis[]; run: RadarAxis[] };
     runningDiagnostic?: import('@/engines/diagnostic').RunningCompassDiagnostic;
+    cyclingDiagnostic?: import('@/engines/diagnostic').RunningCompassDiagnostic;
   };
   // Les 4 niveaux
   profile: TFCLPhysiologicalProfile;

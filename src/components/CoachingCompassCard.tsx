@@ -741,10 +741,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                       <SignatureRadar axes={disciplineAxes[sport]} size={320} />
                       <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
                       {sport === 'run' && presentation?.runningDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></div>}
+                      {sport === 'bike' && presentation?.cyclingDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></div>}
                     </section>)}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <><SignatureRadar axes={displayAxes} size={320} />{presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}</>}
+                </div> : <><SignatureRadar axes={displayAxes} size={320} />{presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}{presentation?.cyclingDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" />}</>}
+                {disciplineAxes && presentation?.cyclingDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></section>}
                 {disciplineAxes && presentation?.runningDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></section>}
               </div>
               

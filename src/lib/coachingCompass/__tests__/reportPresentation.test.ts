@@ -14,6 +14,14 @@ describe('reports share the compass projection', () => {
     expect(html).toContain('40.0 min');
     expect(html).toContain('14.2 km/h');
   });
+  it('includes the identical independent cycling projection without transferring run TTE', () => {
+    const compass = computeCoachingCompass(input('IM'));
+    const html = buildCompassReportReferencesHTML(compass);
+    expect(compass.presentation?.cyclingDiagnostic?.axes.find(a => a.key === 'tte')?.value).toBe(35);
+    expect(compass.presentation?.cyclingDiagnostic?.priorities.some(p => p.key === 'tte')).toBe(false);
+    expect(html).toContain('Diagnostic vélo indépendant');
+    expect(html).toContain('35.0 min');
+  });
   it.each(['10K', '703', 'IM'])('%s profile values, targets, sources and performance rows match exactly', goal => {
     const compass = computeCoachingCompass(input(goal));
     const before = structuredClone(compass);

@@ -1,7 +1,7 @@
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
 import { buildDisciplineAxes } from './disciplineAxes';
-import { computeRunningCompassDiagnostic } from '@/engines/diagnostic';
+import { computeRunningCompassDiagnostic, computeCyclingCompassDiagnostic } from '@/engines/diagnostic';
 import type { AmbitionLevel } from '@/types/ambitionLevel';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
@@ -54,6 +54,7 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     axes,
     disciplineAxes: disciplines,
     runningDiagnostic,
+    cyclingDiagnostic: disciplines?.cyclingDiagnostic ?? (sport === 'bike' ? computeCyclingCompassDiagnostic({ axes, ftp: input.ftp, vo2Shared: false }) : undefined),
     sport,
     sportReferences: buildSportReferences(input),
     priorityMetrics,

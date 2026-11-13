@@ -34,4 +34,9 @@ describe('Triathlon discipline references', () => {
     const changed = buildDisciplineAxes({ ...input, ftp: 600, wprimeKj: 40, tteEffectif: { tte_min: 150, source: 'observed', confidence: .95 } }, axes).runningDiagnostic;
     expect(changed).toEqual(before);
   });
+  it('running values cannot alter the cycling diagnosis', () => {
+    const before = buildDisciplineAxes(input, axes).cyclingDiagnostic;
+    const changed = buildDisciplineAxes({ ...input, vma: 22, vlamaxRunReference: { value: .9, source: 'observed' }, tteEffectifRun: { tte_min: 90, source: 'observed', confidence: .95 } }, axes).cyclingDiagnostic;
+    expect(changed).toEqual(before);
+  });
 });
