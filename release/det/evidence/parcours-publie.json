@@ -3,7 +3,203 @@
     "dateBrussels": "2026-11-12",
     "file": "recette-2026-11-12.json",
     "workerVersion": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
-    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43123069606"
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43123069606",
+    "publishedWitnessReplay": {
+      "dateBrussels": "2026-11-13",
+      "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43334331672",
+      "publicWorkerCopiesComparedToGit": true,
+      "independentSportReviewObserved": false,
+      "observed": {
+        "publicOrigin": "https://tfcl.twoforcoaching.be",
+        "manifestBytes": 337,
+        "manifestSha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+        "runtime": "runtime/det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+        "generalRelease": "1ef849363b48bffbcf04a99e279bf003816d5517cda1c4f7cb46971f235ac5c0",
+        "formBuiltAgainst": "abdba7ae82cc70ba8410bae9250c800bf43f3998afe24c07dd33683d550b6acb",
+        "results": {
+          "marathon": {
+            "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              103,
+              7,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "peakRunMinutes": 434.5,
+              "longRunS13": 159.5
+            },
+            "weeklyProgression": [
+              {
+                "week": 1,
+                "runMinutes": 235,
+                "marathonPaceMinutes": 12
+              },
+              {
+                "week": 2,
+                "runMinutes": 264,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 3,
+                "runMinutes": 180,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 4,
+                "runMinutes": 296,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 5,
+                "runMinutes": 298,
+                "marathonPaceMinutes": 12
+              },
+              {
+                "week": 6,
+                "runMinutes": 191,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 7,
+                "runMinutes": 335,
+                "marathonPaceMinutes": 30
+              },
+              {
+                "week": 8,
+                "runMinutes": 360,
+                "marathonPaceMinutes": 45
+              },
+              {
+                "week": 9,
+                "runMinutes": 219,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 10,
+                "runMinutes": 400,
+                "marathonPaceMinutes": 60
+              },
+              {
+                "week": 11,
+                "runMinutes": 397,
+                "marathonPaceMinutes": 60
+              },
+              {
+                "week": 12,
+                "runMinutes": 251.5,
+                "marathonPaceMinutes": 0
+              },
+              {
+                "week": 13,
+                "runMinutes": 434.5,
+                "marathonPaceMinutes": 60
+              },
+              {
+                "week": 14,
+                "runMinutes": 243,
+                "marathonPaceMinutes": 10
+              },
+              {
+                "week": 15,
+                "runMinutes": 202,
+                "marathonPaceMinutes": 10
+              },
+              {
+                "week": 16,
+                "runMinutes": 114,
+                "marathonPaceMinutes": 10
+              }
+            ]
+          },
+          "ironman": {
+            "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+            "weeks": 16,
+            "limiters": [
+              "Durabilité",
+              "VLamax",
+              "TTE"
+            ],
+            "complete": true,
+            "operations": [
+              166,
+              11,
+              1
+            ],
+            "matchingSingle": true,
+            "sport": {
+              "longBikeS11": 150,
+              "longRunS11": 100,
+              "brickWeeks": [
+                3,
+                7,
+                11
+              ]
+            }
+          },
+          "balanced10K144": {
+            "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+            "weeks": 8,
+            "firstWeekMinutes": 141,
+            "runs": 4,
+            "source": "V3P_STRENGTH_201",
+            "strengthMinutes": 21,
+            "limiters": [],
+            "blocked": 0,
+            "precheck": true,
+            "operations": 38,
+            "zeroStrengthWeeks": 8,
+            "zeroStrengthSessions": 0
+          }
+        },
+        "decisions": {
+          "standard": {
+            "decision": {
+              "kind": "outside_det",
+              "fields": []
+            },
+            "message": "Dans la page de planification TFCLab, choisissez Start to Run puis « Assigner Start-to-Run standard » pour ouvrir le protocole marche-course."
+          },
+          "assessment": {
+            "decision": {
+              "kind": "missing_data",
+              "fields": [
+                "diagnostic"
+              ]
+            },
+            "message": "Sélectionnez le bilan de cet athlète pour l’objectif demandé."
+          },
+          "excludedRun": {
+            "decision": {
+              "kind": "incompatible",
+              "fields": [
+                "objective",
+                "constraints"
+              ]
+            },
+            "message": "L’objectif demande la course à pied et les contraintes excluent cette discipline pendant la préparation. Choisissez un objectif compatible ou précisez la période et les conditions d’une reprise autorisée."
+          },
+          "paceDomain": {
+            "decision": {
+              "kind": "engine_limit",
+              "fields": []
+            },
+            "message": "Le chrono visé correspond à 4:26/km. Avec un seuil à 4:20/km, le domaine marathon de TFCLab va de 4:37/km à 4:55/km. Les fiches disponibles ne permettent pas à DET de prescrire les blocs à cette allure avec le seuil actuel. Le coach peut conserver le chrono comme objectif, renseigner un seuil plus récent s’il a été mesuré, ou préparer les blocs aux allures actuelles en retirant le chrono."
+          }
+        },
+        "syntheticInputs": true,
+        "nolioSend": false,
+        "nolioReadback": false,
+        "watchObservation": false
+      }
+    }
   },
   "snapshotBelowAtUtc": "2026-11-11T10:07:12.109624+00:00",
   "publicOrigin": "https://tfcl.twoforcoaching.be",
