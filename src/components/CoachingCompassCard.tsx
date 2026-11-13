@@ -29,6 +29,11 @@ import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
+// Local wording only: detailed provenance remains unchanged in reports and stored data.
+const compassSourceLabel = (source: string) => source === 'snapshot'
+  ? 'Repère enregistré : son interprétation dépend du test réalisé et des conditions de mesure.'
+  : metricSourceLabel(source);
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // EXPLICATIONS PÉDAGOGIQUES — Axes du radar
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -37,6 +42,18 @@ const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
   aerobic: {
     short: "Capacité Aérobie (FTP/kg ou VMA)",
     detail: "Mesure la puissance de ton « moteur » aérobie. Plus le score est élevé, plus tu peux soutenir une intensité forte sur longue durée.",
+  },
+  vo2max: {
+    short: "Moteur aérobie — VO₂max",
+    detail: "La VO₂max représente la quantité maximale d’oxygène que ton corps peut utiliser. Un écart à la cible peut limiter ton potentiel aérobie, mais la performance dépend aussi du seuil, de l’économie et de l’endurance spécifique.",
+  },
+  vma: {
+    short: "Vitesse maximale aérobie — VMA",
+    detail: "La VMA représente ta vitesse à forte sollicitation aérobie. Si elle reste sous la cible de ton objectif, elle peut limiter ta réserve de vitesse ; elle ne correspond pas à une allure soutenable pendant toute la course.",
+  },
+  ftpkg: {
+    short: "Puissance au seuil relative au poids",
+    detail: "La puissance au seuil rapportée à ton poids situe ta capacité à soutenir un effort vélo exigeant. Un écart à la cible peut freiner ta performance, particulièrement en montée ; il ne décrit pas ta capacité en course à pied.",
   },
   vlamax: {
     short: "VLamax (Glycolyse)",
@@ -478,7 +495,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const confidenceLabel = (c: number) =>
     c >= 0.8 ? "Fiable" : c >= 0.5 ? "Modérée" : "Faible";
-  const sourceLabel = metricSourceLabel;
+  const sourceLabel = compassSourceLabel;
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
@@ -757,14 +774,14 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 <div className="space-y-3 py-2" data-testid="compass-sport-references">
                   {(['running', 'cycling'] as const).map(sport => {
                     const refs = presentation.sportReferences.filter(r => r.sport === sport);
-                    return refs.length ? <section key={sport} className="space-y-1"><h4 className="font-semibold">{sport === 'running' ? 'Repères course' : 'Repères vélo'}</h4>{refs.map(r => <p key={r.label}>{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {metricSourceLabel(r.source)}{r.conditions && <span className="block text-muted-foreground">{r.conditions}</span>}</p>)}</section> : null;
+                    return refs.length ? <section key={sport} className="space-y-1"><h4 className="font-semibold">{sport === 'running' ? 'Repères course' : 'Repères vélo'}</h4>{refs.map(r => <p key={r.label}>{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {compassSourceLabel(r.source)}{r.conditions && <span className="block text-muted-foreground">{r.conditions}</span>}</p>)}</section> : null;
                   })}
                   <p className="text-muted-foreground">W′/D′ : repères complémentaires, pas une note générale de capacité anaérobie ; les watts course dépendent du capteur.</p>
                 </div>
                 <p className="font-medium">Robustesse à l’effort prolongé : durabilité non évaluée</p>
                 {presentation.decouplingRun != null && <p className="text-muted-foreground">Découplage course : {presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>}
-                {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {metricSourceLabel(presentation.tteBike.source)}</p>}
-                {presentation.tteRun && <p>TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : "Données insuffisantes"} · {metricSourceLabel(presentation.tteRun.source)}</p>}
+                {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteBike.source)}</p>}
+                {presentation.tteRun && <p>TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteRun.source)}</p>}
               </div>}
               {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
@@ -838,8 +855,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                           </div>
                         )}
 
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{metricSourceLabel(axis.source ?? "unknown")}</p>
                         <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
+                        {axis.source !== 'snapshot' && <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{compassSourceLabel(axis.source ?? 'unknown')}</p>}
                       </div>
                     </div>
                   );
