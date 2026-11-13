@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Courbes VO₂max/VLamax/seuils/économie et zones par sport ajoutées au profil Expert ; historiques, demande en oxygène exploratoire et seuils vélo estimés distincts des mesures documentées. Vince/Emanuela connectés ordinateur/téléphone sans débordement ni erreur ; 47 tests verts, compilation OK, deux générateurs déployés. Aucun bilan ni plan modifié ; équivalence scientifique INSCYD non démontrée.
+
 - [x] Lecture complète et premium des indicateurs restaurée, TTE visible, sports séparés, tests/sources consultables ; provenance et déclarations TTE contrôlées, courbes numériquement vérifiées sans certification expérimentale. Vince/Emanuela vérifiés connectés sur ordinateur/téléphone, six rapports/PDF ouverts ; aucune donnée athlète ni prescription modifiée. Validation indépendante contre mesures métaboliques reste à établir ; détail : docs/complete-physiological-profile-review-2026-11-13.md.
 
 - [x] Corriger toutes les incohérences du Dashboard relevées le 13 novembre : unités/intitulés, bilan de référence et progression par sport, provenance VLamax/TTE, complétude, simulations et nutrition sans valeurs inventées ni transfert vélo/course, recommandations contextualisées ; tests multi-objectifs et contrôle connecté Vince/Emanuela. Préserver les données athlètes et contrats IA/DET.

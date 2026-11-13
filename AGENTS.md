@@ -6,7 +6,7 @@
 
 - Reports use `coachingCompass/reportPresentation` for values and `reportReading` for shared pedagogy; never infer targets or transfer bike measures into running. Why: all reports must explain the same projection without changing plan contracts.
 
-- Dashboard references use `diagnosticMetricPresentation`, complete inventories use `coachingCompass/completeProfile`, curve gates use `curveReview`; coverage/progress use `dashboardConsistency`, without plan-ranking changes. Why: missing data, model checks and race readiness are distinct.
+- Dashboard inventories/curves use `coachingCompass/{completeProfile,profileCurves,curveReview}`; references use `diagnosticMetricPresentation`, progress uses `dashboardConsistency`. Why: sport-scoped evidence and display models must not change plan rankings.
 
 - Store Nolio running-power CP/W′ under `critical_metrics.runningPower`, never under running CS/D′ or cycling CP/W′; records remain estimates and cannot feed plan prescriptions. Why: sensor-derived running watts are not distances or interchangeable cycling watts.
 
