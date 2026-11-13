@@ -4,11 +4,10 @@
 
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 
-- Athlete reports narrate via `reportKit/story`; evolution uses only stored tests/snapshots per sport. Why: one story, no invented series.
+- Athlete reports narrate via `reportKit/story` (stored data per sport); `critical_metrics.durability` is an estimate (≥2 sessions), never feeding plans. Why: no invented series.
 - Reports use `coachingCompass/reportPresentation` for values and `reportReading` for shared pedagogy; never infer targets or transfer bike measures into running. Why: reports share one projection without changing plans.
 
-- Dashboard inventories/curves use `coachingCompass/{completeProfile,profileCurves,testCurves,curveReview}`; references use `diagnosticMetricPresentation`, progress uses `dashboardConsistency`. Why: display must not change plan rankings.
-- `PhysiologicalLandmarkGuide` is display-only. Why: pedagogy must not change prescription.
+- Dashboard inventories/curves use `coachingCompass/{completeProfile,profileCurves,testCurves,curveReview}`; references use `diagnosticMetricPresentation`, progress uses `dashboardConsistency`; `PhysiologicalLandmarkGuide` is display-only. Why: display must not change plans.
 
 - Store Nolio running-power CP/W′ under `critical_metrics.runningPower`, never under running CS/D′ or cycling CP/W′; records remain estimates and cannot feed plan prescriptions. Why: sensor-derived running watts are not distances or interchangeable cycling watts.
 

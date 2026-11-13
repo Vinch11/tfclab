@@ -50,6 +50,8 @@ import { SnapshotTestDays } from "@/components/SnapshotTestDays";
 import { checkSnapshotForm } from "@/lib/snapshotTestDays";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 import { NolioCriticalRecordsImporter } from "@/components/NolioCriticalRecordsImporter";
+import { NolioDurabilityFinder } from "@/components/NolioDurabilityFinder";
+import { parseStoredDurability, withDurability } from "@/lib/durability/longSessionDurability";
 import { parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
 
 // CAP objectives where running economy is critical
@@ -307,7 +309,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
-      ...({ critical_metrics: (() => { const m = parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const d = parseStoredDurability(raw); const m = { ...parseStoredCriticalMetrics(raw), ...(Object.keys(d).length ? { durability: d } : {}) }; return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -410,7 +412,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
-      ...({ critical_metrics: (() => { const m = parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const d = parseStoredDurability(raw); const m = { ...parseStoredCriticalMetrics(raw), ...(Object.keys(d).length ? { durability: d } : {}) }; return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -514,7 +516,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const renderForm = () => (
     <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
       <NolioPeriodTestFinder athleteName={athleteName} current={formData as unknown as Record<string, unknown>} onApply={applyNolioPeriod} />
-      <NolioCriticalRecordsImporter athleteName={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = parseStoredCriticalMetrics((prev as Record<string, unknown>).critical_metrics); if (m[sport] || !value) return prev; m[sport] = value; return { ...prev, critical_metrics: JSON.stringify(m) }; })} />
+      <NolioCriticalRecordsImporter athleteName={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = parseStoredCriticalMetrics((prev as Record<string, unknown>).critical_metrics); if (m[sport] || !value) return prev; m[sport] = value; const raw = (prev as Record<string, unknown>).critical_metrics; let extra: Record<string, unknown> = {}; try { extra = typeof raw === 'string' ? JSON.parse(raw) ?? {} : (raw as Record<string, unknown>) ?? {}; } catch { extra = {}; } return { ...prev, critical_metrics: JSON.stringify({ ...m, ...(extra.durability ? { durability: extra.durability } : {}) }) }; })} />
+      <NolioDurabilityFinder athleteName={athleteName} stored={parseStoredDurability((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => ({ ...prev, critical_metrics: withDurability((prev as Record<string, unknown>).critical_metrics, sport, value) }))} />
       {/* Nolio Import Button */}
       {(() => {
         const latestSnap = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
