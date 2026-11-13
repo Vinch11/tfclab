@@ -41,6 +41,10 @@ try {
   for(const name of ['tfcl-det-project','tfcl-det-public-key'])assert.ok(generalPage.includes('name="'+name+'"'),name);
   const base='/__det/coach/'+runtime+'/';
   assert.deepEqual(await publicFile(base+'manifest.json'),expectedManifest);
+  const distributedWorker=await local('../dist/'+manifest.entry);
+  for(const prefix of ['/__det/v1/',base]){
+    assert.deepEqual(await publicFile(prefix+manifest.entry),distributedWorker,prefix+manifest.entry);
+  }
   const page=await context.newPage();
   const form=await page.goto(origin+'/__det/coach/index.html',{waitUntil:'domcontentloaded',timeout:30000});
   assert.equal(form.status(),200);
@@ -86,6 +90,30 @@ try {
     }
     results[sport]=actual;
   }
+  const reference=JSON.parse(await local('../evidence/marathon-3h07-coach.json'));
+  const marathonInput=JSON.parse(await local('./witness-marathon.json'));
+  const progression=await page.evaluate(async({base,input})=>{
+    const {runDet}=await import(base+'client.mjs');
+    const plan=await runDet({action:'generate',input});
+    function specificMinutes(blocks){
+      return blocks.reduce((sum,block)=>{
+        if(block.kind==='repeat')return sum+block.count.base*specificMinutes(block.steps);
+        if(block.kind==='time' && block.domain==='marathon_pace')return sum+block.seconds.base/60;
+        return sum;
+      },0);
+    }
+    return plan._detSourceProposal.weeks.map(week=>{
+      const sessions=week.days.flatMap(day=>day.sessions).filter(session=>session.role!=='race');
+      const runs=sessions.flatMap(session=>session.components).filter(component=>component.sport==='run');
+      return {week:week.week,runMinutes:runs.reduce((sum,c)=>sum+c.durationMinutes,0),
+        marathonPaceMinutes:runs.reduce((sum,c)=>sum+specificMinutes(c.blocks),0)};
+    });
+  },{base,input:marathonInput});
+  const trained=reference.cases.find(c=>c.id==='trained');
+  assert.equal(marathonInput.config.weeklyHours,trained.availableHours);
+  assert.equal(marathonInput.config.loadHistory.recentWeeklyHours,trained.recentHours);
+  assert.deepEqual(progression,trained.weeks.map(({week,runMinutes,marathonPaceMinutes})=>({week,runMinutes,marathonPaceMinutes})));
+  results.marathon.weeklyProgression=progression;
   const lowVolume = JSON.parse(await local('./ordinary-balanced-10K.json'));
   lowVolume.config.loadHistory = {recentWeeklyHours:2.4,recentWeeksCount:4};
   const compact = await page.evaluate(async ({base,input}) => {
