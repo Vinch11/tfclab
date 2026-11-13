@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Restaurer une lecture complète et premium des indicateurs ; rendre les preuves/tests traçables, contrôler les courbes par sport et expliciter leurs limites scientifiques. Plan à approuver avant mise en œuvre ; aucune équivalence INSCYD revendiquée ni modification des prescriptions.
+
 - [x] Corriger toutes les incohérences du Dashboard relevées le 13 novembre : unités/intitulés, bilan de référence et progression par sport, provenance VLamax/TTE, complétude, simulations et nutrition sans valeurs inventées ni transfert vélo/course, recommandations contextualisées ; tests multi-objectifs et contrôle connecté Vince/Emanuela. Préserver les données athlètes et contrats IA/DET.
 
 - [x] Audit de cohérence du Dashboard : Emanuela/Vince connectés ordinateur/téléphone, contradictions scores « Prêt », sources VLamax, simulation TTE vélo en course, unités d'écart, progression/complétude documentées dans docs/dashboard-consistency-audit-2026-11-13.md. Labels de fiabilité uniquement confirmés par le coach et appliqués aux cartes concernées, sans modifier les calculs ni les plans ; 72 tests verts, vérification connectée après changement sans erreur, compilation OK et deux générateurs redéployés. Autres corrections identifiées non appliquées ; onglets voisins examinés dans le code, pas intégralement reproduits.
