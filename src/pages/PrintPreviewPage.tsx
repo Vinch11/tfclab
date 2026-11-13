@@ -22,12 +22,9 @@ export default function PrintPreviewPage() {
 
   useEffect(() => {
     const key = params.get("d");
-    const html = key ? sessionStorage.getItem(key) : null;
-    if (!html) {
-      setMissing(true);
-      return;
-    }
+    const stored = key ? sessionStorage.getItem(key) : null;
     const autoPrint = params.get("autoPrint") === "1";
+    const show = (html: string) => {
     // Remplace entièrement le document actuel par celui déjà généré
     // (même mécanisme que `doc.write` utilisé historiquement dans l'iframe
     // de surcouche, ici appliqué à la fenêtre top-level elle-même — plus
@@ -44,6 +41,21 @@ export default function PrintPreviewPage() {
         }
       }, 300);
     }
+    };
+    if (stored) return show(stored);
+    if (!key || !window.opener) { setMissing(true); return; }
+    // Stockage séparé (aperçu intégré) : demander le document à l'onglet d'origine.
+    const onMessage = (event: MessageEvent) => {
+      const d = event.data as { type?: string; key?: string; html?: string } | null;
+      if (event.origin !== window.location.origin || d?.type !== "tfcl-print-document" || d.key !== key || !d.html) return;
+      window.removeEventListener("message", onMessage);
+      clearTimeout(timer);
+      show(d.html);
+    };
+    window.addEventListener("message", onMessage);
+    try { window.opener.postMessage({ type: "tfcl-print-request", key }, window.location.origin); } catch { /* opener inaccessible */ }
+    const timer = setTimeout(() => { window.removeEventListener("message", onMessage); setMissing(true); }, 4000);
+    return () => { window.removeEventListener("message", onMessage); clearTimeout(timer); };
   }, [params]);
 
   if (!missing) return null;

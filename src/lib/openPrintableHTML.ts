@@ -233,8 +233,29 @@ const PRINT_PREVIEW_STORAGE_PREFIX = "tfc:printPreview:";
  * `window.open()` (copie, spec HTML — même origine, même session) : pas de
  * requête réseau supplémentaire, pas de limite de taille d'URL.
  */
+// Copie mémoire relayée par message : l'aperçu intégré (iframe) et le nouvel
+// onglet n'ont pas toujours le même sessionStorage (stockage partitionné).
+const pendingPrintDocs = new Map<string, string>();
+let printRelayInstalled = false;
+function installPrintRelay(): void {
+  if (printRelayInstalled || typeof window === "undefined") return;
+  printRelayInstalled = true;
+  window.addEventListener("message", (event) => {
+    const data = event.data as { type?: string; key?: string } | null;
+    if (!data || data.type !== "tfcl-print-request" || !data.key) return;
+    if (event.origin !== window.location.origin) return;
+    const html = pendingPrintDocs.get(data.key);
+    if (html && event.source) {
+      (event.source as Window).postMessage({ type: "tfcl-print-document", key: data.key, html }, event.origin);
+    }
+  });
+}
+
 function openPrintPreviewDocument(html: string, filenameHint?: string, autoPrint?: boolean): void {
   const key = `${PRINT_PREVIEW_STORAGE_PREFIX}${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  installPrintRelay();
+  pendingPrintDocs.set(key, html);
+  setTimeout(() => pendingPrintDocs.delete(key), 10 * 60_000);
   try {
     sessionStorage.setItem(key, html);
   } catch {
