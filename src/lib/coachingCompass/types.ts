@@ -122,6 +122,7 @@ export interface TFCLCoachingCompassResult {
     economy: RadarAxis;
     sport: 'run' | 'bike' | 'triathlon';
     sportReferences: import('./sportPresentation').SportReference[];
+    disciplineAxes?: { bike: RadarAxis[]; run: RadarAxis[] };
   };
   // Les 4 niveaux
   profile: TFCLPhysiologicalProfile;
@@ -197,6 +198,8 @@ export interface CoachingCompassInput {
   
   // Effectifs pré-calculés (provenant du Diagnostic Engine)
   vlamaxEffectif: { value: number | null; confidence: number; source: string };
+  /** Display-only running observation; never a fallback from cycling VLamax. */
+  vlamaxRunReference?: { value: number | null; source: string } | null;
   tteEffectif: { tte_min: number; confidence: number; source: string };
   /** TTE CAP séparé (course à pied). Pour les triathlons, on prend min(bike,run) pour la durabilité. */
   tteEffectifRun?: { tte_min: number; confidence: number; source: string } | null;

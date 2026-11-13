@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Triathlon : deux compass vélo/course côte à côte dans la même section, mesures propres à chaque sport et classements des plans inchangés. 47 tests verts ; Emanuela triathlon et Vince course vérifiés sur ordinateur/téléphone, données course absentes et cible VMA triathlon non définie signalées sans inventer de valeur.
+
 - [x] Références externes retirées du compass et des rapports à la demande du coach ; cibles, calculs, repères personnels et explications pédagogiques conservés. 44 tests verts, compass et rapports Staff Vince/Emanuela vérifiés sans erreur ; compilation OK et deux générateurs redéployés avec succès.
 
 - [x] Rapport Staff : section factuelle au sommaire avec valeurs du bilan de référence, résultats bruts des tests, efforts critiques par sport, notes de provenance et capteurs/conditions documentés ; aucune certification implicite ni changement des limiteurs. 44 tests verts ; exports Staff Vince/Emanuela et PDF non vides vérifiés, 16 entrées chacun, aucune erreur ; capteurs absents signalés non renseignés. Compilation OK, version synchronisée et deux générateurs redéployés avec succès.

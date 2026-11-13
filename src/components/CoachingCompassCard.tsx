@@ -10,7 +10,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -101,6 +101,7 @@ interface CoachingCompassCardProps {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number }) {
+  const glowId = useId();
   const cx = size / 2;
   const cy = size / 2;
   const r = size * 0.32;
@@ -133,14 +134,14 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
   return (
     <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none">
       <defs>
-        <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
+        <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
           <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
         </radialGradient>
       </defs>
 
       {/* Background glow */}
-      <circle cx={cx} cy={cy} r={r * 1.15} fill="url(#radar-glow)" />
+      <circle cx={cx} cy={cy} r={r * 1.15} fill={`url(#${glowId})`} />
 
       {/* Grid levels with labels */}
       {levels.map(level => {
@@ -196,21 +197,21 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
       })}
 
       {/* Data polygon — filled with gradient effect */}
-      <polygon
+      {axes.every(axis => axis.value != null && axis.value > 0 && axis.target != null) && <polygon
         points={polygonStr}
         fill="hsl(var(--primary) / 0.15)"
         stroke="hsl(var(--primary))"
         strokeWidth={2.5}
         strokeLinejoin="round"
-      />
+      />}
 
       {/* Data points with colored halos */}
-      {dataPoints.map((p, i) => (
+      {dataPoints.map((p, i) => axes[i].value != null && axes[i].target != null ? (
         <g key={`dot-${i}`}>
           <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
           <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
         </g>
-      ))}
+      ) : null)}
 
       {/* Labels with emoji, name, score and value */}
       {axes.map((axis, i) => {
@@ -248,11 +249,11 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
               y={labelP.y + 13}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill={scoreColor(axis.score)}
+              fill={axis.value != null && axis.target != null ? scoreColor(axis.score) : "hsl(var(--muted-foreground))"}
               fontSize={12}
               fontWeight={800}
             >
-              {axis.value != null && axis.value > 0 ? `${axis.score}/100` : "—"}
+              {axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : "—"}
             </text>
           </g>
         );
@@ -650,6 +651,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const { limiter, leverage, decision } = compass;
   const presentation = compass.presentation;
   const displayAxes = presentation?.axes ?? compass.radarAxes;
+  const disciplineAxes = presentation?.disciplineAxes;
+  const explanationAxes = disciplineAxes ? [...disciplineAxes.bike, ...disciplineAxes.run] : displayAxes;
   const _ambition = (input.ambition || "age_group") as AmbitionLevel;
   const _objectif = input.objectif || "IM";
   const _sportForTargets =
@@ -730,7 +733,16 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 Repères par rapport aux cibles internes — pas une probabilité de réussite en course. Les priorités du diagnostic sont présentées séparément.
               </p>
               <div className="mt-1">
-                <SignatureRadar axes={displayAxes} size={320} />
+                {disciplineAxes ? <div className="overflow-x-auto" data-testid="triathlon-compasses">
+                  <div className="grid grid-cols-2 min-w-[580px] gap-4 print:min-w-0">
+                    {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
+                      <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
+                      <SignatureRadar axes={disciplineAxes[sport]} size={320} />
+                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
+                    </section>)}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course restent séparés ci-dessous ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
+                </div> : <SignatureRadar axes={displayAxes} size={320} />}
               </div>
               
               {/* Completeness bar */}
@@ -783,7 +795,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               </div>}
               {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
-                {displayAxes.map((axis) => {
+                {explanationAxes.map((axis, index) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
                   const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
                   const statusLabel = axisAssessment(axis);
@@ -796,7 +808,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
 
                   return (
-                    <div key={axis.key} className={cn(
+                    <div key={`${axis.key}-${index}`} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
                       statusLabel === "Données insuffisantes" ? "bg-muted/20 border-border" :
                       axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :

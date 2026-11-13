@@ -973,6 +973,7 @@ const Index = () => {
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
+      vlamaxRunReference: { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' },
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
       tteEffectifRun: tteEffectifRun ? { tte_min: tteEffectifRun.tte_min, confidence: tteEffectifRun.confidence, source: tteEffectifRun.source } : null,
       fatigueEffectif: fatigueEffectifForCompass ? {

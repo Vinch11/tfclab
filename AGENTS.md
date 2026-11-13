@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Triathlon compass discipline axes are display-only; use running observations and existing objective targets without feeding plan rankings. Why: side-by-side comparisons must not transfer cycling measurements into running.
+
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 
 - Reports consume `coachingCompass/reportPresentation` for displayed values, targets, sources and sport references; never infer alternative report targets or relabel bike FatMax as running pace. Why: PDF and screen must present the same diagnostic projection without changing plan contracts.

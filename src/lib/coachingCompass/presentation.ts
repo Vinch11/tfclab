@@ -1,5 +1,6 @@
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
+import { buildDisciplineAxes } from './disciplineAxes';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
 export function metricSourceLabel(source: string): string {
@@ -46,6 +47,7 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
   const priorityMetrics = ranked.filter(g => g.weightedImpact > 0 && g.prescriptionApplicable !== false).map(g => g.metric);
   return {
     axes,
+    disciplineAxes: sport === 'triathlon' ? buildDisciplineAxes(input, axes) : undefined,
     sport,
     sportReferences: buildSportReferences(input),
     priorityMetrics,
