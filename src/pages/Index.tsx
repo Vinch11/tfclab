@@ -1022,6 +1022,7 @@ const Index = () => {
         : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       athleteId: currentAthlete.id,
+      athleteSex: currentAthlete.sex === 'M' ? 'M' as const : currentAthlete.sex === 'F' ? 'F' as const : null,
       targetRacePrediction,
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);

@@ -2150,6 +2150,7 @@ function buildExportPayload(
         ambition: ambition,
         sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
         athleteAge: athleteAge,
+        athleteSex: athlete.sex === 'M' || athlete.sex === 'F' ? athlete.sex : null,
       };
       return computeCoachingCompass(compassInput);
     })(),

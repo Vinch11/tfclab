@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
+import { CompassBenchmarks } from '@/components/CompassBenchmarks';
 import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
@@ -751,6 +752,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
               </div>
               <h3 className="mt-4 text-sm font-semibold">Informations complémentaires</h3>
+              {presentation?.benchmarks && <CompassBenchmarks rows={presentation.benchmarks} />}
               {presentation && <div className="mt-2 border-b border-border pb-3 text-xs space-y-1" data-testid="compass-durability">
                 <div className="space-y-3 py-2" data-testid="compass-sport-references">
                   {(['running', 'cycling'] as const).map(sport => {

@@ -1,5 +1,6 @@
 import type { TFCLCoachingCompassResult } from './types';
 import { axisAssessment, metricSourceLabel } from './presentation';
+import { BENCHMARK_LIMITATION } from './benchmarks';
 
 const esc = (v: string) => v.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
 
@@ -22,7 +23,8 @@ export function buildCompassReportReferencesHTML(compass: TFCLCoachingCompassRes
     <p>Un effort arrêté volontairement ne fournit qu’un minimum de TTE ; les records restent des estimations.</p>
     <p><b>Robustesse à l’effort prolongé : durabilité non évaluée.</b> Le TTE et la dérive seuls ne la mesurent pas.</p>
     ${view.decouplingRun != null ? `<p>Découplage course : ${view.decouplingRun}% — indice de séance, durée et protocole à confirmer.</p>` : ''}
-    <p>FatMax : ${view.sport === 'run' ? 'course non mesurée ; aucune conversion des %FTP vélo en allure course' : 'zone lipidique vélo modélisée, non mesurée ; pas une note de préparation à la course'}.</p></div>`;
+    <p>FatMax : ${view.sport === 'run' ? 'course non mesurée ; aucune conversion des %FTP vélo en allure course' : 'zone lipidique vélo modélisée, non mesurée ; pas une note de préparation à la course'}.</p>
+    ${view.benchmarks?.length ? `<h3>Références externes — hors score</h3>${view.benchmarks.map(r => `<p><b>${r.kind === 'sport' ? 'Cohorte sportive' : 'Norme âge/sexe'} · ${r.sport === 'run' ? 'Course' : 'Vélo'} · ${esc(r.label)}</b><br>Valeur : ${r.value ?? 'Données insuffisantes'} · Cible TFCL : ${r.target ?? 'Non disponible'} ml/kg/min<br>${esc(r.reference)}<br>${esc(r.context)}<br><a href="${esc(r.url)}">${esc(r.source)}</a><br>${esc(r.limitation)}</p>`).join('')}<p>${esc(BENCHMARK_LIMITATION)}</p>` : ''}</div>`;
 }
 
 export function buildCompassReportSummaryHTML(compass: TFCLCoachingCompassResult, id: string, title: string): string {

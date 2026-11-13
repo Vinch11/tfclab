@@ -1,5 +1,6 @@
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
+import { buildCompassBenchmarks } from './benchmarks';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
 export function metricSourceLabel(source: string): string {
@@ -48,6 +49,7 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     axes,
     sport,
     sportReferences: buildSportReferences(input),
+    benchmarks: buildCompassBenchmarks(input, axes, sport),
     priorityMetrics,
     wprimeReview: priorityMetrics.some(m => /^W['′]/i.test(m)),
     tteBike: sport !== 'run' && input.sportFocus !== 'run' ? input.tteEffectif : null,

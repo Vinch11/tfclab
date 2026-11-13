@@ -1,5 +1,7 @@
 # Architecture rules
 
+- External compass benchmarks are read-only cohort/norm comparisons; preserve source modality, missing age/sex and separate triathlon disciplines. Why: descriptive references cannot redefine targets or plan limiters.
+
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 
 - Reports consume `coachingCompass/reportPresentation` for displayed values, targets, sources and sport references; never infer alternative report targets or relabel bike FatMax as running pace. Why: PDF and screen must present the same diagnostic projection without changing plan contracts.
