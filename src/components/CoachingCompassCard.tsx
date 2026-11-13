@@ -24,6 +24,7 @@ import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompas
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
+import { RunningCompassDiagnosis } from './RunningCompassDiagnosis';
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
@@ -253,7 +254,7 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
               fontSize={12}
               fontWeight={800}
             >
-              {axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : "—"}
+              {axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : axis.value != null && axis.value > 0 ? `${axis.value.toFixed(1)} ${axis.unit}` : "—"}
             </text>
           </g>
         );
@@ -739,10 +740,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                       <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
                       <SignatureRadar axes={disciplineAxes[sport]} size={320} />
                       <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
+                      {sport === 'run' && presentation?.runningDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></div>}
                     </section>)}
                   </div>
-                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course restent séparés ci-dessous ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <SignatureRadar axes={displayAxes} size={320} />}
+                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
+                </div> : <><SignatureRadar axes={displayAxes} size={320} />{presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}</>}
+                {disciplineAxes && presentation?.runningDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></section>}
               </div>
               
               {/* Completeness bar */}
@@ -772,7 +775,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               </div>
 
               <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
-                <h3 className="text-sm font-semibold">Priorités du diagnostic</h3>
+                <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
                 <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{presentation?.priorityMetrics.join(" → ") || "Aucune priorité étayée disponible"}</p>
                 {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
@@ -810,7 +813,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   return (
                     <div key={`${axis.key}-${index}`} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
-                      statusLabel === "Données insuffisantes" ? "bg-muted/20 border-border" :
+                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "bg-muted/20 border-border" :
                       axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
                       axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
                       "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
@@ -821,7 +824,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                           <p className="text-xs font-bold">{axis.label}</p>
                           <Badge variant="outline" className={cn(
                             "text-[9px] h-4 px-1.5",
-                            statusLabel === "Données insuffisantes" ? "border-border text-muted-foreground" :
+                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "border-border text-muted-foreground" :
                             axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
                             axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
                             "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
@@ -831,6 +834,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                         </div>
 
                         {/* Comparatif Actuel → Cible */}
+                        {axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
                         {hasValues && (
                           <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">

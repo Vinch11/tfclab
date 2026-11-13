@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] TTE vélo/course réintégrés séparément ; VMA sans cible affichée en valeur, sans zéro ni déficit inventé. Diagnostic course autonome : écarts aux cibles internes, pistes de travail, seuil enregistré, économie/découplage et limites ; VO₂max commune exclue du classement triathlon course, TTE global/FTP exclus. 63 tests verts ; Emanuela (TTE course 40/52 min, VMA 14,2 sans cible) et Vince vérifiés connectés sur ordinateur/téléphone sans erreur ; compilation OK, générateurs redéployés. Priorités et contrats des plans inchangés, aucun bilan modifié. Rapports reliés à la même projection et testés ; nouveaux exports PDF réels non parcourus.
+
 - [x] Triathlon : deux compass vélo/course côte à côte dans la même section, mesures propres à chaque sport et classements des plans inchangés. 47 tests verts ; Emanuela triathlon et Vince course vérifiés sur ordinateur/téléphone, données course absentes et cible VMA triathlon non définie signalées sans inventer de valeur.
 
 - [x] Références externes retirées du compass et des rapports à la demande du coach ; cibles, calculs, repères personnels et explications pédagogiques conservés. 44 tests verts, compass et rapports Staff Vince/Emanuela vérifiés sans erreur ; compilation OK et deux générateurs redéployés avec succès.

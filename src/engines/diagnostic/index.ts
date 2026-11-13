@@ -9,6 +9,8 @@
 
 // Core function
 export { computeDiagnostic } from "./computeDiagnostic";
+export { computeRunningCompassDiagnostic } from './runningCompassDiagnostic';
+export type { RunningCompassDiagnostic, RunningCompassDiagnosticInput } from './runningCompassDiagnostic';
 
 // Types
 export type {

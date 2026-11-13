@@ -1,6 +1,8 @@
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
 import { buildDisciplineAxes } from './disciplineAxes';
+import { computeRunningCompassDiagnostic } from '@/engines/diagnostic';
+import type { AmbitionLevel } from '@/types/ambitionLevel';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
 export function metricSourceLabel(source: string): string {
@@ -15,6 +17,7 @@ export function metricSourceLabel(source: string): string {
 
 export function axisAssessment(axis: RadarAxis): string {
   if (axis.value == null || !Number.isFinite(axis.value) || axis.value <= 0) return "Données insuffisantes";
+  if (axis.target == null || axis.target <= 0) return 'Comparaison non définie';
   if (axis.source !== "test_labo" && axis.source !== "observed") return "À confirmer";
   return axis.score >= 100 ? "Cible interne atteinte" : "À développer";
 }
@@ -45,9 +48,12 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
   // Preserve the engine's ranked categories and their original metric order.
   const ranked = input.limiterResult?.categoryRanking?.flatMap(c => c.metrics) ?? input.limiterResult?.gapAnalysis ?? [];
   const priorityMetrics = ranked.filter(g => g.weightedImpact > 0 && g.prescriptionApplicable !== false).map(g => g.metric);
+  const disciplines = sport === 'triathlon' ? buildDisciplineAxes(input, axes) : undefined;
+  const runningDiagnostic = disciplines?.runningDiagnostic ?? (sport === 'run' ? computeRunningCompassDiagnostic({ objectif: input.objectif, ambition: (input.ambition || 'age_group') as AmbitionLevel, age: input.athleteAge, vma: input.vma, vo2max: input.vo2max, vo2Source: 'snapshot', paceThresholdSecPerKm: input.paceThresholdSecPerKm, vlamax: input.vlamaxRunReference ?? (input.sportFocus === 'run' ? input.vlamaxEffectif : null), tte: input.sportFocus === 'run' ? input.tteEffectif : input.tteEffectifRun ?? null, economy: input.runEconomyScore, drift: input.hrDriftPct }) : undefined);
   return {
     axes,
-    disciplineAxes: sport === 'triathlon' ? buildDisciplineAxes(input, axes) : undefined,
+    disciplineAxes: disciplines,
+    runningDiagnostic,
     sport,
     sportReferences: buildSportReferences(input),
     priorityMetrics,

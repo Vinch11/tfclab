@@ -16,13 +16,15 @@ export function buildCompassReportReferencesHTML(compass: TFCLCoachingCompassRes
   const view = compass.presentation;
   if (!view) return '<p>Données insuffisantes</p>';
   const tte = (label: string, value: { tte_min: number; source: string } | null | undefined) => value ? `<p>${label} : ${value.tte_min > 0 ? `${value.tte_min} min` : 'Données insuffisantes'} · ${esc(metricSourceLabel(value.source))}</p>` : '';
+  const running = view.runningDiagnostic;
+  const runningHTML = running ? `<h3>Diagnostic course indépendant</h3><p>${esc(running.summary)}</p><h4>Priorités course — écarts aux cibles internes</h4>${running.priorities.length ? `<ol>${running.priorities.map(p => `<li>${esc(p.label)} · écart ${p.gapPercent.toFixed(0)} %${p.provisional ? ' · à confirmer' : ' · test déclaré'}<p>${esc(p.explanation)}</p><p>Piste de travail : ${esc(p.lever)}</p></li>`).join('')}</ol>` : '<p>Classement non établi sur les données disponibles.</p>'}<h4>Observations course</h4>${running.observations.map(p => `<p>${esc(p)}</p>`).join('')}<h4>Limites du diagnostic</h4>${running.limitations.map(p => `<p>${esc(p)}</p>`).join('')}` : '';
   return `<div class="compass-references"><h3>Repères par sport</h3>${view.sportReferences.map(r => `<p>${esc(r.label)} : ${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)} · ${esc(metricSourceLabel(r.source))}` : 'Données insuffisantes'}${r.conditions ? `<br><span class="muted">${esc(r.conditions)}</span>` : ''}</p>`).join('')}
     <p>W′/D′ : travail au-dessus de CP/vitesse critique ; pas une note générale de capacité anaérobie. Watts course spécifiques au capteur.</p>
     ${tte('TTE vélo', view.tteBike)}${tte('TTE course', view.tteRun)}
     <p>Un effort arrêté volontairement ne fournit qu’un minimum de TTE ; les records restent des estimations.</p>
     <p><b>Robustesse à l’effort prolongé : durabilité non évaluée.</b> Le TTE et la dérive seuls ne la mesurent pas.</p>
     ${view.decouplingRun != null ? `<p>Découplage course : ${view.decouplingRun}% — indice de séance, durée et protocole à confirmer.</p>` : ''}
-    <p>FatMax : ${view.sport === 'run' ? 'course non mesurée ; aucune conversion des %FTP vélo en allure course' : 'zone lipidique vélo modélisée, non mesurée ; pas une note de préparation à la course'}.</p></div>`;
+    <p>FatMax : ${view.sport === 'run' ? 'course non mesurée ; aucune conversion des %FTP vélo en allure course' : 'zone lipidique vélo modélisée, non mesurée ; pas une note de préparation à la course'}.</p>${runningHTML}</div>`;
 }
 
 export function buildCompassReportSummaryHTML(compass: TFCLCoachingCompassResult, id: string, title: string): string {

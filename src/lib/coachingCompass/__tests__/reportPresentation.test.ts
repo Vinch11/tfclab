@@ -1,11 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { computeCoachingCompass, type CoachingCompassInput } from '..';
-import { compassReportRows } from '../reportPresentation';
+import { compassReportRows, buildCompassReportReferencesHTML } from '../reportPresentation';
 import { mapExportPayloadToProfileReport } from '@/lib/athleteProfileReport/mapPayloadToReport';
 import { computePerformanceReport } from '@/lib/performanceReport/computePerformanceReport';
 
 const input = (objectif: string): CoachingCompassInput => ({ objectif, sportFocus: objectif === '10K' ? 'run' : 'triathlon', ambition: 'competitor', athleteAge: 51, ftp: 188, poids: 52, vo2max: 50, tss7d: null, snapshotDate: null, snapshotUpdatedAt: null, pmax5s: null, p30sW: null, p60sW: null, map5minW: null, runEconomyScore: null, hrDriftPct: 1.3, vma: 14.2, paceThresholdSecPerKm: 315, fatmax: null, vlamaxEffectif: { value: .3, confidence: .6, source: 'estimation' }, tteEffectif: { tte_min: 35, confidence: .5, source: 'estimated' }, tteEffectifRun: { tte_min: 40, confidence: .7, source: 'observed' }, fatigueEffectif: null, limiterResult: null, potentielPhysiologique: null, strategyResult: null, lactateThresholds: null, wprimeKj: 7 });
 describe('reports share the compass projection', () => {
+  it('includes the same independent running observations and priorities in triathlon reports', () => {
+    const compass = computeCoachingCompass(input('IM'));
+    const html = buildCompassReportReferencesHTML(compass);
+    expect(compass.presentation?.runningDiagnostic?.priorities[0]?.key).toBe('tte');
+    expect(html).toContain('Diagnostic course indépendant');
+    expect(html).toContain('40.0 min');
+    expect(html).toContain('14.2 km/h');
+  });
   it.each(['10K', '703', 'IM'])('%s profile values, targets, sources and performance rows match exactly', goal => {
     const compass = computeCoachingCompass(input(goal));
     const before = structuredClone(compass);

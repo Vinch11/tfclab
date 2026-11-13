@@ -2126,11 +2126,11 @@ function buildExportPayload(
         paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
         fatmax: null,
         vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
+        vlamaxRunReference: { value: effectiveSnapshot?.vlamax_run ?? null, source: 'snapshot' },
         tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
         tteEffectifRun: computeTTEEffectif({
           objectif: athlete.goal || "IM", sport: "run", age: athleteAge,
           tte_observed_min_run: effectiveSnapshot?.tte_observed_min_run ?? null,
-          tss_7d: effectiveSnapshot?.tss_7d ?? null,
         }),
         fatigueEffectif: null,
         limiterResult: unifiedLimiter as any,

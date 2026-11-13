@@ -975,7 +975,7 @@ const Index = () => {
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
       vlamaxRunReference: { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' },
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
-      tteEffectifRun: tteEffectifRun ? { tte_min: tteEffectifRun.tte_min, confidence: tteEffectifRun.confidence, source: tteEffectifRun.source } : null,
+      tteEffectifRun: computeTTEEffectif({ sport: 'run', objectif: currentAthlete.goal || 'IM', age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null, tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null, tte_proxy_confidence: runDurabilityProxy?.confidence ?? null, tte_proxy_label: runDurabilityProxy?.label ?? null }),
       fatigueEffectif: fatigueEffectifForCompass ? {
         score: fatigueEffectifForCompass.score,
         level: String(fatigueEffectifForCompass.level),
@@ -1025,7 +1025,7 @@ const Index = () => {
       athleteId: currentAthlete.id,
       targetRacePrediction,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
 
   const { markAsReferenceWeek } = useDecisionReliability();
 
