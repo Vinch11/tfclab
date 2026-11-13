@@ -140,8 +140,8 @@ const ENERGY: Record<Sport, string> = {
   run: `<div class="energy-ill"><svg viewBox="0 0 320 90" role="img" aria-label="Énergie course : endurance aux allures lentes, sucre aux allures rapides"><defs><linearGradient id="er" x1="0" x2="1"><stop offset="0" stop-color="${RK.mint}"/><stop offset="1" stop-color="${RK.primary}"/></linearGradient></defs><rect x="10" y="38" width="300" height="14" rx="7" fill="url(#er)" opacity=".75"/><text x="10" y="28" font-size="11" fill="${RK.body}">Footing · endurance</text><text x="310" y="28" font-size="11" text-anchor="end" fill="${RK.body}">Fractionné · VMA</text><text x="160" y="76" font-size="10" text-anchor="middle" fill="${RK.muted}">allure plus rapide →</text></svg></div>`,
 };
 
-export function sportTransition(sport: Sport, index: number, total: number): string {
-  const t = TURN[sport];
+export function sportTransition(sport: Sport, index: number, total: number, steps?: string[]): string {
+  const t = { ...TURN[sport], ...(steps ? { steps } : {}) };
   return `<section class="page"><div class="sport-turn ${sport}"><img class="sport-photo" src="${abs(sport === 'bike' ? bikePhoto : runPhoto)}" alt="" /><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${ENERGY[sport]}</div></section>`;
 }
 

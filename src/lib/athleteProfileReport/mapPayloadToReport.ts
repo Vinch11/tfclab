@@ -382,7 +382,7 @@ export function mapExportPayloadToProfileReport(
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
-    durabilityHTML: durabilityReportHTML((snap as { critical_metrics?: unknown } | null)?.critical_metrics, reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run')),
+    durabilityBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, durabilityReportHTML((snap as { critical_metrics?: unknown } | null)?.critical_metrics, [sp])])),
     evolutionBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: [sp] })])),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,

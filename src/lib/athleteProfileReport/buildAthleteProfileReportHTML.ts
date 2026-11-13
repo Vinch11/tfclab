@@ -14,7 +14,7 @@
  * Le builder est pur : aucune physiologie calculée ici.
  */
 
-import { insight, sportTransition, STORY_CSS, storyRail } from "@/lib/reportKit/story";
+import { insight, sharedTransition, sportTransition, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 import { RK, coverPage, esc, num, reportDocument, rich } from "@/lib/reportKit";
 import type {
   AthleteProfileReportInput,
@@ -385,6 +385,40 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     logoBase64: d.logoBase64,
   });
 
+  const BIKE_KEYS = new Set(['ftpkg', 'fatmax']);
+  const RUN_KEYS = new Set(['vma']);
+  const hasSportTte = (d.sportTte ?? []).length > 0;
+  const sharedMetrics = d.metrics.filter(m => !BIKE_KEYS.has(m.key) && !RUN_KEYS.has(m.key) && !(hasSportTte && m.key === 'tte'));
+  const storySports = ((Object.keys(d.evolutionBySport ?? {}).length ? Object.keys(d.evolutionBySport ?? {}) : Object.keys(d.durabilityBySport ?? {})) as Array<'bike' | 'run'>);
+  const isSport = (sp: 'bike' | 'run', label: string) => sp === 'bike' ? /v[ée]lo|bike|cycl/i.test(label) : /course|run/i.test(label);
+  const SPORT_TEXT = {
+    bike: { eyebrow: 'Vélo · où tu en es', title: 'Ton vélo en chiffres', lead: 'À vélo, tout se lit en watts : ta puissance au seuil, ce que tu tiens en fin de sortie et les zones qui règlent tes séances sur le home-trainer ou la route.', tte: 'Temps tenu au seuil vélo', zones: 'Tes zones vélo', zonesLead: 'Chaque zone se règle en watts, avec le cardio en contrôle. Elles viennent de ton seuil vélo, pas de ta course.', shows: (n: number) => n ? 'Ces repères décrivent ton moteur sur le vélo uniquement.' : 'Peu de repères vélo enregistrés : un test de puissance les complétera.', changes: 'Tes séances vélo se règlent sur ces watts ; aucun chiffre de course ne vient les modifier.' },
+    run: { eyebrow: 'Course · où tu en es', title: 'Ta course à pied en chiffres', lead: 'En course, on parle d’allure au kilomètre et de vitesse : ta VMA, ton allure seuil, ce que tu tiens en fin de sortie longue et les zones de tes séances sur piste, route ou chemin.', tte: 'Temps tenu à l’allure seuil', zones: 'Tes zones course', zonesLead: 'Chaque zone se règle en allure, avec le cardio en contrôle. Elles viennent de tes tests de course ; rien n’est converti depuis le vélo.', shows: (n: number) => n ? 'Ces repères décrivent ta course uniquement, sans watts vélo convertis.' : 'Peu de repères course enregistrés : un test sur piste les complétera.', changes: 'Tes fractionnés et tes sorties longues se règlent sur ces allures.' },
+  } as const;
+  const sportChapter = (sp: 'bike' | 'run', i: number) => {
+    const t = SPORT_TEXT[sp];
+    const metrics = d.metrics.filter(m => (sp === 'bike' ? BIKE_KEYS : RUN_KEYS).has(m.key));
+    const tte = (d.sportTte ?? []).filter(r => isSport(sp, r.label));
+    const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'bike' ? 'cycling' : 'running'));
+    const zones = d.zoneSets.filter(z => isSport(sp, z.sportLabel));
+    const rows = [...tte.map(r => `<tr><td>${t.tte}</td><td><strong>${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'}</strong></td><td class="muted">${esc(metricSourceLabel(r.source))}</td></tr>`),
+      ...refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td><td class="muted">${esc(metricSourceLabel(r.source))}${r.conditions ? ` · ${esc(r.conditions)}` : ''}</td></tr>`)];
+    return `${storySports.length > 1 ? sportTransition(sp, i, storySports.length, sp === 'bike' ? ['Ton vélo en chiffres', 'Tes zones vélo', 'Ce que tu gardes en fin de longue sortie', 'Ce qui a changé dans tes tests vélo'] : ['Ta course en chiffres', 'Tes zones course', 'Ce que tu gardes en fin de sortie longue', 'Ce qui a changé dans tes tests course']) : ''}
+  <section class="page flow">
+    ${storyRail(0)}
+    <div class="eyebrow">${t.eyebrow}</div>
+    <h1>${t.title}</h1>
+    <p class="lead">${t.lead}</p>
+    ${metrics.length ? `<div class="metrics">${metrics.map(metricCard).join('')}</div>` : ''}
+    ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
+    ${insight(t.shows(metrics.length + rows.length), t.changes)}
+    ${foot(d, t.title)}
+  </section>
+  ${zones.length ? `<section class="page flow">${storyRail(3)}<div class="eyebrow">${t.zones}</div><h1>${t.zones}</h1><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}${foot(d, t.zones)}</section>` : ''}
+  ${d.durabilityBySport?.[sp] ? `<section class="page flow">${storyRail(4)}${d.durabilityBySport[sp]}${foot(d, 'Durabilité')}</section>` : ''}
+  ${d.evolutionBySport?.[sp] ? `<section class="page flow">${d.evolutionBySport[sp]}${foot(d, 'Évolutions')}</section>` : ''}`;
+  };
+
   const pageProfil = `
   <section class="page flow">
     ${storyRail(0)}
@@ -412,9 +446,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       </div>
     </div>
 
-    <div class="metrics" style="margin-top:12px">${d.metrics.map(metricCard).join("")}</div>
-    ${(d.sportTte ?? []).map(r => `<p>${esc(r.label)} : ${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'} · ${esc(metricSourceLabel(r.source))}</p>`).join('')}
-    ${(d.sportReferences ?? []).length ? `<h2>Repères course / vélo</h2>${(d.sportReferences ?? []).map(r => `<p>${esc(r.label)} : ${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'} · ${esc(metricSourceLabel(r.source))}${r.conditions ? ` · ${esc(r.conditions)}` : ''}</p>`).join('')}` : ''}
+    ${sharedMetrics.length ? `<h2>Ton moteur commun</h2><p class="muted" style="margin:0 0 6px">Ces valeurs décrivent ton organisme en général ; les repères propres à chaque sport viennent dans leur chapitre.</p><div class="metrics">${sharedMetrics.map(metricCard).join("")}</div>` : ''}
 
     ${
       d.targetProgress.length
@@ -561,6 +593,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
     extraCSS: STORY_CSS + EXTRA_CSS,
-    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLeviers}${pagePlan}${pageZones}${d.durabilityHTML ? `<section class="page flow">${storyRail(4)}${d.durabilityHTML}${foot(d, 'Durabilité')}</section>` : ''}${(() => { const ev = Object.entries(d.evolutionBySport ?? {}) as Array<['bike' | 'run', string]>; return ev.map(([sp, html], i) => `${ev.length > 1 ? sportTransition(sp, i, ev.length) : ''}<section class="page flow">${html}${foot(d, 'Évolutions')}</section>`).join(''); })()}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
+    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${storySports.length ? storySports.map(sportChapter).join('') + sharedTransition(storySports.length) : pageZones}${pageLeviers}${pagePlan}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
   });
 }
