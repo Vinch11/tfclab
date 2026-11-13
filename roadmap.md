@@ -1,6 +1,6 @@
 # Roadmap
 
-- [x] Compass : cohortes VO₂max course/vélo et normes FRIEND âge/sexe, cibles actuelles séparées, sources et limites ; triathlon sans moyenne ni cohorte globale inventée. Autres métriques sans seuil universel certifié signalées. 55 tests verts (dont invariance des contrats sur sept objectifs), Vince/Emanuela connectés et rapports Staff vérifiés, téléphone sans débordement, compilation OK ; version synchronisée et deux générateurs redéployés. Emanuela : normes âge/sexe indisponibles tant que le sexe reste non renseigné. Aucun bilan ni plan modifié.
+- [x] Références externes retirées du compass et des rapports à la demande du coach ; cibles, calculs, repères personnels et explications pédagogiques conservés. 44 tests verts, compass et rapports Staff Vince/Emanuela vérifiés sans erreur ; compilation OK et deux générateurs redéployés avec succès.
 
 - [x] Rapport Staff : section factuelle au sommaire avec valeurs du bilan de référence, résultats bruts des tests, efforts critiques par sport, notes de provenance et capteurs/conditions documentés ; aucune certification implicite ni changement des limiteurs. 44 tests verts ; exports Staff Vince/Emanuela et PDF non vides vérifiés, 16 entrées chacun, aucune erreur ; capteurs absents signalés non renseignés. Compilation OK, version synchronisée et deux générateurs redéployés avec succès.
 

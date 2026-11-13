@@ -122,7 +122,6 @@ export interface TFCLCoachingCompassResult {
     economy: RadarAxis;
     sport: 'run' | 'bike' | 'triathlon';
     sportReferences: import('./sportPresentation').SportReference[];
-    benchmarks?: import('./benchmarks').CompassBenchmark[];
   };
   // Les 4 niveaux
   profile: TFCLPhysiologicalProfile;
@@ -261,7 +260,6 @@ export interface CoachingCompassInput {
   ambition: string;
   sportFocus: "bike" | "run" | "triathlon" | null;
   athleteAge: number | null;
-  athleteSex?: 'M' | 'F' | null;
   athleteId?: string;
 
   /**
