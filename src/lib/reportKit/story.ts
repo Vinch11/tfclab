@@ -142,7 +142,7 @@ const ENERGY: Record<Sport, string> = {
 
 export function sportTransition(sport: Sport, index: number, total: number, steps?: string[]): string {
   const t = { ...TURN[sport], ...(steps ? { steps } : {}) };
-  return `<section class="page"><div class="sport-turn ${sport}"><img class="sport-photo" src="${abs(sport === 'bike' ? bikePhoto : runPhoto)}" alt="" /><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${ENERGY[sport]}</div></section>`;
+  return `<section class="page"><div class="sport-turn ${sport}"><img class="sport-photo" src="${abs(sport === 'bike' ? bikePhoto : runPhoto)}" alt="" /><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div></section>`;
 }
 
 /** Fermeture commune après les parcours par sport. */
