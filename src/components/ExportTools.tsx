@@ -84,6 +84,7 @@ import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassificatio
 // ✅ NEW: Coaching Compass (5 axes)
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compassReportRows } from '@/lib/coachingCompass/reportPresentation';
+import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -4628,6 +4629,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     <div class="toc mb">
       <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
       <div class="tocRow"><a href="#positionnement">0. Positionnement & Comment lire ce rapport</a></div>
+      ${isAthlete ? '' : '<div class="tocRow"><a href="#staff-evidence">Mesures, tests et capteurs — données enregistrées</a></div>'}
       ${tocRows}
     </div>
   `;
@@ -8534,6 +8536,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         ${tocHTML}
         
         ${positionnementHTML}
+        ${isAthlete ? '' : buildStaffEvidenceHTML(athlete.id, effectiveSnapshot, tests, calibrationEvidences)}
         ${orderedSectionsHTML}
         
         ${footerHTML}
