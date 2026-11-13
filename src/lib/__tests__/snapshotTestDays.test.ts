@@ -28,9 +28,10 @@ describe("ce que le bilan permet de calculer", () => {
     expect(one?.ready).toBe(false);
     expect(two?.ready).toBe(true);
   });
-  it("durabilité vélo et course sont séparées", () => {
-    const r = snapshotReadiness({ tte_observed_min: "45" });
-    expect(r.find((x) => x.label === "Durabilité vélo")?.ready).toBe(true);
-    expect(r.find((x) => x.label === "Durabilité course")?.ready).toBe(false);
+  it("TTE vélo exige une durée et un seuil sans certifier une durabilité prolongée", () => {
+    const r = snapshotReadiness({ tte_observed_min: "45", ftp: '260' });
+    expect(r.find((x) => x.label === "Endurance au seuil vélo · TTE")?.ready).toBe(true);
+    expect(r.find((x) => x.label === "Endurance au seuil course · TTE")?.ready).toBe(false);
+    expect(r.find((x) => x.label === "Durabilité prolongée")?.ready).toBe(false);
   });
 });

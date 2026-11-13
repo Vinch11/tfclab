@@ -111,6 +111,8 @@ export interface TFCLReadinessState {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface TFCLCoachingCompassResult {
+  /** Complete read-only inventory attached by report assembly, never prescription. */
+  completeProfileHTML?: string;
   /** Read-only presentation, separate from the legacy calculated contracts. */
   presentation?: {
     axes: RadarAxis[];

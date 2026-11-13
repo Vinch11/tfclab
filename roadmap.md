@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Restaurer une lecture complète et premium des indicateurs ; rendre les preuves/tests traçables, contrôler les courbes par sport et expliciter leurs limites scientifiques. Plan à approuver avant mise en œuvre ; aucune équivalence INSCYD revendiquée ni modification des prescriptions.
+- [x] Lecture complète et premium des indicateurs restaurée, TTE visible, sports séparés, tests/sources consultables ; provenance et déclarations TTE contrôlées, courbes numériquement vérifiées sans certification expérimentale. Vince/Emanuela vérifiés connectés sur ordinateur/téléphone, six rapports/PDF ouverts ; aucune donnée athlète ni prescription modifiée. Validation indépendante contre mesures métaboliques reste à établir ; détail : docs/complete-physiological-profile-review-2026-11-13.md.
 
 - [x] Corriger toutes les incohérences du Dashboard relevées le 13 novembre : unités/intitulés, bilan de référence et progression par sport, provenance VLamax/TTE, complétude, simulations et nutrition sans valeurs inventées ni transfert vélo/course, recommandations contextualisées ; tests multi-objectifs et contrôle connecté Vince/Emanuela. Préserver les données athlètes et contrats IA/DET.
 

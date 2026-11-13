@@ -24,6 +24,7 @@ export function buildReportReadingHTML(compass: TFCLCoachingCompassResult): stri
     <h3>Au prochain point de contrôle</h3>
     ${list(['Reprendre un protocole comparable dans le même sport, avec le même capteur, et noter sa date, les conditions et la fatigue préalable.', 'Pour le TTE, documenter le seuil de référence, la continuité de l’effort et la raison de l’arrêt ; un arrêt volontaire indique seulement un minimum.', 'Pour la durabilité, comparer un repère avant et après une charge prolongée documentée plutôt que conclure à partir du TTE seul.', 'Comparer les résultats enregistrés aux cibles actuelles, puis faire valider les ajustements par le coach ; une simulation n’est pas un progrès déjà obtenu.'])}
     <h3>Repères de vocabulaire</h3>
+    ${compass.completeProfileHTML ?? ''}
     <p><b>VO₂max</b> : plafond d’utilisation de l’oxygène. <b>VMA</b> : vitesse maximale aérobie course, dépendante du protocole. <b>FTP / MLSS</b> : repères de seuil liés mais non identiques par définition. <b>VLamax</b> : débit glycolytique maximal estimé ou mesuré selon la source, pas une mesure de force. <b>W′ / D′</b> : réserves ajustées au-dessus de CP / vitesse critique, propres au sport. <b>FatMax</b> : intensité d’oxydation lipidique maximale ; une estimation vélo ne donne pas une allure course.</p>
   </section>`;
 }

@@ -1793,7 +1793,7 @@ const Index = () => {
           {
             id: "analyse-section",
             render: () => dashDiagnostic ? (
-              <AnalyseSection diagnostic={dashDiagnostic} coverage={dashboardCompleteness} />
+              <AnalyseSection diagnostic={dashDiagnostic} coverage={dashboardCompleteness} profileInput={compassInputMemo} snapshot={effectiveCloudSnapshot ?? null} tests={tests} />
             ) : null,
           },
           // ✅ 3. LIMITEURS — Facteurs limitants avec explications pédagogiques

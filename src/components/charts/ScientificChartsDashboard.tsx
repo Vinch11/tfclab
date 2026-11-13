@@ -16,6 +16,10 @@ import {
 } from "./index";
 import { PowerDurationUnifiedChart } from "./PowerDurationUnifiedChart";
 import { MetabolicZonesINSCYDChart } from "./MetabolicZonesINSCYDChart";
+import { metabolicCurveReview } from '@/lib/coachingCompass/curveReview';
+import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 interface ScientificChartsDashboardProps {
   vlamaxValue: number | null;
@@ -73,9 +77,15 @@ export function ScientificChartsDashboard({
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
   const avgConfidence = (vlamaxConfidence + tteConfidence) / 2;
+  const review = metabolicCurveReview({ vo2max, vlamax: vlamaxValue, weight, ftp, vma, sport });
 
   return (
     <div className="space-y-4">
+      <section className="border-b border-border pb-5 space-y-3">
+        <div className="flex justify-between gap-3 items-start"><div><h3 className="text-lg font-semibold">Courbes métaboliques · {review.sport}</h3><p className="text-sm text-muted-foreground">{review.validation}</p></div><Button asChild variant="ghost" size="icon" aria-label="Ouvrir les protocoles de tests"><Link to="/diagnostic/tests"><ArrowUpRight className="h-5 w-5" /></Link></Button></div>
+        <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">{[['VO₂max', vo2max, 'ml/kg/min'], ['VLamax', vlamaxValue, 'mmol/L/s'], ['Poids', weight, 'kg'], [review.reference, sport === 'cap' ? vma : ftp, sport === 'cap' ? 'km/h' : 'W']].map(([label, value, unit]) => <div key={String(label)}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="font-medium tabular-nums mt-1">{typeof value === 'number' && Number.isFinite(value) && value > 0 ? `${value} ${unit}` : 'Données insuffisantes'}</dd></div>)}</dl>
+        <details className="text-sm"><summary className="cursor-pointer min-h-11 flex items-center font-medium">Hypothèses et validation</summary><div className="text-muted-foreground space-y-2 pb-3"><p>Contrôles logiciels des unités et des entrées, pas validation expérimentale des courbes. VLamax : {vlamaxSource}. La modalité du test VO₂max reste à documenter. Une valeur enregistrée ne certifie pas un test.</p><p>Oxydation des glucides ≠ apports alimentaires ≠ tolérance digestive. Le repère 90 g/h n’est pas une capacité digestive mesurée.</p><p>FTP, CP et MLSS sont distincts. Lactate simulé et rendement mécanique hypothétique ne remplacent pas les prélèvements et mesures d’oxygène.</p>{sport === 'cap' ? <p>Allures exploratoires liées à la VMA ; aucune transposition du lactate ou des watts vélo.</p> : sport === 'triathlon' ? <p>Ces courbes utilisent le profil vélo. Elles ne décrivent pas le métabolisme course ou natation.</p> : null}{review.missing.length > 0 && <p>Entrées manquantes : {review.missing.join(', ')}.</p>}</div></details>
+      </section>
       {/* Toggle Mode */}
       <div className="flex justify-end">
         <StaffModeToggle staffMode={staffMode} onToggle={setStaffMode} />
@@ -83,43 +93,6 @@ export function ScientificChartsDashboard({
 
       {/* Grille principale */}
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        {/* Energy Profile */}
-        <EnergyProfileChart
-          data={{
-            vlamaxValue,
-            vlamaxSource,
-            vlamaxConfidence,
-            tteValue,
-            tteSource,
-            tteConfidence,
-            objectif,
-          }}
-          staffMode={staffMode}
-          className="md:col-span-2 xl:col-span-1"
-        />
-
-        {/* Potentiel Physiologique removed */}
-
-        {/* TTE vs Target */}
-        <TTETargetChart
-          tteValue={tteValue}
-          tteSource={tteSource}
-          tteConfidence={tteConfidence}
-          objectif={objectif}
-          staffMode={staffMode}
-        />
-
-        {/* Performance Risk Matrix (Staff only) */}
-        {staffMode && (
-          <PerformanceRiskMatrixChart
-            vlamaxValue={vlamaxValue}
-            tteValue={tteValue}
-            objectif={objectif}
-            tss7d={tss7d}
-            staffMode={staffMode}
-          />
-        )}
-
         {/* Nutrition Predictive */}
         <NutritionPredictiveChart
           vlamaxValue={vlamaxValue}
@@ -130,14 +103,8 @@ export function ScientificChartsDashboard({
           staffMode={staffMode}
         />
 
-        {/* Energy Contribution */}
-        <EnergyContributionChart
-          vlamaxValue={vlamaxValue}
-          staffMode={staffMode}
-        />
-
         {/* Simulated cycling model is not a running threshold. */}
-        {sport !== "cap" && <SimulatedLactateCurveChart
+        {review.cycling && <SimulatedLactateCurveChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
           ftp={ftp ?? null}
@@ -147,20 +114,21 @@ export function ScientificChartsDashboard({
         />
 
         }
+        {!review.cycling && <section className="md:col-span-2 border-b border-border py-5"><h4 className="font-medium">Lactate et puissance-durée vélo</h4><p className="text-sm text-muted-foreground mt-2">{sport === 'cap' ? 'Non transposables à la course. Un protocole course spécifique est nécessaire.' : 'Données insuffisantes : VO₂max, VLamax, poids et FTP vélo requis.'}</p></section>}
         {/* Fat/Carb Oxidation */}
         <FatCarbOxidationChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
           ftp={sport === "cap" ? null : ftp ?? null}
           weight={weight}
-          vma={vma}
+          vma={sport === "cap" ? vma : null}
           paceMode={sport === "cap"}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
         />
 
         {/* Power-Duration Unified (Mader + Empirique) */}
-        {sport !== "cap" && <PowerDurationUnifiedChart
+        {review.cycling && <PowerDurationUnifiedChart
           vo2max={vo2max}
           vlamax={vlamaxValue}
           ftp={ftp}

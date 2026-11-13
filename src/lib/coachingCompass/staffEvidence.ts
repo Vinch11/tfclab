@@ -1,6 +1,7 @@
 import type { DbSnapshot, DbTest } from '@/hooks/useCloudData';
 import type { CalibrationEvidence } from '@/lib/calibration';
 import { parseStoredCriticalMetrics } from '@/lib/criticalMetrics';
+import { validTestDate } from '@/lib/testMeasurementReview';
 
 type Data = Record<string, unknown>;
 const object = (v: unknown): Data => v && typeof v === 'object' && !Array.isArray(v) ? v as Data : {};
@@ -34,7 +35,7 @@ function documentation(raw: unknown) {
   const r = object(raw);
   return {
     sensor: text(r.sensor) || text(r.device) || text(r.device_name) || 'Capteur non renseigné',
-    protocol: [text(r.protocol) || text(r.protocol_name), text(r.conditions), text(r.notes)].filter(Boolean).join(' · ') || 'Protocole non documenté',
+    protocol: [text(r.protocol) || text(r.protocol_name) || text(r.protocolId), text(r.conditions), text(r.notes)].filter(Boolean).join(' · ') || 'Protocole non documenté',
   };
 }
 
@@ -46,6 +47,7 @@ const rawLabels: Record<string, [string, string]> = {
   bestDistance: ['Distance sprint retenue', 'm'], distance6min: ['Distance 6 min', 'm'],
   hrMax: ['FC maximale', 'bpm'], hrAvg: ['FC moyenne', 'bpm'], hrAvg12min: ['FC moyenne 12 min', 'bpm'],
   hrDrift: ['Dérive cardiaque', '%'], driftPct: ['Dérive cardiaque', '%'],
+  tte_minutes: ['Durée au seuil enregistrée', 'min'], fatmaxW: ['FatMax estimée', 'W'],
   tteObserved: ['Durée déclarée au seuil', 'min'], tteObservedMin: ['Durée déclarée au seuil', 'min'],
   vma: ['VMA enregistrée', 'km/h'], paceThreshold: ['Allure seuil', 's/km'],
   runPowerMax: ['Puissance maximale course', 'W'], runPowerThreshold: ['Puissance seuil course', 'W'],
@@ -94,7 +96,8 @@ export function staffEvidenceRows(athleteId: string, snapshot: DbSnapshot | null
     }
   }
   for (const test of tests.filter(t => t.athlete_id === athleteId)) {
-    rows.push({ date: test.date, sport: test.sport || 'Non précisé', label: `${test.name} (${test.type})`,
+    const declaredDate = object(test.raw).testDate;
+    rows.push({ date: validTestDate(declaredDate) ? declaredDate : test.date, sport: test.sport || 'Non précisé', label: `${test.name} (${test.type})`,
       result: rawResults(test.raw).join(' · ') || 'Aucun résultat brut numérique exploitable enregistré',
       source: text(object(test.raw).source) || 'Test enregistré', ...documentation(test.raw),
       protocol: [documentation(test.raw).protocol, test.note].filter(Boolean).join(' · '),

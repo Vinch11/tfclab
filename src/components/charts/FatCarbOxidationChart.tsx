@@ -1,5 +1,5 @@
 /**
- * Fat/Carb Oxidation Chart – INSCYD-grade
+ * Fat/Carb Oxidation Chart – exploratory metabolic model
  * Full refonte: efficience variable, crossover zone band, dual-axis kcal/h
  * Uses maderMetabolicModel.ts for physiological accuracy
  */
@@ -27,6 +27,7 @@ import {
   calculateCarbOxidation,
   findFatMax,
   findCarbMax,
+  intensityToPowerWatts,
   type MaderProfile,
 } from "@/lib/v2/maderMetabolicModel";
 import {
@@ -108,14 +109,6 @@ export function UnitToggle({ paceMode, onChange }: { paceMode: boolean; onChange
 // Scales with intensity and trained status
 // =============================================
 
-function getEfficiency(intensityPct: number): number {
-  // Efficiency typically 22-25% for cycling, declining slightly at very high intensity
-  // Lower at very low intensity (less optimal pedaling), peaks at moderate, declines at high
-  if (intensityPct < 40) return 0.21 + (intensityPct / 40) * 0.02;
-  if (intensityPct < 75) return 0.23 + ((intensityPct - 40) / 35) * 0.02;
-  return 0.25 - ((intensityPct - 75) / 25) * 0.02; // Declines above threshold
-}
-
 // =============================================
 // TOOLTIP
 // =============================================
@@ -133,19 +126,19 @@ function makeOxidationTooltip(paceMode: boolean) {
         <div className="space-y-0.5">
           <div className="flex justify-between gap-3">
             <span className="text-muted-foreground flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(142,71%,45%)" }} />
+              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--success))" }} />
               Lipides
             </span>
-            <span className="font-mono font-bold" style={{ color: "hsl(142,71%,45%)" }}>
+            <span className="font-mono font-bold" style={{ color: "hsl(var(--success))" }}>
               {d.fatGmin.toFixed(2)} g/min
             </span>
           </div>
           <div className="flex justify-between gap-3">
             <span className="text-muted-foreground flex items-center gap-1">
-              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(24,95%,53%)" }} />
+              <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: "hsl(var(--warning))" }} />
               Glucides
             </span>
-            <span className="font-mono font-bold" style={{ color: "hsl(24,95%,53%)" }}>
+            <span className="font-mono font-bold" style={{ color: "hsl(var(--warning))" }}>
               {d.carbGmin.toFixed(2)} g/min
             </span>
           </div>
@@ -208,33 +201,33 @@ function OxidationMetrics({ data, fatMax, refValue, paceMode, carbMax }: {
     {
       label: "FatMax",
       value: `${fatMax.fatMaxGrams} g/min`,
-      sub: `${fatMax.fatMaxIntensity}% VO₂max · ${fatMaxRefStr}`,
-      css: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600",
+      sub: `${Math.round(fatMax.fatMaxGrams * 9 * 60)} kcal/h · ${fatMaxRefStr}`,
+      css: "bg-success/10 border-success/20 text-success",
       Icon: Droplets,
     },
     {
       label: "Crossover",
       value: `${crossoverPct}% VO₂max`,
       sub: `${crossoverRefStr} · 50/50 lip/glu`,
-      css: "bg-sky-500/10 border-sky-500/30 text-sky-600",
+      css: "bg-primary/10 border-primary/20 text-primary",
       Icon: ArrowRightLeft,
     },
     {
       label: `CHO @ ${refLabel}`,
       value: `${Math.round(atRef.carbGmin * 60)} g/h`,
       sub: `${atRef.carbGmin.toFixed(2)} g/min · ${atRefStr}`,
-      css: "bg-orange-500/10 border-orange-500/30 text-orange-600",
+      css: "bg-warning/10 border-warning/20 text-warning",
       Icon: Flame,
     },
     {
       label: `CarbMax ${carbMax?.targetCarbGH ?? 90} g/h`,
-      value: carbMax?.intensityPct != null ? `${carbMax.intensityPct}% VO₂max` : "Jamais atteint",
+      value: carbMax?.intensityPct != null ? `${carbMax.intensityPct}% VO₂max` : "Non atteint",
       sub: carbMax?.intensityPct != null
         ? `${paceMode
             ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (carbMax.intensityPct / 100))
-            : `${carbMax.power}W`} · plafond d'apport`
-        : "Épargne glucidique élevée",
-      css: "bg-amber-500/10 border-amber-500/30 text-amber-600",
+            : `${carbMax.power}W`} · repère d’oxydation`
+        : "Seuil non franchi dans le modèle",
+      css: "bg-warning/10 border-warning/20 text-warning",
       Icon: Zap,
     },
   ];
@@ -296,11 +289,10 @@ export function FatCarbOxidationChart({
     if (!profile || !valid) return [];
     const points: OxPoint[] = [];
 
-    for (let intensity = 20; intensity <= 100; intensity += 2) {
-      const efficiency = getEfficiency(intensity);
+    for (let intensity = 20; intensity <= 100; intensity += 1) {
+      const efficiency = profile.efficiency ?? 0.23;
       const vo2LMin = (profile.vo2max * profile.weight / 1000) * (intensity / 100);
-      const energyKJPerMin = vo2LMin * 20.9;
-      const watts = (energyKJPerMin * 1000 / 60) * efficiency;
+      const watts = intensityToPowerWatts(intensity, profile.vo2max, profile.weight, efficiency);
 
       // Allure (km/h) ≈ VMA × intensity/100 (approximation %vVO2max ≈ %VO2max)
       const paceKmh = paceMode && vma ? vma * (intensity / 100) : 0;
@@ -326,7 +318,7 @@ export function FatCarbOxidationChart({
 
   // CarbMax — intensité où l'oxydation CHO atteint 90 g/h (plafond d'ingestion usuel).
   const carbMax = useMemo(
-    () => (valid ? findCarbMax(profile, 90) : null),
+    () => (profile ? findCarbMax(profile, 90) : null),
     [profile, valid],
   );
 
@@ -349,10 +341,10 @@ export function FatCarbOxidationChart({
 
   return (
     <Card className={cn("overflow-hidden", className)}>
-      <CardHeader className="pb-2 bg-gradient-to-r from-emerald-500/10 via-transparent to-orange-500/5">
+      <CardHeader className="pb-2 border-b border-border">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Flame className="h-4 w-4 text-orange-500" />
+            <Flame className="h-4 w-4 text-warning" />
             Oxydation Lipides / Glucides
             <Badge variant="outline" className="text-[9px] font-normal">Mader Model</Badge>
           </CardTitle>
@@ -375,12 +367,12 @@ export function FatCarbOxidationChart({
             <ComposedChart data={data} margin={{ ...margins, left: -10 }}>
               <defs>
                 <linearGradient id="fatOxGradM" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(142,71%,45%)" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="hsl(142,71%,45%)" stopOpacity={0.03} />
+                  <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0.03} />
                 </linearGradient>
                 <linearGradient id="carbOxGradM" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(24,95%,53%)" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="hsl(24,95%,53%)" stopOpacity={0.03} />
+                  <stop offset="5%" stopColor="hsl(var(--warning))" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="hsl(var(--warning))" stopOpacity={0.03} />
                 </linearGradient>
               </defs>
 
@@ -388,8 +380,8 @@ export function FatCarbOxidationChart({
 
               {/* Crossover zone highlight band (FatMax → Crossover) */}
               <ReferenceArea x1={fatMax.fatMaxIntensity} x2={crossoverPct}
-                fill="hsl(217,91%,60%)" fillOpacity={0.08}
-                label={{ value: "Transition", fontSize: 8, fill: "hsl(217,91%,60%)", position: "insideTop" }} />
+                fill="hsl(var(--primary))" fillOpacity={0.08}
+                label={{ value: "Transition", fontSize: 8, fill: "hsl(var(--primary))", position: "insideTop" }} />
 
               <XAxis dataKey="intensity" {...responsiveAxisProps.xAxis} tickFormatter={(v: number) => `${v}%`} />
 
@@ -405,36 +397,36 @@ export function FatCarbOxidationChart({
 
               {/* FatMax vertical */}
               <ReferenceLine yAxisId="gmin" x={fatMax.fatMaxIntensity}
-                stroke="hsl(142,71%,45%)" strokeWidth={1.5} strokeDasharray="6 3"
-                label={{ value: `FatMax ${fatMax.fatMaxIntensity}%`, fontSize: 9, fill: "hsl(142,71%,45%)", position: "top" }} />
+                stroke="hsl(var(--success))" strokeWidth={1.5} strokeDasharray="6 3"
+                label={{ value: `FatMax ${fatMax.fatMaxIntensity}%`, fontSize: 9, fill: "hsl(var(--success))", position: "top" }} />
 
               {/* Crossover vertical */}
               <ReferenceLine yAxisId="gmin" x={crossoverPct}
-                stroke="hsl(217,91%,60%)" strokeWidth={1} strokeDasharray="4 4"
-                label={{ value: `Crossover ${crossoverPct}%`, fontSize: 8, fill: "hsl(217,91%,60%)", position: "top" }} />
+                stroke="hsl(var(--primary))" strokeWidth={1} strokeDasharray="4 4"
+                label={{ value: `Crossover ${crossoverPct}%`, fontSize: 8, fill: "hsl(var(--primary))", position: "top" }} />
 
               {/* CarbMax vertical — au-delà, dette glucidique (ox. CHO > apport max ~90 g/h) */}
               {carbMax?.intensityPct != null && (
                 <ReferenceLine yAxisId="gmin" x={Math.round(carbMax.intensityPct)}
-                  stroke="hsl(38,92%,50%)" strokeWidth={1.5} strokeDasharray="2 3"
-                  label={{ value: `CarbMax ${Math.round(carbMax.intensityPct)}%`, fontSize: 8, fill: "hsl(38,92%,50%)", position: "insideTopRight" }} />
+                  stroke="hsl(var(--warning))" strokeWidth={1.5} strokeDasharray="2 3"
+                  label={{ value: `CarbMax ${Math.round(carbMax.intensityPct)}%`, fontSize: 8, fill: "hsl(var(--warning))", position: "insideTopRight" }} />
               )}
 
               {/* Fat oxidation area (g/min) */}
               <Area yAxisId="gmin" type="monotone" dataKey="fatGmin"
-                stroke="hsl(142,71%,45%)" strokeWidth={2} fill="url(#fatOxGradM)"
+                stroke="hsl(var(--success))" strokeWidth={2} fill="url(#fatOxGradM)"
                 dot={false} activeDot={{ r: 4, strokeWidth: 2 }} name="Lipides (g/min)" />
 
               {/* Carb oxidation area (g/min) */}
               <Area yAxisId="gmin" type="monotone" dataKey="carbGmin"
-                stroke="hsl(24,95%,53%)" strokeWidth={2} fill="url(#carbOxGradM)"
+                stroke="hsl(var(--warning))" strokeWidth={2} fill="url(#carbOxGradM)"
                 dot={false} activeDot={{ r: 4, strokeWidth: 2 }} name="Glucides (g/min)" />
 
               {/* kcal/h lines (secondary) */}
               <Line yAxisId="kcal" type="monotone" dataKey="fatKcalH"
-                stroke="hsl(142,71%,45%)" strokeWidth={1} strokeDasharray="4 2" dot={false} name="Fat kcal/h" />
+                stroke="hsl(var(--success))" strokeWidth={1} strokeDasharray="4 2" dot={false} name="Fat kcal/h" />
               <Line yAxisId="kcal" type="monotone" dataKey="carbKcalH"
-                stroke="hsl(24,95%,53%)" strokeWidth={1} strokeDasharray="4 2" dot={false} name="CHO kcal/h" />
+                stroke="hsl(var(--warning))" strokeWidth={1} strokeDasharray="4 2" dot={false} name="CHO kcal/h" />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -442,10 +434,10 @@ export function FatCarbOxidationChart({
         {/* Legend */}
         <div className="flex flex-wrap gap-3 justify-center">
           {[
-            { label: "Lipides (g/min)", color: "hsl(142,71%,45%)", solid: true },
-            { label: "Glucides (g/min)", color: "hsl(24,95%,53%)", solid: true },
+            { label: "Lipides (g/min)", color: "hsl(var(--success))", solid: true },
+            { label: "Glucides (g/min)", color: "hsl(var(--warning))", solid: true },
             { label: "kcal/h (axe droit)", color: "hsl(var(--muted-foreground))", solid: false },
-            { label: "Zone transition", color: "hsl(217,91%,60%)", solid: false },
+            { label: "Zone transition", color: "hsl(var(--primary))", solid: false },
           ].map((z) => (
             <div key={z.label} className="flex items-center gap-1">
               <div className={cn("w-3 h-0.5 rounded", !z.solid && "border-b border-dashed")}
@@ -457,9 +449,9 @@ export function FatCarbOxidationChart({
 
         {/* Insight */}
         <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border">
-          <ArrowRightLeft className="h-4 w-4 mt-0.5 shrink-0 text-sky-600" />
+          <ArrowRightLeft className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
           <div>
-            <div className="text-xs font-semibold text-sky-600">Zone de transition métabolique</div>
+            <div className="text-xs font-semibold text-primary">Zone de transition métabolique</div>
             <div className="text-[11px] text-muted-foreground">
               Entre FatMax ({fatMax.fatMaxIntensity}%) et Crossover ({crossoverPct}%), l'athlète bascule
               d'une dominance lipidique vers glucidique. Pic d'oxydation lipidique : {fatMax.fatMaxGrams} g/min.
@@ -470,7 +462,7 @@ export function FatCarbOxidationChart({
             </div>
             {carbMax && (
               <div className="text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
-                <span className="font-semibold text-amber-600">CarbMax : </span>
+                <span className="font-semibold text-warning">CarbMax : </span>
                 {carbMax.intensityPct != null ? (
                   <>
                     au-delà de <strong>{carbMax.intensityPct}% VO₂max</strong>
@@ -493,23 +485,23 @@ export function FatCarbOxidationChart({
               Modèle d'oxydation Mader — Données techniques
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-              <span>FatMax: {fatMax.fatMaxIntensity}% VO₂max → {fatMax.fatMaxPower}W</span>
+              <span>FatMax: {fatMax.fatMaxIntensity}% VO₂max → {paceMode ? kmhToPaceStr((vma ?? 0) * fatMax.fatMaxIntensity / 100) : `${fatMax.fatMaxPower}W`}</span>
               <span>Crossover: {crossoverPct}% VO₂max</span>
               <span>Peak fat ox: {fatMax.fatMaxGrams} g/min</span>
               <span>CHO @ FatMax: {fatMax.carbAtFatMax} g/h</span>
-              <span>Efficience: variable 21-26% (intensité-dépendante)</span>
+              <span>Rendement vélo hypothétique : 23% · cohérent avec le résumé FatMax</span>
               <span>Modèle: Mader (2003) + Randle cycle + crossover (Brooks 1994)</span>
             </div>
             <p className="text-[9px] opacity-60 pt-1 border-t border-border/30">
               Fat oxidation: bell-curve Mader (peak ∝ VO₂max, inhibition ∝ VLamax via malonyl-CoA).
               Carb = résidu énergétique (VO₂ × 20.9 kJ/L - Fat × 38.9 kJ/g). Efficience mécanique
-              variable : 21% (basse intensité) → 25% (modéré) → 23% (haute, H⁺ accumulation).
+              fixé à 23%, non mesuré chez cet athlète.
             </p>
           </div>
         )}
 
         <p className="text-[9px] text-muted-foreground text-center pt-2 border-t">
-          Modèle Mader (2003) + crossover concept (Brooks 1994). Efficience variable. Valider par calorimétrie indirecte.
+          Modèle Mader (2003) + crossover concept (Brooks 1994). Rendement vélo hypothétique 23%. Allures course approximatives. Validation par calorimétrie indirecte nécessaire.
         </p>
       </CardContent>
     </Card>

@@ -84,6 +84,7 @@ import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassificatio
 // ✅ NEW: Coaching Compass (5 axes)
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compassReportRows } from '@/lib/coachingCompass/reportPresentation';
+import { completeProfileHTML } from '@/lib/coachingCompass/completeProfile';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
@@ -2152,7 +2153,8 @@ function buildExportPayload(
         sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
         athleteAge: athleteAge,
       };
-      return computeCoachingCompass(compassInput);
+      const result = computeCoachingCompass(compassInput);
+      return { ...result, completeProfileHTML: completeProfileHTML(compassInput, effectiveSnapshot?.css ?? null) };
     })(),
     // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
     lorangResult,

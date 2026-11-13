@@ -8,6 +8,9 @@
  */
 
 import { Card, CardContent } from "@/components/ui/card";
+import { CompletePhysiologicalProfile } from '@/components/CompletePhysiologicalProfile';
+import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
+import type { DbSnapshot, DbTest } from '@/hooks/useCloudData';
 import { cn } from "@/lib/utils";
 import {
   Activity,
@@ -447,7 +450,7 @@ function SortableMetricRow({ id, gap, metricInfo, isReorderMode }: {
   );
 }
 
-export function AnalyseSection({ diagnostic, className, coverage }: AnalyseSectionProps) {
+export function AnalyseSection({ diagnostic, className, coverage, profileInput, snapshot, tests = [] }: AnalyseSectionProps & { profileInput?: CoachingCompassInput | null; snapshot?: DbSnapshot | null; tests?: DbTest[] }) {
   const { limiter, synthesis } = diagnostic;
   const referenceView = diagnosticMetricPresentation(diagnostic);
   const gapAnalysis = useMemo<AnalysisGap[]>(
@@ -652,7 +655,7 @@ export function AnalyseSection({ diagnostic, className, coverage }: AnalyseSecti
           </div>
         )}
 
-        <section className="space-y-2 border-b border-border pb-4" data-testid="analysis-informational-references">
+        {!profileInput && <section className="space-y-2 border-b border-border pb-4" data-testid="analysis-informational-references">
           <h4 className="text-sm font-semibold">Repères à interpréter</h4>
           {referenceView.references.filter(g => /^W['′]/i.test(g.metric)).map(g => <p key={g.metric} className="text-xs">W′ vélo : {diagnostic.sportFocus === 'run' ? 'non pertinent pour la réserve course' : g.value != null && g.value > 0 ? `${g.value} kJ · estimation à confirmer` : 'Données insuffisantes'} — travail au-dessus de CP, pas une note de capacité anaérobie.</p>)}
           <p className="text-xs">TTE {diagnostic.sportFocus === 'run' ? 'course' : 'vélo'} : {referenceView.tte ? `${referenceView.tte.tte_min} min · ${metricSourceLabel(referenceView.tte.source)}` : 'Données insuffisantes'} — durée au seuil ; un effort arrêté volontairement ne donne qu’un minimum.</p>
@@ -660,12 +663,12 @@ export function AnalyseSection({ diagnostic, className, coverage }: AnalyseSecti
           <p className="text-xs">Durabilité : non évaluée — le TTE ou la dérive seuls ne prouvent pas la résistance après plusieurs heures.</p>
           <p className="text-xs">FatMax : {diagnostic.sportFocus === 'run' ? 'pas de conversion des %FTP vélo en allure course' : 'zone lipidique modélisée, pas une mesure ni une note de préparation à la course'}.</p>
           <p className="text-xs text-muted-foreground">Classement actuel du moteur conservé pour les plans ; les repères ci-dessus ne sont pas des déficits démontrés.</p>
-        </section>
+        </section>}
         {/* Liste des métriques */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
-              Métriques
+              Priorités pour l’objectif
             </p>
             <p className="text-[10px] text-muted-foreground/70">
               {orderedGaps.length} indicateurs
@@ -698,6 +701,7 @@ export function AnalyseSection({ diagnostic, className, coverage }: AnalyseSecti
           </DndContext>
         </div>
 
+        {profileInput && <CompletePhysiologicalProfile input={profileInput} snapshot={snapshot ?? null} tests={tests} />}
         {/* Footer pédagogie discret */}
         <div className="flex items-start gap-2 pt-4 border-t border-border/30 text-[11px] text-muted-foreground/80 leading-relaxed">
           <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-muted-foreground/60" />

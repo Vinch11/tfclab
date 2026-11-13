@@ -38,6 +38,8 @@ import {
   getConfidenceLabel
 } from "@/data/testProtocolsLibrary";
 import { toast } from "sonner";
+import { Checkbox } from '@/components/ui/checkbox';
+import { reviewedTte } from '@/lib/testMeasurementReview';
 
 interface TestExecutionSheetProps {
   test: IntegratedTestProtocol;
@@ -53,6 +55,8 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
   const [conditionsChecked, setConditionsChecked] = useState<Record<string, boolean>>({});
   const [inputValues, setInputValues] = useState<Record<string, number>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [documentation, setDocumentation] = useState<Record<string, string>>({});
+  const [review, setReview] = useState<Record<string, boolean>>({});
   
   const difficulty = getDifficultyLabel(test.difficulty);
   
@@ -77,6 +81,7 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
     if (!allRequiredFieldsFilled) return null;
     return test.compute(inputValues);
   }, [test, inputValues, allRequiredFieldsFilled]);
+  const tteReviewed = reviewedTte({ ...computedResult?.rawData, ...documentation, ...review, conditionsConfirmed: allConditionsMet }, test.sport);
   
   const handleNext = () => {
     const nextIndex = currentStepIndex + 1;
@@ -102,8 +107,13 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
     try {
       await onSave({
         ...computedResult.rawData,
+        ...documentation,
+        ...review,
+        conditionsConfirmed: allConditionsMet,
+        protocol: test.name,
+        conditions: test.validityConditions.filter(c => conditionsChecked[c.id]).map(c => c.label).join(' · '),
         confidence: computedResult.confidence,
-        estimatedVlamax: computedResult.result?.normalizedValue
+        ...(test.category === 'VLAMAX' ? { estimatedVlamax: computedResult.result?.normalizedValue } : {}),
       });
       toast.success("Test enregistré avec succès");
     } catch (error) {
@@ -187,36 +197,38 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
             
             <div className="space-y-3">
               {test.validityConditions.map((condition) => (
-                <button
+                <Button
                   key={condition.id}
+                  variant="outline"
+                  aria-pressed={conditionsChecked[condition.id] ?? false}
                   onClick={() => setConditionsChecked(prev => ({
                     ...prev,
                     [condition.id]: !prev[condition.id]
                   }))}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                  className={`w-full h-auto min-h-11 whitespace-normal flex items-center gap-3 p-3 rounded-lg border transition-all ${
                     conditionsChecked[condition.id]
-                      ? "bg-green-500/10 border-green-500/30"
+                      ? "bg-success/10 border-success/30"
                       : condition.critical
-                      ? "bg-muted/50 border-orange-500/30"
+                      ? "bg-muted/50 border-warning/30"
                       : "bg-muted/50 border-border"
                   }`}
                 >
                   <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                     conditionsChecked[condition.id]
-                      ? "border-green-500 bg-green-500"
+                      ? "border-success bg-success"
                       : "border-muted-foreground"
                   }`}>
                     {conditionsChecked[condition.id] && (
-                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      <CheckCircle2 className="w-4 h-4 text-success-foreground" />
                     )}
                   </div>
                   <span className="text-sm text-left flex-1">{condition.label}</span>
                   {condition.critical && (
-                    <Badge variant="outline" className="text-orange-500 border-orange-500/30 text-xs">
+                    <Badge variant="outline" className="text-warning border-warning/30 text-xs">
                       Critique
                     </Badge>
                   )}
-                </button>
+                </Button>
               ))}
             </div>
             
@@ -372,12 +384,17 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
       case "results":
         return (
           <div className="space-y-4">
+            <section className="space-y-3 border-b border-border pb-4">
+              <h3 className="font-semibold text-sm">Provenance du test</h3>
+              {[['testDate', 'Date réelle du test', 'date'], ['sensor', 'Capteur / appareil', 'text'], ['notes', 'Conditions et observations', 'text'], ...(test.category === 'TTE' ? [['thresholdReference', 'Test préalable du seuil · valeur et unité', 'text'], ['thresholdDate', 'Date du test préalable du seuil', 'date']] : [])].map(([key, label, type]) => <div key={key} className="space-y-1"><Label htmlFor={`review-${key}`}>{label}</Label><Input id={`review-${key}`} type={type} value={documentation[key] ?? ''} onChange={e => setDocumentation(p => ({ ...p, [key]: e.target.value }))} /></div>)}
+              {test.category === 'TTE' && <div className="space-y-3">{[['thresholdConfirmed', 'Seuil préalablement validé dans ce sport'], ['continuousConfirmed', 'Effort continu sans interruption ni récupération'], ['exhaustionConfirmed', 'Arrêt par épuisement, pas un arrêt volontaire'], ['protocolCapped', 'Plafond prévu du protocole atteint']].map(([key, label]) => <label key={key} className="flex items-start gap-3 text-sm min-h-11"><Checkbox checked={review[key] ?? false} onCheckedChange={v => setReview(p => ({ ...p, [key]: v === true }))} /><span>{label}</span></label>)}<p className="text-xs text-muted-foreground">Sans ces confirmations et un test préalable daté, la durée reste à vérifier et ne remplace pas le TTE du bilan.</p></div>}
+            </section>
             {computedResult?.ok ? (
               <>
-                <Card className="border-green-500/30 bg-green-500/5">
+                <Card className="border-success/30 bg-success/5">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <CheckCircle2 className="w-5 h-5 text-success" />
                       Résultats du test
                     </CardTitle>
                   </CardHeader>
@@ -387,25 +404,25 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                         {computedResult.result?.primaryValue.toFixed(2)}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {computedResult.result?.label} ({computedResult.result?.unit})
+                        {test.category === 'TTE' ? tteReviewed ? 'Durée au seuil · protocole déclaré par le coach' : 'Durée enregistrée · à vérifier' : computedResult.result?.label} ({computedResult.result?.unit})
                       </div>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3 mt-4">
                       <div className="text-center p-3 rounded-lg bg-muted/50">
-                        <BadgeCheck className={`w-5 h-5 mx-auto mb-1 ${getConfidenceLabel(computedResult.confidence).color}`} />
+                        <BadgeCheck className="w-5 h-5 mx-auto mb-1 text-primary" />
                         <div className="text-sm font-medium">
-                          {computedResult.confidence >= 0.7 ? "Fiable" : computedResult.confidence >= 0.5 ? "Modéré" : "Prudence"}
+                          {test.category === 'TTE' ? tteReviewed ? 'Protocole déclaré' : 'À vérifier' : 'Estimation à vérifier'}
                         </div>
-                        <div className="text-xs text-muted-foreground">Fiabilité</div>
+                        <div className="text-xs text-muted-foreground">Statut de lecture</div>
                       </div>
-                      <div className="text-center p-3 rounded-lg bg-muted/50">
-                        <Target className="w-5 h-5 mx-auto mb-1 text-purple-500" />
+                      {test.category === 'VLAMAX' && <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <Target className="w-5 h-5 mx-auto mb-1 text-primary" />
                         <div className="text-sm font-medium">
                           {computedResult.result?.normalizedValue.toFixed(3)}
                         </div>
                         <div className="text-xs text-muted-foreground">VLamax normalisée</div>
-                      </div>
+                      </div>}
                     </div>
                   </CardContent>
                 </Card>
@@ -415,7 +432,7 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                   <Card>
                     <CardHeader className="pb-2">
                       <CardTitle className="text-sm flex items-center gap-2">
-                        <Info className="w-4 h-4 text-purple-500" />
+                        <Info className="w-4 h-4 text-primary" />
                         Traçabilité du calcul
                         <Badge variant="outline" className="ml-2 text-xs">
                           {computedResult.calculationTrace.length} étapes
@@ -424,7 +441,7 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-2">
-                        {computedResult.calculationTrace.map((step, index) => (
+                        {computedResult.calculationTrace.filter(step => !/confiance|confidence|malus/i.test(step.step)).map((step, index) => (
                           <div 
                             key={index} 
                             className="flex items-start gap-3 p-2 rounded-lg bg-muted/30"
@@ -435,7 +452,7 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-sm font-medium truncate">
-                                  {step.step}
+                                  {test.category === 'TTE' && /TTE mesuré/i.test(step.step) ? 'Durée enregistrée' : step.step}
                                 </span>
                                 <span className="text-sm font-mono font-bold text-primary">
                                   {typeof step.value === 'number' 
@@ -447,7 +464,7 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                           </div>
                         ))}
                       </div>
-                      <div className="mt-3 p-2 rounded bg-blue-500/5 border border-blue-500/20">
+                      <div className="mt-3 p-2 rounded bg-primary/5 border border-primary/20">
                         <p className="text-xs text-muted-foreground">
                           <strong>TFCL™:</strong> Chaque étape du calcul est traçable pour garantir la transparence.
                         </p>
@@ -468,8 +485,8 @@ export function TestExecutionSheet({ test, athlete, onClose, onSave }: TestExecu
                       {test.tfclImpact.map((impact, i) => (
                         <li key={i} className="flex items-center justify-between text-sm">
                           <span>{impact.parameter}</span>
-                          <Badge variant="outline" className="text-green-500 border-green-500/30">
-                            +{impact.confidenceBoost.toFixed(2)}
+                          <Badge variant="outline" className="text-primary border-primary/30">
+                            À examiner
                           </Badge>
                         </li>
                       ))}

@@ -41,6 +41,8 @@ import { NolioFitPickerDialog } from "@/components/NolioFitPickerDialog";
 import { IntegratedTestProtocol, INTEGRATED_TESTS_LIBRARY } from "@/data/testProtocolsLibrary";
 import type { Json } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
+import { reviewedTte, validTestDate } from '@/lib/testMeasurementReview';
+import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 
 export default function TestsPage() {
   const navigate = useNavigate();
@@ -83,12 +85,7 @@ export default function TestsPage() {
 
   const currentSnapshot = useMemo(() => {
     if (!selectedAthlete) return null;
-    const athleteSnapshots = snapshots.filter(s => s.athlete_id === selectedAthlete.id);
-    // Get active snapshot or most recent
-    if (selectedAthlete.active_snapshot_id) {
-      return athleteSnapshots.find(s => s.id === selectedAthlete.active_snapshot_id) ?? athleteSnapshots[0] ?? null;
-    }
-    return athleteSnapshots[0] ?? null;
+    return pickReferenceSnapshot(snapshots, selectedAthlete.id, selectedAthlete.active_snapshot_id);
   }, [snapshots, selectedAthlete]);
   
   const completedTestsCount = athleteTests.length;
@@ -110,6 +107,7 @@ export default function TestsPage() {
     const tteMinutes = testData.tte_minutes as number | null;
     const fatmaxW = testData.fatmaxW as number | null;
     const economyScore = testData.economyScore as number | null;
+    const tteReviewed = reviewedTte(testData, activeTest.sport);
     
     // Déterminer la valeur VLamax à stocker selon le type de test
     let vlamaxValue: number | null = null;
@@ -159,7 +157,7 @@ export default function TestsPage() {
       const snapshotUpdates: Record<string, unknown> = {};
       const isRun = activeTest.sport === "run";
 
-      if (activeTest.category === "TTE" && tteMinutes && tteMinutes > 0) {
+      if (activeTest.category === "TTE" && tteReviewed && tteMinutes && tteMinutes > 0) {
         if (isRun) {
           snapshotUpdates.tte_observed_min_run = tteMinutes;
         } else {
@@ -175,13 +173,7 @@ export default function TestsPage() {
       }
 
       // VLamax haute confiance (labo/protocole propre) écrase la valeur snapshot
-      if (activeTest.category === "VLAMAX" && estimatedVlamax && confidence >= 0.75) {
-        if (isRun) {
-          snapshotUpdates.vlamax_run = estimatedVlamax;
-        } else {
-          snapshotUpdates.vlamax = estimatedVlamax;
-        }
-      }
+      // Field VLamax estimates stay in the test record, not certified snapshot measures.
 
       if (Object.keys(snapshotUpdates).length > 0) {
         try {
@@ -206,14 +198,14 @@ export default function TestsPage() {
         await supabase.from("calibration_evidence").insert({
           athlete_id: selectedAthlete.id,
           coach_id: userId,
-          date: new Date().toISOString().slice(0, 10),
+          date: validTestDate(testData.testDate) ? testData.testDate : new Date().toISOString().slice(0, 10),
           source_type: "MANUAL_TEST",
           evidence_type: evidenceType,
           raw_values: enrichedRawData as Json,
           protocol_quality: Math.max(1, Math.min(5, Math.round(activeTest.reliabilityScore * 5))),
-          validity: "OK",
+          validity: activeTest.category === 'TTE' && tteReviewed ? 'OK' : 'CHECK',
           confidence_evidence: confidence,
-          used_in_calibration: true,
+          used_in_calibration: activeTest.category === 'TTE' && tteReviewed,
           calibration_weight: confidence,
           notes: `Test manuel • ${activeTest.name}`,
         });
