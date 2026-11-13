@@ -4,7 +4,7 @@
 
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 
-- Athlete Performance/Profile reports narrate via `reportKit/story` (situation → limiters → why → work → recorded evolution), with precautions and evidence as appendices; evolution shows only stored tests/snapshots per sport. Why: athletes must read one continuous story without invented series.
+- Athlete reports narrate via `reportKit/story`; evolution uses only stored tests/snapshots per sport. Why: one story, no invented series.
 - Reports use `coachingCompass/reportPresentation` for values and `reportReading` for shared pedagogy; never infer targets or transfer bike measures into running. Why: all reports must explain the same projection without changing plan contracts.
 
 - Dashboard inventories/curves use `coachingCompass/{completeProfile,profileCurves,testCurves,curveReview}`; references use `diagnosticMetricPresentation`, progress uses `dashboardConsistency`. Why: sport-scoped evidence and display models must not change plan rankings.
