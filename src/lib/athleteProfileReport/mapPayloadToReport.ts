@@ -7,6 +7,7 @@
  * par l'UI et l'export Nolio).
  */
 
+import { evolutionSectionHTML, reportSports } from '@/lib/reportKit/story';
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
@@ -380,6 +381,7 @@ export function mapExportPayloadToProfileReport(
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
+    evolutionHTML: evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run') }),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

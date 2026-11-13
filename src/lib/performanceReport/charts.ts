@@ -70,7 +70,7 @@ export function gaugesSVG(rows: PerfGaugeRow[], caption: string): string {
   return svg(W, H, out);
 }
 
-/** Courbe de lactate ancrée sur le MLSS canonique (Heck : 4 mmol/L au MLSS). */
+/** Courbe de lactate modélisée ; 2 et 4 mmol/L restent des repères conventionnels, pas la définition du MLSS. */
 export function lactateCurveSVG(
   points: PerfCurvePoint[],
   mlssW: number | null,
@@ -97,8 +97,8 @@ export function lactateCurveSVG(
   // Bandes de lecture : aérobie (<2), transition (2–4), accumulation (>4)
   out.push(
     `<rect x="${L}" y="${y(2).toFixed(1)}" width="${pw}" height="${(y(0) - y(2)).toFixed(1)}" fill="${MINT}" fill-opacity=".07"/>`,
-    `<rect x="${L}" y="${y(4).toFixed(1)}" width="${pw}" height="${(y(2) - y(4)).toFixed(1)}" fill="${AMBER}" fill-opacity=".08"/>`,
-    `<rect x="${L}" y="${T}" width="${pw}" height="${(y(4) - T).toFixed(1)}" fill="${ROSE}" fill-opacity=".07"/>`,
+    `<rect x="${L}" y="${y(4).toFixed(1)}" width="${pw}" height="${(y(2) - y(4)).toFixed(1)}" fill="${AMBER}" fill-opacity=".04"/>`,
+    `<rect x="${L}" y="${T}" width="${pw}" height="${(y(4) - T).toFixed(1)}" fill="${ROSE}" fill-opacity=".03"/>`,
   );
 
   for (let i = 0; i <= 4; i++) {
@@ -113,8 +113,8 @@ export function lactateCurveSVG(
   );
   [2, 4].forEach((v) =>
     out.push(
-      `<line x1="${L}" y1="${y(v).toFixed(1)}" x2="${W - R}" y2="${y(v).toFixed(1)}" stroke="${v === 4 ? ROSE : MINT}" stroke-width="1" stroke-dasharray="4 4"/>`,
-      `<text x="${W - R + 8}" y="${(y(v) + 4).toFixed(1)}" font-size="10" fill="${v === 4 ? ROSE : MINT}">${v} mmol/L</text>`,
+      `<line x1="${L}" y1="${y(v).toFixed(1)}" x2="${W - R}" y2="${y(v).toFixed(1)}" stroke="${FAINT}" stroke-width="0.8" stroke-dasharray="2 5"/>`,
+      `<text x="${W - R + 8}" y="${(y(v) + 4).toFixed(1)}" font-size="9" fill="${FAINT}">${v} mmol/L · repère</text>`,
     ),
   );
 
@@ -247,7 +247,7 @@ export function substratesSVG(
   if (carbCeilingGH) {
     out.push(
       `<line x1="${L}" y1="${y(carbCeilingGH).toFixed(1)}" x2="${W - R}" y2="${y(carbCeilingGH).toFixed(1)}" stroke="${ROSE}" stroke-width="1.4" stroke-dasharray="5 5"/>`,
-      `<text x="${W - R + 10}" y="${(y(carbCeilingGH) + 4).toFixed(1)}" font-size="10.2" fill="${ROSE}" font-weight="600">Plafond ${Math.round(carbCeilingGH)} g/h</text>`,
+      `<text x="${W - R + 10}" y="${(y(carbCeilingGH) + 4).toFixed(1)}" font-size="10.2" fill="${ROSE}" font-weight="600">Repère modèle ${Math.round(carbCeilingGH)} g/h</text>`,
     );
   }
   if (fatMaxW && fatMaxW >= pmin && fatMaxW <= pmax) {

@@ -32,6 +32,7 @@ import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
+import { evolutionSectionHTML, isLongEvent, reportSports, sportControls } from '@/lib/reportKit/story';
 import { AMBER, MINT, PERI, ROSE, SKY, VIOL } from "./charts";
 import type {
   PerfBlock,
@@ -537,12 +538,13 @@ export function computePerformanceReport(
     });
   }
 
-  const controls = [
-    "Test seuil de 20–30 min (puissance + FC) toutes les 6 semaines.",
-    "Sprint de 15 s / test VLamax terrain en début et fin de bloc.",
-    "Sortie longue référence à FatMax : dérive cardiaque et allure sur la 2ᵉ moitié.",
-    "Enregistrement systématique du ravitaillement réel (g/h) sur les sorties > 2 h.",
-  ];
+  const sports = reportSports(payload?.athlete?.goal, isRunning);
+  const controls = sportControls({
+    sports,
+    tteKnown: tteMin != null,
+    vlamaxPriority: limiters.some((l) => /glycol|vlamax|lactique/i.test(`${l.title} ${l.mechanism}`)),
+    longEvent: isLongEvent(payload?.athlete?.goal),
+  });
 
   const targets = [
     {
@@ -608,6 +610,8 @@ export function computePerformanceReport(
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'compass-performance', 'Compass — repères communs aux rapports') : null,
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap, payload.tests ?? []),
+    sports,
+    evolutionHTML: evolutionSectionHTML({ athleteId: payload?.athlete?.id ?? '', tests: payload?.tests ?? [], snapshots: payload?.snapshotHistory ?? [], sports }),
     kpis: compass?.presentation ? compassRows.map(r => ({ label: r.label, value: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), unit: r.unit })) : kpis,
     gauges: compass?.presentation ? compassRows.filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, unit: r.unit, value: r.value, display: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), scale: [0, Math.max((r.target ?? 1) * 1.5, (r.value ?? 1) * 1.2)] as [number, number], target: r.target != null ? [r.target, r.target] as [number, number] : null, color: PERI })) : gauges,
     overview,

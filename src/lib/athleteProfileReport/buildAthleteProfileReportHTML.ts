@@ -14,6 +14,7 @@
  * Le builder est pur : aucune physiologie calculée ici.
  */
 
+import { insight, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 import { RK, coverPage, esc, num, reportDocument, rich } from "@/lib/reportKit";
 import type {
   AthleteProfileReportInput,
@@ -386,7 +387,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   const pageProfil = `
   <section class="page flow">
-    <div class="eyebrow">01 — Ton profil</div>
+    ${storyRail(0)}
+    <div class="eyebrow">01 — Où tu en es</div>
     <h1>Ce que disent tes données</h1>
     <div class="note avoid" style="border-left-color:${readinessColor};margin-bottom:12px">${rich(d.readiness.message)}</div>
 
@@ -427,7 +429,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   const pageLimiteurs = `
   <section class="page flow">
-    <div class="eyebrow">02 — Tes limiteurs</div>
+    ${storyRail(1)}
+    <div class="eyebrow">02 — Ce qui te freine</div>
     <h1>Ce qui te freine aujourd'hui</h1>
     <p class="lead">Un limiteur, c'est le maillon qui plafonne ta performance. Le travailler rapporte
     plus que d'entretenir ce que tu sais déjà faire.</p>
@@ -436,12 +439,14 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
         ? d.limiters.map(limiterCard).join("")
         : `<div class="card"><p class="muted" style="margin:0">Aucun limiteur dominant établi sur les données disponibles ; cela ne certifie pas une préparation complète.</p></div>`
     }
+    ${d.limiters[0] ? insight(`${d.limiters[0].title} est aujourd'hui le maillon le plus limitant pour ton objectif. ${d.limiters[0].fieldFeeling}`, d.levers[0] ? `Le premier levier sera : ${d.levers[0].title.toLowerCase()}. Le reste est entretenu, pas abandonné.` : "Ton coach choisit l'ordre de travail à partir de ce constat.") : ""}
     ${foot(d, "Limiteurs")}
   </section>`;
 
   const pageLeviers = `
   <section class="page flow">
-    <div class="eyebrow">03 — Les leviers</div>
+    ${storyRail(3)}
+    <div class="eyebrow">03 — Ce que nous travaillons</div>
     <h1>Ce qu'on va travailler</h1>
     <p class="lead">À chaque limiteur correspond un levier d'entraînement précis, avec ses séances
     types et les adaptations physiologiques attendues.</p>
@@ -465,7 +470,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const pagePlan = d.roadmap
     ? `
   <section class="page flow">
-    <div class="eyebrow">04 — Planification</div>
+    ${storyRail(3)}
+    <div class="eyebrow">04 — Le chemin</div>
     <h1>Le schéma des prochaines semaines</h1>
     <p class="lead">${esc(d.roadmap.title)} — ${d.roadmap.totalWeeks} semaines. ${d.roadmap.personalized ? "Périodisation adaptée à tes limiteurs." : "Périodisation de référence pour ton objectif."}</p>
     <div class="card avoid">
@@ -509,7 +515,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const pageZones = d.zoneSets.length
     ? `
   <section class="page flow">
-    <div class="eyebrow">05 — Zones d'entraînement</div>
+    ${storyRail(3)}
+    <div class="eyebrow">05 — Tes repères d'intensité</div>
     <h1>Tes zones, ancrées sur ta physiologie</h1>
     <p class="lead">Chaque tableau précise ses ancrages et distingue les zones dérivées de tes données des grilles de repli. Les allures et watts appartiennent au sport indiqué ; la fréquence cardiaque dépend aussi de la fatigue et des conditions.</p>
     ${d.zoneSets.map(zoneTable).join("")}
@@ -519,7 +526,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   const pageFinal = `
   <section class="page flow">
-    <div class="eyebrow">06 — Prochaines étapes</div>
+    ${storyRail(4)}
+    <div class="eyebrow">07 — Prochaines étapes</div>
     <h1>Ce que tu fais maintenant</h1>
     ${
       d.nextSteps.length
@@ -552,7 +560,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
-    extraCSS: EXTRA_CSS,
-    body: `${cover}${d.reportReadingHTML ? `<section class="page flow">${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${pageProfil}${d.compassSummaryHTML ? `<section class="page flow">${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLimiteurs}${pageLeviers}${pagePlan}${pageZones}${d.evidenceHTML ? `<section class="page flow">${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}${pageFinal}`,
+    extraCSS: STORY_CSS + EXTRA_CSS,
+    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLeviers}${pagePlan}${pageZones}${d.evolutionHTML ? `<section class="page flow">${d.evolutionHTML}${foot(d, 'Évolutions')}</section>` : ''}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
   });
 }
