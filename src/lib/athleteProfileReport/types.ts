@@ -114,6 +114,9 @@ export interface ReportTargetProgress {
 }
 
 export interface AthleteProfileReportInput {
+  reportReadingHTML?: string;
+  compassSummaryHTML?: string;
+  evidenceHTML?: string;
   athleteName: string;
   objectifLabel: string;
   ambitionLabel: string;

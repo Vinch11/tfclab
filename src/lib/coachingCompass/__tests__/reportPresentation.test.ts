@@ -31,4 +31,17 @@ describe('reports share the compass projection', () => {
     }
     expect(compass).toEqual(before);
   });
+  it('keeps running TTE 40 and VMA 14.2 with no IM VMA target in both expanded reports', () => {
+    const compass = computeCoachingCompass(input('IM'));
+    const before = structuredClone(compass);
+    const payload = { athlete: { id: 'athlete-a', name: 'Test', goal: 'IM' }, coachingCompass: compass, effectiveRefs: { ftp: 188, weightKg: 52, vo2max: 50, vma: 14.2 }, unifiedLimiter: { categoryRanking: [], gapAnalysis: [] }, tests: [] };
+    const opts = { ambitionLabel: 'Compétiteur', generatedAt: '2026-11-13' };
+    mapExportPayloadToProfileReport(payload, opts);
+    computePerformanceReport(payload, opts);
+    const axes = compass.presentation?.disciplineAxes?.run;
+    expect(axes?.find(a => a.key === 'tte')?.value).toBe(40);
+    expect(axes?.find(a => a.key === 'vma')?.value).toBe(14.2);
+    expect(axes?.find(a => a.key === 'vma')?.target).toBeNull();
+    expect(compass).toEqual(before);
+  });
 });

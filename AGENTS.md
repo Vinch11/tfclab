@@ -4,7 +4,7 @@
 
 - Staff factual evidence uses `coachingCompass/staffEvidence` with athlete-scoped stored inputs, raw tests and critical efforts; missing sensor/protocol metadata stays unknown and records never imply certified measurements. Why: report models must remain separate from the observations supporting them.
 
-- Reports consume `coachingCompass/reportPresentation` for displayed values, targets, sources and sport references; never infer alternative report targets or relabel bike FatMax as running pace. Why: PDF and screen must present the same diagnostic projection without changing plan contracts.
+- Reports use `coachingCompass/reportPresentation` for values and `reportReading` for shared pedagogy; never infer targets or transfer bike measures into running. Why: all reports must explain the same projection without changing plan contracts.
 
 - Use `diagnosticMetricPresentation` to classify W′, TTE, durability and FatMax as unscored dashboard references without mutating diagnostic outputs. Why: a modeled threshold duration or lipid zone cannot certify long-event readiness.
 

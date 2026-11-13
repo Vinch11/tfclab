@@ -13,15 +13,10 @@ import {
   whatIfBarsSVG,
 } from "./charts";
 import type { PerformanceReportInput } from "./types";
-import { coverPage, esc, kpiCell, reportDocument, reportFoot } from "@/lib/reportKit";
+import { coverPage, esc, kpiCell, reportDocument } from "@/lib/reportKit";
 
 function foot(input: PerformanceReportInput, n: number): string {
-  return reportFoot({
-    athleteName: input.athleteName,
-    generatedAt: input.generatedAt,
-    page: n,
-    totalPages: 9,
-  });
+  return `<div class="foot"><span>TFC Lab · ${esc(input.athleteName)}</span><span>${esc(input.generatedAt)} · Partie ${n - 1}</span></div>`;
 }
 
 
@@ -79,8 +74,8 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       </table>
     </div>
     <div class="grid3" style="margin-top:12px">
-      <div class="kpi"><div class="k">LT1 · 2 mmol/L</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
-      <div class="kpi"><div class="k">LT2 · 4 mmol/L (= MLSS)</div><div class="v">${p.lt2W ?? "—"}<span class="u">W</span></div></div>
+      <div class="kpi"><div class="k">LT1 — repère modélisé vélo</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
+      <div class="kpi"><div class="k">MLSS — estimation vélo</div><div class="v">${p.lt2W ?? "—"}<span class="u">W</span></div></div>
       <div class="kpi"><div class="k">Puissance à VO₂max</div><div class="v">${p.vo2W ?? "—"}<span class="u">W</span></div></div>
     </div>
     <div class="note" style="margin-top:12px">
@@ -94,17 +89,14 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   const page4 = `
   <section class="page">
     <div class="eyebrow">03 — Dynamique du lactate</div>
-    <h1>Où se situe ton vrai seuil</h1>
-    <p class="lead">Ta lactatémie stabilisée en fonction de la puissance. Tant que l'élimination
-    (oxydation, pilotée par la VO₂max) suit la production (glycolyse, pilotée par la VLamax), la
-    courbe reste plate. Le décrochage au-delà de 4 mmol/L marque la fin de l'état stable : c'est
-    ton MLSS.</p>
+    <h1>Le seuil proposé par le modèle</h1>
+    <p class="lead">Cette courbe vélo est calculée, pas mesurée par prélèvements lactiques. Elle illustre le déséquilibre entre production et élimination lorsque l’intensité augmente. Un seuil fixe à 4 mmol/L n’est pas la définition universelle du MLSS ; sa validation demande un protocole adapté. Aucun seuil course n’est déduit des watts vélo.</p>
     <div class="card">
       ${hasCurve ? lactateCurveSVG(input.curve, p.mlssW, p.lt1W, p.lt2W) : `<p class="muted">Données insuffisantes pour modéliser la courbe (VO₂max, VLamax et poids requis).</p>`}
     </div>
     <div class="grid2" style="margin-top:12px">
-      <div class="card"><h3>Sous le MLSS</h3><p style="margin:0">Le lactate produit est entièrement réutilisé comme carburant. L'effort est stable : la limite devient le stock de glycogène et la fatigue neuromusculaire, pas l'acidose.</p></div>
-      <div class="card"><h3>Au-dessus du MLSS</h3><p style="margin:0">L'accumulation devient exponentielle. Chaque watt supplémentaire raccourcit fortement le temps tenable — c'est la zone où une erreur de pacing coûte la course.</p></div>
+      <div class="card"><h3>Sous le MLSS</h3><p style="margin:0">Un équilibre lactique peut être maintenu dans les conditions du test. Cela ne garantit pas une durée illimitée : fatigue, chaleur, glycogène et hydratation restent importants.</p></div>
+      <div class="card"><h3>Au-dessus du MLSS</h3><p style="margin:0">L’état stable lactique n’est plus maintenu. Le temps tenable dépend de l’écart au seuil et du profil ; une courbe modélisée ne mesure pas ce temps à elle seule.</p></div>
     </div>
     <div class="note" style="margin-top:12px"><strong>Ton point d'équilibre :</strong> ${p.mlssW ?? "—"} W${p.mlssWkg ? ` (${String(p.mlssWkg).replace(".", ",")} W/kg)` : ""}${p.mlssPctVo2 ? `, soit ${p.mlssPctVo2} % de ta VO₂max` : ""}.</div>
     ${foot(input, 4)}
@@ -126,9 +118,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       <div class="kpi"><div class="k">TTE — indice au seuil</div><div class="v">${p.tteMin ?? "—"}<span class="u">min</span></div><p class="muted">Durabilité après effort prolongé non évaluée.</p></div>
     </div>
     <div class="note" style="margin-top:12px">
-      <strong>Lecture coach.</strong> Une contribution glycolytique élevée dès les intensités
-      moyennes signe une VLamax haute : le moteur consomme du sucre pour rien. C'est le premier
-      levier à traiter avant d'ajouter du volume d'intensité.
+      <strong>Lecture coach.</strong> Les contributions affichées sont des illustrations du modèle, pas une mesure directe des filières. Une consommation glucidique élevée ne suffit pas à imposer un limiteur ou un ordre de travail ; les priorités restent celles du diagnostic et du coach.
     </div>
     ${foot(input, 5)}
   </section>`;
@@ -137,8 +127,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   <section class="page">
     <div class="eyebrow">05 — Carburants</div>
     <h1>Lipides, glucides et plafond d'ingestion</h1>
-    <p class="lead">Débits d'oxydation en grammes par heure. Le trait rose est le plafond réaliste
-    d'ingestion glucidique (90 g/h) : au-dessus, tu creuses une dette qui se paie en fin d'épreuve.</p>
+    <p class="lead">Débits d’oxydation estimés en grammes par heure. Le repère de 90 g/h est une convention de ce modèle, pas une limite digestive universelle ni une prescription individuelle. Oxydation et ingestion ne sont pas équivalentes : la stratégie doit être testée à l’entraînement avec les produits et les conditions prévus.</p>
     <div class="card">
       ${hasCurve ? substratesSVG(input.curve, p.fatMaxW, p.carbMaxGH ?? 90) : `<p class="muted">Données insuffisantes.</p>`}
     </div>
@@ -183,7 +172,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       }
     </div>
     <div class="grid2" style="margin-top:12px">
-      <div class="card"><h3>Sweet Spot</h3><p style="margin:0">88–94 % du seuil : meilleur rapport charge/adaptation pour élever le MLSS sans coût de récupération excessif.</p></div>
+      <div class="card"><h3>Travail sous le seuil</h3><p style="margin:0">L’intention se définit par le domaine physiologique et les repères du sport. L’appellation d’une méthode ne garantit pas son coût de récupération ; la dose et le contexte doivent être validés par le coach.</p></div>
       <div class="card"><h3>Allure spécifique course</h3><p style="margin:0">Ancrée sur le seuil et la durée de l'épreuve, pas sur une zone fixe. Elle est recalculée à chaque mise à jour de tes valeurs.</p></div>
     </div>
     ${foot(input, 7)}
@@ -193,8 +182,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   <section class="page">
     <div class="eyebrow">07 — Simulations</div>
     <h1>Et si on déplaçait un levier ?</h1>
-    <p class="lead">Recalcul du seuil pour chaque levier travaillé sur 12 semaines. Les amplitudes
-    sont bornées par les vitesses d'adaptation réellement observées, jamais extrapolées.</p>
+    <p class="lead">Scénarios théoriques sur 12 semaines, bornés par les règles du modèle. Ils illustrent une sensibilité aux paramètres, pas une réponse individuelle déjà observée ni une promesse de progression. Ils ne modifient pas le plan.</p>
     <div class="card">
       ${
         input.scenarios.length
@@ -248,7 +236,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   const page9 = `
   <section class="page">
     <div class="eyebrow">08 — Plan d'action</div>
-    <h1>Ce qu'on fait des 12 prochaines semaines</h1>
+    <h1>Orientations à valider avec le coach</h1>
     ${
       input.blockStructure.length
         ? `<div class="card" style="margin-bottom:10px">
@@ -277,7 +265,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
         : `<div class="card"><p class="muted" style="margin:0">Plan d'action non disponible : diagnostic incomplet.</p></div>`
     }
     <div class="card" style="margin-top:4px">
-      <h3>Cibles à 12 semaines</h3>
+      <h3>Cibles internes actuelles — pas un résultat promis à 12 semaines</h3>
       <table>
         <thead><tr><th>Marqueur</th><th>Aujourd'hui</th><th>Cible</th><th>Horizon</th></tr></thead>
         <tbody>${input.targets.map((t) => `<tr><td><strong>${esc(t.marker)}</strong></td><td>${esc(t.current)}</td><td>${esc(t.target)}</td><td class="muted">${esc(t.horizon)}</td></tr>`).join("")}</tbody>
@@ -300,7 +288,8 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
 
   return reportDocument({
     title: `Rapport de Performance TFCL — ${input.athleteName}`,
-    body: `${cover}${input.compassSummaryHTML ? `<section class="page flow">${input.compassSummaryHTML}</section>` : ''}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}`,
+    extraCSS: '.page { height:auto; min-height:297mm; overflow:visible; } .foot { position:static; margin-top:14px; } @media screen and (max-width:800px) { .page { width:100%; min-height:0; padding:24px 18px; } .grid2, .grid3 { grid-template-columns:1fr; } table { display:block; overflow-x:auto; max-width:100%; } .foot { flex-wrap:wrap; gap:8px; } }',
+    body: `${cover}${input.reportReadingHTML ? `<section class="page flow">${input.reportReadingHTML}</section>` : ''}${input.compassSummaryHTML ? `<section class="page flow">${input.compassSummaryHTML}</section>` : ''}${page2}${page3}${page4}${page5}${page6}${page7}${page8}${page9}${input.evidenceHTML ? `<section class="page flow">${input.evidenceHTML}</section>` : ''}`,
   });
 
 }

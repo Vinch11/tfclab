@@ -82,6 +82,8 @@ export interface PerfTargetRow {
 }
 
 export interface PerformanceReportInput {
+  reportReadingHTML?: string;
+  evidenceHTML?: string;
   compassSummaryHTML?: string | null;
   /** Identité */
   athleteName: string;

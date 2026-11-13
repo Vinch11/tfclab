@@ -85,6 +85,7 @@ import { mapDbRaceGoalsForRoadmap } from "@/lib/plan/multiObjectiveClassificatio
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compassReportRows } from '@/lib/coachingCompass/reportPresentation';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
+import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -4630,6 +4631,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
       <div class="tocRow"><a href="#positionnement">0. Positionnement & Comment lire ce rapport</a></div>
       ${isAthlete ? '' : '<div class="tocRow"><a href="#staff-evidence">Mesures, tests et capteurs — données enregistrées</a></div>'}
+      ${isAthlete ? '' : '<div class="tocRow"><a href="#report-reading">Du constat au suivi</a></div>'}
       ${tocRows}
     </div>
   `;
@@ -8439,13 +8441,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   
   // Map des sections vers leur contenu HTML
+  const summaryLink = (id: string, heading: string, detail: string) => `<section id="${id}" class="section pagebreakAvoid"><h2>${heading}</h2><p>${detail}</p><p><a href="#executive-overview">Valeurs, sources et cibles : lecture d’ensemble</a> · <a href="#report-reading">Limites et suivi</a> · <a href="#staff-evidence">Tests et capteurs enregistrés</a></p></section>`;
   const sectionHTMLMap: Record<keyof ReportSections, string> = {
-    synthese: buildCompassReportSummaryHTML(payload.coachingCompass, 'executif', 'Synthèse — mêmes repères que le compass'),
+    synthese: summaryLink('executif', 'Synthèse', 'La lecture d’ensemble au début du rapport regroupe les valeurs et leurs cibles, sans multiplier les mêmes tableaux.'),
     compass: compassHTML,
-    profilMetabolique: buildCompassReportSummaryHTML(payload.coachingCompass, 'profil-metabolique', 'Profil physiologique — compass'),
+    profilMetabolique: summaryLink('profil-metabolique', 'Profil physiologique', 'Plafond aérobie, débit glycolytique et seuil décrivent des dimensions différentes. Leur lecture dépend du sport et de la provenance, pas du score seul.'),
     vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
     runMLSSCoherence: buildRunMLSSCoherenceHTML(payload),
-    indicateurs: buildCompassReportSummaryHTML(payload.coachingCompass, 'indicateurs', 'Indicateurs et provenance'),
+    indicateurs: summaryLink('indicateurs', 'Indicateurs et provenance', 'Une valeur enregistrée, un record et un résultat modélisé n’ont pas la même portée. Les entrées factuelles sont regroupées dans Mesures, tests et capteurs.'),
     pacingEnvelope: (() => {
       if (payload.coachingCompass.presentation?.sport === 'run') return buildCompassReportSummaryHTML(payload.coachingCompass, 'pacing-envelope', 'Repères course — sans transfert des watts vélo');
       const goal = payload.athlete.goal || "";
@@ -8477,7 +8480,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
     fatmaxTFCL: buildFatMaxTFCLHTML(payload),
-    ambitionTargets: buildCompassReportSummaryHTML(payload.coachingCompass, 'ambition-targets', 'Cibles internes de l’ambition sélectionnée'),
+    ambitionTargets: summaryLink('ambition-targets', 'Ambition et cibles internes', 'L’ambition oriente le diagnostic ; elle ne classe pas l’athlète dans une compétition. Les cibles internes atteintes ne démontrent pas un temps de course ni la robustesse après plusieurs heures.'),
     ambitionPredictions: ambitionPredictionsHTML,
     evolutionCharts: evolutionChartsHTML,
     ageAdjustment: aaiHTML,
@@ -8493,9 +8496,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     qualite: qualiteHTML,
     roadmap: buildRoadmapHTML(payload),
     lactateCurve: payload.coachingCompass.presentation?.sport === 'run' ? '<section id="lactate-curve" class="section"><h2>Courbe lactate course</h2><p>Données insuffisantes : le modèle vélo en watts ne définit pas une courbe lactate course.</p></section>' : buildLactateCurveHTML(payload),
-    substrateCurve: buildCompassReportSummaryHTML(payload.coachingCompass, 'substrate-curve', 'Oxydation lipidique — repères du modèle'),
-    performancePrediction: buildCompassReportSummaryHTML(payload.coachingCompass, 'performance-prediction', 'Repères de performance — cibles internes'),
-    facteursLimitants: buildCompassReportSummaryHTML(payload.coachingCompass, 'facteurs-limitants', 'Priorités et repères du diagnostic'),
+    substrateCurve: summaryLink('substrate-curve', 'Oxydation lipidique — repères du modèle', 'FatMax est une intensité, pas une réserve ni une preuve d’endurance. Seul un protocole métabolique documenté peut la présenter comme mesurée.'),
+    performancePrediction: summaryLink('performance-prediction', 'Performance — ce qui peut être conclu', 'Aucun chrono n’est certifié par ces cibles. Parcours, météo, natation, transitions, ravitaillement et robustesse demandent des observations complémentaires.'),
+    facteursLimitants: summaryLink('facteurs-limitants', 'Priorités du diagnostic', 'La lecture d’ensemble conserve la hiérarchie utilisée par les plans et distingue le diagnostic course indépendant. Les leviers ci-dessous doivent être confrontés aux faits et au contexte de charge.'),
     leviersAction: buildLeviersActionHTML(payload),
     cpWprimeWbal: buildCpWprimeWbalHTML(payload),
     lactateCorrespondence: buildLactateCorrespondenceHTML(payload),
@@ -8525,6 +8528,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <body>
         ${coverHTML}
         ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture d’ensemble — compass')}
+        ${isAthlete ? '' : buildReportReadingHTML(payload.coachingCompass)}
         
         <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <button onclick="${EMBEDDED_PRINT_ONCLICK}" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
@@ -10010,6 +10014,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         }),
         logoBase64,
       });
+      input.evidenceHTML = buildStaffEvidenceHTML(athlete.id, payload.effectiveSnapshot, payload.tests, calibrationEvidences);
       const html = buildAthleteProfileReportHTML(input);
       const fileName = `mon-profil-physiologique-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
       openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
@@ -10050,6 +10055,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
         }),
         logoBase64,
       });
+      input.evidenceHTML = buildStaffEvidenceHTML(athlete.id, payload.effectiveSnapshot, payload.tests, calibrationEvidences);
       const html = buildPerformanceReportHTML(input);
       const fileName = `rapport-performance-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
       openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
@@ -10314,7 +10320,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 )}
                 <div className="text-left flex-1">
                   <div className="font-medium text-sm">Rapport de Performance</div>
-                  <div className="text-[10px] opacity-80">9 pages : lactate, filières, carburants, zones, simulations</div>
+                  <div className="text-[10px] opacity-80">Repères, tests, lactate, carburants, zones et suivi</div>
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>

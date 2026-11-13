@@ -10,7 +10,9 @@
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
-import { compassReportRows } from '@/lib/coachingCompass/reportPresentation';
+import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
+import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
+import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 
 import {
   deriveTrainingZones,
@@ -375,6 +377,9 @@ export function mapExportPayloadToProfileReport(
 
   return {
     athleteName: payload.athlete?.name ?? "Athlète",
+    reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
+    compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
+    evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

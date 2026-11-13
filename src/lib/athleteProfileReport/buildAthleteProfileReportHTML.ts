@@ -62,6 +62,13 @@ const EXTRA_CSS = `
   .roadmap-axis { position:relative; height:16px; margin-left:calc(32% + 12px); border-top:1px solid ${RK.line}; }
   .roadmap-tick { position:absolute; top:2px; transform:translateX(-50%); font-size:9px; color:${RK.faint}; white-space:nowrap; }
   ul.tight { margin:0; padding-left:16px; font-size:11px; line-height:1.55; color:${RK.body}; }
+  @media screen and (max-width:800px) {
+    .page { width:100%; min-height:0; padding:24px 18px; }
+    .metrics, .grid2, .grid3 { grid-template-columns:1fr !important; }
+    table { display:block; overflow-x:auto; max-width:100%; }
+    .foot { flex-wrap:wrap; gap:8px; }
+    .roadmap-row { grid-template-columns:1fr; }
+  }
 `;
 
 function foot(d: AthleteProfileReportInput, label: string): string {
@@ -111,8 +118,11 @@ function radarSVG(axes: ReportRadarAxis[]): string {
     })
     .join(" ");
 
+  const comparable = (a: ReportRadarAxis) => a.value != null && a.value > 0 && a.target != null && a.target > 0;
+
   const dots = axes
     .map((a, i) => {
+      if (!comparable(a)) return '';
       const r = (Math.max(0, Math.min(100, a.score)) / 100) * R;
       const [x, y] = pt(i, r);
       return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" fill="${RK.primary}" stroke="#fff" stroke-width="1.2" />`;
@@ -125,14 +135,14 @@ function radarSVG(axes: ReportRadarAxis[]): string {
       const anchor = Math.abs(x - cx) < 12 ? "middle" : x > cx ? "start" : "end";
       return `
         <text x="${x.toFixed(1)}" y="${(y - 2).toFixed(1)}" text-anchor="${anchor}" font-size="11" font-weight="600" fill="${RK.ink}">${esc(a.shortLabel)}</text>
-        <text x="${x.toFixed(1)}" y="${(y + 11).toFixed(1)}" text-anchor="${anchor}" font-size="10" fill="${RK.muted}">${a.value != null && a.value > 0 ? `${Math.round(a.score)}/100` : "—"}</text>`;
+        <text x="${x.toFixed(1)}" y="${(y + 11).toFixed(1)}" text-anchor="${anchor}" font-size="10" fill="${RK.muted}">${comparable(a) ? `${Math.round(a.score)}/100` : a.value != null && a.value > 0 ? `${num(a.value, 1)} ${esc(a.unit)}` : "—"}</text>`;
     })
     .join("");
 
   return `
   <svg viewBox="0 0 ${size + padX * 2} ${size + 16}" width="100%" style="max-width:420px;display:block;margin:0 auto" xmlns="http://www.w3.org/2000/svg">
     ${rings}${spokes}
-    <polygon points="${valuePts}" fill="${RK.primary}22" stroke="${RK.primary}" stroke-width="2" stroke-linejoin="round" />
+    ${axes.every(comparable) ? `<polygon points="${valuePts}" fill="${RK.primary}22" stroke="${RK.primary}" stroke-width="2" stroke-linejoin="round" />` : ''}
     ${dots}${labels}
   </svg>`;
 }
@@ -173,7 +183,7 @@ function progressBar(t: ReportTargetProgress): string {
     </div>
     <div class="bar" style="height:8px;border-radius:999px"><span style="width:${pct.toFixed(1)}%;background:${color}"></span></div>
     <div style="font-size:9px;color:${t.reached ? RK.mint : RK.faint};margin-top:3px">
-      ${t.progress == null ? "Donnée manquante" : t.reached ? "✓ Cible atteinte" : `${Math.round(pct)} % du chemin parcouru`}
+      ${t.target == null ? "Comparaison non définie" : t.current == null || t.current <= 0 ? "Donnée manquante" : t.reached ? "✓ Cible interne atteinte" : `${Math.round(pct)} % de la cible interne — pas une progression mesurée`}
     </div>
   </div>`;
 }
@@ -368,7 +378,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       { label: "Âge", value: d.age != null ? `${d.age} ans` : "—" },
       { label: "Bilan du", value: d.snapshotDate ?? "—" },
       { label: "Complétude des données", value: `${Math.round(d.dataCompleteness)} %` },
-      { label: "Préparation", value: `${Math.round(d.readiness.score)}/100 · ${d.readiness.label}` },
+      { label: "Statut", value: "Diagnostic — pas une prédiction de résultat" },
     ],
     footnote: `Modèles physiologiques TFCL™ (Mader-Heck, Karvonen, périodisation Lorang). Généré le ${d.generatedAt}. Les valeurs estimées s'affinent à chaque test réalisé.`,
     logoBase64: d.logoBase64,
@@ -424,7 +434,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${
       d.limiters.length
         ? d.limiters.map(limiterCard).join("")
-        : `<div class="card"><p class="muted" style="margin:0">Aucun limiteur dominant détecté : profil équilibré pour cet objectif.</p></div>`
+        : `<div class="card"><p class="muted" style="margin:0">Aucun limiteur dominant établi sur les données disponibles ; cela ne certifie pas une préparation complète.</p></div>`
     }
     ${foot(d, "Limiteurs")}
   </section>`;
@@ -501,8 +511,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   <section class="page flow">
     <div class="eyebrow">05 — Zones d'entraînement</div>
     <h1>Tes zones, ancrées sur ta physiologie</h1>
-    <p class="lead">Ces zones sont dérivées de tes ancres physiologiques (seuil, FatMax, VO₂max) et
-    non d'une grille générique. Ce sont elles qui pilotent tes séances.</p>
+    <p class="lead">Chaque tableau précise ses ancrages et distingue les zones dérivées de tes données des grilles de repli. Les allures et watts appartiennent au sport indiqué ; la fréquence cardiaque dépend aussi de la fatigue et des conditions.</p>
     ${d.zoneSets.map(zoneTable).join("")}
     ${foot(d, "Zones")}
   </section>`
@@ -544,6 +553,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
     extraCSS: EXTRA_CSS,
-    body: `${cover}${pageProfil}${pageLimiteurs}${pageLeviers}${pagePlan}${pageZones}${pageFinal}`,
+    body: `${cover}${d.reportReadingHTML ? `<section class="page flow">${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${pageProfil}${d.compassSummaryHTML ? `<section class="page flow">${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLimiteurs}${pageLeviers}${pagePlan}${pageZones}${d.evidenceHTML ? `<section class="page flow">${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}${pageFinal}`,
   });
 }
