@@ -33,10 +33,10 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     eyebrow: "Rapport de performance métabolique",
     title: input.athleteName,
     intro:
-      "Repères du compass, sources et cibles internes ; modèles complémentaires selon le sport. La durabilité après effort prolongé reste à évaluer.",
+      "Ton moteur, ce qui te freine, et comment ton entraînement va te faire progresser vers ton objectif.",
     identity: input.identity,
     highlights: input.kpis,
-    footnote: `Modèle Mader-Heck calibré (α = 1,98 · N = 44 profils laboratoire) — plafonds de progression Inscyd 2025. Généré le ${input.generatedAt}${input.snapshotDate ? ` · snapshot du ${input.snapshotDate}` : ""}.`,
+    footnote: `Généré le ${input.generatedAt}${input.snapshotDate ? ` · snapshot du ${input.snapshotDate}` : ""}.`,
     logoBase64: input.logoBase64,
   });
 
@@ -125,9 +125,6 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       <div class="kpi"><div class="k">Temps tenu au seuil vélo</div><div class="v">${p.tteMin ?? "—"}<span class="u">min</span></div><p class="muted">Ta tenue après plusieurs heures de selle n'est pas encore évaluée.</p></div>
     </div>
     ${insight(`Au-delà d'environ ${p.mlssW ?? "—"} W, ton énergie vient de plus en plus du sucre.`, "Chaque bosse ou relance au-dessus de ces watts vide un peu tes réserves : en sortie longue, on les dose ; en séance ciblée, on les cherche volontairement.")}
-    <div class="note" style="margin-top:12px">
-      <strong>À savoir.</strong> Ces parts sont calculées, pas mesurées pendant ta sortie. Ce n'est pas parce que tu brûles beaucoup de sucre que c'est forcément ta priorité : ton coach la choisit à partir de l'ensemble du bilan.
-    </div>
     ${foot(input, 5)}
   </section>`;
 
@@ -166,16 +163,16 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     ${storyRail(3)}
     <div class="eyebrow">04 — Ce que nous travaillons · zones</div>
     <h1>Tes zones, ancrées sur ta physiologie</h1>
-    <p class="lead">${esc(input.zoneSourceLabel)}.</p>
+    <p class="lead">Tes zones sont calculées à partir de tes propres tests : chaque séance du plan vise l’une d’elles.</p>
     <div class="card">
       ${
         input.zones.length
           ? `<table>
-        <thead><tr><th style="width:8%">Zone</th><th style="width:20%">Intitulé</th><th style="width:15%">Intensité</th><th style="width:15%">Cardio</th><th style="width:15%">Lactate</th><th>Substrat / adaptation</th></tr></thead>
+        <thead><tr><th style="width:8%">Zone</th><th style="width:20%">Intitulé</th><th style="width:15%">Intensité</th><th style="width:15%">Cardio</th><th>Ce que ça travaille</th></tr></thead>
         <tbody>${input.zones
           .map(
             (z) =>
-              `<tr><td><strong>${esc(z.id)}</strong></td><td>${esc(z.label)}</td><td>${esc(z.absolute)}</td><td>${esc(z.heartRate)}</td><td class="muted">${esc(z.lactate)}</td><td>${esc(z.substrate)} · <span class="muted">${esc(z.adaptation)}</span></td></tr>`,
+              `<tr><td><strong>${esc(z.id)}</strong></td><td>${esc(z.label)}</td><td>${esc(z.absolute)}</td><td>${esc(z.heartRate)}</td><td>${esc(z.adaptation)}</td></tr>`,
           )
           .join("")}</tbody>
       </table>`
@@ -186,7 +183,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       <div class="card"><h3>Travail sous le seuil</h3><p style="margin:0">À vélo, il se lit en watts ; en course, en allure et en cardio. Le nom d'une méthode ne dit pas combien elle fatigue : ton coach règle la dose.</p></div>
       <div class="card"><h3>Intensité du jour J</h3><p style="margin:0">Tes watts ou ton allure d'épreuve dépendent de ton seuil et de la durée de la course, pas d'une zone fixe. Elles sont recalculées après chaque nouveau test.</p></div>
     </div>
-    ${insight(`Tes zones sont calculées à partir de tes propres repères : ${input.zoneSourceLabel}.`, "Chaque séance du plan vise un domaine précis ; si tes repères changent après un test, les zones suivent automatiquement.")}
+    ${insight("Les zones basses construisent ton endurance ; les zones hautes, ta vitesse et ta puissance.", "Chaque séance du plan vise un domaine précis ; si tes repères changent après un test, les zones suivent automatiquement.")}
     ${foot(input, 7)}
   </section>`;
 
@@ -327,7 +324,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   return reportDocument({
     title: `Rapport de Performance TFCL — ${input.athleteName}`,
     extraCSS: STORY_CSS + '.page { height:auto; min-height:297mm; overflow:visible; } .foot { position:static; margin-top:14px; } @media screen and (max-width:800px) { .page { width:100%; min-height:0; padding:24px 18px; } .grid2, .grid3 { grid-template-columns:1fr; } table { display:block; overflow-x:auto; max-width:100%; } .foot { flex-wrap:wrap; gap:8px; } }',
-    body: `${cover}${page2}${pageFrein}${input.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}${input.compassSummaryHTML}</section>` : ''}${page3}${sports.map((sp, i) => `${sports.length > 1 ? sportTransition(sp, i, sports.length) : ''}${sp === 'bike' ? `${page4}${page5}${page6}` : pageRun}${input.evolutionBySport?.[sp] ? `<section class="page flow">${input.evolutionBySport[sp]}</section>` : ''}${sp === 'bike' && input.scenarios.length ? page8 : ''}`).join('')}${sharedTransition(sports.length)}${page7}${page9}${input.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · pour le coach</div>${input.reportReadingHTML}</section>` : ''}${input.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${input.evidenceHTML}</section>` : ''}`,
+    body: `${cover}${page2}${pageFrein}${sports.map((sp, i) => `${sports.length > 1 ? sportTransition(sp, i, sports.length) : ''}${sp === 'bike' ? `${page4}${page5}${page6}` : pageRun}${input.evolutionBySport?.[sp] ? `<section class="page flow">${input.evolutionBySport[sp]}</section>` : ''}`).join('')}${sharedTransition(sports.length)}${page7}${page9}`,
   });
 
 }

@@ -350,11 +350,9 @@ function zoneTable(z: ReportZoneSet): string {
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
       <h3 style="margin:0">${esc(z.sportLabel)}</h3>
       <span class="pill ${z.source === "derived" ? "ok" : "na"}">
-        ${z.source === "derived" ? "Zones calculées sur ta physiologie" : "Grille standard (données insuffisantes)"}
+        ${z.source === "derived" ? "Calculées sur tes tests" : "Repères provisoires, à affiner au prochain test"}
       </span>
     </div>
-    ${z.anchors.length ? `<div style="font-size:9.5px;color:${RK.faint};margin-bottom:8px">Ancrages : ${z.anchors.map(esc).join(" · ")}</div>` : ""}
-    ${z.fallbackReason ? `<div style="font-size:10px;color:${RK.amber};margin-bottom:8px">${esc(z.fallbackReason)}</div>` : ""}
     <table>
       <thead><tr><th>Zone</th><th>Intention</th><th>%</th><th>Valeur</th><th>% FC max</th><th>FC (bpm)</th></tr></thead>
       <tbody>${rows}</tbody>
@@ -381,7 +379,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       { label: "Complétude des données", value: `${Math.round(d.dataCompleteness)} %` },
       { label: "Statut", value: "Diagnostic — pas une prédiction de résultat" },
     ],
-    footnote: `Modèles physiologiques TFCL™ (Mader-Heck, Karvonen, périodisation Lorang). Généré le ${d.generatedAt}. Les valeurs estimées s'affinent à chaque test réalisé.`,
+    footnote: `Généré le ${d.generatedAt}. Les valeurs estimées s'affinent à chaque test réalisé.`,
     logoBase64: d.logoBase64,
   });
 
@@ -401,8 +399,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     const tte = (d.sportTte ?? []).filter(r => isSport(sp, r.label));
     const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'bike' ? 'cycling' : 'running'));
     const zones = d.zoneSets.filter(z => isSport(sp, z.sportLabel));
-    const rows = [...tte.map(r => `<tr><td>${t.tte}</td><td><strong>${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'}</strong></td><td class="muted">${esc(metricSourceLabel(r.source))}</td></tr>`),
-      ...refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td><td class="muted">${esc(metricSourceLabel(r.source))}${r.conditions ? ` · ${esc(r.conditions)}` : ''}</td></tr>`)];
+    const rows = [...tte.map(r => `<tr><td>${t.tte}</td><td><strong>${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'}</strong></td></tr>`),
+      ...refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td></tr>`)];
     return `${storySports.length > 1 ? sportTransition(sp, i, storySports.length, sp === 'bike' ? ['Ton vélo en chiffres', 'Tes zones vélo', 'Ce que tu gardes en fin de longue sortie', 'Ce qui a changé dans tes tests vélo'] : ['Ta course en chiffres', 'Tes zones course', 'Ce que tu gardes en fin de sortie longue', 'Ce qui a changé dans tes tests course']) : ''}
   <section class="page flow">
     ${storyRail(0)}
@@ -412,11 +410,10 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${metrics.length ? `<div class="metrics">${metrics.map(metricCard).join('')}</div>` : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
+  ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
     ${foot(d, t.title)}
   </section>
-  ${zones.length ? `<section class="page flow">${storyRail(3)}<div class="eyebrow">${t.zones}</div><h1>${t.zones}</h1><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}${foot(d, t.zones)}</section>` : ''}
-  ${d.durabilityBySport?.[sp] ? `<section class="page flow">${storyRail(4)}${d.durabilityBySport[sp]}${foot(d, 'Durabilité')}</section>` : ''}
-  ${d.evolutionBySport?.[sp] ? `<section class="page flow">${d.evolutionBySport[sp]}${foot(d, 'Évolutions')}</section>` : ''}`;
+  ${d.durabilityBySport?.[sp] || d.evolutionBySport?.[sp] ? `<section class="page flow">${d.durabilityBySport?.[sp] ?? ''}<div style="margin-top:22px"></div>${d.evolutionBySport?.[sp] ?? ''}${foot(d, 'Tes progrès')}</section>` : ''}`;
   };
 
   const pageProfil = `
@@ -430,7 +427,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       <div class="grid2" style="grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:center">
         <div>
           ${radarSVG(d.radar)}
-          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Repères des cibles internes, pas une probabilité de réussite. Le TTE ne mesure pas la robustesse après effort prolongé. Durabilité non évaluée.</div>
+          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Plus la forme est large, plus tu es proche de tes cibles.</div>
         </div>
         <div>
           <div style="font-size:11.8px;line-height:1.65;color:${RK.inkSoft}">${rich(d.profileNarrative)}</div>
@@ -593,6 +590,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
     extraCSS: STORY_CSS + EXTRA_CSS,
-    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${storySports.length ? storySports.map(sportChapter).join('') + sharedTransition(storySports.length) : pageZones}${pageLeviers}${pagePlan}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
+    body: `${cover}${pageProfil}${pageLimiteurs}${storySports.length ? storySports.map(sportChapter).join('') + sharedTransition(storySports.length) : pageZones}${pageLeviers}${pagePlan}${pageFinal}`,
   });
 }

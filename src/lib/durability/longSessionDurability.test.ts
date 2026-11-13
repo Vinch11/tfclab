@@ -18,5 +18,5 @@ describe('durabilité sorties longues', () => {
 });
 import { durabilityReportHTML } from './longSessionDurability';
 describe('rapport durabilité', () => {
-  it('affiche « Données insuffisantes » sans valeur inventée', () => { expect(durabilityReportHTML(null, ['run'])).toContain('Données insuffisantes'); });
+  it('annonce une durabilité non mesurée sans valeur inventée', () => { expect(durabilityReportHTML(null, ['run'])).toContain('Pas encore mesurée'); });
 });
