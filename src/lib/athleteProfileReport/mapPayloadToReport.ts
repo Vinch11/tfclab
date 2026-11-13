@@ -9,6 +9,7 @@ import { durabilityReportHTML } from '@/lib/durability/longSessionDurability';
  */
 
 import { evolutionSectionHTML, reportSports } from '@/lib/reportKit/story';
+import { sportProgressionHTML } from '@/lib/reportKit/sportProgression';
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
@@ -384,6 +385,7 @@ export function mapExportPayloadToProfileReport(
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
     durabilityBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, durabilityReportHTML((snap as { critical_metrics?: unknown } | null)?.critical_metrics, [sp])])),
     evolutionBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: [sp] })])),
+    progressionBySport: Object.fromEntries(reportSports(goal, compass?.presentation?.sport === 'run').map(sp => [sp, sportProgressionHTML(payload.tests ?? [], payload.athlete?.id ?? '', sp)])),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

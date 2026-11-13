@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Progression réelle par sport intégrée aux chapitres du Profil Athlète : puissance moyenne du test de seuil vélo / VMA, dates et valeurs, protocoles distincts non reliés, aucune estimation ni cible transformée en mesure. 18 tests verts ; export connecté Emanuela ouvert (un seul sprint stocké, donc aucune progression seuil/VMA inventée), courbes/PDF et téléphone sans débordement contrôlés sur séries d’essai. Compilation OK, deux générateurs déployés avec succès ; historique réel à compléter pour voir les courbes chez Emanuela.
+
 - [x] Performance et Profil Athlète enrichis en photos sportives et repères personnels lisibles ; pages évolution/plan retirées, transitions intégrées au flux et absences non répétées. Exports réels Emanuela ouverts, toutes les photos chargées, téléphone sans débordement ; PDF de contrôle 8/7 pages avec contenu, 20 tests verts, compilation OK et deux générateurs déployés. Mesures et plans inchangés ; dialogue Ctrl+P manuel non reproduit.
 
 - [x] Parcours séparés vélo puis course avec pages de transition et conclusion commune ; chapitre course sans watts. 118 tests verts.

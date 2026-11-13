@@ -120,6 +120,7 @@ export interface AthleteProfileReportInput {
   /** Tests et bilans enregistrés comparés dans le temps. */
   durabilityBySport?: Partial<Record<'bike' | 'run', string>>;
   evolutionBySport?: Partial<Record<'bike' | 'run', string>>;
+  progressionBySport?: Partial<Record<'bike' | 'run', string>>;
   athleteName: string;
   objectifLabel: string;
   ambitionLabel: string;

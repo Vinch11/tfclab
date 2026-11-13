@@ -26,6 +26,7 @@ import type {
   ReportZoneSet,
 } from "./types";
 import { metricSourceLabel } from '../coachingCompass/presentation';
+import { SPORT_PROGRESSION_CSS } from '@/lib/reportKit/sportProgression';
 
 const STATUS_COLOR: Record<string, string> = {
   ok: RK.mint,
@@ -378,6 +379,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${metrics.length ? personalMarkers(metrics.map(m => ({label:m.label, value:m.value, display:num(m.value,m.decimals ?? 1),unit:m.unit,target:m.target,scale:m.scale}))) : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
+    ${d.progressionBySport?.[sp] ?? ''}
   ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
     ${d.durabilityBySport?.[sp] && !/Pas encore mesurée/.test(d.durabilityBySport[sp] ?? '') ? `<div style="margin-top:18px">${d.durabilityBySport[sp]}</div>` : ''}
     ${foot(d, t.title)}
@@ -500,7 +502,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
-    extraCSS: STORY_CSS + EXTRA_CSS + ATHLETE_VISUAL_CSS,
+    extraCSS: STORY_CSS + EXTRA_CSS + ATHLETE_VISUAL_CSS + SPORT_PROGRESSION_CSS,
     body: `${cover}${pageProfil}${pageLimiteurs}${storySports.length ? storySports.map(sportChapter).join('') : pageZones}${d.levers.length ? pageLeviers : ""}${pageFinal}`,
   });
 }
