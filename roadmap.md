@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Trois rapports enrichis en schémas didactiques par sport : moteur, domaines d’effort, distinction TTE/durabilité et repères de zones. Aucun calcul ni progression ajouté. 20 tests verts ; exports connectés Emanuela : 8/7/6 figures, graphiques sans débordement sur téléphone, PDF de contrôle générés. Débordement historique du document Staff hors graphiques toujours présent. Compilation OK ; deux générateurs déployés avec succès pour synchroniser la version ; dialogue Ctrl+P manuel non reproduit.
+
 - [x] Progression retirée des rapports athlète à la demande du coach (13/11) : courbes de tests datés et section « ce qui a réellement changé » supprimées du code partagé, plus aucune série de bilans ni d’évolution dans Performance et Profil. La comparaison à l’ambition reste et se lit « écart à ta cible » avec l’écart restant. 6 tests verts (dont un contrôle du rapport rendu : aucune trace de progression, les deux chapitres sportifs et leur durabilité conservés), type-check sans erreur, deux générateurs redéployés.
 
 - [x] ~~Progression réelle par sport intégrée aux chapitres du Profil Athlète~~ — retirée le 13/11 (entrée précédente) : le coach ne veut aucune progression dans les rapports.
