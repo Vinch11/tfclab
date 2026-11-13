@@ -22,12 +22,14 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { PhysiologicalProfileCurves } from './PhysiologicalProfileCurves';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
-import type { DbSnapshot } from '@/hooks/useCloudData';
+import type { DbSnapshot, DbTest } from '@/hooks/useCloudData';
+import { TestMeasurementCurves } from './TestMeasurementCurves';
 
 interface ScientificChartsDashboardProps {
   profileInput?: CoachingCompassInput | null;
   snapshots?: DbSnapshot[];
   snapshot?: DbSnapshot | null;
+  tests?: DbTest[];
   vlamaxValue: number | null;
   vlamaxSource: string;
   vlamaxConfidence: number;
@@ -61,6 +63,7 @@ export function ScientificChartsDashboard({
   profileInput,
   snapshots = [],
   snapshot = null,
+  tests = [],
   vlamaxValue,
   vlamaxSource,
   vlamaxConfidence,
@@ -91,6 +94,7 @@ export function ScientificChartsDashboard({
   return (
     <div className="space-y-4">
       {profileInput && <PhysiologicalProfileCurves input={profileInput} snapshots={snapshots} snapshot={snapshot} />}
+      {profileInput?.athleteId && <TestMeasurementCurves tests={tests} athleteId={profileInput.athleteId} />}
       <section className="border-b border-border pb-5 space-y-3">
         <div className="flex justify-between gap-3 items-start"><div><h3 className="text-lg font-semibold">Courbes métaboliques · {review.sport}</h3><p className="text-sm text-muted-foreground">{review.validation}</p></div><Button asChild variant="ghost" size="icon" aria-label="Ouvrir les protocoles de tests"><Link to="/diagnostic/tests"><ArrowUpRight className="h-5 w-5" /></Link></Button></div>
         <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">{[['VO₂max', vo2max, 'ml/kg/min'], ['VLamax', vlamaxValue, 'mmol/L/s'], ['Poids', weight, 'kg'], [review.reference, sport === 'cap' ? vma : ftp, sport === 'cap' ? 'km/h' : 'W']].map(([label, value, unit]) => <div key={String(label)}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="font-medium tabular-nums mt-1">{typeof value === 'number' && Number.isFinite(value) && value > 0 ? `${value} ${unit}` : 'Données insuffisantes'}</dd></div>)}</dl>

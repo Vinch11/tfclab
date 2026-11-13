@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Tests vélo/course consultables et comparaison des points réellement enregistrés, seuils propres au test, séries absentes explicites. Vince sprint 115 m vs 83,3 m comparé dans l’écran ; Emanuela vélo 276 W résumé sans courbe inventée. 13 tests verts, contrôles connectés ordinateur/téléphone sans erreur ni débordement ; deux générateurs déployés. Les séries temporelles non stockées ne sont pas reconstructibles ; aucune mesure ni prescription modifiée.
+
 - [x] Courbes VO₂max/VLamax/seuils/économie et zones par sport ajoutées au profil Expert ; historiques, demande en oxygène exploratoire et seuils vélo estimés distincts des mesures documentées. Vince/Emanuela connectés ordinateur/téléphone sans débordement ni erreur ; 47 tests verts, compilation OK, deux générateurs déployés. Aucun bilan ni plan modifié ; équivalence scientifique INSCYD non démontrée.
 
 - [x] Lecture complète et premium des indicateurs restaurée, TTE visible, sports séparés, tests/sources consultables ; provenance et déclarations TTE contrôlées, courbes numériquement vérifiées sans certification expérimentale. Vince/Emanuela vérifiés connectés sur ordinateur/téléphone, six rapports/PDF ouverts ; aucune donnée athlète ni prescription modifiée. Validation indépendante contre mesures métaboliques reste à établir ; détail : docs/complete-physiological-profile-review-2026-11-13.md.

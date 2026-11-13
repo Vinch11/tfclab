@@ -2095,6 +2095,7 @@ const Index = () => {
             render: () => currentAthlete && effectiveCloudSnapshot && staffMode && (
               <ScientificChartsDashboard
                 profileInput={compassInputMemo}
+                tests={tests}
                 snapshots={snapshots}
                 snapshot={effectiveCloudSnapshot}
                 vlamaxValue={alignedVlamaxEffectif.value}

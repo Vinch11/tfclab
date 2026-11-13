@@ -1,0 +1,38 @@
+import { useMemo, useState } from 'react';
+import { ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Line, ReferenceLine, ResponsiveContainer } from 'recharts';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { DbTest } from '@/hooks/useCloudData';
+import { compatibleTestCurves, storedTestCurves, TEST_CHANNELS, type TestChannel } from '@/lib/coachingCompass/testCurves';
+import { BEVEL_CHART_COLORS as colors, bevelAxisProps, bevelGridProps } from './bevelChartTheme';
+
+export function TestMeasurementCurves({ tests, athleteId }: { tests: DbTest[]; athleteId: string }) {
+  const curves = useMemo(() => storedTestCurves(tests, athleteId), [tests, athleteId]);
+  const [sport, setSport] = useState<'bike' | 'run'>('bike');
+  const [selected, setSelected] = useState('');
+  const [comparison, setComparison] = useState('none');
+  const [selectedChannel, setChannel] = useState<TestChannel>('watts');
+  const sportTests = curves.filter(t => t.sport === sport);
+  const current = sportTests.find(t => t.id === selected) ?? sportTests[0];
+  const channel = current?.channels.includes(selectedChannel) ? selectedChannel : current?.channels[0] ?? selectedChannel;
+  const comparable = current ? sportTests.filter(t => t.id !== current.id && compatibleTestCurves(current, t, channel)) : [];
+  const other = comparable.find(t => t.id === comparison);
+  const data = current ? [...new Set([...current.points.map(p => p.x), ...(other?.points.map(p => p.x) ?? [])])].sort((a, b) => a - b).map(x => ({ x, current: current.points.find(p => p.x === x)?.[channel] ?? null, previous: other?.points.find(p => p.x === x)?.[channel] ?? null })) : [];
+  const unit = TEST_CHANNELS[channel].unit;
+  return <section className="space-y-4 border-t border-border py-6" data-testid="test-measurement-curves">
+    <div className="flex flex-wrap items-center justify-between gap-4"><div><h3 className="text-xl font-semibold">Mesures de chaque test</h3><p className="text-sm text-muted-foreground">Résultats bruts · seuils du test · comparaison par protocole</p></div><Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') { setSport(v); setSelected(''); setComparison('none'); } }}><TabsList className="min-h-11"><TabsTrigger value="bike" className="min-h-10">Vélo</TabsTrigger><TabsTrigger value="run" className="min-h-10">Course à pied</TabsTrigger></TabsList></Tabs></div>
+    {!current ? <p className="text-sm text-muted-foreground py-6">Aucun test {sport === 'bike' ? 'vélo' : 'course'} enregistré pour cet athlète.</p> : <>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div><p className="text-xs text-muted-foreground mb-2">Test</p><Select value={current.id} onValueChange={v => { setSelected(v); setComparison('none'); }}><SelectTrigger aria-label="Choisir le test" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent>{sportTests.map(t => <SelectItem key={t.id} value={t.id}>{t.date} · {t.name}</SelectItem>)}</SelectContent></Select></div>
+        <div><p className="text-xs text-muted-foreground mb-2">Mesure</p><Select value={channel} onValueChange={v => { if (v in TEST_CHANNELS) { setChannel(v as TestChannel); setComparison('none'); } }} disabled={!current.channels.length}><SelectTrigger aria-label="Choisir la mesure" className="min-h-11"><SelectValue placeholder="Série absente" /></SelectTrigger><SelectContent>{current.channels.map(c => <SelectItem key={c} value={c}>{TEST_CHANNELS[c].label} · {TEST_CHANNELS[c].unit}</SelectItem>)}</SelectContent></Select></div>
+        <div><p className="text-xs text-muted-foreground mb-2">Comparer</p><Select value={other?.id ?? 'none'} onValueChange={setComparison}><SelectTrigger aria-label="Comparer avec un test" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">Sans comparaison</SelectItem>{comparable.map(t => <SelectItem key={t.id} value={t.id}>{t.date} · {t.name}</SelectItem>)}</SelectContent></Select></div>
+      </div>
+      <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm"><span>{current.date} · {current.name}</span><span className="text-muted-foreground">{current.sensor ?? 'Capteur non renseigné'}</span><span className="text-muted-foreground">{current.protocol ?? 'Protocole non documenté'}</span></div>
+      {other && <div className="flex flex-wrap gap-5 text-xs"><span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />{current.date}</span><span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-success" />{other.date}</span></div>}
+      <div className="h-72 min-w-0">{current.channels.length ? <ResponsiveContainer width="100%" height="100%"><ComposedChart data={data} margin={{ top: 20, right: 18, bottom: 22, left: 0 }}><CartesianGrid {...bevelGridProps} /><XAxis dataKey="x" type="number" domain={['dataMin', 'dataMax']} {...bevelAxisProps} label={{ value: current.axis === 'time' ? 'Temps enregistré (s)' : 'Tentative', position: 'insideBottom', offset: -12 }} /><YAxis {...bevelAxisProps} width={45} domain={['auto', 'auto']} /><Tooltip labelFormatter={v => `${current.axis === 'time' ? 'Temps' : 'Tentative'} ${v}${current.axis === 'time' ? ' s' : ''}`} formatter={(v: number, name: string) => [`${Number(v.toFixed(2))} ${unit}`, name]} /><Line dataKey="current" name={current.date} stroke={colors.periwinkle} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />{other && <Line dataKey="previous" name={other.date} stroke={colors.mint} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />}{current.thresholds.filter(t => t.channel === channel).map(t => <ReferenceLine key={t.label} y={t.value} stroke={colors.amber} strokeDasharray="4 4" label={{ value: t.label, fontSize: 10, position: 'insideTopRight' }} />)}{other?.thresholds.filter(t => t.channel === channel).map(t => <ReferenceLine key={t.label} y={t.value} stroke={colors.mint} strokeDasharray="4 4" />)}</ComposedChart></ResponsiveContainer> : <div className="h-full flex flex-col items-center justify-center text-center gap-2"><p className="font-medium">Série de mesures non enregistrée</p><p className="text-sm text-muted-foreground">Résultats résumés disponibles ci-dessous ; courbe continue non reconstructible.</p></div>}</div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 border-t border-border pt-4">{current.measures.map((m, i) => <div key={`${m.label}-${i}`}><p className="text-xs text-muted-foreground">{m.label}</p><p className="font-semibold tabular-nums mt-1">{m.value} <span className="text-xs font-normal">{m.unit}</span></p></div>)}</div>
+      {other && <div className="border-t border-border pt-4 text-sm"><p className="font-medium">Comparaison · {other.date}</p><p className="text-muted-foreground mt-1">{other.sensor ?? 'Capteur non renseigné'} · même protocole enregistré, conditions et étalonnage à vérifier.</p><div className="flex flex-wrap gap-4 mt-3">{other.measures.map((m, i) => <span key={i}>{m.label} : <strong>{m.value} {m.unit}</strong></span>)}</div></div>}
+      <p className="text-xs text-muted-foreground">{current.axis === 'attempt' ? 'Points de tentatives enregistrées, pas une série temporelle ni une courbe de lactate. ' : ''}Les seuils appartiennent à ce test ; aucun seuil du bilan actuel n’est reporté sur un ancien test. Un résultat déclaré n’est pas automatiquement une mesure certifiée.</p>
+    </>}
+  </section>;
+}
