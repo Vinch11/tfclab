@@ -1,0 +1,194 @@
+{
+  "date": "2026-11-04",
+  "sourceBaseline": "c82da135af91fba306c1fd8ed7febefd4a404c11",
+  "scope": "isolated QA only",
+  "previousCI": {
+    "run": "https://github.com/Vinch11/tfclab/actions/runs/41780659209",
+    "status": "SUCCESS reported by Vincent for preceding 25-file snapshot; not a check of current edits"
+  },
+  "acquiredProviderEvidence": {
+    "validations": 75,
+    "operations": 75,
+    "sessions": 128,
+    "rest": 53,
+    "payload": "unmarked prior bodies; retained immutable, not validation of current marked send bodies"
+  },
+  "implemented": [
+    "append-only exact verification receipts; resource id retained privately on server and excluded from client SELECT",
+    "owner/ledger insert guards and NULL-safe positive facts",
+    "ordinary coach review stored/read under owner scope; five explicit categories, blockers, exact immutable version and plan/refs/ops hashes",
+    "real send requires server-loaded review; source manifest is never sporting release authority",
+    "real QA planning choice uses actual coach DET adapter and existing windowed IA, shared entered values, no fallback",
+    "actual generation provenance retained; verbatim DET display, common saver/reopen/export access",
+    "explicit batch verification and history; lost ACK reconciles after durable exact receipt, no automatic second POST or 429 retry"
+  ],
+  "residualGates": [
+    "synthetic/nonprescriptive plan remains blocked",
+    "all newly generated modes remain prescriptionAllowed=false",
+    "no verified sporting release authority exists; real-send endpoint always blocks with release_sporting_attestation_absent",
+    "ordinary coach review does not alter provenance or independently validate science",
+    "DET coach-input family currently marathon road only with qualified sources/clock/anchors; other families refused",
+    "IA legacy normal form uses existing athlete context; shared input panel uses explicit provenance-bearing fields, no fabricated population defaults",
+    "IA outputs lacking DET structure still fail V2 mapping, no reparsing or guessed structure",
+    "normal coach path is restricted to authenticated A/B QA owned test athlete; not production or unrestricted real-athlete pilot"
+  ],
+  "tests": {
+    "focused": "181 passed, 10 files",
+    "newMeaningful": "review identity/stale hashes/blocked decisions; actual IA/DET button dispatch; lost ACK persistence; divergent readback; unknown; mixed resource; deadline; provenance reopen",
+    "typesBuild": "harness build OK 2026-11-04T05:57:35Z",
+    "deno": "shared check success; both entrypoints check success using nodeModulesDir:none isolated config; initial local node_modules cors export error not source failure",
+    "lint": "new files 0 errors / 2 ref-cleanup warnings; legacy changed pages retain 62 pre-existing no-explicit-any/no-empty errors; with only these pre-existing rules disabled 0 errors / 23 warnings",
+    "browser": [
+      {
+        "route": "/",
+        "storageBlocked": false,
+        "finalPath": "/auth",
+        "bodyVisible": true,
+        "bootstrapError": false,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200
+        ]
+      },
+      {
+        "route": "/__qa/pilot-review",
+        "storageBlocked": false,
+        "finalPath": "/__qa/pilot-review",
+        "bodyVisible": true,
+        "bootstrapError": false,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      {
+        "route": "/planning/ai-plan",
+        "storageBlocked": false,
+        "finalPath": "/auth",
+        "bodyVisible": true,
+        "bootstrapError": false,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      {
+        "route": "/",
+        "storageBlocked": true,
+        "finalPath": "/",
+        "bodyVisible": true,
+        "bootstrapError": true,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200
+        ]
+      },
+      {
+        "route": "/__qa/pilot-review",
+        "storageBlocked": true,
+        "finalPath": "/__qa/pilot-review",
+        "bodyVisible": true,
+        "bootstrapError": true,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200,
+          200,
+          200
+        ]
+      },
+      {
+        "route": "/planning/ai-plan",
+        "storageBlocked": true,
+        "finalPath": "/planning/ai-plan",
+        "bodyVisible": true,
+        "bootstrapError": true,
+        "errors": [],
+        "forbiddenRequests": 0,
+        "reactDomStatuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      }
+    ],
+    "browserLimit": "signed-out localhost only; authenticated central flow deliberately not exercised; external preview not verified; blocked storage produces bounded existing bootstrap error instead of app readiness"
+  },
+  "deployment": {
+    "qa-plan-coach-review": "6a546e39125e5b0a6ed6f0c1690964bc908e38c56553f9e6a16bbee12709926d",
+    "nolio-v2-send-plan": "87a5b376de113795a2178cb6f2ecf6df0a2def5a66e11db9aa75357a44d1c170",
+    "unauthenticatedProbes": {
+      "qa-plan-coach-review": 401,
+      "nolio-v2-send-plan": 401
+    }
+  },
+  "noActions": [
+    "no authenticated Nolio GET/POST",
+    "no impersonation/session mint",
+    "no paid AI generation",
+    "no athlete/plan/review/receipt rows written by tools",
+    "no change to trial/current/archive/OAuth consent/tokens",
+    "no production/V1/main/publish/merge"
+  ],
+  "files": {
+    "src/components/plan/HumanCoachReview.tsx": "65309735fd9b015aeda02a44bf66b1d7f1a3a52ad2670b7b7c75ad30da0f44c6",
+    "src/components/plan/RealVerificationHistory.tsx": "4d76e317a3fed6b8bcb8c68273bcb24a237c1c77cbb32201e9aee1875f0e1eee",
+    "src/components/plan/__tests__/HumanCoachReview.test.tsx": "87d4c65dd53635367ccdce4299d534457dad7fd033be8375414aae7b75d9ee44",
+    "src/components/plan/__tests__/CoachEngineDispatch.test.tsx": "fc277005269129f0dd8b85535b23f0269d64199e6d30d3dba04e80fa1b1e5ee7",
+    "src/pages/AITrainingPlanPage.tsx": "bff8d58fd1d0d5a880428b6a9825147576735dadc3403415db9487ab65e23e58",
+    "src/pages/__qa/CoachDetInputsPanel.tsx": "c8baa7819b1561b888dbcbd843575f910f2d7b246140de7c24a0aca6c5e7c97b",
+    "src/pages/__qa/PilotReviewPage.tsx": "d8cc5fb811d3414375b013f9721c3e467121b371c666c405c0d88e5e4c1d5d6b",
+    "src/hooks/useAITrainingPlan.ts": "8fbeae29caae130a6634d87fdd9eb7984eb636dd630286dd2933778ff557bcc5",
+    "src/lib/plan/aiProvenance.ts": "91b5dae0560f04a0d13939838b1a5984c265d202c77d4dc8ad484135bec62b1c",
+    "src/lib/plan/engineDispatch.ts": "6975bdbaa71a0c80ad2f91132edfc46c519160753625ca8ee8df772924fdf0f8",
+    "supabase/functions/_shared/nolioV2/coachReview.ts": "c01d61015ad630af6d24c90b67162fe6821800e8f0b296b3bd17f023db3e7f07",
+    "supabase/functions/_shared/nolioV2/verificationReceipt.ts": "29ec8432fc733f87956cd86e4f324dfce7a7a87c4b7a59b1f97b3468e3becdab",
+    "supabase/functions/_shared/nolioV2/plannedClient.ts": "90c12fb6eee2571b4c7f0b0420a8eb8a63c9596cadb451aa83d7b6df525779de",
+    "supabase/functions/_shared/nolioV2/httpFetch.ts": "53b70db752979989e7c357655fefa2a807bbc95a3adce426e84f04a30fed2d17",
+    "supabase/functions/_shared/nolioV2/planSend.ts": "79b680c10a58f0a0df7b06dc119dbb847dc8a4e176f5e4f00b24d741c444bc6a",
+    "supabase/functions/qa-plan-coach-review/index.ts": "beff71d6479456f1bb67fba868cd69ae621a906308c8692a6b016c53d8c6218d",
+    "supabase/functions/nolio-v2-send-plan/index.ts": "aae6719178a656d666b8d2c6c6e24c100e7b7009260ff16421d05406ae6d0fb4",
+    "drizzle/migrations/0020_qa_coach_reviews_and_real_verification.sql": "1a5f4804e6f1bdb42319eca131be0c0bc821ac285074f4579d61df374b5bcd76",
+    "drizzle/migrations/0021_qa_review_and_verification_binding_guards.sql": "0b49efa78ebb50cb50ddfd6a723bfbf363416cd4527e542fe4c676a10afa180a",
+    "src/qa/pilot-review/__tests__/nextIntegration.test.ts": "ee9aeac9cf2724bcdc67b45b6902a3b08143c616b6bd8055d8720f657d0f12fb",
+    "drizzle/migrations/0022_qa_evidence_explicit_revoke.sql": "0731a54bbcbdadfbd061ade52ca75adde28551dd035cba62e96c0db10be21caa"
+  },
+  "nextCoachAction": "In own QA browser choose DET/IA on /planning/ai-plan. For DET confirm marathon inputs, provenance, sources and clock; unsupported input refuses without fallback. Save candidate append-only, reopen own version from common export link, correct mappings, run full marked simulation, inspect exact immutable plan and explicitly save five-category review. Real send stays blocked pending genuine plan qualification and verified sporting release authority.",
+  "aclVerification": {
+    "initialInheritedDefaultPrivileges": "detected on effective ACL; explicit REVOKE applied in 0022",
+    "final": {
+      "anonymous_review_read": false,
+      "browser_provider_id_read": false,
+      "review_browser_insert": false,
+      "review_service_update": false,
+      "review_service_truncate": false,
+      "verify_service_insert": true,
+      "verify_service_update": false
+    }
+  },
+  "independentCI": {
+    "source": "7469eb1cfaf1e0fd0ddbafabf6c11ff3d4b308d4",
+    "files": 28,
+    "conclusion": "success",
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41783154651",
+    "scope": "Static types only, no execution"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1 (QA, non publié)",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "date": "2026-11-02",
+  "session": { "coachB": "session légitime déjà injectée dans l'aperçu (aucune nouvelle impersonation)", "coachA": "INDISPONIBLE — auth-session --user refusée précédemment (approbation indisponible) ; non retentée" },
+  "identity": { "getUser_http": 200, "uid_is_6b4c1722": true, "role": "authenticated", "athletes_visible": ["9758ace0-da71-4200-87bf-04e74bbb4ed9"] },
+  "negatives_B_to_A_real_jwt": {
+    "select_A_plan_versions": "200, 0 lignes", "select_A_plans": "200, 0 lignes",
+    "insert_plan_versions_athlete_A_coach_B": "403 / 42501", "insert_plan_versions_spoof_coach_A": "403 / 42501", "insert_plans_athlete_A": "403 / 42501",
+    "patch_A_versions": "200, 0 lignes", "delete_A_versions": "200, 0 lignes", "delete_A_plan": "200, 0 lignes",
+    "patch_A_plan": "400 PGRST204 (colonne inexistante dans la requête de test ; non concluant comme refus RLS)"
+  },
+  "ui_det_lab_real_engine": {
+    "path": "/__qa/det-lab, scénarios synthétiques acceptés (4 marathons), NON PRESCRIPTIFS, non attestés ; le parcours entrées coach n'a PAS été exercé en navigateur",
+    "defect_found_and_fixed_1": "Le lecteur réel plantait après acceptation (useCloudDataContext hors provider) ; providers montés autour du lecteur uniquement.",
+    "precommit_network_failure": { "ui": "UNKNOWN (lost_and_absent)", "rows": 0, "retry_same_tab": "CONFIRMED, même id, 1 ligne" },
+    "ack_lost_after_server_201": { "ui": "CONFIRMED (readback_match_after_lost)", "rows": 1, "posts": 1 },
+    "readback_unavailable": { "ui": "UNKNOWN (readback_unavailable_after_ok)", "rows": 1, "no_false_success": true },
+    "double_click": { "posts": 1, "rows": 1, "ui": "CONFIRMED" },
+    "defect_found_and_fixed_2": "Nouveau contexte + contenu inchangé créait une 2e version (seul _provenance.generatedAt différait : 70bc6365… vs 91c7c0ac…). Identité/read-back excluent désormais ce seul horodatage.",
+    "after_fix_new_context_twice": { "first": "CONFIRMED, 1 POST (1e2d1b05…, nouvelle identité)", "second_fresh_context": "CONFIRMED already_present_identical, 0 POST, total inchangé" },
+    "reopen_from_history_/planning/ai-plan": "OK, 0 écriture ; titre, bannière NON PRESCRIPTIF et « Moteur : DET Engine … version a942d2fbc583 » conservés",
+    "export_pdf_portrait": "/print-preview OK, provenance + 16 semaines présentes, PDF Chromium 630 679 octets ; pas d'examen séance par séance",
+    "not_exercised": ["édition (le renommage historique fait un UPDATE de plan_json, non append-only, non testé)", "restauration comme plan courant (table plans)", "parcours entrées coach / ordre des limiteurs dans le navigateur", "fermeture puis reconnexion par nouveau login (seuls de nouveaux contextes avec la même session ont été testés)"]
+  },
+  "partial_two_write": "Non observé : les voies exercées n'écrivent que plan_versions.",
+  "coach_B_versions_created": ["d662c586-3f3f-82f7-822b-e278774fa5ad","70bc6365-d989-835b-9108-5683d7971c0e","a7d920ba-4205-87dc-a873-6eda0ed6f9dc","cb23f5f6-b359-8d16-93b3-2e77c8d4dd8a","91c7c0ac-7195-8ec9-a829-7d45f668c0b6 (doublon dû au défaut 2, conservé, non supprimé)","1e2d1b05-025e-8b01-9067-edeee234575a"],
+  "coach_A_unchanged_md5": { "f49326ef": "c7c73631…", "30909fcd": "860dbf66…", "b50e51e4": "020b0df7…", "dbef1593": "fa131c48…", "plans_current": "fa131c48…" },
+  "other_tables": { "det_coach_review_contexts": 0, "nolio_v2_operations": 0, "nolio_tokens": 0 },
+  "checks": { "nolioV2_offline_tests": "23/23", "save_and_qa_tests": "71/71 + coachDetRun 78/78 (avec save)", "typescript": "0 erreur", "release": "0f02476c…d3a non attesté", "edge_functions_redeployed": ["ai-training-plan","ai-training-plan-test"] },
+  "not_claimed": ["accès A en écriture", "revue sportive humaine", "Nolio authentifié", "production/publication"]
+}

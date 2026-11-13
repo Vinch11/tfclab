@@ -1,0 +1,92 @@
+{
+  "schema": "QA_NOLIO_V2_REAL_DRY_RUN_SUCCESS_V1",
+  "date": "2026-11-03",
+  "verdict": "PASS_REAL_PROVIDER_DRY_RUN_ONLY",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backendRef": "lkjesdacgpolrwfxulbo",
+  "evidence": {
+    "userReport": "Simulation validée par Nolio (HTTP 201). Rien n'a été ajouté au calendrier. Envoi réel : ABSENT.",
+    "rootVerification": "Read-only admin query of safe receipt columns, independently matched to the existing QA Coach A and athlete A. No user JWT impersonation.",
+    "receipt": {
+      "code": "dry_run_valid",
+      "created_at": "2026-11-03 17:40:46.850824+00",
+      "fixture_code": "QA_TECH_RUN_10MIN_NO_TARGET",
+      "http_status": 201,
+      "id": "fbc96836-1add-4f57-9a64-d3ce4378f428",
+      "outcome": "DRY_RUN_VALID",
+      "payload_sha256": "35cadad0588d8410f2226c14042be5a99e679a028e06519df6613b47fa9aefb7",
+      "real_send": "ABSENT",
+      "created_at_utc": "2026-11-03T17:40:46.850824Z",
+      "created_at_EuropeBrussels": "2026-11-03T18:40:46.850824+01:00"
+    },
+    "samePayloadAsEarlier403": true,
+    "previousRefusalReceiptIds": [
+      "26ed859f-0d19-47cc-a0b2-a76fd16a9c2c",
+      "0ad019d6-1598-497f-9dd2-06256cce3d97",
+      "43c0bed7-0194-4533-ad7b-a09a17f8c501",
+      "2a65c3a2-2dfb-4c94-998a-7e5ad92b589c"
+    ],
+    "strictAcceptanceContract": "Forced dry_run:true, exact positive schema, matching persisted receipt, no fallback to real creation."
+  },
+  "priorBlocker": {
+    "provenLaterRefusal": "team_scope_forbidden (403)",
+    "firstReceipt": "Initial generic forbidden_403 cause was discarded by the old classifier and cannot be retroactively recovered.",
+    "readOnlyObservation": "Before the successful retest, the current Nolio team's API/MCP planned-calendar Write box was observed unchecked. No permission was changed by the root agent.",
+    "correction": "Coach received the precise Write + Save instruction, then reported the successful retest.",
+    "boundary": "No private team name, options URL, athlete reference, sport reference, token or screenshot is included here."
+  },
+  "codeValidation": {
+    "finalSavedSource": "2408a31fda4f7d23e1912b3084149e4f77410870",
+    "runtimeSourceLimitation": "The receipt does not contain a runtime source hash; it is not a signed runtime/source attestation.",
+    "privateContextDiagnostic": {
+      "behavior": "Only exact 403 team_scope_forbidden may return sanitized team name, official allowlisted scopes and an exact-origin Nolio options URL to the authenticated coach, after a matching refusal receipt is stored.",
+      "persistence": "Private context is not written to receipts or logs.",
+      "client": "Shared validation, concordant RLS receipt, escaped text, safe link, reset on identity change or next attempt.",
+      "realContextReturned": "Not established: the positive retest has no refusal context, and no further refusal was forced."
+    },
+    "tests": {
+      "pilotReview": "103 passed in 7 files, including 17 new tests with synthetic values",
+      "manifest": "5 passed",
+      "types": "passed",
+      "lint": "no errors; 1 pre-existing warning"
+    },
+    "deno": {
+      "runId": 41687298983,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41687298983",
+      "conclusion": "success",
+      "snapshotCommit": "4466cc3c48e0be2570046cd1c00132f516472dff",
+      "files": 19,
+      "scope": "Static types only; no provider request, secret, deployment or execution of functions",
+      "provenanceFile": "NOLIO_V2_REAL_DRY_RUN_DENO_PROVENANCE_2026-11-03.json"
+    },
+    "deployment": {
+      "function": "nolio-v2-dry-run",
+      "sourceSha256": "efb89035315fce25b75b55da7d5da92e6408a04ffac50d335238d9cc52c4f22b",
+      "unauthenticatedProbe": 401,
+      "otherFunctionsRedeployed": false
+    },
+    "buildAgentAuthenticatedNolioRequests": 0,
+    "rootNolioAccess": "Existing signed-in Nolio website session, read-only team options inspection; no API token inspected and no settings saved."
+  },
+  "release": {
+    "id": "9ec56cbec9f0bc3d3a0f76e67faa9905d828ea5e097842c8fdcc7b08447e335f",
+    "attested": false,
+    "published": false
+  },
+  "status": {
+    "realDryRun": "PASS",
+    "realSend": "ABSENT",
+    "calendarReadback": "NOT_DONE",
+    "realTokenRefresh": "NOT_PROVEN",
+    "fullPlanExport": "NOT_PROVEN",
+    "sportsAttestation": false,
+    "productionPromotion": false
+  },
+  "nextStep": "Prepare and review one non-prescriptive technical session, exact recipient/date/content, then an explicit controlled real send and exact calendar readback. No real send was performed in this work.",
+  "preservation": [
+    "Append-only refusal receipts retained",
+    "Normal sender and OAuth unchanged",
+    "V1 and production TFCLab v2.1/main unchanged",
+    "Future explicit DET Engine / IA choice retained"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "tfcl-qa-proof-v1",
+  "project": "QA c3941303-40d2-447e-9b87-867d82727fd1 (non publié)",
+  "date": "2026-11-02",
+  "startSha": "6c45fd912a1310b7184d071a7a558440167488a5",
+  "lastObservedShaBeforeFinalMetadata": "309452617fab92c440b7b17b9d098095ad8f7cb9",
+  "releaseDeclaration": { "releaseId": "5814e9606dc8c339ce6720d0f144f230526433f6913be2ff423c716f62bb4598", "attested": false, "deploymentAttested": false, "sourceCommit": null, "checked": true },
+  "objectiveKey": {
+    "change": "coachObjectiveKey n'accepte plus que 'marathon' / 'marathon route' ; le nom libre d'événement n'est jamais une clé",
+    "tests": ["direct: Marathon de trail / du Mont-Blanc / de Paris => unsupported", "wrapper runCoachDetPlan: refus 'hors du périmètre qualifié'", "cœur runCoachInputsDet: throw objective_not_qualified:unsupported"],
+    "sportRefusalsPreserved": "profil 240 s/km toujours refusé (lorang_categories) ; 220 s/km/TTE seul cas positif, pas un GO général"
+  },
+  "coachSlots": "coachStart {provenance, localDate, minuteOfDay, timeZone, utcOffsetMinutes} écrit par séance dans plan_json, conservé après restauration, extrait tel quel vers le mapper ; HH:MM seulement si calendarTimeZone Nolio confirmé et identique ; DST V401 (01:00 ok, 02:30 printemps refusé, automne ambigu sans choix refusé)",
+  "database": {
+    "migration": "drizzle/migrations/0004_nolio_v2_atomic_claim.sql",
+    "content": ["états 'sending'/'rate_limited' ajoutés ('prepared' déprécié)", "index unique (plan_version_id, session_key, path)", "RPC nolio_v2_claim_operation (propriété plan/coach, INSERT ON CONFLICT DO NOTHING)", "RPC nolio_v2_transition_operation (CAS, transitions autorisées seulement)", "EXECUTE service_role uniquement"],
+    "realPostgresConcurrencyExecuted": false,
+    "why": "rôle SQL du bac à sable : 'permission denied for function nolio_v2_claim_operation' (verrouillage voulu) ; concurrence prouvée sur un fake reproduisant la sémantique SQL, PAS une exécution Postgres",
+    "nolio_v2_operations_rows": 0
+  },
+  "edgeFunction": {
+    "name": "nolio-v2-send-plan", "deployed": true,
+    "calls": [
+      { "auth": "aucune", "http": 401 },
+      { "auth": "JWT réel Coach B (session injectée, UID 6b4c1722-…)", "planOwner": "B", "result": { "status": "BLOCKED", "reason": "no_authorized_v2_connection", "network": "none", "sessionsInPlan": 75 } },
+      { "auth": "JWT réel Coach B", "planOwner": "A", "result": { "status": "REFUSED", "reason": "plan_version_not_found_or_not_owned" } }
+    ],
+    "nolioNetworkCalls": 0
+  },
+  "tests": {
+    "nolio": { "files": ["src/lib/nolio/__tests__/nolioV2PlannedMapper.test.ts", "src/lib/nolio/__tests__/nolioV2Durable.test.ts"], "passed": 59, "failed": 0 },
+    "coachDet": { "file": "src/lib/det/__tests__/coachDetRun.test.ts", "passed": 33, "failed": 0 },
+    "dst": { "file": "experimental/det-engine/v401-coach-clock-dst.test.ts", "result": "passed" },
+    "planAndPrint": { "scope": "src/lib/plan, src/pages, openPrintableHTML", "files": 130, "result": "all passed" },
+    "lint": "AIPlanViewer.tsx 0 erreur (4 corrigées) ; modules Nolio/DET 0 erreur",
+    "typecheck": "tsgo app 0 erreur"
+  },
+  "counterexamples": {
+    "requestedFile": "docs/qa/NOLIO_V2_INDEPENDENT_COUNTEREXAMPLES_2026-11-02.json",
+    "presentInThisProject": false,
+    "covered": ["durée 9999 s", "dose de bloc", "répétitions", "récupération", "cible", "RPE", "heure ajoutée", "audience", "description/provenance éditée", "structure partielle", "lecture vide", "2e page exacte"]
+  },
+  "print": {
+    "webkit": { "route": "/print-preview", "firstAndLastSession": true, "documentIntrouvable": false, "pageErrors": 0, "pdfGenerated": false },
+    "chromiumDet": { "scenario": "marathon-16w-age_group-tte-source-preferred", "sessions": 75, "blocks": 75, "perBlockDoseIssues": 0, "pages": 17, "durationLines": "74/74", "weeks": 16, "weekOrderMonotonic": true, "breakInsideAvoid": "75/75" },
+    "notChecked": ["inspection visuelle humaine page par page", "3 autres marathons en PDF Chromium sur les sources finales", "compact/paysage sur les sources finales"]
+  },
+  "dataIntegrity": {
+    "coachA_versions": { "count": 4, "md5": "543e381a32500dfcf59bc1e384d3e752", "unchanged": true },
+    "coachA_plan": { "count": 1, "md5": "34230fb711707b19d9766814105f0a33", "unchanged": true },
+    "coachB_versions": 6,
+    "method": "SELECT admin, preuve d'intégrité seulement"
+  },
+  "notDone": ["aucune requête Nolio authentifiée ni dry_run", "routes de lecture liste/détail V2 absentes du contrat : lecture échoue fermée", "aucun magasin de connexion V2 : envoi réel impossible (BLOCKED)", "Coach A en écriture toujours bloqué", "aucune attestation sportive"]
+}

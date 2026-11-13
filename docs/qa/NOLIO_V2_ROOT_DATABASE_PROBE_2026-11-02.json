@@ -1,0 +1,76 @@
+{
+  "schema": "tfcl.qa.nolio-v2-root-db-probe.v1",
+  "date": "2026-11-02",
+  "qaSourceSha": "a471d7e68eac29fa2ee011a3140797f87f2b4e3d",
+  "method": "Admin postgres SQL on QA actual DB; no JWT substitute, no Nolio HTTP. Calls issued in Promise.all but connector serialized execution, so this is NOT a concurrency proof.",
+  "calls": [
+    {
+      "rows": [
+        {
+          "began": "2026-11-02 19:54:21.898894+00",
+          "finished": "2026-11-02 19:54:28.9152+00",
+          "observed_rows": 0,
+          "pid": 154834,
+          "result": {
+            "claimed": true
+          }
+        }
+      ]
+    },
+    {
+      "rows": [
+        {
+          "began": "2026-11-02 19:54:29.855491+00",
+          "finished": "2026-11-02 19:54:32.861632+00",
+          "observed_rows": 1,
+          "pid": 154835,
+          "result": {
+            "claimed": false,
+            "existing": {
+              "apiVersion": "v2",
+              "athleteRef": "usr_QAATOMICONLY",
+              "detail": null,
+              "opKey": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+              "path": "/api/v2/planned/trainings/",
+              "payloadSha256": "c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2",
+              "planVersionId": "1e2d1b05-025e-8b01-9067-edeee234575a",
+              "remoteId": null,
+              "sessionKey": "__qa_root_atomic_20261102",
+              "state": "sending"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "concurrencyEstablished": false,
+  "existingClaimNotGrantedTwice": true,
+  "closedViaTransition": {
+    "rows": [
+      {
+        "transitioned": true
+      }
+    ]
+  },
+  "staleCas": {
+    "rows": [
+      {
+        "preserved_state": "rejected",
+        "stale_transition": false
+      }
+    ]
+  },
+  "rowsRetained": 1,
+  "retainedRow": {
+    "opKey": "b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1",
+    "sessionKey": "__qa_root_atomic_20261102",
+    "owner": "synthetic Coach B",
+    "planVersionId": "1e2d1b05-025e-8b01-9067-edeee234575a",
+    "state": "rejected",
+    "detail": "QA_ROOT_RPC_IDEMPOTENCY_PROBE_NO_NOLIO",
+    "remoteId": null
+  },
+  "noRowsDeleted": true,
+  "nolioAuthenticatedRequests": 0,
+  "next": "Run two genuinely concurrent server-side calls to the actual RPC, with backend PIDs/timestamps/barrier, without relaxing grants."
+}

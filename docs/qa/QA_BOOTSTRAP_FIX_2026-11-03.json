@@ -1,0 +1,305 @@
+{
+  "title": "QA bootstrap fix — splash initial infini",
+  "date": "2026-11-03",
+  "project": "TFCLab DET QA isolé (c3941303…)",
+  "base": "1626acd828828099a1d85e851bf15e2453b92240",
+  "route": "/__qa/pilot-review",
+  "mode": "DEV (vite localhost:8080, app complète via index.html → main.tsx)",
+  "cause": {
+    "structuralObserved": "src/main.tsx importait App statiquement (graphe ~624 modules en DEV) ; si un module était rejeté ou restait en attente, createRoot et le setTimeout de masquage n'étaient jamais exécutés ⇒ splash index.html infini. Déduit du code (non rejoué avant correctif) ; après correctif le même blocage simulé produit une erreur lisible.",
+    "directObservedSecondary": "ThemeProvider lisait localStorage sans try/catch : getItem/setItem qui jettent ⇒ exception au rendu ⇒ écran vide (pageerror 'blocked'). Observé puis corrigé.",
+    "userIncidentTrigger": "HYPOTHÈSE non prouvée dans le navigateur de Vincent : le serveur Vite du sandbox a redémarré à 14:08, 14:16 et 14:26:46 UTC ('.env changed, restarting server' + SIGTERM) ; un chargement en cours pendant un redémarrage peut laisser des modules en échec/attente. Aucune console/réseau de la preview Lovable de l'utilisateur n'était capturée (logs observabilité vides) ; la preview distante exige un login Lovable, non reproduite.",
+    "notCause": "AuthContext/getSession : aucune trace l'impliquant."
+  },
+  "fix": [
+    "index.html : watchdog inline avant main (35 s) + onerror du script module ⇒ message lisible + bouton « Recharger » manuel",
+    "src/bootstrap/boot.ts : bootApp import dynamique React/App/CSS borné 25 s ; rejet/timeout ⇒ erreur ; import tardif après expiration jamais rendu ; messages expurgés des query strings",
+    "src/main.tsx : plus d'import statique de App ; garde anti-boucle chunk via safeSession (stockage indisponible ⇒ aucun rechargement automatique)",
+    "src/contexts/ThemeContext.tsx : accès localStorage protégé (thème par défaut)"
+  ],
+  "unchanged": "Routes/gardes auth, AuthGate/ProtectedRoute, QA origine/A-B/RLS/DEV, serveur, Nolio, données, algorithmes. Aucun déploiement.",
+  "browserResults": {
+    "5b_storage_methods_throw": {
+      "console_errors": [
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?…  \n    at App",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of "
+      ],
+      "pageerrors": [
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked",
+        "blocked"
+      ],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 10,
+      "splash": 0,
+      "bootError": 0,
+      "reloadBtn": 0,
+      "url": "/__qa/pilot-review"
+    },
+    "1_qa_route": {
+      "console_errors": [
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?…  \n    at App",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of "
+      ],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 8,
+      "splash": 0,
+      "bootError": 0,
+      "reloadBtn": 0,
+      "url": "/__qa/pilot-review"
+    },
+    "2_app_rejected": {
+      "console_errors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "pageerrors": [],
+      "failed": [
+        "/src/App.tsx"
+      ],
+      "nolio": 0,
+      "functions": 0,
+      "t": 6,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review"
+    },
+    "3_app_never": {
+      "console_errors": [],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 27,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review"
+    },
+    "4_app_late": {
+      "console_errors": [],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 34,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review"
+    },
+    "5_storage_blocked": {
+      "console_errors": [],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 10,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review"
+    },
+    "6a_root_protected": {
+      "console_errors": [
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?…  \n    at App",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of "
+      ],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 8,
+      "splash": 0,
+      "bootError": 0,
+      "reloadBtn": 0,
+      "url": "/auth"
+    },
+    "6b_auth": {
+      "console_errors": [
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?…  \n    at App",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of ",
+        "Warning: Function components cannot be given refs. Attempts to access this ref will fail. Did you mean to use React.forwardRef()?… \n\nCheck the render method of "
+      ],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 8,
+      "splash": 0,
+      "bootError": 0,
+      "reloadBtn": 0,
+      "url": "/auth"
+    },
+    "7_main_rejected": {
+      "console_errors": [
+        "Failed to load resource: net::ERR_FAILED"
+      ],
+      "pageerrors": [],
+      "failed": [
+        "/src/main.tsx"
+      ],
+      "nolio": 0,
+      "functions": 0,
+      "t": 4,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review"
+    },
+    "8_main_never": {
+      "console_errors": [],
+      "pageerrors": [],
+      "failed": [],
+      "nolio": 0,
+      "functions": 0,
+      "t": 37,
+      "splash": 1,
+      "bootError": 1,
+      "reloadBtn": 1,
+      "url": "/__qa/pilot-review",
+      "screenshot": "indisponible (page encore en chargement)"
+    }
+  },
+  "consoleRedacted": {
+    "before_local_warm": "aucune pageerror ; seul 'Warning: Function components cannot be given refs' (PilotReviewPage, préexistant)",
+    "app_rejected": "requestfailed /src/App.tsx (net::ERR_FAILED simulé) ⇒ 'Échec du chargement de l'application : Failed to fetch dynamically imported module …'",
+    "storage_methods_throw_before_fix": "pageerror 'blocked' x2 (ThemeProvider)"
+  },
+  "limits": [
+    "Stockage entièrement inaccessible (getter window.localStorage qui jette) : l'app ne démarre pas car le client auto-généré (previewAuthStorage.ts, non modifiable) y accède sur localhost ; affichage désormais d'une erreur lisible au lieu du splash. Dans la preview encadrée Lovable, ce client utilise le broker postMessage.",
+    "Cause exacte de l'incident utilisateur non observée.",
+    "Nolio : 0 requête vers nolio.io et 0 appel functions/v1 dans tous les scénarios."
+  ],
+  "tests": {
+    "new": [
+      "src/bootstrap/__tests__/boot.test.ts (9)",
+      "src/contexts/__tests__/themeStorageBlocked.test.tsx (1)"
+    ],
+    "suites": "QA+Nolio+bootstrap : 218 passés / 1 ignoré",
+    "tsgo": "OK",
+    "eslint": "0 erreur (fichiers modifiés)",
+    "build": "OK"
+  },
+  "sha256": {
+    "index.html": "53adf10ac41989360df15c1777119e1036c42608e0e32afed0f0171064ad77a4",
+    "src/main.tsx": "2ab6a2a64db94387e19a399d0fe56243a9db1e6f26089dcc9e99f2651d99bee9",
+    "src/bootstrap/boot.ts": "e57ebb8a16ebc12372f1412fbbcc97f66157a5a68f0cb418436b67d62a87d894",
+    "src/contexts/ThemeContext.tsx": "8e948e8ffd29d69ba89e64eff05412e99cad4ccbcba0d6ff2c2f5c718f5c7ba7"
+  },
+  "screenshots": {
+    "QA_BOOTSTRAP_FIX_2026-11-03_signed_out.png": "8c896442f549762ca898ee22260609cb4761746f996262acd6550d83b0c89a29",
+    "QA_BOOTSTRAP_FIX_2026-11-03_boot_timeout.png": "993db542edac372aca1fdf845c143d9935f624191ac30ae38e01f593e3342ce4"
+  },
+  "manifest": {
+    "releaseId": "b329d9e1407d870bf5c6b80c824e16295bec6adc7e2ad5789947fd423deb9bee",
+    "attested": false,
+    "redeployed": false
+  },
+  "userObservations": {
+    "source": "User screenshots, independently confirmed by aggregate SQL projections made by the root assistant; not reproduced with Coach A in Lovable builder browser.",
+    "sequence": [
+      "~14:26 UTC : splash/logo bloqué signalé sur /__qa/pilot-review",
+      "retest coach : page complète fonctionnelle",
+      "load_refs réel 2026-11-03T14:40:04.451149Z : 97 sports, 27 utilisables, 242 exercices loaded",
+      "grant pending_refs, génération 1, refresh idle, 0 connexion active"
+    ],
+    "notConsultedByAgent": "aucune identité Nolio ni valeur de jeton ; aucun GET/activation/refresh Nolio par l'agent",
+    "pending": "Historical pending step at 14:40, superseded by confirmed activation after the user's next screenshot. Root did not inspect private sport IDs or assert the chosen timezone."
+  },
+  "agentTests": "voir browserResults/tests (Chromium localhost DEV, sandbox agent)",
+  "conclusion": "Démarrage bloqué signalé puis ouverture et lecture réelle réussies dans le navigateur du coach. La cause précise de l'incident reste non observée (hypothèse : redémarrage du serveur Vite en cours de chargement). Le correctif rend toute panne future de démarrage visible et bornée.",
+  "sourceCommit": "bf97605ba24a5db68e4527122c9e28e319ce743f",
+  "independentLatestActivation": {
+    "evidence": "User screenshot at 15:44 Europe/Brussels plus root SQL metadata projection",
+    "metadata": [
+      {
+        "active_connections": 1,
+        "athlete_selected": true,
+        "consent_confirmed": true,
+        "exercise_count": 242,
+        "exercise_status": "loaded",
+        "refresh_state": "idle",
+        "remote_refs_loaded_at": "2026-11-03 14:43:19.657091+00",
+        "sports_count": 97,
+        "status": "active",
+        "token_generation": 1,
+        "usable_sports_count": 27
+      }
+    ],
+    "verdict": "REAL_ACTIVE_NO_SEND_PROOF",
+    "providerDryRun": "ABSENT",
+    "providerCalendarSend": "ABSENT",
+    "tokenRefresh": "NOT_YET_PROVEN"
+  },
+  "rootReview": {
+    "codeInspected": [
+      "index.html",
+      "src/main.tsx",
+      "src/bootstrap/boot.ts",
+      "src/contexts/ThemeContext.tsx"
+    ],
+    "accepted": "Bounded dynamic App load, independent HTML watchdog and protected theme storage access; active Nolio connection verified separately.",
+    "limits": [
+      "The exact user incident trigger remains unobserved.",
+      "Browser evidence is for Chromium localhost DEV app entry, not the user's Edge or remote Lovable editor.",
+      "bootApp catches synchronous render submission errors; asynchronous React render handling still relies on existing React boundaries.",
+      "Preexisting stale-chunk recovery and production PWA update logic remain in main.tsx; do not interpret manual bootstrap reload as removing all existing automatic reload/cache recovery paths."
+    ]
+  }
+}

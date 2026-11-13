@@ -1,0 +1,119 @@
+{
+  "schema": "QA_FULL_PLAN_INTEGRATION_CHECKPOINT_V1",
+  "date": "2026-11-03",
+  "status": "INCOMPLETE_EDITOR_STATE_UNRESOLVED",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "source": "afae8577199f89f3a3f931446ada80d7cc705d07",
+  "acquiredSportsValidation": {
+    "pr": 454,
+    "url": "https://github.com/Vinch11/tfclab/pull/454",
+    "head": "b9ba425ec5ae1fea531387f17d479d78947af9fb",
+    "testedCode": "61a14ee3ccbd6a55b0a864b59f3e210dfe6a62e1",
+    "previousFamilies": 15,
+    "previousCompleteCalendars": 28,
+    "previousWeeks": 420,
+    "includingTrails": {
+      "families": 18,
+      "calendars": 31,
+      "weeks": 468
+    },
+    "ci": {
+      "runId": 41688256173,
+      "conclusion": "success",
+      "jobs": "5/5",
+      "detTestsPassed": 507,
+      "ignored": 7
+    },
+    "scope": "Declared synthetic configurations. This validation is acquired and is not being rerun as a prerequisite for the Nolio adapter.",
+    "individualReview": "Review of a real athlete's plan remains separate; no individual sporting approval fabricated."
+  },
+  "realSingleSession": {
+    "date": "2026-11-04",
+    "post": "HTTP201",
+    "readback": "VERIFIED_UNIQUE",
+    "proofIds": {
+      "trial": "cef25564-08b2-4178-8396-e44ca83bbad3",
+      "receipt": "d6ecbfae-489d-4444-b29a-08d6b4b62591"
+    },
+    "retained": true
+  },
+  "fullPlan": {
+    "scenario": "marathon-16w-age_group-tte-source-preferred",
+    "weeks": 16,
+    "sourceSessions": 128,
+    "firstStageAt": "ac4b7f88df572be2268732dddd39d6872a374872",
+    "firstStageMapping": {
+      "operations": 58,
+      "restExcluded": 53,
+      "refused": 17
+    },
+    "secondStageTarget": {
+      "operations": 75,
+      "restExcluded": 53,
+      "refused": 0
+    },
+    "secondStageFunctionalResult": "NOT_VERIFIED: work interrupted before the new full functional tests and final deployment",
+    "realProviderFullPlanResult": "NOT_EXECUTED",
+    "liveCounts": {
+      "anon_receipt_read": false,
+      "client_receipt_update": false,
+      "original_trial_retained": 1,
+      "original_unique_receipt_retained": 1,
+      "real_full_jobs": 0,
+      "real_full_receipts": 0,
+      "service_job_hash_update": false,
+      "service_receipt_delete": false
+    }
+  },
+  "completedIndependentChecks": {
+    "deno": {
+      "runId": 41702910222,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41702910222",
+      "sha": "2143d24bdb4208f65c5477ddf7e28cc95ce1d29f",
+      "source": "afae8577199f89f3a3f931446ada80d7cc705d07",
+      "files": 23,
+      "conclusion": "success",
+      "scope": "Static types only, no runtime or Nolio request"
+    },
+    "acl": "Explicit table/column rights hardened and independently checked; no client writes, no service modification/deletion of receipts, service update only for lock columns",
+    "preservation": {
+      "archivesA4Unchanged": true,
+      "currentPlansAandBUnchanged": true,
+      "method": "Compared with the earlier independently verified same-day PostgreSQL UTF-8 plan_json::text SHA-256 baseline"
+    }
+  },
+  "editorState": {
+    "lastExplicitTaskResponse": "awaiting_input",
+    "approvalObjectProvided": false,
+    "laterObservation": "get_message returned only top-level running with no response; project ready/agentFinished=true and latest assistant/edit unchanged at afae. Resumption must not be assumed from top-level running.",
+    "lastAssistant": "aimsg_01m6hcppcrentr4fw0vhyswxvv",
+    "task": "umsg_01m6hcpnznffqvgske5vz88smd",
+    "editorUrl": "https://lovable.dev/projects/c3941303-40d2-447e-9b87-867d82727fd1",
+    "rootApprovalSent": false,
+    "handling": "Inspect/answer the editor continuation check-in; do not supersede a pending check-in with another tool message."
+  },
+  "resumeChecklist": [
+    "Finish the functional 128-session/75-operation fixture tests and negative mapping/manifest/identity/quota cases.",
+    "Pin plan/refs/operation bindings across sequence batches and verify changed refs cannot silently create a new job under a previous start action; current request has only planVersionId/action.",
+    "Before a future actual full export, dry-run the exact bodies including the same origin marker used by bodyToSend, or explicitly qualify the pre-marker scope; current preparePlan hashes mapper bodies.",
+    "Complete final type/lint/manifest/browser checks and deploy the changed QA functions only after they pass.",
+    "Run the complete provider dry-run from the coach's own session after explicit confirmation of exercise and competition references.",
+    "Integrate the real coach DET/IA selector and both provenance paths into TFLab2.1 without inventing approvals or merging PR454 automatically."
+  ],
+  "engineChoiceAudit": {
+    "productionSource": "e31ffaba7d1fcefff8a60910713fd1fe9f18f89b",
+    "normalPage": "src/pages/AITrainingPlanPage.tsx",
+    "normalGenerationCall": "generatePlanWindowed",
+    "detSelectorInNormalPage": "not present in inspected source",
+    "qaDetProvenance": "present",
+    "aiProvenance": "not stamped by inspected useAITrainingPlan hook",
+    "productionModified": false
+  },
+  "boundaries": [
+    "No new authenticated Nolio call by root/build tools",
+    "No actual full-plan export",
+    "No paid AI generation",
+    "No release/production promotion",
+    "No private Nolio IDs, recipient name, token or secret in this checkpoint"
+  ]
+}
