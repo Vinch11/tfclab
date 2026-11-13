@@ -6,6 +6,7 @@ import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 import type { DbSnapshot } from '@/hooks/useCloudData';
 import { CURVE_STATUS_LABELS, curveStatus, profileCurveDiscipline, profileCurveHistory, type ProfileCurveMetric } from '@/lib/coachingCompass/profileCurves';
 import { BEVEL_CHART_COLORS as colors, bevelAxisProps, bevelGridProps } from './bevelChartTheme';
+import { PhysiologicalLandmarkGuide } from './PhysiologicalLandmarkGuide';
 
 const metrics: { key: ProfileCurveMetric; title: string; icon: typeof Wind; note: string }[] = [
   { key: 'vo2max', title: 'VO₂max', icon: Wind, note: 'Capacité aérobie enregistrée. En triathlon, la valeur commune ne prouve pas deux tests spécifiques.' },
@@ -34,6 +35,7 @@ export function PhysiologicalProfileCurves({ input, snapshots, snapshot }: { inp
       <span className="flex items-center gap-2"><span className="h-2 w-5 border-t-2 border-dashed border-primary" />Estimation</span>
       <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-warning" />Enregistrée · à vérifier</span>
     </div>
+    <PhysiologicalLandmarkGuide />
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
       {history.map(m => {
         const key = m.key === 'threshold' ? sport === 'run' ? 'threshold' : 'ftp' : m.key;
