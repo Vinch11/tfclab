@@ -514,7 +514,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const renderForm = () => (
-    <div className="grid gap-4 max-h-[60vh] overflow-y-auto pr-2">
+    <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain pr-2">
       <NolioPeriodTestFinder athleteName={athleteName} current={formData as unknown as Record<string, unknown>} onApply={applyNolioPeriod} />
       <NolioCriticalRecordsImporter athleteName={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = parseStoredCriticalMetrics((prev as Record<string, unknown>).critical_metrics); if (m[sport] || !value) return prev; m[sport] = value; const raw = (prev as Record<string, unknown>).critical_metrics; let extra: Record<string, unknown> = {}; try { extra = typeof raw === 'string' ? JSON.parse(raw) ?? {} : (raw as Record<string, unknown>) ?? {}; } catch { extra = {}; } return { ...prev, critical_metrics: JSON.stringify({ ...m, ...(extra.durability ? { durability: extra.durability } : {}) }) }; })} />
       <NolioDurabilityFinder athleteName={athleteName} stored={parseStoredDurability((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => ({ ...prev, critical_metrics: withDurability((prev as Record<string, unknown>).critical_metrics, sport, value) }))} />
@@ -1971,7 +1971,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   {PROFILE_TERMINOLOGY.actions.create}
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-lg">
+              <DialogContent className="w-[calc(100%-2rem)] max-w-3xl max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
                 <DialogHeader>
                   <DialogTitle>{PROFILE_TERMINOLOGY.actions.create}</DialogTitle>
                 </DialogHeader>
@@ -2003,7 +2003,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-3xl max-h-[90dvh] grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden">
           <DialogHeader>
             <DialogTitle>{PROFILE_TERMINOLOGY.actions.edit}</DialogTitle>
           </DialogHeader>

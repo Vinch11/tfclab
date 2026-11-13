@@ -53,12 +53,12 @@ export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { 
   };
   return <section className="min-w-0 space-y-4 border-b border-border py-4">
     <h3 className="font-semibold">Records de puissance Nolio · course et vélo</h3>
-    <div className="grid gap-3 sm:grid-cols-3">
-      <div><Label htmlFor="critical-nolio-athlete">Athlète Nolio</Label><select id="critical-nolio-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy || !catalogues} onChange={e => { setAthlete(e.target.value); reset(); }}><option value="">Choisir un athlète</option>{catalogues?.athletes.map(a => <option key={a.id} value={a.id} disabled={!a.has_api_access}>{a.name}</option>)}</select></div>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
+      <div className="sm:col-span-2"><Label htmlFor="critical-nolio-athlete">Athlète Nolio</Label><select id="critical-nolio-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy || !catalogues} onChange={e => { setAthlete(e.target.value); reset(); }}><option value="">Choisir un athlète</option>{catalogues?.athletes.map(a => <option key={a.id} value={a.id} disabled={!a.has_api_access}>{a.name}</option>)}</select></div>
       <div><Label htmlFor="critical-nolio-from">Du</Label><Input id="critical-nolio-from" type="date" value={from} max={to} disabled={busy} onChange={e => { setFrom(e.target.value); reset(); }} /></div>
       <div><Label htmlFor="critical-nolio-to">Au (inclus)</Label><Input id="critical-nolio-to" type="date" value={to} min={from} disabled={busy} onChange={e => { setTo(e.target.value); reset(); }} /></div>
     </div>
-    <Button onClick={search} disabled={busy || !catalogues || !athlete || !from || !to || from > to}><Search className="mr-2 h-4 w-4" />{busy ? 'Lecture des records…' : 'Trouver les records de la période'}</Button>
+    <Button className="h-auto min-h-11 max-w-full whitespace-normal text-left" onClick={search} disabled={busy || !catalogues || !athlete || !from || !to || from > to}><Search className="mr-2 h-4 w-4 shrink-0" />{busy ? 'Lecture des records…' : 'Trouver les records de la période'}</Button>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {records && <>
       <p className="text-sm text-muted-foreground">{records.filter(r => r.sportBase === 'running').length} records course · {records.filter(r => r.sportBase === 'cycling').length} records vélo · {from} → {to}</p>

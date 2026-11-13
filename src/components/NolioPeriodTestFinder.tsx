@@ -111,8 +111,8 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
       <h3 className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Remplir depuis Nolio</h3>
       <p className="text-sm text-muted-foreground">Choisis la période des tests : toutes les séances vélo et course sont analysées, le meilleur résultat est proposé pour chaque test.</p>
     </div>
-    <div className="grid gap-3 sm:grid-cols-3">
-      {!fixedAthlete && <div><Label htmlFor="fill-athlete">Athlète Nolio</Label>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
+      {!fixedAthlete && <div className="sm:col-span-2"><Label htmlFor="fill-athlete">Athlète Nolio</Label>
         <select id="fill-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy || !athletes} onChange={e => { setAthlete(e.target.value); setTests(null); }}>
           <option value="">{athletes ? 'Choisir un athlète' : 'Chargement…'}</option>
           {athletes?.map(a => <option key={a.id} value={a.id} disabled={!a.has_api_access}>{a.name}</option>)}
@@ -120,7 +120,7 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
       {!fixedFrom && <div><Label htmlFor="fill-from">Du</Label><Input id="fill-from" type="date" value={from} max={to} disabled={busy} onChange={e => { setFrom(e.target.value); setTests(null); }} /></div>}
       {!fixedTo && <div><Label htmlFor="fill-to">Au (inclus)</Label><Input id="fill-to" type="date" value={to} min={from} disabled={busy} onChange={e => { setTo(e.target.value); setTests(null); }} /></div>}
     </div>
-    <Button className="min-h-11" onClick={run} disabled={busy || !athlete || !from || !to || from > to}>{busy ? progress || 'Lecture…' : 'Trouver les tests de la période'}</Button>
+    <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={busy || !athlete || !from || !to || from > to}>{busy ? progress || 'Lecture…' : 'Trouver les tests de la période'}</Button>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
     {tests && <div className="space-y-4">

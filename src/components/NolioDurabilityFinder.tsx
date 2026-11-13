@@ -61,14 +61,14 @@ export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athlete
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-      <div className="flex items-center gap-2"><Timer className="h-4 w-4 text-primary" /><h3 className="font-semibold">Durabilité sur sorties longues</h3><Badge variant="secondary">À vérifier</Badge></div>
+      <div className="flex flex-wrap items-center gap-2"><Timer className="h-4 w-4 shrink-0 text-primary" /><h3 className="font-semibold">Durabilité sur sorties longues</h3><Badge variant="secondary">À vérifier</Badge></div>
       <p className="text-sm text-muted-foreground">Compare ton meilleur effort de 20 min en début de séance et dans le dernier tiers, sur les sorties d’au moins 2 h à vélo ou 1 h 30 en course. Moyenne sur au moins 2 séances. Ne change ni les limiteurs ni les plans.</p>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <div><Label>Athlète Nolio</Label><select className="w-full h-10 rounded-md border border-input bg-background px-2 text-sm" value={athlete} onChange={e => setAthlete(e.target.value)}><option value="">Choisir…</option>{athletes.filter(a => a.has_api_access).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
+        <div className="sm:col-span-2"><Label>Athlète Nolio</Label><select className="w-full h-11 rounded-md border border-input bg-background px-2 text-sm" value={athlete} onChange={e => setAthlete(e.target.value)}><option value="">Choisir…</option>{athletes.filter(a => a.has_api_access).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
         <div><Label>Du</Label><Input type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
         <div><Label>Au</Label><Input type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
       </div>
-      <Button onClick={run} disabled={!athlete || busy}>{busy ? progress || 'Lecture…' : 'Calculer la durabilité'}</Button>
+      <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={!athlete || busy}>{busy ? progress || 'Lecture…' : 'Calculer la durabilité'}</Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
       {found && (['bike', 'run'] as const).map(sport => {
         const list = found[sport] ?? [];
