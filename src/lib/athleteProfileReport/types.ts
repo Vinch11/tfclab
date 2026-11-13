@@ -117,10 +117,8 @@ export interface AthleteProfileReportInput {
   reportReadingHTML?: string;
   compassSummaryHTML?: string;
   evidenceHTML?: string;
-  /** Tests et bilans enregistrés comparés dans le temps. */
+  /** Durabilité mesurée sur les sorties longues, par sport. */
   durabilityBySport?: Partial<Record<'bike' | 'run', string>>;
-  evolutionBySport?: Partial<Record<'bike' | 'run', string>>;
-  progressionBySport?: Partial<Record<'bike' | 'run', string>>;
   athleteName: string;
   objectifLabel: string;
   ambitionLabel: string;

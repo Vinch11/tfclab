@@ -8,8 +8,7 @@ import { durabilityReportHTML } from '@/lib/durability/longSessionDurability';
  * par l'UI et l'export Nolio).
  */
 
-import { evolutionSectionHTML, reportSports } from '@/lib/reportKit/story';
-import { sportProgressionHTML } from '@/lib/reportKit/sportProgression';
+import { reportSports } from '@/lib/reportKit/story';
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
@@ -321,7 +320,7 @@ export function mapExportPayloadToProfileReport(
     roadmap = null;
   }
 
-  // ── Progression vers la cible d'ambition ──────────────────────────────────
+  // ── Écart à la cible d'ambition ───────────────────────────────────────────
   const currentAmbition = (payload.ambition?.allTargets ?? []).find(
     (t: any) => t.ambition === payload.ambition?.current,
   );
@@ -376,7 +375,7 @@ export function mapExportPayloadToProfileReport(
       `Compléter les données manquantes pour affiner le diagnostic : ${limiterResult.missingMetrics.slice(0, 4).join(", ")}.`,
     );
   }
-  nextSteps.push("Refaire un point de contrôle (test terrain) dans 6 à 8 semaines pour mesurer les progrès.");
+  nextSteps.push("Refaire un point de contrôle (test terrain) dans 6 à 8 semaines pour affiner tes repères.");
 
   return {
     athleteName: payload.athlete?.name ?? "Athlète",
@@ -384,8 +383,6 @@ export function mapExportPayloadToProfileReport(
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
     durabilityBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, durabilityReportHTML((snap as { critical_metrics?: unknown } | null)?.critical_metrics, [sp])])),
-    evolutionBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: [sp] })])),
-    progressionBySport: Object.fromEntries(reportSports(goal, compass?.presentation?.sport === 'run').map(sp => [sp, sportProgressionHTML(payload.tests ?? [], payload.athlete?.id ?? '', sp)])),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

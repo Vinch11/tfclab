@@ -1,6 +1,8 @@
 # Roadmap
 
-- [x] Progression réelle par sport intégrée aux chapitres du Profil Athlète : puissance moyenne du test de seuil vélo / VMA, dates et valeurs, protocoles distincts non reliés, aucune estimation ni cible transformée en mesure. 18 tests verts ; export connecté Emanuela ouvert (un seul sprint stocké, donc aucune progression seuil/VMA inventée), courbes/PDF et téléphone sans débordement contrôlés sur séries d’essai. Compilation OK, deux générateurs déployés avec succès ; historique réel à compléter pour voir les courbes chez Emanuela.
+- [x] Progression retirée des rapports athlète à la demande du coach (13/11) : courbes de tests datés et section « ce qui a réellement changé » supprimées du code partagé, plus aucune série de bilans ni d’évolution dans Performance et Profil. La comparaison à l’ambition reste et se lit « écart à ta cible » avec l’écart restant. 6 tests verts (dont un contrôle du rapport rendu : aucune trace de progression, les deux chapitres sportifs et leur durabilité conservés), type-check sans erreur, deux générateurs redéployés.
+
+- [x] ~~Progression réelle par sport intégrée aux chapitres du Profil Athlète~~ — retirée le 13/11 (entrée précédente) : le coach ne veut aucune progression dans les rapports.
 
 - [x] Performance et Profil Athlète enrichis en photos sportives et repères personnels lisibles ; pages évolution/plan retirées, transitions intégrées au flux et absences non répétées. Exports réels Emanuela ouverts, toutes les photos chargées, téléphone sans débordement ; PDF de contrôle 8/7 pages avec contenu, 20 tests verts, compilation OK et deux générateurs déployés. Mesures et plans inchangés ; dialogue Ctrl+P manuel non reproduit.
 

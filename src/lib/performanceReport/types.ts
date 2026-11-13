@@ -86,8 +86,6 @@ export interface PerformanceReportInput {
   evidenceHTML?: string;
   /** Sports racontés (vélo et/ou course) — présentation uniquement. */
   sports?: Array<'bike' | 'run'>;
-  /** Tests et bilans enregistrés comparés dans le temps. */
-  evolutionBySport?: Partial<Record<'bike' | 'run', string>>;
   compassSummaryHTML?: string | null;
   /** Identité */
   athleteName: string;

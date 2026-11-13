@@ -32,7 +32,7 @@ import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
-import { evolutionSectionHTML, isLongEvent, reportSports, sportControls } from '@/lib/reportKit/story';
+import { isLongEvent, reportSports, sportControls } from '@/lib/reportKit/story';
 import { AMBER, MINT, PERI, ROSE, SKY, VIOL } from "./charts";
 import type {
   PerfBlock,
@@ -611,7 +611,6 @@ export function computePerformanceReport(
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap, payload.tests ?? []),
     sports,
-    evolutionBySport: Object.fromEntries(sports.map((sp) => [sp, evolutionSectionHTML({ athleteId: payload?.athlete?.id ?? '', tests: payload?.tests ?? [], snapshots: payload?.snapshotHistory ?? [], sports: [sp] })])),
     kpis: compass?.presentation ? compassRows.map(r => ({ label: r.label, value: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), unit: r.unit })) : kpis,
     gauges: compass?.presentation ? compassRows.filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, unit: r.unit, value: r.value, display: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), scale: [0, Math.max((r.target ?? 1) * 1.5, (r.value ?? 1) * 1.2)] as [number, number], target: r.target != null ? [r.target, r.target] as [number, number] : null, color: PERI })) : gauges,
     overview,

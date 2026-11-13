@@ -26,7 +26,6 @@ import type {
   ReportZoneSet,
 } from "./types";
 import { metricSourceLabel } from '../coachingCompass/presentation';
-import { SPORT_PROGRESSION_CSS } from '@/lib/reportKit/sportProgression';
 
 const STATUS_COLOR: Record<string, string> = {
   ok: RK.mint,
@@ -183,7 +182,7 @@ function progressBar(t: ReportTargetProgress): string {
     </div>
     <div class="bar" style="height:8px;border-radius:999px"><span style="width:${pct.toFixed(1)}%;background:${color}"></span></div>
     <div style="font-size:9px;color:${t.reached ? RK.mint : RK.faint};margin-top:3px">
-      ${t.target == null ? "Comparaison non définie" : t.current == null || t.current <= 0 ? "Donnée manquante" : t.reached ? "✓ Cible interne atteinte" : `${Math.round(pct)} % de la cible interne — pas une progression mesurée`}
+      ${t.target == null ? "Comparaison non définie" : t.current == null || t.current <= 0 ? "Donnée manquante" : t.reached ? "✓ Cible interne atteinte" : `${Math.round(pct)} % de ta cible atteint · écart restant ${Math.round(100 - pct)} %`}
     </div>
   </div>`;
 }
@@ -357,7 +356,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const hasSportTte = (d.sportTte ?? []).length > 0;
   const available = (m: ReportMetric) => m.value != null && Number.isFinite(m.value) && m.value > 0 && m.status !== "missing";
   const sharedMetrics = d.metrics.filter(m => available(m) && !BIKE_KEYS.has(m.key) && !RUN_KEYS.has(m.key) && !(hasSportTte && m.key === 'tte'));
-  const storySports = ((Object.keys(d.evolutionBySport ?? {}).length ? Object.keys(d.evolutionBySport ?? {}) : Object.keys(d.durabilityBySport ?? {})) as Array<'bike' | 'run'>);
+  const storySports = (Object.keys(d.durabilityBySport ?? {}) as Array<'bike' | 'run'>);
   const isSport = (sp: 'bike' | 'run', label: string) => sp === 'bike' ? /v[ée]lo|bike|cycl/i.test(label) : /course|run/i.test(label);
   const SPORT_TEXT = {
     bike: { eyebrow: 'Vélo · où tu en es', title: 'Ton vélo en chiffres', lead: 'À vélo, tout se lit en watts : ta puissance au seuil, ce que tu tiens en fin de sortie et les zones qui règlent tes séances sur le home-trainer ou la route.', tte: 'Temps tenu au seuil vélo', zones: 'Tes zones vélo', zonesLead: 'Chaque zone se règle en watts, avec le cardio en contrôle. Elles viennent de ton seuil vélo, pas de ta course.', shows: (n: number) => n ? 'Ces repères décrivent ton moteur sur le vélo uniquement.' : 'Peu de repères vélo enregistrés : un test de puissance les complétera.', changes: 'Tes séances vélo se règlent sur ces watts ; aucun chiffre de course ne vient les modifier.' },
@@ -379,7 +378,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${metrics.length ? personalMarkers(metrics.map(m => ({label:m.label, value:m.value, display:num(m.value,m.decimals ?? 1),unit:m.unit,target:m.target,scale:m.scale}))) : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
-    ${d.progressionBySport?.[sp] ?? ''}
   ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
     ${d.durabilityBySport?.[sp] && !/Pas encore mesurée/.test(d.durabilityBySport[sp] ?? '') ? `<div style="margin-top:18px">${d.durabilityBySport[sp]}</div>` : ''}
     ${foot(d, t.title)}
@@ -418,7 +416,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${
       d.targetProgress.filter(t => t.current != null && t.current > 0 && t.target != null && t.target > 0).length
         ? `<div class="card avoid" style="margin-top:12px">
-            <h3>Où tu en es par rapport à ta cible « ${esc(d.ambitionLabel)} »</h3>
+            <h3>Écart à ta cible « ${esc(d.ambitionLabel)} »</h3>
             ${d.targetProgress.filter(t => t.current != null && t.current > 0 && t.target != null && t.target > 0).map(progressBar).join("")}
           </div>`
         : ""
@@ -502,7 +500,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
-    extraCSS: STORY_CSS + EXTRA_CSS + ATHLETE_VISUAL_CSS + SPORT_PROGRESSION_CSS,
+    extraCSS: STORY_CSS + EXTRA_CSS + ATHLETE_VISUAL_CSS,
     body: `${cover}${pageProfil}${pageLimiteurs}${storySports.length ? storySports.map(sportChapter).join('') : pageZones}${d.levers.length ? pageLeviers : ""}${pageFinal}`,
   });
 }
