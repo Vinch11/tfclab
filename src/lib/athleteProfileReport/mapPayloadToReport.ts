@@ -12,7 +12,7 @@ import { reportSports } from '@/lib/reportKit/story';
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
-import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
+import { compassReportRows, compassSportReportRows, compassTteReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 
@@ -408,7 +408,8 @@ export function mapExportPayloadToProfileReport(
       meaning: axis.key === 'tte' ? 'Durée au seuil ; ne mesure pas la robustesse après effort prolongé.' : axis.key === 'fatmax' ? 'Zone lipidique vélo modélisée, non mesurée ; pas une note de préparation.' : 'Repère et cible interne issus du compass ; interprétation selon la provenance.',
     })) : [],
     sportReferences: compass?.presentation?.sportReferences,
-    sportTte: [compass?.presentation?.tteBike ? { label: 'TTE vélo', value: compass.presentation.tteBike.tte_min, source: compass.presentation.tteBike.source } : null, compass?.presentation?.tteRun ? { label: 'TTE course', value: compass.presentation.tteRun.tte_min, source: compass.presentation.tteRun.source } : null].filter((v): v is { label: string; value: number; source: string } => v !== null),
+    sportTte: compass ? compassTteReportRows(compass) : [],
+    sportComparisons: compass ? { bike: compassSportReportRows(compass, 'bike'), run: compassSportReportRows(compass, 'run') } : {},
     radar: (compass?.presentation?.axes ?? compass?.radarAxes ?? []).map((a: any) => ({
       source: a.source,
       label: a.label,

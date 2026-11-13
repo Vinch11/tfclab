@@ -29,7 +29,7 @@ import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
 import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
-import { compassReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
+import { compassReportRows, compassSportReportRows, compassTteReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 import { isLongEvent, reportSports, sportControls } from '@/lib/reportKit/story';
@@ -611,6 +611,8 @@ export function computePerformanceReport(
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap, payload.tests ?? []),
     sports,
+    sportTte: compass ? compassTteReportRows(compass) : [],
+    sportComparisons: compass ? { bike: compassSportReportRows(compass, 'bike'), run: compassSportReportRows(compass, 'run') } : {},
     kpis: compass?.presentation ? compassRows.map(r => ({ label: r.label, value: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), unit: r.unit })) : kpis,
     gauges: compass?.presentation ? compassRows.filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, unit: r.unit, value: r.value, display: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), scale: [0, Math.max((r.target ?? 1) * 1.5, (r.value ?? 1) * 1.2)] as [number, number], target: r.target != null ? [r.target, r.target] as [number, number] : null, color: PERI })) : gauges,
     overview,

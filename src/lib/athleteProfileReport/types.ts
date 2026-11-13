@@ -138,7 +138,8 @@ export interface AthleteProfileReportInput {
   metrics: ReportMetric[];
   radar: ReportRadarAxis[];
   sportReferences?: import('../coachingCompass/sportPresentation').SportReference[];
-  sportTte?: Array<{ label: string; value: number; source: string }>;
+  sportTte?: Array<{ label: string; value: number; source: string; target?: number | null }>;
+  sportComparisons?: Partial<Record<'bike' | 'run', import('../reportKit/pedagogy').PersonalComparison[]>>;
   economyAxis: ReportRadarAxis | null;
   targetProgress: ReportTargetProgress[];
 

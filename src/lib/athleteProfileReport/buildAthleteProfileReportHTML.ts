@@ -26,7 +26,7 @@ import type {
   ReportZoneSet,
 } from "./types";
 import { metricSourceLabel } from '../coachingCompass/presentation';
-import { PEDAGOGY_CSS, effortDomainsHTML, endurancePedagogyHTML, enginePedagogyHTML, zoneRibbonHTML } from '../reportKit/pedagogy';
+import { PEDAGOGY_CSS, personalComparisonHTML } from '../reportKit/pedagogy';
 
 const STATUS_COLOR: Record<string, string> = {
   ok: RK.mint,
@@ -352,7 +352,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     logoBase64: d.logoBase64,
   });
 
-  const BIKE_KEYS = new Set(['ftpkg', 'fatmax']);
+  const BIKE_KEYS = new Set(['ftpkg', 'fatmax', 'vlamax']);
   const RUN_KEYS = new Set(['vma']);
   const hasSportTte = (d.sportTte ?? []).length > 0;
   const available = (m: ReportMetric) => m.value != null && Number.isFinite(m.value) && m.value > 0 && m.status !== "missing";
@@ -379,10 +379,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${metrics.length ? personalMarkers(metrics.map(m => ({label:m.label, value:m.value, display:num(m.value,m.decimals ?? 1),unit:m.unit,target:m.target,scale:m.scale}))) : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
-    ${enginePedagogyHTML(sp, { vma: sp === 'run' ? metrics.find(m => m.key === 'vma')?.value ? `${num(metrics.find(m => m.key === 'vma')?.value)} km/h` : undefined : undefined })}
-    ${effortDomainsHTML(sp)}
-    ${endurancePedagogyHTML(sp, tte[0] ? `${tte[0].value} min` : undefined)}
-    ${zones.map(z => zoneRibbonHTML(z.zones)).join('')}
+    ${personalComparisonHTML(sp === 'bike' ? 'Vélo · tes repères face à ta cible' : 'Course · tes repères face à ta cible', [...(d.sportComparisons?.[sp] ?? []).filter(r => r.key !== 'tte'), ...tte.map(r => ({ ...r, key: 'tte', unit: 'min' }))], 'Le bilan est en couleur bleue, la cible en vert. Les valeurs restent propres à ce sport.')}
   ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
     ${d.durabilityBySport?.[sp] && !/Pas encore mesurée/.test(d.durabilityBySport[sp] ?? '') ? `<div style="margin-top:18px">${d.durabilityBySport[sp]}</div>` : ''}
     ${foot(d, t.title)}
@@ -397,10 +394,9 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     <div class="note avoid" style="border-left-color:${readinessColor};margin-bottom:12px">${rich(d.readiness.message)}</div>
 
     <div class="card avoid">
-      <div class="grid2" style="grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:center">
+      <div>
         <div>
-          ${radarSVG(d.radar.filter(a => a.value != null && a.value > 0))}
-          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Tes repères disponibles, comparés à tes cibles personnelles.</div>
+          ${personalComparisonHTML('Ton endurance au seuil · TTE', (d.sportTte ?? []).map(r => ({ ...r, key: 'tte', unit: 'min' })), 'Le temps tenu et la cible de ton compass, séparés pour chaque sport.')}
         </div>
         <div>
           <div style="font-size:11.8px;line-height:1.65;color:${RK.inkSoft}">${rich(d.profileNarrative)}</div>

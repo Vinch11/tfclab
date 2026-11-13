@@ -1,3 +1,3 @@
 # Report diagram architecture
 
-- Explanatory diagrams live in `pedagogy.ts`, use canonical doctrine domains and already-resolved values, and label schematic layouts as non-numerical. Why: visuals must not invent measurements or change prescriptions.
+- Personal comparison charts live in `pedagogy.ts` and consume sport-scoped values/targets from `coachingCompass/reportPresentation`; each metric has its own numerical scale and unit. Why: reports must match the compass without inventing measurements or changing prescriptions.

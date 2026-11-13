@@ -82,6 +82,8 @@ export interface PerfTargetRow {
 }
 
 export interface PerformanceReportInput {
+  sportTte?: Array<{ sport: 'bike' | 'run'; label: string; value: number; source: string; target: number | null }>;
+  sportComparisons?: Partial<Record<'bike' | 'run', import('../reportKit/pedagogy').PersonalComparison[]>>;
   reportReadingHTML?: string;
   evidenceHTML?: string;
   /** Sports racontés (vélo et/ou course) — présentation uniquement. */

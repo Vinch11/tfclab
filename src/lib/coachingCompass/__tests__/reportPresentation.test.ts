@@ -1,11 +1,34 @@
 import { describe, expect, it } from 'vitest';
 import { computeCoachingCompass, type CoachingCompassInput } from '..';
-import { compassReportRows, buildCompassReportReferencesHTML } from '../reportPresentation';
+import { compassReportRows, compassTteReportRows, buildCompassReportReferencesHTML } from '../reportPresentation';
 import { mapExportPayloadToProfileReport } from '@/lib/athleteProfileReport/mapPayloadToReport';
 import { computePerformanceReport } from '@/lib/performanceReport/computePerformanceReport';
 
 const input = (objectif: string): CoachingCompassInput => ({ objectif, sportFocus: objectif === '10K' ? 'run' : 'triathlon', ambition: 'competitor', athleteAge: 51, ftp: 188, poids: 52, vo2max: 50, tss7d: null, snapshotDate: null, snapshotUpdatedAt: null, pmax5s: null, p30sW: null, p60sW: null, map5minW: null, runEconomyScore: null, hrDriftPct: 1.3, vma: 14.2, paceThresholdSecPerKm: 315, fatmax: null, vlamaxEffectif: { value: .3, confidence: .6, source: 'estimation' }, tteEffectif: { tte_min: 35, confidence: .5, source: 'estimated' }, tteEffectifRun: { tte_min: 40, confidence: .7, source: 'observed' }, fatigueEffectif: null, limiterResult: null, potentielPhysiologique: null, strategyResult: null, lactateThresholds: null, wprimeKj: 7 });
 describe('reports share the compass projection', () => {
+  it('copies separate bike 35 and run 40 TTE and the exact compass targets into both reports', () => {
+    const compass = computeCoachingCompass(input('IM'));
+    const payload = { athlete: { name: 'Test', goal: 'IM' }, coachingCompass: compass, effectiveRefs: {}, tte: { tte_min: 999 }, unifiedLimiter: { categoryRanking: [], gapAnalysis: [] } };
+    const opts = { ambitionLabel: 'Compétiteur', generatedAt: '2026-11-13' };
+    const expected = compassTteReportRows(compass);
+    expect(expected.map(r => r.value)).toEqual([35, 40]);
+    expect(expected.map(r => r.target)).toEqual([
+      compass.presentation?.disciplineAxes?.bike.find(a => a.key === 'tte')?.target,
+      compass.presentation?.disciplineAxes?.run.find(a => a.key === 'tte')?.target,
+    ]);
+    expect(expected.every(r => r.target != null && r.target > 0)).toBe(true);
+    expect(mapExportPayloadToProfileReport(payload, opts).sportTte).toEqual(expected);
+    expect(computePerformanceReport(payload, opts).sportTte).toEqual(expected);
+  });
+  it('leaves a missing sport target null rather than borrowing the other sport target', () => {
+    const compass = computeCoachingCompass(input('IM'));
+    const axes = compass.presentation?.disciplineAxes?.run;
+    const axis = axes?.find(a => a.key === 'tte');
+    if (!axis) throw new Error('Missing test fixture TTE');
+    axis.target = null;
+    expect(compassTteReportRows(compass).find(r => r.sport === 'run')?.target).toBeNull();
+    expect(compassTteReportRows(compass).find(r => r.sport === 'bike')?.target).toBeGreaterThan(0);
+  });
   it('includes the same independent running observations and priorities in triathlon reports', () => {
     const compass = computeCoachingCompass(input('IM'));
     const html = buildCompassReportReferencesHTML(compass);

@@ -12,6 +12,25 @@ export function compassReportRows(compass: TFCLCoachingCompassResult) {
   }));
 }
 
+/** Sport-specific display values and targets, copied only from the compass. */
+export function compassSportReportRows(compass: TFCLCoachingCompassResult, sport: 'bike' | 'run') {
+  const view = compass.presentation;
+  if (!view) return [];
+  const axes = view.disciplineAxes?.[sport] ?? (view.sport === sport ? view.axes : []);
+  return axes.map(a => ({ key: a.key, label: a.label, value: a.value, target: a.target, unit: a.unit, source: a.source ?? 'unknown' }));
+}
+
+export function compassTteReportRows(compass: TFCLCoachingCompassResult) {
+  const view = compass.presentation;
+  if (!view) return [];
+  return (['bike', 'run'] as const).flatMap(sport => {
+    const tte = sport === 'bike' ? view.tteBike : view.tteRun;
+    if (!tte || tte.tte_min <= 0) return [];
+    return [{ sport, label: sport === 'bike' ? 'TTE vélo' : 'TTE course', value: tte.tte_min,
+      target: compassSportReportRows(compass, sport).find(a => a.key === 'tte')?.target ?? null, source: tte.source }];
+  });
+}
+
 export function buildCompassReportReferencesHTML(compass: TFCLCoachingCompassResult): string {
   const view = compass.presentation;
   if (!view) return '<p>Données insuffisantes</p>';
