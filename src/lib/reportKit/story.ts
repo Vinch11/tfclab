@@ -1,5 +1,7 @@
 import bikePhoto from '@/assets/report-cycling-road.jpg';
 import runPhoto from '@/assets/report-running-path.jpg';
+import bikeEndurance from '@/assets/report-cycling-endurance.jpg';
+import runEndurance from '@/assets/report-running-endurance.jpg';
 /**
  * Récit des rapports athlète (Performance, Profil) — présentation uniquement.
  * Aucun calcul physiologique : met en forme des valeurs déjà enregistrées.
@@ -9,7 +11,7 @@ import { esc, RK } from './index';
 import { storedTestCurves, type TestCurve } from '@/lib/coachingCompass/testCurves';
 import type { DbTest } from '@/hooks/useCloudData';
 
-export const STORY_STEPS = ['Où j’en suis', 'Ce qui me freine', 'Pourquoi', 'Ce que nous travaillons', 'Comment voir mes progrès'] as const;
+export const STORY_STEPS = ['Où j’en suis', 'Ce qui me freine', 'Pourquoi', 'Ce que nous travaillons', 'L’essentiel à retenir'] as const;
 
 export const STORY_CSS = `
 @media screen{body{background:linear-gradient(180deg,${RK.primarySoft},${RK.surface} 420px)}}
@@ -17,7 +19,7 @@ export const STORY_CSS = `
 .energy-ill{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
 .energy-ill svg{flex:1 1 220px;max-width:100%;height:auto}
 .page svg{max-width:100%;height:auto}
-@media screen and (max-width:640px){.page{padding:20px 16px!important}.grid2,.grid3{grid-template-columns:1fr!important}.card table{display:block;overflow-x:auto;font-size:11px}.card{overflow-x:auto;-webkit-overflow-scrolling:touch}.card > svg{min-width:600px}.sport-turn{padding:28px 20px!important}.sport-turn h1{font-size:26px}.sport-photo{height:150px}h1{font-size:24px!important}.lead{font-size:14px!important;line-height:1.6}}
+@media screen and (max-width:640px){.page{padding:20px 16px!important}.grid2,.grid3{grid-template-columns:1fr!important}.card table{display:block;overflow-x:auto;font-size:11px}.card{overflow-x:auto;-webkit-overflow-scrolling:touch}.card > svg{min-width:0}.sport-turn{padding:28px 20px!important}.sport-turn h1{font-size:26px}.sport-photo{height:150px}h1{font-size:24px!important}.lead{font-size:14px!important;line-height:1.6}}
 .sport-turn{min-height:0!important;display:flex;flex-direction:column;justify-content:center;padding:56px 48px!important;border-radius:28px;background:linear-gradient(135deg,${RK.primarySoft},${RK.surface})}
 .sport-turn.run{background:linear-gradient(135deg,${RK.mintSoft},${RK.surface})}
 .sport-turn .n{font-size:64px;font-weight:700;line-height:1;color:${RK.primary};opacity:.35}
@@ -135,17 +137,47 @@ const TURN: Record<Sport, { title: string; question: string; steps: string[] }> 
 /** Page de transition entre deux parcours sportifs. */
 const abs = (u: string) => (typeof window !== 'undefined' ? new URL(u, window.location.origin).href : u);
 
-const ENERGY: Record<Sport, string> = {
-  bike: `<div class="energy-ill"><svg viewBox="0 0 320 90" role="img" aria-label="Énergie vélo : oxygène à faible puissance, sucre quand les watts montent"><defs><linearGradient id="eb" x1="0" x2="1"><stop offset="0" stop-color="${RK.mint}"/><stop offset="1" stop-color="${RK.primary}"/></linearGradient></defs><rect x="10" y="38" width="300" height="14" rx="7" fill="url(#eb)" opacity=".75"/><text x="10" y="28" font-size="11" fill="${RK.body}">Oxygène · rouler longtemps</text><text x="310" y="28" font-size="11" text-anchor="end" fill="${RK.body}">Sucre · relances, bosses</text><text x="160" y="76" font-size="10" text-anchor="middle" fill="${RK.muted}">plus de watts →</text></svg></div>`,
-  run: `<div class="energy-ill"><svg viewBox="0 0 320 90" role="img" aria-label="Énergie course : endurance aux allures lentes, sucre aux allures rapides"><defs><linearGradient id="er" x1="0" x2="1"><stop offset="0" stop-color="${RK.mint}"/><stop offset="1" stop-color="${RK.primary}"/></linearGradient></defs><rect x="10" y="38" width="300" height="14" rx="7" fill="url(#er)" opacity=".75"/><text x="10" y="28" font-size="11" fill="${RK.body}">Footing · endurance</text><text x="310" y="28" font-size="11" text-anchor="end" fill="${RK.body}">Fractionné · VMA</text><text x="160" y="76" font-size="10" text-anchor="middle" fill="${RK.muted}">allure plus rapide →</text></svg></div>`,
-};
+export function sportPhoto(sport: Sport, endurance = false): string {
+  const photo = endurance ? (sport === 'bike' ? bikeEndurance : runEndurance) : (sport === 'bike' ? bikePhoto : runPhoto);
+  return `<figure class="sport-figure"><img src="${abs(photo)}" width="1536" height="1024" alt="${sport === 'bike' ? 'Cyclisme sur route' : 'Course à pied en plein air'}" /><figcaption>Illustration sportive</figcaption></figure>`;
+}
+
+/** Values and internal targets already resolved upstream; no invented scale or sport conversion. */
+export function personalMarkers(rows: { label: string; value: number | null; display: string; unit: string; target?: [number, number] | null; scale?: [number, number] }[]): string {
+  return `<div class="personal-markers">${rows.filter(r => r.value != null && Number.isFinite(r.value) && r.value > 0).map(r => {
+    const range = r.scale;
+    const pct = (v: number) => range ? Math.max(0, Math.min(100, (v - range[0]) / Math.max(0.0001, range[1] - range[0]) * 100)) : 0;
+    const target = r.target;
+    const digits = r.unit.includes("mmol") ? 2 : 1;
+    return `<div class="personal-marker"><div class="marker-heading"><strong>${esc(r.label)}</strong><span>${esc(r.display)} <small>${esc(r.unit)}</small></span></div>${range ? `<div class="marker-track">${target ? `<span class="marker-target" style="left:${pct(target[0])}%;width:${Math.max(1, pct(target[1]) - pct(target[0]))}%"></span>` : ''}<span class="marker-dot" style="left:${pct(r.value ?? 0)}%"></span></div><div class="marker-caption"><span>${fr(range[0], digits)}</span>${target ? `<span>Cible personnelle : ${fr(target[0], digits)}${target[1] !== target[0] ? `–${fr(target[1], digits)}` : ''} ${esc(r.unit)}</span>` : ''}<span>${fr(range[1], digits)}</span></div>` : ''}</div>`;
+  }).join('')}</div>`;
+}
 
 export function sportTransition(sport: Sport, index: number, total: number, steps?: string[]): string {
-  const t = { ...TURN[sport], ...(steps ? { steps } : {}) };
-  return `<section class="page"><div class="sport-turn ${sport}"><img class="sport-photo" src="${abs(sport === 'bike' ? bikePhoto : runPhoto)}" alt="" /><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div></section>`;
+  const t = TURN[sport];
+  const lead = sport === 'bike' ? 'Tes watts, ton endurance et l’énergie pour rouler : voici tes repères vélo.' : 'Tes allures, ta foulée et ton endurance : voici tes repères de course. Aucune valeur vélo n’est convertie en allure.';
+  return `<header class="chapter-opening ${sport}">${sportPhoto(sport)}<div class="eyebrow">${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')} · ${sport === 'bike' ? 'Vélo' : 'Course à pied'}</div><h1>${t.title}</h1><p class="lead">${lead}</p></header>`;
 }
 
-/** Fermeture commune après les parcours par sport. */
-export function sharedTransition(total: number): string {
-  return total > 1 ? `<section class="page"><div class="sport-turn"><div class="eyebrow">Après les deux parcours</div><h1>Ce que nous en faisons ensemble</h1><p class="lead">Les constats vélo et course restent séparés ; seul le plan les assemble dans une même semaine, en tenant compte de la fatigue commune.</p></div></section>` : '';
-}
+export function sharedTransition(_total: number): string { return ''; }
+
+/** Compact editorial flow on screen and paper, without sparse forced chapter pages. */
+export const ATHLETE_VISUAL_CSS = `
+.page:not(.cover){min-height:0;height:auto;overflow:visible;page-break-after:auto;break-after:auto;margin-bottom:0;padding-top:9mm;padding-bottom:9mm}
+.page:not(.cover) h1,.page:not(.cover) h2,.page:not(.cover) h3{break-after:avoid}
+h1,h2,h3,.kpi .v{letter-spacing:0}
+.chapter-opening{margin-bottom:20px;break-inside:avoid}
+.sport-figure{margin:0 0 18px;position:relative;break-inside:avoid}
+.sport-figure img{width:100%;height:260px;object-fit:cover;border-radius:8px;display:block}
+.sport-figure figcaption{font-size:9px;color:${RK.muted};margin-top:4px}
+.personal-markers{display:grid;gap:18px;padding:12px 0}
+.personal-marker{break-inside:avoid;border-bottom:1px solid ${RK.lineSoft};padding-bottom:12px}
+.marker-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;color:${RK.ink}}
+.marker-heading>span{font-size:22px;font-weight:600;white-space:nowrap}.marker-heading small{font-size:10px;color:${RK.muted};font-weight:400}
+.marker-track{position:relative;height:12px;background:${RK.surfaceAlt};border-radius:6px;margin:12px 6px 6px}
+.marker-target{position:absolute;top:0;height:100%;background:${RK.mintSoft};border:1px solid ${RK.mint};border-radius:4px}
+.marker-dot{position:absolute;width:16px;height:16px;top:-2px;transform:translateX(-50%);border:3px solid ${RK.surface};border-radius:50%;background:${RK.primary};outline:1px solid ${RK.primary}}
+.marker-caption{display:flex;justify-content:space-between;gap:8px;font-size:10px;color:${RK.muted}}
+@media screen and (max-width:640px){.sport-figure img{height:210px}.marker-heading{flex-wrap:wrap}.marker-caption{font-size:10px}.page:not(.cover){padding:20px 16px}.idgrid{grid-template-columns:1fr 1fr}}
+@media print{.page:not(.cover){margin:0 auto}.chapter-opening{break-before:auto}.sport-figure img{height:65mm}.card{break-inside:avoid}.foot{margin-top:14px}}
+`;

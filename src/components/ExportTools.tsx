@@ -10303,7 +10303,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 )}
                 <div className="text-left flex-1">
                   <div className="font-medium text-sm">Rapport Profil Athlète</div>
-                  <div className="text-[10px] opacity-80">Complet & pédagogique : profil, limiteurs, plan, zones</div>
+                  <div className="text-[10px] opacity-80">Ton profil, tes priorités et tes repères par sport</div>
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>
@@ -10322,7 +10322,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 )}
                 <div className="text-left flex-1">
                   <div className="font-medium text-sm">Rapport de Performance</div>
-                  <div className="text-[10px] opacity-80">Repères, tests, lactate, carburants, zones et suivi</div>
+                  <div className="text-[10px] opacity-80">Ton moteur, tes efforts et ton énergie par sport</div>
                 </div>
                 <ChevronRight className="h-4 w-4 opacity-50" />
               </Button>

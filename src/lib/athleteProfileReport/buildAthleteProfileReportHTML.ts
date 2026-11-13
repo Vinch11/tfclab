@@ -14,7 +14,7 @@
  * Le builder est pur : aucune physiologie calculée ici.
  */
 
-import { insight, sharedTransition, sportTransition, STORY_CSS, storyRail } from "@/lib/reportKit/story";
+import { insight, personalMarkers, sportPhoto, sportTransition, ATHLETE_VISUAL_CSS, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 import { RK, coverPage, esc, num, reportDocument, rich } from "@/lib/reportKit";
 import type {
   AthleteProfileReportInput,
@@ -22,11 +22,9 @@ import type {
   ReportLever,
   ReportMetric,
   ReportRadarAxis,
-  ReportRoadmap,
   ReportTargetProgress,
   ReportZoneSet,
 } from "./types";
-import { buildPhasePedagogy } from "./phasePedagogy";
 import { metricSourceLabel } from '../coachingCompass/presentation';
 
 const STATUS_COLOR: Record<string, string> = {
@@ -189,36 +187,6 @@ function progressBar(t: ReportTargetProgress): string {
   </div>`;
 }
 
-function roadmapChart(r: ReportRoadmap): string {
-  const total = Math.max(1, r.totalWeeks);
-  const tickStep = total > 16 ? 4 : 2;
-  const ticks = Array.from({ length: total }, (_, i) => i + 1)
-    .filter((week) => week === 1 || week === total || week % tickStep === 0)
-    .map((week) => {
-      const left = ((week - 1) / Math.max(1, total - 1)) * 100;
-      return `<span class="roadmap-tick" style="left:${left.toFixed(2)}%">S${week}</span>`;
-    })
-    .join("");
-
-  const rows = r.phases
-    .map((phase) => {
-      const left = ((phase.startWeek - 1) / total) * 100;
-      const width = ((phase.endWeek - phase.startWeek + 1) / total) * 100;
-      return `<div class="roadmap-row">
-        <div class="roadmap-label">
-          <strong><span style="background:${phase.color}"></span>Bloc ${phase.id} · ${esc(phase.name)}</strong>
-          <small>${esc(phase.subtitle)} · S${phase.startWeek}–S${phase.endWeek}</small>
-        </div>
-        <div class="roadmap-track">
-          <div class="roadmap-bar" style="left:${left.toFixed(2)}%;width:${Math.max(width, 3).toFixed(2)}%;background:${phase.color}"></div>
-        </div>
-      </div>`;
-    })
-    .join("");
-
-  return `<div>${rows}<div class="roadmap-axis">${ticks}</div></div>`;
-}
-
 // ── blocs ──────────────────────────────────────────────────────────────────
 
 function metricCard(m: ReportMetric): string {
@@ -370,13 +338,13 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     eyebrow: "Rapport profil physiologique",
     title: d.athleteName,
     intro:
-      "Ton profil, tes limiteurs, les leviers que l'on va actionner et le schéma de planification qui en découle. Chaque page relie un constat à une décision d'entraînement.",
+      "Ton profil, tes repères dans chaque sport et les priorités pour avancer vers ton objectif.",
     identity: [
       { label: "Objectif", value: d.objectifLabel },
       { label: "Ambition", value: d.ambitionLabel },
       { label: "Âge", value: d.age != null ? `${d.age} ans` : "—" },
       { label: "Bilan du", value: d.snapshotDate ?? "—" },
-      { label: "Complétude des données", value: `${Math.round(d.dataCompleteness)} %` },
+
       { label: "Statut", value: "Diagnostic — pas une prédiction de résultat" },
     ],
     footnote: `Généré le ${d.generatedAt}. Les valeurs estimées s'affinent à chaque test réalisé.`,
@@ -386,7 +354,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const BIKE_KEYS = new Set(['ftpkg', 'fatmax']);
   const RUN_KEYS = new Set(['vma']);
   const hasSportTte = (d.sportTte ?? []).length > 0;
-  const sharedMetrics = d.metrics.filter(m => !BIKE_KEYS.has(m.key) && !RUN_KEYS.has(m.key) && !(hasSportTte && m.key === 'tte'));
+  const available = (m: ReportMetric) => m.value != null && Number.isFinite(m.value) && m.value > 0 && m.status !== "missing";
+  const sharedMetrics = d.metrics.filter(m => available(m) && !BIKE_KEYS.has(m.key) && !RUN_KEYS.has(m.key) && !(hasSportTte && m.key === 'tte'));
   const storySports = ((Object.keys(d.evolutionBySport ?? {}).length ? Object.keys(d.evolutionBySport ?? {}) : Object.keys(d.durabilityBySport ?? {})) as Array<'bike' | 'run'>);
   const isSport = (sp: 'bike' | 'run', label: string) => sp === 'bike' ? /v[ée]lo|bike|cycl/i.test(label) : /course|run/i.test(label);
   const SPORT_TEXT = {
@@ -395,25 +364,24 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   } as const;
   const sportChapter = (sp: 'bike' | 'run', i: number) => {
     const t = SPORT_TEXT[sp];
-    const metrics = d.metrics.filter(m => (sp === 'bike' ? BIKE_KEYS : RUN_KEYS).has(m.key));
-    const tte = (d.sportTte ?? []).filter(r => isSport(sp, r.label));
-    const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'bike' ? 'cycling' : 'running'));
+    const metrics = d.metrics.filter(m => available(m) && (sp === 'bike' ? BIKE_KEYS : RUN_KEYS).has(m.key));
+    const tte = (d.sportTte ?? []).filter(r => isSport(sp, r.label) && r.value > 0);
+    const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'bike' ? 'cycling' : 'running') && r.value != null && r.value > 0);
     const zones = d.zoneSets.filter(z => isSport(sp, z.sportLabel));
     const rows = [...tte.map(r => `<tr><td>${t.tte}</td><td><strong>${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'}</strong></td></tr>`),
       ...refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td></tr>`)];
-    return `${storySports.length > 1 ? sportTransition(sp, i, storySports.length, sp === 'bike' ? ['Ton vélo en chiffres', 'Tes zones vélo', 'Ce que tu gardes en fin de longue sortie', 'Ce qui a changé dans tes tests vélo'] : ['Ta course en chiffres', 'Tes zones course', 'Ce que tu gardes en fin de sortie longue', 'Ce qui a changé dans tes tests course']) : ''}
-  <section class="page flow">
+    return `<section class="page flow">${sportTransition(sp, i, storySports.length)}
     ${storyRail(0)}
     <div class="eyebrow">${t.eyebrow}</div>
     <h1>${t.title}</h1>
     <p class="lead">${t.lead}</p>
-    ${metrics.length ? `<div class="metrics">${metrics.map(metricCard).join('')}</div>` : ''}
+    ${metrics.length ? personalMarkers(metrics.map(m => ({label:m.label, value:m.value, display:num(m.value,m.decimals ?? 1),unit:m.unit,target:m.target,scale:m.scale}))) : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
   ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
+    ${d.durabilityBySport?.[sp] && !/Pas encore mesurée/.test(d.durabilityBySport[sp] ?? '') ? `<div style="margin-top:18px">${d.durabilityBySport[sp]}</div>` : ''}
     ${foot(d, t.title)}
-  </section>
-  ${d.durabilityBySport?.[sp] || d.evolutionBySport?.[sp] ? `<section class="page flow">${d.durabilityBySport?.[sp] ?? ''}<div style="margin-top:22px"></div>${d.evolutionBySport?.[sp] ?? ''}${foot(d, 'Tes progrès')}</section>` : ''}`;
+  </section>`;
   };
 
   const pageProfil = `
@@ -426,8 +394,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     <div class="card avoid">
       <div class="grid2" style="grid-template-columns:0.9fr 1.1fr;gap:18px;align-items:center">
         <div>
-          ${radarSVG(d.radar)}
-          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Plus la forme est large, plus tu es proche de tes cibles.</div>
+          ${radarSVG(d.radar.filter(a => a.value != null && a.value > 0))}
+          <div style="font-size:9.5px;color:${RK.faint};text-align:center;margin-top:4px">Tes repères disponibles, comparés à tes cibles personnelles.</div>
         </div>
         <div>
           <div style="font-size:11.8px;line-height:1.65;color:${RK.inkSoft}">${rich(d.profileNarrative)}</div>
@@ -443,13 +411,13 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       </div>
     </div>
 
-    ${sharedMetrics.length ? `<h2>Ton moteur commun</h2><p class="muted" style="margin:0 0 6px">Ces valeurs décrivent ton organisme en général ; les repères propres à chaque sport viennent dans leur chapitre.</p><div class="metrics">${sharedMetrics.map(metricCard).join("")}</div>` : ''}
+    ${sharedMetrics.length ? `<h2>Ton moteur commun</h2><p class="muted" style="margin:0 0 6px">Ces valeurs décrivent ton organisme en général ; les repères propres à chaque sport viennent dans leur chapitre.</p><div class="metrics">${sharedMetrics.map(m => metricCard({...m, source:null})).join("")}</div>` : ''}
 
     ${
-      d.targetProgress.length
+      d.targetProgress.filter(t => t.current != null && t.current > 0 && t.target != null && t.target > 0).length
         ? `<div class="card avoid" style="margin-top:12px">
             <h3>Où tu en es par rapport à ta cible « ${esc(d.ambitionLabel)} »</h3>
-            ${d.targetProgress.map(progressBar).join("")}
+            ${d.targetProgress.filter(t => t.current != null && t.current > 0 && t.target != null && t.target > 0).map(progressBar).join("")}
           </div>`
         : ""
     }
@@ -458,6 +426,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   const pageLimiteurs = `
   <section class="page flow">
+    ${sportPhoto(storySports[0] ?? "run", true)}
     ${storyRail(1)}
     <div class="eyebrow">02 — Ce qui te freine</div>
     <h1>Ce qui te freine aujourd'hui</h1>
@@ -480,66 +449,8 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     <p class="lead">À chaque limiteur correspond un levier d'entraînement précis, avec ses séances
     types et les adaptations physiologiques attendues.</p>
     <div class="grid2">${d.levers.map(leverCard).join("")}</div>
-    ${
-      d.decision
-        ? `<div class="card avoid" style="margin-top:12px">
-            <h3>Bloc recommandé maintenant : ${esc(d.decision.block)} (${d.decision.durationWeeks} semaines)</h3>
-            <p style="margin:0 0 10px">${rich(d.decision.athleteMessage)}</p>
-            <div class="grid3">
-              <div><div style="font-weight:600;font-size:10.5px;margin-bottom:3px">Séances clés</div><ul class="tight">${d.decision.workouts.map((w) => `<li>${esc(w)}</li>`).join("")}</ul></div>
-              <div><div style="font-weight:600;font-size:10.5px;margin-bottom:3px">Cibles physiologiques</div><ul class="tight">${d.decision.physiologicalTargets.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></div>
-              <div><div style="font-weight:600;font-size:10.5px;color:${RK.danger};margin-bottom:3px">À éviter pendant ce bloc</div><ul class="tight">${d.decision.prohibitions.map((p) => `<li>${esc(p)}</li>`).join("")}</ul></div>
-            </div>
-          </div>`
-        : ""
-    }
     ${foot(d, "Leviers")}
   </section>`;
-
-  const pagePlan = d.roadmap
-    ? `
-  <section class="page flow">
-    ${storyRail(3)}
-    <div class="eyebrow">04 — Le chemin</div>
-    <h1>Le schéma des prochaines semaines</h1>
-    <p class="lead">${esc(d.roadmap.title)} — ${d.roadmap.totalWeeks} semaines. ${d.roadmap.personalized ? "Périodisation adaptée à tes limiteurs." : "Périodisation de référence pour ton objectif."}</p>
-    <div class="card avoid">
-      ${d.roadmap.limiterSummary ? `<div class="note" style="margin-bottom:12px">${rich(d.roadmap.limiterSummary)}</div>` : ""}
-      ${roadmapChart(d.roadmap)}
-    </div>
-    ${d.roadmap.phases
-      .map((p, _i, arr) => {
-        const ped = buildPhasePedagogy(p, arr.length);
-        return `<div class="card avoid" style="margin-top:10px;border-left:4px solid ${p.color}">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="width:11px;height:11px;border-radius:4px;background:${p.color};display:inline-block"></span>
-            <span style="font-size:13px;font-weight:600;color:${RK.ink}">Bloc ${p.id} · ${esc(p.name)}</span>
-            <span style="font-size:10px;color:${RK.faint}">S${p.startWeek}–S${p.endWeek} · ${Math.max(1, p.endWeek - p.startWeek + 1)} sem.</span>
-          </div>
-          <p style="margin:6px 0 0;font-size:11px">${rich(p.focus)}</p>
-          <div style="margin-top:9px;font-size:11px;line-height:1.6;color:${RK.body}">
-            <div style="font-weight:600;color:${RK.ink};margin-bottom:3px">Pourquoi ce bloc ?</div>${rich(ped.why)}
-          </div>
-          <div style="margin-top:9px;font-size:11px;color:${RK.body}">
-            <div style="font-weight:600;color:${RK.ink};margin-bottom:3px">Comment on va le travailler</div>
-            <ul class="tight">${ped.how.map((h) => `<li style="margin-bottom:3px">${rich(h)}</li>`).join("")}</ul>
-          </div>
-          <div class="grid2" style="margin-top:10px">
-            <div class="note" style="font-size:10.5px">
-              <strong style="color:${RK.primary}">Ce que tu dois ressentir</strong><br />${rich(ped.feel)}
-            </div>
-            <div class="note bad" style="font-size:10.5px">
-              <strong style="color:${RK.danger}">L'erreur à éviter</strong><br />${rich(ped.pitfall)}
-            </div>
-          </div>
-          ${p.levers.length ? `<div style="margin-top:9px;display:flex;flex-wrap:wrap;gap:4px">${p.levers.map((l) => `<span class="pill na">${esc(l)}</span>`).join("")}</div>` : ""}
-          ${p.targets.length ? `<div style="margin-top:8px;font-size:10px;color:${RK.primary}">${p.targets.map((t) => `<div>→ ${esc(t)}</div>`).join("")}</div>` : ""}
-        </div>`;
-      })
-      .join("")}
-    ${foot(d, "Planification")}
-  </section>`
-    : "";
 
   const pageZones = d.zoneSets.length
     ? `
@@ -589,7 +500,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
-    extraCSS: STORY_CSS + EXTRA_CSS,
-    body: `${cover}${pageProfil}${pageLimiteurs}${storySports.length ? storySports.map(sportChapter).join('') + sharedTransition(storySports.length) : pageZones}${pageLeviers}${pagePlan}${pageFinal}`,
+    extraCSS: STORY_CSS + EXTRA_CSS + ATHLETE_VISUAL_CSS,
+    body: `${cover}${pageProfil}${pageLimiteurs}${storySports.length ? storySports.map(sportChapter).join('') : pageZones}${d.levers.length ? pageLeviers : ""}${pageFinal}`,
   });
 }

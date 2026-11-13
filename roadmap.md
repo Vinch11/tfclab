@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Performance et Profil Athlète enrichis en photos sportives et repères personnels lisibles ; pages évolution/plan retirées, transitions intégrées au flux et absences non répétées. Exports réels Emanuela ouverts, toutes les photos chargées, téléphone sans débordement ; PDF de contrôle 8/7 pages avec contenu, 20 tests verts, compilation OK et deux générateurs déployés. Mesures et plans inchangés ; dialogue Ctrl+P manuel non reproduit.
+
 - [x] Parcours séparés vélo puis course avec pages de transition et conclusion commune ; chapitre course sans watts. 118 tests verts.
 - [x] Rapports Performance et Profil Athlète réorganisés en récit continu (où j’en suis → freins → pourquoi → travail → évolutions réelles), encadrés personnels par graphique, contradictions MLSS/90 g/h/énergie corrigées, contrôles propres au sport, lecture vélo masquée pour un coureur, précautions et preuves en annexe. 109 tests verts, rendu vérifié sur un profil d’essai ; exports réels Vince/Emanuela non rouverts.
 
