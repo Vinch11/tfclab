@@ -202,7 +202,7 @@ function OxidationMetrics({ data, fatMax, refValue, paceMode, carbMax }: {
     ? kmhToPaceStr((refValue / V_SEUIL_FRACTION) * (crossoverPct / 100))
     : `${crossover ? Math.round(crossover.watts) : 0}W`;
   const atRefStr = paceMode ? atRef.paceStr : `${Math.round(atRef.watts)}W`;
-  const refLabel = paceMode ? "Seuil" : "FTP";
+  const refLabel = paceMode ? "Repère théorique 88% VMA" : "FTP";
 
   const items = [
     {
@@ -263,7 +263,7 @@ export function FatCarbOxidationChart({
   ftp,
   vma,
   paceMode: paceModeDefault = false,
-  weight = 70,
+  weight,
   staffMode = false,
   className,
 }: FatCarbOxidationChartProps) {
@@ -276,15 +276,15 @@ export function FatCarbOxidationChart({
   const [paceMode, setPaceMode] = useState<boolean>(initialPace);
 
   const valid = !!(
-    vo2max && vlamax && vo2max > 0 && vlamax > 0 &&
+    vo2max && vlamax && weight && Number.isFinite(weight) && weight > 0 && vo2max > 0 && vlamax > 0 &&
     (paceMode ? vmaAvailable : ftpAvailable)
   );
   // Référence affichée: FTP (W) ou vSeuil (km/h ≈ 88% VMA)
-  const refValue = paceMode ? (vma! * V_SEUIL_FRACTION) : ftp!;
+  const refValue = paceMode ? ((vma ?? 0) * V_SEUIL_FRACTION) : (ftp ?? 0);
 
   const profile = useMemo<MaderProfile | null>(() => {
-    if (!valid) return null;
-    return { vo2max: vo2max!, vlamax: vlamax!, weight };
+    if (!valid || vo2max == null || vlamax == null || weight == null) return null;
+    return { vo2max, vlamax, weight };
   }, [vo2max, vlamax, weight, valid]);
 
   const fatMax = useMemo(() => {
@@ -298,7 +298,7 @@ export function FatCarbOxidationChart({
 
     for (let intensity = 20; intensity <= 100; intensity += 2) {
       const efficiency = getEfficiency(intensity);
-      const vo2LMin = (vo2max! * weight / 1000) * (intensity / 100);
+      const vo2LMin = (profile.vo2max * profile.weight / 1000) * (intensity / 100);
       const energyKJPerMin = vo2LMin * 20.9;
       const watts = (energyKJPerMin * 1000 / 60) * efficiency;
 
@@ -306,8 +306,8 @@ export function FatCarbOxidationChart({
       const paceKmh = paceMode && vma ? vma * (intensity / 100) : 0;
       const paceStr = paceMode ? kmhToPaceStr(paceKmh) : "";
 
-      const fatGmin = calculateFatOxidation(intensity, vo2max!, vlamax!, weight);
-      const carbGmin = calculateCarbOxidation(intensity, vo2max!, vlamax!, weight);
+      const fatGmin = calculateFatOxidation(intensity, profile.vo2max, profile.vlamax, profile.weight);
+      const carbGmin = calculateCarbOxidation(intensity, profile.vo2max, profile.vlamax, profile.weight);
 
       const fatKcalH = fatGmin * 9 * 60;
       const carbKcalH = carbGmin * 4 * 60;
@@ -338,7 +338,7 @@ export function FatCarbOxidationChart({
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
-            VO₂max, VLamax et {paceMode ? "VMA" : "FTP"} requis pour le graphique d'oxydation
+            VO₂max, VLamax, poids et {paceMode ? "VMA" : "FTP"} requis pour le graphique d'oxydation
           </p>
         </CardContent>
       </Card>
@@ -360,7 +360,7 @@ export function FatCarbOxidationChart({
             {canToggle && (
               <UnitToggle paceMode={paceMode} onChange={setPaceMode} />
             )}
-            <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax!.toFixed(2)}</Badge>
+            <Badge variant="secondary" className="text-[9px] font-mono">VLa {vlamax?.toFixed(2)}</Badge>
           </div>
         </div>
       </CardHeader>
@@ -463,10 +463,10 @@ export function FatCarbOxidationChart({
             <div className="text-[11px] text-muted-foreground">
               Entre FatMax ({fatMax.fatMaxIntensity}%) et Crossover ({crossoverPct}%), l'athlète bascule
               d'une dominance lipidique vers glucidique. Pic d'oxydation lipidique : {fatMax.fatMaxGrams} g/min.
-              Besoins CHO @ {paceMode ? "Seuil" : "FTP"} : ~{Math.round((paceMode
+              Oxydation CHO modélisée @ {paceMode ? "repère théorique 88% VMA" : "FTP"} : ~{Math.round((paceMode
                 ? (data.find(p => p.paceKmh >= refValue) ?? data[data.length - 1])
                 : (data.find(p => Math.round(p.watts) >= refValue) ?? data[data.length - 1])
-              ).carbGmin * 60)} g/h.
+              ).carbGmin * 60)} g/h — ce n’est pas une quantité à ingérer.
             </div>
             {carbMax && (
               <div className="text-[11px] text-muted-foreground mt-1.5 pt-1.5 border-t border-border/40">
@@ -475,12 +475,11 @@ export function FatCarbOxidationChart({
                   <>
                     au-delà de <strong>{carbMax.intensityPct}% VO₂max</strong>
                     {!paceMode && carbMax.power ? ` (~${carbMax.power} W)` : ""}, l'oxydation glucidique
-                    dépasse {carbMax.targetCarbGH} g/h — soit plus que ce que l'athlète peut ingérer :
-                    la réserve de glycogène se creuse, l'allure n'est pas soutenable sur épreuve longue.
+                    dépasse le repère hypothétique de {carbMax.targetCarbGH} g/h ; la tolérance digestive réelle et la réserve disponible restent à documenter. Ce point seul ne valide pas une allure sur épreuve longue.
                   </>
                 ) : (
                   <>l'oxydation glucidique reste sous {carbMax.targetCarbGH} g/h sur toute la plage —
-                  très bonne épargne glucidique, l'apport nutritionnel n'est pas le facteur limitant.</>
+                  résultat du modèle, sans preuve de tolérance digestive ni de préparation complète.</>
                 )}
               </div>
             )}

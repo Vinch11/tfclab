@@ -197,7 +197,7 @@ export function PowerDurationUnifiedChart({
   className,
 }: PowerDurationUnifiedChartProps) {
   const isMobile = useIsTouchDevice();
-  const wt = weight ?? 70;
+  const wt = weight;
 
   // Empirical CP model
   const cpResult = useMemo(() => {
@@ -214,7 +214,7 @@ export function PowerDurationUnifiedChart({
   // Mader modeled curve
   // R1: Mader curve utilise CP/W' issus de la régression comme source de vérité
   const maderCurve = useMemo<MaderPowerDurationCurve | null>(() => {
-    if (!vo2max || !vlamax || vo2max <= 0 || vlamax <= 0) return null;
+    if (!vo2max || !vlamax || !wt || wt <= 0 || vo2max <= 0 || vlamax <= 0) return null;
     const profile: MaderProfile = { vo2max, vlamax, weight: wt };
     return generateMaderPowerDurationCurve(profile, STANDARD_DURATIONS, {
       cpOverride: cpResult?.effectiveCP ?? cpResult?.cp,

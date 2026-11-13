@@ -187,7 +187,7 @@ export function VLamaxUnifiedCard({
   // ✅ Cohérence: la valeur affichée et la cible suivent l'onglet actif.
   // En triathlon, l'onglet CAP doit refléter vlamaxRun, pas vlamaxBike.
   const isOnRunTab = effectiveTab === "run";
-  const vlamax = isOnRunTab && vlamaxRun != null ? vlamaxRun : vlamaxBike;
+  const vlamax = isOnRunTab ? (vlamaxRun ?? (isRunningOnly ? vlamaxEffectif.value : null)) : vlamaxBike;
 
   // Profile for header (basé sur la valeur de l'onglet actif)
   const { profil } = useMemo(
@@ -211,7 +211,8 @@ export function VLamaxUnifiedCard({
           <div className="flex flex-col items-center justify-center py-4 text-muted-foreground">
             <Zap className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm">VLamax non disponible</p>
-            <p className="text-xs mt-1">Renseigner un test ou snapshot avec Pmax/FTP</p>
+            <p className="text-xs mt-1">Aucun repère propre à ce sport : pas de remplacement par les mesures de l’autre discipline.</p>
+            {showBike && <Button variant="outline" size="sm" className="mt-3" onClick={() => setActiveTab("bike")}>Vélo</Button>}
           </div>
         </CardContent>
       </Card>
@@ -219,9 +220,7 @@ export function VLamaxUnifiedCard({
   }
   
   // Display value — utilise v2Result uniquement sur l'onglet Vélo (v2Result est calibré vélo)
-  const displayValue = v2Result && !isOnRunTab
-    ? (staffMode ? formatVLamaxStaff(v2Result) : formatVLamaxAthlete(v2Result))
-    : (staffMode ? `${vlamax.toFixed(2)}` : `≈ ${vlamax.toFixed(2)}`);
+  const displayValue = staffMode ? vlamax.toFixed(2) : `≈ ${vlamax.toFixed(2)}`;
 
   // Cibles alignées sur l'onglet actif (Vélo vs CAP)
   const normalizedObj = normalizeObjective(objectif as ObjectifPrincipal);
@@ -246,7 +245,7 @@ export function VLamaxUnifiedCard({
               {profileConfig.label}
             </Badge>
             <Badge variant="outline" className={cn("text-xs", getConfidenceBadgeClass(vlamaxEffectif.confidence * 100))}>
-              {getConfidenceLabel(vlamaxEffectif.confidence)}
+              {getConfidenceLabel(isOnRunTab && !isRunningOnly ? 0.4 : vlamaxEffectif.confidence)}
             </Badge>
           </div>
         </div>
@@ -277,7 +276,7 @@ export function VLamaxUnifiedCard({
           </Badge>
           <OutOfDomainBadge metric={isOnRunTab ? "run_vlamax" : "bike_vlamax"} value={vlamax} />
 
-          {staffMode && v2Result && (
+          {staffMode && v2Result && !isOnRunTab && (
             <Badge 
               variant="outline" 
               className={cn("text-[10px] gap-1", getV2SourceBgColor(v2Result.source), getV2SourceColor(v2Result.source))}
@@ -285,13 +284,13 @@ export function VLamaxUnifiedCard({
               {getV2SourceEmoji(v2Result.source)} {getV2SourceLabel(v2Result.source)}
             </Badge>
           )}
-          {staffMode && v2Result && (
+          {staffMode && v2Result && !isOnRunTab && (
             <span className="text-xs text-muted-foreground">± {v2Result.errorMargin.toFixed(2)}</span>
           )}
         </div>
         
         {/* Variation warning */}
-        {v2Result?.variationWarning && (
+        {!isOnRunTab && v2Result?.variationWarning && (
           <div className="flex items-center gap-2 mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
             <AlertTriangle className="h-3 w-3 text-amber-500 shrink-0" />
             <p className="text-xs text-amber-700 dark:text-amber-300">{v2Result.variationMessage}</p>
@@ -351,8 +350,8 @@ export function VLamaxUnifiedCard({
                   age={age}
                   objectif={objectif}
                   athleteId={athleteId}
-                  vlamaxSource={vlamaxEffectif.source}
-                  vlamaxConfidence={vlamaxEffectif.confidence}
+                  vlamaxSource={isRunningOnly ? vlamaxEffectif.source : "snapshot"}
+                  vlamaxConfidence={isRunningOnly ? vlamaxEffectif.confidence : 0.4}
                   vo2max={vo2max}
                   economyScore={economyScore}
                 />
@@ -364,7 +363,7 @@ export function VLamaxUnifiedCard({
               <LazyTabsContent value="compare" activeValue={effectiveTab} className="mt-3 space-y-3">
                 <ComparisonSection
                   vlamaxBike={vlamax}
-                  vlamaxRun={vlamaxRun!}
+                  vlamaxRun={vlamaxRun ?? 0}
                   age={age}
                   objectif={objectif}
                 />
@@ -387,8 +386,8 @@ export function VLamaxUnifiedCard({
               age={age}
               objectif={objectif}
               athleteId={athleteId}
-              vlamaxSource={vlamaxEffectif.source}
-              vlamaxConfidence={vlamaxEffectif.confidence}
+              vlamaxSource={isRunningOnly ? vlamaxEffectif.source : "snapshot"}
+              vlamaxConfidence={isRunningOnly ? vlamaxEffectif.confidence : 0.4}
               vo2max={vo2max}
               economyScore={economyScore}
             />

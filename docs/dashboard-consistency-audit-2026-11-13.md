@@ -65,3 +65,18 @@ Les pourcentages de confiance repérés ailleurs dans Profil (LT1/LT2 et prédic
 ## Vérifications
 
 72 tests ciblés diagnostics/compass/rapports réussis après les changements de fiabilité. Nouveau contrôle connecté Emanuela/Vince : labels qualitatifs et mention simulation présents, aucun pourcentage de confiance dans le texte du Dashboard, TTE conservés, téléphone sans débordement et aucune erreur JavaScript. Compilation OK ; déclaration de version synchronisée et vérifiée ; fonctions `ai-training-plan` et `ai-training-plan-test` redéployées avec succès. Publication non effectuée. Aucun nouvel export PDF ni appel IA de génération de plan.
+
+## Corrections finales demandées par le coach
+
+- Référence unique via `pickReferenceSnapshot`, provenance renseignée/estimée/test déclaré ; VLamax résolue course commune au Dashboard, au Profil et à la projection des rapports. Les modèles Nolio alternatifs restent explicitement exploratoires.
+- « Prêt » remplacé par des repères favorables, score /100 non assimilé à une validation de course. La lecture Analyse du Profil réutilise celle du Dashboard, sans classement concurrent ni conseils vélo pour un 10 km.
+- Couverture commune par sport : Emanuela 8/9 (89 %, VLamax course absente), Vince 6/6 (100 %, présence uniquement). Progression = moyenne des axes avec cible disponible, sans faux historique ni score de robustesse.
+- Écarts relatifs : TTE 35/52 = 32,69 % ; indice historique 35/90 = 61,11 %. Classements historiques conservés mais clairement séparés des diagnostics autonomes ; économie, W′ et durabilité ne deviennent pas des faiblesses prouvées.
+- Stratégie descriptive contextualisée, domaines physiologiques, cibles VO₂max/TTE avec ambition et âge ; suppression des doses et exemples génériques présentés comme séances.
+- TTE simulé réservé au vélo et à ses entrées disponibles ; pas de durée Ironman complète comparée à un segment vélo ni de diagnostic psychologique. TSS 28 jours non reconstruit depuis une semaine ; fatigue réutilisée depuis le diagnostic, pas de nouvel état inventé.
+- Nutrition et graphiques : suppression des poids/VO₂max/VLamax moyens, blocage de nutrition course quand sa VLamax manque, unités %VO₂max explicites ; oxydation distincte de l’ingestion, repère 88 % VMA signalé comme théorique. Graphiques puissance/lactate vélo non transposés à la course ; prévisions limitées au sport renseigné et pas de prévision triathlon depuis une seule VLamax vélo.
+- CP/W′ : distinction courbe brute / paramètres bornés utilisés pour les récupérations, bornes explicites, aucune promesse de maintien infini.
+
+### Validation finale et périmètre
+
+109 tests ciblés (12 fichiers), dont 5 km, 10 km, semi, marathon, trail, 70.3 et Ironman : contrôles de projections et invariance des contrats, pas validation sportive de plans réels. Vérification connectée Vince/Emanuela après rechargement dans Dashboard, Profil et Stratégie ; ordinateur et téléphone, captures inspectées, pas d’erreur JavaScript ni débordement horizontal. Bilans et plans enregistrés non modifiés ; catégories historiques du moteur conservées, modèles non certifiés. Pas de nouveau plan IA/DET généré, de nouveau PDF réel ni de publication pendant ce correctif. Fonctions des deux générateurs synchronisées et déployées ; état final contrôlé avant commit.

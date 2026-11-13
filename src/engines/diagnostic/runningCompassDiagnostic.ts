@@ -51,7 +51,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
     vo2max: { explanation: 'Le moteur aérobie course reste sous sa cible interne. VO₂max et VMA partagent un stimulus aérobie : ce ne sont pas deux doses de travail à additionner.', lever: 'Développer le moteur aérobie, avec récupération adaptée.' },
     vma: { explanation: 'La réserve de vitesse aérobie est inférieure à la cible course disponible ; cela ne détermine pas seul le chrono de compétition.', lever: 'Développer la vitesse aérobie sans doubler le travail VO₂max.' },
     vlamax: { explanation: 'Le repère glycolytique course dépasse la cible interne de cette épreuve ; une estimation doit être confrontée aux tests course avant prescription.', lever: 'Consolider l’endurance aérobie et le travail sous-seuil course.' },
-    tte: { explanation: 'La durée tenue au seuil course est sous la cible interne. Un arrêt volontaire indique seulement un minimum ; ce déficit ne prouve pas un manque de robustesse après le vélo.', lever: 'Consolider progressivement le temps de travail au seuil course ; vérifier le protocole avant de conclure.' },
+    tte: { explanation: 'La durée tenue au seuil course est sous la cible interne. Un arrêt volontaire indique seulement un minimum ; cet écart ne prouve pas une perte de performance après effort prolongé.', lever: 'Consolider progressivement le temps de travail au seuil course ; vérifier le protocole avant de conclure.' },
   };
   const priorities = axes.flatMap(axis => {
     // A common VO₂max observation is not a sport-specific running diagnosis.
@@ -63,12 +63,12 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
   }).sort((a, b) => b.gapPercent - a.gapPercent);
   const pace = positive(input.paceThresholdSecPerKm);
   const observations = axes.map(axis => `${axis.label} : ${axis.value == null ? 'données insuffisantes' : `${axis.value.toFixed(axis.key === 'vlamax' ? 2 : 1)} ${axis.unit}`}${axis.value != null && axis.target == null ? ' — comparaison non définie pour cet objectif' : ''}.`);
-  if (pace) observations.push(`Allure au seuil course enregistrée : ${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, '0')}/km (${(3600 / pace).toFixed(1)} km/h). Ce seuil ne certifie pas une allure marathon après le vélo.`);
+  if (pace) observations.push(`Allure au seuil course enregistrée : ${Math.floor(pace / 60)}:${String(Math.round(pace % 60)).padStart(2, '0')}/km (${(3600 / pace).toFixed(1)} km/h). Ce seuil ne certifie pas l’allure de compétition pour l’objectif ${input.objectif}.`);
   if (input.economy != null && Number.isFinite(input.economy)) observations.push(`Économie course : ${input.economy}/100, modulateur d’efficience, pas un limiteur prioritaire.`);
   if (input.drift != null && Number.isFinite(input.drift)) observations.push(`Découplage course : ${input.drift} %, indice de séance à interpréter avec sa durée, l’intensité et les conditions.`);
   const limitations = [
     'Priorités descriptives classées par écart relatif aux cibles internes, pas par impact causal démontré ni par probabilité de réussir l’épreuve. Elles ne remplacent pas les priorités du plan.',
-    'Durabilité après effort prolongé et capacité de course après vélo non évaluées : un protocole frais/après charge et des efforts spécifiques documentés sont nécessaires.',
+    input.vo2Source === 'shared' ? 'Durabilité après effort prolongé et capacité de course après vélo non évaluées : des efforts spécifiques documentés sont nécessaires.' : 'Durabilité après effort prolongé non évaluée : un protocole frais/après charge et des efforts spécifiques documentés sont nécessaires.',
     'FatMax course non mesurée ; CP/W′ et VC/D′ restent des repères complémentaires spécifiques aux efforts et au capteur.',
   ];
   if (input.vo2Source === 'shared') limitations.push('VO₂max commune au bilan : modalité course non documentée, exclue du classement course ; aucune estimation à partir des watts vélo.');

@@ -5,6 +5,7 @@
 // =============================================
 
 import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 
 export type RefSource = "snapshot" | "profile" | "none";
 
@@ -36,22 +37,7 @@ export function getEffectiveSnapshot(
   athlete: DbAthlete | null,
   snapshots: DbSnapshot[]
 ): DbSnapshot | null {
-  if (!athlete) return null;
-  
-  const athleteSnapshots = snapshots.filter(s => s.athlete_id === athlete.id);
-  if (athleteSnapshots.length === 0) return null;
-
-  // Si active_snapshot_id défini et trouvé
-  if (athlete.active_snapshot_id) {
-    const active = athleteSnapshots.find(s => s.id === athlete.active_snapshot_id);
-    if (active) return active;
-  }
-
-  // Sinon dernier par date
-  const sorted = [...athleteSnapshots].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  return sorted[0] || null;
+  return pickReferenceSnapshot(snapshots, athlete?.id, athlete?.active_snapshot_id);
 }
 
 /**
@@ -170,7 +156,7 @@ export function getMissingFields(
 export function getSourceLabel(source: RefSource): string {
   switch (source) {
     case "snapshot":
-      return "Mesuré (snapshot)";
+      return "Renseigné (bilan)";
     case "profile":
       return "Renseigné (profil)";
     case "none":

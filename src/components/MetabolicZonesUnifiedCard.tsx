@@ -40,6 +40,7 @@ import {
   Zap,
   ShieldCheck,
 } from "lucide-react";
+import { getConfidenceLabel } from '@/lib/confidenceDisplay';
 import { cn } from "@/lib/utils";
 import { LazyTabsContent } from "@/components/ui/lazy-tabs-content";
 import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
@@ -504,7 +505,7 @@ function LactateTabContent({
               LT1 estimé
             </span>
             <Badge variant={confidenceBadgeVariant(thresholds.lt1.confidence)} className="text-[10px] h-4">
-              {Math.round(thresholds.lt1.confidence * 100)}%
+              {getConfidenceLabel(thresholds.lt1.confidence)}
             </Badge>
           </div>
           <p className="font-mono font-bold text-sm">{thresholds.lt1.label}</p>
@@ -515,7 +516,7 @@ function LactateTabContent({
               LT2 estimé
             </span>
             <Badge variant={confidenceBadgeVariant(thresholds.lt2.confidence)} className="text-[10px] h-4">
-              {Math.round(thresholds.lt2.confidence * 100)}%
+              {getConfidenceLabel(thresholds.lt2.confidence)}
             </Badge>
           </div>
           <p className="font-mono font-bold text-sm">{thresholds.lt2.label}</p>

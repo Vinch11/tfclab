@@ -3,6 +3,7 @@
  * Shows editable raw values from snapshot with live V2 recalculation + graphs
  * Auto-syncs to snapshot on edit
  */
+import { getConfidenceLabel } from '@/lib/confidenceDisplay';
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -97,7 +98,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
     pace_threshold_sec_per_km: snapshot.pace_threshold_sec_per_km ?? null as number | null,
   });
 
-  const weight = snapshot.weight_kg ? Number(snapshot.weight_kg) : 70;
+  const weight = snapshot.weight_kg ? Number(snapshot.weight_kg) : null;
   const vo2max = snapshot.vo2max ? Number(snapshot.vo2max) : null;
   const sportMain = snapshot.sport_main ?? "bike";
   const isBike = sportMain === "bike";
@@ -146,10 +147,10 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
 
   // VLamax Bike V2 Enhanced — live recalculation
   const bikeV2Result = useMemo<VLamaxBikeV2EnhancedResult | null>(() => {
-    if (!hasBikeData) return null;
+    if (!hasBikeData || weight == null || weight <= 0 || localValues.ftp == null || localValues.pmax_5s == null) return null;
     return computeVLamaxBikeV2Enhanced({
-      ftp: localValues.ftp!,
-      pmax_5s: localValues.pmax_5s!,
+      ftp: localValues.ftp,
+      pmax_5s: localValues.pmax_5s,
       p30s_w: localValues.p30s_w ?? null,
       p60s_w: localValues.p60s_w ?? null,
       map5min_w: localValues.map5min_w ?? null,
@@ -161,7 +162,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
 
   // VLamax Run V2 Enhanced — live recalculation
   const runV2Result = useMemo<VLamaxRunV2EnhancedResult | null>(() => {
-    if (!hasRunData) return null;
+    if (!hasRunData || weight == null || weight <= 0) return null;
     return computeVLamaxRunV2Enhanced({
       runPowerThreshold: localValues.running_power_threshold ?? 0,
       runPower1s: localValues.running_power_1s ?? null,
@@ -177,7 +178,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
 
   // Mader overlay (bike)
   const bikeOverlay = useMemo(() => {
-    if (!bikeV2Result || !vo2max || vo2max <= 0) return null;
+    if (!bikeV2Result || !vo2max || vo2max <= 0 || weight == null || weight <= 0) return null;
     const durations = [5, 10, 15, 30, 45, 60, 120, 180, 300, 600, 1200, 1800, 3600];
     const profile: MaderProfile = { vo2max, vlamax: bikeV2Result.value, weight };
     try {
@@ -227,7 +228,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
             <div className="flex items-center gap-2 cursor-pointer select-none">
               <FlaskConical className="w-5 h-5 text-primary" />
               <CardTitle className="text-base flex-1">
-                Analyse Nolio — Données & Moteur V2
+                Analyse Nolio — Données & modèles exploratoires
               </CardTitle>
               <div className="flex items-center gap-2">
                 {bikeV2Result && (
@@ -276,7 +277,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
                         <p className="text-[10px] text-muted-foreground">[{bikeV2Result.rangeMin.toFixed(2)} – {bikeV2Result.rangeMax.toFixed(2)}] mmol/L/s</p>
                       </div>
                       <Badge variant="secondary">{getVLamaxV2EnhancedCategory(bikeV2Result.value)}</Badge>
-                      <span className="text-xs text-muted-foreground">Confiance: <span className="font-medium text-foreground">{(bikeV2Result.confidence * 100).toFixed(0)}%</span></span>
+                      <span className="text-xs text-muted-foreground">Fiabilité : <span className="font-medium text-foreground">{getConfidenceLabel(bikeV2Result.confidence)}</span></span>
                       <Badge variant="outline" className="text-[10px]">{bikeV2Result.formulaLabel}</Badge>
                     </div>
 
@@ -359,6 +360,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
                   </div>
                 </div>
 
+                <p className="text-xs text-muted-foreground">Modèle alternatif Score G course, pas la valeur résolue du diagnostic. Une différence avec le compass ne remplace ni le bilan ni la source principale ; aucune certification de test.</p>
                 {/* V2 Run Result */}
                 {runV2Result && runV2Result.formula !== "insufficient" && (
                   <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
@@ -368,7 +370,7 @@ export function NolioAnalysisCard({ snapshot, staffMode, objectif = "IM", onSnap
                         <p className="text-[10px] text-muted-foreground">[{runV2Result.rangeMin.toFixed(2)} – {runV2Result.rangeMax.toFixed(2)}] mmol/L/s</p>
                       </div>
                       <Badge variant="secondary">{getRunVLamaxCategory(runV2Result.value)}</Badge>
-                      <span className="text-xs text-muted-foreground">Confiance: <span className="font-medium text-foreground">{(runV2Result.confidence * 100).toFixed(0)}%</span></span>
+                      <span className="text-xs text-muted-foreground">Fiabilité : <span className="font-medium text-foreground">{getConfidenceLabel(runV2Result.confidence)}</span></span>
                       <Badge variant="outline" className="text-[10px]">{runV2Result.formulaLabel}</Badge>
                     </div>
 

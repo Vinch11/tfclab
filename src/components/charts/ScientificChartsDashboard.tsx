@@ -136,8 +136,8 @@ export function ScientificChartsDashboard({
           staffMode={staffMode}
         />
 
-        {/* Simulated Lactate Curve (Mader-Heck) */}
-        <SimulatedLactateCurveChart
+        {/* Simulated cycling model is not a running threshold. */}
+        {sport !== "cap" && <SimulatedLactateCurveChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
           ftp={ftp ?? null}
@@ -146,18 +146,21 @@ export function ScientificChartsDashboard({
           className="md:col-span-2 xl:col-span-2"
         />
 
+        }
         {/* Fat/Carb Oxidation */}
         <FatCarbOxidationChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
-          ftp={ftp ?? null}
+          ftp={sport === "cap" ? null : ftp ?? null}
           weight={weight}
+          vma={vma}
+          paceMode={sport === "cap"}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
         />
 
         {/* Power-Duration Unified (Mader + Empirique) */}
-        <PowerDurationUnifiedChart
+        {sport !== "cap" && <PowerDurationUnifiedChart
           vo2max={vo2max}
           vlamax={vlamaxValue}
           ftp={ftp}
@@ -170,11 +173,12 @@ export function ScientificChartsDashboard({
           className="md:col-span-2 xl:col-span-2"
         />
 
+        }
         {/* Metabolic Zones INSCYD-derived */}
         <MetabolicZonesINSCYDChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
-          ftp={ftp ?? null}
+          ftp={sport === "cap" ? null : ftp ?? null}
           weight={weight}
           staffMode={staffMode}
           sport={sport}
@@ -188,10 +192,11 @@ export function ScientificChartsDashboard({
           et TTEEffectif.confidence partout ailleurs) — diviser par 200 au lieu de 2
           ramenait la confiance affichée à ~1% au lieu de ~80%.
         */}
-        <PerformancePredictionChart
+        {sport !== "triathlon" && <PerformancePredictionChart
+          sport={sport}
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
-          ftp={ftp ?? null}
+          ftp={sport === "cap" ? null : ftp ?? null}
           weight={weight}
           vma={vma}
           css={css}
@@ -199,6 +204,7 @@ export function ScientificChartsDashboard({
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-3"
         />
+        }
       </div>
     </div>
   );

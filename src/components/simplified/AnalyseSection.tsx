@@ -57,11 +57,13 @@ import { Button } from "@/components/ui/button";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
 import type { LucideIcon } from "lucide-react";
 import { diagnosticMetricPresentation } from '@/lib/diagnosticMetricPresentation';
+import { dashboardScoreLabel } from '@/lib/coachingCompass/dashboardConsistency';
 import { metricSourceLabel } from '@/lib/coachingCompass/presentation';
 
 interface AnalyseSectionProps {
   diagnostic: AthleteDiagnostic;
   className?: string;
+  coverage?: { score: number; manquants: string[] };
 }
 
 type AnalysisGap = AthleteDiagnostic["limiter"]["gapAnalysis"][number] & {
@@ -82,7 +84,7 @@ const METRIC_EXPLANATIONS: Record<string, {
     unit: "ml/kg/min",
     explanation: "Capacité maximale de ton corps à utiliser l'oxygène. Le « moteur aérobie » — plus il est puissant, plus tu peux soutenir une intensité élevée longtemps.",
     whyItMatters: "Le VO2max fixe le plafond de ta performance aérobie. Tous les seuils (FTP, VMA, allures marathon) en dépendent.",
-    howToImprove: "Intervalles VO2max (3-5min à 90-105% PMA/VMA), côtes longues, 30/30 ou Billat.",
+    howToImprove: "Intervalles dans le domaine VO₂max, au-dessus du MLSS, adaptés au sport et à la récupération.",
     Icon: Wind,
   },
   "FTP/kg": {
@@ -90,23 +92,23 @@ const METRIC_EXPLANATIONS: Record<string, {
     unit: "W/kg",
     explanation: "Puissance seuil rapportée au poids. Intensité maximale soutenable ~1 heure.",
     whyItMatters: "Indicateur de référence en cyclisme : vitesse en montée et effort soutenu prolongé.",
-    howToImprove: "Sweet spot (88-93% FTP), 2x20min au seuil, travail de force, optimisation du poids.",
+    howToImprove: "Travail sous-seuil ou au MLSS vélo, individualisé par le coach ; un écart FTP/kg n’est pas une recommandation de perte de poids.",
     Icon: Zap,
   },
   "VMA": {
     label: "VMA",
     unit: "km/h",
     explanation: "Vitesse Maximale Aérobie : l'allure à laquelle tu atteins ton VO2max. Référence pour calibrer toutes tes allures course à pied.",
-    whyItMatters: "Pilier de la planification en course. Marathon ~75-80% VMA, semi ~82-87%, 10km ~88-93%.",
-    howToImprove: "Fractionné court (200-400m à 100-110% VMA), 1000/1200m à 90-95%, côtes explosives.",
+    whyItMatters: "Repère de vitesse aérobie course, distinct de l’allure au seuil et du chrono de compétition.",
+    howToImprove: "Intervalles dans le domaine VO₂max course, sans additionner une seconde dose identique pour la VO₂max.",
     Icon: Activity,
   },
   "VLamax": {
     label: "VLamax",
     unit: "mmol/L/s",
     explanation: "Puissance glycolytique maximale. Vitesse de production de lactate. Pour l'endurance longue, VLamax basse (< 0.4) souhaitable.",
-    whyItMatters: "VLamax élevée = consommation rapide de glycogène et lactate = épuisement prématuré (« le mur »). Basse = utilisation des graisses.",
-    howToImprove: "Volume Z2 élevé (3-5h), suppression des sprints, tempo prolongé, « train low ».",
+    whyItMatters: "Une VLamax élevée peut augmenter la contribution glucidique dans le modèle ; elle ne démontre pas à elle seule un épuisement en course.",
+    howToImprove: "Endurance en domaine modéré et travail sous-seuil, après vérification du repère glycolytique propre au sport.",
     Icon: FlaskConical,
   },
   "TTE": {
@@ -354,7 +356,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
                       ? "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
                       : "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
                   )}>
-                    {remainsToWork ? "−" : "+"}{Math.abs(displayDelta!).toFixed(isInverse ? 2 : 1)}
+                    {remainsToWork ? "−" : "+"}{Math.abs(displayDelta ?? 0).toFixed(isInverse ? 2 : 1)}
                   </span>
                 )}
               </div>
@@ -445,7 +447,7 @@ function SortableMetricRow({ id, gap, metricInfo, isReorderMode }: {
   );
 }
 
-export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
+export function AnalyseSection({ diagnostic, className, coverage }: AnalyseSectionProps) {
   const { limiter, synthesis } = diagnostic;
   const referenceView = diagnosticMetricPresentation(diagnostic);
   const gapAnalysis = useMemo<AnalysisGap[]>(
@@ -505,7 +507,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
     .filter(Boolean) as typeof gapAnalysis;
 
   // Agrégats pour le hero
-  const completenessPct = Math.round(diagnostic.meta.dataCompleteness * 100);
+  const completenessPct = coverage?.score ?? Math.round(diagnostic.meta.dataCompleteness * 100);
   const criticalCount = synthesis.alerts.filter(a => a.severity === "critical").length;
   const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
   const alertsCount = criticalCount + warningCount;
@@ -581,21 +583,22 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
 
             <div className="flex-1 min-w-0">
               <h3 className="text-base sm:text-lg font-semibold tracking-tight leading-snug text-foreground line-clamp-2">
-                {synthesis.headline}
+                {dashboardScoreLabel(synthesis.globalCategory)}
               </h3>
               <div className={cn(
                 "inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full",
                 scoreStyle.chip
               )}>
                 <scoreStyle.Icon className="h-3 w-3" />
-                {scoreStyle.label}
+                {dashboardScoreLabel(synthesis.globalCategory)}
               </div>
             </div>
           </div>
 
+          <p className="text-xs text-muted-foreground mt-3">Score du modèle sur les données disponibles, pas une probabilité de réussite. Les écarts par sport et la durabilité non testée restent à examiner, même avec un score élevé.</p>
           {/* Ligne 3 : KPI tiles — lisibles */}
           <div className="grid grid-cols-4 gap-2 mt-4">
-            <KpiTile label="Données" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
+            <KpiTile label="Couverture" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
             <KpiTile label="Cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
             <KpiTile label="Prioritaires" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
             <KpiTile label="Alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
@@ -653,6 +656,7 @@ export function AnalyseSection({ diagnostic, className }: AnalyseSectionProps) {
           <h4 className="text-sm font-semibold">Repères à interpréter</h4>
           {referenceView.references.filter(g => /^W['′]/i.test(g.metric)).map(g => <p key={g.metric} className="text-xs">W′ vélo : {diagnostic.sportFocus === 'run' ? 'non pertinent pour la réserve course' : g.value != null && g.value > 0 ? `${g.value} kJ · estimation à confirmer` : 'Données insuffisantes'} — travail au-dessus de CP, pas une note de capacité anaérobie.</p>)}
           <p className="text-xs">TTE {diagnostic.sportFocus === 'run' ? 'course' : 'vélo'} : {referenceView.tte ? `${referenceView.tte.tte_min} min · ${metricSourceLabel(referenceView.tte.source)}` : 'Données insuffisantes'} — durée au seuil ; un effort arrêté volontairement ne donne qu’un minimum.</p>
+          <p className="text-xs">Économie : modulateur d’efficience, pas un déficit de force démontré ni un limiteur prioritaire.</p>
           <p className="text-xs">Durabilité : non évaluée — le TTE ou la dérive seuls ne prouvent pas la résistance après plusieurs heures.</p>
           <p className="text-xs">FatMax : {diagnostic.sportFocus === 'run' ? 'pas de conversion des %FTP vélo en allure course' : 'zone lipidique modélisée, pas une mesure ni une note de préparation à la course'}.</p>
           <p className="text-xs text-muted-foreground">Classement actuel du moteur conservé pour les plans ; les repères ci-dessus ne sont pas des déficits démontrés.</p>

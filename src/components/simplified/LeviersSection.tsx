@@ -91,6 +91,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
   const navigate = useNavigate();
   const { strategy, executiveSummary, roadmap } = prescription;
   const levers = strategy.levers;
+  const run = diagnostic.sportFocus === "run";
   const prohibitions = strategy.prohibitions;
   
 
@@ -104,7 +105,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
           <div className="flex-1">
             <CardTitle className="text-lg">Leviers d'Action</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Les actions concrètes pour progresser
+              Orientations du plan historique, à valider avec le coach
             </p>
           </div>
           <Badge
@@ -128,8 +129,8 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
             <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-sm font-bold">Action Principale</span>
           </div>
-          <p className="text-sm font-medium">{strategy.primaryAction}</p>
-          <p className="text-xs text-muted-foreground mt-1.5">{strategy.whyThis}</p>
+          <p className="text-sm font-medium">Orientation : {diagnostic.limiter.leverLabel}</p>
+          <p className="text-xs text-muted-foreground mt-1.5">Priorité conservée pour le plan ; interpréter avec les diagnostics par sport et les protocoles disponibles.</p>
         </div>
 
         {/* Leviers activés */}
@@ -139,10 +140,14 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
           </p>
           
           {levers.map((lever, index) => {
-            const pedagogy = LEVER_PEDAGOGY[lever.lever] || {
-              description: lever.reason,
-              howItWorks: "",
-              typicalSessions: lever.prescription?.join(", ") || "",
+            const generic = LEVER_PEDAGOGY[lever.lever];
+            const aerobic = ['vo2_intervals', 'vo2max_intervals'].includes(lever.lever);
+            const threshold = lever.lever === 'threshold_work';
+            const endurance = ['z2_volume', 'volume_z2'].includes(lever.lever);
+            const pedagogy = {
+              description: aerobic ? 'Développer le moteur aérobie propre au sport ; VO₂max et VMA partagent leur stimulus, sans doubler la dose.' : threshold ? 'Développer le temps soutenu au seuil du sport concerné ; TTE au seuil et durabilité après plusieurs heures restent distincts.' : endurance ? 'Consolider l’endurance aérobie avec une progression adaptée à l’objectif, au volume habituel et à la récupération.' : generic?.description ?? 'Orientation à vérifier avec le coach avant prescription.',
+              howItWorks: aerobic ? 'Travail dans le domaine VO₂max au-dessus du MLSS, avec récupération adaptée.' : threshold ? 'Distinguer le travail sous-seuil (LT1 → MLSS) du travail au MLSS.' : endurance ? 'Travail en domaine modéré, sous LT1.' : 'L’effet et la sécurité dépendent du protocole, du niveau et de la récupération ; ni W′ ni un score d’économie ne démontrent une faiblesse de force.',
+              typicalSessions: aerobic ? `Intervalles VO₂max ${run ? 'course' : 'vélo'} individualisés, sans % VMA fixe.` : threshold ? `Blocs sous-seuil ou MLSS ${run ? 'course, avec allure seuil course' : 'vélo, avec puissance seuil vélo'}.` : endurance ? `Endurance ${run ? 'course' : 'vélo'}, durée adaptée au format ${diagnostic.objectif} ; pas de durée longue imposée par cet exemple.` : 'Protocole spécifique à préciser et valider avec le coach ; aucun dosage générique appliqué automatiquement.',
             };
 
             return (
@@ -189,16 +194,8 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
                   </div>
                 )}
 
-                {/* Prescriptions spécifiques si disponibles */}
-                {lever.prescription && lever.prescription.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {lever.prescription.map((p, i) => (
-                      <Badge key={i} variant="outline" className="text-[10px]">
-                        {p}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+                <p className="text-[10px] text-muted-foreground mt-2">Exemples pédagogiques, pas des séances prescrites. Les modalités exactes appartiennent au plan validé.</p>
+
               </div>
             );
           })}
@@ -240,7 +237,7 @@ export function LeviersSection({ diagnostic, prescription, className }: LeviersS
         <div className="p-4 rounded-xl bg-primary/5 border border-primary/10">
           <p className="text-xs font-semibold text-primary mb-1">💬 Message pour l'athlète</p>
           <p className="text-sm text-foreground leading-relaxed">
-            {executiveSummary.athleteMessage}
+            Les priorités du plan restent conservées. Vérifie avec le coach les écarts propres à chaque sport avant de conclure à une faiblesse ou de choisir un dosage.
           </p>
         </div>
 

@@ -1,3 +1,5 @@
+import { AnalyseSection } from '@/components/simplified/AnalyseSection';
+import type { AthleteDiagnostic } from '@/engines/diagnostic';
 import { computePotentielEffectif, type PotentielPhysiologiqueEffectif, getScoreColor } from "@/lib/potentielPhysiologiqueEffectif";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "@/components/ui/switch";
@@ -29,6 +31,8 @@ import { ProfileAuditDialog } from "@/components/ProfileAuditDialog";
 
 interface TwoForCoachingAnalysisProps {
   athlete: Athlete;
+  diagnostic?: AthleteDiagnostic | null;
+  coverage?: { score: number; manquants: string[] };
   vlamaxEffectif?: VLamaxEffectif;
   tteEffectif?: TTEEffectif;
   readiness?: PotentielPhysiologiqueEffectif;
@@ -187,6 +191,7 @@ function derivePrioritiesFromUnifiedLimiter(
 
 export function TwoForCoachingAnalysis({
   athlete,
+  diagnostic, coverage,
   vlamaxEffectif: vlamaxEffectifProp,
   tteEffectif: tteEffectifProp,
   readiness: readinessProp,
@@ -215,10 +220,10 @@ export function TwoForCoachingAnalysis({
 
   // ✅ TTE EFFECTIF - Utilise la prop si fournie
   const tteEffectif = tteEffectifProp ?? {
-    tte_min: 45,
+    tte_min: 0,
     source: "unknown" as const,
-    confidence: 0.3,
-    label: "TTE (fallback)",
+    confidence: 0,
+    label: "TTE (données insuffisantes)",
     target: 45,
     status: "warning" as const,
     status_message: "Données manquantes"
@@ -371,6 +376,7 @@ export function TwoForCoachingAnalysis({
   };
   
   const raceScore = readiness.score;
+  if (diagnostic) return <section className="space-y-3"><h2 className="text-lg font-semibold">Analyse Two For Coaching Lab™</h2><AnalyseSection diagnostic={diagnostic} coverage={coverage} /><p className="text-xs text-muted-foreground">Même diagnostic que le Dashboard. Nutrition par sport disponible dans Stratégie ; aucun second classement ni conseil vélo transposé à la course.</p></section>;
   if (!snapshot) {
     return <div className="glass-card p-6">
         <div className="flex items-center gap-3 mb-4">

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
@@ -82,8 +83,8 @@ const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const FLOW_PEDAGOGY = {
-  limiter: "Le limiteur est le maillon faible qui freine le plus ta progression. C'est le premier facteur à corriger pour progresser efficacement.",
-  leverage: "Le levier est la stratégie d'entraînement la plus efficace pour corriger ton limiteur. Il cible le mécanisme physiologique en cause.",
+  limiter: "Une priorité du modèle n’est pas une cause démontrée : un TTE estimé, W′ ou une économie faible ne prouvent pas une faiblesse de robustesse ou de force.",
+  leverage: "Le levier est une orientation à confronter aux observations propres au sport, pas la preuve d’un mécanisme causal.",
   decision: "La décision coaching traduit l'analyse en plan d'action concret : type de bloc, durée, séances clés et interdictions.",
 };
 
@@ -622,6 +623,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
+  const coverage = useMemo(() => dashboardCoverage(input), [input]);
   const coachPolicy = useMemo(() => input.athleteId
     ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null,
     [input.athleteId, input.objectif]);
@@ -753,12 +755,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               {/* Completeness bar */}
               <div className="flex items-center gap-2 mt-2 px-2">
                 <span className="text-[9px] text-muted-foreground/50 shrink-0">
-                  Données : {compass.meta.dataCompleteness}%
+                  Couverture des repères du sport : {coverage.score}% ({coverage.filled}/{coverage.total})
                 </span>
                 <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-primary/40 rounded-full transition-all duration-500"
-                    style={{ width: `${compass.meta.dataCompleteness}%` }}
+                    style={{ width: `${coverage.score}%` }}
                   />
                 </div>
               </div>
@@ -920,10 +922,10 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
 
             {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
             <FlowStep
-              level="Niveau 2 — Limiteur principal"
+              level="Niveau 2 — Priorité historique du plan"
               icon={<AlertTriangle className="w-4 h-4" />}
               title={`${limiter.icon} ${limiter.label}`}
-              subtitle={limiter.description}
+              subtitle="Classement conservé ; les diagnostics par sport ci-dessus précisent les écarts, les sources et les limites."
               accentClass="bg-[hsl(var(--destructive)/0.8)]"
               badge={staffMode ? limiter.confidence : null}
             >
@@ -933,7 +935,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
 
               {/* Pourquoi c'est important ? — impact concret (terrain + mécanisme) */}
               <div className="mt-2">
-                <LimiterImpactCard limiter={limiter.type} />
+                <p className="text-xs text-muted-foreground">W′ reste un repère de travail au-dessus de CP ; l’économie module l’efficience. La durabilité nécessite des efforts frais/après charge documentés.</p>
               </div>
 
               {staffMode && (
@@ -958,7 +960,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               level="Niveau 3 — Levier prioritaire"
               icon={<Zap className="w-4 h-4" />}
               title={`${leverage.icon} ${leverage.label}`}
-              subtitle={leverage.description}
+              subtitle="Piste du moteur historique, à valider avec le coach selon le sport, les tests et la charge réelle."
               accentClass="bg-primary/80"
             >
               <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
@@ -981,7 +983,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               level="Niveau 4 — Décision coaching"
               icon={<Target className="w-4 h-4" />}
               title={decision.recommendedBlock}
-              subtitle={staffMode ? decision.coachRationale : decision.athleteMessage}
+              subtitle="Orientation indicative, pas un bloc ni des séances déjà individualisés et validés."
               accentClass="bg-[hsl(var(--success)/0.8)]"
             >
               <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
@@ -1000,16 +1002,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   </span>
                 </div>
 
-                {/* Workout examples */}
-                {staffMode && decision.primaryWorkouts.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {decision.primaryWorkouts.map(w => (
-                      <span key={w} className="text-[9px] px-1.5 py-0.5 rounded bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.12)]">
-                        {w}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                <p className="text-xs text-muted-foreground">Séances à préciser dans le plan avec les repères du sport : domaine modéré (LT1), sous-seuil, MLSS ou VO₂max ; aucune conversion des watts vélo en allures course.</p>
 
                 {/* Targets */}
                 <div className="flex flex-wrap gap-1">

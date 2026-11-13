@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Target, Info, ArrowRight } from "lucide-react";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
+import { relativeCategoryDeficit } from '@/lib/coachingCompass/dashboardConsistency';
 import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 
 interface LimiteursSectionProps {
@@ -39,7 +40,7 @@ const LIMITER_PEDAGOGY: Record<string, {
   },
   metabolic_endurance: {
     title: "Endurance Métabolique",
-    whatItMeans: "Ta capacité à maintenir l'effort dans la durée (TTE, FatMax) est insuffisante. Tu te fatigues avant la fin de l'épreuve.",
+    whatItMeans: "Le moteur historique compare le TTE à une cible interne. Si le TTE est estimé, l’écart reste une hypothèse ; FatMax et TTE ne certifient pas la tenue de l’épreuve.",
     whyItMatters: "L'endurance métabolique détermine ta capacité à finir fort. Un TTE bas signifie que tes muscles lâchent avant que ta VO2max ne soit le facteur limitant.",
     analogy: "C'est comme avoir un réservoir trop petit — le moteur est bon mais tu tombes en panne avant la fin.",
   },
@@ -72,7 +73,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
   const rankedLimiters = (limiter.categoryRanking ?? []).map(entry => ({
     category: entry.category,
     metrics: entry.metrics,
-    worstGap: entry.worstGap,
+    worstGap: -(relativeCategoryDeficit(entry.metrics) ?? 0),
     totalImpact: entry.totalImpact,
   }));
 
@@ -87,7 +88,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
           <div className="flex-1">
             <CardTitle className="text-lg">Facteurs Limitants</CardTitle>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Ce qui freine ta progression, classé par ordre d'importance
+              Priorités historiques du plan, à confronter aux diagnostics par sport
             </p>
           </div>
           <Badge
@@ -99,7 +100,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
               "border-red-500 text-red-700 dark:text-red-400"
             )}
           >
-            Fiabilité {getConfidenceLabel(limiter.confidence).toLowerCase()}
+            Sources à confronter
           </Badge>
         </div>
       </CardHeader>
@@ -107,7 +108,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
       <CardContent className="p-4 space-y-3">
         {rankedLimiters.length === 0 && (
           <div className="p-4 rounded-xl border bg-muted/20 text-center">
-            <p className="text-sm text-muted-foreground">Profil équilibré — aucun limiteur majeur identifié</p>
+            <p className="text-sm text-muted-foreground">Aucune priorité majeure retenue par ce classement historique ; les écarts du compass restent à examiner.</p>
           </div>
         )}
 
@@ -220,8 +221,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
         <div className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-muted">
           <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
-            Les limiteurs sont classés par <strong>impact pondéré</strong> sur ta performance.
-            Le limiteur prioritaire est celui qui freine le plus ta progression vers ton objectif.
+            L’ordre historique du plan est conservé. Les écarts affichés sont <strong>relatifs à chaque cible</strong>, pas des probabilités ni des causes démontrées. Les diagnostics course/vélo précisent les sources et les limites.
           </p>
         </div>
       </CardContent>

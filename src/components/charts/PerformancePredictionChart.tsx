@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, Timer, Bike, PersonStanding, Trophy, Zap, Droplets, TrendingUp } from "lucide-react";
+import { getConfidenceLabel } from '@/lib/confidenceDisplay';
 import { cn } from "@/lib/utils";
 import {
   computePerformancePredictions,
@@ -31,6 +32,7 @@ interface PerformancePredictionChartProps {
   css?: number | null;
   runEconomyScore?: number | null;
   confidence?: number;
+  sport?: "velo" | "cap";
   staffMode?: boolean;
   className?: string;
 }
@@ -223,24 +225,25 @@ export function PerformancePredictionChart({
   vo2max,
   vlamax,
   ftp,
-  weight = 70,
+  weight,
   vma,
   css,
   runEconomyScore,
   confidence,
   staffMode = false,
+  sport,
   className,
 }: PerformancePredictionChartProps) {
   const [sportFilter, setSportFilter] = useState<"all" | "velo" | "cap" | "triathlon">("all");
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
 
-  const valid = vo2max && vlamax && vo2max > 0 && vlamax > 0;
+  const valid = vo2max && vlamax && weight && vo2max > 0 && vlamax > 0 && weight > 0;
 
   const output = useMemo(() => {
-    if (!valid) return null;
+    if (!valid || vo2max == null || vlamax == null || weight == null) return null;
     const input: PerformancePredictionInput = {
-      vo2max: vo2max!,
-      vlamax: vlamax!,
+      vo2max,
+      vlamax,
       weight,
       ftp,
       vma,
@@ -250,9 +253,9 @@ export function PerformancePredictionChart({
     };
     return computePerformancePredictions(
       input,
-      sportFilter === "all" ? undefined : sportFilter
+      sport ?? (sportFilter === "all" ? undefined : sportFilter)
     );
-  }, [vo2max, vlamax, weight, ftp, vma, css, runEconomyScore, confidence, sportFilter, valid]);
+  }, [vo2max, vlamax, weight, ftp, vma, css, runEconomyScore, confidence, sportFilter, sport, valid]);
 
   if (!valid) {
     return (
@@ -260,7 +263,7 @@ export function PerformancePredictionChart({
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
-            VO₂max et VLamax requis pour les prédictions de performance
+            VO₂max, VLamax et poids requis pour les prédictions de performance
           </p>
         </CardContent>
       </Card>
@@ -283,7 +286,7 @@ export function PerformancePredictionChart({
               VO₂ {vo2max}
             </Badge>
             <Badge variant="secondary" className="text-[9px] font-mono">
-              VLa {vlamax!.toFixed(2)}
+              VLa {vlamax?.toFixed(2)}
             </Badge>
             {ftp && (
               <Badge variant="secondary" className="text-[9px] font-mono">
@@ -297,14 +300,14 @@ export function PerformancePredictionChart({
       <CardContent className="space-y-3 pt-3">
         {/* Sport filter tabs */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <Tabs value={sportFilter} onValueChange={(v) => setSportFilter(v as any)}>
+          {!sport && <Tabs value={sportFilter} onValueChange={(v) => setSportFilter(v as any)}>
             <TabsList className="h-7">
               <TabsTrigger value="all" className="text-[10px] px-2 h-5">Tous</TabsTrigger>
               <TabsTrigger value="velo" className="text-[10px] px-2 h-5">🚴 Vélo</TabsTrigger>
               <TabsTrigger value="cap" className="text-[10px] px-2 h-5">🏃 CAP</TabsTrigger>
               <TabsTrigger value="triathlon" className="text-[10px] px-2 h-5">🏊 Tri</TabsTrigger>
             </TabsList>
-          </Tabs>
+          </Tabs>}
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
             <TabsList className="h-7">
               <TabsTrigger value="table" className="text-[10px] px-2 h-5">Tableau</TabsTrigger>
@@ -367,11 +370,11 @@ export function PerformancePredictionChart({
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
               <span>VO₂max: {vo2max} ml/kg/min</span>
-              <span>VLamax: {vlamax!.toFixed(2)} mmol/L/s</span>
+              <span>VLamax: {vlamax?.toFixed(2)} mmol/L/s</span>
               <span>Poids: {weight}kg</span>
               <span>FTP: {ftp ?? "estimé"}W</span>
               <span>VMA: {vma ? `${vma} km/h` : "estimée"}</span>
-              <span>Confiance: {Math.round((output.confidence ?? 0.7) * 100)}%</span>
+              <span>Fiabilité : {getConfidenceLabel(output.confidence ?? 0)}</span>
             </div>
             <p className="text-[9px] opacity-60 pt-1 border-t border-border/30">
               {output.modelNote}

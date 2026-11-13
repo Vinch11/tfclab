@@ -85,14 +85,10 @@ const computeNutritionCurve = (
   durationMin: number,
   gutLevel: GutTrainingLevel
 ) => {
-  // Visualisation-only fallback : la carte affiche déjà un bandeau "VLamax non
-  // disponible – estimation basée sur profil moyen" (voir isDataMissing plus bas).
-  // Cette médiane 0.45 n'est PAS persistée et ne remonte pas dans le diagnostic.
-  const POPULATION_MEDIAN_VLAMAX = 0.45;
-  const vlx = vlamax ?? POPULATION_MEDIAN_VLAMAX;
-  const vo2 = vo2max ?? (sport === "cap" ? 48 : 50);
-  const weight = weightKg ?? 70;
-
+  if (vlamax == null || vo2max == null || weightKg == null || ![vlamax, vo2max, weightKg].every(v => Number.isFinite(v) && v > 0)) return [];
+  const vlx = vlamax;
+  const vo2 = vo2max;
+  const weight = weightKg;
 
   const capMax = getCarbCap(sport, gutLevel);
   const exogenousFraction = getExogenousFraction(durationMin);
@@ -114,7 +110,7 @@ const computeNutritionCurve = (
       max,
       recommended,
       totalOx: Math.round(totalOxGh),
-      label: `${intensity}% FTP`,
+      label: `${intensity}% VO₂max`,
     });
   }
 
@@ -132,7 +128,7 @@ const getDigestiveRiskZone = (gPerHour: number, cap: number): {
   if (gPerHour >= cap * 0.85) {
     return { level: "Vigilance", color: "hsl(var(--warning))" };
   }
-  return { level: "Zone sûre", color: "hsl(var(--success))" };
+  return { level: "Sous le plafond hypothétique", color: "hsl(var(--success))" };
 };
 
 const CustomTooltip = ({ active, payload, cap }: any) => {
@@ -204,7 +200,7 @@ export function NutritionPredictiveChart({
   staffMode = false,
   className,
 }: NutritionPredictiveChartProps) {
-  const isDataMissing = vlamaxValue === null;
+  const isDataMissing = [vlamaxValue, vo2max, weightKg].some(v => v == null || !Number.isFinite(v) || v <= 0);
 
   const effectiveDuration = durationMin ?? inferDurationMin(objectif, sport);
   const cap = getCarbCap(sport, gutTrainingLevel);
@@ -228,6 +224,8 @@ export function NutritionPredictiveChart({
     effectiveDuration < 180 ? "90–180 min" :
     effectiveDuration < 360 ? "3–6 h" : ">6 h";
 
+  if (isDataMissing) return <Card className={className}><CardHeader><CardTitle className="text-base">Besoins glucidiques — {sportLabel}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">Données insuffisantes : VO₂max, VLamax propre au sport et poids requis. Aucun profil moyen substitué.</p></CardContent></Card>;
+
   return (
     <Card className={cn("overflow-hidden", isDataMissing && "opacity-60", className)}>
       <CardHeader className="pb-2">
@@ -249,10 +247,10 @@ export function NutritionPredictiveChart({
         {/* Bandeau contexte F1 : gut training + durée */}
         <div className="mb-2 flex flex-wrap gap-2 text-[11px]">
           <span className="px-2 py-0.5 rounded bg-primary/10 text-primary">
-            Gut training : {gutLabel[gutTrainingLevel]} → plafond {cap} g/h
+            Hypothèse gut training : {gutLabel[gutTrainingLevel]} → plafond {cap} g/h
           </span>
           <span className="px-2 py-0.5 rounded bg-muted text-muted-foreground">
-            Durée : {durationLabel} → fraction exo {Math.round(exoFraction * 100)} %
+            Durée {durationMin == null ? "hypothétique" : "renseignée"} : {durationLabel} → fraction exo {Math.round(exoFraction * 100)} %
           </span>
         </div>
         
@@ -292,7 +290,7 @@ export function NutritionPredictiveChart({
                   dataKey="intensity"
                   tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
                   tickFormatter={(val) => `${val}%`}
-                  label={{ value: 'Intensité (%FTP)', position: 'bottom', fontSize: 11, offset: 0, fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Intensité (%VO₂max)', position: 'bottom', fontSize: 11, offset: 0, fill: 'hsl(var(--muted-foreground))' }}
                   stroke="hsl(var(--border))"
                 />
                 <YAxis
@@ -305,7 +303,7 @@ export function NutritionPredictiveChart({
 
                 <Tooltip content={<CustomTooltip cap={cap} />} />
 
-                {/* Plage acceptable (entre min et max) */}
+                {/* Plage modélisée (entre min et max) */}
                 <Area
                   type="monotone"
                   dataKey="max"
@@ -339,11 +337,11 @@ export function NutritionPredictiveChart({
         <div className="mt-3 flex flex-wrap gap-3 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-0.5 bg-primary" />
-            <span className="text-muted-foreground">Exogène recommandé</span>
+            <span className="text-muted-foreground">Exogène modélisé</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-primary/20 rounded" />
-            <span className="text-muted-foreground">Plage acceptable</span>
+            <span className="text-muted-foreground">Plage modélisée</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-destructive/10 rounded" />
@@ -357,7 +355,7 @@ export function NutritionPredictiveChart({
               <strong>Modèle:</strong> Mader-Heck |
               <strong> VLamax:</strong> {vlamaxValue?.toFixed(2) || "—"} |
               <strong> VO₂max:</strong> {vo2max ?? "est."} |
-              <strong> Poids:</strong> {weightKg ?? 70}kg |
+              <strong> Poids:</strong> {weightKg ?? "—"}kg |
               <strong> Sport:</strong> {sportLabel}
             </p>
             <p>

@@ -10,6 +10,7 @@ interface VLamaxProfileScaleProps {
   sportMain?: string | null;
   /** Âge de l'athlète — utilisé pour l'ajustement des seuils (>40 ans = seuils abaissés) */
   age?: number | null;
+  source?: string;
 }
 
 interface ProfileBand {
@@ -98,11 +99,11 @@ function findBand(value: number, bands: ProfileBand[]): ProfileBand {
   return bands.find((b) => value >= b.min && value < b.max) ?? bands[bands.length - 1];
 }
 
-export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: VLamaxProfileScaleProps) {
+export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null, source = 'unknown' }: VLamaxProfileScaleProps) {
   const sport = resolveBadgeSport({ sport_main: sportMain }, { goal: objectif }) ?? "bike";
   const sportLabel = sport === "cap" ? "Course à pied" : sport === "tri" ? "Triathlon" : "Vélo";
 
-  if (vlamax === null || vlamax === undefined || isNaN(vlamax)) {
+  if (vlamax == null || !Number.isFinite(vlamax) || vlamax <= 0) {
     return (
       <Card>
         <CardHeader className="pb-3">
@@ -133,7 +134,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
         </CardTitle>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <Badge variant="outline" className="text-[11px]">{sportLabel}</Badge>
-          <span>VLamax mesurée : <strong className="text-foreground">{vlamax.toFixed(2)}</strong> mmol/L/s</span>
+          <span>VLamax {source === 'test_labo' ? 'issue d’un test labo' : source === 'snapshot' ? 'renseignée dans le bilan' : 'estimée / à confirmer'} : <strong className="text-foreground">{vlamax.toFixed(2)}</strong> mmol/L/s</span>
           {ageAdjusted && (
             <Badge variant="outline" className="text-[10px]">Seuils ajustés âge ({age} ans)</Badge>
           )}
@@ -186,6 +187,7 @@ export function VLamaxProfileScale({ vlamax, objectif, sportMain, age = null }: 
               <p className="text-[11px] text-muted-foreground">VLamax {currentBand.shortLabel} mmol/L/s</p>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground">Positionnement descriptif : ni la réserve W′, ni la force, ni la performance sur cette épreuve ne peuvent être déduites de cette valeur seule.</p>
           <p className="text-xs"><strong>Sports types :</strong> {currentBand.sports}</p>
           <p className="text-xs mt-1"><strong>Caractéristiques :</strong> {currentBand.characteristics}</p>
         </div>

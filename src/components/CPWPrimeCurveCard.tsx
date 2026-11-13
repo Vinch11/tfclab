@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import {
   analyzeCriticalPower,
+  effectiveWprimeWithMeta,
   generateRecoveryTable,
   type CriticalPowerResult,
   type CPDiagnostic,
@@ -342,7 +343,7 @@ export function CPWPrimeCurveCard({
                   <>
                     <div className="text-2xl font-bold font-mono text-primary">{cpResult.cp}W</div>
                     {cpWkg && <div className="text-xs text-muted-foreground font-mono">{cpWkg} W/kg</div>}
-                    <div className="text-[10px] text-muted-foreground">Seuil de steady-state</div>
+                    <div className="text-[10px] text-muted-foreground">Repère critique estimé</div>
                   </>
                 )}
               </div>
@@ -391,7 +392,7 @@ export function CPWPrimeCurveCard({
                   <div className="bg-primary/5 rounded p-2">
                     <div className="text-muted-foreground">CP (modèle)</div>
                     <div className="font-mono font-bold text-lg text-primary">{cpResult.cp}W</div>
-                    <div className="text-muted-foreground text-[10px]">Vrai seuil ∞</div>
+                    <div className="text-muted-foreground text-[10px]">Asymptote du modèle, pas une durée infinie</div>
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
@@ -401,7 +402,7 @@ export function CPWPrimeCurveCard({
                     ce qui signifie que le FTP n'est PAS tenable indéfiniment.</span>
                   )}
                   {cpResult.ftpCpRatio && cpResult.ftpCpRatio <= 1 && (
-                    <span> — FTP sous CP : athlète très endurant ou FTP sous-estimé.</span>
+                    <span> — FTP sous CP : écart à vérifier, sans conclure à la durabilité.</span>
                   )}
                 </div>
               </div>
@@ -440,7 +441,7 @@ export function CPWPrimeCurveCard({
               <>
                 <div className="flex items-center gap-2 text-sm font-semibold">
                   <RotateCcw className="h-4 w-4 text-primary" />
-                  Repos optimaux individualisés (W'bal Skiba 2012)
+                  Repos modélisés (W'bal Skiba 2012)
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs">
@@ -479,7 +480,7 @@ export function CPWPrimeCurveCard({
                     <strong>⏳ Repos trop long</strong> → stimulus insuffisant → pas de surcompensation
                   </p>
                   <p className="text-muted-foreground">
-                    Durées calibrées sur le W' individuel : <strong className="font-mono">{cpResult.wprimeKJ} kJ</strong>
+                    Hypothèses de récupération : CP effectif {cpResult.effectiveCP} W, W′ effectif <strong className="font-mono">{(effectiveWprimeWithMeta(cpResult.wprime).value / 1000).toFixed(1)} kJ</strong>. Courbe brute : CP {cpResult.cp} W, W′ {cpResult.wprimeKJ} kJ. Les bornes de sécurité ne sont pas des mesures.
                   </p>
                 </div>
               </>

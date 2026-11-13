@@ -277,18 +277,18 @@ export function SimulatedLactateCurveChart({
   vo2max,
   vlamax,
   ftp,
-  weight = 70,
+  weight,
   staffMode = false,
   className,
 }: SimulatedLactateCurveChartProps) {
   const isMobile = useIsTouchDevice();
   const [activeTab, setActiveTab] = useState("curve");
 
-  const valid = vo2max && vlamax && ftp && vo2max > 0 && vlamax > 0 && ftp > 0;
+  const valid = vo2max && vlamax && ftp && weight && weight > 0 && vo2max > 0 && vlamax > 0 && ftp > 0;
 
   const profile = useMemo<MaderProfile | null>(() => {
-    if (!valid) return null;
-    return { vo2max: vo2max!, vlamax: vlamax!, weight };
+    if (!valid || vo2max == null || vlamax == null || weight == null) return null;
+    return { vo2max, vlamax, weight };
   }, [vo2max, vlamax, weight, valid]);
 
   // Compute thresholds using Mader model

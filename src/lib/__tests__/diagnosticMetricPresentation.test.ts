@@ -19,6 +19,15 @@ describe('unscored physiological references', () => {
     const input = fixture(); input.effectifs.tte.tte_min = 0;
     expect(diagnosticMetricPresentation(input).tte).toBeNull();
   });
+  it('economy is an efficiency reference without changing the plan ranking', () => {
+    const data = fixture();
+    data.limiter.gapAnalysis.push({ ...data.limiter.gapAnalysis[0], metric: 'Économie', value: 60 });
+    const before = structuredClone(data);
+    const view = diagnosticMetricPresentation(data);
+    expect(view.scored.some(g => g.metric === 'Économie')).toBe(false);
+    expect(view.references.some(g => g.metric === 'Économie')).toBe(true);
+    expect(data).toEqual(before);
+  });
   it.each(['M', 'F', null])('sex %s can be saved without inventing a value', sex => {
     expect(athleteSchema.parse({ name: 'Test', sex }).sex).toBe(sex);
   });

@@ -60,7 +60,7 @@ const MECHANISM_META: Record<
     label: "Acidose",
     icon: Activity,
     explanation:
-      "L'accumulation de lactate dépasse la capacité tampon. Les muscles 'brûlent' et la puissance s'effondre.",
+      "Hypothèse d’un stress acidobasique dans le modèle ; le lactate seul ne démontre pas la cause d’une baisse de puissance.",
     color: "text-red-600 dark:text-red-400",
   },
   wprime: {
@@ -74,7 +74,7 @@ const MECHANISM_META: Record<
     label: "Fatigue centrale",
     icon: Brain,
     explanation:
-      "Le système nerveux central plafonne le recrutement musculaire. Limite mentale/perception d'effort.",
+      "Limite théorique du modèle central ; elle ne diagnostique ni un manque de volonté ni un défaut de résistance mentale.",
     color: "text-blue-600 dark:text-blue-400",
   },
   mixed: {
@@ -100,7 +100,7 @@ export function TTEGlycogenInsightsCard({
   plannedCarbsGH = 60,
 }: Props) {
   const insights = useMemo(() => {
-    if (!vlamax || !vo2max || !weightKg) return null;
+    if (sport === 'run' || !vlamax || !vo2max || !weightKg || !ftp || ftp <= 0) return null;
 
     const profile: MaderProfile = {
       vo2max,
@@ -109,7 +109,7 @@ export function TTEGlycogenInsightsCard({
     };
 
     // Puissance cible pour TTE : FTP si dispo, sinon MLSS dérivée.
-    const power = ftp && ftp > 0 ? ftp : findMLSSPower(profile);
+    const power = ftp;
 
     const mechanisms = calculateTTEMechanisms(profile, power, {
       criticalPower: criticalPower ?? undefined,
@@ -128,15 +128,7 @@ export function TTEGlycogenInsightsCard({
     // "estimée" quand elle repose sur une vitesse devinée.
     const speedIsReal = avgSpeedKmh != null && avgSpeedKmh > 0;
     let speedKmh = avgSpeedKmh ?? null;
-    if (!speedKmh) {
-      if (sport === "run" && vma) {
-        speedKmh = vma * 0.78; // pace tempo
-      } else if (sport === "bike") {
-        speedKmh = 32; // hypothèse course longue
-      } else {
-        speedKmh = 12;
-      }
-    }
+    if (!speedKmh) speedKmh = 32; // Explicit display-only cycling hypothesis.
 
     const durationMin = targetRaceDurationMin && targetRaceDurationMin > 30
       ? targetRaceDurationMin
@@ -200,7 +192,7 @@ export function TTEGlycogenInsightsCard({
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Données insuffisantes (VLamax, VO2max et poids requis).
+            {sport === 'run' ? 'Simulation vélo non applicable à la course : consulte le TTE et ses limites dans le diagnostic course du compass.' : 'Données insuffisantes : VLamax vélo, VO₂max, poids et FTP vélo requis.'}
           </p>
         </CardContent>
       </Card>
@@ -223,10 +215,10 @@ export function TTEGlycogenInsightsCard({
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <Brain className="h-4 w-4 text-primary" />
-          Mécanisme limitant TTE & réserves glycogène
+          Simulation vélo — mécanismes & glycogène
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
-          Cible : {power} W • TTE final ~ {mechanisms.tteFinal} min •
+          Hypothèse : {power} W • Durée modélisée ~ {mechanisms.tteFinal} min •
           fiabilité {getConfidenceLabel(mechanisms.mechanismConfidence).toLowerCase()} · 📐 Simulation, pas un test TTE
         </p>
       </CardHeader>
@@ -235,7 +227,7 @@ export function TTEGlycogenInsightsCard({
         <div className="rounded-lg border bg-card/50 p-3 space-y-2">
           <div className="flex items-center gap-2">
             <Icon className={`h-4 w-4 ${meta.color}`} />
-            <span className="text-sm font-semibold">Facteur limitant : {meta.label}</span>
+            <span className="text-sm font-semibold">Mécanisme du modèle : {meta.label}</span>
             <Badge variant="outline" className="ml-auto text-[10px] font-mono">
               {Math.round(mechanisms.tteFinal)} min
             </Badge>
@@ -253,8 +245,8 @@ export function TTEGlycogenInsightsCard({
           {/* Prescription pédagogique */}
           <Alert className="bg-primary/5 border-primary/20 mt-2">
             <AlertDescription className="text-xs">
-              <span className="font-semibold">Prescription : </span>
-              {mechanisms.recommendation}
+              <span className="font-semibold">Piste théorique, à valider : </span>
+              Le modèle ne démontre pas la cause de l’épuisement de cet athlète. Confronter ces mécanismes aux tests du sport, au seuil préalable et à la raison de l’arrêt avant de choisir un travail.
             </AlertDescription>
           </Alert>
         </div>
@@ -280,7 +272,7 @@ export function TTEGlycogenInsightsCard({
             {" • "}Risque hypoglycémie : <span className="font-medium">{depletion.hypoglycemiaRisk}</span>
           </p>
 
-          {bonkInRace ? (
+          {!targetRaceDurationMin ? <p className="text-xs text-muted-foreground">Durée du segment vélo inconnue : aucune conclusion sur les réserves pour l’ensemble du triathlon. Apport {plannedCarbsGH} g/h utilisé comme hypothèse, pas comme plan validé.</p> : bonkInRace ? (
             <Alert className="bg-amber-500/10 border-amber-500/30">
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <AlertDescription className="text-xs">

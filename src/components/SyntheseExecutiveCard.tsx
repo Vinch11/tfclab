@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { FileText, CheckCircle2, AlertTriangle, XCircle, Zap, Target, TrendingUp } from "lucide-react";
+import { dashboardScoreLabel } from '@/lib/coachingCompass/dashboardConsistency';
+import { metricSourceLabel } from '@/lib/coachingCompass/presentation';
 import { cn } from "@/lib/utils";
 import type { VLamaxEffectif, TTEEffectif } from "@/engines/diagnostic";
 import type { UnifiedLimiterResult } from "@/lib/v2/unifiedLimiterDetection";
@@ -33,6 +35,7 @@ interface SyntheseExecutiveCardProps {
   ftp: number | null;
   poids: number | null;
   vo2max: number | null;
+  vma?: number | null;
   completude: { score: number; manquants: string[] };
   ambition?: AmbitionLevel;
   athleteAge?: number | null;
@@ -65,15 +68,15 @@ const PILLAR_CONFIG = [
   {
     key: "Puissance Aérobie",
     icon: "⚡",
-    description: "FTP/kg et VO₂max",
-    metrics: ["FTP/kg", "VO2max"],
+    description: "Repères propres au sport : VMA course / FTP/kg vélo et VO₂max",
+    metrics: ["FTP/kg", "VMA", "VO2max"],
   },
 ] as const;
 
 const PILLAR_ADVICE: Record<string, string> = {
-  "Profil Métabolique": "Travailler l'abaissement du VLamax via endurance longue, train-low et cadence basse.",
+  "Profil Métabolique": "Vérifier le repère glycolytique du sport, puis adapter endurance modérée et sous-seuil avec le coach.",
   "Endurance Spécifique": "Augmenter le TTE via du volume Z2, des sorties longues progressives et du travail au seuil.",
-  "Puissance Aérobie": "Développer la puissance aérobie via intervalles VO₂max, sweet-spot et travail de force.",
+  "Puissance Aérobie": "Développer le moteur aérobie dans le sport concerné, sans déduire une faiblesse de force ni doubler VO₂max/VMA.",
 };
 
 /**
@@ -133,7 +136,7 @@ function computePillarScore(
 
 export function SyntheseExecutiveCard({
   athleteName, objectif, vlamaxEffectif, tteEffectif, tteEffectifRun, limiterResult,
-  ftp, poids, vo2max, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus,
+  ftp, poids, vo2max, vma, completude, ambition = DEFAULT_AMBITION, athleteAge, sportFocus,
   potentielPhysiologique,
 }: SyntheseExecutiveCardProps) {
   const ftpKg = ftp && poids && poids > 0 ? ftp / poids : null;
@@ -167,6 +170,7 @@ export function SyntheseExecutiveCard({
   // que #315/#316.
   if (ftpKg !== null && sportFocus !== "run") availableMetrics.add("FTP/kg");
   if (vo2max) availableMetrics.add("VO2max");
+  if (sportFocus === "run" && vma != null && vma > 0) availableMetrics.add("VMA");
 
   // Guard: données insuffisantes — aucune métrique mesurée disponible
   const isInsufficient = availableMetrics.size === 0;
@@ -203,7 +207,6 @@ export function SyntheseExecutiveCard({
   
   if (tteEffectif.tte_min > 0 && tteEffectif.source !== "unknown") {
     const eval_ = evaluateTTE(tteEffectif.tte_min, objectif, ambition, athleteAge);
-    const hasRun = sportFocus !== 'run' && tteEffectifRun && tteEffectifRun.tte_min > 0;
     items.push({
       label: sportFocus === 'run' ? 'TTE course' : 'TTE vélo',
       value: `${tteEffectif.tte_min} min`,
@@ -211,16 +214,10 @@ export function SyntheseExecutiveCard({
       source: tteEffectif.source,
       target: eval_.target,
     });
-    if (hasRun && tteEffectifRun) {
-      const evalRun = evaluateTTE(tteEffectifRun.tte_min, objectif, ambition, athleteAge);
-      items.push({
-        label: "TTE course",
-        value: `${tteEffectifRun.tte_min} min`,
-        status: evalRun.status,
-        source: tteEffectifRun.source,
-        target: evalRun.target,
-      });
-    }
+  }
+  if (sportFocus !== 'run' && tteEffectifRun && tteEffectifRun.tte_min > 0 && tteEffectifRun.source !== 'unknown') {
+    const evalRun = evaluateTTE(tteEffectifRun.tte_min, objectif, ambition, athleteAge);
+    items.push({ label: 'TTE course', value: `${tteEffectifRun.tte_min} min`, status: evalRun.status, source: tteEffectifRun.source, target: evalRun.target });
   }
   
   if (ftpKgStr && sportFocus !== "run") {
@@ -231,6 +228,11 @@ export function SyntheseExecutiveCard({
   if (vo2max) {
     const eval_ = evaluateVO2max(vo2max, objectif, ambition, athleteAge);
     items.push({ label: "VO₂max", value: `${vo2max} ml/kg/min`, status: eval_.status, source: "snapshot", target: eval_.target });
+  }
+
+  if (sportFocus === 'run' && vma != null && vma > 0) {
+    const gap = limiterResult.gapAnalysis.find(g => g.metric === 'VMA');
+    items.push({ label: 'VMA course', value: `${vma.toFixed(1)} km/h`, status: 'neutral', source: 'snapshot', target: gap?.target != null ? `${gap.target.toFixed(1)} km/h` : 'Cible non définie' });
   }
 
   // V3.0: Pillar scores derived from unified limiter gapAnalysis
@@ -249,7 +251,7 @@ export function SyntheseExecutiveCard({
     : null;
 
   const globalScore = potentielPhysiologique?.score ?? 0;
-  const scoreLabel = potentielPhysiologique?.label ?? "Données insuffisantes";
+  const scoreLabel = dashboardScoreLabel(globalScore >= 80 ? "ready" : globalScore >= 65 ? "solid" : globalScore >= 50 ? "developing" : "limited");
   const colorClasses: Record<string, { text: string; bg: string }> = {
     success: { text: "text-green-600 dark:text-green-400", bg: "bg-green-500/10 border-green-500/30" },
     warning: { text: "text-amber-600 dark:text-amber-400", bg: "bg-amber-500/10 border-amber-500/30" },
@@ -285,14 +287,15 @@ export function SyntheseExecutiveCard({
             <p className="text-xs text-muted-foreground uppercase tracking-wider">Potentiel Physiologique</p>
           </div>
           <p className={cn("text-4xl font-black mt-1", scoreColor)}>
-            {globalScore}%
+            {globalScore}/100
           </p>
           <p className={cn("text-sm font-semibold", scoreColor)}>{scoreLabel}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            {objectif} • {ambDef.shortLabel}
+            {objectif} • {ambDef.shortLabel} · Score du modèle, pas une validation de course
           </p>
         </div>
 
+<p className="text-xs text-muted-foreground">Le score global et les comparaisons par famille ont des calculs distincts. Un score élevé ne supprime pas les écarts au seuil ni la durabilité non évaluée.</p>
         {/* Key indicators grid */}
         <div className="grid grid-cols-2 gap-2">
           {items.map((item) => (
@@ -303,7 +306,8 @@ export function SyntheseExecutiveCard({
                   <p className="text-[10px] text-muted-foreground">{item.label}</p>
                   <p className="text-[9px] text-muted-foreground/70">{item.target}</p>
                 </div>
-                <p className="text-sm font-semibold truncate">{item.value}</p>
+                <p className="text-sm font-semibold break-words">{item.value}</p>
+                <p className="text-[10px] text-muted-foreground">{metricSourceLabel(item.source)}</p>
               </div>
             </div>
           ))}
@@ -313,7 +317,7 @@ export function SyntheseExecutiveCard({
         <div className="space-y-2">
           <div className="flex items-center gap-1.5">
             <Zap className="h-3.5 w-3.5 text-primary" />
-            <p className="text-xs font-medium">Piliers du Potentiel</p>
+            <p className="text-xs font-medium">Comparaisons historiques par famille</p>
           </div>
           <div className="space-y-2">
             {pillarScores.map((pillar) => {
@@ -333,7 +337,7 @@ export function SyntheseExecutiveCard({
                       </span>
                       {isWeakest && (
                         <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                          Axe prioritaire
+                          Écart de famille
                         </Badge>
                       )}
                     </div>
@@ -354,7 +358,7 @@ export function SyntheseExecutiveCard({
           <div className="rounded-lg p-3 bg-primary/5 border border-primary/20">
             <div className="flex items-center gap-1.5 mb-1">
               <TrendingUp className="h-3.5 w-3.5 text-primary" />
-              <p className="text-xs font-semibold text-primary">Axe de développement prioritaire</p>
+              <p className="text-xs font-semibold text-primary">Priorité historique du plan — à valider</p>
             </div>
             <p className="text-xs text-muted-foreground">
               {limiterResult.limiterEmoji} <strong>{limiterLabel}</strong> → {limiterResult.leverEmoji} {leverLabel}
@@ -368,11 +372,12 @@ export function SyntheseExecutiveCard({
         {/* Data completeness */}
         <div className="rounded-lg p-3 bg-muted/30">
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs font-medium">Complétude des données</p>
+            <p className="text-xs font-medium">Couverture des repères du sport</p>
             <Badge variant={completude.score >= 80 ? "default" : "secondary"} className="text-[10px]">
               {completude.score}%
             </Badge>
           </div>
+<p className="text-[10px] text-muted-foreground mb-2">Champs renseignés du bilan de référence ; leur présence ne valide ni les capteurs ni les protocoles.</p>
           <Progress value={completude.score} className="h-1.5" />
           {completude.manquants.length > 0 && (
             <p className="text-[10px] text-muted-foreground mt-1.5">

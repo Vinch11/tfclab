@@ -5,13 +5,11 @@
  */
 
 import { useMemo } from "react";
+import { Button } from '@/components/ui/button';
+import { dashboardTargetProgress } from '@/lib/coachingCompass/dashboardConsistency';
+import type { RadarAxis } from '@/lib/coachingCompass/types';
 import { ChevronUp, ChevronDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  getVLamaxRange,
-  getTTETargetByAmbition,
-  getFtpKgTargetByAmbition,
-} from "@/lib/physiologicalTargets";
 import { 
   AmbitionLevel, 
   getAmbitionDefinition, 
@@ -31,74 +29,13 @@ import {
 
 interface AmbitionProgressMiniProps {
   snapshots: DbSnapshot[];
+  axes?: RadarAxis[];
   objectif: string;
   ambition?: AmbitionLevel;
   weightKg?: number | null;
   className?: string;
   onClick?: () => void;
   onMetricClick?: (sectionId: string) => void;
-}
-
-// Mapping métrique -> section ID dans le dashboard
-const METRIC_SECTION_MAP: Record<string, string> = {
-  vlamax: "vlamax-v2-calibration",
-  tte: "compass", // TTE intégré dans le compass
-  ftpKg: "ftp-targets",
-};
-
-// =============================================
-// HELPERS
-// =============================================
-
-function calculateProgress(
-  current: number | null,
-  target: number,
-  isInverse: boolean = false
-): number | null {
-  if (current === null || current === 0) return null;
-  if (isInverse) {
-    if (current <= target) return 100;
-    return Math.max(0, Math.min(100, (target / current) * 100));
-  }
-  return Math.min(100, (current / target) * 100);
-}
-
-function getGlobalProgress(
-  vlamax: number | null,
-  tte: number | null,
-  ftpKg: number | null,
-  objectif: string,
-  ambition: AmbitionLevel
-): number | null {
-  const vlamaxRange = getVLamaxRange(objectif, ambition);
-  const tteTarget = getTTETargetByAmbition(objectif, ambition);
-  const ftpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
-
-  const vlamaxProgress = calculateProgress(vlamax, vlamaxRange.optimal, true);
-  const tteProgress = calculateProgress(tte, tteTarget, false);
-  const ftpKgProgress = calculateProgress(ftpKg, ftpKgTarget, false);
-
-  const validProgresses = [vlamaxProgress, tteProgress, ftpKgProgress].filter(
-    (p) => p !== null
-  ) as number[];
-  
-  return validProgresses.length > 0
-    ? Math.round(validProgresses.reduce((a, b) => a + b, 0) / validProgresses.length)
-    : null;
-}
-
-function getTrend(
-  data: { progress: number | null }[]
-): "up" | "down" | "stable" | "unknown" {
-  const validPoints = data.filter((d) => d.progress !== null);
-  if (validPoints.length < 2) return "unknown";
-  
-  const first = validPoints[0].progress as number;
-  const last = validPoints[validPoints.length - 1].progress as number;
-  const diff = last - first;
-  
-  if (Math.abs(diff) < 2) return "stable";
-  return diff > 0 ? "up" : "down";
 }
 
 // =============================================
@@ -123,9 +60,9 @@ function ProgressRing({
   // Couleur selon progression
   const getColor = (p: number | null) => {
     if (p === null) return "hsl(var(--muted-foreground))";
-    if (p >= 100) return "hsl(142, 76%, 36%)"; // emerald
-    if (p >= 85) return "hsl(38, 92%, 50%)"; // amber
-    if (p >= 60) return "hsl(221, 83%, 53%)"; // blue
+    if (p >= 100) return "hsl(var(--success))"; // emerald
+    if (p >= 85) return "hsl(var(--warning))"; // amber
+    if (p >= 60) return "hsl(var(--primary))"; // blue
     return "hsl(var(--muted-foreground))";
   };
 
@@ -170,6 +107,7 @@ function ProgressRing({
 
 export function AmbitionProgressMini({
   snapshots,
+  axes,
   objectif,
   ambition = DEFAULT_AMBITION,
   weightKg,
@@ -179,85 +117,9 @@ export function AmbitionProgressMini({
 }: AmbitionProgressMiniProps) {
   const ambDef = getAmbitionDefinition(ambition);
 
-  // Calculer les données avec métriques individuelles
-  const { progress, trend, metricsCount, metrics } = useMemo(() => {
-    const sorted = [...snapshots]
-      .filter((s) => s.date)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-6);
-
-    if (sorted.length === 0) {
-      return { 
-        progress: null, 
-        trend: "unknown" as const, 
-        metricsCount: 0,
-        metrics: { vlamax: null, tte: null, ftpKg: null }
-      };
-    }
-
-    const progressData = sorted.map((s) => {
-      const ftpKg = s.ftp && s.weight_kg ? s.ftp / s.weight_kg : 
-                    s.ftp && weightKg ? s.ftp / weightKg : null;
-      return {
-        progress: getGlobalProgress(
-          s.vlamax ?? null,
-          s.tte_observed_min ?? null,
-          ftpKg,
-          objectif,
-          ambition
-        ),
-      };
-    });
-
-    const latest = sorted[sorted.length - 1];
-    const latestFtpKg = latest.ftp && latest.weight_kg ? latest.ftp / latest.weight_kg : 
-                        latest.ftp && weightKg ? latest.ftp / weightKg : null;
-    const currentProgress = getGlobalProgress(
-      latest.vlamax ?? null,
-      latest.tte_observed_min ?? null,
-      latestFtpKg,
-      objectif,
-      ambition
-    );
-
-    // Calculer les progressions individuelles
-    const vlamaxRange = getVLamaxRange(objectif, ambition);
-    const tteTarget = getTTETargetByAmbition(objectif, ambition);
-    const ftpKgTarget = getFtpKgTargetByAmbition(objectif, ambition);
-
-    const vlamaxProgress = calculateProgress(latest.vlamax ?? null, vlamaxRange.optimal, true);
-    const tteProgress = calculateProgress(latest.tte_observed_min ?? null, tteTarget, false);
-    const ftpKgProgress = calculateProgress(latestFtpKg, ftpKgTarget, false);
-
-    // Compter les métriques disponibles
-    let count = 0;
-    if (latest.vlamax !== null) count++;
-    if (latest.tte_observed_min !== null) count++;
-    if (latestFtpKg !== null) count++;
-
-    return {
-      progress: currentProgress,
-      trend: getTrend(progressData),
-      metricsCount: count,
-      metrics: {
-        vlamax: vlamaxProgress !== null ? { 
-          value: latest.vlamax, 
-          progress: Math.round(vlamaxProgress),
-          target: vlamaxRange.optimal
-        } : null,
-        tte: tteProgress !== null ? { 
-          value: latest.tte_observed_min, 
-          progress: Math.round(tteProgress),
-          target: tteTarget
-        } : null,
-        ftpKg: ftpKgProgress !== null ? { 
-          value: latestFtpKg, 
-          progress: Math.round(ftpKgProgress),
-          target: ftpKgTarget
-        } : null,
-      },
-    };
-  }, [snapshots, objectif, ambition, weightKg]);
+  const { progress, metrics, total } = useMemo(() => dashboardTargetProgress(axes ?? []), [axes]);
+  const metricsCount = metrics.length;
+  const trend = "unknown" as "up" | "down" | "stable" | "unknown";
 
   // Icône de tendance
   const TrendIcon = useMemo(() => {
@@ -284,7 +146,7 @@ export function AmbitionProgressMini({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
+          <Button variant="ghost"
             onClick={onClick}
             className={cn(
               "flex items-center gap-2 p-2 rounded-lg border bg-card/50 hover:bg-card transition-colors cursor-pointer",
@@ -310,10 +172,10 @@ export function AmbitionProgressMini({
                 {TrendIcon}
               </div>
               <span className="text-[10px] text-muted-foreground">
-                {ambDef.shortLabel} · {metricsCount}/3
+                {ambDef.shortLabel} · {metricsCount}/{total}
               </span>
             </div>
-          </button>
+          </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs">
           <div className="space-y-2">
@@ -321,67 +183,12 @@ export function AmbitionProgressMini({
               {ambDef.icon} Progression vers "{ambDef.label}"
             </p>
             
-            {/* Métriques individuelles - cliquables */}
+            <p className="text-xs text-muted-foreground">Moyenne des comparaisons disponibles du compass sur le bilan de référence. Ce n’est ni la couverture des données, ni une validation de course.</p>
             <div className="space-y-1 pt-1 border-t border-border/50">
-              {metrics.vlamax && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMetricClick?.(METRIC_SECTION_MAP.vlamax);
-                  }}
-                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
-                >
-                  <span className="text-muted-foreground group-hover:text-foreground">VLamax →</span>
-                  <span className="font-mono">
-                    <span className="font-medium">{metrics.vlamax.value?.toFixed(2)}</span>
-                    <span className="text-muted-foreground"> → {metrics.vlamax.target.toFixed(2)}</span>
-                    <span className={cn("ml-1", metrics.vlamax.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
-                      ({metrics.vlamax.progress}%)
-                    </span>
-                  </span>
-                </button>
-              )}
-              {metrics.tte && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMetricClick?.(METRIC_SECTION_MAP.tte);
-                  }}
-                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
-                >
-                  <span className="text-muted-foreground group-hover:text-foreground">TTE →</span>
-                  <span className="font-mono">
-                    <span className="font-medium">{metrics.tte.value}′</span>
-                    <span className="text-muted-foreground"> → {metrics.tte.target}′</span>
-                    <span className={cn("ml-1", metrics.tte.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
-                      ({metrics.tte.progress}%)
-                    </span>
-                  </span>
-                </button>
-              )}
-              {metrics.ftpKg && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMetricClick?.(METRIC_SECTION_MAP.ftpKg);
-                  }}
-                  className="flex items-center justify-between text-xs w-full hover:bg-muted/50 rounded px-1 py-0.5 transition-colors group"
-                >
-                  <span className="text-muted-foreground group-hover:text-foreground">FTP/kg →</span>
-                  <span className="font-mono">
-                    <span className="font-medium">{metrics.ftpKg.value?.toFixed(2)}</span>
-                    <span className="text-muted-foreground"> → {metrics.ftpKg.target.toFixed(2)}</span>
-                    <span className={cn("ml-1", metrics.ftpKg.progress >= 100 ? "text-emerald-500" : "text-amber-500")}>
-                      ({metrics.ftpKg.progress}%)
-                    </span>
-                  </span>
-                </button>
-              )}
+              {metrics.map(metric => <Button key={`${metric.label}-${metric.key}`} variant="ghost" size="sm" className="w-full justify-between text-xs" onClick={(e) => { e.stopPropagation(); onMetricClick?.('coaching-compass'); }}>
+                <span>{metric.label}</span><span>{metric.value?.toFixed(metric.key === 'vlamax' ? 2 : 1)} → {metric.target?.toFixed(metric.key === 'vlamax' ? 2 : 1)} {metric.unit}</span>
+              </Button>)}
             </div>
-            
-            <p className="text-[10px] text-muted-foreground pt-1 border-t border-border/50">
-              Cliquez sur une métrique pour y accéder
-            </p>
           </div>
         </TooltipContent>
       </Tooltip>

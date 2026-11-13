@@ -1,6 +1,8 @@
+import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
+import { computeCoachingCompass } from '@/lib/coachingCompass';
+import { getVo2maxTarget } from '@/lib/v2/unifiedLimiterDetection';
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { fatigueStateToScoreOrDefault } from "@/lib/fatigueStateMapping";
 import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
@@ -114,7 +116,7 @@ import { analyzeCriticalPower } from "@/lib/v2/criticalPowerModel";
 import { RoadmapStrategique } from "@/components/RoadmapStrategique";
 import { detectUnifiedLimiter, type UnifiedLimiterResult } from "@/engines/diagnostic";
 // ✅ FIX 11 - Effective Refs (source unique de vérité)
-import { getEffectiveRefs, computeFtpKg, getMissingFields } from "@/lib/effectiveRefs";
+import { getEffectiveRefs, computeFtpKg } from "@/lib/effectiveRefs";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
 
 // ✅ Guide interactif de complétion des données
@@ -499,9 +501,7 @@ const Index = () => {
   // 🏆 Records course Nolio (cat="par") → calibration croisée VLamax course (M3)
   const activeSnapshotVma = useMemo(() => {
     if (!currentAthlete) return null;
-    const snap = snapshots.find(s => s.id === currentAthlete.active_snapshot_id)
-      ?? [...snapshots.filter(s => s.athlete_id === currentAthlete.id)]
-          .sort((a, b) => (b.date || "").localeCompare(a.date || ""))[0];
+    const snap = pickReferenceSnapshot(snapshots, currentAthlete.id, currentAthlete.active_snapshot_id);
     return snap?.vma ?? null;
   }, [currentAthlete, snapshots]);
   // Fenêtre de calibration VLamax (mois) — paramètre coach, défaut 12 mois (rec. niveau actuel)
@@ -560,11 +560,11 @@ const Index = () => {
   const tteEffectif = useMemo<TTEEffectif>(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) {
       return {
-        tte_min: 45,
+        tte_min: 0,
         source: "unknown",
         confidence: 0,
         label: "TTE (non disponible)",
-        target: 45,
+        target: currentAthlete ? getTTETargetByAmbition(currentAthlete.goal || "IM", currentAmbition, currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null) : 0,
         status: "warning",
         status_message: "Aucune donnée"
       };
@@ -592,18 +592,18 @@ const Index = () => {
     });
   }, [effectiveCloudSnapshot, currentAthlete, isRunningOnly, runDurabilityProxy]);
 
-  // TTE CAP (run) séparé : alimente la durabilité du Compass pour triathlon (min bike/run).
+  // Display-only course reference: no global load or cycling threshold fallback.
   const tteEffectifRun = useMemo(() => {
     if (!effectiveCloudSnapshot || !currentAthlete) return null;
     return computeTTEEffectif({
-      ftp: effectiveCloudSnapshot.ftp ?? null,
-      tss_7d: effectiveCloudSnapshot.tss_7d ?? null,
-      tte_observed_min_run: (effectiveCloudSnapshot as any).tte_observed_min_run ?? null,
-      sport: "run",
-      objectif: currentAthlete.goal || "IM",
+      tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null,
+      tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null,
+      tte_proxy_confidence: runDurabilityProxy?.confidence ?? null,
+      tte_proxy_label: runDurabilityProxy?.label ?? null,
+      sport: 'run', objectif: currentAthlete.goal || 'IM',
       age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
     });
-  }, [effectiveCloudSnapshot, currentAthlete]);
+  }, [effectiveCloudSnapshot, currentAthlete, runDurabilityProxy]);
 
   // ✅ Valeur TTE affichée partout (Index) - fallback 0 pour compatibilité
   const tte = useMemo(() => {
@@ -804,7 +804,7 @@ const Index = () => {
       context: { daysToRace: null, isRaceWeek: false, currentPhase: "build" },
       load: {
         tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-        tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
+        tss28d: null, // No observed 28-day total: never reconstruct it from one week.
       },
       raceSimulationInput: currentAthlete && (effectiveCloudSnapshot as any)?.objectif ? {
         raceType: (effectiveCloudSnapshot as any).objectif,
@@ -853,21 +853,8 @@ const Index = () => {
     return dashDiagnostic ? dashDiagnostic.limiter : unifiedLimiterResult;
   }, [dashDiagnostic, unifiedLimiterResult]);
 
-  // ✅ FATIGUE EFFECTIF — Pour Coaching Compass
-  const fatigueEffectifForCompass = useMemo<FatigueEffectif | null>(() => {
-    if (!effectiveCloudSnapshot || !currentAthlete) return null;
-    const fatiguePercue = fatigueStateToScoreOrDefault(effectiveCloudSnapshot.fatigue_state);
-    return computeFatigueEffectif({
-      tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-      tss7dHabituel: null,
-      fatiguePercue,
-      tteEffectif,
-      potentielPhysiologique: potentielPhysiologiqueEffectif,
-      vlamaxEffectif,
-      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-      objectif: currentAthlete.goal || "IM",
-    });
-  }, [effectiveCloudSnapshot, currentAthlete, tteEffectif, potentielPhysiologiqueEffectif, vlamaxEffectif]);
+  // Same diagnostic fatigue, with missing subjective input retained as unknown.
+  const fatigueEffectifForCompass = dashDiagnostic?.effectifs.fatigue ?? null;
 
   // ✅ LORANG STRATEGY — Pour Coaching Compass
   const lorangStrategyForCompass = useMemo<LorangStrategyResult | null>(() => {
@@ -876,9 +863,9 @@ const Index = () => {
     const sportForTargets = isRunningOnly ? "run" : "bike";
     const goalForTargets = currentAthlete.goal || "IM";
     const vlamaxTarget = getVLamaxOptimal(goalForTargets, currentAmbition, sportForTargets);
-    const tteTarget = getTTETargetByAmbition(goalForTargets, currentAmbition);
-    // VO2max target reste indicatif (pas géré par physiologicalTargets) — barème ambition uniquement
-    const vo2maxTarget = currentAmbition === "elite" ? 70 : currentAmbition === "competitor" ? 62 : currentAmbition === "age_group" ? 58 : 52;
+    const tteTarget = getTTETargetByAmbition(goalForTargets, currentAmbition, currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null);
+    // Same objective/ambition/age target as the diagnostic.
+    const vo2maxTarget = getVo2maxTarget(goalForTargets, currentAmbition, currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null);
     const disciplineMap: Record<string, 'IM' | '703' | 'marathon' | 'semi' | '10k' | 'cycling' | 'trail'> = {
       'IM': 'IM', 'Ironman': 'IM', '70.3': '703', 'Ironman70.3': '703',
       'Marathon': 'marathon', 'Semi': 'semi', '10K': '10k', '5K': '10k',
@@ -924,7 +911,7 @@ const Index = () => {
         },
         load: {
           tss7d: effectiveCloudSnapshot.tss_7d ?? null,
-          tss28d: effectiveCloudSnapshot.tss_7d ? effectiveCloudSnapshot.tss_7d * 4 : null,
+          tss28d: null, // No observed 28-day total: never reconstruct it from one week.
         },
         // ✅ Passer le résultat du moteur unifié pour cohérence maximale
         unifiedLimiterResult: unifiedLimiterResult ? {
@@ -973,7 +960,7 @@ const Index = () => {
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
-      vlamaxRunReference: { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' },
+      vlamaxRunReference: isRunningOnly ? { value: vlamaxEffectif.value, source: vlamaxEffectif.source } : { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' },
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
       tteEffectifRun: computeTTEEffectif({ sport: 'run', objectif: currentAthlete.goal || 'IM', age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null, tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null, tte_proxy_confidence: runDurabilityProxy?.confidence ?? null, tte_proxy_label: runDurabilityProxy?.label ?? null }),
       fatigueEffectif: fatigueEffectifForCompass ? {
@@ -1026,6 +1013,12 @@ const Index = () => {
       targetRacePrediction,
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
+
+  const dashboardPresentation = useMemo(() => compassInputMemo ? computeCoachingCompass(compassInputMemo).presentation : null, [compassInputMemo]);
+  const dashboardAxes = dashboardPresentation?.disciplineAxes
+    ? [...dashboardPresentation.disciplineAxes.bike, ...dashboardPresentation.disciplineAxes.run]
+    : dashboardPresentation?.runningDiagnostic?.axes ?? dashboardPresentation?.axes ?? [];
+  const dashboardCompleteness = useMemo(() => compassInputMemo ? dashboardCoverage(compassInputMemo) : { score: 0, manquants: ['Bilan de référence'] }, [compassInputMemo]);
 
   const { markAsReferenceWeek } = useDecisionReliability();
 
@@ -1330,6 +1323,7 @@ const Index = () => {
                 <div className="hidden md:block shrink-0">
                   <AmbitionProgressMini
                     snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                    axes={dashboardAxes}
                     objectif={currentAthlete.goal || "IM"}
                     ambition={currentAmbition}
                     weightKg={effectiveRefs.weightKg}
@@ -1605,6 +1599,7 @@ const Index = () => {
                         className="w-full justify-start !bg-transparent !border-0 !shadow-none !p-0"
 
                         snapshots={snapshots.filter(s => s.athlete_id === currentAthlete.id)}
+                    axes={dashboardAxes}
                         objectif={currentAthlete.goal || "IM"}
                         ambition={currentAmbition}
                         weightKg={effectiveRefs.weightKg}
@@ -1798,7 +1793,7 @@ const Index = () => {
           {
             id: "analyse-section",
             render: () => dashDiagnostic ? (
-              <AnalyseSection diagnostic={dashDiagnostic} />
+              <AnalyseSection diagnostic={dashDiagnostic} coverage={dashboardCompleteness} />
             ) : null,
           },
           // ✅ 3. LIMITEURS — Facteurs limitants avec explications pédagogiques
@@ -1828,14 +1823,12 @@ const Index = () => {
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
                 tteEffectifRun={tteEffectifRun}
+                vma={effectiveCloudSnapshot?.vma ?? null}
                 limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                completude={(() => {
-                  const missing = getMissingFields(effectiveRefs, ["weightKg", "ftp", "vo2max", "vma", "fcMax"]);
-                  return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
-                })()}
+                completude={dashboardCompleteness}
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
@@ -1848,8 +1841,9 @@ const Index = () => {
             render: () => currentAthlete ? (
               <VLamaxProfileScale
                 vlamax={alignedVlamaxEffectif.value}
+                source={alignedVlamaxEffectif.source}
                 objectif={currentAthlete.goal || null}
-                sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
+                sportMain={isRunningOnly ? "cap" : "bike"}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ) : null,
@@ -1864,7 +1858,7 @@ const Index = () => {
                 weightKg={effectiveCloudSnapshot.weight_kg ?? poids ?? null}
                 ftp={ftp}
                 vma={effectiveCloudSnapshot.vma ?? null}
-                targetRaceDurationMin={targetRaceDurationMin}
+                targetRaceDurationMin={dashboardPresentation?.sport === "triathlon" ? null : targetRaceDurationMin}
                 criticalPower={cpResultForLimiter?.effectiveCP ?? cpResultForLimiter?.cp ?? null}
                 wPrimeKj={wprimeKjForLimiter}
                 sport={isRunningOnly ? "run" : "bike"}
@@ -1934,6 +1928,8 @@ const Index = () => {
             id: "two-for-coaching",
             render: () => legacyAthlete && (
               <TwoForCoachingAnalysis
+                diagnostic={dashDiagnostic}
+                coverage={dashboardCompleteness}
                 athlete={legacyAthlete}
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
@@ -1950,6 +1946,7 @@ const Index = () => {
             id: "nolio-analysis",
             render: () => currentAthlete && effectiveCloudSnapshot && (
               <NolioAnalysisCard
+                key={effectiveCloudSnapshot.id}
                 snapshot={effectiveCloudSnapshot}
                 staffMode={staffMode}
                 objectif={currentAthlete.goal || "IM"}
@@ -2008,7 +2005,7 @@ const Index = () => {
                   athleteId={currentAthlete.id}
                   vo2max={effectiveCloudSnapshot?.vo2max ?? null}
                   age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
-                  vlamaxRun={(effectiveCloudSnapshot as any)?.vlamax_run ?? null}
+                  vlamaxRun={isRunningOnly ? alignedVlamaxEffectif.value : effectiveCloudSnapshot?.vlamax_run ?? null}
                   economyScore={effectiveCloudSnapshot?.run_economy_score ?? null}
                   isRunningOnly={isRunningOnly}
                   isTriathlon={isTriGoal && !isRunningOnly}
@@ -2023,8 +2020,9 @@ const Index = () => {
             render: () => currentAthlete && (
               <VLamaxProfileScale
                 vlamax={alignedVlamaxEffectif.value}
+                source={alignedVlamaxEffectif.source}
                 objectif={currentAthlete.goal || null}
-                sportMain={(effectiveCloudSnapshot as any)?.sport_main ?? null}
+                sportMain={isRunningOnly ? "cap" : "bike"}
                 age={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
               />
             ),
@@ -2058,7 +2056,7 @@ const Index = () => {
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
                 objectif={currentAthlete.goal || "IM"}
-                ftp={ftp}
+                ftp={isRunningOnly ? null : ftp}
                 vma={effectiveCloudSnapshot?.vma ?? null}
                 staffMode={staffMode}
               />
@@ -2071,10 +2069,10 @@ const Index = () => {
               <FatCarbOxidationChart
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
                 vlamax={alignedVlamaxEffectif.value}
-                ftp={ftp}
+                ftp={isRunningOnly ? null : ftp}
                 vma={effectiveCloudSnapshot.vma ?? null}
-                paceMode={isRunningOnly && (!ftp || ftp <= 0)}
-                weight={poids ?? 70}
+                paceMode={isRunningOnly}
+                weight={poids ?? undefined}
                 staffMode={staffMode}
               />
             ),
@@ -2105,8 +2103,14 @@ const Index = () => {
                 potentielScore={potentielPhysiologiqueEffectif.score}
                 objectif={currentAthlete.goal || "IM"}
                 vo2max={effectiveCloudSnapshot.vo2max ?? null}
-                ftp={ftp}
+                ftp={isRunningOnly ? null : ftp}
                 weight={poids ?? undefined}
+                vma={effectiveCloudSnapshot.vma ?? null}
+                css={effectiveCloudSnapshot.css ?? null}
+                pmax5s={isRunningOnly ? null : effectiveCloudSnapshot.pmax_5s ?? null}
+                p30s={isRunningOnly ? null : effectiveCloudSnapshot.p30s_w ?? null}
+                p60s={isRunningOnly ? null : effectiveCloudSnapshot.p60s_w ?? null}
+                map5min={isRunningOnly ? null : effectiveCloudSnapshot.map5min_w ?? null}
                 initialStaffMode={staffMode}
                 // Bug réel corrigé (audit "estimations physiologiques", Cluster 4,
                 // priorité 4) : cette prop n'était jamais passée → défaut "velo"
@@ -2247,14 +2251,12 @@ const Index = () => {
                 vlamaxEffectif={alignedVlamaxEffectif}
                 tteEffectif={alignedTteEffectif}
                 tteEffectifRun={tteEffectifRun}
+                vma={effectiveCloudSnapshot?.vma ?? null}
                 limiterResult={alignedLimiterResult}
                 ftp={ftp}
                 poids={poids ?? null}
                 vo2max={effectiveCloudSnapshot?.vo2max ?? null}
-                completude={(() => {
-                  const missing = getMissingFields(effectiveRefs, ["weightKg", "ftp", "vo2max", "vma", "fcMax"]);
-                  return { score: Math.max(0, 100 - missing.length * 10), manquants: missing };
-                })()}
+                completude={dashboardCompleteness}
                 ambition={currentAmbition}
                 athleteAge={currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null}
                 sportFocus={dashDiagnostic?.sportFocus ?? (isRunningOnly ? "run" : "bike")}
@@ -2293,10 +2295,10 @@ const Index = () => {
                       staffMode={staffMode}
                     />
                     <NutritionUnifiedCard
-                      vlamaxValue={(effectiveCloudSnapshot as any)?.vlamax_run ?? alignedVlamaxEffectif.value}
-                      vlamaxConfidence={tteEffectifRun?.confidence ?? alignedVlamaxEffectif.confidence}
+                      vlamaxValue={effectiveCloudSnapshot?.vlamax_run ?? null}
+                      vlamaxConfidence={effectiveCloudSnapshot?.vlamax_run != null ? 0.4 : 0}
                       vo2max={effectiveCloudSnapshot?.vo2max ?? currentAthlete.vo2max ?? null}
-                      tteMin={tteEffectifRun?.tte_min ?? alignedTteEffectif.tte_min}
+                      tteMin={tteEffectifRun?.tte_min ?? 0}
                       sport="cap"
                       objectif={goal}
                       weightKg={poids ?? null}

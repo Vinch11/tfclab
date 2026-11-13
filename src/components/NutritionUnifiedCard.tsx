@@ -53,6 +53,7 @@ import { cn } from "@/lib/utils";
 import { AnimatedTabsContent } from "@/components/ui/animated-tabs-content";
 import { SwipeableTabsContent } from "@/components/ui/swipeable-tabs";
 import { getConfidenceLabel, getConfidenceColorClass } from "@/lib/confidenceDisplay";
+import { hasDashboardNutritionInputs } from '@/lib/coachingCompass/dashboardConsistency';
 import {
   computeNutritionUnified,
   getNutritionUnifiedBadgeClass,
@@ -207,6 +208,7 @@ export function NutritionUnifiedCard({
   const [isStaffView, setIsStaffView] = useState(staffMode);
 
   const nutrition = useMemo(() => {
+    if (!hasDashboardNutritionInputs(vo2max, vlamaxValue, weightKg)) return null;
     const input: NutritionUnifiedInput = {
       vlamaxValue,
       vlamaxConfidence,
@@ -237,7 +239,7 @@ export function NutritionUnifiedCard({
             <AlertTriangle className="w-8 h-8 mb-2 opacity-50" />
             <p className="text-sm font-medium">Données insuffisantes</p>
             <p className="text-xs mt-1 text-center max-w-xs">
-              Renseignez le poids et au minimum VLamax ou TTE.
+              Renseignez le poids, la VO₂max et la VLamax propre à ce sport. Aucun repère de l’autre sport ne les remplace.
             </p>
           </div>
         </CardContent>
