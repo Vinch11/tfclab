@@ -1,3 +1,5 @@
+import bikePhoto from '@/assets/report-cycling-road.jpg';
+import runPhoto from '@/assets/report-running-path.jpg';
 /**
  * Récit des rapports athlète (Performance, Profil) — présentation uniquement.
  * Aucun calcul physiologique : met en forme des valeurs déjà enregistrées.
@@ -10,6 +12,12 @@ import type { DbTest } from '@/hooks/useCloudData';
 export const STORY_STEPS = ['Où j’en suis', 'Ce qui me freine', 'Pourquoi', 'Ce que nous travaillons', 'Comment voir mes progrès'] as const;
 
 export const STORY_CSS = `
+@media screen{body{background:linear-gradient(180deg,${RK.primarySoft},${RK.surface} 420px)}}
+.sport-photo{width:100%;height:220px;object-fit:cover;border-radius:20px;margin-bottom:18px;display:block}
+.energy-ill{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.energy-ill svg{flex:1 1 220px;max-width:100%;height:auto}
+.page svg{max-width:100%;height:auto}
+@media screen and (max-width:640px){.page{padding:20px 16px!important}.grid2,.grid3{grid-template-columns:1fr!important}.card table{display:block;overflow-x:auto;font-size:11px}.card{overflow-x:auto;-webkit-overflow-scrolling:touch}.card > svg{min-width:600px}.sport-turn{padding:28px 20px!important}.sport-turn h1{font-size:26px}.sport-photo{height:150px}h1{font-size:24px!important}.lead{font-size:14px!important;line-height:1.6}}
 .sport-turn{min-height:0!important;display:flex;flex-direction:column;justify-content:center;padding:56px 48px!important;border-radius:28px;background:linear-gradient(135deg,${RK.primarySoft},${RK.surface})}
 .sport-turn.run{background:linear-gradient(135deg,${RK.mintSoft},${RK.surface})}
 .sport-turn .n{font-size:64px;font-weight:700;line-height:1;color:${RK.primary};opacity:.35}
@@ -120,14 +128,21 @@ export function reportSports(goal: string | null | undefined, isRunning: boolean
 export const isLongEvent = (goal: string | null | undefined) => /marathon|semi|ironman|\bIM\b|70[.,]3|trail|ultra/i.test(String(goal ?? ''));
 
 const TURN: Record<Sport, { title: string; question: string; steps: string[] }> = {
-  bike: { title: 'Ton parcours vélo', question: 'Ici, on ne parle que de vélo : puissance, seuil et carburants mesurés ou modélisés en watts.', steps: ['Où se situe ton seuil à vélo', 'Quelle filière paye l’effort', 'Comment tu brûles lipides et glucides', 'Ce qui a changé dans tes tests vélo'] },
+  bike: { title: 'Ton parcours vélo', question: 'Ici, on ne parle que de vélo : puissance, seuil et carburants mesurés ou modélisés en watts.', steps: ['Où se situe ton seuil à vélo', 'Ce qui alimente ton coup de pédale', 'Manger en roulant', 'Ce qui a changé dans tes tests vélo'] },
   run: { title: 'Ton parcours course à pied', question: 'Ici, on ne parle que de course : allures, VMA, seuil et économie. Aucune valeur vélo n’est convertie en allure.', steps: ['Tes repères de vitesse et de seuil', 'Ton économie et ton temps tenu au seuil', 'Ce qui a changé dans tes tests course'] },
 };
 
 /** Page de transition entre deux parcours sportifs. */
+const abs = (u: string) => (typeof window !== 'undefined' ? new URL(u, window.location.origin).href : u);
+
+const ENERGY: Record<Sport, string> = {
+  bike: `<div class="energy-ill"><svg viewBox="0 0 320 90" role="img" aria-label="Énergie vélo : oxygène à faible puissance, sucre quand les watts montent"><defs><linearGradient id="eb" x1="0" x2="1"><stop offset="0" stop-color="${RK.mint}"/><stop offset="1" stop-color="${RK.primary}"/></linearGradient></defs><rect x="10" y="38" width="300" height="14" rx="7" fill="url(#eb)" opacity=".75"/><text x="10" y="28" font-size="11" fill="${RK.body}">Oxygène · rouler longtemps</text><text x="310" y="28" font-size="11" text-anchor="end" fill="${RK.body}">Sucre · relances, bosses</text><text x="160" y="76" font-size="10" text-anchor="middle" fill="${RK.muted}">plus de watts →</text></svg></div>`,
+  run: `<div class="energy-ill"><svg viewBox="0 0 320 90" role="img" aria-label="Énergie course : endurance aux allures lentes, sucre aux allures rapides"><defs><linearGradient id="er" x1="0" x2="1"><stop offset="0" stop-color="${RK.mint}"/><stop offset="1" stop-color="${RK.primary}"/></linearGradient></defs><rect x="10" y="38" width="300" height="14" rx="7" fill="url(#er)" opacity=".75"/><text x="10" y="28" font-size="11" fill="${RK.body}">Footing · endurance</text><text x="310" y="28" font-size="11" text-anchor="end" fill="${RK.body}">Fractionné · VMA</text><text x="160" y="76" font-size="10" text-anchor="middle" fill="${RK.muted}">allure plus rapide →</text></svg></div>`,
+};
+
 export function sportTransition(sport: Sport, index: number, total: number): string {
   const t = TURN[sport];
-  return `<section class="page"><div class="sport-turn ${sport}"><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div></section>`;
+  return `<section class="page"><div class="sport-turn ${sport}"><img class="sport-photo" src="${abs(sport === 'bike' ? bikePhoto : runPhoto)}" alt="" /><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol>${ENERGY[sport]}</div></section>`;
 }
 
 /** Fermeture commune après les parcours par sport. */
