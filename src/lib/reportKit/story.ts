@@ -10,6 +10,12 @@ import type { DbTest } from '@/hooks/useCloudData';
 export const STORY_STEPS = ['Où j’en suis', 'Ce qui me freine', 'Pourquoi', 'Ce que nous travaillons', 'Comment voir mes progrès'] as const;
 
 export const STORY_CSS = `
+.sport-turn{min-height:0!important;display:flex;flex-direction:column;justify-content:center;padding:56px 48px!important;border-radius:28px;background:linear-gradient(135deg,${RK.primarySoft},${RK.surface})}
+.sport-turn.run{background:linear-gradient(135deg,${RK.mintSoft},${RK.surface})}
+.sport-turn .n{font-size:64px;font-weight:700;line-height:1;color:${RK.primary};opacity:.35}
+.sport-turn.run .n{color:${RK.mint}}
+.sport-turn h1{font-size:34px;margin:8px 0 10px}
+.sport-turn ol{margin:10px 0 0;padding-left:18px;font-size:12px;line-height:1.8;color:${RK.body}}
 .story-rail{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
 .story-rail span{font-size:9.6px;letter-spacing:.02em;padding:4px 10px;border-radius:999px;background:${RK.surfaceAlt};color:${RK.muted}}
 .story-rail span.on{background:${RK.primary};color:${RK.surface};font-weight:600}
@@ -88,7 +94,8 @@ export function evolutionSectionHTML(opts: { athleteId: string; tests: DbTest[];
     const body = [...tests, ...snaps];
     return `<h2>${label[sport]}</h2>${body.length ? `<div class="evo-grid">${body.join('')}</div>` : '<p class="muted">Aucun test ni historique comparable enregistré pour ce sport : la première mesure servira de point de départ.</p>'}`;
   }).join('');
-  return `${storyRail(4)}<div class="eyebrow">Évolutions observées</div><h1>Ce qui a réellement changé</h1><p class="lead">Uniquement les tests et bilans enregistrés, datés, avec leur protocole. Deux tests ne se comparent bien que s’ils suivent le même protocole et des conditions proches ; une série manquante n’est jamais reconstruite.</p>${blocks}`;
+  const one = opts.sports.length === 1 ? ` — ${label[opts.sports[0]].toLowerCase()}` : '';
+  return `${storyRail(4)}<div class="eyebrow">Évolutions observées${one}</div><h1>Ce qui a réellement changé${one}</h1><p class="lead">Uniquement les tests et bilans enregistrés, datés, avec leur protocole. Deux tests ne se comparent bien que s’ils suivent le même protocole et des conditions proches ; une série manquante n’est jamais reconstruite.</p>${blocks}`;
 }
 
 /** Points de contrôle propres au sport et aux questions encore ouvertes. */
@@ -111,3 +118,19 @@ export function reportSports(goal: string | null | undefined, isRunning: boolean
   return ['bike'];
 }
 export const isLongEvent = (goal: string | null | undefined) => /marathon|semi|ironman|\bIM\b|70[.,]3|trail|ultra/i.test(String(goal ?? ''));
+
+const TURN: Record<Sport, { title: string; question: string; steps: string[] }> = {
+  bike: { title: 'Ton parcours vélo', question: 'Ici, on ne parle que de vélo : puissance, seuil et carburants mesurés ou modélisés en watts.', steps: ['Où se situe ton seuil à vélo', 'Quelle filière paye l’effort', 'Comment tu brûles lipides et glucides', 'Ce qui a changé dans tes tests vélo'] },
+  run: { title: 'Ton parcours course à pied', question: 'Ici, on ne parle que de course : allures, VMA, seuil et économie. Aucune valeur vélo n’est convertie en allure.', steps: ['Tes repères de vitesse et de seuil', 'Ton économie et ton temps tenu au seuil', 'Ce qui a changé dans tes tests course'] },
+};
+
+/** Page de transition entre deux parcours sportifs. */
+export function sportTransition(sport: Sport, index: number, total: number): string {
+  const t = TURN[sport];
+  return `<section class="page"><div class="sport-turn ${sport}"><div class="n">${String(index + 1).padStart(2, '0')}${total > 1 ? `<span style="font-size:18px"> / ${String(total).padStart(2, '0')}</span>` : ''}</div><div class="eyebrow">Chapitre sportif</div><h1>${t.title}</h1><p class="lead">${t.question}</p><ol>${t.steps.map(x => `<li>${esc(x)}</li>`).join('')}</ol></div></section>`;
+}
+
+/** Fermeture commune après les parcours par sport. */
+export function sharedTransition(total: number): string {
+  return total > 1 ? `<section class="page"><div class="sport-turn"><div class="eyebrow">Après les deux parcours</div><h1>Ce que nous en faisons ensemble</h1><p class="lead">Les constats vélo et course restent séparés ; seul le plan les assemble dans une même semaine, en tenant compte de la fatigue commune.</p></div></section>` : '';
+}

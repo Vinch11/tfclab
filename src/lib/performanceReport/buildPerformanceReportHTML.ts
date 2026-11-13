@@ -14,7 +14,7 @@ import {
 } from "./charts";
 import type { PerformanceReportInput } from "./types";
 import { coverPage, esc, kpiCell, reportDocument } from "@/lib/reportKit";
-import { insight, STORY_CSS, storyRail } from "@/lib/reportKit/story";
+import { insight, sharedTransition, sportTransition, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 
 function foot(input: PerformanceReportInput, n: number): string {
   return `<div class="foot"><span>TFC Lab · ${esc(input.athleteName)}</span><span data-part="${n}">${esc(input.generatedAt)}</span></div>`;
@@ -26,7 +26,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   const hasCurve = input.curve.length > 2;
   const sports = input.sports ?? ["bike"];
   const hasBike = sports.includes("bike");
-  const bikeTag = sports.length > 1 ? "Lecture vélo · " : "";
+  const bikeTag = "Vélo · ";
   const topLimiter = input.limiters[0];
 
   const cover = coverPage({
@@ -60,7 +60,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   const page3 = `
   <section class="page">
     ${storyRail(2)}
-    <div class="eyebrow">03 — Pourquoi · tes paramètres</div>
+    <div class="eyebrow">03 — Pourquoi · tes paramètres, sport par sport ensuite</div>
     <h1>Ce que chaque valeur veut dire</h1>
     <div class="card">
       <table>
@@ -84,7 +84,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       <div class="kpi"><div class="k">LT1 — repère modélisé vélo</div><div class="v">${p.lt1W ?? "—"}<span class="u">W</span></div></div>
       <div class="kpi"><div class="k">MLSS — estimation vélo</div><div class="v">${p.lt2W ?? "—"}<span class="u">W</span></div></div>
       <div class="kpi"><div class="k">Puissance à VO₂max</div><div class="v">${p.vo2W ?? "—"}<span class="u">W</span></div></div>
-    </div>` : `<div class="note" style="margin-top:12px">Tes repères de course (VMA, seuil, économie, temps tenu au seuil) se lisent en allure ; aucune courbe en watts vélo n'est utilisée pour toi.</div>`}
+    </div>` : ""}
     <div class="note" style="margin-top:12px">
       <strong>Repère clé.</strong> Le MLSS n'est pas un test de 20 minutes majoré : c'est le point
       d'équilibre entre production et élimination du lactate. Il se déplace dès que la VLamax ou
@@ -256,6 +256,22 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     ${foot(input, 3)}
   </section>`;
 
+  const pageRun = `
+  <section class="page">
+    ${storyRail(2)}
+    <div class="eyebrow">03 — Pourquoi · Course</div>
+    <h1>Tes repères de course</h1>
+    <p class="lead">En course, on lit des vitesses et des allures. Ces repères viennent de tes tests et bilans de course ; aucune puissance vélo n'est transformée en allure.</p>
+    <div class="grid3">
+      <div class="kpi"><div class="k">VMA</div><div class="v">${p.vma ?? "—"}<span class="u">km/h</span></div></div>
+      <div class="kpi"><div class="k">Économie de course</div><div class="v">${p.economy ?? "—"}<span class="u">indice</span></div></div>
+      <div class="kpi"><div class="k">Temps tenu au seuil</div><div class="v">${hasBike ? "—" : (p.tteMin ?? "—")}<span class="u">min</span></div></div>
+    </div>
+    ${insight(p.vma != null ? `Ta VMA enregistrée est de ${p.vma} km/h : c'est ta vitesse plafond aérobie, la base de tes allures de fractionné.` : "VMA non enregistrée : tes allures de course ne peuvent pas encore être ancrées sur un test.", p.economy != null ? "L'économie dit combien d'énergie te coûte chaque kilomètre ; la technique, la force et le volume l'améliorent lentement." : "Sans mesure d'économie, on suivra surtout l'allure et la fréquence cardiaque au seuil.")}
+    ${hasBike ? `<p class="muted" style="margin-top:10px;font-size:10px">Le temps tenu au seuil en course se lit séparément de celui du vélo ; voir le chapitre « Ce qui a changé » course.</p>` : ""}
+    ${foot(input, 6)}
+  </section>`;
+
   const page9 = `
   <section class="page">
     ${storyRail(3)}
@@ -313,7 +329,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
   return reportDocument({
     title: `Rapport de Performance TFCL — ${input.athleteName}`,
     extraCSS: STORY_CSS + '.page { height:auto; min-height:297mm; overflow:visible; } .foot { position:static; margin-top:14px; } @media screen and (max-width:800px) { .page { width:100%; min-height:0; padding:24px 18px; } .grid2, .grid3 { grid-template-columns:1fr; } table { display:block; overflow-x:auto; max-width:100%; } .foot { flex-wrap:wrap; gap:8px; } }',
-    body: `${cover}${page2}${pageFrein}${input.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}${input.compassSummaryHTML}</section>` : ''}${page3}${hasBike ? `${page4}${page5}${page6}` : ''}${page7}${page9}${input.evolutionHTML ? `<section class="page flow">${input.evolutionHTML}</section>` : ''}${hasBike && input.scenarios.length ? page8 : ''}${input.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · pour le coach</div>${input.reportReadingHTML}</section>` : ''}${input.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${input.evidenceHTML}</section>` : ''}`,
+    body: `${cover}${page2}${pageFrein}${input.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}${input.compassSummaryHTML}</section>` : ''}${page3}${sports.map((sp, i) => `${sports.length > 1 ? sportTransition(sp, i, sports.length) : ''}${sp === 'bike' ? `${page4}${page5}${page6}` : pageRun}${input.evolutionBySport?.[sp] ? `<section class="page flow">${input.evolutionBySport[sp]}</section>` : ''}${sp === 'bike' && input.scenarios.length ? page8 : ''}`).join('')}${sharedTransition(sports.length)}${page7}${page9}${input.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · pour le coach</div>${input.reportReadingHTML}</section>` : ''}${input.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${input.evidenceHTML}</section>` : ''}`,
   });
 
 }

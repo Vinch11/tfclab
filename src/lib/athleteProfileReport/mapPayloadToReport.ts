@@ -381,7 +381,7 @@ export function mapExportPayloadToProfileReport(
     reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
-    evolutionHTML: evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run') }),
+    evolutionBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, evolutionSectionHTML({ athleteId: payload.athlete?.id ?? '', tests: payload.tests ?? [], snapshots: payload.snapshotHistory ?? [], sports: [sp] })])),
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

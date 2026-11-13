@@ -14,7 +14,7 @@
  * Le builder est pur : aucune physiologie calculée ici.
  */
 
-import { insight, STORY_CSS, storyRail } from "@/lib/reportKit/story";
+import { insight, sportTransition, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 import { RK, coverPage, esc, num, reportDocument, rich } from "@/lib/reportKit";
 import type {
   AthleteProfileReportInput,
@@ -561,6 +561,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   return reportDocument({
     title: `Mon profil physiologique — ${d.athleteName}`,
     extraCSS: STORY_CSS + EXTRA_CSS,
-    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLeviers}${pagePlan}${pageZones}${d.evolutionHTML ? `<section class="page flow">${d.evolutionHTML}${foot(d, 'Évolutions')}</section>` : ''}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
+    body: `${cover}${pageProfil}${pageLimiteurs}${d.compassSummaryHTML ? `<section class="page flow">${storyRail(2)}<div class="eyebrow">Pourquoi · repères par sport</div>${d.compassSummaryHTML}${foot(d, 'Repères par sport')}</section>` : ''}${pageLeviers}${pagePlan}${pageZones}${(() => { const ev = Object.entries(d.evolutionBySport ?? {}) as Array<['bike' | 'run', string]>; return ev.map(([sp, html], i) => `${ev.length > 1 ? sportTransition(sp, i, ev.length) : ''}<section class="page flow">${html}${foot(d, 'Évolutions')}</section>`).join(''); })()}${pageFinal}${d.reportReadingHTML ? `<section class="page flow"><div class="eyebrow">Annexe · constats et suivi</div>${d.reportReadingHTML}${foot(d, 'Constats et suivi')}</section>` : ''}${d.evidenceHTML ? `<section class="page flow"><div class="eyebrow">Annexe · données enregistrées</div>${d.evidenceHTML}${foot(d, 'Données enregistrées')}</section>` : ''}`,
   });
 }

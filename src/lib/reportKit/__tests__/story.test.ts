@@ -28,3 +28,10 @@ describe('report story', () => {
     expect(c.some(x => /Temps tenu au seuil non mesuré/.test(x))).toBe(true);
   });
 });
+import { sportTransition } from '../story';
+describe('sport journeys', () => {
+  it('running chapter never mentions watts', () => {
+    expect(sportTransition('run', 1, 2)).toContain('Aucune valeur vélo');
+    expect(evolutionSectionHTML({ athleteId: 'a', tests: [], snapshots: [], sports: ['run'] })).toContain('Ce qui a réellement changé — course à pied');
+  });
+});
