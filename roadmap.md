@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Auditer la cohérence des sections du Dashboard : sources, sports, objectifs, cibles, priorités, estimations et mesures ; comparer Emanuela/Vince connectés et documenter les contradictions sans modifier les données ni les moteurs.
+
 - [x] Diagnostic vélo indépendant parallèle à la course : priorités descriptives, TTE vélo, observations et limites, projection commune aux rapports ; VO₂max partagée et TTE modélisé exclus du classement, FatMax/W′ complémentaires. Emanuela et Vince vérifiés connectés, téléphone sans débordement ni erreur ; tests ciblés verts, compilation OK, deux générateurs redéployés. Aucun bilan ni classement de plan modifié ; nouveaux exports PDF non parcourus.
 
 - [x] Rapports Staff, Performance et Profil Athlète vérifiés et enrichis : constats/sources/inconnues/suivi, tests et capteurs enregistrés, tableaux vélo/course et diagnostic course indépendant ; Staff allégé des répétitions, formulations MLSS/carburants/scénarios clarifiées, lecture Profil/Performance adaptée au téléphone. 72 tests verts ; six exports réels Emanuela/Vince ouverts via /print-preview, six PDF de contrôle non vides avec texte, tableaux et téléphone inspectés ; compilation OK et deux générateurs redéployés avec succès. Calculs, bilans et plans inchangés ; modèles complémentaires non validés expérimentalement et impression native manuelle non reproduite. Détails : docs/report-review-2026-11-13.md.
