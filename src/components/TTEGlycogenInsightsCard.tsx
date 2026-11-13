@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Brain, Flame, Activity, Zap, Info } from "lucide-react";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 import {
   calculateTTEMechanisms,
   calculateGlycogenDepletion,
@@ -226,7 +227,7 @@ export function TTEGlycogenInsightsCard({
         </CardTitle>
         <p className="text-xs text-muted-foreground mt-1">
           Cible : {power} W • TTE final ~ {mechanisms.tteFinal} min •
-          confiance {Math.round(mechanisms.mechanismConfidence * 100)}%
+          fiabilité {getConfidenceLabel(mechanisms.mechanismConfidence).toLowerCase()} · 📐 Simulation, pas un test TTE
         </p>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Auditer la cohérence des sections du Dashboard : sources, sports, objectifs, cibles, priorités, estimations et mesures ; comparer Emanuela/Vince connectés et documenter les contradictions sans modifier les données ni les moteurs.
+- [x] Audit de cohérence du Dashboard : Emanuela/Vince connectés ordinateur/téléphone, contradictions scores « Prêt », sources VLamax, simulation TTE vélo en course, unités d'écart, progression/complétude documentées dans docs/dashboard-consistency-audit-2026-11-13.md. Labels de fiabilité uniquement confirmés par le coach et appliqués aux cartes concernées, sans modifier les calculs ni les plans ; 72 tests verts, vérification connectée après changement sans erreur, compilation OK et deux générateurs redéployés. Autres corrections identifiées non appliquées ; onglets voisins examinés dans le code, pas intégralement reproduits.
 
 - [x] Diagnostic vélo indépendant parallèle à la course : priorités descriptives, TTE vélo, observations et limites, projection commune aux rapports ; VO₂max partagée et TTE modélisé exclus du classement, FatMax/W′ complémentaires. Emanuela et Vince vérifiés connectés, téléphone sans débordement ni erreur ; tests ciblés verts, compilation OK, deux générateurs redéployés. Aucun bilan ni classement de plan modifié ; nouveaux exports PDF non parcourus.
 

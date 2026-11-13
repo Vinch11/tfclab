@@ -26,7 +26,6 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -60,6 +59,8 @@ import { PHYSIOLOGICAL_BOUNDS, type SportContext } from "@/lib/v2/vlamaxV2Engine
 import { getVLamaxRange, normalizeObjective } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION, getAmbitionDefinition } from "@/types/ambitionLevel";
 import { getAgeAdjustedVLamaxProfil, type VLamaxProfil } from "@/lib/ageAdjustment";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
+import { metricSourceLabel } from "@/lib/coachingCompass/presentation";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -367,16 +368,10 @@ export function VLamaxEstimationWidget({
           )}
         </AnimatePresence>
 
-        {/* ── Confidence bar ── */}
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] text-muted-foreground whitespace-nowrap">Fiabilité</span>
-          <Progress
-            value={vlamaxEffectif.confidence * 100}
-            className="h-1.5 flex-1"
-          />
-          <span className="text-[11px] font-mono text-muted-foreground">
-            {Math.round(vlamaxEffectif.confidence * 100)}%
-          </span>
+        {/* ── Qualitative reliability and recorded source ── */}
+        <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+          <span>Fiabilité {getConfidenceLabel(vlamaxEffectif.confidence).toLowerCase()}</span>
+          <span>{metricSourceLabel(vlamaxEffectif.source)}</span>
         </div>
 
         {/* ── What-If Simulator ── */}
@@ -654,7 +649,7 @@ function ChartTooltipContent({ active, payload }: any) {
         </p>
       )}
       <p className="text-muted-foreground">
-        Fiabilité: {Math.round(data.confidence * 100)}%
+        Fiabilité : {getConfidenceLabel(data.confidence).toLowerCase()} · 📋 Bilan, provenance non documentée
       </p>
     </div>
   );

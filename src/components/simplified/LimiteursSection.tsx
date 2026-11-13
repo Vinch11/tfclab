@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Target, Info, ArrowRight } from "lucide-react";
 import type { AthleteDiagnostic } from "@/engines/diagnostic";
+import { getConfidenceLabel } from "@/lib/confidenceDisplay";
 
 interface LimiteursSectionProps {
   diagnostic: AthleteDiagnostic;
@@ -98,7 +99,7 @@ export function LimiteursSection({ diagnostic, className }: LimiteursSectionProp
               "border-red-500 text-red-700 dark:text-red-400"
             )}
           >
-            Confiance {Math.round(limiter.confidence * 100)}%
+            Fiabilité {getConfidenceLabel(limiter.confidence).toLowerCase()}
           </Badge>
         </div>
       </CardHeader>
