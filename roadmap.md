@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Alléger le calcul Nolio de durabilité : moyennes par minute uniquement pour ce parcours, sans réduire la précision des imports de tests ; conserver les fenêtres de 20 min et la moyenne multi-sorties.
+
 - [x] Remplacer les comparaisons pédagogiques par des schémas détaillés vélo/course : énergie et cibles du compass, zones absolues en watts/allures avec cardio, TTE séparé et durabilité début/fin des sorties longues stockées. 21 tests verts ; trois exports réels Emanuela et PDF de contrôle vérifiés, 12 zones, aucune erreur ni débordement des schémas sur téléphone. Aucune sortie longue de durabilité enregistrée pour Emanuela : seules les valeurs TTE réelles s’affichent, sans série inventée. Débordement global Staff préexistant conservé ; Ctrl+P manuel non reproduit. Compilation OK, déclaration synchronisée et deux générateurs déployés avec succès.
 
 - [x] TTE des rapports relié aux valeurs/cibles exactes du compass par sport : Emanuela vélo 35/52 min, course 40/52 min. Schémas abstraits supprimés des trois rapports, comparaisons personnelles chiffrées avec unités/écarts/sources, radar peu lisible remplacé dans la synthèse Profil. 19 tests verts ; trois exports réels et PDF de contrôle vérifiés sur ordinateur/téléphone, nouveaux graphiques sans débordement. Débordement historique Staff hors graphiques conservé ; impression Ctrl+P manuelle non reproduite. Deux générateurs déployés avec succès, compilation OK ; aucun bilan ni plan modifié.

@@ -5,6 +5,11 @@ describe('durabilité sorties longues', () => {
   it('calcule la baisse de puissance de fin de sortie vélo', () => { const { t, w } = ride(180, 200, 180); expect(sessionDurability('bike', { id: 'a', date: 'd', name: 'n' }, t, w)?.changePct).toBe(-10); });
   it('refuse une sortie vélo de moins de 2 h', () => { const { t, w } = ride(100, 200, 180); expect(sessionDurability('bike', { id: 'a', date: 'd', name: 'n' }, t, w)).toBeNull(); });
   it('accepte une course de 90 min', () => { const { t, w } = ride(90, 12, 11.4); expect(sessionDurability('run', { id: 'a', date: 'd', name: 'n' }, t, w)?.changePct).toBe(-5); });
+  it('calcule le même début/fin avec une moyenne par minute', () => {
+    const t = Array.from({ length: 181 }, (_, minute) => minute * 60);
+    const w = t.map(seconds => seconds < 60 * 60 ? 200 : 180);
+    expect(sessionDurability('bike', { id: 'minute', date: 'd', name: 'n' }, t, w)?.changePct).toBe(-10);
+  });
   it('exige au moins deux séances et fait la moyenne', () => {
     const s = (c: number) => ({ id: 'x', date: 'd', name: 'n', durationMin: 180, early: 200, late: 0, changePct: c });
     expect(summarizeDurability('bike', [s(-10)], 'a', 'b', 'c')).toBeNull();

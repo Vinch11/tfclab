@@ -5,6 +5,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { ownsPersonalConnection, validPeriod, canReadTestSession } from "./recordContract.ts";
 import { handleCycles } from "./cycles.ts";
+import { summarizeStreamsByMinute } from "./streamSummary.ts";
 
 const AUTHORIZE_URL = "https://www.nolio.io/api/authorize/";
 const TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -219,7 +220,9 @@ Deno.serve(async (req) => {
         const measured = Object.fromEntries(Object.entries(payload ?? {}).filter(([key,value]) =>
           /^stream_(time|watts|power|speed|velocity)$/.test(key) && Array.isArray(value)
         ).map(([key,value]) => [key,(value as unknown[]).map(v => typeof v === 'number' && Number.isFinite(v) ? v : null)]));
-        return json({available:Object.keys(measured).length > 0,streams:measured});
+        const minuteSummary = body.resolution === 'minute';
+        const streams = minuteSummary ? summarizeStreamsByMinute(measured) : measured;
+        return json({available:Object.keys(streams).length > 0,streams,resolution:minuteSummary ? 'minute' : 'original'});
       }
       if (action === 'test_session') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training)) return json({error:'invalid_session_request'},400);

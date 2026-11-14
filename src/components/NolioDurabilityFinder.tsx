@@ -46,7 +46,7 @@ export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athlete
         const res: DurabilitySession[] = [];
         for (const [i, s] of pick.entries()) {
           setProgress(`${LABEL[sport]} : séance ${i + 1}/${pick.length}`);
-          const r = await call({ action: 'protocol_session', athlete, training: s.id, from, to });
+          const r = await call({ action: 'protocol_session', athlete, training: s.id, from, to, resolution: 'minute' });
           const st = r?.streams ?? {};
           const value = sport === 'bike' ? (st.stream_watts ?? st.stream_power) : (st.stream_speed ?? st.stream_velocity);
           const d = sessionDurability(sport, { id: s.id, date: s.date.slice(0, 10), name: s.name }, st.stream_time, value);
@@ -62,7 +62,7 @@ export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athlete
   return (
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-center gap-2"><Timer className="h-4 w-4 shrink-0 text-primary" /><h3 className="font-semibold">Durabilité sur sorties longues</h3><Badge variant="secondary">À vérifier</Badge></div>
-      <p className="text-sm text-muted-foreground">Compare ton meilleur effort de 20 min en début de séance et dans le dernier tiers, sur les sorties d’au moins 2 h à vélo ou 1 h 30 en course. Moyenne sur au moins 2 séances. Ne change ni les limiteurs ni les plans.</p>
+      <p className="text-sm text-muted-foreground">Compare ton meilleur effort de 20 min en début de séance et dans le dernier tiers, sur les sorties d’au moins 2 h à vélo ou 1 h 30 en course. Calcul allégé : une moyenne par minute suffit, sans relevé seconde par seconde dans TFCL. Moyenne sur au moins 2 séances. Ne change ni les limiteurs ni les plans.</p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
         <div className="sm:col-span-2"><Label>Athlète Nolio</Label><select className="w-full h-11 rounded-md border border-input bg-background px-2 text-sm" value={athlete} onChange={e => setAthlete(e.target.value)}><option value="">Choisir…</option>{athletes.filter(a => a.has_api_access).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
         <div><Label>Du</Label><Input type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
@@ -80,7 +80,7 @@ export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athlete
             {summary ? <>
               <p>{durabilityReading(sport, summary)}</p>
               <Button size="sm" variant="outline" disabled={Boolean(stored[sport] && stored[sport]!.savedAt === summary.savedAt)} onClick={() => onSave(sport, summary)}>Enregistrer dans le bilan (à vérifier)</Button>
-            </> : <p className="text-muted-foreground">Données insuffisantes : il faut au moins 2 sorties longues avec relevés seconde par seconde.</p>}
+            </> : <p className="text-muted-foreground">Données insuffisantes : il faut au moins 2 sorties longues avec assez de données de puissance à vélo ou de vitesse en course.</p>}
           </div>
         );
       })}
