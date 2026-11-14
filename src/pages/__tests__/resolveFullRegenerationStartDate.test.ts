@@ -17,13 +17,12 @@ describe("resolveFullRegenerationStartDate", () => {
     expect(result).toEqual(originalStart);
   });
 
-  it("sans plan actif (première génération), repart bien sur le lundi de la semaine courante", () => {
-    const staleStart = new Date(2026, 7, 3);
-    const today = new Date(2026, 8, 1); // mardi 1er septembre 2026
-    const result = resolveFullRegenerationStartDate(false, staleStart, today);
-    expect(result).not.toEqual(staleStart);
-    // Lundi de la semaine du 1er septembre 2026 = 31 août 2026
-    expect(result.getDate()).toBe(31);
-    expect(result.getMonth()).toBe(7); // août
+  it("sans plan actif, conserve le 28 septembre choisi pour les 39 semaines de Manu", () => {
+    const chosenStart = new Date(2026, 8, 28);
+    const today = new Date(2026, 10, 14);
+    const result = resolveFullRegenerationStartDate(false, chosenStart, today);
+    expect(result).toEqual(new Date(2026, 8, 28));
+    const race = new Date(2027, 5, 27);
+    expect(Math.floor((race.getTime() - result.getTime()) / (7 * 86400000)) + 1).toBe(39);
   });
 });

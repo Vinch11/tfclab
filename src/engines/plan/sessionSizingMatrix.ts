@@ -957,10 +957,15 @@ export function computeWeekQuotaEntry(
     : { quota: q0.quota, floors: q0.floors };
   if (Number.isInteger(opts.strengthSessionsPerWeek) && opts.strengthSessionsPerWeek !== undefined && opts.strengthSessionsPerWeek >= 0) {
     const strength = opts.strengthSessionsPerWeek;
+    // Race totals fund only the strength minimum (zero), not the optional
+    // maximum. A coach-mandated frequency must replace the funded contribution
+    // on both bounds. Explicit cardio targets already fund the full range.
+    const fundedStrengthMax = weekType === "race" && !(opts.sessionsPerWeek && opts.sessionsPerWeek > 0)
+      ? adj.quota.strength.min : adj.quota.strength.max;
     adj = { floors: { ...adj.floors, minStrengthPerWeek: strength }, quota: {
       ...adj.quota, strength: { min: strength, max: strength },
       totalSessions: { min: adj.quota.totalSessions.min - adj.quota.strength.min + strength,
-        max: adj.quota.totalSessions.max - adj.quota.strength.max + strength },
+        max: adj.quota.totalSessions.max - fundedStrengthMax + strength },
     } };
   }
   if (opts.maintenance) {
