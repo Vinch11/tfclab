@@ -88,6 +88,8 @@ export interface PerformanceReportInput {
   evidenceHTML?: string;
   /** Sports racontés (vélo et/ou course) — présentation uniquement. */
   sports?: Array<'bike' | 'run'>;
+  zoneSets?: import('../athleteProfileReport/types').ReportZoneSet[];
+  durabilityDataBySport?: import('../durability/longSessionDurability').StoredDurability;
   compassSummaryHTML?: string | null;
   /** Identité */
   athleteName: string;

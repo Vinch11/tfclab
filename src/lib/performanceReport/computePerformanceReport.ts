@@ -27,7 +27,7 @@ import {
 import { TRAINABILITY_CAPS } from "@/lib/v2/trainabilityCaps";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
-import { deriveTrainingZones } from "@/lib/zones/deriveTrainingZones";
+import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
 import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 import { compassReportRows, compassSportReportRows, compassTteReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
@@ -146,6 +146,8 @@ export function computePerformanceReport(
   const refs = payload?.effectiveRefs ?? {};
   const snap = payload?.effectiveSnapshot ?? null;
   const compass = payload?.coachingCompass;
+  const zoneSets = reportSportZoneSets(payload);
+  const durabilityDataBySport = reportSportDurability(payload);
   const compassRows = compass ? compassReportRows(compass) : [];
   const isRunning = compass?.presentation?.sport === 'run';
   const limiterResult = payload?.unifiedLimiter;
@@ -336,15 +338,7 @@ export function computePerformanceReport(
   ];
 
   // ── Zones ──────────────────────────────────────────────────────────────────
-  const zoneSet = deriveTrainingZones({
-    sport: "bike",
-    ftp,
-    fcMax,
-    fcRest,
-    vlamax,
-    vo2max,
-    weightKg,
-  } as any);
+  const zoneSet = zoneSets.find(set => /v[ée]lo/i.test(set.sportLabel));
   const LACTATE_BY_ZONE: Record<string, string> = {
     Z1: "< 1,5 mmol/L",
     Z2: "1,2 – 2,0 mmol/L",
@@ -608,9 +602,11 @@ export function computePerformanceReport(
     snapshotDate: snap?.date ?? null,
     logoBase64: opts.logoBase64 ?? null,
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'compass-performance', 'Compass — repères communs aux rapports') : null,
-    reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
+    reportReadingHTML: compass ? buildReportReadingHTML(compass, { zoneSets, durability: durabilityDataBySport }) : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap, payload.tests ?? []),
     sports,
+    zoneSets,
+    durabilityDataBySport,
     sportTte: compass ? compassTteReportRows(compass) : [],
     sportComparisons: compass ? { bike: compassSportReportRows(compass, 'bike'), run: compassSportReportRows(compass, 'run') } : {},
     kpis: compass?.presentation ? compassRows.map(r => ({ label: r.label, value: fr(r.value, r.unit === 'mmol/L/s' ? 2 : 1), unit: r.unit })) : kpis,

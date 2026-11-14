@@ -42,9 +42,16 @@ const base: AthleteProfileReportInput = {
   roadmap: null,
   nextSteps: ['Refaire un test de seuil.'],
   glossary: [],
-  durabilityBySport: {
-    bike: '<div class="durability-note">Durabilité vélo mesurée sur 3 sorties longues.</div>',
-    run: '<div class="durability-note">Durabilité course mesurée sur 2 sorties longues.</div>',
+  sports: ['bike', 'run'],
+  durabilityDataBySport: {
+    bike: { status: 'estimate', method: 'best20_early_vs_last_third', unit: 'W', meanChangePct: -5, sessions: [
+      { id: 'b1', date: '2026-10-01', name: 'Sortie longue', durationMin: 150, early: 200, late: 190, changePct: -5 },
+      { id: 'b2', date: '2026-10-08', name: 'Sortie longue', durationMin: 160, early: 210, late: 200, changePct: -4.8 },
+    ], from: '2026-10-01', to: '2026-10-08', savedAt: '2026-11-01' },
+    run: { status: 'estimate', method: 'best20_early_vs_last_third', unit: 'vitesse', meanChangePct: -3, sessions: [
+      { id: 'r1', date: '2026-10-03', name: 'Footing long', durationMin: 100, early: 12, late: 11.6, changePct: -3.3 },
+      { id: 'r2', date: '2026-10-10', name: 'Footing long', durationMin: 105, early: 12.2, late: 11.9, changePct: -2.5 },
+    ], from: '2026-10-03', to: '2026-10-10', savedAt: '2026-11-01' },
   },
 };
 
@@ -63,10 +70,12 @@ describe('athlete profile report has no progression', () => {
     expect(html).toContain('écart restant 20 %');
     expect(html).not.toContain('pas une progression mesurée');
   });
-  it('keeps both sport chapters and their durability reading', () => {
+  it('keeps both detailed sport chapters and their stored durability sessions', () => {
     expect(html).toContain('Ton vélo en chiffres');
     expect(html).toContain('Ta course à pied en chiffres');
-    expect(html).toContain('Durabilité vélo mesurée sur 3 sorties longues.');
-    expect(html).toContain('Durabilité course mesurée sur 2 sorties longues.');
+    expect(html).toContain('data-sport="bike"');
+    expect(html).toContain('data-sport="run"');
+    expect(html).toContain('200,0 W');
+    expect(html).toContain('Footing long');
   });
 });

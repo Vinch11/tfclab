@@ -1,3 +1,3 @@
 # Report diagram architecture
 
-- Personal comparison charts live in `pedagogy.ts` and consume sport-scoped values/targets from `coachingCompass/reportPresentation`; each metric has its own numerical scale and unit. Why: reports must match the compass without inventing measurements or changing prescriptions.
+- Detailed sport diagrams live in `pedagogy.ts`: personal energy markers, six absolute effort zones, sport-specific TTE and stored early/late long-session comparisons. Values/targets come from `coachingCompass/reportPresentation`, zones and stored observations from `sportDiagramData`; running sensor speed is not relabelled when its unit is undocumented. Why: reports must be concrete and readable without inventing measurements, transferring bike metrics to running or changing prescriptions.

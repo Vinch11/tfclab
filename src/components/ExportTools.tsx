@@ -87,6 +87,7 @@ import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compas
 import { completeProfileHTML } from '@/lib/coachingCompass/completeProfile';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
+import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -8530,7 +8531,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       <body>
         ${coverHTML}
         ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture d’ensemble — compass')}
-        ${isAthlete ? '' : buildReportReadingHTML(payload.coachingCompass)}
+        ${isAthlete ? '' : buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}
         
         <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <button onclick="${EMBEDDED_PRINT_ONCLICK}" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">

@@ -1,12 +1,14 @@
 import type { TFCLCoachingCompassResult } from './types';
 import { metricSourceLabel } from './presentation';
 import { compassReportRows, compassSportReportRows, compassTteReportRows } from './reportPresentation';
-import { PEDAGOGY_CSS, personalComparisonHTML } from '../reportKit/pedagogy';
+import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
+import type { ReportZoneSet } from '../athleteProfileReport/types';
+import type { StoredDurability } from '../durability/longSessionDurability';
 
 const esc = (v: string) => v.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] ?? c));
 
 /** Editorial projection only: no new targets, measurements or prescription. */
-export function buildReportReadingHTML(compass: TFCLCoachingCompassResult): string {
+export function buildReportReadingHTML(compass: TFCLCoachingCompassResult, options: { zoneSets?: ReportZoneSet[]; durability?: StoredDurability } = {}): string {
   const rows = compassReportRows(compass);
   const missing = rows.filter(r => r.value == null || r.value <= 0);
   const available = rows.filter(r => r.value != null && r.value > 0);
@@ -27,7 +29,17 @@ export function buildReportReadingHTML(compass: TFCLCoachingCompassResult): stri
     <h3>Au prochain point de contrôle</h3>
     ${list(['Reprendre un protocole comparable dans le même sport, avec le même capteur, et noter sa date, les conditions et la fatigue préalable.', 'Pour le TTE, documenter le seuil de référence, la continuité de l’effort et la raison de l’arrêt ; un arrêt volontaire indique seulement un minimum.', 'Pour la durabilité, comparer un repère avant et après une charge prolongée documentée plutôt que conclure à partir du TTE seul.', 'Comparer les résultats enregistrés aux cibles actuelles, puis faire valider les ajustements par le coach ; une simulation n’est pas un progrès déjà obtenu.'])}
     <h3>Repères de vocabulaire</h3>
-    ${sports.map(sport => personalComparisonHTML(sport === 'bike' ? 'Vélo · bilan et cibles' : 'Course · bilan et cibles', [...compassSportReportRows(compass, sport).filter(r => r.key !== 'tte'), ...compassTteReportRows(compass).filter(r => r.sport === sport).map(r => ({ ...r, key: 'tte', unit: 'min' }))])).join('')}
+    ${sports.map(sport => {
+      const comparisons = compassSportReportRows(compass, sport).filter(r => r.key !== 'tte');
+      const sharedVo2 = rows.find(r => r.key === 'vo2max');
+      return sportDiagramHTML({
+        sport,
+        comparisons: sharedVo2 && !comparisons.some(r => r.key === 'vo2max') ? [sharedVo2, ...comparisons] : comparisons,
+        tte: compassTteReportRows(compass).filter(r => r.sport === sport).map(r => ({ ...r, key: 'tte', unit: 'min' })),
+        zones: (options.zoneSets ?? []).filter(set => sport === 'bike' ? /v[ée]lo/i.test(set.sportLabel) : /course/i.test(set.sportLabel)).flatMap(set => set.zones),
+        durability: options.durability?.[sport],
+      });
+    }).join('')}
     ${compass.completeProfileHTML ?? ''}
     <p><b>VO₂max</b> : plafond d’utilisation de l’oxygène. <b>VMA</b> : vitesse maximale aérobie course, dépendante du protocole. <b>FTP / MLSS</b> : repères de seuil liés mais non identiques par définition. <b>VLamax</b> : débit glycolytique maximal estimé ou mesuré selon la source, pas une mesure de force. <b>W′ / D′</b> : réserves ajustées au-dessus de CP / vitesse critique, propres au sport. <b>FatMax</b> : intensité d’oxydation lipidique maximale ; une estimation vélo ne donne pas une allure course.</p>
   </section>`;

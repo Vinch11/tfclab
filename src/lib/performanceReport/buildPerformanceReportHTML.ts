@@ -13,7 +13,7 @@ import {
 import type { PerformanceReportInput } from "./types";
 import { coverPage, esc, kpiCell, reportDocument } from "@/lib/reportKit";
 import { insight, personalMarkers, sportPhoto, sportTransition, ATHLETE_VISUAL_CSS, STORY_CSS, storyRail } from "@/lib/reportKit/story";
-import { PEDAGOGY_CSS, personalComparisonHTML } from '../reportKit/pedagogy';
+import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
 
 function foot(input: PerformanceReportInput, n: number): string {
   return `<div class="foot"><span>TFC Lab · ${esc(input.athleteName)}</span><span data-part="${n}">${esc(input.generatedAt)}</span></div>`;
@@ -51,7 +51,6 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
     <div>
       <h3>Tes repères et tes cibles personnelles</h3>
       ${personalMarkers(input.gauges)}
-      ${personalComparisonHTML('Ton endurance au seuil · TTE', (input.sportTte ?? []).map(r => ({ ...r, key: 'tte', unit: 'min' })), 'Tes minutes au seuil et la cible exacte du compass, sport par sport.')}
     </div>
     ${insight(topLimiter ? `Ton principal frein actuel : ${topLimiter.title.toLowerCase()}. ${input.strengths[0] ? `Ton atout le plus net : ${input.strengths[0].title.toLowerCase()}.` : ""}` : "Aucun frein dominant ne ressort des données disponibles.", input.consequence)}
 
@@ -220,10 +219,23 @@ ${!hasBike && p.tteMin != null ? `<div class="kpi"><div class="k">Temps tenu à 
     ${foot(input, 6)}
   </section>`;
 
+  const vo2Gauge = input.gauges.find(g => /VO₂max/i.test(g.label));
+  const sharedVo2 = p.vo2max != null ? { key: 'vo2max', label: 'VO₂max', value: p.vo2max, target: vo2Gauge?.target?.[0] ?? null, unit: 'ml/kg/min' } : null;
+  const sportDiagram = (sp: 'bike' | 'run') => {
+    const comparisons = (input.sportComparisons?.[sp] ?? []).filter(r => r.key !== 'tte');
+    return sportDiagramHTML({
+      sport: sp,
+      comparisons: sharedVo2 && !comparisons.some(r => r.key === 'vo2max') ? [sharedVo2, ...comparisons] : comparisons,
+      tte: (input.sportTte ?? []).filter(r => r.sport === sp).map(r => ({ ...r, key: 'tte', unit: 'min' })),
+      zones: (input.zoneSets ?? []).filter(set => sp === 'bike' ? /v[ée]lo/i.test(set.sportLabel) : /course/i.test(set.sportLabel)).flatMap(set => set.zones),
+      durability: input.durabilityDataBySport?.[sp],
+    });
+  };
+
   return reportDocument({
     title: `Rapport de Performance TFCL — ${input.athleteName}`,
     extraCSS: STORY_CSS + '.page { height:auto; min-height:297mm; overflow:visible; } .foot { position:static; margin-top:14px; } @media screen and (max-width:800px) { .page { width:100%; min-height:0; padding:24px 18px; } .grid2, .grid3 { grid-template-columns:1fr; } table { display:block; overflow-x:auto; max-width:100%; } .foot { flex-wrap:wrap; gap:8px; } }' + ATHLETE_VISUAL_CSS + PEDAGOGY_CSS,
-    body: `${cover}${page2}${pageFrein}${sports.map((sp, i) => `<section class="page flow">${sportTransition(sp, i, sports.length)}${personalComparisonHTML(sp === 'bike' ? 'Vélo · tes repères face à ta cible' : 'Course · tes repères face à ta cible', [...(input.sportComparisons?.[sp] ?? []).filter(r => r.key !== 'tte'), ...(input.sportTte ?? []).filter(r => r.sport === sp).map(r => ({ ...r, key: 'tte', unit: 'min' }))], 'Le bilan est en couleur bleue, la cible en vert. Chaque repère possède sa propre échelle.')}</section>${sp === 'bike' ? (hasCurve ? `${page4}${page5}${page6}` : `<section class="page flow">${sportPhoto('bike', true)}${p.ftp ? `<h2>Ton seuil vélo : ${p.ftp} W</h2><p class="lead">Ce repère guide tes efforts sur la route et sur le home-trainer.</p>` : '<p class="lead">Rouler régulièrement, doser les relances et garder du confort sur les sorties longues : les repères du prochain test préciseront ces efforts.</p>'}</section>`) : (p.vma != null ? pageRun : `<section class="page flow">${sportPhoto('run', true)}<p class="lead">La régularité, une allure confortable et une foulée relâchée restent les bases de tes sorties.</p></section>`)}`).join('')}${hasBike && input.zones.length ? page7 : ''}`,
+    body: `${cover}${page2}${pageFrein}${sports.map((sp, i) => `<section class="page flow">${sportTransition(sp, i, sports.length)}${sportDiagram(sp)}</section>${sp === 'bike' ? (hasCurve ? `${page4}${page5}${page6}` : `<section class="page flow">${sportPhoto('bike', true)}${p.ftp ? `<h2>Ton seuil vélo : ${p.ftp} W</h2><p class="lead">Ce repère guide tes efforts sur la route et sur le home-trainer.</p>` : '<p class="lead">Rouler régulièrement, doser les relances et garder du confort sur les sorties longues : les repères du prochain test préciseront ces efforts.</p>'}</section>`) : (p.vma != null ? pageRun : `<section class="page flow">${sportPhoto('run', true)}<p class="lead">La régularité, une allure confortable et une foulée relâchée restent les bases de tes sorties.</p></section>`)}`).join('')}${hasBike && input.zones.length ? page7 : ''}`,
 
   });
 

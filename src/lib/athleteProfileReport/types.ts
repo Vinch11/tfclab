@@ -117,7 +117,10 @@ export interface AthleteProfileReportInput {
   reportReadingHTML?: string;
   compassSummaryHTML?: string;
   evidenceHTML?: string;
-  /** Durabilité mesurée sur les sorties longues, par sport. */
+  /** Sports racontés, avec leurs observations de sorties longues déjà stockées. */
+  sports?: Array<'bike' | 'run'>;
+  durabilityDataBySport?: import('../durability/longSessionDurability').StoredDurability;
+  /** Ancien contenu éditorial conservé pour compatibilité des entrées existantes. */
   durabilityBySport?: Partial<Record<'bike' | 'run', string>>;
   athleteName: string;
   objectifLabel: string;

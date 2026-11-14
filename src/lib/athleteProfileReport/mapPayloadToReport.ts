@@ -1,4 +1,4 @@
-import { durabilityReportHTML } from '@/lib/durability/longSessionDurability';
+import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
 /**
  * mapPayloadToReport — adapte le payload d'export (ExportTools) vers l'entrée
  * du builder « Rapport Profil Athlète ».
@@ -16,18 +16,12 @@ import { compassReportRows, compassSportReportRows, compassTteReportRows, buildC
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 
-import {
-  deriveTrainingZones,
-  estimateRunThresholdPaceSecPerKm,
-  type DerivedZoneSet,
-} from "@/lib/zones/deriveTrainingZones";
 import { computeStrategicRoadmap } from "@/engines/decision";
 import type {
   AthleteProfileReportInput,
   MetricStatus,
   ReportLimiter,
   ReportMetric,
-  ReportZoneSet,
 } from "./types";
 
 const CATEGORY_TO_LIMITER: Record<string, string> = {
@@ -59,28 +53,6 @@ function statusFromRange(
   const wrongSide = lowerIsBetter ? v > hi : v < lo;
   if (!wrongSide) return "ok";
   return distance > 0.15 ? "bad" : "warn";
-}
-
-function mapZoneSet(set: DerivedZoneSet, sportLabel: string): ReportZoneSet {
-  return {
-    sportLabel,
-    source: set.source,
-    confidence: set.confidence,
-    anchors: set.anchors ?? [],
-    fallbackReason: set.fallbackReason,
-    zones: set.zones.map((z) => ({
-      id: z.id,
-      label: z.label,
-      condition: z.condition,
-      pctRef: `${Math.round(z.pctRef.min)}–${Math.round(z.pctRef.max)} %`,
-      refLabel: z.refLabel,
-      absolute: z.absolute,
-      heartRate: z.heartRate,
-      hrPct: z.fcMaxPct
-        ? `${Math.round(z.fcMaxPct.min)}–${Math.round(z.fcMaxPct.max)} %`
-        : null,
-    })),
-  };
 }
 
 export function mapExportPayloadToProfileReport(
@@ -275,35 +247,10 @@ export function mapExportPayloadToProfileReport(
     });
   }
 
-  // ── Zones ─────────────────────────────────────────────────────────────────
-  const vlamaxRun = (snap?.vlamax_run ?? null) as number | null;
-  const paceThreshold =
-    (snap?.pace_threshold_sec_per_km as number | null) ??
-    estimateRunThresholdPaceSecPerKm(refs?.vma ?? null, payload.runMLSS?.effectivePct ?? null);
-
-  const zoneSets: ReportZoneSet[] = [];
-  const bike = deriveTrainingZones({
-    sport: "bike",
-    ftp: refs?.ftp ?? null,
-    fcMax: refs?.fcMax ?? null,
-    fcRest: (snap as any)?.fc_repos ?? null,
-    vlamax: payload.vlamax?.value ?? null,
-    vo2max: refs?.vo2max ?? null,
-    weightKg: refs?.weightKg ?? null,
-  });
-  const run = deriveTrainingZones({
-    sport: "run",
-    vma: refs?.vma ?? null,
-    paceThresholdSecPerKm: typeof paceThreshold === "number" ? paceThreshold : null,
-    paceThresholdEstimated: snap?.pace_threshold_sec_per_km == null,
-    fcMax: refs?.fcMax ?? null,
-    fcRest: (snap as any)?.fc_repos ?? null,
-    vlamax: vlamaxRun ?? payload.vlamax?.value ?? null,
-    vo2max: refs?.vo2max ?? null,
-    weightKg: refs?.weightKg ?? null,
-  });
-  if (refs?.ftp) zoneSets.push(mapZoneSet(bike, "Vélo"));
-  if (refs?.vma || paceThreshold) zoneSets.push(mapZoneSet(run, "Course à pied"));
+  // ── Zones et durabilité : projection partagée, sans nouveau calcul physiologique ──
+  const zoneSets = reportSportZoneSets(payload);
+  const durabilityDataBySport = reportSportDurability(payload);
+  const sports = reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run');
 
   // ── Roadmap ───────────────────────────────────────────────────────────────
   let roadmap = null;
@@ -379,10 +326,11 @@ export function mapExportPayloadToProfileReport(
 
   return {
     athleteName: payload.athlete?.name ?? "Athlète",
-    reportReadingHTML: compass ? buildReportReadingHTML(compass) : undefined,
+    reportReadingHTML: compass ? buildReportReadingHTML(compass, { zoneSets, durability: durabilityDataBySport }) : undefined,
     compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
     evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
-    durabilityBySport: Object.fromEntries(reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run').map(sp => [sp, durabilityReportHTML((snap as { critical_metrics?: unknown } | null)?.critical_metrics, [sp])])),
+    sports,
+    durabilityDataBySport,
     objectifLabel: goal ?? "Objectif non défini",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,

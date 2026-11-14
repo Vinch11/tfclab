@@ -14,7 +14,7 @@
  * Le builder est pur : aucune physiologie calculée ici.
  */
 
-import { insight, personalMarkers, sportPhoto, sportTransition, ATHLETE_VISUAL_CSS, STORY_CSS, storyRail } from "@/lib/reportKit/story";
+import { insight, sportPhoto, sportTransition, ATHLETE_VISUAL_CSS, STORY_CSS, storyRail } from "@/lib/reportKit/story";
 import { RK, coverPage, esc, num, reportDocument, rich } from "@/lib/reportKit";
 import type {
   AthleteProfileReportInput,
@@ -26,7 +26,7 @@ import type {
   ReportZoneSet,
 } from "./types";
 import { metricSourceLabel } from '../coachingCompass/presentation';
-import { PEDAGOGY_CSS, personalComparisonHTML } from '../reportKit/pedagogy';
+import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
 
 const STATUS_COLOR: Record<string, string> = {
   ok: RK.mint,
@@ -357,7 +357,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const hasSportTte = (d.sportTte ?? []).length > 0;
   const available = (m: ReportMetric) => m.value != null && Number.isFinite(m.value) && m.value > 0 && m.status !== "missing";
   const sharedMetrics = d.metrics.filter(m => available(m) && !BIKE_KEYS.has(m.key) && !RUN_KEYS.has(m.key) && !(hasSportTte && m.key === 'tte'));
-  const storySports = (Object.keys(d.durabilityBySport ?? {}) as Array<'bike' | 'run'>);
+  const storySports = d.sports ?? (Object.keys(d.durabilityBySport ?? {}) as Array<'bike' | 'run'>);
   const isSport = (sp: 'bike' | 'run', label: string) => sp === 'bike' ? /v[ée]lo|bike|cycl/i.test(label) : /course|run/i.test(label);
   const SPORT_TEXT = {
     bike: { eyebrow: 'Vélo · où tu en es', title: 'Ton vélo en chiffres', lead: 'À vélo, tout se lit en watts : ta puissance au seuil, ce que tu tiens en fin de sortie et les zones qui règlent tes séances sur le home-trainer ou la route.', tte: 'Temps tenu au seuil vélo', zones: 'Tes zones vélo', zonesLead: 'Chaque zone se règle en watts, avec le cardio en contrôle. Elles viennent de ton seuil vélo, pas de ta course.', shows: (n: number) => n ? 'Ces repères décrivent ton moteur sur le vélo uniquement.' : 'Peu de repères vélo enregistrés : un test de puissance les complétera.', changes: 'Tes séances vélo se règlent sur ces watts ; aucun chiffre de course ne vient les modifier.' },
@@ -369,19 +369,18 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     const tte = (d.sportTte ?? []).filter(r => isSport(sp, r.label) && r.value > 0);
     const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'bike' ? 'cycling' : 'running') && r.value != null && r.value > 0);
     const zones = d.zoneSets.filter(z => isSport(sp, z.sportLabel));
-    const rows = [...tte.map(r => `<tr><td>${t.tte}</td><td><strong>${r.value > 0 ? `${r.value} min` : 'Données insuffisantes'}</strong></td></tr>`),
-      ...refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td></tr>`)];
+    const rows = refs.map(r => `<tr><td>${esc(r.label)}</td><td><strong>${r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${esc(r.unit)}` : 'Données insuffisantes'}</strong></td></tr>`);
+    const comparisons = (d.sportComparisons?.[sp] ?? []).filter(r => r.key !== 'tte');
+    const sharedVo2 = d.metrics.find(m => m.key === 'vo2max' && available(m));
+    const energy = sharedVo2 && !comparisons.some(r => r.key === 'vo2max') ? [{ key: sharedVo2.key, label: sharedVo2.label, value: sharedVo2.value, unit: sharedVo2.unit, target: sharedVo2.target?.[0], source: sharedVo2.source ?? undefined }, ...comparisons] : comparisons;
     return `<section class="page flow">${sportTransition(sp, i, storySports.length)}
     ${storyRail(0)}
     <div class="eyebrow">${t.eyebrow}</div>
     <h1>${t.title}</h1>
     <p class="lead">${t.lead}</p>
-    ${metrics.length ? personalMarkers(metrics.map(m => ({label:m.label, value:m.value, display:num(m.value,m.decimals ?? 1),unit:m.unit,target:m.target,scale:m.scale}))) : ''}
     ${rows.length ? `<div class="card avoid" style="margin-top:12px"><table><tbody>${rows.join('')}</tbody></table></div>` : ''}
     ${insight(t.shows(metrics.length + rows.length), t.changes)}
-    ${personalComparisonHTML(sp === 'bike' ? 'Vélo · tes repères face à ta cible' : 'Course · tes repères face à ta cible', [...(d.sportComparisons?.[sp] ?? []).filter(r => r.key !== 'tte'), ...tte.map(r => ({ ...r, key: 'tte', unit: 'min' }))], 'Le bilan est en couleur bleue, la cible en vert. Les valeurs restent propres à ce sport.')}
-  ${zones.length ? `<h2 style="margin-top:18px">${t.zones}</h2><p class="lead">${t.zonesLead}</p>${zones.map(zoneTable).join('')}` : ''}
-    ${d.durabilityBySport?.[sp] && !/Pas encore mesurée/.test(d.durabilityBySport[sp] ?? '') ? `<div style="margin-top:18px">${d.durabilityBySport[sp]}</div>` : ''}
+    ${sportDiagramHTML({ sport: sp, comparisons: energy, tte: tte.map(r => ({ ...r, key: 'tte', unit: 'min' })), zones: zones.flatMap(set => set.zones), durability: d.durabilityDataBySport?.[sp] })}
     ${foot(d, t.title)}
   </section>`;
   };
@@ -395,9 +394,6 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
 
     <div class="card avoid">
       <div>
-        <div>
-          ${personalComparisonHTML('Ton endurance au seuil · TTE', (d.sportTte ?? []).map(r => ({ ...r, key: 'tte', unit: 'min' })), 'Le temps tenu et la cible de ton compass, séparés pour chaque sport.')}
-        </div>
         <div>
           <div style="font-size:11.8px;line-height:1.65;color:${RK.inkSoft}">${rich(d.profileNarrative)}</div>
           ${
