@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Alléger le calcul Nolio de durabilité : moyennes par minute uniquement pour ce parcours, sans réduire la précision des imports de tests ; conserver les fenêtres de 20 min et la moyenne multi-sorties.
+- [x] Durabilité Nolio allégée : moyennes par minute uniquement pour ce parcours, fenêtres de 20 min et moyenne multi-sorties conservées ; les imports de tests gardent leur résolution d'origine. 7 tests frontend et 6 tests Nolio verts ; fonction déployée et lecture réelle vérifiée (86 points, tous espacés de 60 s), nouvel affichage contrôlé dans le formulaire d'Emanuela sans enregistrement. Le calcul complet via le formulaire automatisé n'a pas été rejoué, la sélection contrôlée ayant bloqué Playwright.
 
 - [x] Remplacer les comparaisons pédagogiques par des schémas détaillés vélo/course : énergie et cibles du compass, zones absolues en watts/allures avec cardio, TTE séparé et durabilité début/fin des sorties longues stockées. 21 tests verts ; trois exports réels Emanuela et PDF de contrôle vérifiés, 12 zones, aucune erreur ni débordement des schémas sur téléphone. Aucune sortie longue de durabilité enregistrée pour Emanuela : seules les valeurs TTE réelles s’affichent, sans série inventée. Débordement global Staff préexistant conservé ; Ctrl+P manuel non reproduit. Compilation OK, déclaration synchronisée et deux générateurs déployés avec succès.
 
