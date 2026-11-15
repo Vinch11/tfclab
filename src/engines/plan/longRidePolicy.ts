@@ -27,7 +27,8 @@ export function applyLongRidePhasePolicy(floors: SizingFloors, context: LongRide
     || context.isLCW || context.isMaintenance || !floors.longRideWeekly) return floors;
   const [lo, hi] = LONG_RIDE_PHASE_RANGES[key][context.phase];
   const progress = Math.max(0, Math.min(1, (context.phaseWeek - 1) / Math.max(1, context.phaseWeeks - 1)));
-  // Only the ranked, stored workstream changes the range position. No sensor
+  // The stored coach priority modulates base/build; specific peak prioritises
+  // race endurance. This does not infer an unrecorded phase workstream. No sensor
   // durability estimate or shared VO2max is introduced into limiter rankings.
   const first = context.priorities?.[0] ?? '';
   const qualityFirst = /vo.?2|vma|pma|ftp|mlss|seuil/i.test(first) && !/tte|durabil/i.test(first);
