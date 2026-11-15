@@ -359,6 +359,7 @@ export function buildPlanConfigFromDiagnostic(
         rampWeeks: row.ramp,
         week1HoursCap: row.cap,
         weeklyHoursTarget: target,
+        ...(hoursReference?.minHours != null ? { weeklyHoursMin: hoursReference.minHours, weeklyHoursMax: hoursReference.maxHours } : {}),
         week1HoursMax,
         weeklyIncreasePctMax: loadAdjustment.weeklyIncreasePctMaxOverride ?? 0.10,
         ...(loadAdjustment.triggered

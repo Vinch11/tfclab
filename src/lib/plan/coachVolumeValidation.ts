@@ -35,6 +35,9 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
     if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: "error", week: week.weekNumber,
       message: `S${week.weekNumber}: ${total} min d'endurance prescrites > ${Math.floor(ceiling)} min (${reason}, hors renforcement)`,
       detail: `Référence ${budget.referenceSource === "internal-matrix" ? "interne de planification, jamais une charge mesurée" : "déclarée par le coach"}. Corriger la prescription ; ne pas supprimer des séances ou modifier une fiche pour effacer cette alerte.` });
+    if (budget.minMinutes != null && total + 1e-6 < budget.minMinutes) issues.push({ rule: "coach_volume_under_min", severity: "error", week: week.weekNumber,
+      message: `S${week.weekNumber}: ${total} min d'endurance prescrites < minimum ${budget.minMinutes} min (cible ${budget.targetMinutes ?? budget.minMinutes} min, hors renforcement)`,
+      detail: `Fourchette horaire ${budget.referenceSource === "coach" ? "déclarée par le coach" : "affichée au coach (Auto)"} non respectée : allonger les séances d'endurance dans les bornes de leur fiche, sans ajouter de séance ni compter le renforcement.` });
     if (entry.weekType === "load" && total > 0) previousLoad = { minutes: total, globalWeek: budget.globalWeek };
   }
   return issues;

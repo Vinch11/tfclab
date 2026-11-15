@@ -28,7 +28,7 @@ export function prevalidatePhysiologicalContext(config: PrevalidationPhysiology)
 export interface PrevalidationInputWeek {
  week:number;globalWeek:number;phase?:string;expectedPhase?:string;weekType?:string;objective?:string;
  quota?:MechanicalQuota;layout?:MechanicalLayout;catalog:RepairWorkoutMetadata[];
- volumeBudget?:{maxMinutes:number;referenceSource:'coach'|'internal-matrix';globalWeek:number;weeklyIncreasePctMax:number};
+ volumeBudget?:{maxMinutes:number;minMinutes?:number;targetMinutes?:number;referenceSource:'coach'|'internal-matrix'|'recommended-range';globalWeek:number;weeklyIncreasePctMax:number};
  dayBans?:Array<{day:string;sport:string}>;
 }
 export interface PrevalidationCalendar {objective?:string;planStartDate?:string;globalWeekOffset?:number;raceDate?:string;raceFormat?:string|null;raceGoals?:Array<{objective?:string;raceDate?:string;raceFormat?:string|null}>;}

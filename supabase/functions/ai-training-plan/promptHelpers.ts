@@ -602,7 +602,9 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     }
     lines.push(config.weeklyHoursSource === "internal-matrix"
       ? `  • Référence interne non mesurée : plafond ${vr.weeklyHoursTarget}h/sem, jamais un volume obligatoire ; respecter les plafonds de chaque semaine.`
-      : `  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
+      : vr.weeklyHoursMin != null && vr.weeklyHoursMax != null && vr.weeklyHoursMax > vr.weeklyHoursMin
+        ? `  • Fourchette ENDURANCE validée par le coach (renforcement exclu) : ${vr.weeklyHoursMin}–${vr.weeklyHoursMax}h/sem. Atteindre ${vr.weeklyHoursMin}h après la rampe, puis PROGRESSER de bloc en bloc jusqu'à ${vr.weeklyHoursMax}h avant l'affûtage. Chaque semaine a sa cible/min/max dans le bloc QUOTA : ne jamais rester sous le minimum d'une semaine de charge.`
+        : `  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
     lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la référence)${capStr}`);
     lines.push(config.weeklyHoursSource === "internal-matrix"
       ? `  • Repères internes : plafond évolutif jusqu’à ${vr.weeklyHoursTarget}h ; aucune obligation de l’atteindre. Progression MAX +${Math.round(vr.weeklyIncreasePctMax * 100)}%/sem : garde-fou existant, pas preuve de tolérance individuelle ni règle scientifique universelle.`

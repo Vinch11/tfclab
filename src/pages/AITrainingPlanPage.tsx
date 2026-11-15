@@ -82,7 +82,7 @@ import { computeFinalValidationIssues } from "@/lib/plan/qa/finalValidation";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { runReconciler } from "@/lib/plan/planReconciler";
 import { buildWeekQuotaTransport } from "@/lib/plan/weekQuotaTransport";
-import { inferWeekType, buildCoachVolumeBudget, resolveCoachHoursReference, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
+import { inferWeekType, buildCoachVolumeBudget, resolveCoachHoursReference, recommendedWeeklyRange, computeWeekQuotaEntry, applySlFloorIndividualization, type SlFloorRampAnchors } from "@/engines/plan/sessionSizingMatrix";
 import { parseAthleteConstraints } from "@/lib/plan/constraintRules";
 import { normalizeObjectiveKey } from "@/lib/normalizeObjectiveKey";
 import { upgradeLegacyTaper, detectLegacyTaperGap, taperVolumeAlreadyReduced, inferLegacyPlanStartDate, inferObjectiveFromPlan, type LegacyTaperUpgradeReport } from "@/lib/plan/legacyPlanUpgrade";
@@ -182,23 +182,11 @@ const LEVER_LABELS: Record<string, string> = {
   maintain: "Maintenir le profil",
 };
 
-/** Literature-based recommended volume/sessions per objective × ambition (clés canoniques lowercase, 5 paliers). */
-const RECOMMENDED_RANGES: Record<string, Record<string, { hours: string; sessions: string }>> = {
-  IM:        { world_class: { hours: "22-30", sessions: "12-16" }, elite: { hours: "18-25", sessions: "10-14" }, competitor: { hours: "15-20", sessions: "9-12" }, age_group: { hours: "10-15", sessions: "6-9" }, finisher: { hours: "8-12", sessions: "5-7" } },
-  "703":     { world_class: { hours: "16-22", sessions: "10-14" }, elite: { hours: "14-18", sessions: "8-12" }, competitor: { hours: "12-16", sessions: "7-10" }, age_group: { hours: "8-12", sessions: "5-8" }, finisher: { hours: "6-10", sessions: "4-6" } },
-  Marathon:  { world_class: { hours: "12-18", sessions: "9-13" }, elite: { hours: "10-14", sessions: "7-10" }, competitor: { hours: "8-12", sessions: "6-8" }, age_group: { hours: "6-9", sessions: "5-7" }, finisher: { hours: "4-7", sessions: "4-5" } },
-  Semi:      { world_class: { hours: "10-14", sessions: "8-11" }, elite: { hours: "8-12", sessions: "6-9" }, competitor: { hours: "7-10", sessions: "5-7" }, age_group: { hours: "5-7", sessions: "4-6" }, finisher: { hours: "3-5", sessions: "3-4" } },
-  "10K":     { world_class: { hours: "9-12", sessions: "7-10" }, elite: { hours: "8-10", sessions: "6-8" }, competitor: { hours: "6-8", sessions: "5-7" }, age_group: { hours: "4-6", sessions: "4-5" }, finisher: { hours: "3-4", sessions: "3-4" } },
-  StartToRun:{ world_class: { hours: "3-5", sessions: "3" }, elite: { hours: "3-5", sessions: "3" }, competitor: { hours: "3-5", sessions: "3" }, age_group: { hours: "2-4", sessions: "3" }, finisher: { hours: "2-4", sessions: "3" } },
-};
-
+/** Literature-based recommended volume/sessions — same table the engine applies (sessionSizingMatrix). */
 function getRecommendedRange(objective: string, ambition: string): { hours: string; sessions: string } | null {
-  const objRanges = RECOMMENDED_RANGES[objective];
-  if (!objRanges) return null;
-  const key = normalizeAmbitionLevel(ambition);
-  return objRanges[key] || objRanges["age_group"] || null;
+  const r = recommendedWeeklyRange(objective, ambition);
+  return r ? { hours: `${r.hours[0]}-${r.hours[1]}`, sessions: r.sessions } : null;
 }
-
 
 /**
  * Date de départ à utiliser pour une génération complète ("Régénérer tout
@@ -1864,7 +1852,7 @@ export default function AITrainingPlanPage() {
     const convertedRanges = resolvePlanDurationRanges(plan as never);
     if (convertedRanges > 0) console.info(`[info] ${convertedRanges} séance(s) : tranche de durée convertie en durée unique à l'ouverture.`);
     plan.finalValidationIssues = [
-      ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
+      ...(plan.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified" && i.rule !== "coach_volume_under_min"),
       ...validateCoachLoadIssues(plan, plan.weeklyQuotas),
     ].filter(i => !i.rule.startsWith("specific_pace_quota_"));
     // Plans enregistrés : quotas d'allure de course revérifiés à l'ouverture.
@@ -2925,7 +2913,7 @@ export default function AITrainingPlanPage() {
       ? {
         ...regenQuotaEntryRaw,
         phase: buildPeriodizationCalendar(fullPlanConfig)?.[weekNumber],
-        volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource),
+        volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource, { totalWeeks: fullPlanConfig.globalTotalWeeks ?? fullPlanConfig.totalWeeks ?? weekNumber, objective: fullPlanConfig.catalogObjective || fullPlanConfig.objective }),
         terrainAvailability: fullPlanConfig.terrainAvailability,
         floors: applySlFloorIndividualization(
           applyLongRidePhasePolicy(regenQuotaEntryRaw.floors, {

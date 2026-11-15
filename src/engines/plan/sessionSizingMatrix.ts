@@ -197,32 +197,97 @@ const MATRIX: Matrix = {
   },
 };
 
-/** Existing matrix midpoint; a planning reference, never measured training load. */
+/**
+ * Fourchettes horaires d'ENDURANCE affichées au coach en mode « Auto » (hors
+ * renforcement). Source unique : la page plan et le moteur lisent la même
+ * table, pour que « Auto : 15-20 h » affiché soit aussi la fourchette
+ * appliquée. Repères de pratique de coaching, pas des doses optimales prouvées.
+ */
+export const RECOMMENDED_WEEKLY_RANGES: Record<string, Partial<Record<SizingAmbitionKey, { hours: [number, number]; sessions: string }>>> = {
+  IM:        { world_class: { hours: [22, 30], sessions: "12-16" }, elite: { hours: [18, 25], sessions: "10-14" }, competitor: { hours: [15, 20], sessions: "9-12" }, age_group: { hours: [10, 15], sessions: "6-9" }, finisher: { hours: [8, 12], sessions: "5-7" } },
+  "703":     { world_class: { hours: [16, 22], sessions: "10-14" }, elite: { hours: [14, 18], sessions: "8-12" }, competitor: { hours: [12, 16], sessions: "7-10" }, age_group: { hours: [8, 12], sessions: "5-8" }, finisher: { hours: [6, 10], sessions: "4-6" } },
+  MARATHON:  { world_class: { hours: [12, 18], sessions: "9-13" }, elite: { hours: [10, 14], sessions: "7-10" }, competitor: { hours: [8, 12], sessions: "6-8" }, age_group: { hours: [6, 9], sessions: "5-7" }, finisher: { hours: [4, 7], sessions: "4-5" } },
+  SEMI:      { world_class: { hours: [10, 14], sessions: "8-11" }, elite: { hours: [8, 12], sessions: "6-9" }, competitor: { hours: [7, 10], sessions: "5-7" }, age_group: { hours: [5, 7], sessions: "4-6" }, finisher: { hours: [3, 5], sessions: "3-4" } },
+  "10K":     { world_class: { hours: [9, 12], sessions: "7-10" }, elite: { hours: [8, 10], sessions: "6-8" }, competitor: { hours: [6, 8], sessions: "5-7" }, age_group: { hours: [4, 6], sessions: "4-5" }, finisher: { hours: [3, 4], sessions: "3-4" } },
+  STARTTORUN:{ world_class: { hours: [3, 5], sessions: "3" }, elite: { hours: [3, 5], sessions: "3" }, competitor: { hours: [3, 5], sessions: "3" }, age_group: { hours: [2, 4], sessions: "3" }, finisher: { hours: [2, 4], sessions: "3" } },
+};
+
+export function recommendedWeeklyRange(objective: string, ambition: string) {
+  const key = normalizeSizingObjective(objective);
+  const rows = key ? RECOMMENDED_WEEKLY_RANGES[key] : undefined;
+  return rows?.[normalizeSizingAmbition(ambition)] ?? rows?.age_group ?? null;
+}
+
+/**
+ * Référence horaire d'endurance (renforcement exclu).
+ * - coach : heures saisies → cible fixe (min = max = valeur saisie).
+ * - recommended-range : « Auto » → la fourchette affichée au coach, progressée du bas vers le haut.
+ * - internal-matrix : objectif hors table affichée → milieu de matrice, plafond seulement.
+ */
 export function resolveCoachHoursReference(objective: string, ambition: string, explicitHours?: number) {
   if (typeof explicitHours === "number" && Number.isFinite(explicitHours) && explicitHours > 0)
-    return { hours: explicitHours, source: "coach" as const };
+    return { hours: explicitHours, minHours: explicitHours, maxHours: explicitHours, source: "coach" as const };
+  const range = recommendedWeeklyRange(objective, ambition);
+  if (range) return { hours: range.hours[0], minHours: range.hours[0], maxHours: range.hours[1], source: "recommended-range" as const };
   const objectiveKey = normalizeSizingObjective(objective);
   const row = objectiveKey ? MATRIX[objectiveKey]?.[normalizeSizingAmbition(ambition)] : undefined;
   if (!row || typeof row.hoursMin !== "number" || typeof row.hoursMax !== "number") return undefined;
-  return { hours: (row.hoursMin + row.hoursMax) / 2, source: "internal-matrix" as const };
+  const mid = (row.hoursMin + row.hoursMax) / 2;
+  return { hours: mid, minHours: undefined, maxHours: mid, source: "internal-matrix" as const };
 }
 
 export interface CoachVolumeBudget {
   globalWeek: number;
   maxMinutes: number;
+  /** Minimum d'endurance exigé (semaines de charge/décharge d'une fourchette coach) ; absent = plafond seul. */
+  minMinutes?: number;
+  /** Cible d'endurance de la semaine. */
+  targetMinutes?: number;
   weeklyIncreasePctMax: number;
-  referenceSource: "coach" | "internal-matrix";
+  referenceSource: "coach" | "internal-matrix" | "recommended-range";
 }
 
-/** Same geometric ramp as the SL floors, with the existing recovery reduction. */
-export function buildCoachVolumeBudget(ramp: (SlFloorRampAnchors & { week1HoursMax: number; weeklyHoursTarget: number }) | undefined,
-  globalWeek: number, weekType: WeekType, referenceSource: CoachVolumeBudget["referenceSource"] = "coach"): CoachVolumeBudget | undefined {
+export interface VolumeRampLike extends SlFloorRampAnchors { week1HoursMax: number; weeklyHoursTarget: number; weeklyHoursMin?: number; weeklyHoursMax?: number }
+
+/** Recovery dose relative to the surrounding load target (existing 70 % ceiling). */
+const RECOVERY_TARGET = 0.65;
+const RECOVERY_FLOOR = 0.55;
+const RECOVERY_CEILING = 0.7;
+/** Tolerance around a load-week target: the model chooses catalogue durations, not exact minutes. */
+const LOAD_FLOOR = 0.92;
+const LOAD_CEILING = 1.08;
+
+/**
+ * Budget d'endurance hebdomadaire (renforcement exclu).
+ * 1) Rampe de niveau existante jusqu'au bas de la fourchette.
+ * 2) Puis progression linéaire bas → haut de la fourchette jusqu'à la dernière
+ *    semaine avant affûtage (surcharge de bloc en bloc).
+ * Décharges : 55-70 % de la cible de charge ; affûtage/course : hors budget.
+ */
+export function buildCoachVolumeBudget(ramp: VolumeRampLike | undefined,
+  globalWeek: number, weekType: WeekType, referenceSource: CoachVolumeBudget["referenceSource"] = "coach",
+  shape?: { totalWeeks: number; objective?: string | null }): CoachVolumeBudget | undefined {
   if (!ramp || ![ramp.week1HoursMax, ramp.weeklyHoursTarget, ramp.week1PctTarget].every(n => Number.isFinite(n) && n > 0)
     || weekType === "race" || weekType === "taper") return undefined;
-  const growth = slFloorRampFactor(globalWeek, { ...ramp, rampWeeks: Math.max(2, ramp.rampWeeks) }) / ramp.week1PctTarget;
-  const hours = Math.min(ramp.weeklyHoursTarget, ramp.week1HoursMax * growth);
-  return { globalWeek, maxMinutes: Math.floor(hours * 60 * (weekType === "recovery" ? 0.7 : 1) + 1e-8),
-    weeklyIncreasePctMax: ramp.weeklyIncreasePctMax ?? 0.10, referenceSource };
+  const anchors = { ...ramp, rampWeeks: Math.max(2, ramp.rampWeeks) };
+  const growth = slFloorRampFactor(globalWeek, anchors) / ramp.week1PctTarget;
+  const rampHours = ramp.week1HoursMax * growth;
+  const base = { globalWeek, weeklyIncreasePctMax: ramp.weeklyIncreasePctMax ?? 0.10, referenceSource };
+  const lo = ramp.weeklyHoursMin, hi = ramp.weeklyHoursMax;
+  if (referenceSource === "internal-matrix" || !Number.isFinite(lo) || !Number.isFinite(hi) || !shape) {
+    const hours = Math.min(ramp.weeklyHoursTarget, rampHours);
+    return { ...base, maxMinutes: Math.floor(hours * 60 * (weekType === "recovery" ? RECOVERY_CEILING : 1) + 1e-8) };
+  }
+  // Semaine où la rampe de niveau atteint le bas de la fourchette.
+  let rampEnd = 1;
+  while (rampEnd < 60 && slFloorRampFactor(rampEnd, anchors) < 1 - 1e-9) rampEnd++;
+  const lastBuildWeek = Math.max(rampEnd, shape.totalWeeks - Math.max(1, taperWeeksForObjective(shape.objective)));
+  const progress = lastBuildWeek <= rampEnd ? 1 : Math.max(0, Math.min(1, (globalWeek - rampEnd) / (lastBuildWeek - rampEnd)));
+  const target = Math.min(lo! + progress * (hi! - lo!), rampHours >= lo! - 1e-9 ? hi! : rampHours);
+  const round5 = (m: number) => Math.round(m / 5) * 5;
+  if (weekType === "recovery")
+    return { ...base, targetMinutes: round5(target * 60 * RECOVERY_TARGET), minMinutes: round5(target * 60 * RECOVERY_FLOOR), maxMinutes: Math.floor(target * 60 * RECOVERY_CEILING) };
+  return { ...base, targetMinutes: round5(target * 60), minMinutes: round5(target * 60 * LOAD_FLOOR), maxMinutes: Math.floor(Math.min(hi!, target * LOAD_CEILING) * 60) };
 }
 
 /** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
@@ -654,12 +719,12 @@ export function inferWeekType(
   // (pas seulement 1 semaine pour tout le monde — audit qualité plans IA : un Ironman ou
   // un Marathon méritent scientifiquement plus qu'un 10K ou un Sprint).
   const taperWeeks = Math.max(1, taperWeeksForObjective(objective));
-  if (weekNumber >= total - taperWeeks && weekNumber < total) return "taper";
-  // Seuil pct>0.92 : ajoute des semaines de taper supplémentaires sur les plans très longs,
-  // au-delà du minimum ci-dessus (ex : un 5K préparé sur 20 semaines aurait, sans ce
-  // plancher additionnel, un taper trop court relativement à la durée totale du plan).
-  const pct = weekNumber / total;
-  if (pct > 0.92) return "taper";
+  // Convention inclusive (alignée periodizationBounds/inferPhaseFromWeek/promptHelpers) :
+  // les `taperWeeks` semaines d'affûtage INCLUENT la semaine de course. IM = 3 →
+  // S(n-2), S(n-1) affûtage + S(n) course. L'ancien `>=` ajoutait une semaine
+  // (IM ≈ 4 semaines allégées) et le seuil pct>0.92 en ajoutait encore sur les
+  // plans longs — affûtage trop long et trop profond (audit plan Emanuela).
+  if (weekNumber > total - taperWeeks && weekNumber < total) return "taper";
   const recoveryEveryNWeeks = cadenceOverride ?? (athleteAge != null && athleteAge >= 40 ? 3 : 4);
   if (weekNumber % recoveryEveryNWeeks === 0) return "recovery";
   return "load";
@@ -697,7 +762,7 @@ export function buildQuotaPromptBlock(
     lines.push(`Semaine ${w} (${entry.weekType})${entry.phase ? ` — phase moteur ${entry.phase}` : ""} : ${parts.join(" · ")}`);
     if (entry.volumeBudget) {
       const b = entry.volumeBudget;
-      lines.push(`  Volume ENDURANCE MAX ${b.maxMinutes} min (natation, vélo, CAP et bricks ; renforcement EXCLU). Afficher séparément endurance, renforcement et temps total. Le renforcement reste inclus dans le calendrier, les limites quotidiennes et la charge de récupération. Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Réserver d'abord les sorties longues, puis répartir le solde entre les autres séances sans dépasser le plafond ni changer les compteurs.`);
+      lines.push(`  Volume ENDURANCE ${b.targetMinutes ? `CIBLE ${b.targetMinutes} min (MIN ${b.minMinutes} · MAX ${b.maxMinutes})` : `MAX ${b.maxMinutes}`} min (natation, vélo, CAP et bricks ; renforcement EXCLU). Afficher séparément endurance, renforcement et temps total. Le renforcement reste inclus dans le calendrier, les limites quotidiennes et la charge de récupération. Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Réserver d'abord les sorties longues, puis répartir le solde entre les autres séances sans dépasser le plafond ni changer les compteurs.${b.minMinutes ? ` La somme des durées d'endurance DOIT être ≥ ${b.minMinutes} min : allonger les séances d'endurance fondamentale (dans les bornes de leur fiche) plutôt qu'ajouter des séances.` : ''}`);
       if (b.referenceSource === "internal-matrix" && b.globalWeek === 1) lines.push("  Charge initiale inconnue : ce plafond n’est PAS un volume cible ni une preuve de tolérance. Validation du coach nécessaire sur la première semaine réellement prescrite (durées, fréquence, récupération), selon la pratique actuelle.");
     }
     if (entry.downgraded && entry.downgradeReason) {

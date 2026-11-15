@@ -464,7 +464,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
 
           weeklyQuotas[w] = { ...entry, quota: protectedQuota, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
             terrainAvailability: planConfig.terrainAvailability,
-            volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource),
+            volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource, { totalWeeks: effTotalWeeks, objective: planConfig.catalogObjective || planConfig.objective }),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,
               nominal: entry.floors, individualized: individualized.floors,

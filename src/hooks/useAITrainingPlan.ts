@@ -365,7 +365,7 @@ export interface PlanConfig {
   weeksAvailable?: number;
   weeklyHours?: number;
   /** Source of a planning target; internal references are never measured load. */
-  weeklyHoursSource?: "coach" | "internal-matrix";
+  weeklyHoursSource?: "coach" | "internal-matrix" | "recommended-range";
   sessionsPerWeek?: number;
   maxSessionsPerDay?: number;
   strengthSessionsPerWeek?: number;
@@ -574,6 +574,9 @@ export interface PlanConfig {
     rampWeeks: number;            // Nombre de semaines pour atteindre weeklyHours
     week1HoursCap: number | null; // Plafond absolu Sem 1 (h), null si pas de cap
     weeklyHoursTarget: number;    // Rappel cible
+    /** Fourchette endurance (h, renfo exclu) : bas = fin de rampe, haut = dernier bloc avant affûtage. */
+    weeklyHoursMin?: number;
+    weeklyHoursMax?: number;
     week1HoursMax: number;        // Sem 1 effective max (h)
     weeklyIncreasePctMax: number; // Progression max/sem (ex: 0.10 = +10%/sem)
     /** Présent uniquement si la CRR réellement mesurée a abaissé le palier déclaré. */
@@ -1758,7 +1761,7 @@ export function useAITrainingPlan() {
           strategicRecap: undefined,
         };
         assembled.finalValidationIssues = [
-          ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified"),
+          ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified" && i.rule !== "coach_volume_under_min"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
           ...completePlanCoverageIssues(assembled,totalWeeks),
         ];
