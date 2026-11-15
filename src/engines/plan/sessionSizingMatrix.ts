@@ -272,7 +272,16 @@ export function buildCoachVolumeBudget(ramp: VolumeRampLike | undefined,
   globalWeek: number, weekType: WeekType, referenceSource: CoachVolumeBudget["referenceSource"] = "coach",
   shape?: { totalWeeks: number; objective?: string | null }): CoachVolumeBudget | undefined {
   if (!ramp || ![ramp.week1HoursMax, ramp.weeklyHoursTarget, ramp.week1PctTarget].every(n => Number.isFinite(n) && n > 0)
-    || weekType === "race" || weekType === "taper") return undefined;
+    || weekType === "race") return undefined;
+  // Taper must retain a real endurance envelope, rather than dropping all volume checks.
+  if (weekType === "taper" && shape && globalWeek>=shape.totalWeeks-2 && normalizeSizingObjective(shape.objective)==='IM') {
+    const reference = buildCoachVolumeBudget(ramp,Math.max(1,shape.totalWeeks-3),'load',referenceSource,shape);
+    if (!reference) return undefined;
+    const fraction = globalWeek <= shape.totalWeeks-2 ? 0.725 : 0.55;
+    const target = Math.round((reference.targetMinutes ?? reference.maxMinutes)*fraction/5)*5;
+    return {globalWeek,referenceSource,weeklyIncreasePctMax:ramp.weeklyIncreasePctMax,targetMinutes:target,minMinutes:Math.round(target*0.9/5)*5,maxMinutes:Math.round(target*1.1/5)*5};
+  }
+  if (weekType === 'taper') return undefined;
   const anchors = { ...ramp, rampWeeks: Math.max(2, ramp.rampWeeks) };
   const growth = slFloorRampFactor(globalWeek, anchors) / ramp.week1PctTarget;
   const rampHours = ramp.week1HoursMax * growth;
@@ -749,7 +758,7 @@ function fmtRange(r: QuotaRange): string {
  */
 export function buildQuotaPromptBlock(
   weeksScope: number[],
-  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string; volumeBudget?: CoachVolumeBudget; phase?: string }>,
+  quotasByWeek: Record<number, { quota: WeeklyQuota; floors: SizingFloors; weekType: WeekType; downgraded: boolean; downgradeReason?: string; volumeBudget?: CoachVolumeBudget; phase?: string; raceProtection?: string }>,
 ): string {
   const lines: string[] = [];
   lines.push("🧮 CONTRAINTES DE DIMENSIONNEMENT (NON NÉGOCIABLES, calculées par le moteur) :");
@@ -767,8 +776,13 @@ export function buildQuotaPromptBlock(
       q.minFullRestDays > 0 ? `≥${q.minFullRestDays} jour${q.minFullRestDays > 1 ? "s" : ""} repos complet` : "repos ajustable",
     ];
     lines.push(`Semaine ${w} (${entry.weekType})${entry.phase ? ` — phase moteur ${entry.phase}` : ""} : ${parts.join(" · ")}`);
+    if (entry.raceProtection) lines.push(`  PROTECTIONS CALENDAIRES PRIORITAIRES :\n${entry.raceProtection}`);
     if (entry.volumeBudget) {
       const b = entry.volumeBudget;
+      if (entry.weekType === 'taper') {
+        lines.push(`  Affûtage ENDURANCE : cible ${b.targetMinutes} min, MIN ${b.minMinutes}, MAX ${b.maxMinutes}, hors renforcement et compétition. Réduction progressive depuis la même référence de charge ; conserver fréquence et rappels spécifiques courts, pas uniquement Z1. Les protections quotidiennes priment.`);
+        continue;
+      }
       lines.push(`  Volume ENDURANCE ${b.targetMinutes ? `CIBLE ${b.targetMinutes} min (MIN ${b.minMinutes} · MAX ${b.maxMinutes})` : `MAX ${b.maxMinutes}`} min (natation, vélo, CAP et bricks ; renforcement EXCLU). Afficher séparément endurance, renforcement et temps total. Le renforcement reste inclus dans le calendrier, les limites quotidiennes et la charge de récupération. Référence ${b.referenceSource === "coach" ? "déclarée par le coach" : "Auto de planification, NON mesurée"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Réserver d'abord les sorties longues, puis répartir le solde entre les autres séances sans dépasser le plafond ni changer les compteurs.${b.minMinutes ? ` La somme des durées d'endurance DOIT être ≥ ${b.minMinutes} min : allonger les séances d'endurance fondamentale (dans les bornes de leur fiche) plutôt qu'ajouter des séances.` : ''}`);
       if (b.referenceSource !== "coach" && b.globalWeek === 1) lines.push("  Charge initiale inconnue : ce plafond n’est PAS un volume cible ni une preuve de tolérance. Validation du coach nécessaire sur la première semaine réellement prescrite (durées, fréquence, récupération), selon la pratique actuelle.");
     }

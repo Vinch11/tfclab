@@ -17,6 +17,7 @@ import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
+import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -1870,13 +1871,17 @@ export default function AITrainingPlanPage() {
       taperCandidate && taperVolumeAlreadyReduced(plan, taperCandidate.fixedWeeks)
         ? null
         : taperCandidate;
+    plan.finalValidationIssues = [
+      ...(plan.finalValidationIssues ?? []).filter(i=>!i.rule.startsWith('race_calendar_')),
+      ...validateRaceCalendar(plan,{...config,planStartDate:format(planStartDate,'yyyy-MM-dd'),raceDate,raceGoals,globalWeekOffset:0}),
+    ];
     if (taperFix) {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
     }
     return { plan, taperFix: taperFix ?? null };
 
-  }, [rawParsedPlan, athleteContext, buildConfigWithCoachOverrides, objective]);
+  }, [rawParsedPlan, athleteContext, buildConfigWithCoachOverrides, objective, planStartDate, raceDate, raceGoals]);
 
   const parsedPlan = parsedPlanWithMeta?.plan ?? null;
   const legacyTaperReport = parsedPlanWithMeta?.taperFix ?? null;
@@ -2432,6 +2437,11 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
 
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
+    const unsafeCalendar=validateRaceCalendar(parsedPlan,{planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals});
+    if (unsafeCalendar.length) {
+      toast.error(`Calendrier de course non conforme : ${unsafeCalendar[0].message}`);
+      return;
+    }
     // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
     // so we can measure AI plan quality drift over time (per athlete/objective).
@@ -3057,6 +3067,7 @@ export default function AITrainingPlanPage() {
               // réellement la dernière du plan.
               globalTotalWeeks: parsedPlan.totalWeeks,
               globalWeekOffset: 0,
+              raceCalendar: {...fullPlanConfig,globalWeekOffset:0},
               // Fix B3 + fix "traitement des limiteurs" : même liste (TOUS les
               // limiteurs, pas seulement L1) que le chemin de génération
               // complète (useAITrainingPlan.ts).
@@ -3163,6 +3174,7 @@ export default function AITrainingPlanPage() {
           ambition: fullPlanConfig.ambitionMeta?.effective ?? fullPlanConfig.ambition ?? "",
           trainingLevel: fullPlanConfig.ambitionMeta?.trainingLevel ?? null,
           athleteId: currentAthlete?.id ?? null,
+          raceCalendar: {...fullPlanConfig,globalWeekOffset:0},
         });
         mergedPlan.finalValidationIssues = finalValidation.issues.length > 0 ? finalValidation.issues : undefined;
         if (finalValidation.hasCritical) {

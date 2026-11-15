@@ -42,8 +42,9 @@ describe("Auto reference reaches weekly contracts without overriding recovery", 
     expect(recovery?.targetMinutes).toBeLessThan(load?.targetMinutes ?? 0);
     expect(recovery?.maxMinutes).toBeLessThan(15 * 60);
   });
-  it.each(["taper", "race"] as const)("%s is exempt from the normal range", type => {
-    expect(buildCoachVolumeBudget(ramp, 31, type, "recommended-range", shape)).toBeUndefined();
+  it("race is exempt and taper has its own reduced envelope", () => {
+    expect(buildCoachVolumeBudget(ramp, 32, "race", "recommended-range", shape)).toBeUndefined();
+    expect(buildCoachVolumeBudget(ramp, 31, "taper", "recommended-range", shape)?.maxMinutes).toBeLessThan(15*60);
   });
   it("strength cannot hide an endurance deficit and Auto still requires initial review", () => {
     const budget = buildCoachVolumeBudget(ramp, 1, "load", "recommended-range", shape);

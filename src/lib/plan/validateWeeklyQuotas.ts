@@ -30,6 +30,7 @@ export interface QuotaIssue {
 }
 
 export interface WeekQuotaEntry {
+  raceProtection?: string;
   terrainAvailability?: string;
   /** Actual per-week prompt phase, not a new periodization rule. */
   expectedPhase?: import("../../../supabase/functions/_shared/periodizationBounds").PeriodizationPhase;

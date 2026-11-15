@@ -1,4 +1,5 @@
 import { approvedIdsForFamilies } from "@/lib/plan/demandingSessionFamilies";
+import { protectedRaceWeekType, raceProtectionPrompt, raceProtectionForDay, datedRaceGoals, RACE_DAYS } from '../../../supabase/functions/_shared/raceCalendarProtection';
 import { applyLongRidePhasePolicy, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
@@ -22,6 +23,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
  const effTotalWeeks=planConfig.globalTotalWeeks??totalWeeks,weekOffset=planConfig.globalWeekOffset??0;
+ const datedCalendar={...planConfig,raceGoals:datedRaceGoals(planConfig)};
  const obj=(planConfig.objective??"").toUpperCase();
  const isTriVerbose=/IRON|IM\b|703|70\.3|TRIATHLON|TRI\b/i.test(obj);
  const isTrailVerbose=/TRAIL\s*(ULTRA|MOUNTAIN|MONT|UTMB|CCC|OCC|LONG)/i.test(obj)||(/TRAIL/i.test(obj)&&totalWeeks>=12);
@@ -38,7 +40,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const weekContexts = Array.from({ length: end - start + 1 }, (_, i) => ({
           terrainAvailability: planConfig.terrainAvailability,
           phase: isRegenGapWeek(start + i - weekOffset) ? "base" : phaseCalendar?.[start + i - weekOffset], objective: planConfig.catalogObjective || planConfig.objective,
-          weekType: isRegenGapWeek(start + i - weekOffset) ? "recovery" : inferWeekType(start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks),
+          weekType: protectedRaceWeekType(planConfig,start+i-weekOffset,isRegenGapWeek(start + i - weekOffset) ? "recovery" : inferWeekType(start + i, effTotalWeeks, planConfig.catalogObjective || planConfig.objective, athleteData.age, planConfig.deloadCadenceWeeks)),
         }));
         return phases.length ? { phaseOverride: phases, weekContexts } : { weekContexts };
       };
@@ -426,9 +428,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const globalWeekNum = w + weekOffset;
         const isPostPeakRegenWeek = !!cycleSegmentsForRegen
           && !cycleSegmentsForRegen.some((seg) => globalWeekNum >= seg.startWeek && globalWeekNum <= seg.endWeek);
-        const weekType = isPostPeakRegenWeek
+        const weekType = protectedRaceWeekType(planConfig,w,isPostPeakRegenWeek
           ? "recovery"
-          : inferWeekType(globalWeekNum, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks);
+          : inferWeekType(globalWeekNum, effTotalWeeks, objectiveForQuota, athleteData.age, planConfig.deloadCadenceWeeks));
         const entry = computeWeekQuotaEntry(objectiveForQuota, ambitionForQuota, hoursAvail, weekType, isLCWFormat, {
           sessionsPerWeek: targetSpw,
           maxSessionsPerDay: planConfig.maxSessionsPerDay,
@@ -438,6 +440,24 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           bannedSports: bannedSportsForQuota,
         });
         if (entry) {
+          const hasProtection = RACE_DAYS.some(day=>raceProtectionForDay(planConfig,w,day));
+          if (hasProtection) {
+            const raceBricks=declaredRaceSlotsForWeek(datedCalendar,w).filter(e=>e.sport==='brick').length;
+            entry.quota.brick={min:raceBricks,max:raceBricks};
+            entry.quota.strength={min:0,max:0};
+            entry.floors.minStrengthPerWeek=0;
+            entry.floors.slLongRideMin=undefined;
+            entry.floors.slLongRunMin=undefined;
+            entry.floors.longRideWeekly=false;
+            entry.floors.longRunWeekly=false;
+            entry.floors.dedicatedLongRide=false;
+            // Protected recovery can start with complete rest: no mandatory training count.
+            if (weekType==='recovery') {
+              for (const sport of ['swim','bike','run'] as const) entry.quota[sport].min=0;
+              entry.floors.minSwimPerWeek=0;
+              entry.quota.totalSessions.min=0;
+            }
+          }
           const phaseFloors = applyLongRidePhasePolicy(entry.floors, {
             objective: objectiveForQuota, ...phasePosition(globalPhaseCalendar, globalWeekNum),
             phase: phaseCalendar?.[w], weekType, priorities: planConfig.identifiedLimitersRaw,
@@ -457,14 +477,35 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           const layout: WeeklySlotLayout = buildWeeklySlotLayout(protectedQuota, individualized.floors, weekType, {
             availableSports,
             maintenance: isIntermediateRunCycle,
-            raceEvents: declaredRaceSlotsForWeek(planConfig,w),
+            raceEvents: declaredRaceSlotsForWeek(datedCalendar,w),
             dayBans: rulesForQuota.dayBans,
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
+          if (hasProtection) {
+            for (const day of layout.days) {
+              const p=raceProtectionForDay(planConfig,w,day.dayName);
+              if (!p) continue;
+              day.slots=day.slots.filter(s=>s.isRaceEvent || (!p.restOnly && p.stage!=='race' && p.maxMinutes[s.sport]!==0));
+              for (const s of day.slots) if (!s.isRaceEvent) {
+                const cap=p.maxMinutes[s.sport];
+                if (cap!==undefined) s.maxDurationMin=cap;
+                s.isLongSession=false;
+                s.minDurationMin=undefined;
+                if (p.easyOnly) s.isKeySession=false;
+              }
+              day.isRest=day.slots.length===0;
+            }
+            for (const sport of ['swim','bike','run','brick','strength'] as const)
+              layout.targetsBySport[sport]=layout.days.flatMap(d=>d.slots).filter(s=>s.sport===sport).length;
+            for (const sport of ['swim','bike','run','brick','strength'] as const)
+              protectedQuota[sport].min=Math.min(protectedQuota[sport].min,layout.targetsBySport[sport]);
+            protectedQuota.totalSessions.min=Math.min(protectedQuota.totalSessions.min,Object.values(layout.targetsBySport).reduce((sum,n)=>sum+n,0));
+          }
 
           weeklyQuotas[w] = { ...entry, quota: protectedQuota, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
+            raceProtection: raceProtectionPrompt(planConfig,w),
             terrainAvailability: planConfig.terrainAvailability,
-            volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource, { totalWeeks: effTotalWeeks, objective: planConfig.catalogObjective || planConfig.objective }),
+            volumeBudget: hasProtection && weekType==='recovery' ? undefined : buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource, { totalWeeks: effTotalWeeks, objective: planConfig.catalogObjective || planConfig.objective }),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,
               nominal: entry.floors, individualized: individualized.floors,

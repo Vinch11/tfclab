@@ -1,4 +1,5 @@
 import { validateCoachLoadIssues } from "../coachVolumeValidation";
+import { validateRaceCalendar } from '../raceCalendarValidation';
 import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
 import { checkRemainingDurationRanges } from "../resolveDurationRanges";
 import { isKeySessionObjectiveMismatch } from "../keySessionObjective";
@@ -40,6 +41,7 @@ const STRUCTURALLY_REVALIDATED_REPAIR_CODES = new Set([
 
 const CRITICAL_REPAIR_CODES = new Set([
   "catalogue_pool_insufficient", "catalogue_prescription_unverified",
+  "race_calendar_unresolved",
   "sl_upgrade_unresolved",
   "lcw_signature_unresolved",
   "daily_floor_unresolved",
@@ -52,6 +54,7 @@ const CRITICAL_REPAIR_CODES = new Set([
 const REPAIR_CODE_PATTERN = new RegExp(
   `\\b(${[
     "catalogue_pool_insufficient", "catalogue_prescription_unverified",
+    "race_calendar_unresolved",
     "phase_unresolved",
     "duration_unresolved",
     "sl_upgrade_unresolved",
@@ -160,6 +163,7 @@ export function computeFinalValidationIssues(
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
   const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...checkSpecificPaceQuotas(plan, ambitionPhysiology?.objective, ambitionPhysiology?.ambition, { trainingLevel: ambitionPhysiology?.trainingLevel, coachCoef: getSpecificPaceOverride(ambitionPhysiology?.athleteId) }), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
+  if (ambitionPhysiology?.raceCalendar) issues.push(...validateRaceCalendar(plan,ambitionPhysiology.raceCalendar));
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }
 

@@ -25,7 +25,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
     const total = durations.reduce((sum, duration) => sum + duration, 0);
     let ceiling = budget.maxMinutes;
     let reason = "plafond du niveau coach";
-    if (previousLoad && budget.globalWeek > previousLoad.globalWeek) {
+    if (previousLoad && budget.globalWeek > previousLoad.globalWeek && entry.weekType !== 'taper') {
       const actualCeiling = previousLoad.minutes * (entry.weekType === "recovery" ? 0.7 : 1 + budget.weeklyIncreasePctMax);
       if (actualCeiling < ceiling) {
         ceiling = actualCeiling;

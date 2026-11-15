@@ -42,6 +42,9 @@ import { isRaceDaySession } from "@/engines/plan/planValidator";
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
+import { raceProtectionForDay, datedRaceGoals, strictRaceDate, RACE_DAYS, type RaceCalendarConfig } from '../../../supabase/functions/_shared/raceCalendarProtection';
+import { normalizeObjectiveKey } from '@/lib/normalizeObjectiveKey';
+import { raceSessionDemanding } from './raceCalendarValidation';
 import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
   parseAthleteConstraints,
@@ -1732,6 +1735,7 @@ function ensureRaceDaySession(
 
 /** Course intermédiaire (B/C) déclarée par le coach, en semaine/jour GLOBAUX. */
 export interface IntermediateRaceDay {
+  priority?: string;
   globalWeek: number;
   /** Jour en minuscules ("samedi"...). */
   day: string;
@@ -1759,18 +1763,19 @@ export function ensureIntermediateRaceDays(
     const week = chunks.flatMap(ch => ch.weeks ?? []).find(w => (w.weekNumber ?? 0) + offset === race.globalWeek);
     if (!week) continue;
     const sessions = (week.sessions ?? []) as PlanSession[];
-    if (sessions.some(s => isRaceDaySession({ title: s.title ?? "", details: s.details ?? "" }))) continue;
+    const existing = sessions.filter(s => isRaceDaySession({ title: s.title ?? "", details: s.details ?? "" }));
     const spec = RACE_DAY_SPEC[String(race.objectiveKey ?? "")] ?? { sport: "run" as const, durationMin: 60, label: race.label };
-    const raceSession = makeRaceSession(
+    const raceSession = existing[0] ?? makeRaceSession(
       race.day,
-      `🏁 COURSE B — Jour J (${spec.label})`,
+      `🏁 COURSE ${race.priority ?? 'B'} — Jour J (${spec.label})`,
       `Course intermédiaire déclarée par le coach (${race.label}). Échauffement selon protocole, ` +
         `pacing conforme à l'objectif fixé, sans prise de risque compromettant l'objectif principal.`,
       spec.sport,
       spec.durationMin,
     );
-    const removed = sessions.filter(s => String((s as { day?: string }).day ?? "").toLowerCase() === race.day).length;
-    week.sessions = [...sessions.filter(s => String((s as { day?: string }).day ?? "").toLowerCase() !== race.day), raceSession] as typeof week.sessions;
+    raceSession.day = race.day as PlanSession['day'];
+    const removed = sessions.filter(s => s.day === race.day && s !== raceSession).length;
+    week.sessions = [...sessions.filter(s => s.day !== race.day && !existing.includes(s)), raceSession] as typeof week.sessions;
     counters.race_day_inserted = (counters.race_day_inserted ?? 0) + 1;
     logs.push(`[race_day_inserted] S${race.globalWeek} — course intermédiaire ${race.label} (${race.day}, ${removed} séance(s) du jour retirée(s))`);
   }
@@ -2095,6 +2100,7 @@ function enforceDemandingAccumulation(
 }
 
 export interface RunReconcilerOptions {
+  raceCalendar?: RaceCalendarConfig;
   /** Courses B/C déclarées (semaine/jour globaux) — jour de course garanti. */
   intermediateRaces?: IntermediateRaceDay[] | null;
   /** Clé d'objectif normalisée (normalizeObjectiveKey) — pilote l'affûtage minimal. */
@@ -2399,7 +2405,9 @@ export function runReconciler(
     enforceStartToRunLadder(chunks, counters, logs, opts.globalWeekOffset);
     orderStartToRunWeek(chunks, counters, logs);
   }
-  enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
+  // A local window must never be mistaken for the end of the whole plan.
+  if (!opts.globalTotalWeeks || chunks.some(ch=>ch.weeks.some(w=>w.weekNumber+(opts.globalWeekOffset ?? 0)===opts.globalTotalWeeks)))
+    enforceTaperWeeks(chunks, counters, logs, opts.objectiveKey);
   ensureRaceDaySession(chunks, counters, logs, opts.objectiveKey, !!opts.isLcw3Day, opts.globalTotalWeeks, opts.globalWeekOffset);
   ensureIntermediateRaceDays(chunks, opts.intermediateRaces, counters, logs, opts.globalWeekOffset);
   alignPostBikeRunClaims(chunks, counters, logs);
@@ -2415,5 +2423,54 @@ export function runReconciler(
   enforceDemandingAccumulation(chunks, opts.beginnerIntensitySignal, counters, logs, usageLedger, injected, phaseCtx, quotasByWeek);
   enforceAthleteConstraints(chunks, parseAthleteConstraints(opts.constraints), counters, logs);
   enforceMaxSessionsPerDay(chunks, opts.maxSessionsPerDay, counters, logs);
+  // Last mutation: day-moving repairs cannot reintroduce training on race day.
+  ensureIntermediateRaceDays(chunks, opts.intermediateRaces, counters, logs, opts.globalWeekOffset);
+  if (opts.raceCalendar) protectRaceCalendarSessions(chunks, opts.raceCalendar, logs, injected, phaseCtx);
   return { counters, logs };
+}
+
+export function protectRaceCalendarSessions(chunks: PlanChunk[], config: RaceCalendarConfig, logs: string[], injected?: Set<string>, phaseCtx?: PhaseCtx): void {
+  const start = strictRaceDate(config.planStartDate);
+  if (start !== undefined) {
+    const races: IntermediateRaceDay[] = datedRaceGoals(config).flatMap(g=>{
+      const date = strictRaceDate(g.raceDate);
+      if (date===undefined || !g.objective) return [];
+      return [{globalWeek:Math.floor((date-start)/604800000)+1,day:RACE_DAYS[(new Date(date).getUTCDay()+6)%7],
+        objectiveKey:normalizeObjectiveKey(g.objective),label:g.raceName ?? g.objective,priority:g.priority}];
+    });
+    ensureIntermediateRaceDays(chunks,races,{} as ReconcilerCounters,logs,config.globalWeekOffset);
+  }
+  for (const chunk of chunks) for (const week of chunk.weeks) {
+    const retained: PlanSession[] = [];
+    for (const s of week.sessions) {
+      if (s.sport==='rest' || isRaceEventTitle(s)) { retained.push(s); continue; }
+      const p = raceProtectionForDay(config,week.weekNumber,s.day);
+      if (!p) { retained.push(s); continue; }
+      const cap = p.maxMinutes[s.sport];
+      if (p.stage==='race' || p.restOnly || cap===0) {
+        logs.push(`[race_calendar_removed] S${week.weekNumber} ${s.day} ${s.title}: ${p.stage} ${p.raceDate}`);
+        continue;
+      }
+      const demanding = raceSessionDemanding({...s,isRest:false,dayName:s.day});
+      if ((p.easyOnly && demanding) || (cap !== undefined && s.durationMin>cap)) {
+        const original = s.catalogId ? ficheFor(s.catalogId) : null;
+        const repl = findReplacement({sport:normSport(s.sport),weekPhase:p.stage==='recovery'?'base':'taper',
+          targetDur:Math.min(s.durationMin,cap ?? s.durationMin),original,requireFamily:'easy',weekZoneCap:2,
+          weekType:p.stage,allowedCandidateIntentFamilies:['endurance_fondamentale','recuperation','technique'],
+          excludeFastedPattern:true,objectiveKey:phaseCtx?.objectiveKey,levelSignal:phaseCtx?.beginnerIntensitySignal,
+          restrictToIds:injected});
+        if (repl) {
+          const title=s.title;
+          assignFiche(s,repl,Math.min(s.durationMin,cap ?? s.durationMin));
+          s.isKeySession=false;
+          delete s.variantKey;
+          logs.push(`[race_calendar_replaced] S${week.weekNumber} ${s.day} ${title} → ${repl.id} (${p.stage})`);
+        } else logs.push(`[critical] race_calendar_unresolved S${week.weekNumber} ${s.day}: aucune fiche facile compatible ; séance conservée et plan non conforme.`);
+      }
+      retained.push(s);
+    }
+    // Explicit rest placeholders keep the week printable after protected removals.
+    for (const day of WEEK_DAYS) if (!retained.some(s=>s.day===day)) retained.push({day,title:'Repos',details:'Récupération et préparation de la compétition.',sport:'rest',custom:true,catalogId:null,durationMin:0,zones:[],isKeySession:false});
+    week.sessions=retained;
+  }
 }

@@ -37,6 +37,7 @@ import { deriveRaceTargets, mapObjectiveToSport, normalizeObj } from "@/lib/deri
 import { getLiteratureHintText } from "@/lib/raceStandards";
 
 export interface AmbitionPhysiologyInput {
+  raceCalendar?: import('../../../../supabase/functions/_shared/raceCalendarProtection').RaceCalendarConfig;
   vmaKmh?: number | null;
   thresholdPaceSecPerKm?: number | null;
   objective: string;

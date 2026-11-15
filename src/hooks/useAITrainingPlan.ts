@@ -1,4 +1,5 @@
 import { resolvePlanDurationRanges } from "@/lib/plan/resolveDurationRanges";
+import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { demoteMismatchedKeySessions } from "@/lib/plan/keySessionObjective";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { mergeWindowEvidence, type GenerationWindow } from "@/lib/plan/contractScope";
@@ -1183,6 +1184,7 @@ export function useAITrainingPlan() {
                 globalTotalWeeks: effTotalWeeks,
                 globalWeekOffset: weekOffset,
                 intermediateRaces: intermediateRaceDays(planConfig),
+                raceCalendar: planConfig,
                 // Fix B3 + fix "traitement des limiteurs" : même liste (TOUS les
                 // limiteurs, pas seulement L1) que le serveur transmet à
                 // extractLimiterKeywords/applyReconciler (jsonPlanHandler.ts)
@@ -1270,6 +1272,7 @@ export function useAITrainingPlan() {
                 ambition: planConfig.ambitionMeta?.effective ?? planConfig.ambition ?? "",
                 trainingLevel: planConfig.ambitionMeta?.trainingLevel ?? null,
                 athleteId: planConfig.athleteId ?? null,
+                raceCalendar: planConfig,
               });
               if (finalValidation.issues.length > 0) parsed.finalValidationIssues = finalValidation.issues;
               setFinalValidationIssues(finalValidation.issues);
@@ -1768,6 +1771,7 @@ export function useAITrainingPlan() {
           ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified" && i.rule !== "coach_volume_under_min"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
           ...completePlanCoverageIssues(assembled,totalWeeks),
+          ...validateRaceCalendar(assembled,{...planConfig,globalWeekOffset:0}),
         ];
         if(assembled.finalValidationIssues.some(i=>i.rule==='complete_plan_week_coverage')) {
           setFinalValidationIssues(assembled.finalValidationIssues);
