@@ -529,6 +529,8 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
   // Volume constraints
   if (config?.weeklyHoursSource === "internal-matrix") {
     lines.push(`\n📊 Référence interne de planification : ${config.weeklyHours}h/sem, NON mesurée, ni disponibilité déclarée. Appliquer les plafonds hebdomadaires du niveau coach ; moins est autorisé. Ne pas inventer de charge récente.`);
+  } else if (config?.weeklyHoursSource === "recommended-range") {
+    lines.push(`\n📊 Fourchette de référence Auto : ${config.volumeRamp?.weeklyHoursMin ?? config.weeklyHours}–${config.volumeRamp?.weeklyHoursMax ?? config.weeklyHours}h/sem, NON mesurée, ni disponibilité déclarée. Les cibles/min/max du quota hebdomadaire priment ; respecter les limites de récupération et faire valider la charge initiale par le coach.`);
   } else if (config?.weeklyHours) {
     // P0-1 (audit Codex, oct. 2026, consigne coach explicite) : affichait
     // auparavant TOUJOURS `config.weeklyHours` brut (ex: 17h), alors que le
@@ -603,7 +605,7 @@ export function buildStructuredDiagnosticBlock(config: any, totalWeeks?: number)
     lines.push(config.weeklyHoursSource === "internal-matrix"
       ? `  • Référence interne non mesurée : plafond ${vr.weeklyHoursTarget}h/sem, jamais un volume obligatoire ; respecter les plafonds de chaque semaine.`
       : vr.weeklyHoursMin != null && vr.weeklyHoursMax != null && vr.weeklyHoursMax > vr.weeklyHoursMin
-        ? `  • Fourchette ENDURANCE validée par le coach (renforcement exclu) : ${vr.weeklyHoursMin}–${vr.weeklyHoursMax}h/sem. Atteindre ${vr.weeklyHoursMin}h après la rampe, puis PROGRESSER de bloc en bloc jusqu'à ${vr.weeklyHoursMax}h avant l'affûtage. Chaque semaine a sa cible/min/max dans le bloc QUOTA : ne jamais rester sous le minimum d'une semaine de charge.`
+        ? `  • Fourchette ENDURANCE de référence Auto (renforcement exclu, non mesurée) : ${vr.weeklyHoursMin}–${vr.weeklyHoursMax}h/sem. Atteindre ${vr.weeklyHoursMin}h après la rampe, puis PROGRESSER de bloc en bloc jusqu'à ${vr.weeklyHoursMax}h avant l'affûtage. Chaque semaine a sa cible/min/max dans le bloc QUOTA : ne jamais rester sous le minimum d'une semaine de charge.`
         : `  • Cible finale : ${vr.weeklyHoursTarget}h/sem (à atteindre progressivement, PAS dès Sem 1)`);
     lines.push(`  • Semaine 1 : MAX ${vr.week1HoursMax}h (= ${Math.round(vr.week1PctTarget * 100)}% de la référence)${capStr}`);
     lines.push(config.weeklyHoursSource === "internal-matrix"
@@ -1668,7 +1670,9 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
 
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
   lines.push(`- BUDGET HORAIRE ENDURANCE : natation, vélo, course et bricks seulement. Renforcement/PPG hors de ces heures, mais maintenu dans le calendrier, les plafonds de séances/jour et la récupération. Afficher les minutes réellement prescrites séparément : endurance + renforcement = temps total. Réserver les sorties longues imposées avant de répartir les heures restantes ; ne pas les remplacer par plusieurs petits vélos ou par la durée totale d'un brick.`);
-  if (config.weeklyHoursSource === "internal-matrix") {
+  if (config.weeklyHoursSource === "recommended-range") {
+    lines.push(`- Fourchette de référence Auto : ${config.volumeRamp?.weeklyHoursMin ?? config.weeklyHours}–${config.volumeRamp?.weeklyHoursMax ?? config.weeklyHours}h/sem (repère de coaching, NON mesuré, pas une disponibilité déclarée). Utiliser les cibles/min/max du quota hebdomadaire ; ne pas appliquer de multiplicateur d’ambition supplémentaire. La rampe, la récupération et les limites du coach priment.`);
+  } else if (config.weeklyHoursSource === "internal-matrix") {
     lines.push(`- Référence interne (non mesurée) : ${config.weeklyHours}h/sem. Les plafonds du quota hebdomadaire et la rampe du niveau coach priment sur les multiplicateurs d'ambition. Ce sont des maxima, pas des volumes obligatoires. Les en-têtes doivent refléter les minutes réellement prescrites.`);
   } else if (config.weeklyHours) {
     lines.push(`- **Heures dispo/semaine (saisie athlète) :** ${config.weeklyHours}h`);

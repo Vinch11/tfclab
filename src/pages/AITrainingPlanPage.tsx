@@ -4098,9 +4098,10 @@ export default function AITrainingPlanPage() {
                     {!weeklyHours && (
                       <p className="text-[10px] text-muted-foreground">
                         {(() => {
-                          const applied = resolveCoachHoursReference(objective, ambition);
-                          const lit = getRecommendedRange(objective, ambition)?.hours;
-                          return `Auto : plafond prudent ~${applied ? Math.round(applied.hours * 10) / 10 : "—"} h d'endurance${lit ? ` (littérature ${lit} h)` : ""}. Saisissez vos heures pour les imposer avec progression.`;
+                          const reference = getRecommendedRange(objective, ambition)?.hours;
+                          return reference
+                            ? `Auto : référence ${reference} h d'endurance, hors renforcement · repère de coaching, adapté au niveau et aux phases.`
+                            : "Auto : référence horaire non disponible pour cet objectif. Heures à préciser par le coach.";
                         })()}
                       </p>
                     )}

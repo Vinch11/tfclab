@@ -1,6 +1,19 @@
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildStructuredDiagnosticBlock, buildUserPrompt } from "./promptHelpers.ts";
 
+Deno.test("Auto Ironman 15–20 h remains a reference rather than declared availability", () => {
+  const cfg = { objective: "IM", ambition: "competitor", weeksAvailable: 32, weeklyHours: 15,
+    weeklyHoursSource: "recommended-range", volumeRamp: { trainingLevel: "trained", week1PctTarget: .8,
+      rampWeeks: 2, week1HoursCap: null, weeklyHoursTarget: 15, weeklyHoursMin: 15, weeklyHoursMax: 20,
+      week1HoursMax: 12, weeklyIncreasePctMax: .1 } };
+  const block = buildStructuredDiagnosticBlock(cfg, 32);
+  const user = buildUserPrompt({ nom: "Synthetic", age: 40 }, cfg);
+  assertStringIncludes(block, "15–20h/sem");
+  assertStringIncludes(user, "15–20h/sem");
+  assert(!user.includes("Heures dispo/semaine (saisie athlète)"));
+  assert(!user.includes("VOLUME CIBLE HEBDO (SOURCE UNIQUE, NON NÉGOCIABLE)"));
+});
+
 Deno.test("coach internal reference is never presented as measured load or athlete availability", () => {
   const cfg = { objective: "10K", ambition: "age_group", weeksAvailable: 12, weeklyHours: 4,
     weeklyHoursSource: "internal-matrix", ambitionMeta: { trainingLevel: "light", trainingLevelSource: "manual" },

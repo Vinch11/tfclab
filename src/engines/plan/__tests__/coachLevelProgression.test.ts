@@ -64,7 +64,7 @@ function prescribed(level: CoachTrainingLevel, weeklyHours?: number) {
 describe("actual prescribed plan, after transformations and reopening", () => {
   it.each(levels)("%s: validates real weekly doses, frequency and assimilation without measured load", level => {
     const { c, plan } = prescribed(level);
-    expect(c.weeklyHoursSource).toBe("internal-matrix");
+    expect(c.weeklyHoursSource).toBe("recommended-range");
     expect(c.recentLoad!.source).toBe("MANUAL"); // qualitative estimate, not Nolio or a measurement
     expect(c.identifiedLimitersRaw).toEqual(config("light").identifiedLimitersRaw);
     expect(validateWeeklyQuotas(plan as never, plan.weeklyQuotas!).filter(i => i.code === "coach_load_violation")).toEqual([]);
@@ -117,15 +117,16 @@ describe("existing inputs and disciplines remain supported", () => {
   });
   it.each(["703", "IM", "Marathon", "Semi", "Sprint", "Olympic", "5K", "StartToRun"])("%s uses its own existing matrix, never a run-only reference", objective => {
     const ref = resolveCoachHoursReference(objective, "age_group");
-    expect(ref?.source).toBe("internal-matrix");
+    expect(ref?.source).toBe("recommended-range");
     expect(ref!.hours).toBeGreaterThan(0);
     expect(resolveCoachHoursReference(objective, "age_group", 12)).toEqual({ hours: 12, source: "coach" });
     expect(computeWeekQuotaEntry(objective, "age_group", ref!.hours, "load", false)).not.toBeNull();
   });
-  it("no selected level keeps the historical no-ramp path unchanged", () => {
+  it("no selected level uses the existing prudent effective level for the Auto range", () => {
     const c = buildPlanConfigFromDiagnostic(prepared.diagnostic, { ...buildPilotFormConfig(profile.planConfig), trainingLevel: undefined, weeklyHours: undefined });
-    expect(c.volumeRamp).toBeUndefined();
-    expect(c.weeklyHours).toBeUndefined();
+    expect(c.volumeRamp?.trainingLevel).toBe(c.ambitionMeta?.trainingLevel);
+    expect(c.volumeRamp?.weeklyHoursMin).toBeDefined();
+    expect(c.weeklyHours).toBeGreaterThan(0);
   });
 });
 
@@ -180,7 +181,7 @@ describe("unknown initial tolerance and canonical ambition", () => {
     expect(layout.days.every(d => d.slots.length <= q.quota.maxSessionsPerDay)).toBe(true);
     const trained = prescribed("trained").plan;
     expect(trained.weeks[0].sessions.filter(s => s.sport === "run")).toHaveLength(6);
-    expect(c.weeklyHours).toBe(9.5);
+    expect(c.weeklyHours).toBe(9);
     expect(buildWeekQuotaTransport(1, q)._weeklyQuotas[1].quota.run).toEqual(q.quota.run);
   });
 });

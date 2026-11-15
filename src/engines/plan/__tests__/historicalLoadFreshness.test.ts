@@ -23,7 +23,7 @@ describe("historical TSS is not current planning load", () => {
     expect(config.volumeRamp!.week1PctTarget).toBe(0.6);
     expect(config.volumeRamp!.week1HoursMax).toBe(2.4);
     expect(config.ambitionMeta!.trainingLevel).toBe("light");
-    expect(config.weeklyHoursSource).toBe("internal-matrix");
+    expect(config.weeklyHoursSource).toBe("recommended-range");
   });
 });
 

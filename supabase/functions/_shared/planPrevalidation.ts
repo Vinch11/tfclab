@@ -55,7 +55,7 @@ export function prevalidatePlanWeeks(inputs:PrevalidationInputWeek[],calendar:Pr
   for(const day of input.layout?.days??[])for(const slot of day.slots)if(input.dayBans?.some(b=>b.day===day.dayName&&(b.sport==='any'||b.sport===slot.sport||(slot.sport==='brick'&&['run','bike'].includes(b.sport)))))add('layout_day_ban_conflict','blocking');
   if(coverage.missingSports.length)add('catalogue_pool_insufficient_custom_requires_review','warning');
   if(coverage.limitedDiversitySports.length)add('catalogue_diversity_limited','warning');
-  if(input.volumeBudget?.referenceSource==='internal-matrix'&&input.globalWeek===1)add('coach_initial_load_unverified','warning');
+  if(input.volumeBudget&&input.volumeBudget.referenceSource!=='coach'&&input.globalWeek===1)add('coach_initial_load_unverified','warning');
   const slots=(input.layout?.days??[]).flatMap(d=>d.slots).filter(s=>!s.isRaceEvent);
   const minimumStructuredMinutes=slots.reduce((sum,s)=>sum+(s.sport==='strength'?0:s.minDurationMin??0),0);
   const minimumCatalogueMinutes=slots.reduce((sum,slot)=>{

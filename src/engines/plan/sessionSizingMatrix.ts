@@ -215,24 +215,27 @@ export const RECOMMENDED_WEEKLY_RANGES: Record<string, Partial<Record<SizingAmbi
 export function recommendedWeeklyRange(objective: string, ambition: string) {
   const key = normalizeSizingObjective(objective);
   const rows = key ? RECOMMENDED_WEEKLY_RANGES[key] : undefined;
-  return rows?.[normalizeSizingAmbition(ambition)] ?? rows?.age_group ?? null;
+  const ambitionKey = normalizeSizingAmbition(ambition);
+  const displayed = rows?.[ambitionKey] ?? rows?.age_group;
+  // Beginner walk/run keeps its existing safety envelope, not the historical UI-only range.
+  const row = key ? MATRIX[key]?.[ambitionKey] : undefined;
+  if (displayed && key !== "STARTTORUN") return displayed;
+  if (!row || row.hoursMin == null || row.hoursMax == null) return null;
+  return { hours: [row.hoursMin, row.hoursMax] as [number, number], sessions: `${row.totalSessions.min}-${row.totalSessions.max}` };
 }
 
 /**
  * Référence horaire d'endurance (renforcement exclu).
  * - coach : heures saisies → cible fixe (min = max = valeur saisie).
  * - recommended-range : « Auto » → la fourchette affichée au coach, progressée du bas vers le haut.
- * - internal-matrix : objectif hors table affichée → milieu de matrice, plafond seulement.
+ * - Uncovered objective: no invented reference.
  */
 export function resolveCoachHoursReference(objective: string, ambition: string, explicitHours?: number) {
   if (typeof explicitHours === "number" && Number.isFinite(explicitHours) && explicitHours > 0)
     return { hours: explicitHours, source: "coach" as const };
-  // Auto : la matrice interne reste un PLAFOND sans charge mesurée (jamais un volume obligatoire).
-  const objectiveKey = normalizeSizingObjective(objective);
-  const row = objectiveKey ? MATRIX[objectiveKey]?.[normalizeSizingAmbition(ambition)] : undefined;
-  if (!row || typeof row.hoursMin !== "number" || typeof row.hoursMax !== "number") return undefined;
-  const mid = (row.hoursMin + row.hoursMax) / 2;
-  return { hours: mid, source: "internal-matrix" as const };
+  const range = recommendedWeeklyRange(objective, ambition);
+  if (!range) return undefined;
+  return { hours: range.hours[0], minHours: range.hours[0], maxHours: range.hours[1], source: "recommended-range" as const };
 }
 
 export interface CoachVolumeBudget {
@@ -278,7 +281,7 @@ export function buildCoachVolumeBudget(ramp: VolumeRampLike | undefined,
   // la rampe y mène puis le volume progresse de 85 % à 100 % de la saisie avant l'affûtage.
   const hi = ramp.weeklyHoursMax ?? (referenceSource === "coach" ? ramp.weeklyHoursTarget : undefined);
   const lo = ramp.weeklyHoursMin ?? (hi != null && referenceSource === "coach" ? hi * COACH_RANGE_LOW : undefined);
-  if (referenceSource === "internal-matrix" || !Number.isFinite(lo) || !Number.isFinite(hi) || !shape) {
+  if (referenceSource === "internal-matrix" || lo == null || hi == null || !Number.isFinite(lo) || !Number.isFinite(hi) || !shape) {
     const hours = Math.min(ramp.weeklyHoursTarget, rampHours);
     return { ...base, maxMinutes: Math.floor(hours * 60 * (weekType === "recovery" ? RECOVERY_CEILING : 1) + 1e-8) };
   }
@@ -287,11 +290,11 @@ export function buildCoachVolumeBudget(ramp: VolumeRampLike | undefined,
   while (rampEnd < 60 && slFloorRampFactor(rampEnd, anchors) < 1 - 1e-9) rampEnd++;
   const lastBuildWeek = Math.max(rampEnd, shape.totalWeeks - Math.max(1, taperWeeksForObjective(shape.objective)));
   const progress = lastBuildWeek <= rampEnd ? 1 : Math.max(0, Math.min(1, (globalWeek - rampEnd) / (lastBuildWeek - rampEnd)));
-  const target = Math.min(lo! + progress * (hi! - lo!), rampHours >= lo! - 1e-9 ? hi! : rampHours);
+  const target = Math.min(lo + progress * (hi - lo), rampHours >= lo - 1e-9 ? hi : rampHours);
   const round5 = (m: number) => Math.round(m / 5) * 5;
   if (weekType === "recovery")
     return { ...base, targetMinutes: round5(target * 60 * RECOVERY_TARGET), minMinutes: round5(target * 60 * RECOVERY_FLOOR), maxMinutes: Math.floor(target * 60 * RECOVERY_CEILING) };
-  return { ...base, targetMinutes: round5(target * 60), minMinutes: round5(target * 60 * LOAD_FLOOR), maxMinutes: Math.floor(Math.min(hi!, target * LOAD_CEILING) * 60) };
+  return { ...base, targetMinutes: round5(target * 60), minMinutes: round5(target * 60 * LOAD_FLOOR), maxMinutes: Math.floor(Math.min(hi, target * LOAD_CEILING) * 60) };
 }
 
 /** Durées planchers SL par format (min). Consommées par validateWeeklyQuotas. */
@@ -766,8 +769,8 @@ export function buildQuotaPromptBlock(
     lines.push(`Semaine ${w} (${entry.weekType})${entry.phase ? ` — phase moteur ${entry.phase}` : ""} : ${parts.join(" · ")}`);
     if (entry.volumeBudget) {
       const b = entry.volumeBudget;
-      lines.push(`  Volume ENDURANCE ${b.targetMinutes ? `CIBLE ${b.targetMinutes} min (MIN ${b.minMinutes} · MAX ${b.maxMinutes})` : `MAX ${b.maxMinutes}`} min (natation, vélo, CAP et bricks ; renforcement EXCLU). Afficher séparément endurance, renforcement et temps total. Le renforcement reste inclus dans le calendrier, les limites quotidiennes et la charge de récupération. Référence ${b.referenceSource === "internal-matrix" ? "interne de planification, NON mesurée" : "déclarée par le coach"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Réserver d'abord les sorties longues, puis répartir le solde entre les autres séances sans dépasser le plafond ni changer les compteurs.${b.minMinutes ? ` La somme des durées d'endurance DOIT être ≥ ${b.minMinutes} min : allonger les séances d'endurance fondamentale (dans les bornes de leur fiche) plutôt qu'ajouter des séances.` : ''}`);
-      if (b.referenceSource === "internal-matrix" && b.globalWeek === 1) lines.push("  Charge initiale inconnue : ce plafond n’est PAS un volume cible ni une preuve de tolérance. Validation du coach nécessaire sur la première semaine réellement prescrite (durées, fréquence, récupération), selon la pratique actuelle.");
+      lines.push(`  Volume ENDURANCE ${b.targetMinutes ? `CIBLE ${b.targetMinutes} min (MIN ${b.minMinutes} · MAX ${b.maxMinutes})` : `MAX ${b.maxMinutes}`} min (natation, vélo, CAP et bricks ; renforcement EXCLU). Afficher séparément endurance, renforcement et temps total. Le renforcement reste inclus dans le calendrier, les limites quotidiennes et la charge de récupération. Référence ${b.referenceSource === "coach" ? "déclarée par le coach" : "Auto de planification, NON mesurée"} ; progression entre semaines de charge MAX +${Math.round(b.weeklyIncreasePctMax * 100)}%. Reprise après décharge comparée à la dernière semaine de charge, pas à la semaine allégée. En récupération : au plus 70% de la dernière semaine de charge. Réserver d'abord les sorties longues, puis répartir le solde entre les autres séances sans dépasser le plafond ni changer les compteurs.${b.minMinutes ? ` La somme des durées d'endurance DOIT être ≥ ${b.minMinutes} min : allonger les séances d'endurance fondamentale (dans les bornes de leur fiche) plutôt qu'ajouter des séances.` : ''}`);
+      if (b.referenceSource !== "coach" && b.globalWeek === 1) lines.push("  Charge initiale inconnue : ce plafond n’est PAS un volume cible ni une preuve de tolérance. Validation du coach nécessaire sur la première semaine réellement prescrite (durées, fréquence, récupération), selon la pratique actuelle.");
     }
     if (entry.downgraded && entry.downgradeReason) {
       lines.push(`  ↳ ambition ajustée : ${entry.downgradeReason}`);

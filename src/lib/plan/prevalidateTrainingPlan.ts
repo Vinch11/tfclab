@@ -19,7 +19,7 @@ export function assessPreparedGeneration(config:PlanConfig,prepared:ReturnType<t
    dayBans:prepared.dayBans,catalog:[...new Map([...primary,...regen].map(m=>[m.id,m])).values()]};
  }),config);
  report.limiterPriorities=[...(config.identifiedLimitersRaw??[])];
- if((typeof config.weeklyHours!=="number"||config.weeklyHours<=0||config.weeklyHoursSource==="internal-matrix")&&(config.globalWeekOffset??0)===0&&!report.issues.some(i=>i.code==="coach_initial_load_unverified")) {
+ if((typeof config.weeklyHours!=="number"||config.weeklyHours<=0||config.weeklyHoursSource==="internal-matrix"||config.weeklyHoursSource==="recommended-range")&&(config.globalWeekOffset??0)===0&&!report.issues.some(i=>i.code==="coach_initial_load_unverified")) {
   report.issues.push({week:1,code:"coach_initial_load_unverified",severity:"warning"});
   if(report.status==="admissible")report.status="coach_review";
  }
