@@ -1078,7 +1078,7 @@ export const TemplateDerivedWorkouts: LibraryWorkout[] = [
     sport: "course",
     objectif: "Longue durabilité IM — Z2 + 20-30' Z3 (Allure IM) en fin de sortie",
     necessite: "Obligatoire",
-    when: "Phase Diesel & Spécifique (S9-S18)",
+    when: "Phases construction et spécifique uniquement (jamais en fondation)",
     phase: ["build"],
     avoid: "Si FC dérive >10 puls → marcher 1min",
     durationMin: [90, 135],

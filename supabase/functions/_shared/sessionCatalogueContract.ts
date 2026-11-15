@@ -21,6 +21,7 @@ export function catalogueEligibility(metadata: RepairWorkoutMetadata, context: R
   const reasons = demandingSessionReasons(metadata.id, context.demandingContext);
   if (reasons.length) return reasons;
  }
+ if (context.weekType && context.weekType !== "race" && isRaceProximityCard(metadata)) return ["race_proximity_outside_race_week"];
  // Existing sporting rules validate phase, objective and recovery/taper load.
  const effective = normalizeRepairSport(metadata.sport) === "brick" && !metadata.mainZoneMax
   ? { ...metadata, mainZoneMax: maxZone(metadata.zones) } : metadata;
@@ -114,4 +115,15 @@ export function executableCatalogueVariantsForWeeks(contracts:Record<number,Cata
  return Object.fromEntries(Object.entries(contracts).map(([week,contract])=>[week,Object.fromEntries(contract.catalog
   .filter(m=>(!allowedIds||allowedIds.includes(m.id))&&catalogueEligibility(m,contract).length===0)
   .map(m=>[m.id,executableCatalogueVariants(m,contract.objective ?? undefined)] as const).filter(([,variants])=>Object.keys(variants).length>0))]));
+}
+
+/**
+ * Cards whose own timing is "J-1/J-2/J-3", "veille" or "matin de course" are
+ * race rituals: only the race week may use them. Dual-purpose cards that also
+ * name an ordinary use ("ou lendemain …") stay available.
+ */
+const RACE_PROXIMITY = /\bJ\s*-\s*[123]\b|veille\s*(?:de\s*)?(?:la\s*)?(?:course|comp[ée]tition)|matin\s*(?:de\s*)?(?:la\s*)?(?:course|comp[ée]tition)|\bjour\s*j\b|pr[ée]-?course/i;
+export function isRaceProximityCard(card: Pick<RepairWorkoutMetadata, "when" | "title">): boolean {
+ const text = `${card.title ?? ""} ${card.when ?? ""}`;
+ return RACE_PROXIMITY.test(text) && !/lendemain/i.test(card.when ?? "");
 }

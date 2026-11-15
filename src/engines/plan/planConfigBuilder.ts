@@ -724,6 +724,9 @@ function buildAdaptationProjections(
           current: m.current,
           projected: m.projected,
           deltaPct: m.deltaMidPct,
+          deltaMin: m.deltaMin,
+          deltaMax: m.deltaMax,
+          unit: m.unit,
           direction: m.direction,
         })),
       performanceImpacts: s.performancePredictions.map(p => ({

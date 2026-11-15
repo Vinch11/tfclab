@@ -358,6 +358,12 @@ function anchorRaceDays(
 // `38'41"""`…) puisque dedupRaceDays est rappelée sur tout le plan à chaque
 // patch/regen ultérieur (usePlanAdaptation.ts). Le groupe accepte maintenant un
 // guillemet seul (0 chiffre après) en plus du cas à 2 chiffres.
+/** Leg of a long triathlon followed by a zone at or above Z3 ("Marathon en Z4a", "semi en Z3-Z4"). */
+export const TRI_RUN_ZONE_PATTERN = /((?:\d+(?:[.,]\d+)?\s*km\s*)?\b(?:marathon|semi-marathon|semi|course\s+à\s+pied|CAP|run))\s+(?:en|à|@)\s+Z[3-6][abc]?(?:\s*[-–\/]\s*Z?[1-6][abc]?)?(?:\s+r[ée]guli[èe]re)?/gi;
+export function isTriathlonLongObjective(objective: string): boolean {
+  const l = objective.toLowerCase();
+  return l.includes("ironman") || l.includes("70.3") || l === "im" || l === "703" || l.includes("half iron");
+}
 const RACE_OBJECTIVE_TIME_PATTERN = /Objectif\s*:?\s*(\d{1,2}h\d{2}(?:\d{2})?|\d{1,3}[:'′]\d{2}(?:['′"](?:\d{2})?)?)/i;
 
 function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?: PlanAthleteData): void {
@@ -405,6 +411,21 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
           s.details = s.details.replace(/allure\s+marathon\s+cible[^.]*\./gi, "").trim();
           // eslint-disable-next-line no-console
           console.warn(`race_block_target_overridden — S${week.weekNumber} ${s.dayName} : mention "allure marathon" retirée (objectif="${goal.objective}", avant: "${before.slice(0, 80)}…")`);
+        }
+
+        // Triathlon IM/70.3 : le marathon/semi d'un triathlon n'est JAMAIS
+        // couru à l'intensité d'un marathon/semi isolé (bug réel plan Emanuela :
+        // « 42.195km Marathon en Z4a »). On retire toute zone ≥ Z3 attribuée à la
+        // CAP du jour de course et on ancre l'allure CAP cible triathlon dérivée.
+        const objRaw = goal?.objective || config.objective || "";
+        if (isTriathlonLongObjective(objRaw)) {
+          const fixed = s.details.replace(TRI_RUN_ZONE_PATTERN, (_m, leg: string) => `${leg} à l'allure CAP cible ${/70\.3|half|703/i.test(objRaw) ? "70.3" : "Ironman"}`);
+          const runHint = buildRaceStageHints(objRaw, resolveAmbitionKey(config), athlete).run;
+          if (fixed !== s.details || (runHint && !/CAP\s*:/.test(s.details))) {
+            s.details = `${fixed.trim()}${runHint && !/CAP\s*:/.test(fixed) ? ` CAP : ${runHint}` : ""}`.replace(/\s+/g, " ").trim();
+            // eslint-disable-next-line no-console
+            console.warn(`race_tri_run_intensity_anchored — S${week.weekNumber} ${s.dayName}`);
+          }
         }
 
         // Correction déterministe du temps objectif affiché sur la séance du

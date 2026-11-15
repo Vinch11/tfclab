@@ -1,3 +1,4 @@
+import { isRaceProximityCard } from '../../../supabase/functions/_shared/sessionCatalogueContract';
 import { canGuidePrescription } from "@/lib/limiterPrescription";
 import { isOneTimeTestProtocol, parseWeeklyFrequencyCap } from '../../../supabase/functions/_shared/catalogueWeeklyFrequency';
 /**
@@ -5011,7 +5012,7 @@ function validateLcwSignaturePresence(
  *  course lui-même ("Matin compétition (J)") ou à la veille de course
  *  ("Veille de course") — des rituels de jour J, jamais du contenu hebdo
  *  générique. */
-const RACE_DAY_ONLY_PATTERN = /matin\s*comp[ée]tition|jour\s*j\b|veille\s*de\s*course/i;
+const RACE_DAY_ONLY_PATTERN = /matin\s*(?:de\s*)?comp[ée]tition|jour\s*j\b|veille\s*(?:de\s*)?(?:course|comp[ée]tition)/i;
 
 /** Rule : Placement d'une fiche "jour J uniquement" hors semaine de course —
  *  bug réel (audit PDF, coach : "à partir de S5, aucune intensité, aucun
@@ -5034,22 +5035,32 @@ function validateRaceDayOnlyFichePlacement(plan: ParsedPlan): { issues: Validati
   const issues: ValidationIssue[] = [];
   const catalogById = getCatalogById();
   let misplaced = 0;
+  // Jours absolus des épreuves (semaine × 7 + jour) : une fiche « J-1 » d'une
+  // course de lundi peut légitimement tomber la semaine précédente.
+  const raceDays = plan.weeks.flatMap(w => w.sessions.filter(isRaceDaySession).map(r => w.weekNumber * 7 + (r.dayIndex ?? 6)));
 
   for (const week of plan.weeks) {
-    if (weekHasRaceDay(week)) continue; // semaine de course elle-même : placement légitime
     for (const s of week.sessions) {
-      if (s.isRest) continue;
+      if (s.isRest || isRaceDaySession(s)) continue;
       const rawId = extractCatalogId(s.title, s.details, s.catalogId);
       if (!rawId) continue;
       const id = rawId.toUpperCase();
       const entry = catalogById.get(id);
-      if (!entry || !RACE_DAY_ONLY_PATTERN.test(entry.when || "")) continue;
+      if (!entry) continue;
+      const timing = `${entry.objectif ?? ""} ${entry.when ?? ""}`;
+      if (!RACE_DAY_ONLY_PATTERN.test(entry.when || "") && !isRaceProximityCard({ title: entry.objectif ?? "", when: entry.when ?? "" })) continue;
+      const jn = timing.match(/\bJ\s*-\s*([123])\b/i);
+      const maxDays = /matin|jour\s*j\b/i.test(entry.when ?? "") && !jn ? 0 : jn ? Number(jn[1]) : /veille/i.test(timing) ? 1 : 3;
+      const day = week.weekNumber * 7 + (s.dayIndex ?? 0);
+      const ok = raceDays.some(r => r - day >= 0 && r - day <= maxDays);
+      if (ok) continue;
       misplaced++;
+      const nearest = raceDays.filter(r => r >= day).sort((x, y) => x - y)[0];
       issues.push({
         rule: "race_day_only_fiche_misplaced",
         severity: "error",
         week: week.weekNumber,
-        message: `S${week.weekNumber} ${s.dayName}: "${entry.objectif}" (${id}) — fiche réservée au jour de course ou à la veille ("${entry.when}"), utilisée hors semaine de course`,
+        message: `S${week.weekNumber} ${s.dayName}: "${entry.objectif}" (${id}) — fiche réservée à J-${maxDays} maximum ("${entry.when}"), placée ${nearest != null ? `à J-${nearest - day}` : "sans course à venir"}`,
       });
     }
   }

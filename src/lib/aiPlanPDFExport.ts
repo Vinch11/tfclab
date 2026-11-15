@@ -387,6 +387,18 @@ export interface PDFGapContext {
   wbalRefs?: WbalAthleteRefs | null;
 }
 
+/** Fourchette « actuel → bas–haut » ; un point unique donnait une fausse précision. */
+export function projectionRangeText(m: { current: number | null; deltaPct: number; deltaMin?: number; deltaMax?: number; unit?: string }, digits: number): string {
+  if (m.current == null) return "?";
+  const lo = Math.min(m.deltaMin ?? m.deltaPct, m.deltaMax ?? m.deltaPct), hi = Math.max(m.deltaMin ?? m.deltaPct, m.deltaMax ?? m.deltaPct);
+  const at = (d: number) => {
+    const v = m.current! * (1 + d / 100);
+    return (m.unit === "score" ? Math.min(100, Math.max(0, v)) : v).toFixed(digits);
+  };
+  const pct = (d: number) => `${d > 0 ? "+" : ""}${Math.round(d)}`;
+  return lo === hi ? `${m.current.toFixed(digits)} → ~${at(lo)} (${pct(lo)} %)` : `${m.current.toFixed(digits)} → ${at(lo)}–${at(hi)} (${pct(lo)} à ${pct(hi)} %)`;
+}
+
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
@@ -420,6 +432,8 @@ function buildPlanHTML(
   const completeness = computePlanExportCompleteness(plan);
   const incompleteWarningHTML = buildIncompletePlanWarningHTML(completeness);
 
+  // Une seule prescription par séance : la fiche bibliothèque passe en annexe (une fois par fiche).
+  const annexFiches = new Map<string, EnrichedSessionFiche>();
   const weekRows = plan.weeks.map((week, weekIdx) => {
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
@@ -439,7 +453,9 @@ function buildPlanHTML(
       const fiche = (isCompact || s.isRest) ? null : getFicheForSession(s, gapContext?.objective, gapContext?.wbalRefs);
 
       const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });
-      const catalogueWarning = catalogueIssues.length ? `<p style="color:#a22;font-weight:bold">Prescription et référence catalogue : correspondance à vérifier.</p>` : "";
+      void catalogueIssues; // diagnostics de correspondance : vue coach uniquement, jamais dans le document athlète
+      if (fiche) annexFiches.set(fiche.id, fiche);
+      const ficheRef = fiche ? `<div class="fiche-ref" style="font-size:10px;color:#6E6B78;">📚 Fiche de référence <strong>${escapeHTML(fiche.id)}</strong> — voir annexe (explications, pas une séance en plus)</div>` : "";
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait
         const header = `
@@ -451,7 +467,7 @@ function buildPlanHTML(
           </div>`;
         const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
         const ficheBlock = fiche
-          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:6px 10px;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></div>`
+          ? `<div style="border-top:1px dashed #DAD6CC;background:#FAF9F5;padding:4px 10px;">${ficheRef}</div>`
           : "";
         const altsBlock = altsHtml
           ? `<div style="border-top:1px dashed #DAD6CC;background:#fff;padding:6px 10px;">${altsHtml}</div>`
@@ -464,7 +480,7 @@ function buildPlanHTML(
 
       const totalCols = (hasDate ? 1 : 0) + 4;
       const ficheRow = fiche
-        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#FAF9F5;"><div class="fiche-box">${catalogueWarning}${renderFicheHTML(fiche, plan.totalWeeks, gapContext?.objective)}</div></td></tr>`
+        ? `<tr class="fiche-row"><td colspan="${totalCols}" style="padding:4px 10px;border:1px solid #ddd;background:#FAF9F5;">${ficheRef}</td></tr>`
         : "";
       const altsRow = altsHtml
         ? `<tr class="alts-row"><td colspan="${totalCols}" style="padding:6px 10px;border:1px solid #ddd;background:#fff;">${altsHtml}</td></tr>`
@@ -628,12 +644,12 @@ function buildPlanHTML(
   ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
   <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #5555E0;page-break-inside:avoid;">
     <strong>🔮 Projections Adaptation Predictor™</strong>
-    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Estimations modèle (fourchettes physiologiques typiques, non garanties).</p>
+    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Scénarios du modèle : fourchettes indicatives, jamais des gains garantis ni des mesures. TTE et durabilité ne disposent pas de bornes d'adaptation validées.</p>
     ${adaptationProjections.map((p, i) => `
       <div style="margin-top:${i === 0 ? 0 : 10}px;padding:8px 10px;background:#fff;border:1px solid #dbe7f5;border-radius:4px;">
         <div style="font-weight:600;font-size:12px;margin-bottom:4px;">
           ${i === 0 ? "⭐ " : ""}${p.leverLabel}
-          <span style="font-weight:normal;color:#777;font-size:10px;margin-left:6px;">Impact ${p.impactScore.toFixed(0)}/100 — ${p.impactLabel}</span>
+          <span style="font-weight:normal;color:#777;font-size:10px;margin-left:6px;">${p.impactLabel}</span>
         </div>
         <p style="margin:0 0 6px 0;font-size:10.5px;color:#555;">${p.recommendation}</p>
         ${p.metrics.length > 0 ? `
@@ -647,8 +663,7 @@ function buildPlanHTML(
               <td style="padding:2px 6px;color:${color};width:18px;">${arrow}</td>
               <td style="padding:2px 6px;">${m.label}</td>
               <td style="padding:2px 6px;text-align:right;font-family:monospace;color:#555;">
-                ${m.current?.toFixed(digits) ?? "?"} → ${m.projected?.toFixed(digits) ?? "?"}
-                <span style="color:${color};margin-left:4px;">(${sign}${m.deltaPct.toFixed(1)}%)</span>
+                ${projectionRangeText(m, digits)}
               </td>
             </tr>`;
           }).join("")}
@@ -663,6 +678,9 @@ function buildPlanHTML(
   ${renderPlanTimelineHTML(plan, (p) => displayPhase(p, phaseLabelMap), startDate ? computeWeekStartDate(startDate, 1) : undefined)}
   <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
   ${weekRows}
+  ${annexFiches.size > 0 ? `<h2 style="page-break-before:always;">Annexe — fiches de référence</h2>
+  <p style="font-size:10.5px;color:#6E6B78;">La séance à réaliser est celle décrite dans le plan. Ces fiches expliquent le but, les repères et les erreurs à éviter ; leurs exemples ne s'ajoutent pas à la séance.</p>
+  ${[...annexFiches.values()].sort((a, b) => a.id.localeCompare(b.id)).map(f => `<div class="fiche-box" style="margin-bottom:10px;page-break-inside:avoid;">${renderFicheHTML(f, plan.totalWeeks, gapContext?.objective)}</div>`).join("")}` : ""}
   <footer style="margin-top:32px;padding-top:12px;border-top:1px solid #ddd;font-size:10px;color:#aaa;text-align:center;">
     Plan généré par TFCL™ Plan Generator — ${new Date().toLocaleDateString("fr-FR")}
   </footer>

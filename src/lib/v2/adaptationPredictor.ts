@@ -547,7 +547,12 @@ function buildScenario(
     const scaledMin = cap.minPct;
     const scaledMax = cap.maxPct;
     const midPct = cap.midPct;
-    const projected = current * (1 + midPct / 100);
+    // Scores bornés 0-100 (durabilité, économie) : la projection ne peut pas
+    // sortir de l'échelle (bug réel : Durabilité 93,5 → 118,3).
+    const bounded = config.unit === "score";
+    const clampScore = (v: number) => bounded ? Math.min(100, Math.max(0, v)) : v;
+    const projected = clampScore(current * (1 + midPct / 100));
+    const pctOf = (v: number) => current > 0 ? (clampScore(current * (1 + v / 100)) / current - 1) * 100 : v;
 
     let direction: "up" | "down" | "stable";
     if (midPct > 0.5) direction = "up";
@@ -567,9 +572,9 @@ function buildScenario(
       unit: config.unit,
       current,
       projected: Math.round(projected * 100) / 100,
-      deltaMin: Math.round(scaledMin * 10) / 10,
-      deltaMax: Math.round(scaledMax * 10) / 10,
-      deltaMidPct: Math.round(midPct * 10) / 10,
+      deltaMin: Math.round(pctOf(scaledMin) * 10) / 10,
+      deltaMax: Math.round(pctOf(scaledMax) * 10) / 10,
+      deltaMidPct: Math.round(pctOf(midPct) * 10) / 10,
       direction,
       significance,
       available: true,
@@ -599,7 +604,8 @@ function buildScenario(
       totalPositive += effectiveDelta;
       count++;
     }
-    impactScore = Math.round(Math.max(0, Math.min(100, 50 + totalPositive * 3)));
+    // Moyenne (et non somme) des effets : la somme saturait à 100/100 dès ~17 points cumulés.
+    impactScore = Math.round(Math.max(0, Math.min(100, 50 + (totalPositive / Math.max(1, count)) * 3)));
   }
 
   let impactLabel: string;

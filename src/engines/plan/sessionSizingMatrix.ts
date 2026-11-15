@@ -721,10 +721,12 @@ export function inferWeekType(
   const taperWeeks = Math.max(1, taperWeeksForObjective(objective));
   // Convention inclusive (alignée periodizationBounds/inferPhaseFromWeek/promptHelpers) :
   // les `taperWeeks` semaines d'affûtage INCLUENT la semaine de course. IM = 3 →
-  // S(n-2), S(n-1) affûtage + S(n) course. L'ancien `>=` ajoutait une semaine
+  // S(n-2), S(n-1) affûtage + S(n) course ; 70.3 = 2 → S(n-1) + course. L'ancien `>=` ajoutait une semaine
   // (IM ≈ 4 semaines allégées) et le seuil pct>0.92 en ajoutait encore sur les
   // plans longs — affûtage trop long et trop profond (audit plan Emanuela).
-  if (weekNumber > total - taperWeeks && weekNumber < total) return "taper";
+  // Au moins une semaine d'affûtage avant la semaine de course est conservée
+  // pour tous les objectifs (1 semaine → inchangé : S(n-1) + course).
+  if (weekNumber >= total - Math.max(1, taperWeeks - 1) && weekNumber < total) return "taper";
   const recoveryEveryNWeeks = cadenceOverride ?? (athleteAge != null && athleteAge >= 40 ? 3 : 4);
   if (weekNumber % recoveryEveryNWeeks === 0) return "recovery";
   return "load";

@@ -165,7 +165,10 @@ function computeCHO(input: GuardrailsInput, objKey: string, sport: Sport, durati
   if (ultra && durationH >= 6) exoGh *= 0.82;
 
   const capMax = ultra ? 60 : sport === "trail" ? 70 : capLike ? 75 : 90;
-  const minFloor = durationH < 1 ? 0 : 30;
+  // Plancher pratique pour les épreuves longues (Jeukendrup 2014 ; ACSM 2016) :
+  // ≥2h30 d'effort → au moins 60 g/h. Sans lui, la formule descendait à ~31 g/h
+  // pour une Ironman et le plan régressait (60–80 g/h en build → 31 g/h ensuite).
+  const minFloor = durationH < 1 ? 0 : durationH >= 2.5 ? Math.min(60, capMax) : 30;
   const rate = Math.max(minFloor, Math.min(capMax, Math.round(exoGh)));
   return { rate, capMax, method: "mader" };
 }
@@ -280,6 +283,7 @@ export function buildNutritionAndSafetyBlock(input: GuardrailsInput): string {
     lines.push(`- 🥤 Événement court (<1h) : plancher CHO = 0 (F31), aucune obligation en course. Séances longues (>1h30) suivent le taux ci-dessus.`);
   }
   if (cho.method !== "insufficient") {
+    lines.push(`- Progression digestive : les apports testés en sortie longue ne redescendent jamais d'un bloc à l'autre ; viser ce taux de course au plus tard dans les simulations spécifiques.`);
     lines.push(`- 📚 Séances "nutrition sim" en Race-Specific : reproduire ce taux exact (${cho.rate}g/h${weightForHydration != null ? ` + ${hydLo}-${hydHi}ml/h` : ""}).`);
   }
 

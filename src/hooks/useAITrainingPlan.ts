@@ -342,6 +342,10 @@ export interface AdaptationProjection {
     current: number | null;
     projected: number | null;
     deltaPct: number;
+    /** Fourchette du modèle (%), affichée à la place d'un point unique. */
+    deltaMin?: number;
+    deltaMax?: number;
+    unit?: string;
     direction: "up" | "down" | "stable";
   }>;
   performanceImpacts: Array<{
