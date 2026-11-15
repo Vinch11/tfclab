@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildCoachVolumeBudget, recommendedWeeklyRange, resolveCoachHoursReference } from "../sessionSizingMatrix";
 import { validateCoachInitialLoad, validateCoachVolumeBudgets } from "@/lib/plan/coachVolumeValidation";
 
+// Reference hours are planning inputs, never measured athlete load.
 describe("Auto uses the displayed sport and ambition range, not a hidden midpoint", () => {
   it("Ironman competitor resolves the displayed 15–20 h endurance reference", () => {
     expect(resolveCoachHoursReference("Ironman", "competitor")).toEqual({ hours: 15, minHours: 15, maxHours: 20, source: "recommended-range" });
