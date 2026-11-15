@@ -1785,6 +1785,7 @@ const Index = () => {
               return (
                 <CoachingCompassCard
                   input={alignedInput}
+                  athleteName={contextCurrentAthlete?.nom}
                   staffMode={staffMode}
                 />
               );

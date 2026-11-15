@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Compass visuel : comparaisons en unités réelles, plages VLamax bilatérales, textes et sources dépliables, cohorte publiée contextuelle séparée des cibles de coaching. Audit de couverture documenté ; aucune norme objectif × ambition certifiée sans preuve. 133 tests passent ; Emanuela connectée vérifiée sur ordinateur et téléphone, sources et pédagogie ouvertes, aucun débordement ni erreur runtime. Valeurs et plans inchangés. Audit non exhaustif : cohortes normatives manquantes signalées, pas de chiffres inventés.
+
 - [x] Temps hebdomadaire : renforcement exclu des totaux affichés et du contrôle des durées absentes ; nombre de séances et calendrier conservés, impression harmonisée. 15 tests verts, compilation OK, deux générateurs déployés avec succès ; contrôle visuel connecté non vérifié, aperçu resté en chargement.
 
 - [x] Sorties longues vélo IM/70.3 protégées selon phase et priorité coach ; en récupération le brick cède son créneau au vélo autonome, sans ajout de séance. Renforcement hors budget endurance, mais conservé dans calendrier, charge et temps total. 155 tests frontend et 29 tests fonctions verts ; précontrôle connecté Emanuela 39 semaines admissible (sans marathon B dans cet essai), deux générateurs déployés avec succès. IA réelle, qualité sportive du futur plan et publication non vérifiées ; aucun plan sauvegardé réécrit. Repères de coaching sourcés, pas de durées optimales prouvées ni priorités spécifiques de phase inférées.
