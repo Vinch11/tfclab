@@ -1,5 +1,6 @@
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 /**
  * AIPlanPDFExport — Generates a printable HTML view of the AI plan for PDF export
  */
@@ -513,13 +514,14 @@ function buildPlanHTML(
           <tbody>${sessionRows}</tbody>
         </table>`;
 
+    const scheduledTime = weeklyTimeBreakdown(week.sessions);
     return `
       <div class="week-block" style="margin-bottom:28px;${weekSeparator}">
         <h3 style="margin:0 0 6px 0;font-size:15px;color:#14131A;background:#EDEDFC;padding:8px 12px;border-radius:6px;border-left:4px solid #5555E0;">
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
           <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${displayPhase(week.phase, phaseLabelMap)}</span>
         </h3>
-        ${week.volumeTarget ? `<p style="margin:0 0 10px 0;font-size:11px;color:#5C5966;background:#f9fafb;padding:4px 10px;border-radius:4px;display:inline-block;">Volume cible : ${week.volumeTarget}</p>` : ""}
+        <p>Temps hebdomadaire hors renforcement : <strong>${formatScheduledMinutes(scheduledTime.endurance)}</strong>${scheduledTime.missing > 0 ? ` · ${scheduledTime.missing} durée(s) d’endurance à préciser` : ""} · Renforcement : <strong>${scheduledTime.strengthSessions} séance(s)</strong></p>
         ${sessionsBlock}
         ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#5C5966;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #C8860D;">⚡ ${week.coachNotes}</p>` : ""}
       </div>

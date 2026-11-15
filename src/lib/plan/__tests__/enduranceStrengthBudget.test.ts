@@ -14,8 +14,12 @@ describe('strength outside endurance hours, not outside the calendar',()=>{
   it('17.5h plus one endurance minute fails regardless of the two strength sessions',()=>{
     expect(validateCoachVolumeBudgets(plan(1051) as never,quotas)).toHaveLength(1);
   });
-  it('strength duration is still required to verify total prescribed activity',()=>{
+  it('missing strength duration does not block the weekly endurance budget',()=>{
     const missing=plan(); delete missing.weeks[0].sessions[1].durationMin;
+    expect(validateCoachVolumeBudgets(missing as never,quotas)).toEqual([]);
+  });
+  it('missing endurance duration still blocks verification of the weekly budget',()=>{
+    const missing=plan(); delete missing.weeks[0].sessions[0].durationMin;
     expect(validateCoachVolumeBudgets(missing as never,quotas)).toHaveLength(1);
   });
   it('prevalidation excludes strength minutes but still detects an extra daily session',()=>{

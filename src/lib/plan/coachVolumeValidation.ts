@@ -14,7 +14,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
     const entry = quotas[week.weekNumber];
     const budget = entry?.volumeBudget;
     if (!entry || !budget || week.sessions.some(isRaceDaySession)) { previousLoad = undefined; continue; }
-    const active = week.sessions.filter(s => !s.isRest && s.sport !== "rest");
+    const active = week.sessions.filter(s => !s.isRest && s.sport !== "rest" && normalizeRepairSport(s.sport) !== "strength");
     const durations = active.map(s => (parseSessionDurationMin(s as ParsedSession) ?? 0));
     const missing = durations.filter(n => !Number.isFinite(n) || n <= 0).length;
     if (missing) {
@@ -22,7 +22,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
         message: `S${week.weekNumber}: plafond de charge non vérifiable (${missing} durée(s) absente(s))` });
       previousLoad = undefined; continue;
     }
-    const total = durations.reduce((sum, duration, i) => sum + (normalizeRepairSport(active[i].sport) === "strength" ? 0 : duration), 0);
+    const total = durations.reduce((sum, duration) => sum + duration, 0);
     let ceiling = budget.maxMinutes;
     let reason = "plafond du niveau coach";
     if (previousLoad && budget.globalWeek > previousLoad.globalWeek) {

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Temps hebdomadaire : renforcement exclu des totaux affichés et du contrôle des durées absentes ; nombre de séances et calendrier conservés, impression harmonisée. 15 tests verts, compilation OK, deux générateurs déployés avec succès ; contrôle visuel connecté non vérifié, aperçu resté en chargement.
+
 - [x] Sorties longues vélo IM/70.3 protégées selon phase et priorité coach ; en récupération le brick cède son créneau au vélo autonome, sans ajout de séance. Renforcement hors budget endurance, mais conservé dans calendrier, charge et temps total. 155 tests frontend et 29 tests fonctions verts ; précontrôle connecté Emanuela 39 semaines admissible (sans marathon B dans cet essai), deux générateurs déployés avec succès. IA réelle, qualité sportive du futur plan et publication non vérifiées ; aucun plan sauvegardé réécrit. Repères de coaching sourcés, pas de durées optimales prouvées ni priorités spécifiques de phase inférées.
 
 - [x] Déblocage Manu : budget des deux renforts corrigé en semaine finale, marathon B expliqué comme jalon et date du 28 septembre préservée même sans plan actif. Précontrôle connecté réel : 39 semaines jusqu’au 27 juin 2027, aucun blocage, avertissements conservés et bouton Générer disponible ; 110 tests verts, 1 cas ignoré, compilation OK et deux générateurs déployés. Aucun plan IA généré ni sauvegarde athlète modifiée ; qualité du futur plan à contrôler après génération.
