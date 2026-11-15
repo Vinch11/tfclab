@@ -2913,7 +2913,7 @@ export default function AITrainingPlanPage() {
       ? {
         ...regenQuotaEntryRaw,
         phase: buildPeriodizationCalendar(fullPlanConfig)?.[weekNumber],
-        volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource, { totalWeeks: fullPlanConfig.globalTotalWeeks ?? fullPlanConfig.totalWeeks ?? weekNumber, objective: fullPlanConfig.catalogObjective || fullPlanConfig.objective }),
+        volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource, { totalWeeks: fullPlanConfig.globalTotalWeeks ?? fullPlanConfig.weeksAvailable ?? weekNumber, objective: fullPlanConfig.catalogObjective || fullPlanConfig.objective }),
         terrainAvailability: fullPlanConfig.terrainAvailability,
         floors: applySlFloorIndividualization(
           applyLongRidePhasePolicy(regenQuotaEntryRaw.floors, {
