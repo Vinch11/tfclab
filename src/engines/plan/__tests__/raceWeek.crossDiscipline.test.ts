@@ -36,7 +36,8 @@ it.each(cases)("$objective : conserve son affûtage et ses cadences de récupér
  expect(taperWeeksForObjective(objective)).toBe(taper);
  expect(taperWeeksForObjectiveServer(objective)).toBe(taper);
  expect(inferWeekType(weeks,weeks,objective,50)).toBe("race");
- expect(inferWeekType(weeks-taper,weeks,objective,50)).toBe("taper");
+ // Au plus 2 semaines allégées avant la semaine de course (Bosquet 2007).
+ expect(inferWeekType(weeks-Math.min(2,taper),weeks,objective,50)).toBe("taper");
  expect(inferWeekType(3,weeks,objective,50)).toBe("recovery");
  expect(inferWeekType(4,weeks,objective,32)).toBe("recovery");
  const config={objective,weeksAvailable:weeks,ambition:"age_group",fondationDurationWeeks:computeFondationDurationWeeks("light",weeks),identifiedLimitersRaw:["VLamax","FatMax","VMA","VO2max","Wprime"]};

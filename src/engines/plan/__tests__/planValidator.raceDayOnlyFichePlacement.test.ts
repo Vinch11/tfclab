@@ -80,3 +80,14 @@ describe("validateRaceDayOnlyFichePlacement — fiches 'jour J' hors semaine de 
     expect(result.issues.filter((i) => i.rule === "race_day_only_fiche_misplaced")).toHaveLength(0);
   });
 });
+
+describe("fiche de veille placée trop tôt dans la semaine de course (plan Emanuela)", () => {
+  it("flague un shakeout J-1 placé 5 jours avant la course, même dans la semaine de course", () => {
+    const week = makeWeek(7, [
+      { dayIndex: 1, dayName: "Mardi", title: "Shakeout J-1", catalogId: "ENR_TAPER_SHAKEOUT_RUN" },
+      { dayIndex: 6, dayName: "Dimanche", title: "🏁 COURSE OBJECTIF A — Ironman", details: "" },
+    ], "Race Week", "Affûtage");
+    const result = validatePlan(makePlan([week]));
+    expect(result.issues.filter((i) => i.rule === "race_day_only_fiche_misplaced")).toHaveLength(1);
+  });
+});

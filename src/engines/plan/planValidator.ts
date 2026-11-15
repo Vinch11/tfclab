@@ -5052,7 +5052,7 @@ function validateRaceDayOnlyFichePlacement(plan: ParsedPlan): { issues: Validati
       const jn = timing.match(/\bJ\s*-\s*([123])\b/i);
       const maxDays = /matin|jour\s*j\b/i.test(entry.when ?? "") && !jn ? 0 : jn ? Number(jn[1]) : /veille/i.test(timing) ? 1 : 3;
       const day = week.weekNumber * 7 + (s.dayIndex ?? 0);
-      const ok = raceDays.some(r => r - day >= 0 && r - day <= maxDays);
+      const ok = raceDays.some(r => r - day >= 0 && r - day <= maxDays + 1) // ±1 jour : un rappel J-1 placé à J-2 reste acceptable;
       if (ok) continue;
       misplaced++;
       const nearest = raceDays.filter(r => r >= day).sort((x, y) => x - y)[0];

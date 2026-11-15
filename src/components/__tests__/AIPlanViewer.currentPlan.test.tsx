@@ -33,7 +33,7 @@ describe("état courant contrôlé : affichage / export / diagnostic / sauvegard
     <AIPlanViewer plan={plan} onPlanChange={setPlan} /></>;
   }
   render(<Harness />);
-  expect(screen.getByText(/60 min prescrites > 50 min/)).toBeInTheDocument();
+  expect(screen.getByText(/60 min d'endurance prescrites > 50 min/)).toBeInTheDocument();
   expect(screen.queryByText("ancien diagnostic coach")).not.toBeInTheDocument();
   expect(screen.queryByText(/ancien quota de charge/)).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Corriger dose synthétique" }));

@@ -111,4 +111,4 @@
 - [ ] Étape 2 — structure Nolio depuis le texte réel du plan (fait) ; reste : envoi réel d’une semaine sur Vince par le coach
 - [x] Étape 3 — quotas d’allure de course (avertissements) actifs
 - [x] Étape 4 — fiche d'un autre objectif retirée des séances clés + avertissement
-- [ ] Plan Manu (audit Claude) : jour de course IM sans intensité > allure IM ; activation J-1 seulement à J-1 ; volume dans la fourchette coach avec progression réelle ; affûtage IM 2–3 sem ; cycles 3:1 ; nutrition non régressive ; Predictor sans fausse précision ; une seule prescription par séance (fiche en annexe).
+- [x] Plan Manu (audit Claude) : jour de course IM sans intensité > allure IM ; activation J-1 seulement à J-1 ; volume dans la fourchette coach avec progression réelle ; affûtage IM 2–3 sem ; cycles 3:1 ; nutrition non régressive ; Predictor sans fausse précision ; une seule prescription par séance (fiche en annexe).

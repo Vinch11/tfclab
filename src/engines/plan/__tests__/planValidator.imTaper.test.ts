@@ -95,7 +95,7 @@ describe("validatePlan — affûtage Ironman réel (3 semaines, cf. TAPER_WEEKS_
     ];
     const result = validatePlan(makePlan(weeks), "IM");
     const typesByWeek = new Map(result.weekMetrics.map(m => [m.weekNumber, m.scheduledWeekType]));
-    expect(typesByWeek.get(5)).toBe("taper");
+    expect(typesByWeek.get(5)).not.toBe("taper"); // au plus 2 semaines allégées avant la course
     expect(typesByWeek.get(6)).toBe("taper");
     expect(typesByWeek.get(7)).toBe("taper");
     expect(typesByWeek.get(8)).toBe("race");

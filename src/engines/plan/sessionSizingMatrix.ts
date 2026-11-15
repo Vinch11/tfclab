@@ -226,14 +226,13 @@ export function recommendedWeeklyRange(objective: string, ambition: string) {
  */
 export function resolveCoachHoursReference(objective: string, ambition: string, explicitHours?: number) {
   if (typeof explicitHours === "number" && Number.isFinite(explicitHours) && explicitHours > 0)
-    return { hours: explicitHours, minHours: explicitHours, maxHours: explicitHours, source: "coach" as const };
-  const range = recommendedWeeklyRange(objective, ambition);
-  if (range) return { hours: range.hours[0], minHours: range.hours[0], maxHours: range.hours[1], source: "recommended-range" as const };
+    return { hours: explicitHours, source: "coach" as const };
+  // Auto : la matrice interne reste un PLAFOND sans charge mesurée (jamais un volume obligatoire).
   const objectiveKey = normalizeSizingObjective(objective);
   const row = objectiveKey ? MATRIX[objectiveKey]?.[normalizeSizingAmbition(ambition)] : undefined;
   if (!row || typeof row.hoursMin !== "number" || typeof row.hoursMax !== "number") return undefined;
   const mid = (row.hoursMin + row.hoursMax) / 2;
-  return { hours: mid, minHours: undefined, maxHours: mid, source: "internal-matrix" as const };
+  return { hours: mid, source: "internal-matrix" as const };
 }
 
 export interface CoachVolumeBudget {
@@ -255,6 +254,8 @@ const RECOVERY_FLOOR = 0.55;
 const RECOVERY_CEILING = 0.7;
 /** Tolerance around a load-week target: the model chooses catalogue durations, not exact minutes. */
 const LOAD_FLOOR = 0.92;
+/** Bas de progression pour une saisie coach unique (fin de rampe → pic avant affûtage). */
+const COACH_RANGE_LOW = 0.85;
 const LOAD_CEILING = 1.08;
 
 /**
@@ -273,7 +274,10 @@ export function buildCoachVolumeBudget(ramp: VolumeRampLike | undefined,
   const growth = slFloorRampFactor(globalWeek, anchors) / ramp.week1PctTarget;
   const rampHours = ramp.week1HoursMax * growth;
   const base = { globalWeek, weeklyIncreasePctMax: ramp.weeklyIncreasePctMax ?? 0.10, referenceSource };
-  const lo = ramp.weeklyHoursMin, hi = ramp.weeklyHoursMax;
+  // Heures saisies par le coach = volume d'endurance visé (renforcement exclu) :
+  // la rampe y mène puis le volume progresse de 85 % à 100 % de la saisie avant l'affûtage.
+  const hi = ramp.weeklyHoursMax ?? (referenceSource === "coach" ? ramp.weeklyHoursTarget : undefined);
+  const lo = ramp.weeklyHoursMin ?? (hi != null && referenceSource === "coach" ? hi * COACH_RANGE_LOW : undefined);
   if (referenceSource === "internal-matrix" || !Number.isFinite(lo) || !Number.isFinite(hi) || !shape) {
     const hours = Math.min(ramp.weeklyHoursTarget, rampHours);
     return { ...base, maxMinutes: Math.floor(hours * 60 * (weekType === "recovery" ? RECOVERY_CEILING : 1) + 1e-8) };
@@ -719,14 +723,12 @@ export function inferWeekType(
   // (pas seulement 1 semaine pour tout le monde — audit qualité plans IA : un Ironman ou
   // un Marathon méritent scientifiquement plus qu'un 10K ou un Sprint).
   const taperWeeks = Math.max(1, taperWeeksForObjective(objective));
-  // Convention inclusive (alignée periodizationBounds/inferPhaseFromWeek/promptHelpers) :
-  // les `taperWeeks` semaines d'affûtage INCLUENT la semaine de course. IM = 3 →
-  // S(n-2), S(n-1) affûtage + S(n) course ; 70.3 = 2 → S(n-1) + course. L'ancien `>=` ajoutait une semaine
-  // (IM ≈ 4 semaines allégées) et le seuil pct>0.92 en ajoutait encore sur les
-  // plans longs — affûtage trop long et trop profond (audit plan Emanuela).
-  // Au moins une semaine d'affûtage avant la semaine de course est conservée
-  // pour tous les objectifs (1 semaine → inchangé : S(n-1) + course).
-  if (weekNumber >= total - Math.max(1, taperWeeks - 1) && weekNumber < total) return "taper";
+  // Le seuil pct>0.92 ajoutait encore des semaines sur les plans longs —
+  // affûtage trop long et trop profond (audit plan Emanuela).
+  // Semaines allégées AVANT la semaine de course plafonnées à 2 pour tous les
+  // objectifs (Bosquet 2007 : ~2 semaines optimales) : IM 3 → S(n-2), S(n-1) + course
+  // au lieu de 4 semaines réduites ; 1–2 semaines inchangées.
+  if (weekNumber >= total - Math.min(2, taperWeeks) && weekNumber < total) return "taper";
   const recoveryEveryNWeeks = cadenceOverride ?? (athleteAge != null && athleteAge >= 40 ? 3 : 4);
   if (weekNumber % recoveryEveryNWeeks === 0) return "recovery";
   return "load";

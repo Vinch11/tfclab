@@ -34,30 +34,26 @@ describe("taperWeeksForObjective — Ironman (IM) : 3 semaines, le plus long de 
   });
 });
 
-describe("inferWeekType — fenêtre d'affûtage IM RÉELLE (3 semaines) sur un plan réaliste", () => {
-  it("plan IM de 16 semaines : S13-S14-S15 taper (3 semaines), S16 race, S11 encore load", () => {
-    expect(inferWeekType(11, 16, "IM")).toBe("load");
-    expect(inferWeekType(13, 16, "IM")).toBe("taper");
+describe("inferWeekType — affûtage IM : 2 semaines allégées + semaine de course", () => {
+  it("plan IM de 16 semaines : S14-S15 taper, S16 race, S13 n'est plus réduite", () => {
+    expect(inferWeekType(13, 16, "IM")).not.toBe("taper");
     expect(inferWeekType(14, 16, "IM")).toBe("taper");
     expect(inferWeekType(15, 16, "IM")).toBe("taper");
     expect(inferWeekType(16, 16, "IM")).toBe("race");
   });
-
-  it("plan IM court (8 semaines) : la fenêtre de taper (3 sem) reste garantie malgré la durée réduite", () => {
-    expect(inferWeekType(5, 8, "IM")).toBe("taper");
-    expect(inferWeekType(6, 8, "IM")).toBe("taper");
-    expect(inferWeekType(7, 8, "IM")).toBe("taper");
-    expect(inferWeekType(8, 8, "IM")).toBe("race");
+  it("plan IM de 32 semaines (Emanuela) : S29 reste une semaine d'entraînement", () => {
+    expect(inferWeekType(29, 32, "IM", 50, 4)).toBe("load");
+    expect(inferWeekType(30, 32, "IM", 50, 4)).toBe("taper");
+    expect(inferWeekType(31, 32, "IM", 50, 4)).toBe("taper");
+    expect(inferWeekType(32, 32, "IM", 50, 4)).toBe("race");
   });
-
-  it("703 (2 semaines de taper) n'hérite PAS du taper 3 semaines de IM sur la même position", () => {
-    // Plan de 16 semaines, S13 : S-3 avant la course pour un affûtage à 3
-    // semaines (IM), mais seulement S-3 pour un affûtage à 2 semaines (70.3)
-    // — donc S13 est taper pour IM, encore load pour 70.3. Garde contre une
-    // régression qui confondrait les deux objectifs (cf. correction #6 de ce
-    // même sprint, qui ajoute "10K" à une liste d'éligibilité sans jamais
-    // devoir faire hériter son taper de Marathon).
-    expect(inferWeekType(13, 16, "IM")).toBe("taper");
-    expect(inferWeekType(13, 16, "703")).toBe("load");
+  it("3:1 choisi par le coach : décharge toutes les 4 semaines même à 50 ans", () => {
+    expect(inferWeekType(3, 32, "IM", 50, 4)).toBe("load");
+    expect(inferWeekType(4, 32, "IM", 50, 4)).toBe("recovery");
+    expect(inferWeekType(8, 32, "IM", 50, 4)).toBe("recovery");
+  });
+  it("703 et marathon conservent leurs 2 semaines", () => {
+    expect(inferWeekType(14, 16, "703")).toBe("taper");
+    expect(inferWeekType(13, 16, "703")).not.toBe("taper");
   });
 });

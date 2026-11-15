@@ -4097,7 +4097,11 @@ export default function AITrainingPlanPage() {
                     />
                     {!weeklyHours && (
                       <p className="text-[10px] text-muted-foreground">
-                        📚 Auto : basé sur la littérature ({getRecommendedRange(objective, ambition)?.hours || "—"}h)
+                        {(() => {
+                          const applied = resolveCoachHoursReference(objective, ambition);
+                          const lit = getRecommendedRange(objective, ambition)?.hours;
+                          return `Auto : plafond prudent ~${applied ? Math.round(applied.hours * 10) / 10 : "—"} h d'endurance${lit ? ` (littérature ${lit} h)` : ""}. Saisissez vos heures pour les imposer avec progression.`;
+                        })()}
                       </p>
                     )}
                   </div>

@@ -421,7 +421,7 @@ function dedupRaceDays(plan: ParsedPlan, config: PlanGenerationConfig, athlete?:
         if (isTriathlonLongObjective(objRaw)) {
           const fixed = s.details.replace(TRI_RUN_ZONE_PATTERN, (_m, leg: string) => `${leg} à l'allure CAP cible ${/70\.3|half|703/i.test(objRaw) ? "70.3" : "Ironman"}`);
           const runHint = buildRaceStageHints(objRaw, resolveAmbitionKey(config), athlete).run;
-          if (fixed !== s.details || (runHint && !/CAP\s*:/.test(s.details))) {
+          if (fixed !== s.details) {
             s.details = `${fixed.trim()}${runHint && !/CAP\s*:/.test(fixed) ? ` CAP : ${runHint}` : ""}`.replace(/\s+/g, " ").trim();
             // eslint-disable-next-line no-console
             console.warn(`race_tri_run_intensity_anchored — S${week.weekNumber} ${s.dayName}`);
