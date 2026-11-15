@@ -1,4 +1,5 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
+import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 import { NolioCyclesPanel } from "@/components/plan/NolioCyclesPanel";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { normalizeRepairSport } from "../../supabase/functions/_shared/repairSportingEquivalence";
@@ -807,6 +808,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
     ? weekSelectableKeys.filter((k) => nolioCtx.isSelected(k)).length
     : 0;
   const allWeekSelected = weekSelectableKeys.length > 0 && weekSelectedCount === weekSelectableKeys.length;
+  const scheduledTime = weeklyTimeBreakdown(week.sessions);
 
   return (
     <Card>
@@ -855,16 +857,11 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
             )}
           </div>
         )}
-        {(week.volumeTarget || week.computedVolumeStr) && (
-          <p className="text-xs text-muted-foreground">
-            {week.volumeTarget && <span>Volume cible : {week.volumeTarget}</span>}
-            {week.computedVolumeStr && week.computedVolumeMin && week.computedVolumeMin > 0 && week.computedVolumeStr !== week.volumeTarget && (
-              <span className={week.volumeTarget ? "ml-2" : ""}>
-                {week.volumeTarget ? "· " : ""}Volume réel calculé : <strong>{week.computedVolumeStr}</strong>
-              </span>
-            )}
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
+          <span>Endurance <strong>{formatScheduledMinutes(scheduledTime.endurance)}</strong></span>
+          <span>Renforcement <strong>{formatScheduledMinutes(scheduledTime.strength)}</strong></span>
+          <span>Temps total <strong>{formatScheduledMinutes(scheduledTime.total)}</strong>{scheduledTime.missing > 0 ? ` · ${scheduledTime.missing} durée(s) à préciser` : ''}</span>
+        </p>
       </CardHeader>
       <CardContent className="space-y-2">
         {week.sessions.map((session, idx) => {

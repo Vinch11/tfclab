@@ -41,7 +41,7 @@ export function validateFixedPlan(chunks:FixedChunk[],contracts:Record<number,Ca
    weeklyUsage.set(metadata.id,(weeklyUsage.get(metadata.id)??0)+1);
    if((weeklyUsage.get(metadata.id)??0)>catalogueWeeklyUsageCapacity(metadata)) fail('controlled_weekly_frequency');
   }
-  const total=week.sessions.reduce((sum,s)=>sum+s.durationMin,0);
+  const total=week.sessions.reduce((sum,s)=>sum+(s.sport==='strength'?0:s.durationMin),0);
   const budget=entry.volumeBudget;
   if(!Number.isFinite(total)||total>budget.maxMinutes) fail('controlled_volume_budget');
   if(previousLoad&&budget.globalWeek>previousLoad.globalWeek) {

@@ -65,9 +65,9 @@ export function prepareControlledPrescription(config:PlanConfig, prepared:Return
           if(check.errors.length||check.unknown.length) return [];
           return [{session,domain:selectedDomain,usage:counts.get(m.id)??0}];
         }).sort((a,b)=>a.usage-b.usage||a.session.durationMin-b.session.durationMin||String(a.session.catalogId).localeCompare(String(b.session.catalogId)));
-        const choice=choices.find(c=>total+c.session.durationMin<=entry.volumeBudget.maxMinutes);
+        const choice=choices.find(c=>total+(c.session.sport==='strength'?0:c.session.durationMin)<=entry.volumeBudget.maxMinutes);
         if(!choice) {add(week,'controlled_reviewed_candidate_unavailable');continue;}
-        sessions.push(choice.session);total+=choice.session.durationMin;
+        sessions.push(choice.session);total+=choice.session.sport==='strength'?0:choice.session.durationMin;
         const id=choice.session.catalogId;
         if(id) {counts.set(id,(counts.get(id)??0)+1);const key=`${week}:${id}`;counts.set(key,(counts.get(key)??0)+1);}
       }

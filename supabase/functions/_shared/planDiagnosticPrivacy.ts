@@ -3,7 +3,7 @@ const record = (v: unknown): Record<string, unknown> => v && typeof v === "objec
 const count = (v: unknown) => typeof v === "number" && Number.isFinite(v) && v >= 0 ? v : null;
 export function technicalFloors(value: unknown) {
   const v = record(value);
-  return Object.fromEntries(["slLongRideMin", "slLongRunMin", "minSwimPerWeek", "longRideWeekly", "longRunWeekly", "minStrengthPerWeek"].flatMap(k =>
+  return Object.fromEntries(["slLongRideMin", "slLongRunMin", "minSwimPerWeek", "longRideWeekly", "longRunWeekly", "minStrengthPerWeek", "dedicatedLongRide"].flatMap(k =>
     typeof v[k] === "boolean" || (typeof v[k] === "number" && Number.isFinite(v[k])) ? [[k, v[k]]] : []));
 }
 export function technicalFloorAudit(value: unknown) {

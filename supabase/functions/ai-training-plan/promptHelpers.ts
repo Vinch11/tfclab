@@ -1665,6 +1665,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   }
 
   if (config.weeksAvailable) lines.push(`- **Semaines disponibles :** ${config.weeksAvailable}`);
+  lines.push(`- BUDGET HORAIRE ENDURANCE : natation, vélo, course et bricks seulement. Renforcement/PPG hors de ces heures, mais maintenu dans le calendrier, les plafonds de séances/jour et la récupération. Afficher les minutes réellement prescrites séparément : endurance + renforcement = temps total. Réserver les sorties longues imposées avant de répartir les heures restantes ; ne pas les remplacer par plusieurs petits vélos ou par la durée totale d'un brick.`);
   if (config.weeklyHoursSource === "internal-matrix") {
     lines.push(`- Référence interne (non mesurée) : ${config.weeklyHours}h/sem. Les plafonds du quota hebdomadaire et la rampe du niveau coach priment sur les multiplicateurs d'ambition. Ce sont des maxima, pas des volumes obligatoires. Les en-têtes doivent refléter les minutes réellement prescrites.`);
   } else if (config.weeklyHours) {
@@ -1687,8 +1688,8 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       } else {
         lines.push(`  → Formule : ${config.weeklyHours}h × ${derived.multiplicateurVolume} (ambition ${config.ambition}) — borné [3h, ${derived.volumeCibleMaxH}h] (cap sport/ambition).`);
       }
-      lines.push(`  → **Les en-têtes de volume hebdomadaire DOIVENT afficher exactement cette valeur** (modulée par la phase : Base 100%, Build 100%, Peak 100%, Décharge ×0.7, Taper voir courbe existante).`);
-      lines.push(`  → INTERDICTION d'inventer une fourchette de volume alternative. La somme réelle des durées de séances de chaque semaine DOIT converger vers cette cible (±15%).`);
+      lines.push(`  → Référence ENDURANCE uniquement, hors renforcement. Les plafonds déterministes de chaque semaine priment ; ne pas remplir un plafond obligatoirement. Les en-têtes affichent la somme réellement prescrite, avec renforcement séparé (Décharge ×0.7, Taper voir courbe existante).`);
+      lines.push(`  → Ne pas inventer une fourchette alternative ni dépasser les plafonds pour atteindre la référence. Réserver d'abord les sorties longues et répartir le solde sur les autres séances.`);
     }
   } else {
     lines.push(`- **Heures/semaine :** Non spécifié — utilise le volume OPTIMAL recommandé dans la littérature scientifique pour cet objectif × niveau d'ambition (cf. tableaux de référence TFCL ci-dessus).`);

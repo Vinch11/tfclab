@@ -90,7 +90,7 @@ export function validateWeeklyQuotas(
       dayObservedSports.set(dayKey, list);
       if (s.isKeySession) dayObservedKey.set(dayKey, true);
       if (s.sport === "bike" && (s.durationMin ?? 0) >= slBikeMin) hasLongRide = true;
-      if (s.sport === "brick" && (s.durationMin ?? 0) >= brickSLBikeThreshold) hasLongRide = true;
+      if (!floors.dedicatedLongRide && s.sport === "brick" && (s.durationMin ?? 0) >= brickSLBikeThreshold) hasLongRide = true;
       if (s.sport === "run" && (s.durationMin ?? 0) >= slRunMin) hasLongRun = true;
     }
     const uniqueTrainingDays = dayCounts.size;
@@ -107,8 +107,8 @@ export function validateWeeklyQuotas(
     if (floors.longRideWeekly && !hasLongRide) {
       out.push({
         severity: "critical", code: "quota_floor_violation", weekNumber: w.weekNumber,
-        reason: `pas de SL vélo (≥${slBikeMin}min) ni brick long (≥${brickSLBikeThreshold}min) en semaine ${entry.weekType}`,
-        expected: `1 bike ≥${slBikeMin}min OU 1 brick ≥${brickSLBikeThreshold}min`, observed: "aucun",
+        reason: floors.dedicatedLongRide ? `pas de sortie longue vélo autonome ≥${slBikeMin}min en semaine ${entry.weekType} — un enchaînement ne la remplace pas` : `pas de SL vélo (≥${slBikeMin}min) ni brick long (≥${brickSLBikeThreshold}min) en semaine ${entry.weekType}`,
+        expected: floors.dedicatedLongRide ? `1 bike ≥${slBikeMin}min` : `1 bike ≥${slBikeMin}min OU 1 brick ≥${brickSLBikeThreshold}min`, observed: "aucun",
       });
     }
     if (floors.longRunWeekly && !hasLongRun) {

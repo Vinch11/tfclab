@@ -552,6 +552,7 @@ interface SLUpgradeRepair {
 }
 
 interface SLWeekFloor {
+  dedicatedLongRide?: boolean;
   floorAudit?: unknown;
   weekType?: "load" | "recovery" | "taper" | "race" | string;
   longRideWeekly?: boolean;
@@ -560,6 +561,7 @@ interface SLWeekFloor {
   slLongRunMin?: number;
   // Client transporte les planchers sous .floors ; on tolère les deux formes.
   floors?: {
+    dedicatedLongRide?: boolean;
     longRideWeekly?: boolean;
     longRunWeekly?: boolean;
     slLongRideMin?: number;
@@ -572,6 +574,7 @@ interface SLWeekFloor {
  * objet plat consommable par l'enforcement. Retourne null si vide.
  */
 function resolveSLFloor(entry: SLWeekFloor | undefined | null): {
+  dedicatedLongRide: boolean;
   weekType: string;
   longRideWeekly: boolean;
   longRunWeekly: boolean;
@@ -581,6 +584,7 @@ function resolveSLFloor(entry: SLWeekFloor | undefined | null): {
   if (!entry) return null;
   const f = entry.floors ?? {};
   return {
+    dedicatedLongRide: !!(entry.dedicatedLongRide ?? f.dedicatedLongRide),
     weekType: String(entry.weekType ?? "load"),
     longRideWeekly: !!(entry.longRideWeekly ?? f.longRideWeekly),
     longRunWeekly: !!(entry.longRunWeekly ?? f.longRunWeekly),
@@ -641,7 +645,7 @@ export function applySLFloorEnforcement(
         const sameSport = (week.sessions ?? []).filter(s => s.sport === spec.sport && !isRaceEventTitle(s));
         const longest = sameSport.reduce((m, s) => Math.max(m, s.durationMin ?? 0), 0);
         // PHASE 2A.4 — un brick ≥ floor+20 satisfait le floor SL vélo.
-        if (spec.sport === "bike") {
+        if (spec.sport === "bike" && !entry.dedicatedLongRide) {
           const brickThreshold = spec.floor + 20;
           const longestBrick = (week.sessions ?? [])
             .filter(s => s.sport === "brick")

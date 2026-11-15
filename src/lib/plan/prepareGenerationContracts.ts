@@ -1,4 +1,5 @@
 import { approvedIdsForFamilies } from "@/lib/plan/demandingSessionFamilies";
+import { applyLongRidePhasePolicy, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
 /** The existing generation preparation, extracted unchanged for offline preview.
  * No model, auth, persistence read or write. Same artefacts feed actual generation. */
 import type { PlanAthleteData, PlanConfig } from "@/hooks/useAITrainingPlan";
@@ -29,6 +30,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
  const totalChunks=needsChunking?Math.ceil(totalWeeks/CHUNK_SIZE):1;
  let allowedCatalogIds:string[]=[];
       const phaseCalendar = buildPeriodizationCalendar(planConfig);
+      const globalPhaseCalendar = buildPeriodizationCalendar({ ...planConfig,
+        weeksAvailable: effTotalWeeks, globalWeekOffset: 0, windowRegenPhase: undefined,
+        windowWeekPhases: planConfig.windowWeekPhases ? Object.fromEntries(Object.entries(planConfig.windowWeekPhases).map(([w, p]) => [Number(w) + weekOffset, p])) : undefined });
       const phaseOptions = (start: number, end: number) => {
         const phases = [...new Set(Array.from({ length: end - start + 1 }, (_, i) => phaseCalendar?.[start + i - weekOffset]).filter(Boolean))] as PhaseTag[];
         const weekContexts = Array.from({ length: end - start + 1 }, (_, i) => ({
@@ -434,8 +438,13 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           bannedSports: bannedSportsForQuota,
         });
         if (entry) {
+          const phaseFloors = applyLongRidePhasePolicy(entry.floors, {
+            objective: objectiveForQuota, ...phasePosition(globalPhaseCalendar, globalWeekNum),
+            phase: phaseCalendar?.[w], weekType, priorities: planConfig.identifiedLimitersRaw,
+            isLCW: isLCWFormat, isMaintenance: isIntermediateRunCycle,
+          });
           const individualized = applySlFloorIndividualization(
-            entry.floors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
+            phaseFloors, globalWeekNum, weekType, slRampAnchors, injuryRiskForSlFloor,
           );
           if (individualized.reasons.length > 0) {
             slFloorIndividualizationLog.push(`S${w} (globale S${globalWeekNum}): planchers individualisés`);
@@ -444,7 +453,8 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           const weekCatalog = chunkRepairCatalogs[Math.floor((w - 1) / CHUNK_SIZE)] ?? phaseRepairCatalogs[phase ?? "base"] ?? [];
           const availableSports = new Set(catalogueForWeek(weekCatalog, { phase, objective: objectiveForQuota, weekType, terrainAvailability: planConfig.terrainAvailability }).eligible
             .map(m => normalizeRepairSport(m.sport) as LayoutSport));
-          const layout: WeeklySlotLayout = buildWeeklySlotLayout(entry.quota, individualized.floors, weekType, {
+          const protectedQuota = protectDedicatedRideQuota(entry.quota, individualized.floors);
+          const layout: WeeklySlotLayout = buildWeeklySlotLayout(protectedQuota, individualized.floors, weekType, {
             availableSports,
             maintenance: isIntermediateRunCycle,
             raceEvents: declaredRaceSlotsForWeek(planConfig,w),
@@ -452,7 +462,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             finalStageSport: isLCWFormat ? "run" : undefined,
           });
 
-          weeklyQuotas[w] = { ...entry, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
+          weeklyQuotas[w] = { ...entry, quota: protectedQuota, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
             terrainAvailability: planConfig.terrainAvailability,
             volumeBudget: buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,

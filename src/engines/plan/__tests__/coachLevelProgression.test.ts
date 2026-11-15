@@ -48,11 +48,13 @@ function prescribed(level: CoachTrainingLevel, weeklyHours?: number) {
     const slots = layout.days.flatMap((d, dayIndex) => d.slots.map(slot => ({ ...slot, dayName: d.dayName, dayIndex })));
     // An explicit custom prescription, not a rewritten catalogue card.
     const minimum = slots.map(slot => slot.minDurationMin ?? 1);
-    const extra = Math.max(0, minutes - minimum.reduce((a, b) => a + b, 0));
+    const cardioSlots = slots.filter(s => s.sport !== "strength");
+    const extra = Math.max(0, minutes - minimum.reduce((sum, m, j) => sum + (slots[j].sport === "strength" ? 0 : m), 0));
+    let cardioIndex = 0;
     const sessions = slots.map((slot, j) => ({ weekNumber: n, weekTheme: "Fixture existante B-10K", phase: "base",
       dayIndex: slot.dayIndex, dayName: slot.dayName, sport: slot.sport, title: "Endurance facile", details: "", isRest: false,
       custom: true, catalogId: null, zones: ["Z2"], isKeySession: !!slot.isKeySession,
-      durationMin: minimum[j] + Math.floor(extra / slots.length) + (j < extra % slots.length ? 1 : 0),
+      durationMin: slot.sport === "strength" ? 30 : minimum[j] + Math.floor(extra / cardioSlots.length) + (cardioIndex++ < extra % cardioSlots.length ? 1 : 0),
     }));
     return { weekNumber: n, phase: "base", theme: "Fixture", sessions };
   });
@@ -67,7 +69,7 @@ describe("actual prescribed plan, after transformations and reopening", () => {
     expect(c.identifiedLimitersRaw).toEqual(config("light").identifiedLimitersRaw);
     expect(validateWeeklyQuotas(plan as never, plan.weeklyQuotas!).filter(i => i.code === "coach_load_violation")).toEqual([]);
     expect(plan.weeks[0].sessions.filter(s => s.sport === "run")).toHaveLength(plan.weeklyQuotas![1].quota.run.min);
-    const total = (n: number) => plan.weeks[n - 1].sessions.reduce((a, s) => a + (s.durationMin ?? 0), 0);
+    const total = (n: number) => plan.weeks[n - 1].sessions.reduce((a, s) => a + (s.sport === "strength" ? 0 : s.durationMin ?? 0), 0);
     expect(total(1)).toBeLessThanOrEqual(c.volumeRamp!.week1HoursMax * 60);
     expect(total(4)).toBeLessThanOrEqual(total(3) * 0.7);
     expect(total(5)).toBeLessThanOrEqual(total(3) * 1.1);
@@ -188,7 +190,7 @@ describe("coach review across eight deterministic prescriptions", () => {
   for (const level of levels) for (const hours of [undefined, 6]) {
     it(`${level} / ${hours ?? "unknown"} hours: dose, frequency, recovery and persistent review`, () => {
       const { c, plan } = prescribed(level, hours);
-      const totals = plan.weeks.map(w => w.sessions.reduce((n, s) => n + s.durationMin!, 0));
+      const totals = plan.weeks.map(w => w.sessions.reduce((n, s) => n + (s.sport === "strength" ? 0 : s.durationMin ?? 0), 0));
       const firstRunCount = plan.weeks[0].sessions.filter(s => s.sport === "run").length;
       expect(firstRunCount).toBeGreaterThanOrEqual(plan.weeklyQuotas![1].quota.run.min);
       expect(firstRunCount).toBeLessThanOrEqual(plan.weeklyQuotas![1].quota.run.max);

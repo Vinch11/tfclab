@@ -178,13 +178,13 @@ function buildLayout(
   //   cette semaine-là, et la cible bike autonome est décrémentée de 1
   //   (le brick compte comme la sollicitation vélo longue).
   const longBikeDay = (["samedi", ...(useAvailableDays ? ["dimanche", "vendredi", "jeudi", "mercredi", "mardi", "lundi"] : [])] as DayName[])
-    .find(d => canAdd(d, remaining.brick > 0 ? "brick" : "bike"));
+    .find(d => canAdd(d, remaining.brick > 0 && !floors.dedicatedLongRide ? "brick" : "bike"));
   const brickAsSLBike =
-    remaining.brick > 0 && !!floors.longRideWeekly && !!longBikeDay;
+    !floors.dedicatedLongRide && remaining.brick > 0 && !!floors.longRideWeekly && !!longBikeDay;
 
   if (brickAsSLBike) {
     const slBikeMin = floors.slLongRideMin ?? 0;
-    findDay(longBikeDay!).slots.push({
+    findDay(longBikeDay).slots.push({
       sport: "brick",
       isLongSession: true,
       isKeySession: true,
@@ -194,7 +194,7 @@ function buildLayout(
     // Le remplacement vélo/brick est déjà compté avant le placement.
   } else if (floors.longRideWeekly && remaining.bike > 0 && longBikeDay) {
     // 2) SL vélo samedi (cas sans brick requis)
-    findDay(longBikeDay!).slots.push({
+    findDay(longBikeDay).slots.push({
       sport: "bike", isLongSession: true, isKeySession: true,
       minDurationMin: floors.slLongRideMin,
     });
@@ -213,7 +213,7 @@ function buildLayout(
   // 4) Brick(s) restant(s) — placer weekend, jamais même jour qu'un run,
   //    et JAMAIS même jour qu'un SL vélo dédié (règle 2A.4).
   while (remaining.brick > 0) {
-    const brickOptions: DayName[] = ["samedi", "dimanche", ...(useAvailableDays ? ["vendredi", "jeudi", "mercredi", "mardi", "lundi"] as DayName[] : [])];
+    const brickOptions: DayName[] = ["samedi", "dimanche", ...(useAvailableDays || floors.dedicatedLongRide ? ["jeudi", "mardi", "mercredi", "vendredi", "lundi"] as DayName[] : [])];
     const brickDay = brickOptions.find(d => canAdd(d, "brick") && !hasSportOn(d, "run") && !hasSportOn(d, "bike") && !hasSportOn(d, "brick"));
     if (!brickDay) break;
     findDay(brickDay).slots.push({ sport: "brick", isKeySession: true });

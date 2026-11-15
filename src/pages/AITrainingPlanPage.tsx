@@ -1,5 +1,6 @@
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
+import { applyLongRidePhasePolicy, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
 import { computeObjectiveCycleSegments } from "@/lib/plan/multiObjectiveClassification";
 import { rankPrescriptionGaps, resolveCoachLimiterOrder } from "@/lib/limiterPrescription";
 import { applyCoachProfileOverrides } from "@/lib/plan/coachProfileOverrides";
@@ -2927,10 +2928,15 @@ export default function AITrainingPlanPage() {
         volumeBudget: buildCoachVolumeBudget(fullPlanConfig.volumeRamp, weekNumber, regenWeekType, fullPlanConfig.weeklyHoursSource),
         terrainAvailability: fullPlanConfig.terrainAvailability,
         floors: applySlFloorIndividualization(
-          regenQuotaEntryRaw.floors, weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
+          applyLongRidePhasePolicy(regenQuotaEntryRaw.floors, {
+            objective: regenObjective, ...phasePosition(buildPeriodizationCalendar(fullPlanConfig), weekNumber),
+            weekType: regenWeekType, priorities: fullPlanConfig.identifiedLimitersRaw,
+            isLCW: isLCWPlan, isMaintenance: regenMaintenance,
+          }), weekNumber, regenWeekType, regenSlRampAnchors, regenInjuryRiskForSlFloor,
         ).floors,
       }
       : null;
+    if (regenQuotaEntry) regenQuotaEntry.quota = protectDedicatedRideQuota(regenQuotaEntry.quota, regenQuotaEntry.floors);
     const regenQuotaTransport = buildWeekQuotaTransport(weekNumber, regenQuotaEntry, isLCWPlan,
       new Set(catalogueForWeek(catalogResult.repairCatalog, { phase: regenQuotaEntry?.phase, objective: regenObjective, weekType: regenWeekType, terrainAvailability: fullPlanConfig.terrainAvailability }).eligible
         .map(m => normalizeRepairSport(m.sport) as import("@/engines/plan/weeklySlotLayout").LayoutSport)), regenConstraintRules.dayBans, declaredRaceSlotsForWeek(fullPlanConfig,weekNumber));
@@ -4090,7 +4096,7 @@ export default function AITrainingPlanPage() {
                   <div className="space-y-2">
                     <Label className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      Heures/sem
+                      Endurance · heures/sem hors renfo
                     </Label>
                     <Input
                       type="number" min={3} max={30}

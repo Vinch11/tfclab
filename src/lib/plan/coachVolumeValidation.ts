@@ -4,6 +4,7 @@ import type { ValidationIssue } from "@/engines/plan/planValidator";
 import { isRaceDaySession } from "../../../supabase/functions/_shared/raceDayIdentity";
 import type { FinalValidationPlanLike } from "./qa/checkB13";
 import type { CoachVolumeBudget } from "@/engines/plan/sessionSizingMatrix";
+import { normalizeRepairSport } from '../../../supabase/functions/_shared/repairSportingEquivalence';
 
 /** Read-only check of prescribed durations, after model/repairs/edits. No resizing of catalogue cards. */
 export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "weeks">, quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): Array<ValidationIssue & { severity: "error" }> {
@@ -21,7 +22,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
         message: `S${week.weekNumber}: plafond de charge non vérifiable (${missing} durée(s) absente(s))` });
       previousLoad = undefined; continue;
     }
-    const total = durations.reduce((a, b) => a + b, 0);
+    const total = durations.reduce((sum, duration, i) => sum + (normalizeRepairSport(active[i].sport) === "strength" ? 0 : duration), 0);
     let ceiling = budget.maxMinutes;
     let reason = "plafond du niveau coach";
     if (previousLoad && budget.globalWeek > previousLoad.globalWeek) {
@@ -32,7 +33,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
       }
     }
     if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: "error", week: week.weekNumber,
-      message: `S${week.weekNumber}: ${total} min prescrites > ${Math.floor(ceiling)} min (${reason})`,
+      message: `S${week.weekNumber}: ${total} min d'endurance prescrites > ${Math.floor(ceiling)} min (${reason}, hors renforcement)`,
       detail: `Référence ${budget.referenceSource === "internal-matrix" ? "interne de planification, jamais une charge mesurée" : "déclarée par le coach"}. Corriger la prescription ; ne pas supprimer des séances ou modifier une fiche pour effacer cette alerte.` });
     if (entry.weekType === "load" && total > 0) previousLoad = { minutes: total, globalWeek: budget.globalWeek };
   }

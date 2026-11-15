@@ -2155,7 +2155,8 @@ function validateWeeklyLoadConsistency(
     let totalFlagged = false;
     if (ratio > WEEKLY_LOAD_ACWR_THRESHOLD) {
       totalFlagged = true;
-      const exceedsMaxAvailable = maxAvailableMin != null && wm.totalDurationMin > maxAvailableMin;
+      const enduranceMinutes = wm.totalDurationMin - (wm.durationMinBySport["Renfo"] || 0);
+      const exceedsMaxAvailable = maxAvailableMin != null && enduranceMinutes > maxAvailableMin;
       const baselineNote = usedDeclaredFallback
         ? `Pas encore assez de semaines de charge antérieures sur CE plan — comparaison faite à la charge habituelle déclarée par le coach (${loadContext.habitualWeeklyHours}h/semaine), pas à l'historique du plan.`
         : `Comparaison auto-référencée aux ${priorWeeks.length} semaines de charge précédentes de CE plan.`;

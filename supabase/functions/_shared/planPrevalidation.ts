@@ -57,12 +57,12 @@ export function prevalidatePlanWeeks(inputs:PrevalidationInputWeek[],calendar:Pr
   if(coverage.limitedDiversitySports.length)add('catalogue_diversity_limited','warning');
   if(input.volumeBudget?.referenceSource==='internal-matrix'&&input.globalWeek===1)add('coach_initial_load_unverified','warning');
   const slots=(input.layout?.days??[]).flatMap(d=>d.slots).filter(s=>!s.isRaceEvent);
-  const minimumStructuredMinutes=slots.reduce((sum,s)=>sum+(s.minDurationMin??0),0);
+  const minimumStructuredMinutes=slots.reduce((sum,s)=>sum+(s.sport==='strength'?0:s.minDurationMin??0),0);
   const minimumCatalogueMinutes=slots.reduce((sum,slot)=>{
    const ranges=coverage.eligible.filter(m=>normalizeRepairSport(m.sport)===slot.sport).flatMap(m=>executableCatalogueDurationRanges(m,input.objective))
     .filter(r=>r[1]>=(slot.minDurationMin??0)&&r[0]<=(slot.maxDurationMin??Infinity));
    if(!ranges.length){add('catalogue_slot_duration_unavailable','warning');return sum;}
-   return sum+Math.min(...ranges.map(r=>Math.max(r[0],slot.minDurationMin??0)));
+   return sum+(slot.sport==='strength'?0:Math.min(...ranges.map(r=>Math.max(r[0],slot.minDurationMin??0))));
   },0);
   if(input.volumeBudget){
    if(minimumStructuredMinutes>input.volumeBudget.maxMinutes)add('structured_floors_exceed_volume_budget','blocking');
