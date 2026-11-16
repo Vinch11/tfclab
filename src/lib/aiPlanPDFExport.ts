@@ -388,28 +388,17 @@ export interface PDFGapContext {
   wbalRefs?: WbalAthleteRefs | null;
 }
 
-/** Fourchette « actuel → bas–haut » ; un point unique donnait une fausse précision. */
-export function projectionRangeText(m: { current: number | null; deltaPct: number; deltaMin?: number; deltaMax?: number; unit?: string }, digits: number): string {
-  if (m.current == null) return "?";
-  const lo = Math.min(m.deltaMin ?? m.deltaPct, m.deltaMax ?? m.deltaPct), hi = Math.max(m.deltaMin ?? m.deltaPct, m.deltaMax ?? m.deltaPct);
-  const at = (d: number) => {
-    const v = m.current! * (1 + d / 100);
-    return (m.unit === "score" ? Math.min(100, Math.max(0, v)) : v).toFixed(digits);
-  };
-  const pct = (d: number) => `${d > 0 ? "+" : ""}${Math.round(d)}`;
-  return lo === hi ? `${m.current.toFixed(digits)} → ~${at(lo)} (${pct(lo)} %)` : `${m.current.toFixed(digits)} → ${at(lo)}–${at(hi)} (${pct(lo)} à ${pct(hi)} %)`;
-}
-
 export function exportAIPlanToPDF(
   plan: ParsedPlan,
   athleteName?: string,
   startDate?: Date,
-  adaptationProjections?: AdaptationProjection[],
+  // Retained for positional compatibility; model projections are coach-view only.
+  _adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
   gapContext?: PDFGapContext,
 ) {
-  const html = buildPlanHTML(plan, athleteName, startDate, adaptationProjections, orientation, detailLevel, gapContext);
+  const html = buildPlanHTML(plan, athleteName, startDate, orientation, detailLevel, gapContext);
   openPrintableHTML(html, { filenameHint: plan.title ?? "Plan d'entraînement", includeInstructions: false });
 }
 
@@ -417,7 +406,6 @@ function buildPlanHTML(
   plan: ParsedPlan,
   athleteName?: string,
   startDate?: Date,
-  adaptationProjections?: AdaptationProjection[],
   orientation: PlanPDFOrientation = "landscape",
   detailLevel: PlanPDFDetailLevel = "full",
   gapContext?: PDFGapContext,
@@ -612,7 +600,7 @@ function buildPlanHTML(
       tr.session-row { border-top: 1.5pt solid #97949F !important; }
       tr.session-row:first-child { border-top: none !important; }
 
-      /* Récap stratégique / projections : pas de coupure au milieu */
+      /* Récap stratégique : pas de coupure au milieu */
       .keep-together { page-break-inside: avoid; break-inside: avoid; }
 
       /* Liens propres */
@@ -642,40 +630,6 @@ function buildPlanHTML(
       ${plan.strategicRecap.limiters.map(l => `<tr style="border-bottom:1px solid #ddd;"><td style="padding:4px 6px;">${l.rank}</td><td style="padding:4px 6px;font-weight:600;">${l.name}</td><td style="padding:4px 6px;">${l.status}</td><td style="padding:4px 6px;">${l.block}</td><td style="padding:4px 6px;">${l.weeks}</td><td style="padding:4px 6px;">${l.keySessions}</td></tr>`).join("")}
     </table>
     ${plan.strategicRecap.synergies.length > 0 ? `<div style="margin-top:8px;font-size:10px;color:#555;"><strong>Synergies :</strong> ${plan.strategicRecap.synergies.map(s => `→ ${s}`).join(" | ")}</div>` : ""}
-  </div>` : ""}
-  ${!isCompact && adaptationProjections && adaptationProjections.length > 0 ? `
-  <div style="background:#f3f8ff;padding:12px 14px;border-radius:6px;font-size:12px;color:#333;margin-bottom:20px;border-left:3px solid #5555E0;page-break-inside:avoid;">
-    <strong>🔮 Projections Adaptation Predictor™</strong>
-    <p style="margin:4px 0 8px 0;font-size:10px;color:#666;">Scénarios du modèle : fourchettes indicatives, jamais des gains garantis ni des mesures. TTE et durabilité ne disposent pas de bornes d'adaptation validées.</p>
-    ${adaptationProjections.map((p, i) => `
-      <div style="margin-top:${i === 0 ? 0 : 10}px;padding:8px 10px;background:#fff;border:1px solid #dbe7f5;border-radius:4px;">
-        <div style="font-weight:600;font-size:12px;margin-bottom:4px;">
-          ${i === 0 ? "⭐ " : ""}${p.leverLabel}
-          <span style="font-weight:normal;color:#777;font-size:10px;margin-left:6px;">${p.impactLabel}</span>
-        </div>
-        <p style="margin:0 0 6px 0;font-size:10.5px;color:#555;">${p.recommendation}</p>
-        ${p.metrics.length > 0 ? `
-        <table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px;">
-          ${p.metrics.filter(m=>!/TTE|durabil/i.test(m.label)).map(m => {
-            const digits = /vlamax/i.test(m.label) ? 2 : 1;
-            const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
-            const color = m.direction === "up" ? "#1F9D6B" : m.direction === "down" ? "#0277bd" : "#888";
-            const sign = m.deltaPct > 0 ? "+" : "";
-            return `<tr>
-              <td style="padding:2px 6px;color:${color};width:18px;">${arrow}</td>
-              <td style="padding:2px 6px;">${m.label}${m.capped ? ' · gain plafonné' : ''}</td>
-              <td style="padding:2px 6px;text-align:right;font-family:monospace;color:#555;">
-                ${projectionRangeText(m, digits)}
-              </td>
-            </tr>`;
-          }).join("")}
-        </table>` : ""}
-        ${p.performanceImpacts.filter(pi => pi.improvementPct > 0).length > 0 ? `
-        <div style="margin-top:6px;font-size:10px;color:#1F9D6B;">
-          ${p.performanceImpacts.filter(pi => pi.improvementPct > 0).map(pi => `<span style="display:inline-block;background:#e8f5e9;padding:1px 6px;border-radius:8px;margin-right:4px;">${pi.distance} +${pi.improvementPct.toFixed(1)}%</span>`).join("")}
-        </div>` : ""}
-      </div>
-    `).join("")}
   </div>` : ""}
   ${renderPlanTimelineHTML(plan, (p) => displayPhase(p, phaseLabelMap), startDate ? computeWeekStartDate(startDate, 1) : undefined)}
   <h2>${isCompact ? "Plan Condensé" : "Plan Détaillé"}</h2>
