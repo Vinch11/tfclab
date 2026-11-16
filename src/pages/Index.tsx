@@ -1,3 +1,4 @@
+import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { computeCoachingCompass } from '@/lib/coachingCompass';
 import { getVo2maxTarget } from '@/lib/v2/unifiedLimiterDetection';
@@ -960,7 +961,7 @@ const Index = () => {
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
-      vlamaxRunReference: isRunningOnly ? { value: vlamaxEffectif.value, source: vlamaxEffectif.source } : { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' },
+      vlamaxRunReference: isRunningOnly ? { value: vlamaxEffectif.value, source: vlamaxEffectif.source } : (() => { const r = resolveVlamaxForGoal({ ...effectiveCloudSnapshot, sport_main: 'run' }); return r.value != null ? { value: r.value, source: (r.confidence ?? 0) >= 0.9 ? 'test' : 'estimated' } : { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' }; })(),
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
       tteEffectifRun: computeTTEEffectif({ sport: 'run', objectif: currentAthlete.goal || 'IM', age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null, tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null, tte_proxy_confidence: runDurabilityProxy?.confidence ?? null, tte_proxy_label: runDurabilityProxy?.label ?? null }),
       fatigueEffectif: fatigueEffectifForCompass ? {

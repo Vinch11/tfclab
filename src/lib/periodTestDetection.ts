@@ -67,7 +67,7 @@ export function bestMeanPower(time: Array<number | null>, watts: Array<number | 
 const paceText = (kmh: number) => { const s = Math.round(3600 / kmh); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}/km`; };
 
 export function detectPeriodTests(sessions: DetectionSession[], refs: ThresholdRefs = {}): DetectedTest[] {
-  type Cand = { value: number; display: string; s: DetectionSession; evidence: string; rank?: number };
+  type Cand = { value: number; display: string; s: DetectionSession; evidence: string; rank?: number; check?: boolean };
   const cands = new Map<DetectedField, Cand[]>();
   const push = (f: DetectedField, c: Cand) => cands.set(f, [...(cands.get(f) ?? []), c]);
 
@@ -121,8 +121,15 @@ export function detectPeriodTests(sessions: DetectionSession[], refs: ThresholdR
         evidence: `${cost.minutes} min de tours stables · ${cost.hr} bpm de moyenne`, rank: cost.minutes });
       if (bestVma) {
         const kmh = Math.round(bestVma.kmh * 10) / 10;
-        if (kmh >= 8 && kmh <= 30) push('vma', { value: kmh, display: `${kmh} km/h (${paceText(kmh)})`, s,
-          evidence: `${bestVma.n > 1 ? bestVma.n + ' tours consécutifs' : 'tour'} · ${Math.floor(bestVma.t / 60)}:${String(Math.round(bestVma.t % 60)).padStart(2, '0')} · ${Math.round(bestVma.d)} m` });
+        // Fractionné sans récupérations encodées : les répétitions rapides se suivent
+        // dans les tours comme un effort continu. Si la séance contient bien plus de
+        // temps rapide qu'un test de 5–7 min, ce n'est pas un test VMA → « à vérifier ».
+        const blockMs = bestVma.d / bestVma.t;
+        const fastTime = laps.filter(l => l.d > 0 && l.t > 0 && l.d / l.t >= blockMs * 0.9).reduce((a, l) => a + l.t, 0);
+        const intervals = bestVma.n > 1 && fastTime > bestVma.t * 1.5;
+        if (kmh >= 8 && kmh <= 30) push('vma', { value: kmh, display: `${kmh} km/h (${paceText(kmh)})`, s, check: intervals,
+          evidence: `${bestVma.n > 1 ? bestVma.n + ' tours consécutifs' : 'tour'} · ${Math.floor(bestVma.t / 60)}:${String(Math.round(bestVma.t % 60)).padStart(2, '0')} · ${Math.round(bestVma.d)} m`
+            + (intervals ? ` — séance fractionnée (${Math.round(fastTime / 60)} min d'efforts rapides, récupérations non encodées) : pas un test VMA continu` : '') });
       }
     }
   }
@@ -148,14 +155,14 @@ export function detectPeriodTests(sessions: DetectionSession[], refs: ThresholdR
   const out: DetectedTest[] = [];
   for (const field of Object.keys(labels) as DetectedField[]) {
     // Dérive et coût : la séance stable la plus longue est la plus représentative (pas « la meilleure valeur »).
-    const list = (cands.get(field) ?? []).sort((a, b) => a.rank !== undefined && b.rank !== undefined ? b.rank - a.rank : b.value - a.value);
+    const list = (cands.get(field) ?? []).sort((a, b) => Number(!!a.check) - Number(!!b.check) || (a.rank !== undefined && b.rank !== undefined ? b.rank - a.rank : b.value - a.value));
     if (!list.length) continue;
     const best = list[0];
     // Une seule alternative par séance.
     const seen = new Set([best.s.id]);
     const alternatives = list.slice(1).filter(c => !seen.has(c.s.id) && seen.add(c.s.id)).slice(0, 3)
       .map(c => ({ sessionName: c.s.name, date: c.s.date, display: c.display, value: c.value }));
-    const confidence: DetectedTest['confidence'] = field === 'test20min_w' || field === 'run_power_cost' ? 'info' : field === 'ftp' || field === 'fc_max' || field === 'tte_observed_min' || field === 'tte_observed_min_run' || field === 'run_hr_drift_pct' ? 'check' : 'measured';
+    const confidence: DetectedTest['confidence'] = best.check ? 'check' : field === 'test20min_w' || field === 'run_power_cost' ? 'info' : field === 'ftp' || field === 'fc_max' || field === 'tte_observed_min' || field === 'tte_observed_min_run' || field === 'run_hr_drift_pct' ? 'check' : 'measured';
     out.push({ field, confidence, fillable: confidence !== 'info', label: labels[field][0], unit: labels[field][1], value: best.value, display: best.display,
       sessionId: best.s.id, sessionName: best.s.name, date: best.s.date, evidence: best.evidence, alternatives });
   }

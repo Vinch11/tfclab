@@ -33,6 +33,19 @@ describe('Trouver les tests de la période', () => {
     expect(detectPeriodTests([s]).find(t => t.field === 'vma')!.value).toBe(14.4);
   });
 
+  it('flags an interval session without recorded rests as "to check", never a VMA test', () => {
+    const intervals: DetectionSession = { id: 'i', name: 'Fractionné', date: '2026-10-06', sportBase: 'running',
+      laps: Array.from({ length: 10 }, () => ({ distance: 400, duration: 100 })) };
+    const test: DetectionSession = { id: 't', name: 'Test VMA', date: '2026-10-20', sportBase: 'running',
+      laps: [{ distance: 2000, duration: 900 }, { distance: 1300, duration: 360 }, { distance: 1500, duration: 600 }] };
+    const vma = detectPeriodTests([intervals, test]).find(t => t.field === 'vma')!;
+    expect(vma.sessionId).toBe('t');
+    expect(vma.value).toBe(13);
+    expect(vma.confidence).toBe('measured');
+    const alone = detectPeriodTests([intervals]).find(t => t.field === 'vma')!;
+    expect(alone.confidence).toBe('check');
+  });
+
   it('never proposes FTP or threshold duration', () => {
     const s: DetectionSession = { id: 'x', name: 'X', date: '2026-10-21', sportBase: 'cycling', ...flat(3600, 200) };
     const fields = detectPeriodTests([s]).map(t => t.field as string);
