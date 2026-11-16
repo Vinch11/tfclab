@@ -57,3 +57,41 @@ export function validateCoachLoadIssues(plan: Pick<FinalValidationPlanLike, "wee
   quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}) {
   return [...validateCoachVolumeBudgets(plan, quotas), ...validateCoachInitialLoad(plan, quotas)];
 }
+
+/**
+ * Brings weeks back under their coach load ceiling by shortening secondary
+ * endurance sessions only (never key sessions, the longest session per sport,
+ * race days or strength), at most 25 % each, in 5-min steps. Returns the list
+ * of adjustments; weeks that cannot be fixed this way stay refused by validation.
+ */
+export function repairCoachLoadCeilings<P extends Pick<FinalValidationPlanLike, "weeks">>(plan: P,
+  quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): string[] {
+  const notes: string[] = [];
+  for (let pass = 0; pass < plan.weeks.length; pass++) {
+    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message));
+    if (!issue) break;
+    const week = plan.weeks.find(w => w.weekNumber === issue.week);
+    const m = /: (\d+(?:\.\d+)?) min d'endurance prescrites > (\d+) min/.exec(issue.message);
+    if (!week || !m) break;
+    let excess = Number(m[1]) - Number(m[2]);
+    const active = week.sessions.filter(s => !s.isRest && s.sport !== "rest" && normalizeRepairSport(s.sport) !== "strength") as ParsedSession[];
+    const longest = new Map<string, ParsedSession>();
+    for (const s of active) { const k = normalizeRepairSport(s.sport); const cur = longest.get(k); if (!cur || (s.durationMin ?? 0) > (cur.durationMin ?? 0)) longest.set(k, s); }
+    const candidates = active.filter(s => typeof s.durationMin === "number" && s.durationMin > 30 && !s.isKeySession && ![...longest.values()].includes(s))
+      .sort((a, b) => (b.durationMin ?? 0) - (a.durationMin ?? 0));
+    let changed = false;
+    for (const s of candidates) {
+      if (excess <= 0) break;
+      const before = s.durationMin as number;
+      const maxCut = Math.floor((before * 0.25) / 5) * 5;
+      const cut = Math.min(maxCut, Math.ceil(excess / 5) * 5);
+      if (cut <= 0) continue;
+      s.durationMin = before - cut;
+      excess -= cut;
+      changed = true;
+      notes.push(`S${week.weekNumber} ${s.sport}: ${before} → ${s.durationMin} min (plafond de charge)`);
+    }
+    if (!changed || excess > 0) break;
+  }
+  return notes;
+}

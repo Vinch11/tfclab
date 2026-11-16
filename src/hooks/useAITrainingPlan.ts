@@ -32,7 +32,7 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
-import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues, repairCoachLoadCeilings } from "@/lib/plan/coachVolumeValidation";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import {parseAIPlan,type ParsedPlan} from "@/lib/aiPlanParser";
@@ -1267,6 +1267,8 @@ export function useAITrainingPlan() {
             // (enforceTaperWeeks, ensureRaceDaySession, enforceAthleteConstraints...),
             // sur le plan RÉEL livré au coach — pas seulement dans le harnais QA
             // synthétique.
+            const loadRepairs = repairCoachLoadCeilings(merged, lastWeeklyQuotasRef.current ?? {});
+            if (loadRepairs.length) console.warn("[useAITrainingPlan] coach load repairs:", loadRepairs);
             try {
               const finalValidation = computeFinalValidationIssues({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current }, semanticRepairs, {
                 vmaKmh: athleteData.vma ?? null,
@@ -1353,9 +1355,12 @@ export function useAITrainingPlan() {
             const calendarSafety=[...validateRaceCalendar(parsed,planConfig),...validateCoachLoadIssues(parsed,parsed.weeklyQuotas)];
             if(calendarSafety.some(i=>i.severity==='error')) {
               setFinalValidationIssues(calendarSafety);
-              toast.error(`Plan refusé : ${calendarSafety[0]?.message}`);
+              const firstErr = calendarSafety.find(i=>i.severity==='error');
+              toast.error(`Plan refusé : ${firstErr?.message ?? calendarSafety[0]?.message}`, { duration: 30000 });
               lastParsedPlanRef.current=null;
               setParsedPlan(null);
+              setChunkProgress(null);
+              setIsLoading(false);
               return;
             }
             setMergedPlan(merged);
@@ -1784,6 +1789,8 @@ export function useAITrainingPlan() {
           diagnostic: undefined,
           strategicRecap: undefined,
         };
+        const assembledRepairs = repairCoachLoadCeilings(assembled, assembled.weeklyQuotas ?? {});
+        if (assembledRepairs.length) console.warn("[generatePlanWindowed] coach load repairs:", assembledRepairs);
         assembled.finalValidationIssues = [
           ...(assembled.finalValidationIssues ?? []).filter(i => i.rule !== "coach_load_violation" && i.rule !== "coach_initial_load_unverified" && i.rule !== "coach_volume_under_min"),
           ...validateCoachLoadIssues(assembled, assembled.weeklyQuotas),
@@ -1794,7 +1801,7 @@ export function useAITrainingPlan() {
           setFinalValidationIssues(assembled.finalValidationIssues);
           lastParsedPlanRef.current=null;
           setParsedPlan(null);
-          toast.error(`Plan refusé : ${assembled.finalValidationIssues.find(i=>i.severity==='error')?.message ?? 'continuité de charge non conforme'}`);
+          toast.error(`Plan refusé : ${assembled.finalValidationIssues.find(i=>i.severity==='error')?.message ?? 'continuité de charge non conforme'}`, { duration: 30000 });
           return;
         }
         setFinalValidationIssues(assembled.finalValidationIssues);
