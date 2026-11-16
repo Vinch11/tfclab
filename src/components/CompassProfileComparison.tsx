@@ -7,7 +7,7 @@ import type { CoachingCompassInput, TFCLCoachingCompassResult } from '@/lib/coac
 import { buildProfileComparisons, contextualCohortFor, type ProfileComparison } from '@/lib/coachingCompass/profileComparison';
 import { compassEvidence, COMPASS_REFERENCE_VERSION } from '@/lib/coachingCompass/referenceRegistry';
 import { cn } from '@/lib/utils';
-import { CompassProfileRadar } from './CompassProfileRadar';
+import { CompassSignatureRadar } from './CompassSignatureRadar';
 
 const descriptions: Record<string, string> = {
   vo2max: 'Capacité maximale à utiliser l’oxygène. Elle ne suffit pas à prédire la performance ; une valeur commune au bilan ne vaut pas deux tests spécifiques.',
@@ -39,7 +39,9 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
     <div className={cn('grid gap-8', groups.length > 1 && 'md:grid-cols-2')}>
       {groups.map(g => <section key={g.sport} aria-label={`Profil ${g.sport === 'bike' ? 'vélo' : 'course'}`} className={cn('min-w-0', selectedSport !== g.sport && 'hidden md:block')}>
         <h4 className="mb-2 flex items-center gap-2 text-base font-semibold">{g.sport === 'bike' ? <Bike className="h-5 w-5 text-primary" /> : <Footprints className="h-5 w-5 text-primary" />}{g.sport === 'bike' ? 'Vélo' : 'Course à pied'}</h4>
-        <CompassProfileRadar metrics={g.metrics} athleteName={athleteName} />
+        <CompassSignatureRadar axes={compass.presentation?.disciplineAxes?.[g.sport] ?? (g.sport === 'run' ? compass.presentation?.runningDiagnostic?.axes : undefined) ?? compass.presentation?.axes ?? compass.radarAxes} size={400} />
+        <div className="mt-2 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Profil</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-success" />Proche de la cible</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-warning" />À développer</span></div>
+        <p className="mt-3 text-center text-xs text-muted-foreground">Repères /100 par rapport aux cibles de coaching, pas une probabilité de réussite.</p>
         <Accordion type="single" collapsible className="mt-3"><AccordionItem value="values"><AccordionTrigger>Valeurs et comparaisons</AccordionTrigger><AccordionContent>
         {g.metrics.map(m => <div key={m.key} className="border-b border-border py-4">
           <div className="flex items-start justify-between gap-3">
@@ -58,7 +60,7 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
         </AccordionContent></AccordionItem></Accordion>
       </section>)}
     </div>
-    <p className="text-xs text-muted-foreground">Chaque axe a sa propre échelle, relative à la cible. Cibles TFCL : repères de coaching, pas des normes statistiques validées.</p>
+    <p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes statistiques validées. Les données manquantes ne sont pas dessinées.</p>
     <Accordion type="multiple" value={opened} onValueChange={setOpened}>
       <AccordionItem value="reading"><AccordionTrigger>Comprendre mes repères</AccordionTrigger><AccordionContent><div className="space-y-4">{Object.entries(descriptions).filter(([key]) => groups.some(g => g.metrics.some(m => m.key === key))).filter(([key]) => !selectedMetric || key === selectedMetric).map(([key, text]) => <div key={key}><h5 className="font-semibold">{groups.flatMap(g => g.metrics).find(m => m.key === key)?.label}</h5><p className="mt-1 text-muted-foreground">{text}</p></div>)}{selectedMetric && <Button variant="ghost" onClick={() => setSelectedMetric(null)}>Tous les repères</Button>}</div></AccordionContent></AccordionItem>
       <AccordionItem value="science"><AccordionTrigger>Sources scientifiques</AccordionTrigger><AccordionContent><div className="space-y-5">
