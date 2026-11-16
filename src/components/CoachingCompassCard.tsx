@@ -13,6 +13,7 @@
 import { useId, useMemo, useState } from "react";
 import { CompassProfileComparison } from "./CompassProfileComparison";
 import { CompassCoachReading } from "./CompassCoachReading";
+import { CompassMetabolicOverview } from './CompassMetabolicOverview';
 import { buildProfileComparisons } from '@/lib/coachingCompass/profileComparison';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -675,6 +676,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
         <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />
+        <CompassMetabolicOverview input={input} />
         <section aria-label="Synthèse du coach" className="space-y-2 border-t border-border py-4"><h3 className="text-sm font-semibold">Priorités de travail</h3><p className="text-sm">{presentation?.priorityMetrics.join(' → ') || limiter.label}</p>{coachPolicy && <p className="text-xs text-muted-foreground">Ordre coach : {coachPolicy.limiterOrder.join(' → ')}</p>}<p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes scientifiques validées. Une donnée manquante n’est pas une faiblesse.</p></section>
         <Accordion type="multiple" className="mt-4 text-muted-foreground">
         <AccordionItem value="explanations" className="border-0"><AccordionTrigger className="min-h-11 justify-start gap-2 py-2 text-xs font-normal">Détails, tests et sources</AccordionTrigger><AccordionContent className="text-foreground">

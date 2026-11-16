@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { PhysiologicalProfileCurves } from './PhysiologicalProfileCurves';
+import { CompassMetabolicOverview } from '../CompassMetabolicOverview';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 import type { DbSnapshot, DbTest } from '@/hooks/useCloudData';
 import { TestMeasurementCurves } from './TestMeasurementCurves';
@@ -93,6 +94,7 @@ export function ScientificChartsDashboard({
 
   return (
     <div className="space-y-4">
+      {profileInput && <CompassMetabolicOverview input={profileInput} />}
       {profileInput && <PhysiologicalProfileCurves input={profileInput} snapshots={snapshots} snapshot={snapshot} />}
       {profileInput?.athleteId && <TestMeasurementCurves tests={tests} athleteId={profileInput.athleteId} />}
       <section className="border-b border-border pb-5 space-y-3">
@@ -130,7 +132,7 @@ export function ScientificChartsDashboard({
         }
         {!review.cycling && <section className="md:col-span-2 border-b border-border py-5"><h4 className="font-medium">Lactate et puissance-durée vélo</h4><p className="text-sm text-muted-foreground mt-2">{sport === 'cap' ? 'Non transposables à la course. Un protocole course spécifique est nécessaire.' : 'Données insuffisantes : VO₂max, VLamax, poids et FTP vélo requis.'}</p></section>}
         {/* Fat/Carb Oxidation */}
-        <FatCarbOxidationChart
+        {!profileInput && <FatCarbOxidationChart
           vo2max={vo2max ?? null}
           vlamax={vlamaxValue}
           ftp={sport === "cap" ? null : ftp ?? null}
@@ -139,7 +141,7 @@ export function ScientificChartsDashboard({
           paceMode={sport === "cap"}
           staffMode={staffMode}
           className="md:col-span-2 xl:col-span-2"
-        />
+        />}
 
         {/* Power-Duration Unified (Mader + Empirique) */}
         {review.cycling && <PowerDurationUnifiedChart

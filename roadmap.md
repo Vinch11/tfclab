@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Présentation métabolique inspirée d’INSCYD : radar/jauges conservés, signature partagée Compass et vue détaillée Profil du Dashboard, oxydation/O₂ interactifs, sports séparés, modèles et inconnues explicites. 27 tests passent ; Vince/Emanuela connectés ordinateur/téléphone, courbes/onglets/hypothèses contrôlés sans erreur ni débordement. Deux générateurs synchronisés et déployés avec succès, déclaration fraîche et aperçu rechargé ; aucun bilan ou plan modifié, aucune équivalence scientifique INSCYD revendiquée.
+
 - [x] Compass : empilement de volets supprimé, profil/jauges/priorités toujours visibles, un accès discret aux détails et icônes d’explication. Vince connecté vérifié ordinateur/téléphone, profil et synthèse visibles sans clic, détails et explication ouverts, aucun débordement ni erreur ; 16 tests passent et deux générateurs déployés. Données et plans inchangés.
 
 - [x] Bloc IMG_2767 corrigé : nouveau profil visible retiré ; bloc historique « Profil physiologique complet » ouvert sous le radar, jauges sur cibles existantes, explications repliées. Vince connecté vérifié ordinateur/téléphone, 4 jauges comparatives, aucun débordement ni erreur ; 16 tests passent, deux générateurs synchronisés et déployés. Données et plans inchangés.
