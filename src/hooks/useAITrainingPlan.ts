@@ -1349,6 +1349,14 @@ export function useAITrainingPlan() {
             // recalcul depuis le formulaire vivant lors de l'affichage.
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
+            const calendarSafety=validateRaceCalendar(parsed,planConfig);
+            if(calendarSafety.some(i=>i.severity==='error')) {
+              setFinalValidationIssues(calendarSafety);
+              toast.error(`Plan refusé : ${calendarSafety[0]?.message}`);
+              lastParsedPlanRef.current=null;
+              setParsedPlan(null);
+              return;
+            }
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
             setParsedPlan(parsed);

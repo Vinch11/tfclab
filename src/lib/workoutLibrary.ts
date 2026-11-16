@@ -8486,6 +8486,8 @@ WorkoutLibrary.push(...EnrichedWorkoutsStartToRun);
 // =============================================
 import { EnrichedWorkoutsShortFormats } from "./enrichedWorkoutsShortFormats";
 WorkoutLibrary.push(...EnrichedWorkoutsShortFormats);
+import {EnrichedWorkoutsRaceTaper} from './enrichedWorkoutsRaceTaper';
+WorkoutLibrary.push(...EnrichedWorkoutsRaceTaper);
 
 // =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]

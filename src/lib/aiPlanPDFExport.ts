@@ -18,6 +18,7 @@ import { buildPhaseLabelMap, displayPhase } from "@/lib/plan/phaseDisplayLabel";
 import { applyBevelPrintTheme } from "@/lib/print/bevelPrintTheme";
 import { normalizeGoal } from "@/lib/workoutCatalogBuilder";
 import { renderPlanTimelineHTML } from "@/lib/plan/timeline/planTimeline";
+import {cleanPlanText} from '@/lib/plan/planText';
 
 
 const SPORT_TAG_TOKENS = new Set([
@@ -421,7 +422,8 @@ function buildPlanHTML(
   detailLevel: PlanPDFDetailLevel = "full",
   gapContext?: PDFGapContext,
 ): string {
-
+  // Clean a display copy: exports never rewrite the stored plan.
+  plan={...plan,weeks:plan.weeks.map(w=>({...w,theme:cleanPlanText(w.theme),sessions:w.sessions.map(s=>({...s,title:cleanPlanText(s.title),details:cleanPlanText(s.details)}))}))};
   const hasDate = !!startDate;
   const isPortrait = orientation === "portrait";
   const isCompact = detailLevel === "compact";

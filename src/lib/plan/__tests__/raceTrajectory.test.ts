@@ -3,10 +3,17 @@ import {validateRaceTrajectory} from '../raceCalendarValidation';
 import {validateCoachVolumeBudgets} from '../coachVolumeValidation';
 import {raceProtectionForDay,protectedRaceWeekType} from '../../../../supabase/functions/_shared/raceCalendarProtection';
 import {computeAdaptationPrediction} from '@/lib/v2/adaptationPredictor';
+import {EnrichedWorkoutsRaceTaper} from '@/lib/enrichedWorkoutsRaceTaper';
+import {buildRepairWorkoutMetadata} from '../repairCatalogMetadata';
+import {catalogueEligibility} from '../../../../supabase/functions/_shared/sessionCatalogueContract';
 const config={planStartDate:'2026-11-16',objective:'Ironman',raceDate:'2027-06-27',raceGoals:[{objective:'Marathon',raceDate:'2027-02-21',priority:'B'}]};
 const session=(minutes:number,sport='bike',title='Endurance Z2')=>({title,details:'',sport,durationMin:minutes,isRest:false,dayName:'jeudi',zones:['Z2']});
 const week=(weekNumber:number,minutes:number)=>({weekNumber,phase:'build',sessions:[session(minutes)]});
 describe('Manu complete trajectory regression',()=>{
+ it('provides executable Ironman taper cards without bypassing catalogue eligibility',()=>{
+  expect(EnrichedWorkoutsRaceTaper.map(w=>w.durationMin)).toEqual([[120,150],[60,75]]);
+  for(const card of EnrichedWorkoutsRaceTaper) expect(catalogueEligibility(buildRepairWorkoutMetadata(card),{objective:'Ironman',phase:'taper',weekType:'taper'})).toEqual([]);
+ });
  it('does not turn S12 into a third taper week for the B marathon',()=>{
   expect(raceProtectionForDay(config,12,'dimanche')).toBeUndefined();
   expect(protectedRaceWeekType(config,12,'load')).toBe('load');

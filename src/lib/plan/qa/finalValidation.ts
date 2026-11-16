@@ -163,7 +163,9 @@ export function computeFinalValidationIssues(
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
   const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...checkSpecificPaceQuotas(plan, ambitionPhysiology?.objective, ambitionPhysiology?.ambition, { trainingLevel: ambitionPhysiology?.trainingLevel, coachCoef: getSpecificPaceOverride(ambitionPhysiology?.athleteId) }), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
-  if (ambitionPhysiology?.raceCalendar) issues.push(...validateRaceCalendar(plan,ambitionPhysiology.raceCalendar));
+  const stored=plan as FinalValidationPlanLike & {_planStartDate?:string;_objective?:string;_raceDate?:string;_raceGoals?:import('../../../../supabase/functions/_shared/raceCalendarProtection').RaceCalendarConfig['raceGoals']};
+  const calendar=ambitionPhysiology?.raceCalendar ?? (stored._planStartDate ? {planStartDate:stored._planStartDate,objective:stored._objective,raceDate:stored._raceDate,raceGoals:stored._raceGoals} : undefined);
+  if (calendar) issues.push(...validateRaceCalendar(plan,calendar));
   return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
 }
 

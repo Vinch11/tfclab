@@ -1,4 +1,5 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
+import {cleanPlanText} from '@/lib/plan/planText';
 import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 import { NolioCyclesPanel } from "@/components/plan/NolioCyclesPanel";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
@@ -1380,9 +1381,9 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         dayIndex: s.dayIndex,
         sessionIndex,
         sport: s.sport ?? lib?.sport ?? null,
-        title: s.title,
+        title: cleanPlanText(s.title),
         id: lib?.id ?? null,
-        details: s.details,
+        details: cleanPlanText(s.details),
         isRest: false,
         structure: nolioStructureForSession({ details: s.details, durationMin: (s as { durationMin?: number }).durationMin, sport: s.sport ?? lib?.sport ?? null }, lib?.structure ?? null),
         wbalProfile: lib?.wbalProfile ?? null,

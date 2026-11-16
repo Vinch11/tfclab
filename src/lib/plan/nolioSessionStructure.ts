@@ -7,6 +7,7 @@
  */
 import type { WorkoutStructurePart } from "@/types/workoutLibrary";
 import { hasDurationRange, resolveSessionDurationRanges } from "./resolveDurationRanges";
+import {cleanPlanText} from './planText';
 
 const PART_RX = /^\s*(warm[\s-]*up|échauffement|echauffement|main|corps|cool[\s-]*down|retour au calme)\s*:\s*/i;
 
@@ -20,7 +21,7 @@ const zonesOf = (t: string) => [...new Set((t.match(/Z[1-5][abc]?/gi) ?? []).map
 
 export function structureFromSessionText(details: string | null | undefined): WorkoutStructurePart[] | null {
   if (!details) return null;
-  const chunks = details.replace(/\[ID:[^\]]*\]/g, "").split(/\s*\|\s*/).filter(Boolean);
+  const chunks = cleanPlanText(details).replace(/\[ID:[^\]]*\]/g, "").split(/\s*\|\s*/).filter(Boolean);
   const parts: WorkoutStructurePart[] = [];
   for (const c of chunks) {
     const m = c.match(PART_RX);

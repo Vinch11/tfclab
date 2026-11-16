@@ -1,5 +1,6 @@
 import type { ParsedPlan } from '@/lib/aiPlanParser';
 import { buildPhaseSegments, buildPlanTimeline } from './timeline/planTimeline';
+import {cleanPlanText} from './planText';
 
 export type NolioCycleDraft = { name: string; description: string; date_start: string; date_end: string; color: string };
 
@@ -33,8 +34,8 @@ export function buildNolioCycles(plan: ParsedPlan, startDate: string): NolioCycl
     const themes = selected.filter(w => w.theme.trim()).map(w => `S${w.weekNumber} · ${w.theme}`);
     const names = [...new Set(limiters.map(l => l.name))];
     return [{
-      name: `${seg.label}${names.length ? ' · ' + names.join(' / ') : ''}`.slice(0, 255),
-      description: [`${plan.title} — S${first}–S${last}`, seg.objective, workstreams.length ? 'Chantiers\n' + workstreams.join('\n\n') : null, themes.join('\n')].filter(Boolean).join('\n\n').slice(0, 12000),
+      name: cleanPlanText(`${seg.label}${names.length ? ' · ' + names.join(' / ') : ''}`).slice(0, 255),
+      description: cleanPlanText([`${plan.title} — S${first}–S${last}`, seg.objective, workstreams.length ? 'Chantiers\n' + workstreams.join('\n\n') : null, themes.join('\n')].filter(Boolean).join('\n\n')).slice(0, 12000),
       date_start: day((first - 1) * 7), date_end: day(last * 7 - 1), color: defaultCycleColor(seg.label, index),
     }];
   });
