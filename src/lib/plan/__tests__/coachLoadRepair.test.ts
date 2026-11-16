@@ -25,31 +25,34 @@ describe('coach load ceiling repair',()=>{
     expect(issues[0].message).toContain('minimum 918 min');
     expect(p.weeks[2].sessions[0].durationMin).toBe(915);
   });
-  it('still refuses 915 min when the nominal 950 min minimum is attainable',()=>{
+  it('a week far below its minimum is a warning, never a refusal',()=>{
     const q={3:{weekType:'load',volumeBudget:b(3)},5:{weekType:'load',volumeBudget:{...b(5),minMinutes:950,targetMinutes:1030}}};
-    const p={weeks:[{weekNumber:3,sessions:[s('bike',900)]},{weekNumber:5,sessions:[s('bike',915)]}]};
-    expect(validateCoachVolumeBudgets(p as never,q)).toContainEqual(expect.objectContaining({week:5,rule:'coach_volume_under_min',severity:'error'}));
+    const p={weeks:[{weekNumber:3,sessions:[s('bike',900)]},{weekNumber:5,sessions:[s('bike',700)]}]};
+    const issues=validateCoachVolumeBudgets(p as never,q);
+    expect(issues).toContainEqual(expect.objectContaining({week:5,rule:'coach_volume_under_min',severity:'warning'}));
+    expect(issues.some(isBlockingCoachLoadIssue)).toBe(false);
   });
-  it('keeps recovery at 70 percent even when its nominal minimum is higher',()=>{
+  it('recovery above 70 percent: small excess warns, large excess (>10 %) refuses',()=>{
     const q={3:{weekType:'load',volumeBudget:b(3)},4:{weekType:'recovery',volumeBudget:{...b(4),minMinutes:600,targetMinutes:650}}};
     const p={weeks:[{weekNumber:3,sessions:[s('bike',800)]},{weekNumber:4,sessions:[s('bike',560)]}]};
     expect(validateCoachVolumeBudgets(p as never,q)).toEqual([]);
     p.weeks[1].sessions[0].durationMin=600;
+    expect(validateCoachVolumeBudgets(p as never,q)).toContainEqual(expect.objectContaining({week:4,rule:'coach_load_violation',severity:'warning'}));
+    p.weeks[1].sessions[0].durationMin=630;
     expect(validateCoachVolumeBudgets(p as never,q)).toContainEqual(expect.objectContaining({week:4,rule:'coach_load_violation',severity:'error'}));
   });
-  it('does not repair a week down below an unreachable nominal minimum and then refuse it',()=>{
+  it('does not shorten sessions for a small excess (warning only)',()=>{
     const p=plan();
-    const q={...quotas,2:{...quotas[2],volumeBudget:{...b(2),minMinutes:675,targetMinutes:700}}};
-    repairCoachLoadCeilings(p as never,q);
-    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([300,300,60]);
-    expect(validateCoachVolumeBudgets(p as never,q)).toEqual([]);
-  });
-  it('shortens a secondary session so a week 20 min over the ceiling is accepted',()=>{
-    const p=plan();
-    expect(validateCoachVolumeBudgets(p as never,quotas)).toHaveLength(1);
     repairCoachLoadCeilings(p as never,quotas);
-    expect(validateCoachVolumeBudgets(p as never,quotas)).toEqual([]);
-    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([300,300,60]);
+    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([300,300,80]);
+    expect(validateCoachVolumeBudgets(p as never,quotas).every(i=>i.severity==='warning')).toBe(true);
+  });
+  it('shortens a secondary session so a large overload becomes acceptable',()=>{
+    const p=plan(); p.weeks[1].sessions[2].durationMin=140;
+    expect(validateCoachVolumeBudgets(p as never,quotas)[0].severity).toBe('error');
+    repairCoachLoadCeilings(p as never,quotas);
+    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([300,300,105]);
+    expect(validateCoachVolumeBudgets(p as never,quotas).some(isBlockingCoachLoadIssue)).toBe(false);
   });
   it('never touches key or longest sessions when that would be needed',()=>{
     const p=plan(); p.weeks[1].sessions[2].durationMin=30; p.weeks[1].sessions.push(s('run',200,true));
@@ -62,17 +65,20 @@ describe('coach load ceiling repair',()=>{
     expect(issues).toHaveLength(1);
     expect(issues[0].severity).toBe('warning');
   });
-  it('an overrun of 6 min is still refused',()=>{
-    const p={weeks:[{weekNumber:1,sessions:[s('bike',300),s('run',300)]},{weekNumber:2,sessions:[s('bike',336),s('run',330)]}]};
+  it('an overrun of 60 min over a 660 min ceiling warns; 70 min is refused',()=>{
+    const p={weeks:[{weekNumber:1,sessions:[s('bike',300),s('run',300)]},{weekNumber:2,sessions:[s('bike',390),s('run',330)]}]};
+    expect(validateCoachVolumeBudgets(p as never,quotas)[0].severity).toBe('warning');
+    p.weeks[1].sessions[0].durationMin=400;
     expect(validateCoachVolumeBudgets(p as never,quotas)[0].severity).toBe('error');
   });
   it('a week that cannot be shortened does not stop the repair of the following weeks',()=>{
     const q={1:{weekType:'load',volumeBudget:b(1)},2:{weekType:'load',volumeBudget:b(2)},3:{weekType:'load',volumeBudget:b(3)}};
     const p={weeks:[
       {weekNumber:1,sessions:[s('bike',300),s('run',300)]},
-      {weekNumber:2,sessions:[s('bike',400),s('run',300)]},
-      {weekNumber:3,sessions:[s('bike',400),s('run',330),s('bike',80)]}]};
+      {weekNumber:2,sessions:[s('bike',500),s('run',300)]},
+      {weekNumber:3,sessions:[s('bike',400),s('run',330),s('bike',240)]}]};
     repairCoachLoadCeilings(p as never,q);
-    expect(p.weeks[2].sessions.map(x=>x.durationMin)).toEqual([400,330,60]);
+    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([500,300]);
+    expect(p.weeks[2].sessions.map(x=>x.durationMin)).toEqual([400,330,180]);
   });
 });

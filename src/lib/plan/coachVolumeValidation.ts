@@ -7,9 +7,14 @@ import type { CoachVolumeBudget } from "@/engines/plan/sessionSizingMatrix";
 import { normalizeRepairSport } from '../../../supabase/functions/_shared/repairSportingEquivalence';
 
 /** Read-only check of prescribed durations, after model/repairs/edits. No resizing of catalogue cards. */
-/** Overruns up to min(5 min, 1 % of the ceiling) stay visible as warnings but never refuse a plan. */
+/**
+ * Refusal policy (coach decision 2026-11-16): volume gaps are shown as warnings.
+ * Only a large overload refuses a plan: more than max(5 min, 10 % of the ceiling)
+ * above it (i.e. beyond the allowed progression, ~+20 % week-on-week).
+ * Volume below the minimum is never a refusal — it is not a safety risk.
+ */
 export const COACH_LOAD_TOLERANCE_MIN = 5;
-export const COACH_LOAD_TOLERANCE_PCT = 0.01;
+export const COACH_LOAD_TOLERANCE_PCT = 0.10;
 
 /** Shared refusal policy: attainable minima and ceilings block; small gaps remain warnings. */
 export function isBlockingCoachLoadIssue(issue: Pick<ValidationIssue, "rule" | "severity">): boolean {
@@ -41,13 +46,13 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
         reason = entry.weekType === "recovery" ? "assimilation : au plus 70% de la dernière semaine de charge" : "progression depuis la dernière semaine de charge prescrite";
       }
     }
-    if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: total - ceiling <= Math.min(COACH_LOAD_TOLERANCE_MIN, ceiling * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
+    if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: total - ceiling <= Math.max(COACH_LOAD_TOLERANCE_MIN, ceiling * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
       message: `S${week.weekNumber}: ${total} min d'endurance prescrites > ${Math.floor(ceiling)} min (${reason}, hors renforcement)`,
       detail: `Référence ${budget.referenceSource === "coach" ? "déclarée par le coach" : "de planification Auto, jamais une charge mesurée"}. Corriger la prescription ; ne pas supprimer des séances ou modifier une fiche pour effacer cette alerte.` });
     // The nominal target cannot force a dose above the actual progression/recovery ceiling.
     // Keep that target visible, but validate only the attainable minimum.
     const minimum = budget.minMinutes == null ? undefined : Math.min(budget.minMinutes, Math.floor(ceiling));
-    if (minimum != null && total + 1e-6 < minimum) issues.push({ rule: "coach_volume_under_min", severity: minimum - total <= Math.min(COACH_LOAD_TOLERANCE_MIN, minimum * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
+    if (minimum != null && total + 1e-6 < minimum) issues.push({ rule: "coach_volume_under_min", severity: "warning", week: week.weekNumber,
       message: `S${week.weekNumber}: ${total} min d'endurance prescrites < minimum ${minimum} min (cible ${budget.targetMinutes ?? budget.minMinutes} min, hors renforcement)`,
       detail: minimum !== budget.minMinutes
         ? `Minimum nominal ${budget.minMinutes} min limité par ${reason} : la progression et la récupération priment sur la cible horaire. Ne pas augmenter la charge au-delà de ${Math.floor(ceiling)} min pour atteindre la cible.`
@@ -83,7 +88,7 @@ export function repairCoachLoadCeilings<P extends Pick<FinalValidationPlanLike, 
   const notes: string[] = [];
   const unfixable = new Set<number>();
   for (let pass = 0; pass < plan.weeks.length * 3; pass++) {
-    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message) && !unfixable.has(i.week ?? -1) && (!onlyWeeks || onlyWeeks.includes(i.week ?? -1)));
+    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && i.severity === "error" && /> (\d+) min/.test(i.message) && !unfixable.has(i.week ?? -1) && (!onlyWeeks || onlyWeeks.includes(i.week ?? -1)));
     if (!issue) break;
     const week = plan.weeks.find(w => w.weekNumber === issue.week);
     const m = /: (\d+(?:\.\d+)?) min d'endurance prescrites > (\d+) min/.exec(issue.message);

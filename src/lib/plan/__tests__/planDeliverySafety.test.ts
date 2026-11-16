@@ -9,8 +9,12 @@ describe('all delivery boundaries use the full actual plan',()=>{
   const p={_objective:objective,title:'Volume fixture',totalWeeks:5,phases:[],weeks:[3,4,5].map((weekNumber,i)=>({weekNumber,sessions:[{sport:'bike',durationMin:[835,580,915][i],title:'Endurance',details:'',isRest:false}]})),weeklyQuotas:{3:{weekType:'load',volumeBudget:budget(3)},4:{weekType:'recovery',volumeBudget:budget(4)},5:{weekType:'load',volumeBudget:{...budget(5),minMinutes:950,targetMinutes:1030}}}} as unknown as ParsedPlan;
   const before=JSON.stringify(p);
   expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
-  p.weeks[2].sessions[0].durationMin=900;
-  expect(()=>assertPlanDeliverySafe(p)).toThrow(/minimum 918 min/);
+  // Below the minimum: warning only, never a refusal (coach decision 2026-11-16).
+  p.weeks[2].sessions[0].durationMin=700;
+  expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
+  // Large overload (> 10 % above the 918 min progression ceiling) is still refused.
+  p.weeks[2].sessions[0].durationMin=1020;
+  expect(()=>assertPlanDeliverySafe(p)).toThrow(/918 min/);
   p.weeks[2].sessions[0].durationMin=915;
   expect(JSON.stringify(p)).toBe(before);
  });

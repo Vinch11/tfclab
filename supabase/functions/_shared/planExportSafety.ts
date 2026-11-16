@@ -35,8 +35,8 @@ export function planExportSafetyProblems(value:unknown, calendar:RaceCalendarCon
   if(key==='marathon'){
    const prep=plan.weeks.filter(w=>w.weekNumber>=rw-4&&w.weekNumber<=rw-2),reference=Math.max(0,...prep.map(total));
    for(const w of plan.weeks.filter(w=>w.weekNumber>rw&&w.weekNumber<=rw+3)){
-    const delta=w.weekNumber-rw;if(reference&&total(w)>reference*([0,.45,.7,.9][delta]??1)+5)problems.push(`race_calendar_reentry_jump:S${w.weekNumber}`);
-    if(delta===3){const hard=w.sessions.filter(s=>active(s)&&demanding(s));if(hard.length>2||hard.some(s=>/Z\s*[5-7]|VO[₂2]max|VMA/i.test(`${s.title} ${s.details} ${s.zones?.join(' ')}`)))problems.push(`race_calendar_reentry_intensity:S${w.weekNumber}`);}
+    const delta=w.weekNumber-rw;if(reference&&total(w)>reference*([0,.45,.7,.9][delta]??1)*1.1+5)problems.push(`race_calendar_reentry_jump:S${w.weekNumber}`);
+    // Re-entry intensity is a warning shown in the app, never an export refusal (coach decision 2026-11-16).
    }
   }
  }

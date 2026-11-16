@@ -52,7 +52,9 @@ it('a ceiling is not a prescription: recovery and return use the last actual loa
  const week=(weekNumber:number,durationMin:number)=>({weekNumber,sessions:[{sport:'run',title:'Endurance fictive',durationMin,details:'',custom:true,isRest:false}]});
  const safe={weeks:[week(3,100),week(4,70),week(5,110)]} as FinalValidationPlanLike;
  expect(validateCoachVolumeBudgets(safe,quotas)).toEqual([]);
- const excessive={weeks:[week(3,100),week(4,71),week(5,121)]} as FinalValidationPlanLike;
+ const small={weeks:[week(3,100),week(4,71),week(5,121)]} as FinalValidationPlanLike;
+ expect(validateCoachVolumeBudgets(small,quotas).every(i=>i.severity==='warning')).toBe(true);
+ const excessive={weeks:[week(3,100),week(4,80),week(5,125)]} as FinalValidationPlanLike;
  const issues=validateCoachVolumeBudgets(excessive,quotas);
  expect(issues.map(i=>i.week)).toEqual([4,5]);expect(issues.every(i=>i.severity==='error')).toBe(true);
 });
