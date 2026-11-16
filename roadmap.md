@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Textes historiques Compass : Dashboard/Profil partagent les explications restaurées ; couverture, TTE et informations complémentaires rétablis. Rapports, assistant et fonctions enregistrées inspectés, aucun texte de carte distinct manquant trouvé. Limites : docs/compass-text-flow-sweep.md ; impression native, exports et réponse IA non exécutés.
+
 - [x] Vérification transversale des alertes volume/course/semaine : prévalidation, batch, régénération, adaptations et DET corrigés ; sauvegardes/exports/tâches/fonctions installées lus. 45 tests ciblés passent, sauvegarde mobile réelle d’une copie Emanuela relue puis copie supprimée, deux générateurs déployés et versions live concordantes. Inventaire et limites : docs/plan-advisory-flow-sweep-2026-11-16.md. Pas de nouvelle génération complète, envoi Nolio, génération DET ni impression native ; originaux, reçus et permissions inchangés.
 
 - [x] Refus de sauvegarde Emanuela sur avertissement S30 corrigé aux deux frontières ; avertissements visibles même sans erreur. 11 tests passent, compilation OK ; copie du plan réel chargée, S30 vélo limité à 75 min, sauvegardée après confirmation des autres contrôles de contenu, relue en base puis copie temporaire supprimée. Historiques originaux et séances préservés ; aucune génération ni envoi Nolio.
