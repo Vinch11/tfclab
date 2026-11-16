@@ -21,12 +21,12 @@ describe('dated race protection — Manu regression',()=>{
  });
  it('protects week 13 before the marathon even when the Ironman cycle says load',()=>{
   expect(protectedRaceWeekType(cfg,13,'load')).toBe('taper');
-  expect(raceProtectionPrompt(cfg,13)).toContain('Facile uniquement');
+  expect(raceProtectionPrompt(cfg,13)).toContain('allure marathon');
  });
- it('protects ten days after marathon across weeks 15 and 16',()=>{
+ it('protects progressive recovery and reentry after marathon across weeks 15–17',()=>{
   expect(raceProtectionForDay(cfg,15,'lundi')).toMatchObject({stage:'recovery',restOnly:true});
   expect(raceProtectionForDay(cfg,16,'mercredi')).toMatchObject({stage:'recovery',daysToRace:-10});
-  expect(raceProtectionForDay(cfg,16,'jeudi')).toBeUndefined();
+  expect(raceProtectionForDay(cfg,16,'jeudi')).toMatchObject({maxMinutes:{bike:120,run:45}});
  });
  it('rejects MLSS, VO2max, long rides and bricks after marathon',()=>{
   const p={weeks:[{weekNumber:15,phase:'build',sessions:[session('mardi','VO2max','bike',60),session('mercredi','MLSS','run',60),session('jeudi','Brick','brick',200),session('samedi','Vélo long','bike',240)].map(s=>({...s,isRest:false,dayName:s.day}))}]};

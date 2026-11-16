@@ -347,6 +347,8 @@ export interface AdaptationProjection {
     deltaMin?: number;
     deltaMax?: number;
     unit?: string;
+    capped?: boolean;
+    capNote?: string | null;
     direction: "up" | "down" | "stable";
   }>;
   performanceImpacts: Array<{
@@ -1773,11 +1775,11 @@ export function useAITrainingPlan() {
           ...completePlanCoverageIssues(assembled,totalWeeks),
           ...validateRaceCalendar(assembled,{...planConfig,globalWeekOffset:0}),
         ];
-        if(assembled.finalValidationIssues.some(i=>i.rule==='complete_plan_week_coverage')) {
+        if(assembled.finalValidationIssues.some(i=>i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'))) {
           setFinalValidationIssues(assembled.finalValidationIssues);
           lastParsedPlanRef.current=null;
           setParsedPlan(null);
-          toast.error('Plan incomplet : toutes les semaines doivent être présentes avant utilisation.');
+          toast.error(`Plan refusé : ${assembled.finalValidationIssues.find(i=>i.severity==='error')?.message ?? 'continuité de charge non conforme'}`);
           return;
         }
         setFinalValidationIssues(assembled.finalValidationIssues);

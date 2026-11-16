@@ -729,6 +729,8 @@ function buildAdaptationProjections(
           deltaMax: m.deltaMax,
           unit: m.unit,
           direction: m.direction,
+          capped: m.capped,
+          capNote: m.capNote,
         })),
       performanceImpacts: s.performancePredictions.map(p => ({
         distance: p.distance,

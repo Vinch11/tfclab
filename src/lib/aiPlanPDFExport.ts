@@ -654,14 +654,14 @@ function buildPlanHTML(
         <p style="margin:0 0 6px 0;font-size:10.5px;color:#555;">${p.recommendation}</p>
         ${p.metrics.length > 0 ? `
         <table style="width:100%;border-collapse:collapse;font-size:10.5px;margin-top:4px;">
-          ${p.metrics.map(m => {
+          ${p.metrics.filter(m=>!/TTE|durabil/i.test(m.label)).map(m => {
             const digits = /vlamax/i.test(m.label) ? 2 : 1;
             const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
             const color = m.direction === "up" ? "#1F9D6B" : m.direction === "down" ? "#0277bd" : "#888";
             const sign = m.deltaPct > 0 ? "+" : "";
             return `<tr>
               <td style="padding:2px 6px;color:${color};width:18px;">${arrow}</td>
-              <td style="padding:2px 6px;">${m.label}</td>
+              <td style="padding:2px 6px;">${m.label}${m.capped ? ' · gain plafonné' : ''}</td>
               <td style="padding:2px 6px;text-align:right;font-family:monospace;color:#555;">
                 ${projectionRangeText(m, digits)}
               </td>

@@ -508,7 +508,9 @@ function buildScenario(
     : false;
   const targetedMetrics = limiterId ? (LIMITER_TO_METRICS[limiterId] || []) : [];
 
-  const rawMetrics: MetricDelta[] = METRIC_CONFIGS.map(config => {
+  // Unvalidated adaptation amplitudes cannot rank strategies or forecast performance.
+  // Observed TTE/durability remain in currentState and the diagnostic/report paths.
+  const rawMetrics: MetricDelta[] = METRIC_CONFIGS.filter(config => config.id !== 'tte' && config.id !== 'durability').map(config => {
     const current = getMetricValue(state, config.id);
     const effect = effects.find(e => e.metric === config.id);
     const available = current !== null && current !== undefined && Number.isFinite(current);

@@ -25,6 +25,9 @@ export function PlanPhysioTimeline({ plan, phases, displayPhase, startDate }: { 
   return (
     <div className="space-y-2">
       <div ref={ref} className="w-full overflow-x-auto pb-1" dangerouslySetInnerHTML={{ __html: svg }} />
+      <div className="grid gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
+        {(phases ?? plan.phases ?? []).map((p,i)=><span key={i}><strong className="text-foreground">{p.weeks}</strong> · {p.name}</span>)}
+      </div>
       <p className="text-xs text-muted-foreground">
         Chaque colonne = une semaine. <b className="text-foreground">Chantier</b> = travail prioritaire de la semaine. <b className="text-foreground">Charge</b> = volume prévu : la courbe monte, redescend sur <span className="font-semibold text-primary">allège</span> (récupération) et <span className="font-semibold text-warning">affûte</span> (avant course). Survolez pour le détail.
       </p>

@@ -193,8 +193,8 @@ export function renderPlanTimelineSVG(
     const when = d0 && d1 ? `${dLong(d0)} → ${dLong(addDays(d1, 6))}` : seg.start === seg.end ? `S${seg.start}` : `S${seg.start}–S${seg.end}`;
     const nb = seg.end - seg.start + 1;
     o.push(`<g><title>${esc(seg.label)} — ${when} (${nb} sem)${seg.objective ? "\n" + esc(seg.objective) : ""}</title><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${P.phases[i % P.phases.length]}" stroke="${P.grid}"/>`);
-    o.push(`<text x="${x + 7}" y="${y + 18}" font-size="${fs}" font-weight="700" fill="${P.text}">${esc(clip(seg.label, w - 12, fs))}</text>`);
-    o.push(`<text x="${x + 7}" y="${y + 34}" font-size="${fs - 1.5}" fill="${P.muted}">${esc(clip(`${when} · ${nb} sem`, w - 12, fs - 1.5))}</text></g>`);
+    wrap(seg.label,w-12,fs,2).forEach((line,li)=>o.push(`<text x="${x + 7}" y="${y + 14 + li*13}" font-size="${fs}" font-weight="700" fill="${P.text}">${esc(line)}</text>`));
+    o.push(`<text x="${x + 7}" y="${y + 44}" font-size="${fs - 1.5}" fill="${P.muted}">${esc(clip(`${when} · ${nb} sem`, w - 12, fs - 1.5))}</text></g>`);
   });
 
   // 2. Chantier prioritaire actif chaque semaine (segments fusionnés)

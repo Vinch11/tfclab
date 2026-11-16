@@ -39,6 +39,15 @@ import { useAITrainingPlan, type PlanConfig, type PlanAthleteData } from "@/hook
 import { postProcessParsedPlan } from "@/engines/plan/computePlan";
 import type { PlanGenerationConfig } from "@/engines/plan/types";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
+import {computeFinalValidationIssues} from '@/lib/plan/qa/finalValidation';
+
+function enforceCalendarSafety(plan:ParsedPlan, config:PlanConfig) {
+  const final=computeFinalValidationIssues(plan,undefined,{objective:config.objective,ambition:config.ambition,
+    raceCalendar:{...config,globalWeekOffset:0}});
+  plan.finalValidationIssues=final.issues;
+  const blocked=final.issues.find(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'));
+  if(blocked)throw Error(`Adaptation refusée : ${blocked.message}`);
+}
 
 export type PatchKind = "deload" | "missed_session" | "swap_modality" | "shift_race";
 
@@ -179,6 +188,7 @@ export function usePlanAdaptation() {
         };
         const { plan: processedPlan } = postProcessParsedPlan(result.plan, genConfig, args.athleteData);
         const finalResult: PatchResult = { ...result, plan: processedPlan };
+        enforceCalendarSafety(processedPlan,args.planConfig);
 
         const vr = validatePlan(
           processedPlan,
@@ -298,6 +308,7 @@ export function usePlanAdaptation() {
           mode: "ai",
         };
         const { plan: processedPlan } = postProcessParsedPlan(merged, genConfig, req.athleteData);
+        enforceCalendarSafety(processedPlan,req.baseConfig);
 
         const vr = validatePlan(
           processedPlan,

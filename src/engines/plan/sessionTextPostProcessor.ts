@@ -17,6 +17,7 @@
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
+import { cleanPlanText } from '@/lib/plan/planText';
 // ═══ 1. DÉDUP ANNOTATIONS ════════════════════════════════════════════════════
 
 /**
@@ -343,7 +344,7 @@ export function postProcessSessionText(
   for (const key of ["title", "details"] as const) {
     const orig = session[key];
     if (typeof orig !== "string" || !orig) continue;
-    const dedup = collapseDuplicateValueAnnotations(orig);
+    const dedup = collapseDuplicateValueAnnotations(cleanPlanText(orig));
     const dur = resolveWideDurationRanges(dedup.text, {
       phase: session.phase,
       dayIndex: session.dayIndex,

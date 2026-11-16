@@ -13,14 +13,14 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
   for (const week of [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber)) {
     const entry = quotas[week.weekNumber];
     const budget = entry?.volumeBudget;
-    if (!entry || !budget || week.sessions.some(isRaceDaySession)) { previousLoad = undefined; continue; }
+    if (!entry || !budget || week.sessions.some(isRaceDaySession)) continue;
     const active = week.sessions.filter(s => !s.isRest && s.sport !== "rest" && normalizeRepairSport(s.sport) !== "strength");
     const durations = active.map(s => (parseSessionDurationMin(s as ParsedSession) ?? 0));
     const missing = durations.filter(n => !Number.isFinite(n) || n <= 0).length;
     if (missing) {
       issues.push({ rule: "coach_load_violation", severity: "error", week: week.weekNumber,
         message: `S${week.weekNumber}: plafond de charge non vérifiable (${missing} durée(s) absente(s))` });
-      previousLoad = undefined; continue;
+      continue;
     }
     const total = durations.reduce((sum, duration) => sum + duration, 0);
     let ceiling = budget.maxMinutes;

@@ -16,6 +16,7 @@
  */
 
 import { traceSLFloorConsumer } from "@/lib/plan/slFloorAudit";
+import {cleanPlanText} from '@/lib/plan/planText';
 import type {
   PlanGenerationConfig,
   ParsedPlan,
@@ -503,6 +504,8 @@ export function postProcessParsedPlan(
   };
   for (const w of plan.weeks) {
     traceSLFloorConsumer("post_processing", w.weekNumber, plan.weeklyQuotas?.[w.weekNumber]);
+    w.theme = cleanPlanText(w.theme);
+    if (w.coachNotes) w.coachNotes = cleanPlanText(w.coachNotes);
     for (const s of w.sessions) {
       const st = postProcessSessionText(s, config.ambition, {
         ...matrixCtx,

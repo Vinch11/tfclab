@@ -57,7 +57,7 @@ export function LegacyTaperBanner({
       reason:
         `Régénération de l'affûtage (S${fromWeek}→S${toWeek}) — plan ancien reclassé. ` +
         `Volume −40 à −60 % vs pic, intensité et fréquence maintenues (Mujika & Padilla 2003 ; Bosquet 2007). ` +
-        `Supprimer les sorties longues, conserver des rappels courts type openers.`,
+        `Réduire les sorties longues, pas les supprimer systématiquement : en Ironman vers J−14, conserver un vélo de 120–150 min avec rappels à effort Ironman et une course de 60–75 min, en retirant du volume ailleurs. Conserver les rappels courts dans la dernière semaine.`,
     });
     if (merged) {
       setDone(true);

@@ -2265,7 +2265,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // --- Adaptation Predictor Projections ---
   if (config.adaptationProjections && config.adaptationProjections.length > 0) {
     lines.push("\n### 🔮 PROJECTIONS ADAPTATION PREDICTOR™ (Impact attendu du bloc d'entraînement)");
-    lines.push("Le module Adaptation Predictor™ a simulé l'impact physiologique attendu. Le plan DOIT s'aligner sur ces projections.");
+    lines.push("Estimations indicatives, pas des mesures ni des cibles prescrites. Les contrats coach, les courses et la récupération priment ; aucune projection TTE/durabilité ne doit guider la prescription.");
     lines.push("");
 
     for (const proj of config.adaptationProjections) {
@@ -2276,6 +2276,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       if (proj.metrics && proj.metrics.length > 0) {
         lines.push("Adaptations physiologiques attendues (bloc 4-6 semaines) :");
         for (const m of proj.metrics) {
+          if (/TTE|durabil/i.test(m.label)) continue;
           const arrow = m.direction === "up" ? "↑" : m.direction === "down" ? "↓" : "→";
           const sign = m.deltaPct > 0 ? "+" : "";
           lines.push(`  - ${m.label}: ${m.current?.toFixed(2) ?? "?"} → ${m.projected?.toFixed(2) ?? "?"} (${sign}${m.deltaPct.toFixed(1)}% ${arrow})`);
@@ -2296,8 +2297,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       lines.push("");
     }
 
-    lines.push("CONSIGNE : Le plan doit PRIORITAIREMENT appliquer la stratégie recommandée (⭐). Les séances clés doivent refléter les adaptations projetées.");
-    lines.push("Mentionne dans le récapitulatif stratégique les projections attendues du Predictor™.");
+    lines.push("Les estimations ne peuvent modifier l'ordre des priorités du coach ni les contrats de prescription. Ne pas présenter un gain individuel comme garanti.");
   }
 
   // Sport coherence reminder based on objective

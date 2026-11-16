@@ -40,16 +40,21 @@ export function raceProtectionForDay(config: RaceCalendarConfig, localWeek: numb
   for (const goal of datedRaceGoals(config)) {
     const race = strictRaceDate(goal.raceDate), key = normalizeRepairGoal(goal.objective);
     if (race === undefined || !key || !goal.raceDate) continue;
-    const d = Math.round((race-date)/DAY_MS), window = WINDOWS[key];
+    const d = Math.round((race-date)/DAY_MS), baseWindow = WINDOWS[key];
+    const window = baseWindow && { ...baseWindow,
+      before: goal.priority && goal.priority !== 'A' ? Math.min(baseWindow.before, 7) : baseWindow.before,
+      after: key === 'marathon' ? 21 : baseWindow.after };
     if (d !== 0 && (!window || d > window.before || -d > window.after)) continue;
     const stage = d === 0 ? 'race' : d > 0 ? 'taper' : 'recovery';
     const restOnly = stage === 'recovery' && -d <= (['marathon','ironman'].includes(key) ? 2 : 1);
-    const easyOnly = stage === 'recovery' || (stage === 'taper' && key === 'marathon');
+    const easyOnly = stage === 'recovery' && (key !== 'marathon' || -d <= 14);
     const maxMinutes = stage === 'race' ? {} : stage === 'recovery'
-      ? { run:30, bike:60, swim:40, brick:0, strength:0 }
+      ? key === 'marathon' && -d > 14 ? {run:75,bike:180,swim:60,brick:0,strength:0}
+      : key === 'marathon' && -d > 7 ? {run:45,bike:120,swim:60,brick:0,strength:0}
+      : { run:30, bike:90, swim:50, brick:0, strength:0 }
       : d <= 2 ? {run:25,bike:40,swim:30,brick:0,strength:0}
       : d <= 7 ? {run:45,bike:90,swim:50,brick:0,strength:0}
-      : {run:60,bike:key === 'ironman' ? 180 : 90,swim:60,brick:0,strength:0};
+      : {run:key === 'ironman' ? 75 : 60,bike:key === 'ironman' ? 150 : 90,swim:60,brick:0,strength:0};
     candidates.push({stage,daysToRace:d,objective:key,raceDate:goal.raceDate,label:goal.raceName ?? goal.objective ?? key,easyOnly,restOnly,maxMinutes});
   }
   // A competition cannot silently override another competition's recovery window.
@@ -58,15 +63,26 @@ export function raceProtectionForDay(config: RaceCalendarConfig, localWeek: numb
 export function protectedRaceWeekType(config: RaceCalendarConfig, week: number, fallback: 'load'|'recovery'|'taper'|'race') {
   const protections = RACE_DAYS.map(d => raceProtectionForDay(config,week,d)).filter(p => p !== undefined);
   if (protections.some(p => p.stage === 'race')) return 'race' as const;
-  if (protections.some(p => p.stage === 'recovery')) return 'recovery' as const;
+  if (protections.some(p => p.stage === 'recovery' && p.daysToRace >= -14)) return 'recovery' as const;
   if (protections.some(p => p.stage === 'taper')) return 'taper' as const;
   return fallback;
 }
 export function raceProtectionPrompt(config: RaceCalendarConfig, week: number): string {
-  return RACE_DAYS.flatMap(day => {
+  const start=strictRaceDate(config.planStartDate);
+  const weekly=datedRaceGoals(config).flatMap(goal=>{
+    const date=strictRaceDate(goal.raceDate);
+    if(start===undefined || date===undefined)return [];
+    const raceWeek=Math.floor((date-start)/604800000)+1-(config.globalWeekOffset??0);
+    const key=normalizeRepairGoal(goal.objective);
+    if(key==='marathon' && week===raceWeek-1)return ['CONTRAT ALLURE MARATHON : 1–2 rappels chiffrés totalisant au moins 15 min à allure marathon, jamais des accélérations de 30 s seules. Réduire le volume autour, conserver vélo/natation faciles ; course B ≠ pic A.'];
+    if(key==='ironman' && week===raceWeek-2)return ['CONTRAT AFFÛTAGE IRONMAN : conserver un vélo autonome de 120–150 min avec rappels à effort Ironman et une course de 60–75 min ; réduire le volume ailleurs, ne pas supprimer tous les efforts longs.'];
+    if(key==='marathon' && week>raceWeek && week<=raceWeek+3)return ['CONTRAT REPRISE MARATHON : comparer à la dernière charge pré-course, pas au plafond théorique : au plus 45 %, 70 %, 90 % en S+1, S+2, S+3. Aucun minimum à remplir en récupération ; douleurs/foulée anormale = pas de reprise course. S+3 : au plus deux séances clés non maximales, sans Z5/VO₂max ni brick exigeant. Repères de coaching, pas preuve de récupération individuelle.'];
+    return [];
+  });
+  return [...weekly,...RACE_DAYS.flatMap(day => {
     const p = raceProtectionForDay(config,week,day);
     if (!p) return [];
     if (p.stage === 'race') return [`${day}: COURSE ${p.label} le ${p.raceDate}, seule activité ; aucune séance ajoutée.`];
-    return [`${day}: ${p.stage === 'recovery' ? 'récupération après' : 'affûtage avant'} ${p.label} (${p.daysToRace < 0 ? 'J+' : 'J−'}${Math.abs(p.daysToRace)}). ${p.restOnly ? 'Repos complet.' : `${p.easyOnly ? 'Facile uniquement, aucun seuil/tempo/VO₂max/sprint.' : 'Rappels courts non fatigants ; pas de séance de développement.'} Plafonds par séance: ${Object.entries(p.maxMinutes).map(([s,m])=>`${s} ${m} min`).join(', ')}.`} Ces protections priment sur volume, sorties longues, maintien et renforcement.`];
-  }).join('\n');
+    return [`${day}: ${p.stage === 'recovery' ? 'récupération après' : 'affûtage avant'} ${p.label} (${p.daysToRace < 0 ? 'J+' : 'J−'}${Math.abs(p.daysToRace)}). ${p.restOnly ? 'Repos complet.' : `${p.easyOnly ? 'Facile uniquement, aucun seuil/tempo/VO₂max/sprint. Reprise course seulement sans douleur, foulée normale ; jamais de quota obligatoire à remplir.' : 'Rappels spécifiques non fatigants ; pas de VO₂max ni de séance de développement. Avant marathon : conserver 1–2 rappels chiffrés à allure marathon ; après J+14 : au plus deux séances clés dans la semaine, sans brick exigeant.'} Plafonds par séance: ${Object.entries(p.maxMinutes).map(([s,m])=>`${s} ${m} min`).join(', ')}.`} Ces protections priment sur volume, sorties longues, maintien et renforcement.`];
+  })].join('\n');
 }

@@ -5,6 +5,7 @@ import { WorkoutLibrary } from '@/lib/workoutLibrary';
 import { buildRepairWorkoutMetadata } from './repairCatalogMetadata';
 import type { FinalValidationPlanLike, FinalValidationSessionLike } from './qa/checkB13';
 import type { FinalValidationIssue } from './qa/finalValidation';
+import { racePaceMinutes } from './specificPaceQuotas';
 const metadata = new Map(WorkoutLibrary.map(w => [w.id.toUpperCase(), buildRepairWorkoutMetadata(w)]));
 export function raceSessionDay(s: FinalValidationSessionLike & {day?:string}): string {
   return (s.dayName ?? s.day ?? '').toLowerCase();
@@ -42,6 +43,51 @@ export function validateRaceCalendar(plan: Pick<FinalValidationPlanLike,'weeks'>
     const duration = s.durationMin ?? parseSessionDurationMin(s as never);
     if (p.restOnly || cap === 0 || (cap !== undefined && (!duration || duration>cap)) || (p.easyOnly && raceSessionDemanding(s)))
       issues.push({rule:`race_calendar_${p.stage}_unsafe`,severity:'error',message:`S${w.weekNumber} ${raceSessionDay(s)} « ${s.title} » : incompatible avec ${p.stage==='recovery'?'la récupération après':'l’affûtage avant'} ${p.label} (${p.raceDate}).`});
+  }
+  issues.push(...validateRaceTrajectory(plan, config));
+  return issues;
+}
+
+/** Dated continuity checks survive missing budgets and assembled generation windows.
+ * Coaching ceilings, not a claim that a fixed percentage certifies recovery. */
+export function validateRaceTrajectory(plan: Pick<FinalValidationPlanLike,'weeks'>, config: RaceCalendarConfig): FinalValidationIssue[] {
+  const start = strictRaceDate(config.planStartDate);
+  if (start === undefined) return [];
+  const issues: FinalValidationIssue[] = [];
+  const minutes = (w: FinalValidationPlanLike['weeks'][number]) => w.sessions.reduce((n,s) =>
+    n + (s.isRest || s.sport === 'rest' || s.sport === 'strength' || isRaceDaySession(s) ? 0 : s.durationMin ?? parseSessionDurationMin(s as never) ?? 0), 0);
+  for (const goal of datedRaceGoals(config)) {
+    const date = strictRaceDate(goal.raceDate);
+    if (date === undefined) continue;
+    const key = raceProtectionForDay({...config, planStartDate:goal.raceDate, globalWeekOffset:0},1,RACE_DAYS[(new Date(date).getUTCDay()+6)%7])?.objective;
+    const raceWeek = Math.floor((date-start)/604800000)+1-(config.globalWeekOffset ?? 0);
+    if (key === 'marathon') {
+      const prep = plan.weeks.filter(w => w.weekNumber >= raceWeek-4 && w.weekNumber <= raceWeek-2);
+      const reference = prep.length ? Math.max(...prep.map(minutes)) : 0;
+      for (const week of plan.weeks.filter(w=>w.weekNumber > raceWeek && w.weekNumber <= raceWeek+3)) {
+        const distance = week.weekNumber-raceWeek;
+        const ceiling = reference * ([0,.45,.7,.9][distance] ?? 1);
+        if (reference > 0 && minutes(week) > ceiling + 5) issues.push({rule:'race_calendar_reentry_jump',severity:'error',message:`S${week.weekNumber}: reprise après ${goal.raceName ?? 'marathon'} trop forte (${minutes(week)} min > ${Math.round(ceiling)} min), référence pré-course ${reference} min, hors renforcement.`});
+        if (distance === 3) {
+          const demanding = week.sessions.filter(s=>!s.isRest && raceSessionDemanding(s));
+          const severe = demanding.some(s=>/Z\s*[5-7]|VO[₂2]max|VMA|pyramide/i.test(`${s.title} ${s.details} ${s.zones?.join(' ')}`));
+          if (demanding.length > 2 || severe) issues.push({rule:'race_calendar_reentry_intensity',severity:'error',message:`S${week.weekNumber}: reprise marathon limitée à deux séances clés non maximales ; pas de VO₂max/Z5 ni de cumul exigeant.`});
+        }
+      }
+      const reminderWeek = plan.weeks.find(w=>w.weekNumber === raceWeek-1);
+      if (reminderWeek) {
+        const reminders = reminderWeek.sessions.filter(s=>!s.isRest && s.sport==='run' && /allure\s*marathon|\bAM\b/i.test(`${s.title} ${s.details}`));
+        const amount = reminders.reduce((n,s)=>n+racePaceMinutes(`${s.title} ${s.details}`),0);
+        if (amount < 15) issues.push({rule:'race_calendar_marathon_reminder_missing',severity:'error',message:`S${reminderWeek.weekNumber}: conserver 1–2 rappels totalisant au moins 15 min à allure marathon, sans séance de développement.`});
+      }
+    }
+    if (key === 'ironman') {
+      const week = plan.weeks.find(w=>w.weekNumber===raceWeek-2);
+      if (week) for (const [sport,min] of [['bike',120],['run',60]] as const) {
+        if (!week.sessions.some(s=>!s.isRest && s.sport===sport && (s.durationMin ?? parseSessionDurationMin(s as never) ?? 0)>=min))
+          issues.push({rule:'race_calendar_taper_long_missing',severity:'error',message:`S${week.weekNumber}: affûtage Ironman sans repère long ${sport==='bike'?'vélo (120–150 min)':'course (60–75 min)'} ; conserver ce repère en réduisant le volume ailleurs.`});
+      }
+    }
   }
   return issues;
 }

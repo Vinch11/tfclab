@@ -93,6 +93,7 @@ export function AdaptationProjectionSummary({
             </p>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1">
               {active.metrics.map((m) => {
+                if (/TTE|durabil/i.test(m.label)) return null;
                 const Icon = DIRECTION_ICON[m.direction];
                 const color = DIRECTION_COLOR[m.direction];
                 // VLamax vit dans la plage 0.3–0.9 → 2 décimales requises
@@ -120,8 +121,9 @@ export function AdaptationProjectionSummary({
                       </span>
                     </div>
                     <div className="text-[9px] text-muted-foreground font-mono pl-4">
-                      {m.current!.toFixed(digits)} → {m.projected!.toFixed(digits)}
+                      {m.current?.toFixed(digits)} → {m.projected?.toFixed(digits)}
                     </div>
+                    {m.capped && <span className="text-[10px] text-muted-foreground pl-4" title={m.capNote ?? undefined}>Gain plafonné</span>}
                   </div>
                 );
               })}

@@ -451,6 +451,17 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
             entry.floors.longRideWeekly=false;
             entry.floors.longRunWeekly=false;
             entry.floors.dedicatedLongRide=false;
+            const imTaper = RACE_DAYS.some(day=>{
+              const p=raceProtectionForDay(planConfig,w,day);
+              return p?.objective==='ironman' && p.stage==='taper' && p.daysToRace>=8;
+            });
+            if (imTaper) {
+              entry.floors.longRideWeekly=true;
+              entry.floors.dedicatedLongRide=true;
+              entry.floors.slLongRideMin=120;
+              entry.floors.longRunWeekly=true;
+              entry.floors.slLongRunMin=60;
+            }
             // Protected recovery can start with complete rest: no mandatory training count.
             if (weekType==='recovery') {
               for (const sport of ['swim','bike','run'] as const) entry.quota[sport].min=0;
@@ -489,8 +500,10 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
               for (const s of day.slots) if (!s.isRaceEvent) {
                 const cap=p.maxMinutes[s.sport];
                 if (cap!==undefined) s.maxDurationMin=cap;
-                s.isLongSession=false;
-                s.minDurationMin=undefined;
+                if (!(p.objective==='ironman' && p.stage==='taper' && p.daysToRace>=8)) {
+                  s.isLongSession=false;
+                  s.minDurationMin=undefined;
+                }
                 if (p.easyOnly) s.isKeySession=false;
               }
               day.isRest=day.slots.length===0;

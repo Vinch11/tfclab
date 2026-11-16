@@ -2128,7 +2128,7 @@ function validateWeeklyLoadConsistency(
 
     const priorWeeks: WeekMetrics[] = [];
     for (let j = i - 1; j >= 0 && priorWeeks.length < WEEKLY_LOAD_LOOKBACK_WEEKS; j--) {
-      if (metrics[j].scheduledWeekType !== "load") break; // s'arrête à la 1ère semaine non "charge"
+      if (metrics[j].scheduledWeekType !== "load") continue; // retain pre-race load across taper/recovery
       priorWeeks.unshift(metrics[j]);
     }
 

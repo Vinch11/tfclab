@@ -2378,6 +2378,11 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
     setIsSaving(true);
     try {
+      const safety = computeFinalValidationIssues(parsedPlan, undefined, {
+        objective, ambition, raceCalendar: {planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals},
+      });
+      const blocked = safety.issues.find(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation' || i.rule==='coach_volume_under_min'));
+      if (blocked) throw new Error(blocked.message);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
@@ -2638,7 +2643,9 @@ export default function AITrainingPlanPage() {
         }
       }
     } catch (vErr) {
-      console.warn("[F-16] validator failed, persisting plan without score:", vErr);
+      console.error("[F-16] validator failed, save refused:", vErr);
+      toast.error('Contrôle du plan impossible : sauvegarde refusée, le plan précédent est conservé.');
+      return;
     }
 
     const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
@@ -3182,9 +3189,15 @@ export default function AITrainingPlanPage() {
             `🚨 [handleRegenerateWeek] validation finale CRITIQUE après régénération S${weekNumber} :`,
             finalValidation.issues.filter((i) => i.severity === "error"),
           );
+          if (finalValidation.issues.some(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'))) {
+            toast.error('Régénération refusée : calendrier ou reprise de charge non conforme. La semaine précédente est conservée.');
+            return;
+          }
         }
       } catch (fvErr) {
         console.error("[handleRegenerateWeek] computeFinalValidationIssues failed:", fvErr);
+        toast.error('Contrôle final impossible : la semaine précédente est conservée.');
+        return;
       }
       setPlanOverride(mergedPlan);
       setIsSaved(false);

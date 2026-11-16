@@ -45,6 +45,7 @@ import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
 import { raceProtectionForDay, datedRaceGoals, strictRaceDate, RACE_DAYS, type RaceCalendarConfig } from '../../../supabase/functions/_shared/raceCalendarProtection';
 import { normalizeObjectiveKey } from '@/lib/normalizeObjectiveKey';
 import { raceSessionDemanding } from './raceCalendarValidation';
+import {cleanPlanText} from './planText';
 import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
   parseAthleteConstraints,
@@ -2443,6 +2444,8 @@ export function protectRaceCalendarSessions(chunks: PlanChunk[], config: RaceCal
   for (const chunk of chunks) for (const week of chunk.weeks) {
     const retained: PlanSession[] = [];
     for (const s of week.sessions) {
+      s.title=cleanPlanText(s.title);
+      s.details=cleanPlanText(s.details);
       if (s.sport==='rest' || isRaceEventTitle(s)) { retained.push(s); continue; }
       const p = raceProtectionForDay(config,week.weekNumber,s.day);
       if (!p) { retained.push(s); continue; }
