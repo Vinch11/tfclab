@@ -1587,6 +1587,7 @@ export function useAITrainingPlan() {
       }
       const legacy=parseAIPlan(fullText);
       legacy.weeklyQuotas=structuredClone(lastWeeklyQuotasRef.current);
+      repairCoachLoadCeilings(legacy as never,legacy.weeklyQuotas ?? {});
       assertPlanDeliverySafe(legacy,planConfig);
       lastParsedPlanRef.current=legacy;
       setParsedPlan(legacy);

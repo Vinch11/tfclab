@@ -40,6 +40,7 @@ import { postProcessParsedPlan } from "@/engines/plan/computePlan";
 import type { PlanGenerationConfig } from "@/engines/plan/types";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import {computeFinalValidationIssues} from '@/lib/plan/qa/finalValidation';
+import {repairCoachLoadCeilings} from '@/lib/plan/coachVolumeValidation';
 
 function enforceCalendarSafety(plan:ParsedPlan, config:PlanConfig) {
   const final=computeFinalValidationIssues(plan,undefined,{objective:config.objective,ambition:config.ambition,
@@ -304,6 +305,9 @@ export function usePlanAdaptation() {
           mode: "ai",
         };
         const { plan: processedPlan } = postProcessParsedPlan(merged, genConfig, req.athleteData);
+        // Only the regenerated weeks may be shortened; coach-edited weeks stay as they are.
+        const regenWeeks=processedPlan.weeks.map(w=>w.weekNumber).filter(n=>n>=req.fromWeek&&n<=req.toWeek);
+        repairCoachLoadCeilings(processedPlan as never,processedPlan.weeklyQuotas ?? {},regenWeeks);
         enforceCalendarSafety(processedPlan,req.baseConfig);
 
         const vr = validatePlan(
