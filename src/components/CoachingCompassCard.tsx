@@ -685,7 +685,20 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
 
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
-        <Accordion type="multiple" className="mt-1">
+        <section className="mt-5 space-y-4" aria-label="Explications du profil">
+          <h3 className="text-sm font-semibold">Profil physiologique — Actuel et cible</h3>
+          {explanationAxes.map((axis,index) => <div key={`${axis.key}-${index}`} className="border-b border-border pb-4">
+            {disciplineAxes && <p className="mb-1 text-xs text-muted-foreground">{index < disciplineAxes.bike.length ? 'Vélo' : 'Course à pied'}</p>}
+            <div className="flex flex-wrap justify-between gap-2"><h4 className="text-sm font-semibold">{AXIS_PEDAGOGY[axis.key]?.short ?? axis.label}</h4><span className="text-xs text-muted-foreground">{axisAssessment(axis)}</span></div>
+            <p className="mt-2 text-sm tabular-nums">Actuel : {axis.value != null && axis.value > 0 ? `${axis.value.toLocaleString('fr-BE',{maximumFractionDigits:2})} ${axis.unit}` : 'Données insuffisantes'}{axis.target != null && axis.target > 0 ? ` → Cible interne : ${axis.target.toLocaleString('fr-BE',{maximumFractionDigits:2})} ${axis.unit}` : ' · Cible non définie, aucun déficit conclu.'}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{AXIS_PEDAGOGY[axis.key]?.detail}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? 'unknown')}</p>
+          </div>)}
+          {compass.economyModifier && <div className="border-b border-border pb-4"><h4 className="text-sm font-semibold">Modulateur — Efficience</h4><p className="mt-1 text-sm">{compass.economyModifier.label}</p><p className="mt-2 text-sm text-muted-foreground">Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.</p></div>}
+          <div><h3 className="text-sm font-semibold">Priorités du diagnostic utilisé pour le plan — inchangées</h3><p className="mt-2 text-sm">{limiter.icon} {limiter.label}</p><p className="mt-1 text-sm text-muted-foreground">{presentation?.priorityMetrics.join(' → ') || 'Aucune priorité étayée disponible'}</p>{coachPolicy && <p className="mt-2 text-sm">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(' → ')}</p>}</div>
+          <p className="text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
+        </section>
+        <Accordion type="multiple" defaultValue={['data','diagnostic']} className="mt-1">
           <AccordionItem value="data"><AccordionTrigger>Tests et données</AccordionTrigger><AccordionContent>
             <p className="mb-3 text-sm text-muted-foreground">Repères disponibles : {coverage.filled}/{coverage.total}. Les dates de tests et les protocoles absents ne sont pas déduits de la date du bilan.</p>
             {input.targetRacePrediction && <p className="mb-3 text-sm">Temps de course cible estimé : {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)} · estimation, pas une garantie de résultat.</p>}
