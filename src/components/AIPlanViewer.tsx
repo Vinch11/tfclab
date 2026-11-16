@@ -1,6 +1,7 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import {cleanPlanText} from '@/lib/plan/planText';
 import {planDeliveryIssues,assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
+import {asPlanAdvisories} from '@/lib/plan/planAdvisoryPolicy';
 import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 import { NolioCyclesPanel } from "@/components/plan/NolioCyclesPanel";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
@@ -966,7 +967,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   const displayedQuotaIssues = (plan.weeklyQuotaIssues ?? []).filter(issue =>
     issue.code !== "coach_load_violation" || !plan.weeklyQuotas?.[issue.weekNumber]?.volumeBudget);
   const deliveryCalendar={...(startDate?{planStartDate:format(startDate,'yyyy-MM-dd')}:{}),...(raceGoals?{raceGoals}:{}),...(gapContext?.objective?{objective:gapContext.objective}:{})};
-  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("race_calendar_") && !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && (i.rule === "coach_load_violation" || i.rule === "coach_volume_under_min" || i.rule === "coach_initial_load_unverified"))), ...currentCatalogueIssues, ...planDeliveryIssues(plan,deliveryCalendar)];
+  const displayedFinalIssues = asPlanAdvisories([...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("race_calendar_") && !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && (i.rule === "coach_load_violation" || i.rule === "coach_volume_under_min" || i.rule === "coach_initial_load_unverified"))), ...currentCatalogueIssues, ...planDeliveryIssues(plan,deliveryCalendar)]);
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 
@@ -1585,7 +1586,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               <p className="font-medium">
                 {critical.length > 0
                   ? `⛔ Incohérence critique détectée — vérifie ce point avant d'utiliser ce plan (recontrôlé à la sauvegarde) (${critical.length} critique${critical.length > 1 ? "s" : ""}${warnings.length > 0 ? `, ${warnings.length} avertissement${warnings.length > 1 ? "s" : ""}` : ""}).`
-                  : `⚠️ ${warnings.length} avertissement${warnings.length > 1 ? "s" : ""} de validation finale (cohérence phase/fiche) — contenu valide, étiquetage de phase à vérifier.`}
+                  : `⚠️ ${warnings.length} avertissement${warnings.length > 1 ? "s" : ""} — à vérifier avant utilisation du plan.`}
               </p>
               <ul className="mt-1.5 space-y-0.5 text-sm">
                 {[...critical, ...warnings].slice(0, 6).map((issue, i) => (

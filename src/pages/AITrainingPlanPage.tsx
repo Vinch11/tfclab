@@ -19,6 +19,7 @@ import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidat
 import { validateCoachLoadIssues, repairCoachLoadCeilings, isBlockingCoachLoadIssue } from "@/lib/plan/coachVolumeValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { assertPlanDeliverySafe } from '@/lib/plan/planDeliverySafety';
+import {asPlanAdvisories, isPlanAdvisoryRule} from '@/lib/plan/planAdvisoryPolicy';
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -1880,6 +1881,7 @@ export default function AITrainingPlanPage() {
       // eslint-disable-next-line no-console
       console.log("🩹 [legacy] taper corrigé", taperFix);
     }
+    plan.finalValidationIssues=asPlanAdvisories(plan.finalValidationIssues ?? []);
     return { plan, taperFix: taperFix ?? null };
 
   }, [rawParsedPlan, athleteContext, buildConfigWithCoachOverrides, objective, planStartDate, raceDate, raceGoals]);
@@ -2311,9 +2313,7 @@ export default function AITrainingPlanPage() {
           const { plan } = sanitizeTrailFromTriathlonPlan(rawPlan, athleteObj);
           plan.weeklyQuotas=prepared.weeklyQuotas;
           repairCoachLoadCeilings(plan,plan.weeklyQuotas ?? {});
-          const issues=[...validateRaceCalendar(plan,config),...validateCoachLoadIssues(plan,plan.weeklyQuotas)];
-          const blocked=issues.find(i=>i.severity==='error');
-          if(blocked)throw Error(blocked.message);
+          const issues=assertPlanDeliverySafe(plan,config);
           plan.finalValidationIssues=issues;
           parsed = plan.weeks.length > 0 ? plan : null;
         } catch(e) {toast.error(`${athlete.nom} : plan refusé — ${e instanceof Error?e.message:'contrôle impossible'}`);continue;}
@@ -2648,6 +2648,9 @@ export default function AITrainingPlanPage() {
       return;
     }
 
+    const advisories=criticalIssues.filter(i=>isPlanAdvisoryRule(i.rule));
+    if(advisories.length)toast.warning(`À vérifier : ${advisories[0].message}${advisories.length>1?` (+${advisories.length-1} autre(s))`:''}`,{duration:20000});
+    criticalIssues=criticalIssues.filter(i=>!isPlanAdvisoryRule(i.rule));
     const doSave = () => persistPlanVersion(validatorScore, validatorGrade, validatorSummary, criticalIssues.length);
 
     // Consigne coach : une incohérence FONDAMENTALE objectif/contenu
@@ -3150,6 +3153,12 @@ export default function AITrainingPlanPage() {
           expectedRealSessions,
           receivedRealSessions: realSessions.length,
         });
+        if(attempt===MAX_ATTEMPTS) {
+          newWeek=candidate.week;
+          finalRepairTraces=candidate.repairTraces;
+          finalQuotaIssues=candidate.quotaIssues;
+          toast.warning(`À vérifier : S${weekNumber} comporte ${realSessions.length} séance(s) au lieu de ${expectedRealSessions}.`,{duration:20000});
+        }
       }
 
       if (!newWeek) {
@@ -3191,12 +3200,8 @@ export default function AITrainingPlanPage() {
             `🚨 [handleRegenerateWeek] validation finale CRITIQUE après régénération S${weekNumber} :`,
             finalValidation.issues.filter((i) => i.severity === "error"),
           );
-          const blocked = finalValidation.issues.find(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && i.rule.startsWith('race_calendar_')));
-          if (blocked) {
-            toast.error(`Régénération refusée : ${blocked.message}. La semaine précédente est conservée.`, { duration: 30000 });
-            return;
-          }
         }
+        assertPlanDeliverySafe(mergedPlan,{...fullPlanConfig,globalWeekOffset:0});
       } catch (fvErr) {
         console.error("[handleRegenerateWeek] computeFinalValidationIssues failed:", fvErr);
         toast.error('Contrôle final impossible : la semaine précédente est conservée.');

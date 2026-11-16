@@ -32,7 +32,7 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.hasCritical).toBe(false);
   });
 
-  it("doublon de catalogId → hasCritical=true, une issue 'error'", () => {
+  it("doublon hebdomadaire de catalogId → avertissement visible", () => {
     const plan: FinalValidationPlanLike = {
       weeks: [{
         weekNumber: 1, phase: "build",
@@ -43,8 +43,8 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
       }],
     };
     const r = computeFinalValidationIssues(plan);
-    expect(r.hasCritical).toBe(true);
-    expect(r.issues.filter((i) => i.severity === "error").length).toBe(1);
+    expect(r.hasCritical).toBe(false);
+    expect(r.issues.filter((i) => i.rule === "duplicate_catalog_id_unresolved" && i.severity === "warning")).toHaveLength(1);
   });
 
   it("incompatibilité phase certaine → critique, B14 reste visible", () => {
@@ -84,15 +84,15 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.hasCritical).toBe(true);
   });
 
-  it("un plancher de sortie longue non satisfait remonte comme critique", () => {
+  it("un plancher de sortie longue non satisfait remonte comme avertissement", () => {
     const plan: FinalValidationPlanLike = { weeks: [] };
     const r = computeFinalValidationIssues(plan, [
       "[critical] sl_upgrade_unresolved: W6 dimanche — aucune fiche endurance compatible",
     ]);
     expect(r.issues).toEqual(expect.arrayContaining([
-      expect.objectContaining({ rule: "sl_upgrade_unresolved", severity: "error" }),
+      expect.objectContaining({ rule: "sl_upgrade_unresolved", severity: "warning" }),
     ]));
-    expect(r.hasCritical).toBe(true);
+    expect(r.hasCritical).toBe(false);
   });
 
   it("un doublon non réparé reste critique sans doubler l'alerte du réparateur", () => {
@@ -113,7 +113,7 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     expect(r.hasCritical).toBe(true);
   });
 
-  it("un cumul à jeun conserve son code existant et reste critique", () => {
+  it("un cumul hebdomadaire à jeun conserve son code et devient avertissement", () => {
     const plan: FinalValidationPlanLike = {
       weeks: [{
         weekNumber: 5, phase: "build",
@@ -128,7 +128,8 @@ describe("computeFinalValidationIssues — orchestration B13 (critique) + B14 (a
     ]);
     expect(r.issues.filter(issue => issue.rule === "fasted_session_cap_unresolved")).toHaveLength(1);
     expect(r.issues.some(issue => issue.rule === "duplicate_catalog_id_unresolved")).toBe(false);
-    expect(r.hasCritical).toBe(true);
+    expect(r.hasCritical).toBe(false);
+    expect(r.issues.find(issue => issue.rule === "fasted_session_cap_unresolved")?.severity).toBe("warning");
   });
 
   it("une réparation réussie plus tard retire l'anomalie devenue obsolète", () => {
@@ -207,8 +208,8 @@ describe("computeFinalValidationIssues — orchestration B15 (ambition↔physiol
     const gapIssues = r.issues.filter(issue => issue.rule === "ambition_physiology_gap");
     expect(gapIssues).toHaveLength(1);
     expect(gapIssues[0].severity).toBe("warning");
-    // Le doublon catalogId (B13, critique) reste présent — B15 s'ajoute, ne remplace rien.
+    // Le doublon hebdomadaire reste présent comme avertissement — B15 ne remplace rien.
     expect(r.issues.some(issue => issue.rule === "duplicate_catalog_id_unresolved")).toBe(true);
-    expect(r.hasCritical).toBe(true);
+    expect(r.hasCritical).toBe(false);
   });
 });

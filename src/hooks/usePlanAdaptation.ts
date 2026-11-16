@@ -41,14 +41,14 @@ import type { PlanGenerationConfig } from "@/engines/plan/types";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import {computeFinalValidationIssues} from '@/lib/plan/qa/finalValidation';
 import {repairCoachLoadCeilings,isBlockingCoachLoadIssue} from '@/lib/plan/coachVolumeValidation';
+import {isPlanAdvisoryRule} from '@/lib/plan/planAdvisoryPolicy';
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 
 function enforceCalendarSafety(plan:ParsedPlan, config:PlanConfig) {
   const final=computeFinalValidationIssues(plan,undefined,{objective:config.objective,ambition:config.ambition,
     raceCalendar:{...config,globalWeekOffset:0}});
   plan.finalValidationIssues=final.issues;
-  const blocked=final.issues.find(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && i.rule.startsWith('race_calendar_')));
-  // Volume/race/week checks stay visible in finalValidationIssues; never refuse.
-  if(blocked)console.warn(`Adaptation à vérifier : ${blocked.message}`);
+  assertPlanDeliverySafe(plan,{...config,globalWeekOffset:0});
 }
 
 export type PatchKind = "deload" | "missed_session" | "swap_modality" | "shift_race";
@@ -207,7 +207,7 @@ export function usePlanAdaptation() {
             ? { trainingLevel: args.planConfig.ambitionMeta.trainingLevel, trainingLevelSource: args.planConfig.ambitionMeta.trainingLevelSource }
             : null,
         );
-        const criticalIssues = vr.issues.filter((i) => i.severity === "error");
+        const criticalIssues = vr.issues.filter((i) => i.severity === "error" && !isPlanAdvisoryRule(i.rule));
 
         const weeksImpacted = Array.from(new Set(result.diff.map((d) => d.weekNumber))).sort();
         const doPersist = async (): Promise<PatchResult> => {
@@ -330,7 +330,7 @@ export function usePlanAdaptation() {
             ? { trainingLevel: req.baseConfig.ambitionMeta.trainingLevel, trainingLevelSource: req.baseConfig.ambitionMeta.trainingLevelSource }
             : null,
         );
-        const criticalIssues = vr.issues.filter((i) => i.severity === "error");
+        const criticalIssues = vr.issues.filter((i) => i.severity === "error" && !isPlanAdvisoryRule(i.rule));
 
         const doPersist = async (): Promise<ParsedPlan> => {
           await archive(req.athleteId, req.coachId, req.currentPlan, `Window regen S${req.fromWeek}-${req.toWeek}`);

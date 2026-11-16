@@ -48,7 +48,7 @@ export function prevalidatePlanWeeks(inputs:PrevalidationInputWeek[],calendar:Pr
   const add=(code:string,severity:'blocking'|'warning')=>issues.push({week:input.week,code,severity});
   const context={phase:input.phase,weekType:input.weekType,objective:input.objective};
   const coverage=catalogueForWeek(input.catalog,context,catalogueTrainingMinimaForWeek(input.quota??{},calendar,input.week));
-  if(input.quota&&input.layout)for(const code of planningFeasibility(input.quota,input.layout))add(code,'blocking');
+  if(input.quota&&input.layout)for(const code of planningFeasibility(input.quota,input.layout))add(code,'warning');
   else add('deterministic_quota_not_available','warning'); // dedicated trail/static route, not fabricated road quotas
   if(!input.phase)add('periodization_phase_not_available','warning');
   if(input.expectedPhase&&input.phase&&input.expectedPhase!==input.phase)add('window_phase_contract_conflict','blocking');
@@ -65,7 +65,7 @@ export function prevalidatePlanWeeks(inputs:PrevalidationInputWeek[],calendar:Pr
    return sum+(slot.sport==='strength'?0:Math.min(...ranges.map(r=>Math.max(r[0],slot.minDurationMin??0))));
   },0);
   if(input.volumeBudget){
-   if(minimumStructuredMinutes>input.volumeBudget.maxMinutes)add('structured_floors_exceed_volume_budget','blocking');
+   if(minimumStructuredMinutes>input.volumeBudget.maxMinutes)add('structured_floors_exceed_volume_budget','warning');
    else if(minimumCatalogueMinutes>input.volumeBudget.maxMinutes)add('minimum_catalogue_dose_exceeds_budget','warning');
   }
   return {week:input.week,globalWeek:input.globalWeek,phase:input.phase,expectedPhase:input.expectedPhase,weekType:input.weekType,objective:input.objective,
@@ -91,8 +91,8 @@ export function prevalidateDeclaredCalendar(calendar:PrevalidationCalendar,total
   if(!goal.raceDate)continue;
   if(goal.raceFormat&&goal.raceFormat!=='continuous'){issues.push({week:0,code:'multiday_event_requires_stage_review',severity:'warning'});continue;}
   const week=declaredDateWeek(calendar.planStartDate,goal.raceDate);
-  if(week===null)issues.push({week:0,code:'declared_calendar_date_invalid',severity:'blocking'});
-  else if(week<1||week>totalWeeks)issues.push({week,code:'declared_event_outside_plan',severity:'blocking'});
+  if(week===null)issues.push({week:0,code:'declared_calendar_date_invalid',severity:'warning'});
+  else if(week<1||week>totalWeeks)issues.push({week,code:'declared_event_outside_plan',severity:'warning'});
  }
  return issues;
 }

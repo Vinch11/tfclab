@@ -3,12 +3,13 @@ import type {ParsedPlan} from '@/lib/aiPlanParser';
 import {validateRaceCalendar} from './raceCalendarValidation';
 import {validateCoachLoadIssues} from './coachVolumeValidation';
 import type {RaceCalendarConfig} from '../../../supabase/functions/_shared/raceCalendarProtection';
+import {asPlanAdvisories} from './planAdvisoryPolicy';
 
 /** Read-only boundary check; the full plan is checked even for a one-session export. */
 export function planDeliveryIssues(plan:ParsedPlan, calendar:RaceCalendarConfig={}) {
   const stored=plan as ParsedPlan & {_planStartDate?:string;_objective?:string;_raceDate?:string;_raceGoals?:RaceCalendarConfig['raceGoals']};
   const resolved={planStartDate:stored._planStartDate,objective:stored._objective,raceDate:stored._raceDate,raceGoals:stored._raceGoals,...calendar};
-  return [...validateRaceCalendar(plan,resolved),...validateCoachLoadIssues(plan,plan.weeklyQuotas)];
+  return asPlanAdvisories([...validateRaceCalendar(plan,resolved),...validateCoachLoadIssues(plan,plan.weeklyQuotas)]);
 }
 /** Volume, race and week checks never refuse a delivery: they are surfaced as a visible warning. */
 export function assertPlanDeliverySafe(plan:ParsedPlan, calendar:RaceCalendarConfig={}) {

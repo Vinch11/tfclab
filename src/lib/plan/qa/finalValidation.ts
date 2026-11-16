@@ -1,4 +1,5 @@
 import { validateCoachLoadIssues } from "../coachVolumeValidation";
+import {asPlanAdvisories} from '../planAdvisoryPolicy';
 import { validateRaceCalendar } from '../raceCalendarValidation';
 import { validateSessionCataloguePlan } from "../sessionCatalogueValidation";
 import { checkRemainingDurationRanges } from "../resolveDurationRanges";
@@ -166,7 +167,8 @@ export function computeFinalValidationIssues(
   const stored=plan as FinalValidationPlanLike & {_planStartDate?:string;_objective?:string;_raceDate?:string;_raceGoals?:import('../../../../supabase/functions/_shared/raceCalendarProtection').RaceCalendarConfig['raceGoals']};
   const calendar=ambitionPhysiology?.raceCalendar ?? (stored._planStartDate ? {planStartDate:stored._planStartDate,objective:stored._objective,raceDate:stored._raceDate,raceGoals:stored._raceGoals} : undefined);
   if (calendar) issues.push(...validateRaceCalendar(plan,calendar));
-  return { issues, hasCritical: issues.some(issue => issue.severity === "error") };
+  const presented=asPlanAdvisories(issues);
+  return { issues:presented, hasCritical: presented.some(issue => issue.severity === "error") };
 }
 
 function keySessionObjectiveIssues(plan: FinalValidationPlanLike, objective?: string | null): FinalValidationIssue[] {

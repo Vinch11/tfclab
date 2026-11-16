@@ -9,12 +9,12 @@ import {WorkoutLibrary} from '@/lib/workoutLibrary';
 import {buildRepairWorkoutMetadata} from '@/lib/plan/repairCatalogMetadata';
 
 describe('deterministic prevalidation without a model',()=>{
- it('blocks an impossible calendar before invoking a guarded callback and retains final validator codes',()=>{
+ it('reports an impossible weekly calendar without refusing generation',()=>{
   const entry=computeWeekQuotaEntry('10K','competitor',0,'load',false,{maxSessionsPerDay:1})!;
   const layout=buildWeeklySlotLayout(entry.quota,entry.floors,'load');
   const report=prevalidatePlanWeeks([{week:1,globalWeek:1,phase:'base',weekType:'load',objective:'10K',...entry,layout,catalog:[]}]);
-  expect(report.status).toBe('blocked');expect(report.issues.some(i=>i.code==='minimum_sessions_exceed_available_capacity')).toBe(true);
-  const model=vi.fn();expect(()=>{assertPlanPrevalidation(report);model();}).toThrow('PLAN_PREVALIDATION_BLOCKED');expect(model).not.toHaveBeenCalled();
+  expect(report.status).toBe('coach_review');expect(report.issues).toContainEqual({week:1,code:'minimum_sessions_exceed_available_capacity',severity:'warning'});
+  const model=vi.fn();expect(()=>{assertPlanPrevalidation(report);model();}).not.toThrow();expect(model).toHaveBeenCalledOnce();
  });
  it('keeps unknown load and limited diversity as warnings, never mechanical contradictions',()=>{
   const entry=computeWeekQuotaEntry('10K','age_group',0,'load',false)!;
@@ -55,8 +55,8 @@ import {prevalidateDeclaredCalendar} from '../../../../supabase/functions/_share
 it('checks the actual dates of the 12-week 10K A and B events without inventing another event',()=>{
  const calendar={planStartDate:'2026-10-26',raceGoals:[{objective:'10K',raceDate:'2027-01-17'},{objective:'10K',raceDate:'2026-12-19'}]};
  expect(prevalidateDeclaredCalendar(calendar,12)).toEqual([]);
- expect(prevalidateDeclaredCalendar(calendar,10).some(i=>i.code==='declared_event_outside_plan'&&i.severity==='blocking')).toBe(true);
- expect(prevalidateDeclaredCalendar({...calendar,raceGoals:[{objective:'10K',raceDate:'2027-02-31'}]},12).some(i=>i.severity==='blocking')).toBe(true);
+ expect(prevalidateDeclaredCalendar(calendar,10)).toContainEqual({week:12,code:'declared_event_outside_plan',severity:'warning'});
+ expect(prevalidateDeclaredCalendar({...calendar,raceGoals:[{objective:'10K',raceDate:'2027-02-31'}]},12)).toContainEqual({week:0,code:'declared_calendar_date_invalid',severity:'warning'});
 });
 it('accepts a feasible fully specified contract without manufacturing a generated plan',()=>{
  const entry=computeWeekQuotaEntry('10K','finisher',0,'load',false)!;

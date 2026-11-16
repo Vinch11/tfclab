@@ -7,8 +7,7 @@ import type {ParsedPlan} from '@/lib/aiPlanParser';
 import {TrailGuidanceFields,type TrailSource,type TrailReview} from './TrailGuidanceFields';
 import {PlanGuidance} from './PlanGuidance';
 import {emptyTimeTrial, enteredTimeTrial, TimeTrialFields} from './TimeTrialFields';
-import {validateRaceCalendar} from '@/lib/plan/raceCalendarValidation';
-import {validateCoachLoadIssues} from '@/lib/plan/coachVolumeValidation';
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 
 type PageInput = {
   athleteId:string; athlete:PlanAthleteData; config:PlanConfig; diagnostic:AthleteDiagnostic;
@@ -30,9 +29,8 @@ async function runGeneration(input:GenerationInput, signal:AbortSignal) {
   const client:WorkerClient=await import(/* @vite-ignore */ detClientUrl());
   const plan=await client.runDet({action:'generate',input},signal);
   if(plan._provenance?.engine!=='det')throw Error('Provenance du plan DET inconnue.');
-  const issues=[...validateRaceCalendar(plan,input.config),...validateCoachLoadIssues(plan,plan.weeklyQuotas)];
-  const critical=issues.find(i=>i.severity==='error');
-  if(critical)throw Error(`Plan DET refusé : ${critical.message}`);
+  const issues=assertPlanDeliverySafe(plan,input.config);
+  plan.finalValidationIssues=[...(plan.finalValidationIssues ?? []),...issues];
   return plan;
 }
 
