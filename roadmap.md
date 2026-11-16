@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Compass clarifié : priorités du plan, repères complémentaires et données à mesurer séparés ; radar historique et explications conservés. Emanuela connectée vérifiée ordinateur/téléphone, deux radars, aucun débordement ni erreur ; 16 tests passent. Aucun bilan, classement ou plan modifié ; deux générateurs synchronisés et déployés, aucune génération réelle ni export testé.
+
 - [x] Textes historiques Compass : Dashboard/Profil partagent les explications restaurées ; couverture, TTE et informations complémentaires rétablis. Rapports, assistant et fonctions enregistrées inspectés, aucun texte de carte distinct manquant trouvé. Limites : docs/compass-text-flow-sweep.md ; impression native, exports et réponse IA non exécutés.
 
 - [x] Vérification transversale des alertes volume/course/semaine : prévalidation, batch, régénération, adaptations et DET corrigés ; sauvegardes/exports/tâches/fonctions installées lus. 45 tests ciblés passent, sauvegarde mobile réelle d’une copie Emanuela relue puis copie supprimée, deux générateurs déployés et versions live concordantes. Inventaire et limites : docs/plan-advisory-flow-sweep-2026-11-16.md. Pas de nouvelle génération complète, envoi Nolio, génération DET ni impression native ; originaux, reçus et permissions inchangés.

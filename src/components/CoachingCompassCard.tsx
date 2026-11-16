@@ -12,6 +12,7 @@
 
 import { useId, useMemo, useState } from "react";
 import { CompassProfileComparison } from "./CompassProfileComparison";
+import { CompassCoachReading } from "./CompassCoachReading";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -685,6 +686,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
 
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
+        <CompassCoachReading input={input} compass={compass} coachOrder={coachPolicy?.limiterOrder} />
         <section className="mt-5 space-y-4" aria-label="Explications du profil">
           <p className="text-xs text-muted-foreground">Couverture des repères du sport : {coverage.filled}/{coverage.total}</p>
           <h3 className="text-sm font-semibold">Profil physiologique — Actuel et cible</h3>
@@ -696,7 +698,6 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
             <p className="mt-1 text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? 'unknown')}</p>
           </div>)}
           {compass.economyModifier && <div className="border-b border-border pb-4"><h4 className="text-sm font-semibold">Modulateur — Efficience</h4><p className="mt-1 text-sm">{compass.economyModifier.label}</p><p className="mt-2 text-sm text-muted-foreground">Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.</p></div>}
-          <div><h3 className="text-sm font-semibold">Priorités du diagnostic utilisé pour le plan — inchangées</h3><p className="mt-2 text-sm">{limiter.icon} {limiter.label}</p><p className="mt-1 text-sm text-muted-foreground">{presentation?.priorityMetrics.join(' → ') || 'Aucune priorité étayée disponible'}</p>{coachPolicy && <p className="mt-2 text-sm">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(' → ')}</p>}</div>
           <p className="text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
           <div><h3 className="text-sm font-semibold">Informations complémentaires</h3><p className="mt-2 text-sm">Robustesse à l’effort prolongé : durabilité non évaluée</p>{presentation?.tteBike && <p className="mt-1 text-sm">TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteBike.source)}</p>}{presentation?.tteRun && <p className="mt-1 text-sm">TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteRun.source)}</p>}</div>
         </section>
