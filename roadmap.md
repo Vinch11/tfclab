@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Compass : empilement de volets supprimé, profil/jauges/priorités toujours visibles, un accès discret aux détails et icônes d’explication. Vince connecté vérifié ordinateur/téléphone, profil et synthèse visibles sans clic, détails et explication ouverts, aucun débordement ni erreur ; 16 tests passent et deux générateurs déployés. Données et plans inchangés.
+
 - [x] Bloc IMG_2767 corrigé : nouveau profil visible retiré ; bloc historique « Profil physiologique complet » ouvert sous le radar, jauges sur cibles existantes, explications repliées. Vince connecté vérifié ordinateur/téléphone, 4 jauges comparatives, aucun débordement ni erreur ; 16 tests passent, deux générateurs synchronisés et déployés. Données et plans inchangés.
 
 - [x] Compass : profil complet en jauges visibles sous le radar, repères complémentaires sans note ; textes secondaires repliés sans suppression. Emanuela connectée vérifiée ordinateur/téléphone, détails dépliables, aucun débordement ni erreur ; 16 tests passent, deux générateurs synchronisés et déployés. Données et plans inchangés.

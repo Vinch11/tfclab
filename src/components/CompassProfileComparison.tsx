@@ -24,14 +24,14 @@ const valueLabel = (m: ProfileComparison) => m.value == null ? '—' : m.key ===
 const sourceLabel = (s: string) => s === 'test_labo' ? 'Labo' : s === 'observed' ? 'Terrain déclaré' : s === 'shared' ? 'Bilan commun' : s === 'snapshot' || s === 'unknown' ? 'Origine non documentée' : s === 'test' || s === 'test_terrain' ? 'Terrain à confirmer' : 'Estimation';
 const statusLabel = (m: ProfileComparison) => ({ below: 'Sous la cible', inside: 'Dans la cible', above: m.reference?.low === m.reference?.high ? 'Au-dessus de la cible' : 'Au-dessus de la plage', unavailable: 'Référence non établie', missing: 'Données insuffisantes' })[m.status];
 
-export function CompassProfileComparison({ input, compass, athleteName }: { input: CoachingCompassInput; compass: TFCLCoachingCompassResult; athleteName?: string }) {
+export function CompassProfileComparison({ input, compass, athleteName, detailsOnly = false }: { input: CoachingCompassInput; compass: TFCLCoachingCompassResult; athleteName?: string; detailsOnly?: boolean }) {
   const groups = buildProfileComparisons(input, compass);
   const [selectedSport, setSelectedSport] = useState<'run' | 'bike'>(groups[0]?.sport ?? 'run');
   const [opened, setOpened] = useState<string[]>([]);
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
   const ambition = AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition;
   return <section aria-label="Profil physiologique comparé" className="space-y-5" data-testid="compass-profile-comparison">
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
+    {!detailsOnly && <><div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
       <div><h3 className="text-lg font-semibold">{athleteName ? `${athleteName} · Profil physiologique` : 'Profil physiologique'}</h3><p className="text-sm text-muted-foreground">{input.objectif} · {ambition}</p></div>
       {input.snapshotDate && <p className="text-xs text-muted-foreground">Bilan · {input.snapshotDate.slice(0, 10).split('-').reverse().join('/')}</p>}
     </div>
@@ -42,14 +42,16 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
         <CompassSignatureRadar axes={compass.presentation?.disciplineAxes?.[g.sport] ?? (g.sport === 'run' ? compass.presentation?.runningDiagnostic?.axes : undefined) ?? compass.presentation?.axes ?? compass.radarAxes} size={400} />
         <div className="mt-2 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Profil</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-success" />Proche de la cible</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-warning" />À développer</span></div>
         <p className="mt-3 text-center text-xs text-muted-foreground">Repères /100 par rapport aux cibles de coaching, pas une probabilité de réussite.</p>
-        <Accordion type="single" collapsible className="mt-3"><AccordionItem value="values"><AccordionTrigger>Valeurs et comparaisons</AccordionTrigger><AccordionContent>
+      </section>)}
+    </div></>}
+    {detailsOnly && <>
+    <h4 className="text-sm font-semibold">Valeurs et comparaisons</h4>
+    {groups.map(g => <section key={g.sport}><h5 className="text-sm font-medium">{g.sport === 'run' ? 'Course' : 'Vélo'}</h5>
         {g.metrics.map(m => <div key={m.key} className="border-b border-border py-3">
           <div className="flex items-center justify-between gap-3"><Button variant="ghost" className="min-h-11 px-0" onClick={() => { setSelectedMetric(m.key); setOpened(['reading']); }}>{m.label}<Info className="ml-2 h-4 w-4" /></Button><span className="text-lg font-semibold tabular-nums">{valueLabel(m)} {m.key === 'threshold' ? '/km' : m.unit}</span></div>
           <p className="text-xs text-muted-foreground">{sourceLabel(m.source)} · {statusLabel(m)}{m.reference && ` · Cible TFCL : ${fmt(m.reference.low)}${m.reference.high !== m.reference.low ? `–${fmt(m.reference.high)}` : ''} ${m.unit}`}</p>
         </div>)}
-        </AccordionContent></AccordionItem></Accordion>
       </section>)}
-    </div>
     <p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes statistiques validées. Les données manquantes ne sont pas dessinées.</p>
     <Accordion type="multiple" value={opened} onValueChange={setOpened}>
       <AccordionItem value="reading"><AccordionTrigger>Comprendre mes repères</AccordionTrigger><AccordionContent><div className="space-y-4">{Object.entries(descriptions).filter(([key]) => groups.some(g => g.metrics.some(m => m.key === key))).filter(([key]) => !selectedMetric || key === selectedMetric).map(([key, text]) => <div key={key}><h5 className="font-semibold">{groups.flatMap(g => g.metrics).find(m => m.key === key)?.label}</h5><p className="mt-1 text-muted-foreground">{text}</p></div>)}{selectedMetric && <Button variant="ghost" onClick={() => setSelectedMetric(null)}>Tous les repères</Button>}</div></AccordionContent></AccordionItem>
@@ -58,6 +60,6 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
         {groups.some(g => contextualCohortFor(g.sport, input.objectif)) && <div className="space-y-3 border-l-2 border-primary pl-4"><h5 className="font-semibold">Cohorte publiée · contexte course uniquement</h5><p className="text-muted-foreground">Assis 2024 · n = 13 · moyenne ± écart-type. Illustration de la dispersion, pas une zone optimale ni une cible pour votre ambition.</p>{Object.entries(contextualCohortFor('run', input.objectif)?.metrics ?? {}).map(([key, c]) => <div key={key}><p className="text-sm font-medium">{key === 'vma' ? 'MAS sur tapis' : 'VO₂max'} · {fmt(c.mean)} ± {fmt(c.sd)} {c.unit}</p><div className="my-2 flex h-3 items-center bg-muted"><span className="ml-[20%] h-3 w-[60%] bg-muted-foreground/20" /><span className="-ml-[30%] h-5 w-0.5 bg-muted-foreground" /></div><p className="text-xs text-muted-foreground">{fmt(c.mean - c.sd)} — {fmt(c.mean)} — {fmt(c.mean + c.sd)} · ± 1 écart-type ; rapprochement indirect</p></div>)}</div>}
         {compassEvidence.map(e => <div key={e.id}><a href={e.url} target="_blank" rel="noreferrer" className="font-semibold text-primary underline underline-offset-4">{e.title}</a><p className="mt-1">{e.population}</p><p className="mt-1 text-muted-foreground">{e.protocol}</p><p className="mt-1 text-muted-foreground">{e.limitation}</p></div>)}<p className="text-xs text-muted-foreground">Registre · {COMPASS_REFERENCE_VERSION}</p>
       </div></AccordionContent></AccordionItem>
-    </Accordion>
+    </Accordion></>}
   </section>;
 }

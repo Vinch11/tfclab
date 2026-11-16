@@ -15,6 +15,7 @@ import { CompassProfileComparison } from "./CompassProfileComparison";
 import { CompassCoachReading } from "./CompassCoachReading";
 import { buildProfileComparisons } from '@/lib/coachingCompass/profileComparison';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -506,25 +507,9 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
-  const [isOpen, setIsOpen] = useState(true);
-
   return (
     <section aria-label="Profil physiologique complet" className="mt-5">
-      <Button
-        variant="ghost"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-h-11 flex items-center justify-between px-0 py-2 hover:bg-muted/30 transition-colors"
-        aria-expanded={isOpen}
-      >
-        <p className="text-sm font-semibold text-foreground">
-          Profil physiologique complet
-        </p>
-        <ChevronDown className={cn(
-          "h-3.5 w-3.5 text-muted-foreground/60 transition-transform",
-          isOpen && "rotate-180"
-        )} />
-      </Button>
-      {isOpen && (
+      <h3 className="py-2 text-base font-semibold">Profil physiologique complet</h3>
         <div className="pb-3 divide-y divide-border">
           {metrics.map(({ key, m, secondaryInfo }) => {
             const expl = METRIC_EXPLANATIONS[key];
@@ -561,6 +546,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="text-sm font-semibold text-foreground">{key}</span>
                     <span className="text-xs text-muted-foreground">{m.unit}</span>
+                    {expl && <Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground" aria-label={`Explication ${key}`}><Info className="h-4 w-4" /></Button></PopoverTrigger><PopoverContent className="max-w-[calc(100vw-2rem)] space-y-2"><p className="text-sm">{expl.desc}</p><p className="text-sm text-muted-foreground">{expl.why}</p><p className="text-xs text-muted-foreground">{sourceLabel(m.source)}</p></PopoverContent></Popover>}
                   </div>
                   <div className="flex items-center gap-2">
                     {secondaryInfo && (
@@ -613,15 +599,10 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                     )}
                   </div>
                 )}
-                {/* Explanation row */}
-                {expl && (
-                  <Accordion type="single" collapsible className="mt-1"><AccordionItem value="explanation" className="border-0"><AccordionTrigger className="min-h-11 py-2 text-xs text-muted-foreground">Comprendre {key}</AccordionTrigger><AccordionContent className="space-y-2"><p className="text-sm text-muted-foreground">{expl.desc}</p><p className="text-sm text-primary">💡 {expl.why}</p><p className="text-xs text-muted-foreground">{sourceLabel(m.source)}</p></AccordionContent></AccordionItem></Accordion>
-                )}
               </div>
             );
           })}
         </div>
-      )}
     </section>
   );
 }
@@ -694,8 +675,10 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
         <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />
+        <section aria-label="Synthèse du coach" className="space-y-2 border-t border-border py-4"><h3 className="text-sm font-semibold">Priorités de travail</h3><p className="text-sm">{presentation?.priorityMetrics.join(' → ') || limiter.label}</p>{coachPolicy && <p className="text-xs text-muted-foreground">Ordre coach : {coachPolicy.limiterOrder.join(' → ')}</p>}<p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes scientifiques validées. Une donnée manquante n’est pas une faiblesse.</p></section>
         <Accordion type="multiple" className="mt-4 text-muted-foreground">
-        <AccordionItem value="explanations"><AccordionTrigger>Explications et lecture du coach</AccordionTrigger><AccordionContent className="text-foreground">
+        <AccordionItem value="explanations" className="border-0"><AccordionTrigger className="min-h-11 justify-start gap-2 py-2 text-xs font-normal">Détails, tests et sources</AccordionTrigger><AccordionContent className="text-foreground">
+        <CompassProfileComparison input={input} compass={compass} detailsOnly />
         <CompassCoachReading input={input} compass={compass} coachOrder={coachPolicy?.limiterOrder} />
         <section className="mt-5 space-y-4" aria-label="Explications du profil">
           <p className="text-xs text-muted-foreground">Couverture des repères du sport : {coverage.filled}/{coverage.total}</p>
@@ -711,10 +694,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
           <p className="text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
           <div><h3 className="text-sm font-semibold">Informations complémentaires</h3><p className="mt-2 text-sm">Robustesse à l’effort prolongé : durabilité non évaluée</p>{presentation?.tteBike && <p className="mt-1 text-sm">TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteBike.source)}</p>}{presentation?.tteRun && <p className="mt-1 text-sm">TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteRun.source)}</p>}</div>
         </section>
-        </AccordionContent></AccordionItem>
-        </Accordion>
-        <Accordion type="multiple" className="mt-1 text-muted-foreground">
-          <AccordionItem value="data"><AccordionTrigger>Tests et données</AccordionTrigger><AccordionContent>
+          <section className="mt-5"><h3 className="mb-3 text-sm font-semibold">Tests et données</h3>
             <p className="mb-3 text-sm text-muted-foreground">Repères disponibles : {coverage.filled}/{coverage.total}. Les dates de tests et les protocoles absents ne sont pas déduits de la date du bilan.</p>
             {input.targetRacePrediction && <p className="mb-3 text-sm">Temps de course cible estimé : {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)} · estimation, pas une garantie de résultat.</p>}
             {presentation && <div className="space-y-3">{presentation.sportReferences.map(r => <p key={`${r.sport}-${r.label}`} className="text-sm">{r.sport === 'running' ? 'Course' : 'Vélo'} · {r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'}<span className="block text-muted-foreground">{compassSourceLabel(r.source)}{r.conditions && ` · ${r.conditions}`}</span></p>)}
@@ -722,8 +702,8 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
               {presentation.decouplingRun != null && <p className="text-sm">Découplage course : {presentation.decouplingRun} % · à interpréter avec durée, intensité et conditions.</p>}
               <p className="text-sm text-muted-foreground">Le TTE ne mesure pas la robustesse après effort prolongé.</p>
             </div>}
-          </AccordionContent></AccordionItem>
-          <AccordionItem value="diagnostic"><AccordionTrigger>Diagnostic et choix du coach</AccordionTrigger><AccordionContent>
+          </section>
+          <section className="mt-5"><h3 className="mb-3 text-sm font-semibold">Diagnostic et choix du coach</h3>
             {presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}
             {presentation?.cyclingDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" />}
             {coachPolicy && <p className="mt-4 text-sm">Ordre coach enregistré : {coachPolicy.limiterOrder.join(' → ')}</p>}
@@ -844,6 +824,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
           </div>
         </div>
 
+          </section>
           </AccordionContent></AccordionItem>
         </Accordion>
         {/* ─── Disclaimer ─── */}
