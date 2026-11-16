@@ -3604,7 +3604,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
   const roadmap = computeStrategicRoadmap({ objectif: payload.athlete.goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
   const { phases, totalWeeks, title } = roadmap;
 
-  const W = 900, H = 360, marginLeft = 60, marginRight = 30, chartTop = 40;
+  const W = 900, H = Math.max(360,phases.length*68+120), marginLeft = 60, marginRight = 30, chartTop = 40;
   const chartBottom = H - 60;
   const chartWidth = W - marginLeft - marginRight;
   const weekWidth = chartWidth / totalWeeks;
@@ -3624,24 +3624,24 @@ function buildRoadmapHTML(payload: ExportPayload): string {
   const phaseBars = phases.map((phase, idx) => {
     const x = marginLeft + (phase.startWeek - 1) * weekWidth;
     const width = (phase.endWeek - phase.startWeek + 1) * weekWidth;
-    const yOffset = chartTop + 20 + idx * 50;
+    const yOffset = chartTop + 20 + idx * 68;
     const isDark = phase.color === '#2B2933';
     const isGreen = phase.color === '#A8E3CB';
     const textColor = isDark ? '#ffffff' : (isGreen ? '#2B2933' : '#2B2933');
     return `
-      <text x="${x + width / 2}" y="${yOffset - 6}" text-anchor="middle" font-size="11" font-weight="600" fill="#2B2933">${phase.name}</text>
+      <text x="${marginLeft}" y="${yOffset - 8}" font-size="13" font-weight="600" fill="#2B2933">${htmlEscape(phase.name)} · S${phase.startWeek}–S${phase.endWeek}</text>
       <rect x="${x}" y="${yOffset}" width="${width}" height="${barHeight}" rx="6" fill="${phase.color}" />
-      <text x="${x + width / 2}" y="${yOffset + barHeight / 2 + 4}" text-anchor="middle" font-size="10" font-weight="500" fill="${textColor}">${phase.subtitle}</text>
     `;
   }).join('\n');
 
   const phaseDetailsHTML = phases.map(phase => `
     <div style="padding:12px;border:1px solid #E7E4DC;border-radius:8px;background:#ffffff;">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px;overflow-wrap:anywhere;">
         <div style="width:12px;height:12px;border-radius:3px;background:${phase.color};"></div>
         <span style="font-weight:600;font-size:13px;color:#2B2933;">${phase.name}</span>
         <span style="font-size:11px;color:#6E6B78;">S${phase.startWeek}\u2013S${phase.endWeek}</span>
       </div>
+      <p style="font-size:12px;overflow-wrap:anywhere;">${htmlEscape(phase.subtitle)}</p>
       <p style="font-size:11px;color:#5C5966;margin-bottom:6px;">${phase.focus}</p>
       ${phase.levers.length > 0 ? `
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
@@ -3662,8 +3662,9 @@ function buildRoadmapHTML(payload: ExportPayload): string {
         <h2 style="font-size:20px;font-weight:700;margin-bottom:4px;color:#2B2933;">\u{1F4CB} ${title}</h2>
         <p style="font-size:12px;color:#6E6B78;margin-bottom:4px;">Périodisation stratégique — Two For Coaching Lab\u2122</p>
         ${roadmap.personalized ? `<p style="font-size:11px;color:#3C3CB8;margin-bottom:16px;padding:6px 10px;background:#EDEDFC;border-radius:6px;border:1px solid #bae6fd;">${roadmap.limiterSummary}</p>` : '<div style="margin-bottom:16px;"></div>'}
-        <div style="background:#ffffff;border-radius:8px;padding:12px;border:1px solid #E7E4DC;">
-          <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#ffffff;" xmlns="http://www.w3.org/2000/svg">
+        <style>@media print{.strategic-roadmap-chart svg{min-width:0!important}}@media screen and (max-width:640px){.strategic-roadmap-details{grid-template-columns:1fr!important}}</style>
+        <div class="strategic-roadmap-chart" style="background:#ffffff;padding:12px;overflow-x:auto;">
+          <svg width="100%" viewBox="0 0 ${W} ${H}" style="background:#ffffff;min-width:900px;" xmlns="http://www.w3.org/2000/svg">
             <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
             ${axisLine}
             ${baseLine}
@@ -3671,7 +3672,7 @@ function buildRoadmapHTML(payload: ExportPayload): string {
             ${weekLabels}
           </svg>
         </div>
-        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="strategic-roadmap-details" style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           ${phaseDetailsHTML}
         </div>
       </div>

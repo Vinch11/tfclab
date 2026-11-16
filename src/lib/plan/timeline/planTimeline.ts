@@ -297,6 +297,10 @@ export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: stri
   if(!weeks.length)return '';
   const P=options.palette??PRINT_TIMELINE_PALETTE;
   const phases=options.phases??plan.phases;
+  const phaseRows=buildPhaseSegments(weeks,phases,displayPhase).map(p=>{
+    const dates=startDate?`${dLong(addDays(startDate,(p.start-1)*7))} – ${dLong(addDays(startDate,p.end*7-1))}`:'';
+    return `<li><strong>${esc(p.label)}</strong><span>S${p.start}–S${p.end}${dates?' · '+esc(dates):''}</span>${p.objective?`<small>${esc(p.objective)}</small>`:''}</li>`;
+  }).join('');
   const maxVolume=Math.max(1,...weeks.map(w=>w.volumeMin??0));
   const ch=readChantiers(plan);
   const blocks:string[]=[];
@@ -319,8 +323,11 @@ export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: stri
   .plan-timeline th,.plan-timeline td{padding:9px 8px;text-align:left;border-bottom:1px solid ${P.grid};vertical-align:top;overflow-wrap:anywhere}
   .plan-timeline th:first-child{width:24%}.plan-timeline th:last-child{width:16%}
   .plan-timeline small{display:block;margin-top:4px;font-size:11px;font-weight:400;color:${P.muted}}
+  .plan-timeline .timeline-phases{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:10px;color:${P.text};font-size:13px}
+  .plan-timeline .timeline-phases li{border-left:3px solid ${P.recovery};padding-left:10px;overflow-wrap:anywhere}
+  .plan-timeline .timeline-phases span{display:block;margin-top:3px;color:${P.muted};font-size:12px}
   .plan-timeline .timeline-chart{overflow-x:auto;margin-bottom:12px}.plan-timeline .timeline-chart svg{min-width:760px}
   .plan-timeline .timeline-chart:focus-visible{outline:2px solid ${P.recovery};outline-offset:2px}
   @media print{.plan-timeline .timeline-chart svg{min-width:0!important}.plan-timeline .timeline-chart{overflow:visible}}
-  </style>${options.screen?'':'<h2>Timeline de la périodisation</h2>'}${blocks.join('')}</div>`;
+  </style>${options.screen?'':'<h2>Timeline de la périodisation</h2>'}<ul class="timeline-phases" aria-label="Phases et dates du plan">${phaseRows}</ul>${blocks.join('')}</div>`;
 }

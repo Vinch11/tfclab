@@ -68,17 +68,7 @@ function PhaseBar({ phase, totalWeeks }: { phase: RoadmapPhase; totalWeeks: numb
           minHeight: "34px",
         }}
       >
-        <div className="flex items-center justify-center h-[34px] px-2 gap-1.5">
-          <span className="text-[10px] sm:text-xs font-semibold truncate" style={{ color: fg }}>
-            {phase.subtitle}
-          </span>
-          <span
-            className="hidden sm:inline text-[10px] font-medium opacity-70 shrink-0"
-            style={{ color: fg }}
-          >
-            S{phase.startWeek}–S{phase.endWeek}
-          </span>
-        </div>
+        <div className="h-[34px]" aria-hidden="true" />
       </div>
     </div>
   );
@@ -222,40 +212,19 @@ export function RoadmapStrategique({
 
             {/* Gantt chart */}
             <div className="space-y-1">
-              {/* Phase labels above bars */}
+              {/* Full labels are independent of phase duration. */}
               {roadmap.phases.map((phase) => {
-                const leftPct = ((phase.startWeek - 1) / roadmap.totalWeeks) * 100;
-                const widthPct = ((phase.endWeek - phase.startWeek + 1) / roadmap.totalWeeks) * 100;
                 return (
-                  <div key={`label-${phase.id}`} className="relative h-5">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div
-                            className="absolute text-[10px] font-semibold text-foreground truncate cursor-help"
-                            style={{
-                              left: `${leftPct}%`,
-                              width: `${widthPct}%`,
-                              textAlign: "center",
-                            }}
-                          >
-                            {phase.name}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs">
-                          <p className="font-semibold text-xs">{phase.name}</p>
-                          <p className="text-xs text-muted-foreground">{phase.focus}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div key={`label-${phase.id}`} className="space-y-1 py-2">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+                      <span className="font-semibold break-words min-w-0">{phase.name}</span>
+                      <span className="text-muted-foreground">S{phase.startWeek}–S{phase.endWeek}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground break-words">{phase.subtitle}</p>
+                    <PhaseBar phase={phase} totalWeeks={roadmap.totalWeeks}/>
                   </div>
                 );
               })}
-
-              {/* Bars */}
-              {roadmap.phases.map((phase) => (
-                <PhaseBar key={phase.id} phase={phase} totalWeeks={roadmap.totalWeeks} />
-              ))}
 
               {/* Week axis */}
               <div className="relative h-5 mt-1">

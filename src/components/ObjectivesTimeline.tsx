@@ -138,7 +138,7 @@ export function ObjectivesTimeline({
             >
               <span className="text-lg">{OBJECTIF_ICONS[goal.race_type] || "🎯"}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
+                <p className="text-sm font-medium break-words">
                   {goal.race_name || getObjectifLabel(goal.race_type as any)}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -200,12 +200,12 @@ export function ObjectivesTimeline({
                         ? "border-primary bg-primary/5 shadow-sm" 
                         : "border-border bg-secondary/20 hover:border-primary/30"
                     )}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                           <span className="text-2xl">{OBJECTIF_ICONS[goal.race_type] || "🎯"}</span>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <h5 className="font-semibold">
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h5 className="font-semibold break-words">
                                 {goal.race_name || getObjectifLabel(goal.race_type as any)}
                               </h5>
                               {isCurrent && (
@@ -223,7 +223,7 @@ export function ObjectivesTimeline({
                           </div>
                         </div>
                         
-                        <div className="text-right shrink-0">
+                        <div className="sm:text-right shrink-0">
                           <p className="font-medium">
                             {format(new Date(goal.race_date), "d MMMM yyyy", { locale: fr })}
                           </p>
@@ -295,11 +295,11 @@ export function ObjectivesTimeline({
                     </div>
                     
                     <div className="p-3 rounded-lg border border-border/50 bg-secondary/10">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 min-w-0">
                           <span className="text-lg opacity-60">{OBJECTIF_ICONS[goal.race_type] || "🎯"}</span>
-                          <div>
-                            <p className="font-medium text-sm text-muted-foreground">
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-muted-foreground break-words">
                               {goal.race_name || getObjectifLabel(goal.race_type as any)}
                             </p>
                             <p className="text-xs text-muted-foreground/70">
