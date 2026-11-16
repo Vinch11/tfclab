@@ -32,7 +32,7 @@ import { zPlanChunk, type PlanChunk } from "@/lib/plan/planSchema";
 import { mergePlanChunks, validateSportObjective, MergePlanError, type MergedPlan, type SportObjectiveIssue } from "@/lib/plan/mergePlanChunks";
 import { jsonPlanToParsedPlan } from "@/lib/plan/jsonPlanToParsedPlan";
 import { logPlanStat } from "@/lib/plan/planGenerationStats";
-import { validateCoachLoadIssues, repairCoachLoadCeilings } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues, repairCoachLoadCeilings, isBlockingCoachLoadIssue } from "@/lib/plan/coachVolumeValidation";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
 import {parseAIPlan,type ParsedPlan} from "@/lib/aiPlanParser";
@@ -1602,7 +1602,10 @@ export function useAITrainingPlan() {
       });
     } catch (e) {
       const exceptionCode = safeFailureCode(e instanceof Error && e.message.startsWith("PLAN_PREVALIDATION_BLOCKED:") ? "PLAN_PREVALIDATION_BLOCKED" : e instanceof Error ? e.message : "EXCEPTION");
-      setResponse('');lastResponseRef.current='';setParsedPlan(null);lastParsedPlanRef.current=null;
+      // A refused preflight has produced no new plan: retain the coach's current display.
+      if (exceptionCode !== "PLAN_PREVALIDATION_BLOCKED") {
+        setResponse('');lastResponseRef.current='';setParsedPlan(null);lastParsedPlanRef.current=null;
+      }
       console.error("AI training plan error:", { code: exceptionCode === "UNKNOWN" ? "EXCEPTION" : exceptionCode });
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
         const rawMsg = e instanceof Error ? e.message : String(e);
@@ -1800,7 +1803,7 @@ export function useAITrainingPlan() {
           ...completePlanCoverageIssues(assembled,totalWeeks),
           ...validateRaceCalendar(assembled,{...planConfig,globalWeekOffset:0}),
         ];
-        if(assembled.finalValidationIssues.some(i=>i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'))) {
+        if(assembled.finalValidationIssues.some(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_'))))) {
           setFinalValidationIssues(assembled.finalValidationIssues);
           lastParsedPlanRef.current=null;
           setParsedPlan(null);

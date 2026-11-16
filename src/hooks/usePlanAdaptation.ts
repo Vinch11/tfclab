@@ -40,13 +40,13 @@ import { postProcessParsedPlan } from "@/engines/plan/computePlan";
 import type { PlanGenerationConfig } from "@/engines/plan/types";
 import { validatePlan, type ValidationIssue } from "@/engines/plan/planValidator";
 import {computeFinalValidationIssues} from '@/lib/plan/qa/finalValidation';
-import {repairCoachLoadCeilings} from '@/lib/plan/coachVolumeValidation';
+import {repairCoachLoadCeilings,isBlockingCoachLoadIssue} from '@/lib/plan/coachVolumeValidation';
 
 function enforceCalendarSafety(plan:ParsedPlan, config:PlanConfig) {
   const final=computeFinalValidationIssues(plan,undefined,{objective:config.objective,ambition:config.ambition,
     raceCalendar:{...config,globalWeekOffset:0}});
   plan.finalValidationIssues=final.issues;
-  const blocked=final.issues.find(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'));
+  const blocked=final.issues.find(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && i.rule.startsWith('race_calendar_')));
   if(blocked)throw Error(`Adaptation refusée : ${blocked.message}`);
 }
 

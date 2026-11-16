@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {repairCoachLoadCeilings,validateCoachVolumeBudgets} from '../coachVolumeValidation';
+import {repairCoachLoadCeilings,validateCoachVolumeBudgets,isBlockingCoachLoadIssue} from '../coachVolumeValidation';
 
 const b=(g:number)=>({maxMinutes:2000,globalWeek:g,weeklyIncreasePctMax:.1,referenceSource:'coach' as const});
 const quotas={1:{weekType:'load',volumeBudget:b(1)},2:{weekType:'load',volumeBudget:b(2)}};
@@ -9,6 +9,13 @@ const plan=()=>({weeks:[
   {weekNumber:2,sessions:[s('bike',300),s('run',300),s('bike',80)]}]});
 
 describe('coach load ceiling repair',()=>{
+  it.each(['coach_load_violation','coach_volume_under_min'])('all generation/adaptation gates refuse %s errors but not warnings',rule=>{
+    expect(isBlockingCoachLoadIssue({rule,severity:'error'})).toBe(true);
+    expect(isBlockingCoachLoadIssue({rule,severity:'warning'})).toBe(false);
+  });
+  it('does not turn initial-load review into a volume refusal',()=>{
+    expect(isBlockingCoachLoadIssue({rule:'coach_initial_load_unverified',severity:'warning'})).toBe(false);
+  });
   it('does not require S5 to reach 950 min when actual progression caps it at 918 min',()=>{
     const q={3:{weekType:'load',volumeBudget:b(3)},4:{weekType:'recovery',volumeBudget:b(4)},5:{weekType:'load',volumeBudget:{...b(5),minMinutes:950,targetMinutes:1030}}};
     const p={weeks:[{weekNumber:3,sessions:[s('bike',835)]},{weekNumber:4,sessions:[s('bike',580)]},{weekNumber:5,sessions:[s('bike',915)]}]};

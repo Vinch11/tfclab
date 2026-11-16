@@ -16,7 +16,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
-import { validateCoachLoadIssues, repairCoachLoadCeilings } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues, repairCoachLoadCeilings, isBlockingCoachLoadIssue } from "@/lib/plan/coachVolumeValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
@@ -3197,8 +3197,9 @@ export default function AITrainingPlanPage() {
             `🚨 [handleRegenerateWeek] validation finale CRITIQUE après régénération S${weekNumber} :`,
             finalValidation.issues.filter((i) => i.severity === "error"),
           );
-          if (finalValidation.issues.some(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation'))) {
-            toast.error('Régénération refusée : calendrier ou reprise de charge non conforme. La semaine précédente est conservée.');
+          const blocked = finalValidation.issues.find(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && i.rule.startsWith('race_calendar_')));
+          if (blocked) {
+            toast.error(`Régénération refusée : ${blocked.message}. La semaine précédente est conservée.`, { duration: 30000 });
             return;
           }
         }

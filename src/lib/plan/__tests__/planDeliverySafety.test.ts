@@ -4,6 +4,16 @@ import type {ParsedPlan} from '@/lib/aiPlanParser';
 const plan=()=>({_planStartDate:'2026-11-16',_objective:'Ironman',_raceDate:'2027-06-27',_raceGoals:[{objective:'Marathon',priority:'B',raceDate:'2027-02-21'}],
  title:'Fixture',totalWeeks:32,phases:[],weeks:[{weekNumber:14,phase:'build',theme:'Course',sessions:[{weekNumber:14,weekTheme:'Course',phase:'build',dayName:'dimanche',dayIndex:6,title:'🏁 COURSE Marathon',details:'',sport:'run',durationMin:210,isRest:false},{weekNumber:14,weekTheme:'Course',phase:'build',dayName:'dimanche',dayIndex:6,title:'Vélo',details:'',sport:'bike',durationMin:250,isRest:false}]}]} as ParsedPlan);
 describe('all delivery boundaries use the full actual plan',()=>{
+ it.each(['5K','10K','Semi','Marathon','Trail','703','Ironman'])('%s permits S5 915 min at delivery when progression caps its nominal 950 min minimum',objective=>{
+  const budget=(globalWeek:number)=>({globalWeek,maxMinutes:2000,weeklyIncreasePctMax:.1,referenceSource:'coach' as const});
+  const p={_objective:objective,title:'Volume fixture',totalWeeks:5,phases:[],weeks:[3,4,5].map((weekNumber,i)=>({weekNumber,sessions:[{sport:'bike',durationMin:[835,580,915][i],title:'Endurance',details:'',isRest:false}]})),weeklyQuotas:{3:{weekType:'load',volumeBudget:budget(3)},4:{weekType:'recovery',volumeBudget:budget(4)},5:{weekType:'load',volumeBudget:{...budget(5),minMinutes:950,targetMinutes:1030}}}} as unknown as ParsedPlan;
+  const before=JSON.stringify(p);
+  expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
+  p.weeks[2].sessions[0].durationMin=900;
+  expect(()=>assertPlanDeliverySafe(p)).toThrow(/minimum 918 min/);
+  p.weeks[2].sessions[0].durationMin=915;
+  expect(JSON.stringify(p)).toBe(before);
+ });
  it('blocks the stored marathon plus 4h10 bike even for a single-session export',()=>{
   expect(()=>assertPlanDeliverySafe(plan())).toThrow(/jour de compétition/);
  });

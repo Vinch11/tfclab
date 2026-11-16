@@ -9,6 +9,9 @@ import {currentPlanReleaseHeaders} from '@/lib/plan/planReleasePreflight';
 it('real generation hook stops before release preflight and HTTP POST for a demonstrated contradiction',async()=>{
  const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('UNEXPECTED_NETWORK');});
  const fixture=preparePrevalidationFixture('B-10K',{ambition:'competitor',trainingLevel:'trained',maxSessionsPerDay:1,weeksAvailable:12});
+ // Explicit out-of-plan race remains a contradiction even if quota defaults change.
+ fixture.planConfig.planStartDate='2026-10-26';
+ fixture.planConfig.raceGoals=[{objective:'10K',priority:'A',raceDate:'2028-01-01'}];
  const {result}=renderHook(()=>useAITrainingPlan());
  try{
   act(()=>result.current.setResponse("Plan courant conservé"));

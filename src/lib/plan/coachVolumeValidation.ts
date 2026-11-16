@@ -11,6 +11,11 @@ import { normalizeRepairSport } from '../../../supabase/functions/_shared/repair
 export const COACH_LOAD_TOLERANCE_MIN = 5;
 export const COACH_LOAD_TOLERANCE_PCT = 0.01;
 
+/** Shared refusal policy: attainable minima and ceilings block; small gaps remain warnings. */
+export function isBlockingCoachLoadIssue(issue: Pick<ValidationIssue, "rule" | "severity">): boolean {
+  return issue.severity === "error" && (issue.rule === "coach_load_violation" || issue.rule === "coach_volume_under_min");
+}
+
 export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "weeks">, quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): Array<ValidationIssue & { severity: "error" | "warning" }> {
   const issues: Array<ValidationIssue & { severity: "error" | "warning" }> = [];
   let previousLoad: { minutes: number; globalWeek: number } | undefined;
