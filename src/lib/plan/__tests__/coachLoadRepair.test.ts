@@ -9,6 +9,34 @@ const plan=()=>({weeks:[
   {weekNumber:2,sessions:[s('bike',300),s('run',300),s('bike',80)]}]});
 
 describe('coach load ceiling repair',()=>{
+  it('does not require S5 to reach 950 min when actual progression caps it at 918 min',()=>{
+    const q={3:{weekType:'load',volumeBudget:b(3)},4:{weekType:'recovery',volumeBudget:b(4)},5:{weekType:'load',volumeBudget:{...b(5),minMinutes:950,targetMinutes:1030}}};
+    const p={weeks:[{weekNumber:3,sessions:[s('bike',835)]},{weekNumber:4,sessions:[s('bike',580)]},{weekNumber:5,sessions:[s('bike',915)]}]};
+    const issues=validateCoachVolumeBudgets(p as never,q);
+    expect(issues.filter(i=>i.severity==='error')).toEqual([]);
+    expect(issues).toContainEqual(expect.objectContaining({week:5,rule:'coach_volume_under_min',severity:'warning'}));
+    expect(issues[0].message).toContain('minimum 918 min');
+    expect(p.weeks[2].sessions[0].durationMin).toBe(915);
+  });
+  it('still refuses 915 min when the nominal 950 min minimum is attainable',()=>{
+    const q={3:{weekType:'load',volumeBudget:b(3)},5:{weekType:'load',volumeBudget:{...b(5),minMinutes:950,targetMinutes:1030}}};
+    const p={weeks:[{weekNumber:3,sessions:[s('bike',900)]},{weekNumber:5,sessions:[s('bike',915)]}]};
+    expect(validateCoachVolumeBudgets(p as never,q)).toContainEqual(expect.objectContaining({week:5,rule:'coach_volume_under_min',severity:'error'}));
+  });
+  it('keeps recovery at 70 percent even when its nominal minimum is higher',()=>{
+    const q={3:{weekType:'load',volumeBudget:b(3)},4:{weekType:'recovery',volumeBudget:{...b(4),minMinutes:600,targetMinutes:650}}};
+    const p={weeks:[{weekNumber:3,sessions:[s('bike',800)]},{weekNumber:4,sessions:[s('bike',560)]}]};
+    expect(validateCoachVolumeBudgets(p as never,q)).toEqual([]);
+    p.weeks[1].sessions[0].durationMin=600;
+    expect(validateCoachVolumeBudgets(p as never,q)).toContainEqual(expect.objectContaining({week:4,rule:'coach_load_violation',severity:'error'}));
+  });
+  it('does not repair a week down below an unreachable nominal minimum and then refuse it',()=>{
+    const p=plan();
+    const q={...quotas,2:{...quotas[2],volumeBudget:{...b(2),minMinutes:675,targetMinutes:700}}};
+    repairCoachLoadCeilings(p as never,q);
+    expect(p.weeks[1].sessions.map(x=>x.durationMin)).toEqual([300,300,60]);
+    expect(validateCoachVolumeBudgets(p as never,q)).toEqual([]);
+  });
   it('shortens a secondary session so a week 20 min over the ceiling is accepted',()=>{
     const p=plan();
     expect(validateCoachVolumeBudgets(p as never,quotas)).toHaveLength(1);

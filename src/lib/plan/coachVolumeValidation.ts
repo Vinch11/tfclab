@@ -39,9 +39,14 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
     if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: total - ceiling <= Math.min(COACH_LOAD_TOLERANCE_MIN, ceiling * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
       message: `S${week.weekNumber}: ${total} min d'endurance prescrites > ${Math.floor(ceiling)} min (${reason}, hors renforcement)`,
       detail: `Référence ${budget.referenceSource === "coach" ? "déclarée par le coach" : "de planification Auto, jamais une charge mesurée"}. Corriger la prescription ; ne pas supprimer des séances ou modifier une fiche pour effacer cette alerte.` });
-    if (budget.minMinutes != null && total + 1e-6 < budget.minMinutes) issues.push({ rule: "coach_volume_under_min", severity: "error", week: week.weekNumber,
-      message: `S${week.weekNumber}: ${total} min d'endurance prescrites < minimum ${budget.minMinutes} min (cible ${budget.targetMinutes ?? budget.minMinutes} min, hors renforcement)`,
-      detail: `Fourchette horaire ${budget.referenceSource === "coach" ? "déclarée par le coach" : "affichée au coach (Auto)"} non respectée : allonger les séances d'endurance dans les bornes de leur fiche, sans ajouter de séance ni compter le renforcement.` });
+    // The nominal target cannot force a dose above the actual progression/recovery ceiling.
+    // Keep that target visible, but validate only the attainable minimum.
+    const minimum = budget.minMinutes == null ? undefined : Math.min(budget.minMinutes, Math.floor(ceiling));
+    if (minimum != null && total + 1e-6 < minimum) issues.push({ rule: "coach_volume_under_min", severity: minimum - total <= Math.min(COACH_LOAD_TOLERANCE_MIN, minimum * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
+      message: `S${week.weekNumber}: ${total} min d'endurance prescrites < minimum ${minimum} min (cible ${budget.targetMinutes ?? budget.minMinutes} min, hors renforcement)`,
+      detail: minimum !== budget.minMinutes
+        ? `Minimum nominal ${budget.minMinutes} min limité par ${reason} : la progression et la récupération priment sur la cible horaire. Ne pas augmenter la charge au-delà de ${Math.floor(ceiling)} min pour atteindre la cible.`
+        : `Fourchette horaire ${budget.referenceSource === "coach" ? "déclarée par le coach" : "affichée au coach (Auto)"} non respectée : allonger les séances d'endurance dans les bornes de leur fiche, sans ajouter de séance ni compter le renforcement.` });
     if (entry.weekType === "load" && total > 0) previousLoad = { minutes: total, globalWeek: budget.globalWeek };
   }
   return issues;
