@@ -1728,7 +1728,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
     const safety=body.fullPlan ? planExportSafetyProblems(body.fullPlan,{planStartDate:body.planStartDate}) : [];
-    if(safety.length)return new Response(JSON.stringify({error:'plan_calendar_unsafe',problems:safety}),{status:422,headers:{...corsHeaders,'Content-Type':'application/json'}});
+    if(safety.length)console.warn('[nolio-send-plan] plan à vérifier (non bloquant):',safety);
 
     // Vérifie que l'athlète appartient bien au coach appelant — le client
     // `admin` (service_role) contourne RLS, donc sans ce contrôle explicite

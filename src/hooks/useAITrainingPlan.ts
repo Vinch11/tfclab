@@ -1355,15 +1355,13 @@ export function useAITrainingPlan() {
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
             const calendarSafety=[...validateRaceCalendar(parsed,planConfig),...validateCoachLoadIssues(parsed,parsed.weeklyQuotas)];
-            if(calendarSafety.some(i=>i.severity==='error')) {
-              setFinalValidationIssues(calendarSafety);
-              const firstErr = calendarSafety.find(i=>i.severity==='error');
-              toast.error(`Plan refusé : ${firstErr?.message ?? calendarSafety[0]?.message}`, { duration: 30000 });
-              lastParsedPlanRef.current=null;
-              setParsedPlan(null);
-              setChunkProgress(null);
-              setIsLoading(false);
-              return;
+            // Volume/race/week checks warn visibly; they never refuse the plan.
+            const calendarErrors = calendarSafety.filter(i=>i.severity==='error');
+            if(calendarErrors.length) {
+              const others = (parsed.finalValidationIssues ?? []).filter(i => !calendarSafety.some(c => c.rule === i.rule && c.message === i.message));
+              parsed.finalValidationIssues = [...others, ...calendarSafety];
+              setFinalValidationIssues(parsed.finalValidationIssues);
+              toast.warning(`À vérifier : ${calendarErrors[0].message}`, { duration: 20000 });
             }
             setMergedPlan(merged);
             lastParsedPlanRef.current = parsed;
@@ -1804,15 +1802,10 @@ export function useAITrainingPlan() {
           ...validateRaceCalendar(assembled,{...planConfig,globalWeekOffset:0}),
         ];
         const assemblyBlockers=assembled.finalValidationIssues.filter(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_'))));
+        // Volume/race/week checks are visible warnings, never a refusal.
         if(assemblyBlockers.length) {
-          console.error("[generatePlanWindowed] plan refusé à l'assemblage :", assemblyBlockers.map(i=>`${i.rule}: ${i.message}`));
-          if (import.meta.env.DEV) (window as unknown as {__lastRefusedPlan?: unknown}).__lastRefusedPlan = assembled;
-          setFinalValidationIssues(assembled.finalValidationIssues);
-          lastParsedPlanRef.current=null;
-          setParsedPlan(null);
-          // Name the issue that actually blocks, not the first non-blocking error.
-          toast.error(`Plan refusé : ${assemblyBlockers[0].message}${assemblyBlockers.length>1?` (+${assemblyBlockers.length-1} autre(s))`:''}`, { duration: 30000 });
-          return;
+          console.warn("[generatePlanWindowed] points à vérifier à l'assemblage :", assemblyBlockers.map(i=>`${i.rule}: ${i.message}`));
+          toast.warning(`Plan généré — à vérifier : ${assemblyBlockers[0].message}${assemblyBlockers.length>1?` (+${assemblyBlockers.length-1} autre(s))`:''}`, { duration: 30000 });
         }
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;

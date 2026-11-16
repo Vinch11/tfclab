@@ -12,24 +12,26 @@ describe('all delivery boundaries use the full actual plan',()=>{
   // Below the minimum: warning only, never a refusal (coach decision 2026-11-16).
   p.weeks[2].sessions[0].durationMin=700;
   expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
-  // Large overload (> 10 % above the 918 min progression ceiling) is still refused.
+  // Large overload is reported as a warning, never a refusal (coach decision 2026-11-16).
   p.weeks[2].sessions[0].durationMin=1020;
-  expect(()=>assertPlanDeliverySafe(p)).toThrow(/918 min/);
+  expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
+  expect(assertPlanDeliverySafe(p).map(i=>i.message).join()).toMatch(/918 min/);
   p.weeks[2].sessions[0].durationMin=915;
   expect(JSON.stringify(p)).toBe(before);
  });
- it('blocks the stored marathon plus 4h10 bike even for a single-session export',()=>{
-  expect(()=>assertPlanDeliverySafe(plan())).toThrow(/jour de compétition/);
+ it('warns, without refusing, about the marathon plus 4h10 bike even for a single-session export',()=>{
+  expect(()=>assertPlanDeliverySafe(plan())).not.toThrow();
+  expect(assertPlanDeliverySafe(plan()).map(i=>i.message).join()).toMatch(/jour de compétition/);
  });
  it('rechecks a moved export calendar against the fixed race date',()=>{
   const p=plan();p.weeks[0].sessions.pop();
   p.weeks.push({weekNumber:15,phase:'build',theme:'Récupération',sessions:[{weekNumber:15,weekTheme:'Récupération',phase:'build',dayName:'lundi',dayIndex:0,title:'Repos',details:'',sport:'rest',durationMin:0,isRest:true}]} as never);
   expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
-  expect(()=>assertPlanDeliverySafe(p,{planStartDate:'2026-11-09'})).toThrow(/2027-02-21/);
+  expect(assertPlanDeliverySafe(p,{planStartDate:'2026-11-09'}).map(i=>i.message).join()).toMatch(/2027-02-21/);
  });
  it('does not mutate stored or already sent records',()=>{
   const p=plan();const before=JSON.stringify(p);
-  expect(()=>assertPlanDeliverySafe(p)).toThrow();
+  expect(assertPlanDeliverySafe(p).length).toBeGreaterThan(0);
   expect(JSON.stringify(p)).toBe(before);
  });
 });

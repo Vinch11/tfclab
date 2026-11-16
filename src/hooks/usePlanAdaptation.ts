@@ -47,7 +47,8 @@ function enforceCalendarSafety(plan:ParsedPlan, config:PlanConfig) {
     raceCalendar:{...config,globalWeekOffset:0}});
   plan.finalValidationIssues=final.issues;
   const blocked=final.issues.find(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && i.rule.startsWith('race_calendar_')));
-  if(blocked)throw Error(`Adaptation refusée : ${blocked.message}`);
+  // Volume/race/week checks stay visible in finalValidationIssues; never refuse.
+  if(blocked)console.warn(`Adaptation à vérifier : ${blocked.message}`);
 }
 
 export type PatchKind = "deload" | "missed_session" | "swap_modality" | "shift_race";

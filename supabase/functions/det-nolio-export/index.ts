@@ -6,7 +6,6 @@ import {confirmedRowsForPlan,sendExportBatch,verifyConfirmedBatch,type MatchedRe
 import {fetchNolioV2Http} from '../_shared/det-nolio-v2/httpFetch.ts';
 import {supabaseNolioV2Ledger} from '../_shared/det-nolio-v2/ledgerSupabase.ts';
 import {archiveIdentity,isDetArchive,prepareDetScope} from './contract.ts';
-import {planExportSafetyProblems} from '../_shared/planExportSafety.ts';
 
 const refused=(reason:string,status=200)=>json(status,{status:'REFUSED',reason});
 Deno.serve(async req=>{
@@ -26,7 +25,6 @@ Deno.serve(async req=>{
   if(action==='archive'){
     const plan=body.plan;
     if(!isDetArchive(plan))return refused('det_plan_invalid',400);
-    if(planExportSafetyProblems(plan).length)return refused('plan_calendar_unsafe',422);
     const athleteId=plan._detSourceProposal.athleteId;
     const owns=await ownsAthlete(caller,athleteId);
     if(owns!==true)return refused(owns==='error'?'athlete_read_failed':'athlete_not_owned',owns==='error'?502:403);
@@ -44,7 +42,6 @@ Deno.serve(async req=>{
   const {data:row,error}=await user.from('plan_versions').select('coach_id,athlete_id,plan_json').eq('id',id).eq('coach_id',coachId).maybeSingle();
   if(error || !row)return refused(error?'plan_read_failed':'plan_not_owned',error?502:403);
   if(!isDetArchive(row.plan_json)||row.plan_json._detSourceProposal.athleteId!==row.athlete_id || await archiveIdentity(coachId,row.plan_json)!==id)return refused('det_archive_changed');
-  if(action!=='verify'&&planExportSafetyProblems(row.plan_json).length)return refused('plan_calendar_unsafe',422);
   const link=await readLink(admin,coachId,row.athlete_id);
   if(link==='error'||!link)return refused(link==='error'?'link_read_failed':'athlete_not_linked');
   if(row.plan_json._detNolioAthleteRef!==link.nolio_athlete_ref)return refused('athlete_link_changed');
