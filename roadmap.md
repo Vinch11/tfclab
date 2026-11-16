@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Expliquer simplement l’audit Manu et pourquoi des choix techniques inutiles ont été présentés ; aucune correction sans accord explicite du coach.
+
 - [x] Audit transversal du dernier avis sur Manu : dernier plan réel relu (S12–S17 et S29–S32), génération JSON/Markdown et contrôlée, régénérations complète/semaine/fenêtre/futures, adaptations, ouverture/sauvegarde, DET, exports PDF/Nolio, QA et base inspectés. Failles confirmées : protection B indifférente à la priorité et étendue à trois semaines calendaires, référence de progression effacée par la semaine de course, reprise après récupération exemptée dans le validateur large, quotas d’allure fondés sur l’objectif A, aucune durée longue minimale pendant l’affûtage IM, ancien affûtage demandant encore de supprimer les sorties longues. Textes sans nettoyage de bout en bout ; frise tronquée dans le SVG. LT2 plafonné à la même valeur selon scénarios et durabilité saturée à 100 points ; projections propagées à la page, au PDF et aux prompts. Aucune règle sportive, donnée athlète ou version de plan modifiée.
 - [ ] Corrections transversales après l’audit Manu : en attente du choix du coach sur la portée (génération IA seule ou tous les parcours) et sur le retrait des projections TTE/durabilité (Plan/PDF seulement ou toutes les projections), sans réécrire le plan déjà enregistré.
 
