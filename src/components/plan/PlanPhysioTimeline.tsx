@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import type { ParsedPlan } from "@/lib/aiPlanParser";
-import { renderPlanTimelineSVG, type TimelinePalette, type TimelinePhaseRange } from "@/lib/plan/timeline/planTimeline";
+import { renderPlanTimelineHTML, type TimelinePalette, type TimelinePhaseRange } from "@/lib/plan/timeline/planTimeline";
 
 const v = (t: string, a = 1) => (a === 1 ? `hsl(var(--${t}))` : `hsl(var(--${t}) / ${a})`);
 const APP_PALETTE: TimelinePalette = {
@@ -12,25 +12,8 @@ const APP_PALETTE: TimelinePalette = {
 
 /** Contenu de la « Timeline de la périodisation » : occupe toute la largeur disponible. */
 export function PlanPhysioTimeline({ plan, phases, displayPhase, startDate }: { plan: ParsedPlan; phases?: TimelinePhaseRange[]; displayPhase?: (p: string) => string; startDate?: Date }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [width, setWidth] = useState(0);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => setWidth(Math.floor(e.contentRect.width)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  const svg = useMemo(() => (width ? renderPlanTimelineSVG(plan, { palette: APP_PALETTE, phases, displayPhase, startDate, width }) : ""), [plan, phases, displayPhase, startDate, width]);
+  const html=useMemo(()=>renderPlanTimelineHTML(plan,displayPhase,startDate,{palette:APP_PALETTE,phases,screen:true}),[plan,phases,displayPhase,startDate]);
   return (
-    <div className="space-y-2">
-      <div ref={ref} className="w-full overflow-x-auto pb-1" dangerouslySetInnerHTML={{ __html: svg }} />
-      <div className="grid gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-2">
-        {(phases ?? plan.phases ?? []).map((p,i)=><span key={i}><strong className="text-foreground">{p.weeks}</strong> · {p.name}</span>)}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        Chaque colonne = une semaine. <b className="text-foreground">Chantier</b> = travail prioritaire de la semaine. <b className="text-foreground">Charge</b> = volume prévu : la courbe monte, redescend sur <span className="font-semibold text-primary">allège</span> (récupération) et <span className="font-semibold text-warning">affûte</span> (avant course). Survolez pour le détail.
-      </p>
-    </div>
+    <div className="w-full min-w-0" dangerouslySetInnerHTML={{__html:html}} />
   );
 }

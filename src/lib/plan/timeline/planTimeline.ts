@@ -88,7 +88,7 @@ export const PRINT_TIMELINE_PALETTE: TimelinePalette = {
   phases: ["#EDEDFC", "#E6F4EE", "#FCEFE3", "#FBE7E5", "#F2F0E9", "#E8F0FE"],
 };
 
-const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
+const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c] ?? c));
 const fmtH = (m: number) => `${Math.floor(m / 60)}h${String(Math.round(m % 60)).padStart(2, "0")}`;
 
 export const DOMAIN_LABELS: Record<TimelineDomain, string> = {
@@ -153,7 +153,7 @@ function readChantiers(plan: ParsedPlan): Chantier[] {
  */
 export function renderPlanTimelineSVG(
   plan: ParsedPlan,
-  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date; width?: number } = {},
+  opts: { palette?: TimelinePalette; displayPhase?: (p: string) => string; phases?: TimelinePhaseRange[]; fluid?: boolean; startDate?: Date; width?: number; hideChantiers?:boolean; maxVolume?:number } = {},
 ): string {
   const P = opts.palette ?? PRINT_TIMELINE_PALETTE;
   const weeks = buildPlanTimeline(plan);
@@ -161,10 +161,12 @@ export function renderPlanTimelineSVG(
   const n = weeks.length;
   const labelW = 86;
   const colW = opts.fluid ? Math.max(18, 900 / n) : Math.max(52, opts.width ? (opts.width - 90) / n : 52);
-  const fs = opts.fluid ? 10.5 : 12;
+  const fs = 12;
   const W = labelW + n * colW + 4;
-  const rows = { phase: [0, 50], chantier: [56, 58], charge: [122, 120], marks: [248, 22], week: [274, 34] } as const;
-  const H = 312;
+  const rows = opts.hideChantiers
+    ? {phase:[0,50],chantier:[56,0],charge:[64,120],marks:[190,22],week:[216,34]} as const
+    : { phase: [0, 50], chantier: [56, 58], charge: [122, 120], marks: [248, 22], week: [274, 34] } as const;
+  const H = opts.hideChantiers?254:312;
   const first = weeks[0].weekNumber;
   const xOf = (wk: number) => labelW + (wk - first) * colW;
   const wDate = (wk: number) => (opts.startDate ? addDays(opts.startDate, (wk - 1) * 7) : null);
@@ -178,7 +180,7 @@ export function renderPlanTimelineSVG(
     o.push(`<line x1="${labelW - 6}" x2="${W}" y1="${y + h + 2}" y2="${y + h + 2}" stroke="${P.grid}" stroke-dasharray="2 3"/>`);
   };
   rowLabel("phase", "PHASES");
-  rowLabel("chantier", "CHANTIER", "de la semaine");
+  if(!opts.hideChantiers)rowLabel("chantier", "CHANTIER", "de la semaine");
   rowLabel("charge", "CHARGE", "volume / semaine");
   rowLabel("marks", "REPÈRES");
   rowLabel("week", "SEMAINES");
@@ -200,7 +202,7 @@ export function renderPlanTimelineSVG(
   // 2. Chantier prioritaire actif chaque semaine (segments fusionnés)
   const ch = readChantiers(plan);
   const active = weeks.map((w) => ch.filter((c) => w.weekNumber >= c.start && w.weekNumber <= c.end));
-  {
+  if(!opts.hideChantiers) {
     const [y, h] = rows.chantier;
     let i = 0;
     if (!ch.length) {
@@ -246,8 +248,8 @@ export function renderPlanTimelineSVG(
   {
     const [y, h] = rows.charge;
     const vols = weeks.map((w) => w.volumeMin);
-    const maxVol = Math.max(1, ...vols.map((v) => v ?? 0));
-    const lo = Math.min(...vols.filter((v): v is number => v != null && v > 0), maxVol) * 0.6;
+    const maxVol = opts.maxVolume ?? Math.max(1, ...vols.map((v) => v ?? 0));
+    const lo = opts.maxVolume ? 0 : Math.min(...vols.filter((v): v is number => v != null && v > 0), maxVol) * 0.6;
     const pt = (i: number) => [xOf(weeks[i].weekNumber) + colW / 2, y + h - 6 - Math.max(0, ((vols[i] ?? 0) - lo) / Math.max(1, maxVol - lo)) * (h - 28)] as const;
     const known = weeks.map((_, i) => i).filter((i) => vols[i] != null);
     if (known.length) {
@@ -257,10 +259,11 @@ export function renderPlanTimelineSVG(
       o.push(`<path d="${line}" fill="none" stroke="${P.moderate}" stroke-width="2.5" stroke-linejoin="round"/>`);
     }
     known.forEach((i) => {
-      const w = weeks[i], [cx, cy] = pt(i);
+      const w = weeks[i], [cx, cy] = pt(i), volume=vols[i];
+      if(volume==null)return;
       const c = w.isRace ? P.race : w.isTaper ? P.heavy : w.isRecovery ? P.recovery : P.moderate;
-      o.push(`<g><title>S${w.weekNumber} : ${fmtVol(vols[i]!)}${w.keySessions ? ` · ${w.keySessions} séance(s) clé(s)` : ""}</title><circle cx="${cx}" cy="${cy}" r="${w.isRecovery || w.isTaper ? 4.5 : 3.5}" fill="${w.isRecovery || w.isTaper ? (P.bg === "transparent" ? "hsl(var(--background))" : "#FFFFFF") : c}" stroke="${c}" stroke-width="2"/>`);
-      if (colW >= 34) o.push(`<text x="${cx}" y="${cy - 8}" font-size="${fs - 2}" text-anchor="middle" fill="${P.text}">${fmtVol(vols[i]!)}</text>`);
+      o.push(`<g><title>S${w.weekNumber} : ${fmtVol(volume)}${w.keySessions ? ` · ${w.keySessions} séance(s) clé(s)` : ""}</title><circle cx="${cx}" cy="${cy}" r="${w.isRecovery || w.isTaper ? 4.5 : 3.5}" fill="${w.isRecovery || w.isTaper ? (P.bg === "transparent" ? "hsl(var(--background))" : "#FFFFFF") : c}" stroke="${c}" stroke-width="2"/>`);
+      if (colW >= 34) o.push(`<text x="${cx}" y="${cy - 8}" font-size="${fs - 2}" text-anchor="middle" fill="${P.text}">${fmtVol(volume)}</text>`);
       o.push(`</g>`);
     });
   }
@@ -289,12 +292,35 @@ export function timelineLegendItems(P: TimelinePalette = PRINT_TIMELINE_PALETTE)
 }
 
 /** Bloc HTML imprimable : version imprimée de la « Timeline de la périodisation ». */
-export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: string) => string, startDate?: Date): string {
-  const svg = renderPlanTimelineSVG(plan, { displayPhase, phases: plan.phases?.length >= 2 ? plan.phases : undefined, fluid: true, startDate });
-  if (!svg) return "";
-  return `<section class="keep-together plan-timeline" style="margin:0 0 20px 0;padding:12px 14px;border:1px solid #DAD6CC;border-radius:8px;background:#fff;page-break-inside:avoid;break-inside:avoid;">
-  <h2 style="margin:0 0 8px 0;">Timeline de la périodisation</h2>
-  ${svg}
-  <p style="margin:6px 0 0 0;font-size:9.5px;color:#6E6B78;">Lecture : chaque colonne = une semaine. <b>Chantier</b> = limiteur prioritaire travaillé cette semaine-là (« + n » : autres limiteurs entretenus). <b>Charge</b> = volume prévu ; la courbe monte en construction, redescend sur les semaines <span style="color:#5555E0;font-weight:700">allège</span> (récupération) et <span style="color:#D4711C;font-weight:700">affûte</span> (avant course) ; 🏁 = course.</p>
-</section>`;
+export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: string) => string, startDate?: Date, options:{palette?:TimelinePalette;screen?:boolean;phases?:TimelinePhaseRange[]}={}): string {
+  const weeks=buildPlanTimeline(plan);
+  if(!weeks.length)return '';
+  const P=options.palette??PRINT_TIMELINE_PALETTE;
+  const phases=options.phases??plan.phases;
+  const maxVolume=Math.max(1,...weeks.map(w=>w.volumeMin??0));
+  const ch=readChantiers(plan);
+  const blocks:string[]=[];
+  for(let i=0;i<weeks.length;i+=8){
+    const window=weeks.slice(i,i+8),numbers=new Set(window.map(w=>w.weekNumber));
+    const slice={...plan,weeks:plan.weeks.filter(w=>numbers.has(w.weekNumber))};
+    const svg=renderPlanTimelineSVG(slice,{palette:P,displayPhase,phases,fluid:true,startDate,hideChantiers:true,maxVolume});
+    const rows=window.map(w=>{
+      const original=plan.weeks.find(x=>x.weekNumber===w.weekNumber);
+      const active=ch.filter(c=>w.weekNumber>=c.start&&w.weekNumber<=c.end);
+      const title=active.length?active.map(c=>c.name).join(' · '):original?.theme?.trim()||'Non renseigné';
+      const date=startDate?`${dLong(addDays(startDate,(w.weekNumber-1)*7))} – ${dLong(addDays(startDate,(w.weekNumber-1)*7+6))}`:'';
+      const mark=w.isRace?'Course':w.isTaper?'Affûtage':w.isRecovery?'Allégée':'';
+      return `<tr><th scope="row">S${w.weekNumber}<small>${esc(date)}</small></th><td>${esc(title)}${mark?`<small>${mark}</small>`:''}</td><td>${w.volumeMin==null?'Non renseigné':fmtH(w.volumeMin)}</td></tr>`;
+    }).join('');
+    blocks.push(`<section class="timeline-window" style="break-inside:avoid;page-break-inside:avoid;margin:0 0 24px"><h3 style="font-size:14px;margin:0 0 12px;color:${P.text}">S${window[0].weekNumber} – S${window[window.length-1].weekNumber}</h3><div class="timeline-chart" ${options.screen?'tabindex="0" role="region" aria-label="Courbe de charge, semaines '+window[0].weekNumber+' à '+window[window.length-1].weekNumber+'"':''}>${svg}</div><table aria-label="Chantiers et volumes hebdomadaires"><thead><tr><th scope="col">Semaine</th><th scope="col">Chantier / objectif</th><th scope="col">Volume</th></tr></thead><tbody>${rows}</tbody></table></section>`);
+  }
+  return `<div class="plan-timeline"><style>
+  .plan-timeline table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px;color:${P.text}}
+  .plan-timeline th,.plan-timeline td{padding:9px 8px;text-align:left;border-bottom:1px solid ${P.grid};vertical-align:top;overflow-wrap:anywhere}
+  .plan-timeline th:first-child{width:24%}.plan-timeline th:last-child{width:16%}
+  .plan-timeline small{display:block;margin-top:4px;font-size:11px;font-weight:400;color:${P.muted}}
+  .plan-timeline .timeline-chart{overflow-x:auto;margin-bottom:12px}.plan-timeline .timeline-chart svg{min-width:760px}
+  .plan-timeline .timeline-chart:focus-visible{outline:2px solid ${P.recovery};outline-offset:2px}
+  @media print{.plan-timeline .timeline-chart svg{min-width:0!important}.plan-timeline .timeline-chart{overflow:visible}}
+  </style>${options.screen?'':'<h2>Timeline de la périodisation</h2>'}${blocks.join('')}</div>`;
 }
