@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 
 type Preview = { entries: { state: 'create' | 'conflict' | 'existing'; cycle: { name: string; date_start: string; date_end: string } }[] };
 async function call(body: Record<string, unknown>) {
@@ -43,6 +44,7 @@ export function NolioCyclesPanel({ plan, athleteId, athleteName, startDate }: { 
   const send = async (confirm: boolean) => {
     setBusy(true); setMessage(null); setNeedsConnect(false);
     try {
+      assertPlanDeliverySafe(plan,{planStartDate:date});
       const result = await call({ action: 'cycles', athlete_id: athleteId, cycles, confirm });
       if (result.entries) {
         setPreview(result);

@@ -163,11 +163,7 @@ export function usePlanAdaptation() {
             result = swapModality(args.currentPlan, args.options as SwapModalityOptions);
             break;
           case "shift_race":
-            result = shiftRaceDate(args.currentPlan, {
-              ...(args.options as ShiftRaceDateOptions),
-              objective: args.planConfig?.objective,
-            });
-            break;
+            throw Error('Décaler la course nécessite une régénération datée : modifier uniquement les titres ne recale pas les séances. Changez la date dans Configuration, puis régénérez les semaines concernées.');
         }
 
         if (result.diff.length === 0) {
@@ -241,7 +237,7 @@ export function usePlanAdaptation() {
         return await doPersist();
       } catch (err) {
         console.error("[usePlanAdaptation] applyPatch error:", err);
-        toast.error("Échec de l'adaptation du plan");
+        toast.error(err instanceof Error?err.message:"Échec de l'adaptation du plan");
         return null;
       } finally {
         setIsApplying(false);

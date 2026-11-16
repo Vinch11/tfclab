@@ -2308,8 +2308,13 @@ export default function AITrainingPlanPage() {
         try {
           const rawPlan = parseAIPlan(fullText);
           const { plan } = sanitizeTrailFromTriathlonPlan(rawPlan, athleteObj);
+          plan.weeklyQuotas=prepared.weeklyQuotas;
+          const issues=[...validateRaceCalendar(plan,config),...validateCoachLoadIssues(plan,plan.weeklyQuotas)];
+          const blocked=issues.find(i=>i.severity==='error');
+          if(blocked)throw Error(blocked.message);
+          plan.finalValidationIssues=issues;
           parsed = plan.weeks.length > 0 ? plan : null;
-        } catch {}
+        } catch(e) {toast.error(`${athlete.nom} : plan refusé — ${e instanceof Error?e.message:'contrôle impossible'}`);continue;}
 
         const entry: MultiPlanEntry = {
           athleteId,

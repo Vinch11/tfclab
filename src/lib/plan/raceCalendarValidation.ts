@@ -6,6 +6,7 @@ import { buildRepairWorkoutMetadata } from './repairCatalogMetadata';
 import type { FinalValidationPlanLike, FinalValidationSessionLike } from './qa/checkB13';
 import type { FinalValidationIssue } from './qa/finalValidation';
 import { racePaceMinutes } from './specificPaceQuotas';
+import {normalizeRepairSport} from '../../../supabase/functions/_shared/repairSportingEquivalence';
 const metadata = new Map(WorkoutLibrary.map(w => [w.id.toUpperCase(), buildRepairWorkoutMetadata(w)]));
 export function raceSessionDay(s: FinalValidationSessionLike & {day?:string}): string {
   return (s.dayName ?? s.day ?? '').toLowerCase();
@@ -39,7 +40,7 @@ export function validateRaceCalendar(plan: Pick<FinalValidationPlanLike,'weeks'>
     if (s.isRest || s.sport==='rest' || isRaceDaySession(s)) continue;
     const p = raceProtectionForDay(config,w.weekNumber,raceSessionDay(s));
     if (!p || p.stage==='race') continue;
-    const cap = p.maxMinutes[s.sport ?? ''];
+    const cap = p.maxMinutes[normalizeRepairSport(s.sport)];
     const duration = s.durationMin ?? parseSessionDurationMin(s as never);
     if (p.restOnly || cap === 0 || (cap !== undefined && (!duration || duration>cap)) || (p.easyOnly && raceSessionDemanding(s)))
       issues.push({rule:`race_calendar_${p.stage}_unsafe`,severity:'error',message:`S${w.weekNumber} ${raceSessionDay(s)} « ${s.title} » : incompatible avec ${p.stage==='recovery'?'la récupération après':'l’affûtage avant'} ${p.label} (${p.raceDate}).`});
@@ -55,7 +56,7 @@ export function validateRaceTrajectory(plan: Pick<FinalValidationPlanLike,'weeks
   if (start === undefined) return [];
   const issues: FinalValidationIssue[] = [];
   const minutes = (w: FinalValidationPlanLike['weeks'][number]) => w.sessions.reduce((n,s) =>
-    n + (s.isRest || s.sport === 'rest' || s.sport === 'strength' || isRaceDaySession(s) ? 0 : s.durationMin ?? parseSessionDurationMin(s as never) ?? 0), 0);
+    n + (s.isRest || normalizeRepairSport(s.sport) === 'rest' || normalizeRepairSport(s.sport) === 'strength' || isRaceDaySession(s) ? 0 : s.durationMin ?? parseSessionDurationMin(s as never) ?? 0), 0);
   for (const goal of datedRaceGoals(config)) {
     const date = strictRaceDate(goal.raceDate);
     if (date === undefined) continue;
@@ -76,7 +77,7 @@ export function validateRaceTrajectory(plan: Pick<FinalValidationPlanLike,'weeks
       }
       const reminderWeek = plan.weeks.find(w=>w.weekNumber === raceWeek-1);
       if (reminderWeek) {
-        const reminders = reminderWeek.sessions.filter(s=>!s.isRest && s.sport==='run' && /allure\s*marathon|\bAM\b/i.test(`${s.title} ${s.details}`));
+        const reminders = reminderWeek.sessions.filter(s=>!s.isRest && normalizeRepairSport(s.sport)==='run' && /allure\s*marathon|\bAM\b/i.test(`${s.title} ${s.details}`));
         const amount = reminders.reduce((n,s)=>n+racePaceMinutes(`${s.title} ${s.details}`),0);
         if (amount < 15) issues.push({rule:'race_calendar_marathon_reminder_missing',severity:'error',message:`S${reminderWeek.weekNumber}: conserver 1–2 rappels totalisant au moins 15 min à allure marathon, sans séance de développement.`});
       }
@@ -84,7 +85,7 @@ export function validateRaceTrajectory(plan: Pick<FinalValidationPlanLike,'weeks
     if (key === 'ironman') {
       const week = plan.weeks.find(w=>w.weekNumber===raceWeek-2);
       if (week) for (const [sport,min] of [['bike',120],['run',60]] as const) {
-        if (!week.sessions.some(s=>!s.isRest && s.sport===sport && (s.durationMin ?? parseSessionDurationMin(s as never) ?? 0)>=min))
+        if (!week.sessions.some(s=>!s.isRest && normalizeRepairSport(s.sport)===sport && (s.durationMin ?? parseSessionDurationMin(s as never) ?? 0)>=min))
           issues.push({rule:'race_calendar_taper_long_missing',severity:'error',message:`S${week.weekNumber}: affûtage Ironman sans repère long ${sport==='bike'?'vélo (120–150 min)':'course (60–75 min)'} ; conserver ce repère en réduisant le volume ailleurs.`});
       }
     }

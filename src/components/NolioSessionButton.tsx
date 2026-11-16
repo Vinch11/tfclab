@@ -3,6 +3,7 @@
  * Discret, ouvre une mini-modale de confirmation avec date pré-remplie.
  */
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
+import {cleanPlanText} from '@/lib/plan/planText';
 import { useState, useMemo, type MouseEvent } from "react";
 import { addDays, format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -33,6 +34,8 @@ export interface NolioCtx {
   isSelected: (key: string) => boolean;
   toggleSelected: (key: string) => void;
   setManySelected: (keys: string[], value: boolean) => void;
+  validateDelivery?: (planStartDate:string)=>void;
+  fullPlan?:unknown;
 }
 
 interface Props {
@@ -90,20 +93,21 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
     e.stopPropagation();
     setSending(true);
     try {
+      ctx.validateDelivery?.(computedPlanStart);
       const lib = findLibraryWorkoutForSession({ title: session.title, details: session.details, catalogId: (session as { catalogId?: string | null }).catalogId ?? null });
       const alternatives = getTrailSessionAlternatives({
         sport: session.sport ?? lib?.sport ?? "",
-        title: session.title,
-        details: session.details,
+        title: cleanPlanText(session.title),
+        details: cleanPlanText(session.details),
       }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
       const enriched = {
         weekNumber: session.weekNumber,
         dayIndex: session.dayIndex,
         sessionIndex,
         sport: session.sport ?? lib?.sport ?? null,
-        title: session.title,
+        title: cleanPlanText(session.title),
         id: lib?.id ?? null,
-        details: session.details,
+        details: cleanPlanText(session.details),
         isRest: false,
         structure: nolioStructureForSession({ details: session.details, durationMin: (session as { durationMin?: number }).durationMin, sport: session.sport ?? lib?.sport ?? null }, lib?.structure ?? null),
         wbalProfile: lib?.wbalProfile ?? null,
@@ -119,6 +123,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
       const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
         body: {
           athlete_id: ctx.athleteId,
+          fullPlan:ctx.fullPlan,
           nolio_athlete_id: ctx.nolioId,
           planStartDate: computedStart,
           sessions: [enriched],

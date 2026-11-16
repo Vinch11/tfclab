@@ -5,6 +5,7 @@
 // id_partner = clé de déduplication côté Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import {planExportSafetyProblems} from '../_shared/planExportSafety.ts';
 import {
   deriveTrainingZonesEdge,
   derivedWattsFromStandardPct,
@@ -118,6 +119,7 @@ type Body = {
   planStartDate: string; // YYYY-MM-DD (lundi de la semaine 1)
   sessions: ParsedSession[];
   refs?: AthleteRefs;
+  fullPlan?:unknown;
 };
 
 type NolioStep = {
@@ -1725,6 +1727,8 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    const safety=body.fullPlan ? planExportSafetyProblems(body.fullPlan,{planStartDate:body.planStartDate}) : [];
+    if(safety.length)return new Response(JSON.stringify({error:'plan_calendar_unsafe',problems:safety}),{status:422,headers:{...corsHeaders,'Content-Type':'application/json'}});
 
     // Vérifie que l'athlète appartient bien au coach appelant — le client
     // `admin` (service_role) contourne RLS, donc sans ce contrôle explicite

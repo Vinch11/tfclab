@@ -15,6 +15,8 @@ import {
   validateOrNull 
 } from "@/lib/validationSchemas";
 import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
+import type {ParsedPlan} from '@/lib/aiPlanParser';
 
 function describeSnapshotIssues(issues: { path: (string | number)[]; message: string }[]): string {
   return issues.slice(0, 3).map((i) => `${i.path.join(".") || "bilan"} (${i.message})`).join(", ");
@@ -305,6 +307,9 @@ export function useCloudData() {
   // ========== PLANS ==========
   const savePlan = async (athleteId: string, planJson: Json) => {
     if (!user) return false;
+    if(planJson && typeof planJson==='object' && !Array.isArray(planJson) && Array.isArray(planJson.weeks)) {
+      try {assertPlanDeliverySafe(planJson as unknown as ParsedPlan);} catch(e){toast.error(e instanceof Error?e.message:'Plan non conforme');return false;}
+    }
     const upsertData: TablesInsert<"plans"> = {
       athlete_id: athleteId,
       coach_id: user.id,

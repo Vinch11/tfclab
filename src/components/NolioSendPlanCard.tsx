@@ -26,6 +26,8 @@ import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { findLibraryWorkoutForSession } from "@/lib/aiPlanWorkoutEnricher";
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import { getTrailSessionAlternatives } from "@/lib/trailSessionAlternatives";
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
+import {cleanPlanText} from '@/lib/plan/planText';
 
 interface Props {
   athleteId: string;
@@ -93,8 +95,8 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
         const lib = findLibraryWorkoutForSession({ title: s.title, details: s.details, catalogId: (s as { catalogId?: string | null }).catalogId ?? null });
         const alternatives = getTrailSessionAlternatives({
           sport: s.sport ?? lib?.sport ?? "",
-          title: s.title,
-          details: s.details,
+          title: cleanPlanText(s.title),
+          details: cleanPlanText(s.details),
         }).map((a) => ({ icon: a.icon, label: a.label, hint: a.hint }));
         return {
           weekNumber: s.weekNumber,
@@ -139,9 +141,11 @@ export function NolioSendPlanCard({ athleteId, athleteName, parsedPlan, planStar
     if (!parsedPlan) return;
     setSending(true);
     try {
+      assertPlanDeliverySafe(parsedPlan,{planStartDate:startDateStr});
       const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
         body: {
           athlete_id: athleteId,
+          fullPlan:parsedPlan,
           nolio_athlete_id: nolioId,
           planStartDate: startDateStr,
           sessions,

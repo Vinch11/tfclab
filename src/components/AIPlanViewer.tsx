@@ -1,5 +1,6 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
 import {cleanPlanText} from '@/lib/plan/planText';
+import {planDeliveryIssues,assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 import { weeklyTimeBreakdown, formatScheduledMinutes } from "@/lib/plan/weeklyTimeBreakdown";
 import { NolioCyclesPanel } from "@/components/plan/NolioCyclesPanel";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
@@ -964,7 +965,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
   // The same dose incident is shown once, freshly checked above, not as a stale quota snapshot.
   const displayedQuotaIssues = (plan.weeklyQuotaIssues ?? []).filter(issue =>
     issue.code !== "coach_load_violation" || !plan.weeklyQuotas?.[issue.weekNumber]?.volumeBudget);
-  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && (i.rule === "coach_load_violation" || i.rule === "coach_volume_under_min" || i.rule === "coach_initial_load_unverified"))), ...currentCatalogueIssues, ...validateCoachLoadIssues(plan, plan.weeklyQuotas)];
+  const deliveryCalendar={...(startDate?{planStartDate:format(startDate,'yyyy-MM-dd')}:{}),...(raceGoals?{raceGoals}:{}),...(gapContext?.objective?{objective:gapContext.objective}:{})};
+  const displayedFinalIssues = [...(plan.finalValidationIssues ?? []).filter(i => !i.rule.startsWith("race_calendar_") && !i.rule.startsWith("catalogue_prescription_") && !(hasCoachBudget && (i.rule === "coach_load_violation" || i.rule === "coach_volume_under_min" || i.rule === "coach_initial_load_unverified"))), ...currentCatalogueIssues, ...planDeliveryIssues(plan,deliveryCalendar)];
   const [replacementCount, setReplacementCount] = useState(0);
   useEffect(() => { setLocalPlan(planProp); setReplacementCount(0); }, [planProp]);
 
@@ -1225,8 +1227,10 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       isSelected: (k: string) => selectedKeys.has(k),
       toggleSelected,
       setManySelected,
+      fullPlan:{...plan,_raceGoals:deliveryCalendar.raceGoals,_objective:deliveryCalendar.objective},
+      validateDelivery:(date:string)=>assertPlanDeliverySafe(plan,{...deliveryCalendar,planStartDate:date}),
     };
-  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected]);
+  }, [athleteId, nolioId, startDate, nolioRefs, sentKeys, markSent, selectedKeys, toggleSelected, setManySelected,plan,raceGoals,gapContext?.objective]);
 
   // Bulk send state
   const [bulkStartDate, setBulkStartDate] = useState<string>(() => {
@@ -1362,6 +1366,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
   async function handleBulkSend() {
     if (!nolioCtx || targetSessions.length === 0) return;
+    try {assertPlanDeliverySafe(plan,deliveryCalendar);} catch(e){toast.error(e instanceof Error?e.message:'Plan non conforme');return;}
     setBulkSending(true);
     setBulkProgress({ done: 0, total: targetSessions.length });
 
@@ -1399,6 +1404,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
     const planStartDt = new Date(anchorDt);
     planStartDt.setUTCDate(planStartDt.getUTCDate() - (anchorWeek - 1) * 7);
     const computedStart = planStartDt.toISOString().slice(0, 10);
+    try {assertPlanDeliverySafe(plan,{...deliveryCalendar,planStartDate:computedStart});} catch(e){setBulkSending(false);toast.error(e instanceof Error?e.message:'Calendrier non conforme');return;}
 
     const interval = setInterval(() => {
       setBulkProgress((p) => {
@@ -1411,6 +1417,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       const { data, error } = await supabase.functions.invoke("nolio-send-plan", {
         body: {
           athlete_id: nolioCtx.athleteId,
+          fullPlan:nolioCtx.fullPlan,
           nolio_athlete_id: nolioCtx.nolioId,
           planStartDate: computedStart,
           sessions: enriched,

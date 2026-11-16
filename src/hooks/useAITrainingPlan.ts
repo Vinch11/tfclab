@@ -35,7 +35,8 @@ import { logPlanStat } from "@/lib/plan/planGenerationStats";
 import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
 import { computePlanDiversity, formatDiversitySummary } from "@/lib/plan/diversityMetrics";
 import { fetchHistoricalCatalogUsage, serializeHistoricalUsage } from "@/lib/plan/historicalCatalogUsage";
-import type { ParsedPlan } from "@/lib/aiPlanParser";
+import {parseAIPlan,type ParsedPlan} from "@/lib/aiPlanParser";
+import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 import { inferWeekType } from "@/engines/plan/sessionSizingMatrix";
 import { validateWeeklyQuotas, type QuotaIssue, type WeekQuotaEntry } from "@/lib/plan/validateWeeklyQuotas";
 import { computeFinalValidationIssues, type FinalValidationIssue } from "@/lib/plan/qa/finalValidation";
@@ -1349,7 +1350,7 @@ export function useAITrainingPlan() {
             // recalcul depuis le formulaire vivant lors de l'affichage.
             parsed.weeklyQuotas = structuredClone(lastWeeklyQuotasRef.current);
             for (const [week, entry] of Object.entries(parsed.weeklyQuotas)) traceSLFloorConsumer("retained", Number(week), entry);
-            const calendarSafety=validateRaceCalendar(parsed,planConfig);
+            const calendarSafety=[...validateRaceCalendar(parsed,planConfig),...validateCoachLoadIssues(parsed,parsed.weeklyQuotas)];
             if(calendarSafety.some(i=>i.severity==='error')) {
               setFinalValidationIssues(calendarSafety);
               toast.error(`Plan refusé : ${calendarSafety[0]?.message}`);
@@ -1577,6 +1578,11 @@ export function useAITrainingPlan() {
           }
         }
       }
+      const legacy=parseAIPlan(fullText);
+      legacy.weeklyQuotas=structuredClone(lastWeeklyQuotasRef.current);
+      assertPlanDeliverySafe(legacy,planConfig);
+      lastParsedPlanRef.current=legacy;
+      setParsedPlan(legacy);
       // Log Markdown-path success (chemin direct uniquement — plus de repli JSON→Markdown).
       logPlanStat({
         ts: Date.now(),
@@ -1588,6 +1594,7 @@ export function useAITrainingPlan() {
       });
     } catch (e) {
       const exceptionCode = safeFailureCode(e instanceof Error && e.message.startsWith("PLAN_PREVALIDATION_BLOCKED:") ? "PLAN_PREVALIDATION_BLOCKED" : e instanceof Error ? e.message : "EXCEPTION");
+      setResponse('');lastResponseRef.current='';setParsedPlan(null);lastParsedPlanRef.current=null;
       console.error("AI training plan error:", { code: exceptionCode === "UNKNOWN" ? "EXCEPTION" : exceptionCode });
       if (!(e instanceof Error && e.message === "__STREAM_ABORT__")) {
         const rawMsg = e instanceof Error ? e.message : String(e);
