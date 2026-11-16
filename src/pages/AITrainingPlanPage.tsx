@@ -16,7 +16,7 @@ import { currentPlanReleaseHeaders } from "@/lib/plan/planReleasePreflight";
 import { checkB5, checkB5ToValidationIssues } from "@/lib/plan/qa/checks";
 import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
-import { validateCoachLoadIssues } from "@/lib/plan/coachVolumeValidation";
+import { validateCoachLoadIssues, repairCoachLoadCeilings } from "@/lib/plan/coachVolumeValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
@@ -2309,6 +2309,7 @@ export default function AITrainingPlanPage() {
           const rawPlan = parseAIPlan(fullText);
           const { plan } = sanitizeTrailFromTriathlonPlan(rawPlan, athleteObj);
           plan.weeklyQuotas=prepared.weeklyQuotas;
+          repairCoachLoadCeilings(plan,plan.weeklyQuotas ?? {});
           const issues=[...validateRaceCalendar(plan,config),...validateCoachLoadIssues(plan,plan.weeklyQuotas)];
           const blocked=issues.find(i=>i.severity==='error');
           if(blocked)throw Error(blocked.message);
@@ -3178,6 +3179,8 @@ export default function AITrainingPlanPage() {
       // doit aussi y tourner, recalculée sur le plan COMPLET après
       // remplacement (pas seulement la semaine régénérée), pour rester
       // cohérente avec le reste du plan.
+      // Only the regenerated week may be shortened; other weeks stay as they are.
+      repairCoachLoadCeilings(mergedPlan as never, mergedPlan.weeklyQuotas ?? {}, [weekNumber]);
       try {
         const finalValidation = computeFinalValidationIssues(mergedPlan, finalRepairTraces, {
           vmaKmh: athleteContext.data?.vma ?? null,

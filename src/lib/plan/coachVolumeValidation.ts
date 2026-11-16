@@ -65,10 +65,10 @@ export function validateCoachLoadIssues(plan: Pick<FinalValidationPlanLike, "wee
  * of adjustments; weeks that cannot be fixed this way stay refused by validation.
  */
 export function repairCoachLoadCeilings<P extends Pick<FinalValidationPlanLike, "weeks">>(plan: P,
-  quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): string[] {
+  quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}, onlyWeeks?: number[]): string[] {
   const notes: string[] = [];
   for (let pass = 0; pass < plan.weeks.length; pass++) {
-    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message));
+    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message) && (!onlyWeeks || onlyWeeks.includes(i.week ?? -1)));
     if (!issue) break;
     const week = plan.weeks.find(w => w.weekNumber === issue.week);
     const m = /: (\d+(?:\.\d+)?) min d'endurance prescrites > (\d+) min/.exec(issue.message);
