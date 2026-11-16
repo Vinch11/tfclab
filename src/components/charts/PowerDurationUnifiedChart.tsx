@@ -266,6 +266,17 @@ export function PowerDurationUnifiedChart({
 
   const hasAnyCurve = cpResult || maderCurve;
 
+  // Keep hooks unconditional when athlete selection changes data availability.
+  const coherenceNote = useMemo(() => {
+    if (!cpResult || !maderCurve) return null;
+    const cpDelta = Math.abs(maderCurve.cp - cpResult.cp);
+    const wpDelta = Math.abs(maderCurve.wPrime - cpResult.wprime / 1000);
+    if (cpDelta > 30 || wpDelta > 8) {
+      return { level: "warn", text: `Divergence CP: Δ${Math.round(cpDelta)}W, W': Δ${Math.round(wpDelta)}kJ — vérifier les données d'entrée.` };
+    }
+    return { level: "ok", text: `Cohérence CP: Δ${Math.round(cpDelta)}W, W': Δ${Math.round(wpDelta)}kJ — modèles convergents.` };
+  }, [cpResult, maderCurve]);
+
   if (!hasAnyCurve) {
     return (
       <Card className={cn("border-dashed border-muted-foreground/30", className)}>
@@ -283,17 +294,6 @@ export function PowerDurationUnifiedChart({
   }
 
   const margins = getResponsiveMargins(isMobile);
-
-  // Coherence analysis
-  const coherenceNote = useMemo(() => {
-    if (!cpResult || !maderCurve) return null;
-    const cpDelta = Math.abs(maderCurve.cp - cpResult.cp);
-    const wpDelta = Math.abs(maderCurve.wPrime - cpResult.wprime / 1000);
-    if (cpDelta > 30 || wpDelta > 8) {
-      return { level: "warn", text: `Divergence CP: Δ${Math.round(cpDelta)}W, W': Δ${Math.round(wpDelta)}kJ — vérifier les données d'entrée.` };
-    }
-    return { level: "ok", text: `Cohérence CP: Δ${Math.round(cpDelta)}W, W': Δ${Math.round(wpDelta)}kJ — modèles convergents.` };
-  }, [cpResult, maderCurve]);
 
   return (
     <Card className={cn("overflow-hidden", className)}>

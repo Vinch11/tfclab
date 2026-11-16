@@ -26,7 +26,7 @@ const DiagnosticPage = lazy(() => import("./pages/DiagnosticPage"));
 const NolioV2Page = lazy(() => import("./pages/NolioV2Page"));
 const PlanningPage = lazy(() => import("./pages/PlanningPage"));
 const TestsPage = lazy(() => import("./pages/TestsPage"));
-const AcademyPage = lazy(() => import("./pages/AcademyPage"));
+const LabPage = lazy(() => import("./pages/LabPage"));
 const AthletesListPage = lazy(() => import("./pages/AthletesListPage"));
 const AITrainingPlanPage = lazy(() => import("./pages/AITrainingPlanPage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
@@ -176,7 +176,8 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   {/* SECTION 6 — ACADEMY                        */}
                   {/* ═══════════════════════════════════════════ */}
-                  <Route path="/academy" element={<ProtectedRoute><AcademyPage /></ProtectedRoute>} />
+                  <Route path="/lab" element={<ProtectedRoute><LabPage /></ProtectedRoute>} />
+                  <Route path="/academy" element={<Navigate to="/lab" replace />} />
 
                   {/* ═══════════════════════════════════════════ */}
                   {/* RUNNING PROFILE (accessible via dashboard)  */}

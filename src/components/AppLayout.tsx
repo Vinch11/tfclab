@@ -29,7 +29,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
     if (path.startsWith("/diagnostic")) return "diagnostic";
     if (path.startsWith("/planning")) return "planning";
     if (path.startsWith("/race")) return "simulation";
-    if (path.startsWith("/academy")) return "academy";
+    if (path.startsWith("/lab")) return "lab";
     return "dashboard";
   })();
 

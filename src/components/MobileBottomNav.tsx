@@ -12,7 +12,7 @@ import {
   Stethoscope,
   ClipboardList,
   Timer,
-  BookOpen,
+  FlaskConical,
   Sparkles,
   FileDown,
   ScrollText,
@@ -32,7 +32,7 @@ const tabs = [
   { id: "diagnostic", label: "Diag.", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Plan", icon: ClipboardList, route: "/planning" },
   { id: "simulation", label: "Simul.", icon: Timer, route: "/race" },
-  { id: "academy", label: "Academy", icon: BookOpen, route: "/academy" },
+  { id: "lab", label: "100%lab", icon: FlaskConical, route: "/lab" },
 ];
 
 interface MobileBottomNavProps {

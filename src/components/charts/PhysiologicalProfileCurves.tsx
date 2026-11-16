@@ -17,10 +17,10 @@ const metrics: { key: ProfileCurveMetric; title: string; icon: typeof Wind; note
 const dateLabel = (date: string) => date.split('-').reverse().slice(0, 2).join('/');
 const format = (value: number) => new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 2 }).format(value);
 
-export function PhysiologicalProfileCurves({ input, snapshots, snapshot }: { input: CoachingCompassInput; snapshots: DbSnapshot[]; snapshot: DbSnapshot | null }) {
+export function PhysiologicalProfileCurves({ input, snapshots, snapshot, selectedSport }: { input: CoachingCompassInput; snapshots: DbSnapshot[]; snapshot: DbSnapshot | null; selectedSport?: 'bike' | 'run' }) {
   const [selection, setSelection] = useState<'bike' | 'run'>('bike');
   const tri = input.sportFocus === 'triathlon';
-  const sport = tri ? selection : input.sportFocus === 'run' ? 'run' : 'bike';
+  const sport = selectedSport ?? (tri ? selection : input.sportFocus === 'run' ? 'run' : 'bike');
   const model = useMemo(() => profileCurveDiscipline(input, sport), [input, sport]);
   const history = useMemo(() => metrics.map(m => ({ ...m, points: profileCurveHistory(snapshots, input.athleteId ?? '', sport, m.key, input.snapshotDate) })), [snapshots, input.athleteId, input.snapshotDate, sport]);
   const unit = sport === 'run' ? 'km/h' : 'W';
@@ -28,7 +28,7 @@ export function PhysiologicalProfileCurves({ input, snapshots, snapshot }: { inp
   return <section data-testid="physiological-profile-curves" className="space-y-6 py-5">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div><h3 className="text-xl font-semibold">Profil métabolique · {sport === 'run' ? 'Course à pied' : 'Vélo'}</h3><p className="text-sm text-muted-foreground mt-1">Bilans, repères et modèles · {input.snapshotDate ?? 'Date non renseignée'}</p></div>
-      {tri && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList className="min-h-11"><TabsTrigger value="bike" className="min-h-10">Vélo</TabsTrigger><TabsTrigger value="run" className="min-h-10">Course à pied</TabsTrigger></TabsList></Tabs>}
+      {tri && !selectedSport && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList className="min-h-11"><TabsTrigger value="bike" className="min-h-10">Vélo</TabsTrigger><TabsTrigger value="run" className="min-h-10">Course à pied</TabsTrigger></TabsList></Tabs>}
     </div>
     <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-success" />Mesure documentée</span>

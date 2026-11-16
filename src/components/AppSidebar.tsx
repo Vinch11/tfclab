@@ -58,7 +58,7 @@ const navigationItems: NavItem[] = [
   { id: "diagnostic", label: "Diagnostic", icon: Stethoscope, route: "/diagnostic" },
   { id: "planning", label: "Planification", icon: ClipboardList, route: "/planning" },
   { id: "simulation", label: "Simulation", icon: Timer, route: "/race" },
-  { id: "academy", label: "Academy", icon: BookOpen, route: "/academy" },
+  { id: "lab", label: "100%lab", icon: FlaskConical, route: "/lab" },
 ];
 
 interface AppSidebarProps {

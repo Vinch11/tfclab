@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Académie masquée et contenu conservé ; 100%lab par athlète avec oxydation, énergie, oxygène, lactate vélo, historiques, zones, puissance-durée et tests, pédagogie et inconnues explicites. Emanuela connectée vérifiée ordinateur/téléphone, sélection course/vélo et redirection Académie ; Compass et plans inchangés. Modèle lactate course et courbes métaboliques natation non disponibles, pas d’équivalence INSCYD revendiquée.
+
 - [x] Compass du 13 novembre restauré : radar historique, textes et parcours profil → limiteur → levier → décision ; ajout métabolique du 16 novembre supprimé dans les deux vues. Vince/Emanuela connectés vérifiés ordinateur/téléphone, aucun débordement ni erreur ; 26 tests passent. Diagnostics, données et plans inchangés, deux générateurs synchronisés/déployés avec succès, aperçu rechargé.
 
 - [x] Présentation métabolique inspirée d’INSCYD : radar/jauges conservés, signature partagée Compass et vue détaillée Profil du Dashboard, oxydation/O₂ interactifs, sports séparés, modèles et inconnues explicites. 27 tests passent ; Vince/Emanuela connectés ordinateur/téléphone, courbes/onglets/hypothèses contrôlés sans erreur ni débordement. Deux générateurs synchronisés et déployés avec succès, déclaration fraîche et aperçu rechargé ; aucun bilan ou plan modifié, aucune équivalence scientifique INSCYD revendiquée.
