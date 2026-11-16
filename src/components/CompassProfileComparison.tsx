@@ -7,6 +7,7 @@ import type { CoachingCompassInput, TFCLCoachingCompassResult } from '@/lib/coac
 import { buildProfileComparisons, contextualCohortFor, type ProfileComparison } from '@/lib/coachingCompass/profileComparison';
 import { compassEvidence, COMPASS_REFERENCE_VERSION } from '@/lib/coachingCompass/referenceRegistry';
 import { cn } from '@/lib/utils';
+import { CompassProfileRadar } from './CompassProfileRadar';
 
 const descriptions: Record<string, string> = {
   vo2max: 'Capacité maximale à utiliser l’oxygène. Elle ne suffit pas à prédire la performance ; une valeur commune au bilan ne vaut pas deux tests spécifiques.',
@@ -38,6 +39,8 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
     <div className={cn('grid gap-8', groups.length > 1 && 'md:grid-cols-2')}>
       {groups.map(g => <section key={g.sport} aria-label={`Profil ${g.sport === 'bike' ? 'vélo' : 'course'}`} className={cn('min-w-0', selectedSport !== g.sport && 'hidden md:block')}>
         <h4 className="mb-2 flex items-center gap-2 text-base font-semibold">{g.sport === 'bike' ? <Bike className="h-5 w-5 text-primary" /> : <Footprints className="h-5 w-5 text-primary" />}{g.sport === 'bike' ? 'Vélo' : 'Course à pied'}</h4>
+        <CompassProfileRadar metrics={g.metrics} athleteName={athleteName} />
+        <Accordion type="single" collapsible className="mt-3"><AccordionItem value="values"><AccordionTrigger>Valeurs et comparaisons</AccordionTrigger><AccordionContent>
         {g.metrics.map(m => <div key={m.key} className="border-b border-border py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0"><Button variant="ghost" className="min-h-11 h-auto px-0 text-sm font-medium whitespace-normal text-left justify-start" onClick={() => { setSelectedMetric(m.key); setOpened(prev => [...new Set([...prev, 'reading'])]); }}>{m.label}<Info className="ml-2 h-3.5 w-3.5 shrink-0 text-muted-foreground" /></Button><p className="text-xs text-muted-foreground">{m.value == null ? 'Non renseigné' : sourceLabel(m.source)}</p></div>
@@ -52,9 +55,10 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
           </div>}
           <p className={cn('mt-3 text-xs', m.status === 'missing' || m.status === 'unavailable' ? 'text-muted-foreground' : 'text-foreground')}>{statusLabel(m)}</p>
         </div>)}
+        </AccordionContent></AccordionItem></Accordion>
       </section>)}
     </div>
-    <p className="text-xs text-muted-foreground">Cibles TFCL : constructions de coaching, pas des normes statistiques validées. Trait sombre : athlète · repère teinté : cible.</p>
+    <p className="text-xs text-muted-foreground">Chaque axe a sa propre échelle, relative à la cible. Cibles TFCL : repères de coaching, pas des normes statistiques validées.</p>
     <Accordion type="multiple" value={opened} onValueChange={setOpened}>
       <AccordionItem value="reading"><AccordionTrigger>Comprendre mes repères</AccordionTrigger><AccordionContent><div className="space-y-4">{Object.entries(descriptions).filter(([key]) => groups.some(g => g.metrics.some(m => m.key === key))).filter(([key]) => !selectedMetric || key === selectedMetric).map(([key, text]) => <div key={key}><h5 className="font-semibold">{groups.flatMap(g => g.metrics).find(m => m.key === key)?.label}</h5><p className="mt-1 text-muted-foreground">{text}</p></div>)}{selectedMetric && <Button variant="ghost" onClick={() => setSelectedMetric(null)}>Tous les repères</Button>}</div></AccordionContent></AccordionItem>
       <AccordionItem value="science"><AccordionTrigger>Sources scientifiques</AccordionTrigger><AccordionContent><div className="space-y-5">

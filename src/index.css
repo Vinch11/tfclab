@@ -4,6 +4,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Compass: theme-aware plotting ink, quiet grid, contrasting reference. */
+.compass-radar-stage {
+  --compass-ink: var(--primary);
+  --compass-reference: var(--success);
+  --compass-grid: var(--border);
+  padding-block: 8px;
+}
+.compass-radar-plot { width: 100%; max-width: 560px; display: block; margin-inline: auto; overflow: visible; }
+.compass-radar-grid { fill: none; stroke: hsl(var(--compass-grid)); stroke-width: 1; }
+.compass-radar-axis { stroke: hsl(var(--compass-grid)); stroke-width: 1; stroke-dasharray: 2 5; }
+.compass-radar-target { fill: hsl(var(--compass-reference) / .06); stroke: hsl(var(--compass-reference) / .75); stroke-width: 1.5; stroke-dasharray: 5 5; }
+.compass-radar-profile { fill: hsl(var(--compass-ink) / .17); stroke: hsl(var(--compass-ink)); stroke-width: 2.5; stroke-linejoin: round; }
+.compass-radar-segment { stroke: hsl(var(--compass-ink)); stroke-width: 2.5; }
+.compass-radar-dot-halo { fill: hsl(var(--background)); }
+.compass-radar-dot { fill: hsl(var(--compass-ink)); }
+.compass-radar-label { fill: hsl(var(--muted-foreground)); font-family: var(--font-body); font-size: 13px; font-weight: 500; }
+.compass-radar-value { fill: hsl(var(--foreground)); font-family: var(--font-heading); font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.compass-radar-unit { fill: hsl(var(--muted-foreground)); font-size: 10px; font-weight: 400; }
+.compass-legend-athlete { width: 20px; height: 3px; background: hsl(var(--compass-ink)); display: inline-block; }
+.compass-legend-target { width: 20px; height: 0; border-top: 2px dashed hsl(var(--compass-reference)); display: inline-block; }
+
 @layer base {
 
   /* ═══════════════════════════════════════════════════════════════════════════
