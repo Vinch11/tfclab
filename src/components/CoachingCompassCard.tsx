@@ -13,6 +13,7 @@
 import { useId, useMemo, useState } from "react";
 import { CompassProfileComparison } from "./CompassProfileComparison";
 import { CompassCoachReading } from "./CompassCoachReading";
+import { buildProfileComparisons } from '@/lib/coachingCompass/profileComparison';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -505,16 +506,17 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
+    <section aria-label="Profil physiologique complet" className="mt-5">
       <Button
         variant="ghost"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors"
+        className="w-full min-h-11 flex items-center justify-between px-0 py-2 hover:bg-muted/30 transition-colors"
+        aria-expanded={isOpen}
       >
-        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+        <p className="text-sm font-semibold text-foreground">
           Profil physiologique complet
         </p>
         <ChevronDown className={cn(
@@ -523,9 +525,11 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
         )} />
       </Button>
       {isOpen && (
-        <div className="px-3 pb-3 space-y-1.5">
+        <div className="pb-3 divide-y divide-border">
           {metrics.map(({ key, m, secondaryInfo }) => {
             const expl = METRIC_EXPLANATIONS[key];
+            const comparisonKey = ({ 'VO₂max': 'vo2max', 'VLamax': 'vlamax', 'FTP/kg': 'ftpkg', 'VMA': 'vma', 'TTE': 'tte', 'FatMax': 'fatmax' } as Record<string, string>)[key];
+            const comparison = buildProfileComparisons(input, compass).find(g => g.sport === (isRunning ? 'run' : 'bike'))?.metrics.find(metric => metric.key === comparisonKey);
             const tgt = metricTargets[key];
             const target = tgt?.target;
             const inverse = tgt?.inverse ?? false;
@@ -551,18 +555,18 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
             }
 
             return (
-              <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
+              <div key={key} className="py-4">
                 {/* Main row */}
-                <div className="flex items-center justify-between px-2.5 py-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-semibold text-foreground">{key}</span>
-                    <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-sm font-semibold text-foreground">{key}</span>
+                    <span className="text-xs text-muted-foreground">{m.unit}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {secondaryInfo && (
                       <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
                     )}
-                    <span className="text-[11px] font-bold font-mono text-foreground">
+                    <span className="text-xl font-semibold tabular-nums text-foreground">
                       {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
                     </span>
                     <div className={cn(
@@ -574,6 +578,13 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                       {confidenceLabel(m.confidence)}
                     </div>
                   </div>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <div className="relative h-3 rounded-sm bg-muted" aria-label={`${key} : ${m.value ?? 'Données insuffisantes'} ; ${comparison?.reference ? 'comparaison à la cible TFCL' : 'cible non définie'}`}>
+                    {comparison?.reference && <span className="absolute inset-y-0 rounded-sm bg-success/25 border border-success/40" style={{left: `${comparison.lowPosition ?? 0}%`, width: `${Math.max((comparison.highPosition ?? 0) - (comparison.lowPosition ?? 0), 1)}%`}} />}
+                    {comparison?.position != null && <span className="absolute -top-1 h-5 w-1 rounded-sm bg-foreground ring-2 ring-background" style={{left: `${comparison.position}%`}} />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">{comparison?.reference ? `Cible TFCL : ${comparison.reference.low.toLocaleString('fr-BE')}${comparison.reference.high !== comparison.reference.low ? `–${comparison.reference.high.toLocaleString('fr-BE')}` : ''} ${m.unit}` : 'Repère sans cible comparative définie'}</p>
                 </div>
                 {/* Target comparison row */}
                 {target != null && typeof m.value === "number" && (
@@ -604,18 +615,14 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                 )}
                 {/* Explanation row */}
                 {expl && (
-                  <div className="px-2.5 pb-2 space-y-0.5">
-                    <p className="text-[9px] text-muted-foreground leading-tight">{expl.desc}</p>
-                    <p className="text-[9px] text-primary/80 leading-tight">💡 {expl.why}</p>
-                    <p className="text-[8px] text-muted-foreground/60">{sourceLabel(m.source)}</p>
-                  </div>
+                  <Accordion type="single" collapsible className="mt-1"><AccordionItem value="explanation" className="border-0"><AccordionTrigger className="min-h-11 py-2 text-xs text-muted-foreground">Comprendre {key}</AccordionTrigger><AccordionContent className="space-y-2"><p className="text-sm text-muted-foreground">{expl.desc}</p><p className="text-sm text-primary">💡 {expl.why}</p><p className="text-xs text-muted-foreground">{sourceLabel(m.source)}</p></AccordionContent></AccordionItem></Accordion>
                 )}
               </div>
             );
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -686,6 +693,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
 
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
+        <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />
         <Accordion type="multiple" className="mt-4 text-muted-foreground">
         <AccordionItem value="explanations"><AccordionTrigger>Explications et lecture du coach</AccordionTrigger><AccordionContent className="text-foreground">
         <CompassCoachReading input={input} compass={compass} coachOrder={coachPolicy?.limiterOrder} />
@@ -714,7 +722,6 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
               {presentation.decouplingRun != null && <p className="text-sm">Découplage course : {presentation.decouplingRun} % · à interpréter avec durée, intensité et conditions.</p>}
               <p className="text-sm text-muted-foreground">Le TTE ne mesure pas la robustesse après effort prolongé.</p>
             </div>}
-            <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />
           </AccordionContent></AccordionItem>
           <AccordionItem value="diagnostic"><AccordionTrigger>Diagnostic et choix du coach</AccordionTrigger><AccordionContent>
             {presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}
