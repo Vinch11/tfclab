@@ -23,8 +23,9 @@ describe('all delivery boundaries use the full actual plan',()=>{
  });
  it('rechecks a moved export calendar against the fixed race date',()=>{
   const p=plan();p.weeks[0].sessions.pop();
+  p.weeks.push({weekNumber:15,phase:'build',theme:'Récupération',sessions:[{weekNumber:15,weekTheme:'Récupération',phase:'build',dayName:'lundi',dayIndex:0,title:'Repos',details:'',sport:'rest',durationMin:0,isRest:true}]} as never);
   expect(()=>assertPlanDeliverySafe(p)).not.toThrow();
-  expect(()=>assertPlanDeliverySafe(p,{planStartDate:'2026-11-09'})).toThrow();
+  expect(()=>assertPlanDeliverySafe(p,{planStartDate:'2026-11-09'})).toThrow(/2027-02-21/);
  });
  it('does not mutate stored or already sent records',()=>{
   const p=plan();const before=JSON.stringify(p);

@@ -1803,16 +1803,21 @@ export function useAITrainingPlan() {
           ...completePlanCoverageIssues(assembled,totalWeeks),
           ...validateRaceCalendar(assembled,{...planConfig,globalWeekOffset:0}),
         ];
-        if(assembled.finalValidationIssues.some(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_'))))) {
+        const assemblyBlockers=assembled.finalValidationIssues.filter(i=>isBlockingCoachLoadIssue(i) || (i.severity==='error' && (i.rule==='complete_plan_week_coverage' || i.rule.startsWith('race_calendar_'))));
+        if(assemblyBlockers.length) {
+          console.error("[generatePlanWindowed] plan refusé à l'assemblage :", assemblyBlockers.map(i=>`${i.rule}: ${i.message}`));
+          if (import.meta.env.DEV) (window as unknown as {__lastRefusedPlan?: unknown}).__lastRefusedPlan = assembled;
           setFinalValidationIssues(assembled.finalValidationIssues);
           lastParsedPlanRef.current=null;
           setParsedPlan(null);
-          toast.error(`Plan refusé : ${assembled.finalValidationIssues.find(i=>i.severity==='error')?.message ?? 'continuité de charge non conforme'}`, { duration: 30000 });
+          // Name the issue that actually blocks, not the first non-blocking error.
+          toast.error(`Plan refusé : ${assemblyBlockers[0].message}${assemblyBlockers.length>1?` (+${assemblyBlockers.length-1} autre(s))`:''}`, { duration: 30000 });
           return;
         }
         setFinalValidationIssues(assembled.finalValidationIssues);
         lastParsedPlanRef.current = assembled;
         setParsedPlan(assembled);
+        if (import.meta.env.DEV) (window as unknown as {__lastAssembledPlan?: unknown}).__lastAssembledPlan = assembled;
         // Le bandeau lit le plan, la sauvegarde lit cet état du hook :
         // tous deux doivent porter les mêmes issues de TOUTES les fenêtres.
         setWeeklyQuotaIssues(assembled.weeklyQuotaIssues ?? []);

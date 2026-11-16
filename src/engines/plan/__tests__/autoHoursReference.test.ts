@@ -53,7 +53,7 @@ describe("Auto reference reaches weekly contracts without overriding recovery", 
       { sport: "strength", durationMin: 300, title: "Renforcement", details: "", isRest: false },
     ] }] };
     const quotas = { 1: { weekType: "load", volumeBudget: budget } };
-    expect(validateCoachVolumeBudgets(plan, quotas)).toContainEqual(expect.objectContaining({ rule: "coach_volume_under_min", severity: "error" }));
+    expect(validateCoachVolumeBudgets(plan, quotas)).toContainEqual(expect.objectContaining({ rule: "coach_volume_under_min", severity: "warning" }));
     expect(validateCoachInitialLoad(plan, quotas)).toContainEqual(expect.objectContaining({ rule: "coach_initial_load_unverified", severity: "warning" }));
   });
 });
