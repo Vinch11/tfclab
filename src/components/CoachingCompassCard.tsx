@@ -686,6 +686,8 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
 
         {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
         <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
+        <Accordion type="multiple" className="mt-4 text-muted-foreground">
+        <AccordionItem value="explanations"><AccordionTrigger>Explications et lecture du coach</AccordionTrigger><AccordionContent className="text-foreground">
         <CompassCoachReading input={input} compass={compass} coachOrder={coachPolicy?.limiterOrder} />
         <section className="mt-5 space-y-4" aria-label="Explications du profil">
           <p className="text-xs text-muted-foreground">Couverture des repères du sport : {coverage.filled}/{coverage.total}</p>
@@ -701,7 +703,9 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
           <p className="text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
           <div><h3 className="text-sm font-semibold">Informations complémentaires</h3><p className="mt-2 text-sm">Robustesse à l’effort prolongé : durabilité non évaluée</p>{presentation?.tteBike && <p className="mt-1 text-sm">TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteBike.source)}</p>}{presentation?.tteRun && <p className="mt-1 text-sm">TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteRun.source)}</p>}</div>
         </section>
-        <Accordion type="multiple" defaultValue={['data','diagnostic']} className="mt-1">
+        </AccordionContent></AccordionItem>
+        </Accordion>
+        <Accordion type="multiple" className="mt-1 text-muted-foreground">
           <AccordionItem value="data"><AccordionTrigger>Tests et données</AccordionTrigger><AccordionContent>
             <p className="mb-3 text-sm text-muted-foreground">Repères disponibles : {coverage.filled}/{coverage.total}. Les dates de tests et les protocoles absents ne sont pas déduits de la date du bilan.</p>
             {input.targetRacePrediction && <p className="mb-3 text-sm">Temps de course cible estimé : {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)} · estimation, pas une garantie de résultat.</p>}

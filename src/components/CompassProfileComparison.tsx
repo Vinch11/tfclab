@@ -42,22 +42,28 @@ export function CompassProfileComparison({ input, compass, athleteName }: { inpu
         <CompassSignatureRadar axes={compass.presentation?.disciplineAxes?.[g.sport] ?? (g.sport === 'run' ? compass.presentation?.runningDiagnostic?.axes : undefined) ?? compass.presentation?.axes ?? compass.radarAxes} size={400} />
         <div className="mt-2 flex flex-wrap justify-center gap-4 text-xs text-muted-foreground"><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-primary" />Profil</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-success" />Proche de la cible</span><span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-warning" />À développer</span></div>
         <p className="mt-3 text-center text-xs text-muted-foreground">Repères /100 par rapport aux cibles de coaching, pas une probabilité de réussite.</p>
-        <Accordion type="single" defaultValue="values" collapsible className="mt-3"><AccordionItem value="values"><AccordionTrigger>Valeurs et comparaisons</AccordionTrigger><AccordionContent>
-        {g.metrics.map(m => <div key={m.key} className="border-b border-border py-4">
+        <section aria-label={`Jauges du profil ${g.sport === 'bike' ? 'vélo' : 'course'}`} className="mt-6">
+        <h5 className="mb-2 text-sm font-semibold">Profil physiologique complet</h5>
+        {g.metrics.map(m => <div key={m.key} className="border-b border-border py-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0"><Button variant="ghost" className="min-h-11 h-auto px-0 text-sm font-medium whitespace-normal text-left justify-start" onClick={() => { setSelectedMetric(m.key); setOpened(prev => [...new Set([...prev, 'reading'])]); }}>{m.label}<Info className="ml-2 h-3.5 w-3.5 shrink-0 text-muted-foreground" /></Button><p className="text-xs text-muted-foreground">{m.value == null ? 'Non renseigné' : sourceLabel(m.source)}</p></div>
             <p className="shrink-0 text-right text-2xl font-semibold tabular-nums">{valueLabel(m)}<span className="mt-1 block text-xs font-normal text-muted-foreground">{m.key === 'threshold' ? '/km' : m.unit}</span></p>
           </div>
-          {m.reference && <div className="mt-4 space-y-2">
+          {m.reference ? <div className="mt-2 space-y-2">
             <div className="relative h-4 rounded-sm bg-muted" aria-label={`${m.label} : ${valueLabel(m)} ; cible TFCL ${fmt(m.reference.low)}${m.reference.high !== m.reference.low ? ` à ${fmt(m.reference.high)}` : ''} ${m.unit}`}>
-              <span className="absolute inset-y-0 rounded-sm border border-primary/40 bg-primary/20" style={{ left: `${m.lowPosition ?? 0}%`, width: `${Math.max((m.highPosition ?? 0) - (m.lowPosition ?? 0), .8)}%` }} />
+              <span className="absolute inset-y-0 rounded-sm border border-success/40 bg-success/20" style={{ left: `${m.lowPosition ?? 0}%`, width: `${Math.max((m.highPosition ?? 0) - (m.lowPosition ?? 0), .8)}%` }} />
               {m.position != null && <span className="absolute -top-1 h-6 w-1 rounded-sm bg-foreground ring-2 ring-background" style={{ left: `${m.position}%` }} />}
             </div>
             <div className="flex justify-between gap-2 text-xs tabular-nums text-muted-foreground"><span>{fmt(m.scaleMin)}</span><span>Cible TFCL · {fmt(m.reference.low)}{m.reference.high !== m.reference.low ? `–${fmt(m.reference.high)}` : ''}</span><span>{fmt(m.scaleMax)}</span></div>
-          </div>}
-          <p className={cn('mt-3 text-xs', m.status === 'missing' || m.status === 'unavailable' ? 'text-muted-foreground' : 'text-foreground')}>{statusLabel(m)}</p>
+          </div> : <div className="mt-2 h-4 rounded-sm border border-dashed border-border bg-muted/40" aria-label={`${m.label} : comparaison non évaluée`} />}
+          <p className={cn('mt-2 text-xs', m.status === 'missing' || m.status === 'unavailable' ? 'text-muted-foreground' : 'text-foreground')}>{statusLabel(m)}</p>
         </div>)}
-        </AccordionContent></AccordionItem></Accordion>
+        <div className="mt-4 space-y-3">
+          {g.sport === 'run' && <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span>Économie de course</span><span className="font-semibold tabular-nums">{input.runEconomyScore != null && input.runEconomyScore > 0 ? `${fmt(input.runEconomyScore)}/100` : 'Données insuffisantes'}</span><p className="w-full text-xs text-muted-foreground">Modulateur d’efficience · hors classement des priorités</p></div>}
+          {compass.presentation?.sportReferences.filter(r => (g.sport === 'run' ? r.sport === 'running' : r.sport === 'cycling')).map(r => <div key={`${r.sport}-${r.label}`} className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span>{r.label}</span><span className="font-semibold tabular-nums">{r.value != null && r.value > 0 ? `${fmt(r.value)} ${r.unit}` : 'Données insuffisantes'}</span><p className="w-full text-xs text-muted-foreground">{sourceLabel(r.source)} · repère complémentaire, sans note</p></div>)}
+          <p className="text-xs text-muted-foreground">Robustesse après effort prolongé · non évaluée</p>
+        </div>
+        </section>
       </section>)}
     </div>
     <p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes statistiques validées. Les données manquantes ne sont pas dessinées.</p>

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Compass : profil complet en jauges visibles sous le radar, repères complémentaires sans note ; textes secondaires repliés sans suppression. Emanuela connectée vérifiée ordinateur/téléphone, détails dépliables, aucun débordement ni erreur ; 16 tests passent, deux générateurs synchronisés et déployés. Données et plans inchangés.
+
 - [x] Compass clarifié : priorités du plan, repères complémentaires et données à mesurer séparés ; radar historique et explications conservés. Emanuela connectée vérifiée ordinateur/téléphone, deux radars, aucun débordement ni erreur ; 16 tests passent. Aucun bilan, classement ou plan modifié ; deux générateurs synchronisés et déployés, aucune génération réelle ni export testé.
 
 - [x] Textes historiques Compass : Dashboard/Profil partagent les explications restaurées ; couverture, TTE et informations complémentaires rétablis. Rapports, assistant et fonctions enregistrées inspectés, aucun texte de carte distinct manquant trouvé. Limites : docs/compass-text-flow-sweep.md ; impression native, exports et réponse IA non exécutés.
