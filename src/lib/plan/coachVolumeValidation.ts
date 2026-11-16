@@ -7,8 +7,12 @@ import type { CoachVolumeBudget } from "@/engines/plan/sessionSizingMatrix";
 import { normalizeRepairSport } from '../../../supabase/functions/_shared/repairSportingEquivalence';
 
 /** Read-only check of prescribed durations, after model/repairs/edits. No resizing of catalogue cards. */
-export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "weeks">, quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): Array<ValidationIssue & { severity: "error" }> {
-  const issues: Array<ValidationIssue & { severity: "error" }> = [];
+/** Overruns up to min(5 min, 1 % of the ceiling) stay visible as warnings but never refuse a plan. */
+export const COACH_LOAD_TOLERANCE_MIN = 5;
+export const COACH_LOAD_TOLERANCE_PCT = 0.01;
+
+export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "weeks">, quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}): Array<ValidationIssue & { severity: "error" | "warning" }> {
+  const issues: Array<ValidationIssue & { severity: "error" | "warning" }> = [];
   let previousLoad: { minutes: number; globalWeek: number } | undefined;
   for (const week of [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber)) {
     const entry = quotas[week.weekNumber];
@@ -32,7 +36,7 @@ export function validateCoachVolumeBudgets(plan: Pick<FinalValidationPlanLike, "
         reason = entry.weekType === "recovery" ? "assimilation : au plus 70% de la dernière semaine de charge" : "progression depuis la dernière semaine de charge prescrite";
       }
     }
-    if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: "error", week: week.weekNumber,
+    if (total > ceiling + 1e-6) issues.push({ rule: "coach_load_violation", severity: total - ceiling <= Math.min(COACH_LOAD_TOLERANCE_MIN, ceiling * COACH_LOAD_TOLERANCE_PCT) ? "warning" : "error", week: week.weekNumber,
       message: `S${week.weekNumber}: ${total} min d'endurance prescrites > ${Math.floor(ceiling)} min (${reason}, hors renforcement)`,
       detail: `Référence ${budget.referenceSource === "coach" ? "déclarée par le coach" : "de planification Auto, jamais une charge mesurée"}. Corriger la prescription ; ne pas supprimer des séances ou modifier une fiche pour effacer cette alerte.` });
     if (budget.minMinutes != null && total + 1e-6 < budget.minMinutes) issues.push({ rule: "coach_volume_under_min", severity: "error", week: week.weekNumber,
@@ -67,12 +71,13 @@ export function validateCoachLoadIssues(plan: Pick<FinalValidationPlanLike, "wee
 export function repairCoachLoadCeilings<P extends Pick<FinalValidationPlanLike, "weeks">>(plan: P,
   quotas: Record<number, { weekType?: string; volumeBudget?: CoachVolumeBudget }> = {}, onlyWeeks?: number[]): string[] {
   const notes: string[] = [];
-  for (let pass = 0; pass < plan.weeks.length; pass++) {
-    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message) && (!onlyWeeks || onlyWeeks.includes(i.week ?? -1)));
+  const unfixable = new Set<number>();
+  for (let pass = 0; pass < plan.weeks.length * 3; pass++) {
+    const issue = validateCoachVolumeBudgets(plan, quotas).find(i => i.rule === "coach_load_violation" && /> (\d+) min/.test(i.message) && !unfixable.has(i.week ?? -1) && (!onlyWeeks || onlyWeeks.includes(i.week ?? -1)));
     if (!issue) break;
     const week = plan.weeks.find(w => w.weekNumber === issue.week);
     const m = /: (\d+(?:\.\d+)?) min d'endurance prescrites > (\d+) min/.exec(issue.message);
-    if (!week || !m) break;
+    if (!week || !m) { unfixable.add(issue.week ?? -1); continue; }
     let excess = Number(m[1]) - Number(m[2]);
     const active = week.sessions.filter(s => !s.isRest && s.sport !== "rest" && normalizeRepairSport(s.sport) !== "strength") as ParsedSession[];
     const longest = new Map<string, ParsedSession>();
@@ -91,7 +96,8 @@ export function repairCoachLoadCeilings<P extends Pick<FinalValidationPlanLike, 
       changed = true;
       notes.push(`S${week.weekNumber} ${s.sport}: ${before} → ${s.durationMin} min (plafond de charge)`);
     }
-    if (!changed || excess > 0) break;
+    // A week that cannot be brought back stays refused by validation; keep repairing the others.
+    if (!changed || excess > 0) unfixable.add(week.weekNumber);
   }
   return notes;
 }

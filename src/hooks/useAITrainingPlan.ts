@@ -1256,6 +1256,10 @@ export function useAITrainingPlan() {
             } catch (dErr) {
               console.error("[useAITrainingPlan] précision des séances failed:", dErr);
             }
+            // The load adjustment must run BEFORE the displayed/checked copy is built,
+            // otherwise the refusal check reads the unadjusted durations.
+            const loadRepairs = repairCoachLoadCeilings(merged, lastWeeklyQuotasRef.current ?? {});
+            if (loadRepairs.length) console.warn("[useAITrainingPlan] coach load repairs:", loadRepairs);
             const parsed = jsonPlanToParsedPlan(merged);
             if (incompletePhaseWeeks.length > 0) parsed.incompletePhaseWeeks = incompletePhaseWeeks;
             // Audit scientifique P0 — F12 : validation finale post-mutations
@@ -1267,8 +1271,6 @@ export function useAITrainingPlan() {
             // (enforceTaperWeeks, ensureRaceDaySession, enforceAthleteConstraints...),
             // sur le plan RÉEL livré au coach — pas seulement dans le harnais QA
             // synthétique.
-            const loadRepairs = repairCoachLoadCeilings(merged, lastWeeklyQuotasRef.current ?? {});
-            if (loadRepairs.length) console.warn("[useAITrainingPlan] coach load repairs:", loadRepairs);
             try {
               const finalValidation = computeFinalValidationIssues({ ...merged, weeklyQuotas: lastWeeklyQuotasRef.current }, semanticRepairs, {
                 vmaKmh: athleteData.vma ?? null,

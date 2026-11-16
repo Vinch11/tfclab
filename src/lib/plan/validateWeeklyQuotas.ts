@@ -57,7 +57,7 @@ export function validateWeeklyQuotas(
   quotasByWeek: Record<number, WeekQuotaEntry>,
 ): QuotaIssue[] {
   const out: QuotaIssue[] = validateCoachVolumeBudgets(merged, quotasByWeek).map(i => ({
-    severity: "critical", code: "coach_load_violation", weekNumber: i.week!, reason: i.message,
+    severity: i.severity === "warning" ? "warning" : "critical", code: "coach_load_violation", weekNumber: i.week!, reason: i.message,
   }));
   for (const w of merged.weeks) {
     const entry = quotasByWeek[w.weekNumber];
