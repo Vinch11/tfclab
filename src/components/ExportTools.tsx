@@ -2129,7 +2129,7 @@ function buildExportPayload(
         paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
         fatmax: null,
         vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
-        vlamaxRunReference: sportFocusForLimiter === 'run' ? { value: vlamax.value, source: vlamax.source } : { value: effectiveSnapshot?.vlamax_run ?? null, source: 'snapshot' },
+        vlamaxRunReference: sportFocusForLimiter === 'run' ? { value: vlamax.value, source: vlamax.source } : (() => { const r = effectiveSnapshot ? resolveVlamaxForGoal({ ...effectiveSnapshot, sport_main: 'run' }) : null; return r?.value != null ? { value: r.value, source: (r.confidence ?? 0) >= 0.9 ? 'test' : 'estimated' } : { value: effectiveSnapshot?.vlamax_run ?? null, source: 'snapshot' }; })(),
         tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
         tteEffectifRun: computeTTEEffectif({
           objectif: athlete.goal || "IM", sport: "run", age: athleteAge,

@@ -143,7 +143,9 @@ export function detectPeriodTests(sessions: DetectionSession[], refs: ThresholdR
     }
     if (refs.thresholdKmh && refs.thresholdKmh > 0 && s.sportBase === 'running' && s.laps) {
       const min = longestRunAbove(s.laps, refs.thresholdKmh * 0.97);
-      if (min >= 10) push('tte_observed_min_run', { value: min, display: `au moins ${min} min`, s, evidence: `plus long bloc de tours consécutifs à l'allure seuil (${paceText(refs.thresholdKmh)}) ou plus vite — minimum, pas un test à l'épuisement` });
+      const shortLaps = s.laps.filter(l => Number(l.duration) > 0 && Number(l.duration) < 180).length >= Math.max(4, s.laps.length * 0.6);
+      if (min >= 10) push('tte_observed_min_run', { value: min, display: `au moins ${min} min`, s, evidence: `plus long bloc de tours consécutifs à l'allure seuil (${paceText(refs.thresholdKmh)}) ou plus vite — minimum, pas un test à l'épuisement`
+        + (shortLaps ? ' — tours courts : si c’est un fractionné sans récupérations encodées, cette durée n’est pas continue' : '') });
     }
   }
 
