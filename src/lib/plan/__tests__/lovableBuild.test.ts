@@ -17,7 +17,7 @@ describe("Lovable build fingerprints its actual checkout, without Git or prepara
     expect(existsSync(join(temp, ".git"))).toBe(false);
     const computed = await checkedPlanRelease(temp);
     expect(computed.info).toEqual(readDeclaration(root));
-    expect(computed.catalogueEntries).toBe(920);
+    expect(computed.catalogueEntries).toBe(922);
     expect(computed.info.provenance).toBe("declared-source");
     expect(computed.info.attested).toBe(false);
     expect(computed.info.sourceCommit).toBeNull();
