@@ -12,7 +12,7 @@ export function planDeliveryIssues(plan:ParsedPlan, calendar:RaceCalendarConfig=
 }
 /** Volume, race and week checks never refuse a delivery: they are surfaced as a visible warning. */
 export function assertPlanDeliverySafe(plan:ParsedPlan, calendar:RaceCalendarConfig={}) {
-  const issues=planDeliveryIssues(plan,calendar).filter(i=>i.severity==='error');
+  const issues=planDeliveryIssues(plan,calendar);
   if(issues.length)toast.warning(`À vérifier : ${issues[0].message}${issues.length>1?` (+${issues.length-1} autre(s))`:''}`,{duration:20000});
   return issues;
 }

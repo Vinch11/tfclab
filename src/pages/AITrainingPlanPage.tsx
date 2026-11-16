@@ -18,6 +18,7 @@ import type { MergedPlan } from "@/lib/plan/mergePlanChunks";
 import { validateSessionCataloguePlan } from "@/lib/plan/sessionCatalogueValidation";
 import { validateCoachLoadIssues, repairCoachLoadCeilings, isBlockingCoachLoadIssue } from "@/lib/plan/coachVolumeValidation";
 import { validateRaceCalendar } from '@/lib/plan/raceCalendarValidation';
+import { assertPlanDeliverySafe } from '@/lib/plan/planDeliverySafety';
 import { restoreCoachLimiterOrder, restoreStructuredPlan } from "@/lib/plan/restoreStructuredPlan";
 /**
  * AI Training Plan Page — TFCL™ Plan Generator
@@ -2384,11 +2385,7 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
     setIsSaving(true);
     try {
-      const safety = computeFinalValidationIssues(parsedPlan, undefined, {
-        objective, ambition, raceCalendar: {planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals},
-      });
-      const blocked = safety.issues.find(i=>i.severity==='error' && (i.rule.startsWith('race_calendar_') || i.rule==='coach_load_violation' || i.rule==='coach_volume_under_min'));
-      if (blocked) throw new Error(blocked.message);
+      assertPlanDeliverySafe(parsedPlan, {planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals});
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
@@ -2448,11 +2445,8 @@ export default function AITrainingPlanPage() {
     if (!parsedPlan || !currentAthlete) return;
 
     const currentPlanForChecks = parsedPlan as unknown as MergedPlan;
-    const unsafeCalendar=validateRaceCalendar(parsedPlan,{planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals});
-    if (unsafeCalendar.length) {
-      toast.error(`Calendrier de course non conforme : ${unsafeCalendar[0].message}`);
-      return;
-    }
+    // Calendar and volume findings are visible advisories, never an early save refusal.
+    assertPlanDeliverySafe(parsedPlan,{planStartDate:format(planStartDate,'yyyy-MM-dd'),objective,raceDate,raceGoals});
     // Read-only legacy check view; optional historical fields remain absent.
     // F-16: compute validator score at save time and persist alongside the plan
     // so we can measure AI plan quality drift over time (per athlete/objective).

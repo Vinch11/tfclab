@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Refus de sauvegarde Emanuela sur avertissement S30 corrigé aux deux frontières ; avertissements visibles même sans erreur. 11 tests passent, compilation OK ; copie du plan réel chargée, S30 vélo limité à 75 min, sauvegardée après confirmation des autres contrôles de contenu, relue en base puis copie temporaire supprimée. Historiques originaux et séances préservés ; aucune génération ni envoi Nolio.
+
 - [x] Vérification transversale des minima atteignables : consignes IA et refus assemblage/semaine/adaptations corrigés, refus préalable conserve l'affichage courant. 139 tests verts, compilation OK, deux générateurs déployés ; inventaire et limites dans docs/weekly-volume-flow-sweep-2026-11-16.md. Aucun plan réel complet généré, sauvegarde/envoi Nolio/impression native ni fonctions live de base vérifiées ; historiques et réglages inchangés.
 
 - [x] Minimum hebdomadaire limité au plafond réellement atteignable (progression/assimilation), cible nominale conservée ; petits écarts ≤1 % et ≤5 min en avertissement. 91 tests passent : conflit S5 915/950/1030 reproduit sur référence synthétique, minima atteignables toujours bloquants, récupération et réparation contrôlées. Deux générateurs déployés avec succès. Aucun plan enregistré modifié ; charge précédente du plan refusé non disponible, génération réelle complète non rejouée.
