@@ -1,27 +1,21 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL COACHING COMPASS™ — Graphique Signature
- * 
+ *
  * Visualisation unifiée du processus décisionnel :
  * PROFIL → LIMITEUR → LEVIER → DÉCISION
- * 
+ *
  * Lisible en < 10 secondes par un coach.
  * Deux modes : Athlète (simplifié) / Coach (détaillé)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
 import { useId, useMemo, useState } from "react";
-import { CompassProfileComparison } from "./CompassProfileComparison";
-import { CompassCoachReading } from "./CompassCoachReading";
-import { CompassMetabolicOverview } from './CompassMetabolicOverview';
-import { buildProfileComparisons } from '@/lib/coachingCompass/profileComparison';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { 
-  Compass, Target, AlertTriangle, 
+import {
+  Compass, Target, AlertTriangle,
   Eye, EyeOff, Zap, Info, Clock, Dumbbell,
   ChevronDown
 } from "lucide-react";
@@ -227,7 +221,7 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
         const labelP = getPoint(i, 135);
         const pedagogy = AXIS_PEDAGOGY[axis.key];
         const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-        
+
         return (
           <g key={`label-${i}`}>
             {/* Emoji */}
@@ -312,7 +306,7 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
           </Badge>
         )}
       </div>
-      
+
       {/* Content */}
       <div className={cn(
         "relative p-3 rounded-xl border",
@@ -321,7 +315,7 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
       )}>
         {/* Left accent bar */}
         <div className={cn("absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full", accentClass)} />
-        
+
         <div className="pl-3 flex items-start gap-3">
           <div className={cn(
             "shrink-0 p-2 rounded-lg border",
@@ -363,8 +357,8 @@ function formatTargetRaceDuration(totalMin: number): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
-  if (warning.level === "none" || !warning.message) return null;
-  
+  if (warning.level === "none") return null;
+
   const colors = {
     moderate: "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.2)]",
     high: "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)]",
@@ -443,13 +437,13 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
   const objectif = input.objectif || "IM";
   const vlamaxRange = getVLamaxRange(objectif, ambition, isRunning ? "cap" : "bike");
   const displayAxes = compass.presentation?.axes ?? compass.radarAxes;
-  const targetFor = (_key: string): number | null => null; // Targets are shown once in the audited profile view.
+  const targetFor = (key: string) => displayAxes.find(a => a.key === key)?.target ?? null;
   const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
     "VO₂max": { target: targetFor("vo2max") }, "VLamax": { target: targetFor("vlamax"), inverse: true },
     "FTP": { target: input.poids && targetFor("ftpkg") ? Math.round((targetFor("ftpkg") ?? 0) * input.poids) : null },
     "FTP/kg": { target: targetFor("ftpkg") }, "VMA": { target: targetFor("vma") },
     "TTE": { target: targetFor("tte") }, "FatMax": { target: targetFor("fatmax") },
-    "W'": { target: targetFor("wprime") }, "Éco.": { target: null },
+    "W'": { target: targetFor("wprime") }, "Éco.": { target: compass.economyModifier.target },
   };
 
   // Running mode: convert LT1/LT2 from watts to % VMA
@@ -508,14 +502,27 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <section aria-label="Profil physiologique complet" className="mt-5">
-      <h3 className="py-2 text-base font-semibold">Profil physiologique complet</h3>
-        <div className="pb-3 divide-y divide-border">
+    <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
+      <Button
+        variant="ghost"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors"
+      >
+        <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+          Profil physiologique complet
+        </p>
+        <ChevronDown className={cn(
+          "h-3.5 w-3.5 text-muted-foreground/60 transition-transform",
+          isOpen && "rotate-180"
+        )} />
+      </Button>
+      {isOpen && (
+        <div className="px-3 pb-3 space-y-1.5">
           {metrics.map(({ key, m, secondaryInfo }) => {
             const expl = METRIC_EXPLANATIONS[key];
-            const comparisonKey = ({ 'VO₂max': 'vo2max', 'VLamax': 'vlamax', 'FTP/kg': 'ftpkg', 'VMA': 'vma', 'TTE': 'tte', 'FatMax': 'fatmax' } as Record<string, string>)[key];
-            const comparison = buildProfileComparisons(input, compass).find(g => g.sport === (isRunning ? 'run' : 'bike'))?.metrics.find(metric => metric.key === comparisonKey);
             const tgt = metricTargets[key];
             const target = tgt?.target;
             const inverse = tgt?.inverse ?? false;
@@ -541,37 +548,29 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
             }
 
             return (
-              <div key={key} className="py-4">
+              <div key={key} className="rounded-md bg-background/40 border border-border/20 overflow-hidden">
                 {/* Main row */}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-sm font-semibold text-foreground">{key}</span>
-                    <span className="text-xs text-muted-foreground">{m.unit}</span>
-                    {expl && <Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground" aria-label={`Explication ${key}`}><Info className="h-4 w-4" /></Button></PopoverTrigger><PopoverContent className="max-w-[calc(100vw-2rem)] space-y-2"><p className="text-sm">{expl.desc}</p><p className="text-sm text-muted-foreground">{expl.why}</p><p className="text-xs text-muted-foreground">{sourceLabel(m.source)}</p></PopoverContent></Popover>}
+                <div className="flex items-center justify-between px-2.5 py-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-semibold text-foreground">{key}</span>
+                    <span className="text-[9px] text-muted-foreground/70">{m.unit}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {secondaryInfo && (
                       <span className="text-[8px] text-muted-foreground/60">{secondaryInfo}</span>
                     )}
-                    <span className="text-xl font-semibold tabular-nums text-foreground">
+                    <span className="text-[11px] font-bold font-mono text-foreground">
                       {typeof m.value === "number" ? formatVal(m.value, isSmall) : "—"}
                     </span>
                     <div className={cn(
                       "px-1.5 py-0.5 rounded text-[8px] font-medium",
-                      m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" : 
-                      m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" : 
+                      m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" :
+                      m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" :
                       "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
                     )}>
                       {confidenceLabel(m.confidence)}
                     </div>
                   </div>
-                </div>
-                <div className="mt-3 space-y-2">
-                  <div className="relative h-3 rounded-sm bg-muted" aria-label={`${key} : ${m.value ?? 'Données insuffisantes'} ; ${comparison?.reference ? 'comparaison à la cible TFCL' : 'cible non définie'}`}>
-                    {comparison?.reference && <span className="absolute inset-y-0 rounded-sm bg-success/25 border border-success/40" style={{left: `${comparison.lowPosition ?? 0}%`, width: `${Math.max((comparison.highPosition ?? 0) - (comparison.lowPosition ?? 0), 1)}%`}} />}
-                    {comparison?.position != null && <span className="absolute -top-1 h-5 w-1 rounded-sm bg-foreground ring-2 ring-background" style={{left: `${comparison.position}%`}} />}
-                  </div>
-                  <p className="text-xs text-muted-foreground">{comparison?.reference ? `Cible TFCL : ${comparison.reference.low.toLocaleString('fr-BE')}${comparison.reference.high !== comparison.reference.low ? `–${comparison.reference.high.toLocaleString('fr-BE')}` : ''} ${m.unit}` : 'Repère sans cible comparative définie'}</p>
                 </div>
                 {/* Target comparison row */}
                 {target != null && typeof m.value === "number" && (
@@ -600,11 +599,20 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
                     )}
                   </div>
                 )}
+                {/* Explanation row */}
+                {expl && (
+                  <div className="px-2.5 pb-2 space-y-0.5">
+                    <p className="text-[9px] text-muted-foreground leading-tight">{expl.desc}</p>
+                    <p className="text-[9px] text-primary/80 leading-tight">💡 {expl.why}</p>
+                    <p className="text-[8px] text-muted-foreground/60">{sourceLabel(m.source)}</p>
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
-    </section>
+      )}
+    </div>
   );
 }
 
@@ -612,7 +620,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 // COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function CoachingCompassCard({ input, athleteName, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
+export function CoachingCompassCard({ input, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
@@ -620,6 +628,29 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
   const coachPolicy = useMemo(() => input.athleteId
     ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null,
     [input.athleteId, input.objectif]);
+
+  // ─── Données insuffisantes ───
+  if (compass.meta.dataCompleteness < 10) {
+    return (
+      <Card className={cn("border-border/50 print:break-inside-avoid print:shadow-none", className)}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-muted-foreground" />
+            <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
+            <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
+              Renseignez au moins VMA (ou FTP), poids et VLamax dans un snapshot pour activer le Compass.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const { limiter, leverage, decision } = compass;
   const presentation = compass.presentation;
@@ -649,7 +680,7 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
                 TFCL Coaching Compass™
               </CardTitle>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium tracking-wide hidden sm:block">
-                OBJECTIF · AMBITION · REPÈRES
+                PROFIL → LIMITEUR → LEVIER → DÉCISION
               </p>
             </div>
           </div>
@@ -673,48 +704,223 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
           </div>
         )}
 
-        {decision.prohibitions.length > 0 && <div className="mb-4 flex flex-wrap gap-2" aria-label="Précautions importantes">{decision.prohibitions.map(p => <Badge key={p} variant="outline" className="whitespace-normal text-warning">{p}</Badge>)}</div>}
-        <CompassProfileComparison input={input} compass={compass} athleteName={athleteName} />
-        <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />
-        <CompassMetabolicOverview input={input} />
-        <section aria-label="Synthèse du coach" className="space-y-2 border-t border-border py-4"><h3 className="text-sm font-semibold">Priorités de travail</h3><p className="text-sm">{presentation?.priorityMetrics.join(' → ') || limiter.label}</p>{coachPolicy && <p className="text-xs text-muted-foreground">Ordre coach : {coachPolicy.limiterOrder.join(' → ')}</p>}<p className="text-xs text-muted-foreground">Cibles TFCL : repères de coaching, pas des normes scientifiques validées. Une donnée manquante n’est pas une faiblesse.</p></section>
-        <Accordion type="multiple" className="mt-4 text-muted-foreground">
-        <AccordionItem value="explanations" className="border-0"><AccordionTrigger className="min-h-11 justify-start gap-2 py-2 text-xs font-normal">Détails, tests et sources</AccordionTrigger><AccordionContent className="text-foreground">
-        <CompassProfileComparison input={input} compass={compass} detailsOnly />
-        <CompassCoachReading input={input} compass={compass} coachOrder={coachPolicy?.limiterOrder} />
-        <section className="mt-5 space-y-4" aria-label="Explications du profil">
-          <p className="text-xs text-muted-foreground">Couverture des repères du sport : {coverage.filled}/{coverage.total}</p>
-          <h3 className="text-sm font-semibold">Profil physiologique — Actuel et cible</h3>
-          {explanationAxes.map((axis,index) => <div key={`${axis.key}-${index}`} className="border-b border-border pb-4">
-            {disciplineAxes && <p className="mb-1 text-xs text-muted-foreground">{index < disciplineAxes.bike.length ? 'Vélo' : 'Course à pied'}</p>}
-            <div className="flex flex-wrap justify-between gap-2"><h4 className="text-sm font-semibold">{AXIS_PEDAGOGY[axis.key]?.short ?? axis.label}</h4><span className="text-xs text-muted-foreground">{axisAssessment(axis)}</span></div>
-            <p className="mt-2 text-sm tabular-nums">Actuel : {axis.value != null && axis.value > 0 ? `${axis.value.toLocaleString('fr-BE',{maximumFractionDigits:2})} ${axis.unit}` : 'Données insuffisantes'}{axis.target != null && axis.target > 0 ? ` → Cible interne : ${axis.target.toLocaleString('fr-BE',{maximumFractionDigits:2})} ${axis.unit}` : ' · Cible non définie, aucun déficit conclu.'}</p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{AXIS_PEDAGOGY[axis.key]?.detail}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? 'unknown')}</p>
-          </div>)}
-          {compass.economyModifier && <div className="border-b border-border pb-4"><h4 className="text-sm font-semibold">Modulateur — Efficience</h4><p className="mt-1 text-sm">{compass.economyModifier.label}</p><p className="mt-2 text-sm text-muted-foreground">Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.</p></div>}
-          <p className="text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-          <div><h3 className="text-sm font-semibold">Informations complémentaires</h3><p className="mt-2 text-sm">Robustesse à l’effort prolongé : durabilité non évaluée</p>{presentation?.tteBike && <p className="mt-1 text-sm">TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteBike.source)}</p>}{presentation?.tteRun && <p className="mt-1 text-sm">TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · {compassSourceLabel(presentation.tteRun.source)}</p>}</div>
-        </section>
-          <section className="mt-5"><h3 className="mb-3 text-sm font-semibold">Tests et données</h3>
-            <p className="mb-3 text-sm text-muted-foreground">Repères disponibles : {coverage.filled}/{coverage.total}. Les dates de tests et les protocoles absents ne sont pas déduits de la date du bilan.</p>
-            {input.targetRacePrediction && <p className="mb-3 text-sm">Temps de course cible estimé : {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)} · estimation, pas une garantie de résultat.</p>}
-            {presentation && <div className="space-y-3">{presentation.sportReferences.map(r => <p key={`${r.sport}-${r.label}`} className="text-sm">{r.sport === 'running' ? 'Course' : 'Vélo'} · {r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'}<span className="block text-muted-foreground">{compassSourceLabel(r.source)}{r.conditions && ` · ${r.conditions}`}</span></p>)}
-              <p className="text-sm text-muted-foreground">W′/D′ : réserves spécifiques aux efforts et au capteur, pas une note générale de capacité anaérobie.</p>
-              {presentation.decouplingRun != null && <p className="text-sm">Découplage course : {presentation.decouplingRun} % · à interpréter avec durée, intensité et conditions.</p>}
-              <p className="text-sm text-muted-foreground">Le TTE ne mesure pas la robustesse après effort prolongé.</p>
-            </div>}
-          </section>
-          <section className="mt-5"><h3 className="mb-3 text-sm font-semibold">Diagnostic et choix du coach</h3>
-            {presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}
-            {presentation?.cyclingDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" />}
-            {coachPolicy && <p className="mt-4 text-sm">Ordre coach enregistré : {coachPolicy.limiterOrder.join(' → ')}</p>}
-            <p className="mt-4 text-sm text-muted-foreground">Priorités du plan conservées : {presentation?.priorityMetrics.join(' → ') || limiter.label}.</p>
+        {/* ─── Temps de course cible (src/lib/raceTimePredictor.ts) ─── */}
+        {input.targetRacePrediction && (
+          <div className="mb-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 flex items-center justify-between gap-2 print:break-inside-avoid">
+            <div className="flex items-center gap-2 min-w-0">
+              <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Temps de course cible</p>
+                <p className="text-sm font-semibold truncate">
+                  {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)}
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[9px] shrink-0">
+              {input.targetRacePrediction.confidence >= 0.7 ? "Fiabilité élevée" : input.targetRacePrediction.confidence >= 0.5 ? "Fiabilité modérée" : "Fiabilité limitée"}
+
+            </Badge>
+          </div>
+        )}
+
         {/* ═══ LAYOUT PRINCIPAL : Flux + Readiness ═══ */}
         <div className="flex gap-4">
           {/* ─── COLONNE GAUCHE : Flux décisionnel complet ─── */}
           <div className="flex-1 min-w-0">
-            
+
+            {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
+            <div className="mb-1 print:break-inside-avoid">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                Niveau 1 — Profil physiologique
+              </span>
+              <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
+                Repères par rapport aux cibles internes — pas une probabilité de réussite en course. Les priorités du diagnostic sont présentées séparément.
+              </p>
+              <div className="mt-1">
+                {disciplineAxes ? <div className="overflow-x-auto" data-testid="triathlon-compasses">
+                  <div className="grid grid-cols-2 min-w-[580px] gap-4 print:min-w-0">
+                    {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
+                      <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
+                      <SignatureRadar axes={disciplineAxes[sport]} size={320} />
+                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
+                      {sport === 'run' && presentation?.runningDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></div>}
+                      {sport === 'bike' && presentation?.cyclingDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></div>}
+                    </section>)}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
+                </div> : <><SignatureRadar axes={displayAxes} size={320} />{presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}{presentation?.cyclingDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" />}</>}
+                {disciplineAxes && presentation?.cyclingDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></section>}
+                {disciplineAxes && presentation?.runningDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></section>}
+              </div>
+
+              {/* Completeness bar */}
+              <div className="flex items-center gap-2 mt-2 px-2">
+                <span className="text-[9px] text-muted-foreground/50 shrink-0">
+                  Couverture des repères du sport : {coverage.score}% ({coverage.filled}/{coverage.total})
+                </span>
+                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary/40 rounded-full transition-all duration-500"
+                    style={{ width: `${coverage.score}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Légende couleurs */}
+              <div className="flex items-center gap-4 mt-2 px-2">
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Proche de la cible
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50–74 Écart à la cible
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 Écart important
+                </span>
+              </div>
+
+              <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
+                <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
+                <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{presentation?.priorityMetrics.join(" → ") || "Aucune priorité étayée disponible"}</p>
+                {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
+                {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
+                {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
+              </div>
+              <h3 className="mt-4 text-sm font-semibold">Informations complémentaires</h3>
+              {presentation && <div className="mt-2 border-b border-border pb-3 text-xs space-y-1" data-testid="compass-durability">
+                <div className="space-y-3 py-2" data-testid="compass-sport-references">
+                  {(['running', 'cycling'] as const).map(sport => {
+                    const refs = presentation.sportReferences.filter(r => r.sport === sport);
+                    return refs.length ? <section key={sport} className="space-y-1"><h4 className="font-semibold">{sport === 'running' ? 'Repères course' : 'Repères vélo'}</h4>{refs.map(r => <p key={r.label}>{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {compassSourceLabel(r.source)}{r.conditions && <span className="block text-muted-foreground">{r.conditions}</span>}</p>)}</section> : null;
+                  })}
+                  <p className="text-muted-foreground">W′/D′ : repères complémentaires, pas une note générale de capacité anaérobie ; les watts course dépendent du capteur.</p>
+                </div>
+                <p className="font-medium">Robustesse à l’effort prolongé : durabilité non évaluée</p>
+                {presentation.decouplingRun != null && <p className="text-muted-foreground">Découplage course : {presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>}
+                {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteBike.source)}</p>}
+                {presentation.tteRun && <p>TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteRun.source)}</p>}
+              </div>}
+              {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
+              <div className="mt-3 space-y-1.5 px-1">
+                {explanationAxes.map((axis, index) => {
+                  const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
+                  const statusLabel = axisAssessment(axis);
+
+                  const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
+                  const isInverse = axis.key === "vlamax"; // lower is better
+                  const delta = hasValues ? (axis.value as number) - (axis.target as number) : null;
+                  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
+                  const displayDelta = isInverse && delta !== null ? -delta : delta;
+                  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
+
+                  return (
+                    <div key={`${axis.key}-${index}`} className={cn(
+                      "flex items-start gap-2.5 p-2.5 rounded-lg border",
+                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "bg-muted/20 border-border" :
+                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
+                      axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
+                      "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
+                    )}>
+                      <span className="text-base mt-0.5">{emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <p className="text-xs font-bold">{axis.label}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "border-border text-muted-foreground" :
+                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                          )}>
+                            {statusLabel}
+                          </Badge>
+                        </div>
+
+                        {/* Comparatif Actuel → Cible */}
+                        {axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
+                        {hasValues && (
+                          <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Actuel</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.value as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                            </div>
+                            <span className="text-muted-foreground/40 text-[10px]">→</span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Cible interne</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                              {axis.key === "vlamax" && vlamaxRange && (
+                                <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                                  ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                                </span>
+                              )}
+                            </div>
+                            {delta !== null && displayDelta !== null && axis.value !== null && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[9px] px-1.5 h-4",
+                                  remainsToWork
+                                    ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                                    : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
+                                )}
+                              >
+                                {remainsToWork ? `Δ ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} à combler` : "Cible interne atteinte"}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
+                        {axis.source !== 'snapshot' && <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{compassSourceLabel(axis.source ?? 'unknown')}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MODULATEUR ÉCONOMIE — facteur secondaire d'efficience */}
+              {compass.economyModifier && (() => {
+                const eco = compass.economyModifier;
+                const ecoStatus = axisAssessment(presentation?.economy ?? eco);
+                const ecoColor = eco.score >= 75 ? "success" : eco.score >= 50 ? "warning" : "destructive";
+                return (
+                  <div className="mt-3 px-1">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      Modulateur — Efficience
+                    </span>
+                    <div className={cn(
+                      "mt-1 flex items-start gap-2.5 p-2.5 rounded-lg border border-dashed",
+                      eco.score >= 75 ? "bg-[hsl(var(--success)/0.04)] border-[hsl(var(--success)/0.3)]" :
+                      eco.score >= 50 ? "bg-[hsl(var(--warning)/0.04)] border-[hsl(var(--warning)/0.3)]" :
+                      "bg-[hsl(var(--destructive)/0.04)] border-[hsl(var(--destructive)/0.3)]"
+                    )}>
+                      <span className="text-base mt-0.5">🦶</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold">{eco.label}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            `border-[hsl(var(--${ecoColor})/0.4)] text-[hsl(var(--${ecoColor}))]`
+                          )}>
+                            {ecoStatus}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">
+                          Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <FlowConnector />
+
             {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
             <FlowStep
               level="Niveau 2 — Priorité historique du plan"
@@ -822,13 +1028,10 @@ export function CoachingCompassCard({ input, athleteName, staffMode: initialStaf
             </FlowStep>
 
             {/* ─── Staff: Profil complet ─── */}
-
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />}
           </div>
         </div>
 
-          </section>
-          </AccordionContent></AccordionItem>
-        </Accordion>
         {/* ─── Disclaimer ─── */}
         {staffMode && (
           <p className="text-[8px] text-muted-foreground/40 text-center mt-3">
