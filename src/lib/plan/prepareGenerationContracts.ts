@@ -19,6 +19,8 @@ import { catalogueForWeek } from "../../../supabase/functions/_shared/sessionCat
 import { normalizeRepairSport } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
+import {marathonReentryBudget} from './marathonReentryBudget';
+import {planNutritionPrompt} from './planNutritionReferences';
 export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
@@ -518,7 +520,9 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           weeklyQuotas[w] = { ...entry, quota: protectedQuota, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
             raceProtection: raceProtectionPrompt(planConfig,w),
             terrainAvailability: planConfig.terrainAvailability,
-            volumeBudget: hasProtection && weekType==='recovery' ? undefined : buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource, { totalWeeks: effTotalWeeks, objective: planConfig.catalogObjective || planConfig.objective }),
+            volumeBudget: marathonReentryBudget(planConfig,w,
+              raceWeek=>Math.max(0,...[2,3,4].map(distance=>buildCoachVolumeBudget(planConfig.volumeRamp,raceWeek-distance,'load',planConfig.weeklyHoursSource,{totalWeeks:effTotalWeeks,objective:planConfig.catalogObjective || planConfig.objective})?.targetMinutes ?? 0)) || undefined,
+              hasProtection && weekType==='recovery' ? undefined : buildCoachVolumeBudget(planConfig.volumeRamp, globalWeekNum, weekType, planConfig.weeklyHoursSource, { totalWeeks: effTotalWeeks, objective: planConfig.catalogObjective || planConfig.objective })),
             floorAudit: snapshotSLFloorAudit({ localWeek: w, globalWeek: globalWeekNum,
               rampConfigured: !!slRampAnchors,
               nominal: entry.floors, individualized: individualized.floors,
@@ -552,7 +556,7 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
         const layoutBlock = Object.keys(layoutMap).length > 0
           ? buildLayoutPromptBlock(scope, layoutMap)
           : "";
-        quotasByChunkText.push(layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock);
+        quotasByChunkText.push(`${layoutBlock ? `${quotaBlock}\n\n${layoutBlock}` : quotaBlock}\n\n${planNutritionPrompt(athleteData)}\n\nCONTINUITÉ ET DOSE : respecter les priorités ordonnées du coach sans additionner une séance pour chaque chantier. VO₂max et VMA restent deux priorités mais partagent leur stimulus ; compter le travail une seule fois. Arbitrer les blocs effectivement prescrits, pas la zone maximale d’un titre. CSS natation n’est pas automatiquement du seuil course. Une autorisation de famille ne fixe pas sa fréquence. Après marathon : plafonds relatifs à la même charge d’endurance réellement prescrite avant course, reprise selon récupération ; aucune cible minimale obligatoire. Renforcement : conserver un fil de progression sur le calendrier global, sans redémarrer à chaque bloc ; l’expérience d’endurance ne prouve pas celle en musculation. Si cette dernière est inconnue, ne pas prescrire force lourde ou progression plyométrique avancée sur la seule ambition. Respecter les phases et exclusions du catalogue, utiliser des fiches d’entretien compatibles lorsque le développement n’est plus éligible. Une fiche annonçant huit semaines ne doit pas rester un exemple isolé sans suite ni justification.`);
       }
 
 

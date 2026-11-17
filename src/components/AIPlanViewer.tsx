@@ -863,6 +863,7 @@ function WeekView({ week, startDate, nolioCtx, onReplaceClick, objectifEffectif,
         <p className="text-xs text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
           <span>Temps hebdomadaire hors renforcement <strong>{formatScheduledMinutes(scheduledTime.endurance)}</strong>{scheduledTime.missing > 0 ? ` · ${scheduledTime.missing} durée(s) d’endurance à préciser` : ''}</span>
           <span>Renforcement <strong>{scheduledTime.strengthSessions} séance(s)</strong></span>
+          {scheduledTime.competitionSessions > 0 && <span>Compétition <strong>{formatScheduledMinutes(scheduledTime.competition)}</strong> · à part de l’entraînement</span>}
         </p>
       </CardHeader>
       <CardContent className="space-y-2">

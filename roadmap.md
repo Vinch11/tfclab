@@ -1,5 +1,14 @@
 # Roadmap
 
+## Plans utilisables — corrections approuvées 17 novembre
+- [x] Volumes calculés depuis les séances, compétition séparée et identité des courses partagée écran/PDF.
+- [x] Corrections ciblées des mentions explicites d’allure IM ; nutrition vélo/course et absence de tolérance confirmée précisées avant génération.
+- [x] Plafonds de reprise marathon transmis avant génération depuis une référence pré-course fixe ; minima de développement retirés.
+- [x] Alternatives limitées aux séances course compatibles ; PDF sans deuxième prescription de catalogue ni modification vélo propre à l’export.
+- [ ] Allocation déterministe des blocs exigeants et continuité dosée du renforcement : audit disponible, métadonnées de blocs/expérience et règles sportives de dose à compléter sans inventer de plafonds universels.
+- [ ] Reconstruction complète de la reprise et contrôle du contenu du jour J : plafonds/instructions préparés, réparation catalogue et validation sur une nouvelle sortie réelle restent à établir.
+- [ ] Revue d’une nouvelle génération réelle sur copie Emanuela et validation multisports complète : autorisation distincte requise ; ancien plan consulté et PDF ouvert en lecture seule, sans sauvegarde ni Nolio.
+
 - [x] Records Dashboard/100%lab : lecture directe Nolio v2 des meilleurs efforts de la période choisie, dates libres, chaque variante active interrogée ; aucun record absolu de secours. Emanuela 01/06–12/11 : 34 efforts vélo, 26 course, téléphone sans débordement ; neuf tests passent et deux générateurs déployés avec succès. Compass et bilans inchangés.
 
 - [x] Vitesse critique : fiche 3/7/12 min, records course Nolio stockés sur période, confirmation et sauvegarde/relecture par bilan ; propositions existantes réservées aux valeurs récentes confirmées et acceptées une par une. Parcours connecté sur athlète temporaire supprimé : 14,4 km/h et D′ 150 m, rechargement et vélo préservé, téléphone sans débordement ; 34 tests. Envoi des séances Nolio et récupération automatique des tours restent dans le chantier d’évaluation ci-dessous ; aucune génération réelle de plan vérifiée ici.

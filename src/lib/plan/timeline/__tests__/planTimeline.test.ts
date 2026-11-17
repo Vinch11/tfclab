@@ -19,4 +19,9 @@ describe("planTimeline", () => {
     const empty = buildPlanTimeline({ ...plan, weeks: [{ weekNumber: 1, theme: "", phase: "B", sessions: [s({ title: "Seuil" })] }] } as ParsedPlan);
     expect(empty[0].volumeMin).toBeNull();
   });
+  it('uses delivered endurance rather than stale totals and rejects phantom race markers',()=>{
+    const plan={title:'t',phases:[],totalWeeks:1,weeks:[{weekNumber:1,theme:'Late-race specifics',phase:'Peak',computedVolumeMin:660,sessions:[s({title:'Simulation course IM',durationMin:595}),s({sport:'strength',durationMin:65})]}]} as unknown as ParsedPlan;
+    expect(buildPlanTimeline(plan)[0].volumeMin).toBe(595);
+    expect(buildPlanTimeline(plan)[0].isRace).toBe(false);
+  });
 });

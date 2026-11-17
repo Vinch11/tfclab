@@ -5,6 +5,8 @@
  */
 import type { ParsedPlan, ParsedSession } from "@/lib/aiPlanParser";
 import type { MetabolicDomain } from "@/lib/zones/tfclDoctrine";
+import { weeklyTimeBreakdown } from '../weeklyTimeBreakdown';
+import { isRaceDaySession } from '../../../../supabase/functions/_shared/raceDayIdentity';
 
 export type TimelineDomain = Extract<MetabolicDomain, "moderate" | "heavy" | "severe"> | "strength" | "unclassified";
 
@@ -12,6 +14,7 @@ export interface TimelineWeek {
   weekNumber: number;
   phase: string;
   volumeMin: number | null;
+  competitionMin: number;
   domains: Record<TimelineDomain, number>; // minutes
   keySessions: number;
   isRecovery: boolean;
@@ -19,7 +22,6 @@ export interface TimelineWeek {
   isRace: boolean;
 }
 
-const RACE_RE = /\b(course\s+[abc]\b|race|compétition|competition|jour\s+j|objectif\s+[abc]\b|🏁)/i;
 const RECOVERY_RE = /(décharge|decharge|récupération|recuperation|deload|recovery|affûtage|affutage|taper)/i;
 
 export function classifySession(s: ParsedSession): TimelineDomain {
@@ -41,21 +43,22 @@ export function buildPlanTimeline(plan: ParsedPlan): TimelineWeek[] {
   const weeks = [...plan.weeks].sort((a, b) => a.weekNumber - b.weekNumber);
   const out: TimelineWeek[] = weeks.map((w) => {
     const domains: Record<TimelineDomain, number> = { moderate: 0, heavy: 0, severe: 0, strength: 0, unclassified: 0 };
-    let known = 0;
     let keys = 0;
-    let race = RACE_RE.test(w.theme);
+    let race = false;
     for (const s of w.sessions) {
       if (s.isRest) continue;
       if (s.isKeySession) keys++;
-      if (RACE_RE.test(s.title)) race = true;
+      if (isRaceDaySession(s)) { race = true; continue; }
       const d = typeof s.durationMin === "number" && s.durationMin > 0 ? s.durationMin : 0;
-      if (d > 0) { domains[classifySession(s)] += d; known += d; }
+      if (d > 0) domains[classifySession(s)] += d;
     }
-    const vol = w.computedVolumeMin ?? (known > 0 ? known : null);
+    const time = weeklyTimeBreakdown(w.sessions);
+    const vol = time.missing > 0 ? null : time.endurance;
     return {
       weekNumber: w.weekNumber,
       phase: w.phase,
       volumeMin: vol,
+      competitionMin: time.competition,
       domains,
       keySessions: keys,
       isRecovery: RECOVERY_RE.test(`${w.theme} ${w.phase}`),
@@ -314,7 +317,7 @@ export function renderPlanTimelineHTML(plan: ParsedPlan, displayPhase?: (p: stri
       const title=active.length?active.map(c=>c.name).join(' · '):original?.theme?.trim()||'Non renseigné';
       const date=startDate?`${dLong(addDays(startDate,(w.weekNumber-1)*7))} – ${dLong(addDays(startDate,(w.weekNumber-1)*7+6))}`:'';
       const mark=w.isRace?'Course':w.isTaper?'Affûtage':w.isRecovery?'Allégée':'';
-      return `<tr><th scope="row">S${w.weekNumber}<small>${esc(date)}</small></th><td>${esc(title)}${mark?`<small>${mark}</small>`:''}</td><td>${w.volumeMin==null?'Non renseigné':fmtH(w.volumeMin)}</td></tr>`;
+      return `<tr><th scope="row">S${w.weekNumber}<small>${esc(date)}</small></th><td>${esc(title)}${mark?`<small>${mark}</small>`:''}</td><td>${w.volumeMin==null?'Non renseigné':fmtH(w.volumeMin)}${w.competitionMin>0?`<small>Compétition : ${fmtH(w.competitionMin)} (à part)</small>`:''}</td></tr>`;
     }).join('');
     blocks.push(`<section class="timeline-window" style="break-inside:avoid;page-break-inside:avoid;margin:0 0 24px"><h3 style="font-size:14px;margin:0 0 12px;color:${P.text}">S${window[0].weekNumber} – S${window[window.length-1].weekNumber}</h3><div class="timeline-chart" ${options.screen?'tabindex="0" role="region" aria-label="Courbe de charge, semaines '+window[0].weekNumber+' à '+window[window.length-1].weekNumber+'"':''}>${svg}</div><table aria-label="Chantiers et volumes hebdomadaires"><thead><tr><th scope="col">Semaine</th><th scope="col">Chantier / objectif</th><th scope="col">Volume</th></tr></thead><tbody>${rows}</tbody></table></section>`);
   }

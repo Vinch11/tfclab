@@ -428,7 +428,7 @@ function buildPlanHTML(
     const weekStart = hasDate ? computeWeekStartDate(startDate!, week.weekNumber) : null;
 
     const sessionRows = week.sessions.map((rawS, sessionIdx) => {
-      const s = maybeDowngradeBikeSession(rawS, gapContext?.objective);
+      const s = rawS;
 
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
@@ -444,8 +444,8 @@ function buildPlanHTML(
 
       const catalogueIssues = validateSessionCataloguePlan({ weeklyQuotas: plan.weeklyQuotas, weeks: [{ weekNumber: week.weekNumber, phase: week.phase, sessions: [s] }] });
       void catalogueIssues; // diagnostics de correspondance : vue coach uniquement, jamais dans le document athlète
-      if (fiche) annexFiches.set(fiche.id, fiche);
-      const ficheRef = fiche ? `<div class="fiche-ref" style="font-size:10px;color:#6E6B78;">📚 Fiche de référence <strong>${escapeHTML(fiche.id)}</strong> — voir annexe (explications, pas une séance en plus)</div>` : "";
+      // The athlete document must never add catalogue examples or another prescription.
+      const ficheRef = '';
       if (isPortrait) {
         // Stacked card layout — clearer in A4 portrait
         const header = `
@@ -527,7 +527,7 @@ function buildPlanHTML(
           Semaine ${week.weekNumber} — ${week.theme}${weekRangeStr}
           <span style="font-weight:normal;font-size:11px;color:#6E6B78;margin-left:8px;">${displayPhase(week.phase, phaseLabelMap)}</span>
         </h3>
-        <p>Temps hebdomadaire hors renforcement : <strong>${formatScheduledMinutes(scheduledTime.endurance)}</strong>${scheduledTime.missing > 0 ? ` · ${scheduledTime.missing} durée(s) d’endurance à préciser` : ""} · Renforcement : <strong>${scheduledTime.strengthSessions} séance(s)</strong></p>
+        <p>Entraînement endurance : <strong>${formatScheduledMinutes(scheduledTime.endurance)}</strong>${scheduledTime.missing > 0 ? ` · ${scheduledTime.missing} durée(s) d’endurance à préciser` : ""} · Renforcement : <strong>${scheduledTime.strengthSessions} séance(s)</strong>${scheduledTime.competitionSessions > 0 ? ` · Compétition : <strong>${formatScheduledMinutes(scheduledTime.competition)}</strong> (à part de l’entraînement)` : ''}</p>
         ${sessionsBlock}
         ${week.coachNotes ? `<p style="margin:10px 0 0 0;font-size:11px;color:#5C5966;background:#fffbeb;padding:8px 12px;border-radius:6px;border-left:3px solid #C8860D;">⚡ ${week.coachNotes}</p>` : ""}
       </div>

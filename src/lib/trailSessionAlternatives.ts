@@ -175,9 +175,10 @@ export function getTrailSessionAlternatives(input: {
   details?: string;
 }): TrailAlternative[] {
   const sport = (input.sport || "").toLowerCase();
-  if (/swim|natation|bike|v[ée]lo|repos|rest|muscu|force|renfo/.test(sport)) return [];
+  if (!/^(run|course|cap|trail|running)$/.test(sport)) return [];
 
   const text = `${input.title ?? ""} ${input.details ?? ""}`.trim();
+  if (/récupération|recuperation|régénération|regeneration|shakeout|flush|décharge|decharge|opener/i.test(input.title ?? '')) return [];
   const kind = detectKind(text);
   if (!kind) return [];
 

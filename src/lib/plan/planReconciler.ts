@@ -46,6 +46,7 @@ import { raceProtectionForDay, datedRaceGoals, strictRaceDate, RACE_DAYS, type R
 import { normalizeObjectiveKey } from '@/lib/normalizeObjectiveKey';
 import { raceSessionDemanding } from './raceCalendarValidation';
 import {cleanPlanText} from './planText';
+import {normalizeIronmanPaceText} from './ironmanPaceConsistency';
 import { isLevelPrerequisiteIncompatible, type BeginnerIntensitySignal } from "./levelPrerequisiteCompatibility";
 import {
   parseAthleteConstraints,
@@ -2444,8 +2445,8 @@ export function protectRaceCalendarSessions(chunks: PlanChunk[], config: RaceCal
   for (const chunk of chunks) for (const week of chunk.weeks) {
     const retained: PlanSession[] = [];
     for (const s of week.sessions) {
-      s.title=cleanPlanText(s.title);
-      s.details=cleanPlanText(s.details);
+      s.title=normalizeIronmanPaceText(cleanPlanText(s.title));
+      s.details=normalizeIronmanPaceText(cleanPlanText(s.details));
       if (s.sport==='rest' || isRaceEventTitle(s)) { retained.push(s); continue; }
       const p = raceProtectionForDay(config,week.weekNumber,s.day);
       if (!p) { retained.push(s); continue; }

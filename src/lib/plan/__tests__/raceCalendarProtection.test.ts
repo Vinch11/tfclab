@@ -67,7 +67,9 @@ describe('dated race protection — Manu regression',()=>{
   expect(p.weeklyQuotas[15].quota.brick).toEqual({min:0,max:0});
   expect(p.weeklyQuotas[15].quota.strength).toEqual({min:0,max:0});
   expect(p.weeklyQuotas[15].floors.longRunWeekly).toBe(false);
-  expect(p.weeklyQuotas[15].volumeBudget).toBeUndefined();
+  const reference=Math.max(...[10,11,12].map(w=>buildCoachVolumeBudget({week1HoursMax:12,weeklyHoursTarget:18,weeklyIncreasePctMax:.1,week1PctTarget:.8,rampWeeks:2},w,'load',undefined,{totalWeeks:32,objective:'Ironman'})?.targetMinutes ?? 0));
+  expect(p.weeklyQuotas[15].volumeBudget?.maxMinutes).toBe(Math.floor(reference*.45));
+  expect(p.weeklyQuotas[15].volumeBudget?.minMinutes).toBeUndefined();
   expect(p.weeklyQuotas[15].layout?.days.find(d=>d.dayName==='lundi')?.slots).toHaveLength(0);
   expect(p.weeklyQuotas[32].layout?.days.find(d=>d.dayName==='dimanche')?.slots.some(s=>s.isRaceEvent)).toBe(true);
  });

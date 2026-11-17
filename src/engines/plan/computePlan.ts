@@ -17,6 +17,8 @@
 
 import { traceSLFloorConsumer } from "@/lib/plan/slFloorAudit";
 import {cleanPlanText} from '@/lib/plan/planText';
+import {normalizeIronmanPaceText} from '@/lib/plan/ironmanPaceConsistency';
+import {weeklyTimeBreakdown,formatScheduledMinutes} from '@/lib/plan/weeklyTimeBreakdown';
 import type {
   PlanGenerationConfig,
   ParsedPlan,
@@ -25,7 +27,6 @@ import type {
 } from "./types";
 import type { PlanAthleteData } from "@/hooks/useAITrainingPlan";
 import { applyWbalRecoveryRecalc, type WbalRecalcStats } from "./wbalPostProcessor";
-import { computeWeekVolumeMin, formatMinutesToHm } from "@/lib/weeklyVolumeEstimator";
 import { normalizeWeeksAndPhases } from "./normalizeWeeksPhases";
 import { deriveTriathlonZones } from "@/lib/v2/triathlonZones";
 import { deriveRaceTargets, formatSecPerKm, formatSecToTime, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
@@ -507,6 +508,8 @@ export function postProcessParsedPlan(
     w.theme = cleanPlanText(w.theme);
     if (w.coachNotes) w.coachNotes = cleanPlanText(w.coachNotes);
     for (const s of w.sessions) {
+      s.title=normalizeIronmanPaceText(s.title);
+      s.details=normalizeIronmanPaceText(s.details);
       const st = postProcessSessionText(s, config.ambition, {
         ...matrixCtx,
         weeklyQuota: plan.weeklyQuotas?.[w.weekNumber],
@@ -541,9 +544,9 @@ export function postProcessParsedPlan(
   //
   // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
   for (const w of plan.weeks) {
-    const min = computeWeekVolumeMin(w);
-    w.computedVolumeMin = min;
-    w.computedVolumeStr = formatMinutesToHm(min);
+    const time=weeklyTimeBreakdown(w.sessions);
+    w.computedVolumeMin = time.missing ? undefined : time.endurance;
+    w.computedVolumeStr = time.missing ? 'Durées à préciser' : formatScheduledMinutes(time.endurance);
   }
 
   let wbalStats: WbalRecalcStats | undefined;
