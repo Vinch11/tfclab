@@ -409,6 +409,21 @@ export function buildTargetFromText(
     }
   }
 
+  // CSS offsets are seconds per 100 m, never additional work/rest durations.
+  const cssOffsets=[...t.matchAll(/\bcss\s*([+−-])\s*(\d+)(?:\s*[-–]\s*(\d+))?\s*(?:sec(?:ondes?)?|s)\b/gi)];
+  if(cssOffsets.length && refs.css && refs.css>0){
+    const values=cssOffsets.flatMap(m=>{
+      const sign=m[1]==="+"?1:-1;
+      return [refs.css!+sign*Number(m[2]),refs.css!+sign*Number(m[3]??m[2])];
+    });
+    if(values.every(v=>v>0)){
+      const min=Math.min(...values),max=Math.max(...values);
+      return {target_type:"pace",target_value_min:min,target_value_max:max,target_value:(min+max)/2};
+    }
+  }
+  if(/\bcss\b/i.test(t) && !cssOffsets.length && refs.css && refs.css>0)
+    return {target_type:"pace",target_value_min:refs.css,target_value_max:refs.css,target_value:refs.css};
+
   // Absolute targets are already prescribed: preserve their dimension and bounds.
   const watts=parseRange(t,"(?:w|watts?)\\b");
   if(watts)return {target_type:"power",target_value_min:watts.min,target_value_max:watts.max,target_value:(watts.min+watts.max)/2};
@@ -1171,7 +1186,7 @@ export function prepareCurrentSession(s:ParsedSession,refs:AthleteRefs):ParsedSe
     for(const step of structuredWorkout){
       if(step.type!=="step")continue;
       const note=step.notes||"";
-      if((sportId===2||sportId===52)&&(/\bFTP\b|\b\d+\s*W\b|\/\s*100\s*m/i.test(note)))
+      if((sportId===2||sportId===52)&&(/\bFTP\b|\bCSS\b|\b\d+\s*W\b|\/\s*100\s*m/i.test(note)))
         throw new Error("Cible incompatible avec la course : "+note);
       if(sportId===19&&(/\bFTP\b|\b\d+\s*W\b|\/\s*km\b/i.test(note)))
         throw new Error("Cible incompatible avec la natation : "+note);

@@ -93,3 +93,19 @@ Deno.test("summary: missing pace must not turn rest time into the session total"
   assertEquals(summary.distanceMeters,4000);
   assertEquals(summary.durationComplete,false);
 });
+
+Deno.test("swim: CSS+3-5 sec is a pace offset, never an added duration",()=>{
+  const steps=normalize("4x100m CSS+3-5 sec/100m r=15s",19,{css:90});
+  assertEquals(steps.filter(s=>s.intensity_type!=="rest").length,4);
+  assertEquals(steps[0].step_duration_value,100);
+  assertEquals(steps[0].target_type,"pace_min100");
+  assertEquals(steps[0].target_value_min,1.053);
+  assertEquals(steps[0].target_value_max,1.075);
+  assertEquals(steps.filter(s=>s.intensity_type==="rest").map(s=>s.step_duration_value),[15,15,15]);
+});
+
+Deno.test("swim: both CSS offset endpoints survive a relative pace range",()=>{
+  const steps=normalize("800m CSS-2s-CSS+5s",19,{css:90});
+  assertEquals(steps[0].target_value_min,1.053);
+  assertEquals(steps[0].target_value_max,1.136);
+});

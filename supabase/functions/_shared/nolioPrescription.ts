@@ -34,7 +34,11 @@ export function firstDurationSeconds(text: string): number | null {
   }
   return null;
 }
+function withoutCssOffset(text:string):string {
+  return text.replace(/\bCSS\s*[+−-]\s*\d+(?:\s*[-–]\s*\d+)?\s*(?:sec(?:ondes?)?|s)\b(?:\s*\/\s*100\s*m)?/gi,"CSS");
+}
 function uncertain(text: string): boolean {
+  text=withoutCssOffset(text);
   // A dosage range or an alternative is not an instruction to pick its upper end.
   return /\d\s*[-–—à]\s*\d+(?:\s*[x×]|\s*(?:min\b|s\b|km\b|m\b|'|"))/i.test(text)
     || /\b(?:optionnel|au choix|si fatigue|si build|si peak)\b/i.test(text)
@@ -46,6 +50,7 @@ function splitSequence(text: string): string[] {
     if (text[i] === "(") depth++;
     if (text[i] === ")") depth--;
     if (depth < 0) throw new Error("Parenthèse non fermée dans la prescription.");
+    if (text[i] === "+" && /\bCSS\s*$/i.test(text.slice(0,i))) continue;
     if (depth === 0 && (/[+;\n|]/.test(text[i]) || (text[i] === "." && /\s/.test(text[i+1] || "")))) {
       const after = text.slice(i + 1).trimStart();
       if (/^\d/.test(after)) { parts.push(text.slice(begin, i).trim()); begin = i + 1; }
@@ -89,7 +94,7 @@ function atom(text:string, recovery:boolean): PrescriptionStep {
   const dosage=numeric>0?source.slice(numeric):source;
   const q=measureAtStart(dosage);
   if(!q || q.value<=0)throw new Error("Durée ou distance précise manquante : "+text);
-  const tail=dosage.slice(q.end);
+  const tail=withoutCssOffset(dosage.slice(q.end));
   // More than one dose inside an atom must be separated explicitly.
   if(firstDurationSeconds(tail)!==null || /(?:\d+\s*[x×]\s*\d)|(?:\b(?:dont|puis|ensuite)\b)|(?:[→]\s*\d)/i.test(tail))
     throw new Error("Décomposer les étapes de la prescription : "+text);
@@ -115,7 +120,7 @@ function parsePart(text:string, recovery=false): PrescriptionNode[] {
       for(let i=0;i<body.length;i++){if(body[i]==="(")depth++;if(body[i]===")")depth--;if(depth===0){end=i;break;}}
       if(end<0)throw new Error("Série imbriquée non fermée.");
       const inside=parsePart(body.slice(1,end),recovery),suffix=body.slice(end+1).trim();
-      if(!suffix)return repeatWithRecovery(times,inside,[],false);
+      if(!suffix || /^\.\s*$/.test(suffix))return repeatWithRecovery(times,inside,[],false);
       const sep=recoverySplit(" "+suffix);
       if(!sep.rest || sep.work)throw new Error("Récupération entre séries imprécise : "+suffix);
       return repeatWithRecovery(times,inside,parsePart(sep.rest,true),sep.paired||/après chaque|apres chaque/i.test(sep.rest));
