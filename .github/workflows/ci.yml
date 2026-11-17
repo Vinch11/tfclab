@@ -229,3 +229,12 @@ jobs:
       - name: Test current prescription through the Nolio serializer
         working-directory: supabase/functions/nolio-send-plan
         run: deno test -A --no-check --node-modules-dir=none
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Test catalogue and client prescription fidelity
+        run: bunx vitest run src/lib/plan/__tests__/nolioPrescription.test.ts src/lib/plan/__tests__/nolioCatalogDuration.test.ts src/lib/plan/__tests__/nolioSessionStructure.test.ts
+      - name: Report the expected source declaration without changing tracked files
+        run: |
+          node --input-type=module -e 'import {calculatePlanRelease,declarationText} from "./scripts/preproduction/plan-release-source.mjs"; const {info}=await calculatePlanRelease(process.cwd()); console.log("EXPECTED_DECLARATION_BEGIN"); console.log(declarationText(info)); console.log("EXPECTED_DECLARATION_END");'
