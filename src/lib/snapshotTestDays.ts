@@ -90,9 +90,8 @@ export interface ProfileReadiness { label: string; ready: boolean; need: string 
 /** Ce que le bilan permet de calculer, sans rien estimer. */
 export function snapshotReadiness(f: Form): ProfileReadiness[] {
   const has = (k: string) => { const v = num(f[k]); return v != null && !Number.isNaN(v) && v > 0; };
-  const cp = ["p30s_w", "p60s_w", "map5min_w"].filter(has).length;
   return [
-    { label: "Puissance critique / W′ vélo", ready: cp >= 2, need: "2 valeurs parmi 30 s, 60 s, 5 min" },
+    { label: "Puissance critique / W′ vélo", ready: false, need: "efforts critiques distincts de 2 à 15 min, contrôlés dans Repères critiques ; les records 30 s et 60 s ne valident pas CP/W′" },
     { label: "Endurance au seuil vélo · TTE", ready: has("tte_observed_min") && has('ftp'), need: "durée tenue et seuil vélo ; protocole à confirmer" },
     { label: "Endurance au seuil course · TTE", ready: has("tte_observed_min_run") && Number.isFinite(paceToSec(f.pace_threshold)) && (paceToSec(f.pace_threshold) ?? 0) > 0, need: "durée tenue et allure seuil ; protocole à confirmer" },
     { label: "Durabilité prolongée", ready: false, need: "comparaison avant/après effort prolongé ; TTE seul insuffisant" },

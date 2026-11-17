@@ -33,6 +33,9 @@ import { TFCLCompletionSummary } from "./TFCLCompletionSummary";
 import { ThresholdPaceEstimator } from "./ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { AssessmentSessionsPreview } from '@/components/AssessmentSessionsPreview';
+import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
+import { AssessmentResults } from '@/components/AssessmentResults';
 
 export function TFCLTestingWeekPage() {
   const navigate = useNavigate();
@@ -50,10 +53,7 @@ export function TFCLTestingWeekPage() {
   const activeSnapshot = useMemo(() => {
     if (!selectedAthlete) return null;
     const athleteSnapshots = getSnapshotsForAthlete(selectedAthlete.id);
-    if (selectedAthlete.active_snapshot_id) {
-      return athleteSnapshots.find((s) => s.id === selectedAthlete.active_snapshot_id) || athleteSnapshots[0] || null;
-    }
-    return athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] || null;
+    return pickReferenceSnapshot(athleteSnapshots, selectedAthlete.id, selectedAthlete.active_snapshot_id);
   }, [selectedAthlete, getSnapshotsForAthlete]);
 
   const completionStatus = useMemo(() => {
@@ -224,6 +224,8 @@ export function TFCLTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
+        <AssessmentSessionsPreview sport="bike" />
+        {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="bike" />}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Calendar className="h-5 w-5" />

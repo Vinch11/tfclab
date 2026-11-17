@@ -38,6 +38,9 @@ import { CAPGuide } from "./CAPGuide";
 import { ThresholdPaceEstimator } from "../TFCLTestingWeek/ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
+import { AssessmentSessionsPreview } from '@/components/AssessmentSessionsPreview';
+import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
+import { AssessmentResults } from '@/components/AssessmentResults';
 
 export function CAPTestingWeekPage() {
   const navigate = useNavigate();
@@ -55,10 +58,7 @@ export function CAPTestingWeekPage() {
   const activeSnapshot = useMemo(() => {
     if (!selectedAthlete) return null;
     const athleteSnapshots = getSnapshotsForAthlete(selectedAthlete.id);
-    if (selectedAthlete.active_snapshot_id) {
-      return athleteSnapshots.find((s) => s.id === selectedAthlete.active_snapshot_id) || athleteSnapshots[0] || null;
-    }
-    return athleteSnapshots.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0] || null;
+    return pickReferenceSnapshot(athleteSnapshots, selectedAthlete.id, selectedAthlete.active_snapshot_id);
   }, [selectedAthlete, getSnapshotsForAthlete]);
 
   // Get CAP tests for this athlete
@@ -82,7 +82,7 @@ export function CAPTestingWeekPage() {
       sprint_15s_distance: activeSnapshot.sprint_15s_distance,
       vma: activeSnapshot.vma,
       pace_threshold_sec_per_km: activeSnapshot.pace_threshold_sec_per_km,
-      tte_observed_min: activeSnapshot.tte_observed_min,
+      tte_observed_min: activeSnapshot.tte_observed_min_run,
       running_power_max: activeSnapshot.running_power_max,
       running_power_threshold: activeSnapshot.running_power_threshold,
       protocol_quality: snapExt.protocol_quality ?? null
@@ -271,12 +271,12 @@ export function CAPTestingWeekPage() {
                 <div className="p-3 rounded-lg bg-muted/50 text-center">
                   <div className="text-xs text-muted-foreground mb-1">TTE</div>
                   <div className="text-lg font-bold">
-                    {activeSnapshot.tte_observed_min 
-                      ? `${activeSnapshot.tte_observed_min} min` 
+                    {activeSnapshot.tte_observed_min_run 
+                      ? `${activeSnapshot.tte_observed_min_run} min` 
                       : "—"
                     }
                   </div>
-                  {activeSnapshot.tte_observed_min && (
+                  {activeSnapshot.tte_observed_min_run && (
                     <div className="text-xs text-green-600">Observé</div>
                   )}
                 </div>
@@ -398,6 +398,8 @@ export function CAPTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
+        <AssessmentSessionsPreview sport="run" />
+        {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="run" />}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Calendar className="h-5 w-5" />

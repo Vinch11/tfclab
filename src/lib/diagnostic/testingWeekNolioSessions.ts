@@ -232,6 +232,16 @@ export function dayToNolioSteps(day: NormDay): (NolioStepLike | NolioRepStepLike
   ];
 }
 
+/** Sport-only Days reuse the same protocols as the printed assessment. */
+export function buildSportTestingNolioSessions(sport: 'bike' | 'run'): TestingWeekNolioSession[] {
+  const spec = sport === 'bike' ? buildBikeSpec() : buildRunSpec();
+  return spec.days.map((day, index) => ({
+    weekNumber: 1 + Math.floor(index / 7), dayIndex: index % 7, sessionIndex: 0,
+    sport: spec.sportLabel, title: `${day.dayKey} · ${day.title}`, objectif: dayToDescriptionText(day),
+    details: day.goal, isRest: false, structuredWorkout: dayToNolioSteps(day),
+  }));
+}
+
 /** Construit le texte de description du protocole natation (TFCL Pool Day™, format blocs). */
 function swimDescriptionText(): string {
   const p = getProtocolDef("pool-day");

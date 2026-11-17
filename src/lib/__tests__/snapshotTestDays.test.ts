@@ -22,11 +22,13 @@ describe("vérification du bilan (création et modification)", () => {
 });
 
 describe("ce que le bilan permet de calculer", () => {
-  it("CP/W′ exige au moins 2 valeurs parmi 30 s, 60 s, 5 min", () => {
+  it("les résultats 30 s, 60 s et 5 min ne certifient pas un protocole CP/W′", () => {
     const one = snapshotReadiness({ p30s_w: "600" }).find((r) => r.label.startsWith("Puissance critique"));
     const two = snapshotReadiness({ p30s_w: "600", map5min_w: "320" }).find((r) => r.label.startsWith("Puissance critique"));
     expect(one?.ready).toBe(false);
-    expect(two?.ready).toBe(true);
+    const three = snapshotReadiness({ p30s_w: "600", p60s_w: "450", map5min_w: "320" }).find(r => r.label.startsWith('Puissance critique'));
+    expect(two?.ready).toBe(false);
+    expect(three?.ready).toBe(false);
   });
   it("TTE vélo exige une durée et un seuil sans certifier une durabilité prolongée", () => {
     const r = snapshotReadiness({ tte_observed_min: "45", ftp: '260' });
