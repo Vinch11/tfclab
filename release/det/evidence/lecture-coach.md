@@ -1,5 +1,13 @@
 # DET 2.1 — lecture des plans de référence
 
+## Contrôle du 18 novembre : publication et preuves de réception
+
+Les octets publics du manifeste, du worker canonique et du worker fixé au formulaire correspondent toujours à la version `ccd8cd85` de cette branche. Les quatre fichiers du formulaire correspondent à leurs empreintes déclarées. Les PR 476 à 482 sont fusionnées. Le contrôle relit les décisions enregistrées : les 156 succès d'origine sont conservés, avec 164 plans assemblés, 34 demandes de données, 2 limites moteur et 25 cas Start to Run hors DET. Il ne constitue pas une nouvelle exécution de la matrice ou du navigateur. [Octets, références et limites du contrôle](controle-2026-11-18.json)
+
+Les nouvelles PR [483](https://github.com/Vinch11/tfclab/pull/483) et [484](https://github.com/Vinch11/tfclab/pull/484) sont ouvertes et non déployées. Elles concernent la fidélité de l'export IA, les durées et les contrats de prescription. Leur exécution indépendante de tests et l'annotation du PDF Emanuela ne constituent pas une revue sportive indépendante des deux témoins DET. Aucun changement de ces PR n'est repris dans le moteur DET par ce contrôle.
+
+Les preuves relues ne désignent toujours pas de pilote pour cette recette et ne donnent aucun identifiant d'envoi DET concordant avec un événement relu sur Nolio. Le connecteur Nolio disponible permet une lecture par identifiant, mais son accès ne prouve pas la connexion OAuth du backend DET. Aucun autre calendrier n'est utilisé comme preuve de substitution. La revue sportive indépendante, la réception Nolio et l'observation des étapes sur la montre appairée restent ouvertes, ainsi que les limites moteur documentées. Aucune validation générale n'est prononcée.
+
 ## Recette du 12 novembre après la PR 482
 
 Le formulaire publié utilise la version DET `ccd8cd85`. Sur le 10 km témoin avec cinq courses et un renforcement, la plus courte séance qui travaille le TTE prioritaire dure 45 minutes. Les autres créneaux exigent ensemble au moins 116 minutes. DET explique pourquoi les doses V3 examinées dépassent le plafond de 144 minutes. Si le coach choisit de tester quatre courses, les huit semaines se construisent avec 143 minutes en S1. Le réglage original est conservé. [Recette et décisions](recette-2026-11-12.json)

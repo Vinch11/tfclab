@@ -1,0 +1,255 @@
+{
+  "observedAtUtc": "2026-11-17T23:27:11.911360+00:00",
+  "dateBrussels": "2026-11-18",
+  "sourceCommit": "ee4ee6fb590cee8e3ba8aaa32a6754a3a96b3d17",
+  "public": {
+    "manifestBytes": 337,
+    "manifestSha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+    "manifest": {
+      "schema": 1,
+      "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+      "entry": "worker.js.gz",
+      "encoding": "gzip",
+      "bytes": 804727,
+      "sha256": "419ff8aca16368f84c1e3dd274eb20db08427faf6592a0b35e157c5e046f8025",
+      "workerSha256": "7a8f44c16e1a70e07571aac862771be206300d9d2b3b5b559758cb8f0733fbe1"
+    },
+    "runtime": "runtime/det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410/9295b305ba6137fc3ca0a20db45384d2af3047b8648e9e4c18fbcebe9a53d85e",
+    "canonicalAndPinnedWorkerEqualGit": true,
+    "pinnedFormAssetsSha256": {
+      "coach-Bk6vxo2v.mjs": "8097955f8f01dd3db3cac924b61f81ac549e9d22d25cfcd74775d10a9902d3f7",
+      "mount-Bgbj93vn.mjs": "dffcd21a2f535ca21cc4f40b763fdc45ce78b2d04b92409e99b406ba793facab",
+      "mount-DSsecdaE.css": "013aa7987f441548d901109cb8e6c246e6345179d53c493cc6aabf0ce7be588d",
+      "nolioRemote-Dv1fw5Po.mjs": "b34afdfa0a4326cff2582f7eca5ce617328e87908b4f67063ef1458329ee14a9"
+    },
+    "formAssetsMatchDeclaredHashes": true,
+    "publicConfigurationMarkersPresent": {
+      "tfcl-det-project": true,
+      "tfcl-det-public-key": true
+    },
+    "generalRelease": {
+      "manifestVersion": 2,
+      "components": {
+        "frontend": "c6a6f948298090c90453b2f666b611d2ca05dd98e3e306284b0f5052b5ac3af0",
+        "ai-training-plan": "a439a28c8bd462850bac1db947e52e8511c0ccc4af4e7c4bf38477f034640d88",
+        "ai-training-plan-test": "303c58054abe79d87b0fe504405edc1c785d0140d120cfde848417d3c500ffb6"
+      },
+      "contractHash": "bab294baac9084b5bc12e16be44db2515e1c5036c98ed4756b047d1f32a55900",
+      "catalogueHash": "3423717ff7823a6ce2388ffacbd152ceabb74954600a90e45b0b89e3da433951",
+      "lockHash": "6f8e5dc7e0d095e8c4cecea05fa1e72e0bc71b5a46c2f90db888a0d8caf23158",
+      "releaseId": "928bfbc1b5ebc5c0fe08c4031acc64a11132897fe853058eb1c1193bc083d92f",
+      "attested": false,
+      "deploymentAttested": false,
+      "provenance": "declared-source",
+      "sourceCommit": null,
+      "sourceEpoch": null
+    },
+    "formBuiltAgainst": "abdba7ae82cc70ba8410bae9250c800bf43f3998afe24c07dd33683d550b6acb"
+  },
+  "formAndFollowingPullRequests": [
+    {
+      "number": 484,
+      "head": "54fb44cd2bda9600ed6d0e85c9728b1d899c7380",
+      "base": "fix/ia-nolio-prescription-fidelity",
+      "state": "open",
+      "mergedAt": null,
+      "title": "Corriger les durées et expliquer les conflits de prescription",
+      "url": "https://github.com/Vinch11/tfclab/pull/484"
+    },
+    {
+      "number": 483,
+      "head": "6bb104cd81377870765a971e2da58b85271c7b0c",
+      "base": "main",
+      "state": "open",
+      "mergedAt": null,
+      "title": "Corriger la fidélité des séances IA TFCLab envoyées à Nolio",
+      "url": "https://github.com/Vinch11/tfclab/pull/483"
+    },
+    {
+      "number": 482,
+      "head": "f188ca7d2afe3f33b9e9a015b7e2595cfcf782b3",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T15:55:19Z",
+      "title": "Expliquer le refus de S1 et permettre au coach de tester une autre fréquence",
+      "url": "https://github.com/Vinch11/tfclab/pull/482"
+    },
+    {
+      "number": 481,
+      "head": "a4268ec9af9ea157f5db60e25c2d2dead87ddfff",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T10:04:48Z",
+      "title": "Livrer DET pour les semaines plafonnées par le volume récent",
+      "url": "https://github.com/Vinch11/tfclab/pull/481"
+    },
+    {
+      "number": 480,
+      "head": "d5e330ac33d4c01c9144b1b50151e940e86c0002",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T09:43:13Z",
+      "title": "Accéder au compte Nolio du pilote avant la génération du plan DET",
+      "url": "https://github.com/Vinch11/tfclab/pull/480"
+    },
+    {
+      "number": 479,
+      "head": "316d9629bbcf2777fe7374233af776ee67b82889",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T01:18:51Z",
+      "title": "Expliquer les limites du calendrier trail et des allures spécifiques marathon",
+      "url": "https://github.com/Vinch11/tfclab/pull/479"
+    },
+    {
+      "number": 478,
+      "head": "86aaa0ac151ccc5357f622c75220a4a7bf53b4b1",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T01:07:10Z",
+      "title": "Fixer la version de DET utilisée par chaque formulaire publié",
+      "url": "https://github.com/Vinch11/tfclab/pull/478"
+    },
+    {
+      "number": 477,
+      "head": "43f326f399e227b60bebf86125fe89052c656cf1",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T00:48:37Z",
+      "title": "Livrer le suivi des reprises DET et les fonctions d’export Nolio isolées",
+      "url": "https://github.com/Vinch11/tfclab/pull/477"
+    },
+    {
+      "number": 476,
+      "head": "45cdc583ac24d953cb146ef5b987a0f95409fe63",
+      "base": "main",
+      "state": "closed",
+      "mergedAt": "2026-11-11T00:03:25Z",
+      "title": "DET 2.1 · décisions coach, progression et guidage V3",
+      "url": "https://github.com/Vinch11/tfclab/pull/476"
+    }
+  ],
+  "originalOracle": {
+    "commit": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+    "fileSha256": "d27a40e8e0c380ebbd59f9a8d20c0a9c647bdef55d22807dc3fa9829cab2f856",
+    "unchangedBytes": true,
+    "cases": 225,
+    "baselineSuccesses": 156,
+    "all156SuccessesPreservedInRecordedReplay": true,
+    "recordedReplayFile": "s1-144.json",
+    "recordedReplayDecisions": {
+      "assembled": 164,
+      "missing_data": 34,
+      "engine_limit": 2,
+      "outside_det": 25
+    },
+    "newMatrixExecutionThisAudit": false,
+    "precheckScope": {
+      "complete": 104,
+      "incomplete": 60
+    }
+  },
+  "proofScope": "HTTP GET des octets publiés et revue des preuves GitHub existantes. Aucun nouvel envoi Nolio, aucune observation montre, aucune revue sportive indépendante produite par ce contrôle.",
+  "publishedWitnessEvidence": {
+    "dateBrussels": "2026-11-13",
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43334331672",
+    "file": "parcours-publie.json#/latestReceipt/publishedWitnessReplay",
+    "versionEqualCurrentManifest": true,
+    "newBrowserExecutionThisAudit": false,
+    "independentSportReviewObserved": false
+  },
+  "newPullRequestScope": {
+    "483": {
+      "status": "open_not_deployed",
+      "scope": "Fidélité des séances IA à l’export Nolio et doses du catalogue historique. Ne livre pas une nouvelle version DET.",
+      "realAthleteSendReported": false,
+      "watchObservationReported": false,
+      "reviewsObserved": 0
+    },
+    "484": {
+      "status": "open_not_deployed",
+      "basePullRequest": 483,
+      "scope": "Durées des prescriptions et contrats de planification ; PDF Emanuela annoté. Les 600 lignes hors ligne et les tests verts ne sont ni 600 plans sportifs validés ni une recette physique.",
+      "independentExecutionOfTestsIsIndependentSportReview": false,
+      "annotatedPDFIsReviewOfDetWitnesses": false,
+      "reviewsObserved": 0
+    }
+  },
+  "acceptance": {
+    "allConditionsProven": false,
+    "independentSportReview": {
+      "status": "no_evidence_in_reviewed_repository_material",
+      "required": "Avis attribué à un coach indépendant sur les témoins Ironman et marathon 3 h 07, avec versions et plans identifiables."
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    },
+    "oauthCurrentState": "not_observed_this_audit"
+  },
+  "nolioConnector": {
+    "readPlannedTrainingAvailable": true,
+    "readRequiresEventId": true,
+    "receiptEventIdInReviewedEvidence": null,
+    "readbackPerformed": false,
+    "reason": "Aucun événement DET attribué au pilote explicitement désigné dans les preuves relues. Le connecteur permet une lecture par identifiant, mais ne prouve pas l’autorisation OAuth du backend DET ni la chaîne d’envoi DET. Aucun autre calendrier utilisé comme substitut.",
+    "writesPerformed": false
+  },
+  "remainingEngineLimits": [
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "outcome": "engine_limit",
+      "fields": [],
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 5 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "outcome": "engine_limit",
+      "fields": [],
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ]
+    }
+  ],
+  "decisionBoundaries": {
+    "startToRun": "25 cas hors DET, protocole marche-course ; aucun succès DET ajouté.",
+    "missingData": "34 cas de la matrice sans données de reprise décisives. Une valeur déjà connue doit être réutilisée. Un test avec historique synthétique ne remplace pas l’historique du sportif.",
+    "provenIncompatibility": "Nécessite des contraintes déclarées contradictoires ; l’épuisement des doses V3 examinées ne prouve pas une impossibilité sportive.",
+    "engineLimit": "2 semi dans la matrice initiale ; le dossier coach-historiques-renseignes.json conserve aussi 26 limites après compléments synthétiques. Ces limites restent ouvertes.",
+    "s1_144": "Le signalement seul ne fournit pas les paramètres exacts. Les reproductions documentées séparent 4 courses + force (141 min) et 5 courses + force avec TTE (minimum examiné 161 min) ; essai à 4 courses (143 min) uniquement choisi par le coach."
+  },
+  "actions": {
+    "detSourceModified": false,
+    "v3CatalogueModified": false,
+    "aiModified": false,
+    "coachLovableChangesModified": false,
+    "lovableGenerationCreditsUsed": false,
+    "productionDeployed": false,
+    "realNolioWrites": false,
+    "completionNotificationSent": false
+  }
+}
