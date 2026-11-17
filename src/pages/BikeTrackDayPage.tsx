@@ -24,6 +24,7 @@ import { toast } from "@/hooks/use-toast";
 import { getEffectiveRefs } from "@/lib/effectiveRefs";
 import { supabase } from "@/integrations/supabase/client";
 import { openDiagnosticProtocolPrint } from "@/lib/diagnostic/buildDiagnosticProtocolHTML";
+import { TestSessionsNolioExport } from '@/components/TestSessionsNolioExport';
 import { useAppLogo } from "@/hooks/useAppLogo";
 import { NolioImportPeriodDialog } from "@/components/NolioImportPeriodDialog";
 import { useTestFormPersistence } from "@/hooks/useTestFormPersistence";
@@ -318,6 +319,8 @@ export default function BikeTrackDayPage() {
             📄 Version papier
           </Button>
         </div>
+
+        <TestSessionsNolioExport routes={['bike-day']} />
 
         <Card>
           <CardHeader>

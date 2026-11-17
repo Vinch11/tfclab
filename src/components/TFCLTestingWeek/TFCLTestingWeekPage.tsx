@@ -33,7 +33,7 @@ import { TFCLCompletionSummary } from "./TFCLCompletionSummary";
 import { ThresholdPaceEstimator } from "./ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { AssessmentSessionsPreview } from '@/components/AssessmentSessionsPreview';
+import { TestSessionsNolioExport } from '@/components/TestSessionsNolioExport';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 import { AssessmentResults } from '@/components/AssessmentResults';
 
@@ -224,7 +224,7 @@ export function TFCLTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
-        <AssessmentSessionsPreview sport="bike" />
+        <TestSessionsNolioExport routes={['week-bike', 'bike-day']} />
         {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="bike" />}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">

@@ -118,6 +118,8 @@ type Body = {
   nolio_athlete_id: number;
   planStartDate: string; // YYYY-MM-DD (lundi de la semaine 1)
   sessions: ParsedSession[];
+  /** 'test' = séances de tests TFCL : identifiant Nolio propre à la date, jamais partagé avec un plan. */
+  kind?: 'test';
   refs?: AthleteRefs;
   fullPlan?:unknown;
 };
@@ -1739,7 +1741,7 @@ Deno.serve(async (req) => {
     // nolio-sync, nolio-records, ...).
     const { data: athleteRow, error: athleteErr } = await admin
       .from("athletes")
-      .select("id, coach_id")
+      .select("id, coach_id, nolio_id")
       .eq("id", body.athlete_id)
       .maybeSingle();
     if (athleteErr || !athleteRow) {
@@ -1751,6 +1753,13 @@ Deno.serve(async (req) => {
     if (athleteRow.coach_id !== userId) {
       return new Response(JSON.stringify({ error: "Accès refusé" }), {
         status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (body.kind === 'test' && (athleteRow as { nolio_id?: number | null }).nolio_id !== body.nolio_athlete_id) {
+      return new Response(JSON.stringify({ error: "Compte Nolio de l'athlète non relié" }), {
+        status: 409,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -1900,7 +1909,12 @@ Deno.serve(async (req) => {
       // l'ancienne séance, jamais mise à jour). id_partner est maintenant
       // stable pour un même (athlète, semaine, jour, index) quel que soit le
       // jour d'envoi — un ré-envoi remplace toujours la bonne séance.
-      const idPartner = parseInt(
+      const idPartner = body.kind === 'test' ? parseInt(
+        String(body.nolio_athlete_id) + '7' +
+        String(Math.floor(Date.parse(`${dateStart}T00:00:00Z`) / 86400000) % 100000).padStart(5, '0') +
+        String(sessionIndex),
+        10,
+      ) : parseInt(
         String(body.nolio_athlete_id) +
         String(s.weekNumber).padStart(2, '0') +
         String(s.dayIndex) +

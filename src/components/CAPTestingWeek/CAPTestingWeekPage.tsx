@@ -38,7 +38,7 @@ import { CAPGuide } from "./CAPGuide";
 import { ThresholdPaceEstimator } from "../TFCLTestingWeek/ThresholdPaceEstimator";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { useAthletes } from "@/contexts/AthleteContext";
-import { AssessmentSessionsPreview } from '@/components/AssessmentSessionsPreview';
+import { TestSessionsNolioExport } from '@/components/TestSessionsNolioExport';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 import { AssessmentResults } from '@/components/AssessmentResults';
 import { CriticalSpeedTestPanel } from '@/components/CriticalSpeedTestPanel';
@@ -399,7 +399,7 @@ export function CAPTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
-        <AssessmentSessionsPreview sport="run" />
+        <TestSessionsNolioExport routes={['week-run', 'critical', 'track-day']} />
         {activeSnapshot && <CriticalSpeedTestPanel key={activeSnapshot.id} snapshot={activeSnapshot} updateSnapshot={updateSnapshot} />}
         {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="run" />}
         <div className="space-y-4">
