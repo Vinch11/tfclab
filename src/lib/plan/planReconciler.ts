@@ -2040,6 +2040,11 @@ function enforceDemandingAccumulation(
     DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource) &&
     DEMANDING_ACCUMULATION_LEVELS.has(trainingLevelSignal.trainingLevel);
 
+  // Coach permits >3 for established athletes. Review the actual dose in
+  // validation; never silently replace a fourth marathon/sub-threshold session.
+  // Recovery, race proximity, catalogue and injury passes remain independent.
+  if (!beginner) return;
+
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
       const quotaEntry = quotasByWeek?.[wk.weekNumber] ?? null;
@@ -2047,7 +2052,7 @@ function enforceDemandingAccumulation(
       const active = sessions.filter(s => s.sport !== "rest");
       if (active.length === 0) continue;
 
-      const cap = beginner ? demandingSessionCap(active.length) : 3;
+      const cap = demandingSessionCap(active.length);
       const demanding = active.filter(s => {
         const fiche = !s.custom && s.catalogId ? ficheFor(s.catalogId) : null;
         return isGenuinelyDemandingSession({

@@ -1,5 +1,6 @@
 # Plan architecture
-- Reconciliation and validation share the time-weighted demanding-session classifier and weekly cap; compatible easy replacements preserve session counts and unresolved excess stays visible. Why: maximum-zone labels and VO₂-only repairs missed threshold accumulation.
+- Reconciliation and validation share the time-weighted demanding classifier and beginner cap; established athletes exceeding the review reference retain their sessions with a domain-aware warning, while recovery/calendar checks remain independent. Why: a universal count conflated controlled work and severe intensity.
+- Resolve marathon-B preparation through dated next-race pace context without promoting B to an A peak; reviewed dual-goal cards and protected taper reminders pass existing catalogue eligibility. Why: final-goal quotas and rotation obscured marathon preparation and taper coverage.
 
 - Apply `longRidePolicy` to the engine-owned global phase calendar before existing level/injury floor reductions; transport the same dedicated-bike floor to prompt, repairs and final validation. Why: brick totals cannot certify bike duration and regenerated windows must not restart phase progress.
 - Weekly endurance budgets exclude strength; preserve total-time and strength-aware calendar, historical-load and recovery checks. Why: excluding lifting from endurance availability must not make physiological load disappear.

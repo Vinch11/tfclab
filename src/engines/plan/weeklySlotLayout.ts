@@ -443,7 +443,7 @@ export function formatWeeklySlotLayoutLine(weekNumber: number, layout: WeeklySlo
       if (s.isRaceEvent) tags.push("COMPÉTITION DÉCLARÉE — événement officiel (custom=true, catalogId=null), pas une activation ni une simulation");
       else if (s.isLongSession) tags.push(`SL ≥${s.minDurationMin ?? "?"}min`);
       else if (s.isActivation) tags.push(`(activation ${s.minDurationMin ?? 20}-${s.maxDurationMin ?? 30}min : Z1 + 4-5×30" allure course)`);
-      else if (s.isKeySession) tags.push("(qualité)");
+      else if (s.isKeySession) tags.push("(qualité) priorité : dose selon domaine/récupération, pas intensité obligatoire");
       return tags.join(" ");
     }).join(" + ");
 

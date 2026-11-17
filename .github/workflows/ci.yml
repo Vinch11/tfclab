@@ -46,7 +46,32 @@ jobs:
       # revue). `tsconfig.app.json` est le config qui porte réellement
       # `include`/les options de compilation de `src/`.
       - run: bunx tsc --noEmit -p tsconfig.app.json
-      - run: bun run vitest run
+      - name: Run Vitest and report actionable failures
+        run: |
+          set +e
+          bun run vitest run --reporter=json --outputFile=/tmp/tfcl-vitest-results.json > /tmp/tfcl-vitest-console.log 2>&1
+          TFCL_VITEST_EXIT=$?
+          set -e
+          if [ -f /tmp/tfcl-vitest-results.json ]; then
+            node --input-type=module <<'NODE'
+          import {readFileSync} from "node:fs";
+          const r=JSON.parse(readFileSync("/tmp/tfcl-vitest-results.json","utf8"));
+          console.log(JSON.stringify({tests:r.numTotalTests,passed:r.numPassedTests,failed:r.numFailedTests,suites:r.numTotalTestSuites,failedSuites:r.numFailedTestSuites}));
+          for(const file of r.testResults??[]) for(const test of file.assertionResults??[]) if(test.status==="failed")
+            console.log(JSON.stringify({file:file.name,test:test.fullName,errors:test.failureMessages?.map(m=>m.slice(0,1500))}));
+          NODE
+          else
+            tail -n 120 /tmp/tfcl-vitest-console.log
+          fi
+          exit "$TFCL_VITEST_EXIT"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: vitest-failure-report
+          path: |
+            /tmp/tfcl-vitest-results.json
+            /tmp/tfcl-vitest-console.log
+          retention-days: 7
 
   lint-changed-files:
     name: ESLint (fichiers modifiés uniquement)

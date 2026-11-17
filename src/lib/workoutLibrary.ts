@@ -8488,6 +8488,8 @@ import { EnrichedWorkoutsShortFormats } from "./enrichedWorkoutsShortFormats";
 WorkoutLibrary.push(...EnrichedWorkoutsShortFormats);
 import {EnrichedWorkoutsRaceTaper} from './enrichedWorkoutsRaceTaper';
 WorkoutLibrary.push(...EnrichedWorkoutsRaceTaper);
+import { EnrichedWorkoutsRacePreparation } from './enrichedWorkoutsRacePreparation';
+WorkoutLibrary.push(...EnrichedWorkoutsRacePreparation);
 
 // =============================================
 // POST-PROCESSING: Enrich missing goals[] and phase[]

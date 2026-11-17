@@ -11,7 +11,7 @@
  * fartlek, jamais une assimilation ambition=finisher ⟺ débutant.
  */
 import { describe, it, expect } from "vitest";
-import { validatePlan } from "../planValidator";
+import { validatePlan, demandingSessionDomain } from "../planValidator";
 import type { ParsedPlan, ParsedWeek, ParsedSession } from "@/lib/aiPlanParser";
 
 function session(overrides: Partial<ParsedSession> = {}): ParsedSession {
@@ -71,13 +71,18 @@ function vp(p: ParsedPlan, trainingLevelSignal?: { trainingLevel: string; traini
 }
 
 describe("validateDemandingSessionAccumulation — accumulation de séances exigeantes (débutant confirmé uniquement)", () => {
-  it("au plus trois séances dures tous sports confondus, même sans niveau fiable", () => {
+  it("plus de trois reste un avertissement de revue, jamais un refus pour les sept objectifs", () => {
     const sessions = ['Course', 'Vélo', 'Natation', 'Course'].map(sport => ({ sport, title: 'Seuil Z4', details: '3x10min Z4', durationMin: 60, zones: ['Z4'] }));
     for (const objective of ['5 KM', '10 KM', 'SEMI', 'MARATHON', 'TRAIL', '70.3', 'IRONMAN']) {
       const result = validatePlan(plan([week(1, sessions)]), objective);
       expect(result.issues.find(i => i.rule === 'demanding_session_accumulation')?.severity).toBe('warning');
     }
     expect(vp(plan([week(1, sessions.slice(0,3))]), null).issues.find(i => i.rule === 'demanding_session_accumulation')).toBeUndefined();
+  });
+  it("distingue allure marathon et VO₂max sans certifier un seuil à partir de Z4 seul", () => {
+    expect(demandingSessionDomain(session({ title: "Allure marathon", zones: ["Z4"] }))).toBe("controlled");
+    expect(demandingSessionDomain(session({ title: "Sous-seuil", zones: ["Z5"] }))).toBe("severe");
+    expect(demandingSessionDomain(session({ title: "Seuil", zones: ["Z4"] }))).toBe("unknown");
   });
   it("3 séances 'high' la même semaine, niveau untrained/manual → flaguée", () => {
     const result = vp(plan([week(1, THREE_DEMANDING_SESSIONS)]), { trainingLevel: "untrained", trainingLevelSource: "manual" });

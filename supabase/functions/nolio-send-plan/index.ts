@@ -622,15 +622,15 @@ export function normalizeStructuredWorkoutForNolio(
     if (rpeMode && src.type === "step") {
       const intensity = String(src.intensity_type ?? "");
       const easy = intensity === "rest" || intensity === "cooldown" || intensity === "warmup";
-      const scalarRpe = easy ? 3 : 5;
       const baseName = typeof src.name === "string" ? src.name.trim() : "";
-      const rawComment = typeof src.comment === "string" ? src.comment.trim() : "";
+      const rawComment = typeof src.comment === "string" ? src.comment.trim() : typeof src.notes === "string" ? src.notes.trim() : "";
 
       // 🚶/🏃 Marche vs Course : déduit du libellé, sinon du type d'intensité.
       const hay = `${baseName} ${rawComment}`.toLowerCase();
       const saysWalk = /\bmarche\b|marcher/.test(hay);
       const saysRun = /\btrot\b|trotti|\bcourse\b|courir|\bcours\b/.test(hay);
       const isWalk = saysWalk && !saysRun ? true : saysRun ? false : easy;
+      const scalarRpe = isWalk || easy ? 3 : 5;
       const modeLabel = isWalk ? "Marche" : "Course";
       const modeIcon = isWalk ? "🚶" : "🏃";
 

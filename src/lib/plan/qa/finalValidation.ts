@@ -157,15 +157,15 @@ export function computeFinalValidationIssues(
   repairTraces?: readonly string[],
   ambitionPhysiology?: AmbitionPhysiologyInput | null,
 ): FinalValidationSummary {
+  const stored=plan as FinalValidationPlanLike & {_planStartDate?:string;_objective?:string;_raceDate?:string;_raceGoals?:import('../../../../supabase/functions/_shared/raceCalendarProtection').RaceCalendarConfig['raceGoals']};
+  const calendar=ambitionPhysiology?.raceCalendar ?? (stored._planStartDate ? {planStartDate:stored._planStartDate,objective:stored._objective,raceDate:stored._raceDate,raceGoals:stored._raceGoals} : undefined);
   const critical = checkB13ToValidationIssues(checkB13(plan));
   const warnings = checkB14ToValidationIssues(checkB14(plan));
   const repairIssues = repairTracesToValidationIssues(repairTraces);
   const ambitionGapIssues = ambitionPhysiology
     ? checkB15ToValidationIssues(checkB15(ambitionPhysiology))
     : [];
-  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...checkSpecificPaceQuotas(plan, ambitionPhysiology?.objective, ambitionPhysiology?.ambition, { trainingLevel: ambitionPhysiology?.trainingLevel, coachCoef: getSpecificPaceOverride(ambitionPhysiology?.athleteId) }), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
-  const stored=plan as FinalValidationPlanLike & {_planStartDate?:string;_objective?:string;_raceDate?:string;_raceGoals?:import('../../../../supabase/functions/_shared/raceCalendarProtection').RaceCalendarConfig['raceGoals']};
-  const calendar=ambitionPhysiology?.raceCalendar ?? (stored._planStartDate ? {planStartDate:stored._planStartDate,objective:stored._objective,raceDate:stored._raceDate,raceGoals:stored._raceGoals} : undefined);
+  const issues: FinalValidationIssue[] = [...validateCoachLoadIssues(plan, plan.weeklyQuotas), ...validateSessionCataloguePlan(plan, ambitionPhysiology?.objective ?? undefined), ...checkRemainingDurationRanges(plan as never), ...keySessionObjectiveIssues(plan, ambitionPhysiology?.objective), ...checkSpecificPaceQuotas(plan, ambitionPhysiology?.objective, ambitionPhysiology?.ambition, { trainingLevel: ambitionPhysiology?.trainingLevel, coachCoef: getSpecificPaceOverride(ambitionPhysiology?.athleteId), raceCalendar: calendar }), ...critical, ...warnings, ...repairIssues, ...ambitionGapIssues];
   if (calendar) issues.push(...validateRaceCalendar(plan,calendar));
   const presented=asPlanAdvisories(issues);
   return { issues:presented, hasCritical: presented.some(issue => issue.severity === "error") };
@@ -173,7 +173,7 @@ export function computeFinalValidationIssues(
 
 function keySessionObjectiveIssues(plan: FinalValidationPlanLike, objective?: string | null): FinalValidationIssue[] {
   if (!objective) return [];
-  return plan.weeks.flatMap(w => w.sessions.filter(s => (s as { isKeySession?: boolean }).isKeySession && isKeySessionObjectiveMismatch((s as { catalogId?: string | null }).catalogId, objective))
+  return plan.weeks.flatMap(w => w.sessions.filter(s => (s as { isKeySession?: boolean }).isKeySession && isKeySessionObjectiveMismatch((s as { catalogId?: string | null }).catalogId, (w as {cycleObjective?:string}).cycleObjective || objective))
     .map(s => ({ rule: "key_session_objective_mismatch", severity: "warning" as const,
       message: `S${w.weekNumber} « ${s.title} » : séance clé tirée d'une fiche prévue pour un autre objectif.` })));
 }

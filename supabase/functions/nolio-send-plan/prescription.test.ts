@@ -114,3 +114,12 @@ Deno.test("swim: a distance recovery remains a recovery, unlike a pace denominat
   const steps=normalize("4x100m Z4 / 100m souple",19,{css:90});
   assertEquals(steps.filter(s=>s.intensity_type==="rest").map(s=>s.step_duration_value),[100,100,100,100]);
 });
+
+Deno.test("start to run: walking and jogging remain distinct in watch guidance",()=>{
+  const structured=buildStructuredFromParts(part("8x(1min trot facile + 2min marche)"),{});
+  const steps=normalizeStructuredWorkoutForNolio(structured,{},2,true,false) as Array<Record<string,unknown>>;
+  assertEquals(steps.length,16);
+  assertEquals(String(steps[0].name).includes("Course · RPE 5/10"),true);
+  assertEquals(String(steps[1].name).includes("Marche · RPE 3/10"),true);
+  assertEquals(String(steps[1].comment).includes("2min marche"),true);
+});
