@@ -151,7 +151,11 @@ export function evaluatePlanningCase(spec:PlanningCase): MatrixRow {
     add(row.preparationIssues,"catalogue_week_diversity_limited",coverage.limitedDiversitySports.length);
     for(const e of catalog.filter(e=>coverage.eligible.some(m=>m.id===e.id))){
      const m=e.repairMetadata;
-     const result=checkSessionCatalogue({catalogId:e.id,title:m.title,sport:normalizeRepairSport(m.sport),durationMin:e.canonicalDurationMin,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones,details:m.structure},{...context,catalog:metadata});
+     // `mixed` is a catalogue label, never an occurrence sport. Exercise the
+     // actual contract with a recovery occurrence (or a multi-sport brick).
+     const cardSport=normalizeRepairSport(m.sport);
+     const sport=cardSport==='mixed' ? (m.intentFamily==='brick' ? 'brick' : 'recovery') : cardSport;
+     const result=checkSessionCatalogue({catalogId:e.id,title:m.title,sport,durationMin:e.canonicalDurationMin,zones:m.mainZoneMax?[`Z${m.mainZoneMax}`]:m.zones,details:m.structure},{...context,catalog:metadata});
      add(row.preparationIssues,"canonical_prescription_contract_conflict",result.errors.length);
      if(result.errors.length&&row.examples.length<12) for(const code of result.errors)row.examples.push({week,code,id:e.id});
     }

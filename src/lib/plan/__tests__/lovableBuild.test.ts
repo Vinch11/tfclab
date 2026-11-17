@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { assertSameDeclaration, calculatePlanRelease, checkedPlanRelease, readDeclaration } from "../../../../scripts/preproduction/plan-release-source.mjs";
 
+import { WorkoutLibrary } from "@/lib/workoutLibrary";
+
 const root = process.cwd();
 const temp = mkdtempSync(join(tmpdir(), "tfcl-lovable-source-test-"));
 for (const name of ["src", "supabase/functions/_shared", "supabase/functions/ai-training-plan", "supabase/functions/ai-training-plan-test", "scripts/preproduction", "vite.config.ts", "package.json", "bun.lockb"]) {
@@ -17,7 +19,8 @@ describe("Lovable build fingerprints its actual checkout, without Git or prepara
     expect(existsSync(join(temp, ".git"))).toBe(false);
     const computed = await checkedPlanRelease(temp);
     expect(computed.info).toEqual(readDeclaration(root));
-    expect(computed.catalogueEntries).toBe(922);
+    expect(computed.catalogueEntries).toBe(WorkoutLibrary.length);
+    expect(new Set(WorkoutLibrary.map(w => w.id)).size).toBe(WorkoutLibrary.length);
     expect(computed.info.provenance).toBe("declared-source");
     expect(computed.info.attested).toBe(false);
     expect(computed.info.sourceCommit).toBeNull();

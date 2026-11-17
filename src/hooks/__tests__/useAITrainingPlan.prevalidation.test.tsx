@@ -5,21 +5,25 @@ vi.mock('@/lib/plan/planGenerationStats',()=>({logPlanStat:vi.fn()}));
 vi.mock('@/lib/plan/planReleasePreflight',()=>({currentPlanReleaseHeaders:vi.fn(async()=>({}))}));
 import {useAITrainingPlan} from '../useAITrainingPlan';
 import {preparePrevalidationFixture} from '@/qa/sports-plan-lab/prevalidationFixtures';
+import {supabase} from '@/integrations/supabase/client';
 import {currentPlanReleaseHeaders} from '@/lib/plan/planReleasePreflight';
-it('real generation hook stops before release preflight and HTTP POST for a demonstrated contradiction',async()=>{
+it('an out-of-plan date remains visible while generation reaches authentication',async()=>{
  const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('UNEXPECTED_NETWORK');});
  const fixture=preparePrevalidationFixture('B-10K',{ambition:'competitor',trainingLevel:'trained',maxSessionsPerDay:1,weeksAvailable:12});
- // Explicit out-of-plan race remains a contradiction even if quota defaults change.
+ // Coach policy: date/volume warnings do not refuse generation.
  fixture.planConfig.planStartDate='2026-10-26';
  fixture.planConfig.raceGoals=[{objective:'10K',priority:'A',raceDate:'2028-01-01'}];
  const {result}=renderHook(()=>useAITrainingPlan());
+ const auth=vi.spyOn(supabase.auth,"getSession").mockResolvedValue({data:{session:null},error:null});
  try{
+  vi.mocked(currentPlanReleaseHeaders).mockClear();
+
   act(()=>result.current.setResponse("Plan courant conservé"));
   await act(async()=>{await result.current.generatePlan(fixture.athleteData,fixture.planConfig);});
-  expect(result.current.response).toBe("Plan courant conservé");
-  expect(result.current.prevalidation?.status).toBe('blocked');
-  expect(currentPlanReleaseHeaders).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
- }finally{fetch.mockRestore();}
+  expect(result.current.prevalidation?.status).toBe("coach_review");
+  expect(result.current.prevalidation?.issues).toContainEqual(expect.objectContaining({code:"declared_event_outside_plan",severity:"warning"}));
+  expect(auth).toHaveBeenCalled();expect(currentPlanReleaseHeaders).not.toHaveBeenCalled();expect(fetch).not.toHaveBeenCalled();
+ }finally{fetch.mockRestore();auth.mockRestore();}
 });
 it('read-only preview preserves the current plan state and does not use authentication or transport',async()=>{
  const fetch=vi.spyOn(globalThis,'fetch').mockImplementation(()=>{throw Error('UNEXPECTED_NETWORK');});

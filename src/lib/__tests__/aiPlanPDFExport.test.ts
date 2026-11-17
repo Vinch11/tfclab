@@ -81,6 +81,24 @@ describe("computePlanExportCompleteness — garantie déterministe (indépendant
 });
 
 describe("exportAIPlanToPDF — le HTML généré contient réellement toutes les semaines (plan long, 34 semaines)", () => {
+  it.each(['portrait', 'landscape'] as const)('imprime la durée enregistrée même si le texte ne la répète pas (%s)', async orientation => {
+    const { exportAIPlanToPDF } = await import('@/lib/aiPlanPDFExport');
+    const { openPrintableHTML } = await import('@/lib/openPrintableHTML');
+    const plan = makePlan(1);
+    plan.weeks[0].sessions = [
+      { ...makeSession(1, 1, 'Mardi', 'bike', 'Technique'), durationMin: 42, details: 'Pédalage souple Z2.' },
+      { ...makeSession(1, 2, 'Mercredi', 'bike', 'Durée inconnue'), details: 'Pédalage souple Z2.' },
+    ];
+    const before = JSON.stringify(plan);
+    exportAIPlanToPDF(plan, 'Test', new Date('2026-11-16'), [], orientation, 'full');
+    const html = vi.mocked(openPrintableHTML).mock.calls.at(-1)![0];
+    expect(html).toContain('Durée prévue : 0h42');
+    expect(html.match(/class="session-duration"/g)).toHaveLength(1);
+    expect(html).toContain('1 durée(s) d’endurance à préciser');
+    expect(JSON.stringify(plan)).toBe(before);
+    vi.mocked(openPrintableHTML).mockClear();
+  });
+
   it("génère un document contenant les 34 blocs de semaine, de S1 à S34, sans troncature", async () => {
     const { exportAIPlanToPDF } = await import("@/lib/aiPlanPDFExport");
     const { openPrintableHTML } = await import("@/lib/openPrintableHTML");
