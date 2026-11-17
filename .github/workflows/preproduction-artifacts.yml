@@ -5,8 +5,12 @@ on:
     paths:
       - 'scripts/preproduction/**'
       - '.github/workflows/preproduction-artifacts.yml'
-      - 'src/lib/plan/planStatPrivacy.ts'
-      - 'supabase/functions/_shared/planReleaseInfo.ts'
+      - 'src/**'
+      - 'supabase/functions/_shared/**'
+      - 'supabase/functions/ai-training-plan/**'
+      - 'supabase/functions/ai-training-plan-test/**'
+      - 'package.json'
+      - 'bun.lockb'
       - 'vite.config.ts'
 permissions:
   contents: read
