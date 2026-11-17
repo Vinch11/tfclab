@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 interface Props { input: CoachingCompassInput; snapshot: DbSnapshot; snapshots: DbSnapshot[]; tests: DbTest[]; selectedSport?: 'bike' | 'run' }
 
 /** Read-only athlete evidence shared by Dashboard and Lab, never by Compass or plans. */
-export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selectedSport }: Props) {
+export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selectedSport, athleteName }: Props & { athleteName?: string }) {
   const [months, setMonths] = useState(24);
   const [dates, setDates] = useState<{ from: string; to: string } | null>(null);
   const [nolioAthlete, setNolioAthlete] = useState('');
@@ -39,10 +39,14 @@ export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selec
     setDates(null);
     call({ action: 'catalogues' }).then(data => {
       if (!data.complete) throw new Error('Catalogue incomplet');
-      if (alive) setCatalogue(data.athletes);
+      if (!alive) return;
+      setCatalogue(data.athletes);
+      const norm = (v: string) => v.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const same = athleteName ? data.athletes.filter((a: { name: string; has_api_access: boolean }) => a.has_api_access && norm(a.name) === norm(athleteName)) : [];
+      if (same.length === 1) setNolioAthlete(same[0].id);
     }).catch(() => { if (alive) setCatalogueError(true); });
     return () => { alive = false; };
-  }, [snapshot.athlete_id]);
+  }, [snapshot.athlete_id, athleteName]);
   const [selection, setSelection] = useState<'bike' | 'run'>('bike');
   const sport = selectedSport ?? (input.sportFocus === 'run' ? 'run' : input.sportFocus === 'triathlon' ? selection : 'bike');
   const [read, setRead] = useState<{ athlete: string; rows: NolioRecordRow[]; loading: boolean; error: boolean }>({ athlete: '', rows: [], loading: true, error: false });
@@ -70,10 +74,11 @@ export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selec
       {input.sportFocus === 'triathlon' && !selectedSport && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList><TabsTrigger value="bike">Vélo</TabsTrigger><TabsTrigger value="run">Course à pied</TabsTrigger></TabsList></Tabs>}
     </div>
     <div className="flex flex-wrap items-end gap-3">
-      <label className="text-sm">Du<Input aria-label="Début de période des graphiques" type="date" value={from} max={to} onChange={e => setDates({ from: e.target.value, to })} /></label>
-      <label className="text-sm">Au<Input aria-label="Fin de période des graphiques" type="date" value={to} min={from} max={new Date().toISOString().slice(0, 10)} onChange={e => setDates({ from, to: e.target.value })} /></label>
-      <Select value={nolioAthlete} onValueChange={setNolioAthlete}><SelectTrigger aria-label="Athlète Nolio des graphiques" className="w-64 min-h-11"><SelectValue placeholder="Choisir l’athlète Nolio" /></SelectTrigger><SelectContent>{catalogue.filter(a => a.has_api_access).map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select>
+      {dates && <><label className="text-sm">Du<Input aria-label="Début de période des graphiques" type="date" value={from} max={to} onChange={e => setDates({ from: e.target.value, to })} /></label>
+      <label className="text-sm">Au<Input aria-label="Fin de période des graphiques" type="date" value={to} min={from} max={new Date().toISOString().slice(0, 10)} onChange={e => setDates({ from, to: e.target.value })} /></label></>}
+      <Select value={nolioAthlete} onValueChange={setNolioAthlete}><SelectTrigger aria-label="Compte Nolio de l’athlète" className="w-64 min-h-11"><SelectValue placeholder={athleteName ? `Relier le compte Nolio de ${athleteName}` : 'Relier le compte Nolio'} /></SelectTrigger><SelectContent>{catalogue.filter(a => a.has_api_access).map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select>
     </div>
+    {nolioAthlete && athleteName && catalogue.length > 0 && catalogue.find(a => a.id === nolioAthlete)?.name.trim().toLowerCase() !== athleteName.trim().toLowerCase() && <p role="alert" className="text-sm text-destructive">Le compte Nolio choisi ne porte pas le nom de {athleteName} : vérifie qu’il s’agit bien du même athlète.</p>}
     {catalogueError && <p role="alert" className="text-sm text-destructive">Connexion Nolio indisponible : aucun record absolu utilisé à la place.</p>}
     {read.error && <p role="alert" className="text-sm text-destructive">Lecture Nolio incomplète : courbes Nolio suspendues.</p>}
     <LabNolioCalibration sport={sport} bike={bike} run={run} checks={[]} loading={loading} recordCount={env.length} windowMonths={dates ? 0 : months} range={`${from} → ${to}`} />
