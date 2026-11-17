@@ -33,7 +33,8 @@ export function CriticalSessionProposals({ plan, criticalMetrics, ftp, onAccept 
   }, [plan, bike.value, run.value, ftp]);
   const visible = rows.filter(r => !ignored.has(r.key));
   const accept = (r: Row) => {
-    const m = r.proposal.sport === 'cycling' ? bike.value! : run.value!;
+    const m = r.proposal.sport === 'cycling' ? bike.value : run.value;
+    if (!m) return;
     const weeks = plan.weeks.map((wk, w) => w !== r.w ? wk : { ...wk, sessions: wk.sessions.map((s, si) => si !== r.si ? s : { ...s, details: `${s.details}\n${acceptanceNote(r.proposal, m)}` }) });
     onAccept?.({ ...plan, weeks });
   };

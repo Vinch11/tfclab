@@ -41,12 +41,13 @@ import { useAthletes } from "@/contexts/AthleteContext";
 import { AssessmentSessionsPreview } from '@/components/AssessmentSessionsPreview';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 import { AssessmentResults } from '@/components/AssessmentResults';
+import { CriticalSpeedTestPanel } from '@/components/CriticalSpeedTestPanel';
 
 export function CAPTestingWeekPage() {
   const navigate = useNavigate();
   const { logoUrl } = useAppLogo();
   const { athletes, selectedAthleteId, setSelectedAthleteId } = useAthletes();
-  const { snapshots, getSnapshotsForAthlete, tests } = useCloudDataContext();
+  const { snapshots, getSnapshotsForAthlete, tests, updateSnapshot } = useCloudDataContext();
   
   const [activeTestDay, setActiveTestDay] = useState<string | null>(null);
 
@@ -399,6 +400,7 @@ export function CAPTestingWeekPage() {
 
         {/* Days */}
         <AssessmentSessionsPreview sport="run" />
+        {activeSnapshot && <CriticalSpeedTestPanel key={activeSnapshot.id} snapshot={activeSnapshot} updateSnapshot={updateSnapshot} />}
         {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="run" />}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold flex items-center gap-2">

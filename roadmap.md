@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Vitesse critique : fiche 3/7/12 min, records course Nolio stockés sur période, confirmation et sauvegarde/relecture par bilan ; propositions existantes réservées aux valeurs récentes confirmées et acceptées une par une. Parcours connecté sur athlète temporaire supprimé : 14,4 km/h et D′ 150 m, rechargement et vélo préservé, téléphone sans débordement ; 34 tests. Envoi des séances Nolio et récupération automatique des tours restent dans le chantier d’évaluation ci-dessous ; aucune génération réelle de plan vérifiée ici.
+
 - [x] Évaluation TFCL lot 1 : contrat des résultats, neuf Days vélo/course en aperçu structuré, parcours VC 3/7/12 min daté, bilan de référence canonique et TTE course séparé ; Emanuela connectée ordinateur/téléphone vérifiée. Détails : docs/assessment-results-contract-2026-11-17.md.
 - [ ] Évaluation TFCL envoi/récupération Nolio : export dédié non destructif, lien athlète serveur, identités/version et association réalisé/prescrit, rélecture étapes ; envoi réel non effectué, ancien envoi par slots peut remplacer des séances. Flux cardio réel et disponibilité des tours à vérifier auprès de Nolio.
 - [ ] Évaluation complète TFCL validation scientifique : jeux de mesures directes appariées requis, protocoles vélo et adaptation VC à valider avant promesse de précision ; profil Dashboard/Lab global, récupération de tests, Vince et parcours réel de stockage/import/export non finalisés.
