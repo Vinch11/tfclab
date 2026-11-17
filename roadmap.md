@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Tests complets — correction des courbes communes Dashboard/100%lab : bilan daté exploitable même sans recalage Nolio, résultats importés conservés sans fiche test séparée ; Emanuela vélo/course et six mois vérifiés connectée, 16 tests passent, deux générateurs déployés et versions relues. Compass/données inchangés.
+- [ ] Complétude globale après tests : CP/W′ et durabilité prolongée restent absents dans le profil d’Emanuela ; nécessite établir quels protocoles et données brutes permettent ces calculs, sans assimiler les tests habituels à des mesures supplémentaires. Audit des autres écrans et récupération des séries de tests non enregistrées non finalisés.
+
 - [x] Dashboard Staff/Profil et 100%lab : projection commune sur records Nolio datés, période 6/12/24 mois, historiques/tests filtrés, pas de courbe métabolique de secours ni points lactate/O₂ inventés ; Emanuela connectée vélo/course/téléphone et Dashboard vérifiés, 34 tests passent, deux générateurs synchronisés/déployés et relus. Compass et données inchangés.
 - [ ] Règle globale des graphiques personnels : blocs métaboliques indépendants du Dashboard, carte Analyse Nolio, import CSV, autres pages et rapports à migrer/auditer ; analyse séance par séance FC/dérive non réalisée, lecture actuelle sans stream cardio ; Vince non vérifié. Inventaire et limites : docs/athlete-evidence-graphs-2026-11-17.md.
 

@@ -27,7 +27,7 @@ export function LabNolioCalibration({ sport, bike, run, checks, loading, recordC
         <Scatter dataKey="observed" name="Record Nolio" fill={c.amber} isAnimationActive={false} />
       </ComposedChart></ResponsiveContainer></div>
       <p className="text-xs text-muted-foreground">Points : records Nolio (vélo route et home-trainer). Trait plein : modèle recalé. Pointillé : modèle du bilan. Les efforts de moins de 30 s (force neuromusculaire) ne servent pas au recalage.</p>
-    </> : !loading && <p className="text-sm text-muted-foreground">Pas assez de records vélo sur cette période : au moins quatre durées, dont un effort ≤ 2 min et un ≥ 5 min, sont nécessaires. Aucune courbe de remplacement n’est inventée.</p>)}
+    </> : !loading && <p className="text-sm text-muted-foreground">Recalage Nolio non disponible sur cette période : il nécessite au moins quatre durées, dont un effort ≤ 2 min et un ≥ 5 min, ainsi que VO₂max et poids. Cela n’annule pas les résultats de vos tests enregistrés dans le bilan.</p>)}
     {sport === 'run' && (run ? <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
       {[['Vitesse critique', `${run.csKmh}`, 'km/h'], ['D′', `${run.dPrimeM}`, 'm'], ['Meilleur 6 min', run.vma6Kmh ? `${run.vma6Kmh}` : '—', 'km/h']].map(([l, v, u]) => <div key={l}><dt className="text-xs text-muted-foreground">{l}</dt><dd className="text-xl font-semibold tabular-nums">{v} <span className="text-xs font-normal text-muted-foreground">{u}</span></dd></div>)}
     </dl> : !loading && <p className="text-sm text-muted-foreground">Pas assez d’allures Nolio entre 3 et 20 min pour la course.</p>)}

@@ -7,6 +7,13 @@ import { calculateCarbOxidation, calculateFatOxidation, findSteadyStateLactate, 
 
 export const positive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
 
+/** A dated athlete bilan is evidence independently of optional Nolio records. */
+export function labCurveSource(input: CoachingCompassInput, sport: 'bike' | 'run', bikeFit: { vo2max: number; vlamax: number } | null, snapshotInPeriod: boolean) {
+  if (sport === 'bike' && bikeFit) return { source: 'nolio' as const, input: { ...input, vo2max: bikeFit.vo2max, vlamaxEffectif: { ...input.vlamaxEffectif, value: bikeFit.vlamax } } };
+  if (snapshotInPeriod && labMetabolicCurves(input, sport).points.length) return { source: 'bilan' as const, input };
+  return null;
+}
+
 /** Projection only; the reference is selected upstream by pickReferenceSnapshot. */
 export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, ambition: string): CoachingCompassInput {
   const bike = computeVLamaxEffectif({ athleteId: snapshot.athlete_id, objectif: goal, activeSnapshotId: snapshot.id, snapshots: [snapshot], tests: tests.filter(t => t.athlete_id === snapshot.athlete_id && t.date.slice(0, 10) <= snapshot.date && !/run|cap|course/i.test(t.sport ?? '')), sportOverride: 'velo' });
