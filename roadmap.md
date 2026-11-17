@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Évaluation complète TFCL : intégrer au plan les séances structurées Nolio pour tous les Days vélo/course et les tests à distance, avec aperçu, confirmation d’envoi et récupération des efforts réalisés ; mise en œuvre après validation du plan.
+
 - [x] Tests complets — correction des courbes communes Dashboard/100%lab : bilan daté exploitable même sans recalage Nolio, résultats importés conservés sans fiche test séparée ; Emanuela vélo/course et six mois vérifiés connectée, 16 tests passent, deux générateurs déployés et versions relues. Compass/données inchangés.
 - [ ] Complétude globale après tests : CP/W′ et durabilité prolongée restent absents dans le profil d’Emanuela ; nécessite établir quels protocoles et données brutes permettent ces calculs, sans assimiler les tests habituels à des mesures supplémentaires. Audit des autres écrans et récupération des séries de tests non enregistrées non finalisés.
 

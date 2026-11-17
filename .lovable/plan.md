@@ -16,10 +16,13 @@ Un seul parcours par athlète : préparer les efforts, importer ou saisir leurs 
 - Course : réutiliser les tests sprint, VMA et seuil ; ajouter un protocole vitesse critique avec trois efforts maximaux de durées distinctes. Les 3, 7 et 12 minutes proposés sont une base à vérifier, pas un protocole déjà validé dans TFCL.
 - Éviter de multiplier les tests si une séance correctement documentée peut fournir plusieurs informations. Ne pas assimiler un record 6 minutes à une VMA confirmée ni la vitesse critique au seuil lactate.
 - Prévoir deux voies : terrain/à distance avec capteurs adaptés ; laboratoire avec mesures directes lorsqu’elles sont réellement disponibles. Aucune transposition silencieuse vélo → course, ni promesse de profil métabolique complet en natation.
+- Pour chaque test de tous les Days existants, et pour les nouveaux tests à distance dont la vitesse critique, fournir une séance structurée envoyable dans Nolio : échauffement, préparation, efforts précisément délimités, récupérations, retour au calme et consignes de mesure. Les efforts maximaux restent prescrits comme maximaux, sans cible chiffrée inventée à partir du résultat attendu.
+- Préparer le calendrier de tests avec les jours de récupération ; le coach choisit les dates et peut envoyer un test ou toute la série après aperçu et confirmation. Réutiliser les envois Nolio existants lorsque compatibles, vérifier les étapes réellement créées par relecture et empêcher les doublons sans toucher aux séances étrangères ou modifiées.
 
 ## 3. Réconcilier tests, bilans et Nolio
 - Une période d’évaluation, un sport et un dossier de sources : séances sélectionnées, portions d’effort et de repos, résultats, capteurs, dates et validation coach.
 - Exploiter Nolio pour rechercher les séances puis sélectionner les efforts ; un fractionné sans repos documenté reste à vérifier, pas un test maximal automatique.
+- Relier chaque séance de test envoyée à sa version de protocole et à la séance réellement effectuée dans Nolio. Exploiter les tours et étapes réellement enregistrés quand disponibles, en contrôlant les durées et récupérations ; le fait d’avoir envoyé une séance ne prouve pas que le protocole a été suivi. Si les marqueurs manquent, permettre au coach de sélectionner les portions réelles au lieu de supposer les repos.
 - Récupérer les résultats déjà importés dans un bilan même si aucune fiche test séparée n’existe. Montrer ce qui est déjà exploitable et ce qui attend un enregistrement, plutôt que demander de refaire inutilement un test.
 - Enregistrer les résultats et leur provenance une fois, puis les rendre accessibles aux différentes vues. Prévisualiser les valeurs avant validation ; ne pas écraser une mesure existante ou certifier un record automatiquement.
 - Ajouter la lecture cardiaque uniquement après vérification de sa disponibilité dans Nolio et de son autorisation ; l’actuelle lecture de séance ne fournit pas ce flux.
@@ -37,14 +40,15 @@ Un seul parcours par athlète : préparer les efforts, importer ou saisir leurs 
 
 ## 6. Valider avant toute promesse d’équivalence
 - Tests automatisés par règle : parcours complet sans manque calculable ; bilan importé sans fiche test ; Nolio absent ou lecture échouée ; sport séparé ; unités ; protocole incomplet ; valeurs contradictoires ; prescription critique non confirmée refusée.
+- Couverture de chaque Day par une séance structurée ; tests des durées, répétitions, récupérations, unités, sport, doublons et liens envoyé/réalisé. Vérifier un envoi réel autorisé dans Nolio, relire les étapes créées puis importer un test réellement effectué ; ne pas confondre un aperçu réussi avec un envoi validé ou une séance réalisée.
 - Vérification connectée sur Emanuela et Vincent, de la sélection d’efforts à l’enregistrement puis à la relecture dans les deux vues, ordinateur et téléphone. Corriger les cas réels de complétude sans fabriquer CP/W′ ou durabilité.
 - Validation scientifique distincte par indicateur et par sport : comparer aux mesures directes disponibles, étudier biais, erreur, répétabilité et sensibilité aux entrées, puis vérifier sur des athlètes non utilisés pour le réglage.
 - Ne pas annoncer une précision ni une équivalence INSCYD sans cette validation. L’étude Poffé 2024 concerne le calcul du MLSS vélo à partir de données physiologiques obtenues en laboratoire ; elle ne valide ni tous les indicateurs ni les modèles TFCL.
 
 ## Ordre de livraison
 1. Contrat des résultats et audit de complétude, avec corrections des pertes de données existantes.
-2. Parcours d’évaluation partagé et protocole vitesse critique course.
-3. Sélection/import Nolio, traçabilité et calculs communs.
+2. Parcours d’évaluation partagé, séances structurées de tous les Days et protocole vitesse critique course.
+3. Envoi Nolio contrôlé, récupération des séances réalisées, sélection des efforts, traçabilité et calculs communs.
 4. Profil complet Dashboard/100%lab et propositions contrôlées pour les plans.
 5. Comparaisons scientifiques et extension des analyses cardiaques/durabilité.
 
