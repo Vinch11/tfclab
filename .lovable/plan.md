@@ -1,7 +1,7 @@
 # 100%lab — "Load Characteristics" façon INSCYD
 
 ## Objectif
-Faire de la page 100%lab un écran de laboratoire sombre et dense : une grille de 6 graphiques connectés, tirés d'un seul bilan TFCL, lisible d'un coup d'oeil sur ordinateur et tablette.
+Faire de la page 100%lab un écran de laboratoire dense, au design Bevel : une grille de 6 graphiques connectés, tirés d'un seul bilan TFCL, lisible d'un coup d'oeil sur ordinateur et tablette.
 
 ## Les 6 graphiques (vélo et course séparés)
 1. **Demande métabolique et VO₂** : besoin en oxygène selon l'intensité, plafond VO₂max.
@@ -22,7 +22,7 @@ Sous chaque graphique : une ligne de repères (watts ou allure, FC, lactate) et 
 - Rien n'est réécrit dans les bilans ni utilisé par les plans.
 
 ## Présentation
-- Thème sombre dédié à la page 100%lab uniquement (le reste de l'app garde le thème Bevel).
+- Design Bevel conservé (couleurs, cartes, typographie de l'app) ; on reprend seulement la densité et l'organisation en grille.
 - En-tête : athlète, date du bilan, sport, mention discrète « valeurs TFCL ».
 - Grille 2 colonnes ordinateur/tablette, 1 colonne téléphone.
 - Un curseur d'intensité commun : survoler un graphique met en évidence la même intensité sur les 6.
@@ -43,5 +43,5 @@ Sous chaque graphique : une ligne de repères (watts ou allure, FC, lactate) et 
 
 ## Technique
 - `src/lib/lab/labProfile.ts` : ajout `labLactateBalance` et `labEnergyContribution` (lecture seule, `maderMetabolicModel`).
-- Nouveau `LabLoadCharacteristics.tsx` (Recharts, `syncId` pour le curseur), tokens sombres scopés à la page.
+- Nouveau `LabLoadCharacteristics.tsx` (Recharts, `syncId` pour le curseur), tokens Bevel existants.
 - Tests unitaires : pas de transfert vélo→course, absence de données → pas de courbe.
