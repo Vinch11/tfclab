@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Plans utilisables — corrections approuvées 17 novembre
+- [ ] Correction coach 20:59 : examiner un dépassement de trois séances selon les preuves et le profil (pas un relèvement automatique) ; préparer réellement Séville en février avant l’IM de juin, distinguer les allures des deux courses ; créer une fiche structurée adaptée si le catalogue ne couvre pas le besoin S30. Original et Nolio préservés.
 - [x] Accord 18:41 : plafond de trois séances dures/semaine tous sports confondus partagé validation/réconciliation et prompts ; 52 tests passent, deux générateurs déployés, version alignée. Original et Nolio préservés.
 - [x] Volumes calculés depuis les séances, compétition séparée et identité des courses partagée écran/PDF.
 - [x] Corrections ciblées des mentions explicites d’allure IM ; nutrition vélo/course et absence de tolérance confirmée précisées avant génération.
