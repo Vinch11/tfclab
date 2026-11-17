@@ -2419,6 +2419,9 @@ export default function AITrainingPlanPage() {
           // catalogue restreint) sans aucun avertissement pour le coach.
           _raceGoals: raceGoals,
           _coachLimiterOrder: [...coachLimiterOrder],
+          // Réglages coach à conserver pour toute régénération (autre appareil, copie).
+          _trainingLevel: trainingLevel,
+          _approvedDemandingFamilies: [...approvedDemandingFamilies],
           _generatedLimitersKey: generatedLimitersKey,
         } as any,
         objective: objective || currentAthlete.goal || null,
@@ -2756,6 +2759,8 @@ export default function AITrainingPlanPage() {
     // objectifs secondaires (`raceGoals=[]`), silencieusement.
     setRaceGoals(Array.isArray(pj._raceGoals) ? pj._raceGoals : []);
     setCoachLimiterOrder(restoreCoachLimiterOrder(pj._coachLimiterOrder));
+    if (typeof pj._trainingLevel === "string") setTrainingLevel(pj._trainingLevel);
+    if (Array.isArray(pj._approvedDemandingFamilies)) setApprovedDemandingFamilies(sanitizeDemandingFamilies(pj._approvedDemandingFamilies));
     setGeneratedLimitersKey(typeof pj._generatedLimitersKey==='string'?pj._generatedLimitersKey:null);
     setResultView("interactive");
     setIsSaved(true);
@@ -4090,7 +4095,7 @@ export default function AITrainingPlanPage() {
                     </SelectContent>
                   </Select>
                   <p className="text-[10px] text-muted-foreground">
-                    Utilisé uniquement si le TSS 7j n'est pas renseigné dans le snapshot. Aide l'IA à calibrer la progression initiale.
+                    Le niveau choisi par le coach prime toujours ; « Auto » utilise le TSS 7j du bilan, sinon un niveau prudent. Il règle la progression initiale.
                   </p>
 
                   {/* Coach override : verrou anti-déclassement d'ambition */}
