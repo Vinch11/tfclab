@@ -80,3 +80,16 @@ Deno.test("description: repeated Main parts are all retained",()=>{
   assertEquals(text.includes("200m souple"),true);
   assertEquals(text.includes("800m CSS"),true);
 });
+
+Deno.test("summary: a heart-rate target is never treated as a speed for a distance",()=>{
+  const summary=summarizeStructuredWorkout([{type:"step",step_duration_type:"distance",step_duration_value:400,target_type:"heartrate",target_value:150}]);
+  assertEquals(summary.durationSec,0);
+  assertEquals(summary.distanceMeters,400);
+  assertEquals(summary.durationComplete,false);
+});
+Deno.test("summary: missing pace must not turn rest time into the session total",()=>{
+  const steps=normalize("10x400m Z4 r=60s libre",2,{fcMax:185});
+  const summary=summarizeStructuredWorkout(steps);
+  assertEquals(summary.distanceMeters,4000);
+  assertEquals(summary.durationComplete,false);
+});

@@ -1279,46 +1279,36 @@ export function insertSwimBlockRests(input: unknown): unknown {
 
 
 
-export function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number } {
-  const visit = (node: unknown): { durationSec: number; distanceMeters: number } => {
-    if (Array.isArray(node)) {
-      return node.reduce(
-        (acc, item) => {
-          const s = visit(item);
-          acc.durationSec += s.durationSec;
-          acc.distanceMeters += s.distanceMeters;
-          return acc;
-        },
-        { durationSec: 0, distanceMeters: 0 },
-      );
+export function summarizeStructuredWorkout(input: unknown): { durationSec: number; distanceMeters: number; durationComplete: boolean } {
+  type Summary={durationSec:number;distanceMeters:number;durationComplete:boolean};
+  const empty=():Summary=>({durationSec:0,distanceMeters:0,durationComplete:true});
+  const visit=(node:unknown):Summary=>{
+    if(Array.isArray(node))return node.reduce<Summary>((acc,item)=>{
+      const s=visit(item);
+      return {durationSec:acc.durationSec+s.durationSec,distanceMeters:acc.distanceMeters+s.distanceMeters,durationComplete:acc.durationComplete&&s.durationComplete};
+    },empty());
+    if(!node||typeof node!=="object")return empty();
+    const item=node as Record<string,unknown>;
+    if(item.type==="repetition"&&Array.isArray(item.steps)){
+      const reps=typeof item.value==="number"&&Number.isFinite(item.value)&&item.value>0?item.value:1;
+      const inner=visit(item.steps);
+      return {...inner,durationSec:inner.durationSec*reps,distanceMeters:inner.distanceMeters*reps};
     }
-    if (!node || typeof node !== "object") return { durationSec: 0, distanceMeters: 0 };
-    const item = node as Record<string, unknown>;
-    if (item.type === "repetition" && Array.isArray(item.steps)) {
-      const reps = typeof item.value === "number" && Number.isFinite(item.value) && item.value > 0 ? item.value : 1;
-      const inner = visit(item.steps);
-      return { durationSec: inner.durationSec * reps, distanceMeters: inner.distanceMeters * reps };
+    if(item.type!=="step")return empty();
+    const value=typeof item.step_duration_value==="number"&&Number.isFinite(item.step_duration_value)?Math.max(0,item.step_duration_value):0;
+    if(item.step_duration_type==="duration")return {durationSec:Math.round(value),distanceMeters:0,durationComplete:true};
+    if(item.step_duration_type==="distance"){
+      // Only normalized pace/speed targets are m/s; watts and bpm are never speeds.
+      const speedTarget=["pace","pace_min100","speed"].includes(String(item.target_type));
+      const speed=speedTarget
+        ? typeof item.target_value==="number"&&item.target_value>0 ? item.target_value
+          : typeof item.target_value_min==="number"&&typeof item.target_value_max==="number" ? (item.target_value_min+item.target_value_max)/2
+          : typeof item.target_value_max==="number"&&item.target_value_max>0 ? item.target_value_max : null
+        : null;
+      const known=speed!==null&&Number.isFinite(speed)&&speed>0;
+      return {durationSec:known?Math.round(value/speed):0,distanceMeters:value,durationComplete:known};
     }
-      if (item.type === "step") {
-      const value = typeof item.step_duration_value === "number" && Number.isFinite(item.step_duration_value)
-        ? item.step_duration_value
-        : 0;
-      if (item.step_duration_type === "duration") return { durationSec: Math.max(0, Math.round(value)), distanceMeters: 0 };
-      if (item.step_duration_type === "distance") {
-        const speed = typeof item.target_value === "number" && item.target_value > 0
-          ? item.target_value
-          : typeof item.target_value_min === "number" && typeof item.target_value_max === "number"
-            ? (item.target_value_min + item.target_value_max) / 2
-            : typeof item.target_value_max === "number" && item.target_value_max > 0
-              ? item.target_value_max
-              : null;
-        return {
-          durationSec: speed ? Math.round(value / speed) : 0,
-          distanceMeters: Math.max(0, value),
-        };
-      }
-    }
-    return { durationSec: 0, distanceMeters: 0 };
+    return {...empty(),durationComplete:false};
   };
   return visit(input);
 }
@@ -1755,9 +1745,7 @@ Deno.serve(async (req) => {
       };
       const rpeSession = isStartToRunSession(s);
       if (structured_workout) {
-        // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
-        // `structured_workout`, peu importe la source (override manuel, structure générée
-        // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
+        // Normalize only the compiled occurrence or the caller's explicit structured steps.
         // C'est ici qu'on applique la conversion des allures en m/s et le schéma API,
         // en préservant les distances, les répétitions et les récupérations prescrites.
         const normalized = normalizeStructuredWorkoutForNolio(
@@ -1773,7 +1761,7 @@ Deno.serve(async (req) => {
         // Recoveries come exclusively from the prescription; never add swimming pauses.
         const summary = summarizeStructuredWorkout(normalized);
 
-        if (summary.durationSec > 0) payload.duration = summary.durationSec;
+        if (summary.durationComplete && summary.durationSec > 0) payload.duration = summary.durationSec;
         // Strength (sport_id 20) : si tous les steps ont target_type="no_target",
         // Nolio affiche "empty_unit". On préfère ne PAS envoyer de structured_workout
         // et laisser la description texte gérer l'affichage.

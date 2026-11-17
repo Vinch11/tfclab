@@ -216,3 +216,16 @@ jobs:
               echo "::endgroup::"
             fi
           done
+
+  nolio-export-test:
+    name: Nolio export regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # Independent of the planner suite: its failure must not hide export regressions.
+      - name: Test current prescription through the Nolio serializer
+        working-directory: supabase/functions/nolio-send-plan
+        run: deno test -A --no-check --node-modules-dir=none
