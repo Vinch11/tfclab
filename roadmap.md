@@ -1,7 +1,8 @@
 # Roadmap
 
 ## Plans utilisables — corrections approuvées 17 novembre
-- [ ] Correction coach 20:59 : examiner un dépassement de trois séances selon les preuves et le profil (pas un relèvement automatique) ; préparer réellement Séville en février avant l’IM de juin, distinguer les allures des deux courses ; créer une fiche structurée adaptée si le catalogue ne couvre pas le besoin S30. Original et Nolio préservés.
+- [x] Corrections 21:12 : quatrième séance non remplacée automatiquement chez un confirmé, revue par domaines ; protections débutants/récupération conservées. Allure marathon B datée avant IM dans préparation et quotas ; trois fiches structurées documentées (marathon 3×8/60min, rappel 2×8/45min, vélo facile 60min), repères longs protégés contre rotation. Deux générateurs déployés avec succès ; 167 tests ciblés passent après reprise isolée du test lent. Original et Nolio inchangés.
+- [ ] Validation réelle restante : copie Emanuela connectée prévalidée 32 semaines, 7 familles, Bien entraînée, 3:1, Séville B 21/02 et IM 27/06 ; avertissements S1 charge inconnue et S30 plage catalogue encore affichés. Rejeu local S30 montre des plages admissibles, écart aperçu/local non résolu. Nouvelle génération et revue semaine/PDF non effectuées dans ce tour.
 - [x] Accord 18:41 : plafond de trois séances dures/semaine tous sports confondus partagé validation/réconciliation et prompts ; 52 tests passent, deux générateurs déployés, version alignée. Original et Nolio préservés.
 - [x] Volumes calculés depuis les séances, compétition séparée et identité des courses partagée écran/PDF.
 - [x] Corrections ciblées des mentions explicites d’allure IM ; nutrition vélo/course et absence de tolérance confirmée précisées avant génération.

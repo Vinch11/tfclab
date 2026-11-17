@@ -7,6 +7,7 @@
  * Pfitzinger ; affûtage Bosquet 2007 / Mujika), pas des valeurs d'essais.
  */
 import { normalizeRepairGoal } from "../../../supabase/functions/_shared/repairSportingEquivalence";
+import { datedRaceGoals, strictRaceDate, type RaceCalendarConfig } from "../../../supabase/functions/_shared/raceCalendarProtection";
 
 export type QuotaPhase = "base" | "build" | "specific" | "taper";
 type Range = [number, number];
@@ -19,7 +20,7 @@ export const SPECIFIC_PACE_QUOTAS: Record<string, Record<QuotaPhase, Range>> = {
   marathon:   { base: [15, 20],  build: [30, 60],  specific: [60, 120],  taper: [20, 30] },
   trail:      { base: [10, 20],  build: [20, 40],  specific: [90, 180],  taper: [15, 30] },
   half:       { base: [20, 30],  build: [40, 80],  specific: [60, 120],  taper: [20, 30] },
-  ironman:    { base: [30, 60],  build: [90, 150], specific: [150, 240], taper: [45, 60] },
+  ironman:    { base: [0, 60],   build: [90, 150], specific: [150, 240], taper: [45, 60] },
 };
 
 export const AMBITION_COEFFICIENT: Record<string, number> = {
@@ -53,6 +54,21 @@ export interface QuotaOptions {
   trainingLevel?: string | null;
   /** Coefficient forcé par le coach pour cet athlète (remplace l'ambition). */
   coachCoef?: number | null;
+  raceCalendar?: RaceCalendarConfig;
+}
+
+/** A secondary marathon needs preparation, not promotion to a second A peak. */
+export function weeklyPaceObjective(objective: string, week: number, calendar?: RaceCalendarConfig): string {
+  if (!calendar || quotaObjectiveKey(objective) !== "ironman") return objective;
+  const start = strictRaceDate(calendar.planStartDate);
+  if (start === undefined) return objective;
+  const monday = start - ((new Date(start).getUTCDay() + 6) % 7) * 86400000;
+  const weekStart = monday + (week + (calendar.globalWeekOffset ?? 0) - 1) * 604800000;
+  const next = datedRaceGoals(calendar).filter(g => {
+    const date = strictRaceDate(g.raceDate);
+    return date !== undefined && date >= weekStart;
+  }).sort((a, b) => (a.raceDate ?? "").localeCompare(b.raceDate ?? ""))[0];
+  return quotaObjectiveKey(next?.objective) === "marathon" ? "marathon" : objective;
 }
 
 export function quotaCoefficient(phase: QuotaPhase, ambition: string, opts: QuotaOptions = {}): number {
@@ -98,7 +114,7 @@ export function racePaceMinutes(text: string): number {
   return Math.round(total);
 }
 
-interface Week { weekNumber: number; phase: string; sessions: Array<{ title: string; details: string; isRest: boolean; durationMin?: number }> }
+interface Week { weekNumber: number; phase: string; cycleObjective?: string; sessions: Array<{ title: string; details: string; isRest: boolean; sport?: string; durationMin?: number }> }
 
 export function checkSpecificPaceQuotas(plan: { weeks: Week[] }, objective: string | null | undefined, ambition: string | null | undefined, opts: QuotaOptions = {}) {
   if (!quotaObjectiveKey(objective)) return [];
@@ -106,12 +122,15 @@ export function checkSpecificPaceQuotas(plan: { weeks: Week[] }, objective: stri
   for (const w of plan.weeks) {
     const phase = quotaPhase(w.phase);
     if (!phase) continue;
-    const weekly = w.sessions.reduce((a, s) => a + (s.isRest ? 0 : s.durationMin ?? 0), 0);
-    const range = expectedSpecificMinutes(objective!, phase, ambition || "competitor", weekly, opts);
+    const target = weeklyPaceObjective(w.cycleObjective || objective || "", w.weekNumber, opts.raceCalendar);
+    const eligible = w.sessions.filter(s => !s.isRest && !/strength|renfo|muscu/i.test(s.sport ?? "")
+      && (quotaObjectiveKey(target) !== "marathon" || !s.sport || /run|course|cap/i.test(s.sport)));
+    const weekly = eligible.reduce((a, s) => a + (s.durationMin ?? 0), 0);
+    const range = expectedSpecificMinutes(target, phase, ambition || "competitor", weekly, opts);
     if (!range) continue;
-    const done = w.sessions.reduce((a, s) => a + (s.isRest ? 0 : racePaceMinutes(`${s.title} ${s.details}`)), 0);
+    const done = eligible.reduce((a, s) => a + racePaceMinutes(`${s.title} ${s.details}`), 0);
     if (done < range[0]) issues.push({ rule: "specific_pace_quota_low", severity: "warning",
-      message: `S${w.weekNumber} (${phase}) : ${done} min à allure de course lisibles, attendu ${range[0]}–${range[1]} min.` });
+      message: `S${w.weekNumber} (${phase}, ${target}) : ${done} min à allure de course lisibles, attendu ${range[0]}–${range[1]} min.` });
     else if (done > range[1]) issues.push({ rule: "specific_pace_quota_high", severity: "warning",
       message: `S${w.weekNumber} (${phase}) : ${done} min à allure de course, au-delà de ${range[1]} min (ambition et volume).` });
   }

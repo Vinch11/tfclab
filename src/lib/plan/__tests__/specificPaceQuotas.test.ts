@@ -1,7 +1,23 @@
 import { describe, it, expect } from "vitest";
-import { expectedSpecificMinutes, checkSpecificPaceQuotas, racePaceMinutes } from "../specificPaceQuotas";
+import { expectedSpecificMinutes, checkSpecificPaceQuotas, racePaceMinutes, weeklyPaceObjective } from "../specificPaceQuotas";
 
 describe("quotas d'allure spécifique", () => {
+  it("Séville 21 février prime sur IM 27 juin sans devenir un pic A", () => {
+    const calendar = {planStartDate:"2026-11-16", objective:"IRONMAN", raceDate:"2027-06-27", raceGoals:[{objective:"Marathon",raceDate:"2027-02-21",priority:"B"}]};
+    expect(weeklyPaceObjective("IRONMAN", 1, calendar)).toBe("marathon");
+    expect(weeklyPaceObjective("IRONMAN", 14, calendar)).toBe("marathon");
+    expect(weeklyPaceObjective("IRONMAN", 18, calendar)).toBe("IRONMAN");
+    expect(calendar.raceGoals[0].priority).toBe("B");
+  });
+  it("allure IM facultative en base, sans supprimer l'allure marathon", () => {
+    expect(expectedSpecificMinutes("IRONMAN", "base", "competitor")).toEqual([0,60]);
+    expect(expectedSpecificMinutes("Marathon", "base", "competitor")).toEqual([15,20]);
+  });
+  it("le cycle marathon est vérifié comme marathon et le vélo ne remplit pas son quota", () => {
+    const w = {weekNumber:1,phase:"base",cycleObjective:"Marathon",sessions:[{title:"Vélo",details:"3×10min allure course",sport:"bike",isRest:false,durationMin:60},{title:"Course",details:"15min à allure marathon",sport:"run",isRest:false,durationMin:100}]};
+    expect(checkSpecificPaceQuotas({weeks:[w]}, "IRONMAN", "competitor")).toEqual([]);
+    expect(checkSpecificPaceQuotas({weeks:[{...w,sessions:w.sessions.slice(0,1)}]}, "IRONMAN", "competitor")[0]?.rule).toBe("specific_pace_quota_low");
+  });
   it("10 km compétiteur, phase spécifique : 25–40 min", () => {
     expect(expectedSpecificMinutes("10 km", "specific", "competitor")).toEqual([25, 40]);
   });

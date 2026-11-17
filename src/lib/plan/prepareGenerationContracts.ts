@@ -21,6 +21,7 @@ import { snapshotSLFloorAudit, traceSLFloorConsumer } from "./slFloorAudit";
 import type { WeekQuotaEntry } from "./validateWeeklyQuotas";
 import {marathonReentryBudget} from './marathonReentryBudget';
 import {planNutritionPrompt} from './planNutritionReferences';
+import { weeklyPaceObjective, expectedSpecificMinutes, quotaPhase } from './specificPaceQuotas';
 export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfig:PlanConfig,options:{historicalUsage?:Map<string,number>;rotationSeed?:number}={}) {
  const totalWeeks=planConfig.weeksAvailable??0;
  if(!Number.isInteger(totalWeeks)||totalWeeks<=0)throw new Error("PREVALIDATION_INVALID_DURATION");
@@ -204,15 +205,40 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           }
         : null;
 
+      // Secondary marathon preparation shares the existing tri calendar and
+      // short B taper; it is not another A peak. Candidates pass the same
+      // catalogue level, phase, injury and permission filters.
+      const withMarathonPreparation = (entries: ReturnType<typeof buildWorkoutCatalog>, start: number, end: number) => {
+        // Rotation must not remove the existing dedicated J−14 ride required
+        // by the layout. Re-evaluate, do not bypass catalogue eligibility.
+        if (/ironman/i.test(catalogObjective) && Array.from({length:Math.max(0,end-start+1)},(_,i)=>start+i).some(w=>phaseCalendar?.[w]==='taper')) {
+          const reminders=buildWorkoutCatalog(catalogObjective,start,end,totalWeeks,{
+            phaseOverride:['taper'],strictPhaseFilter:true,maxItems:130,beginnerIntensitySignal,
+            prohibitions:planConfig.prohibitions,injuryRisk:toInjuryRiskCatalogOption(planConfig.injuryRisk),
+          }).filter(e=>['A_IM_TAPER_BIKE_ENDURANCE_120','A_IM_TAPER_RUN_ENDURANCE_60','A_IM_TAPER_BIKE_EASY_60'].includes(e.id));
+          entries=[...entries,...reminders.filter(e=>!entries.some(original=>original.id===e.id))];
+        }
+        const preparesMarathon = Array.from({length: end-start+1}, (_,i) => start+i)
+          .some(w => weeklyPaceObjective(catalogObjective, w, planConfig) === 'marathon' && !/marathon/i.test(catalogObjective));
+        if (!preparesMarathon) return entries;
+        const extra = buildWorkoutCatalog('Marathon', start, end, totalWeeks, {
+          ...phaseOptions(start+weekOffset,end+weekOffset), strictPhaseFilter:true, maxItems:30,
+          sportFilter:['course'], limiters:limiterKeys, prohibitions:planConfig.prohibitions,
+          beginnerIntensitySignal, injuryRisk:toInjuryRiskCatalogOption(planConfig.injuryRisk),
+          historicalUsage, rotationSeed,
+        });
+        return [...entries, ...extra.filter(e => e.id.startsWith('B_RUN_MARATHON_') && !entries.some(original => original.id === e.id))];
+      };
+
       for (let i = 0; i < phaseRanges.length; i++) {
         const pr = phaseRanges[i];
-        const catalog = buildWorkoutCatalog(
+        const catalog = withMarathonPreparation(buildWorkoutCatalog(
           catalogObjective,
           pr.start,
           pr.end,
           effTotalWeeks,
           { ...phaseOptions(pr.start, pr.end), strictPhaseFilter: true, maxItems: 80, chunkIndex: i, rotationIds: usedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
-        );
+        ), Math.max(1, pr.start-weekOffset), Math.min(totalWeeks,pr.end-weekOffset));
         phaseCatalogs[pr.phase] = serializeCatalogForPrompt(catalog);
         phaseRepairCatalogs[pr.phase] = catalog.map(entry => entry.repairMetadata);
         // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -266,13 +292,13 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           // Cap relevé à 130 (v2 coverage-first) : garantit un socle par
           // (sport × famille d'intention) avant tri par score. Marge large
           // sous la limite de contexte edge (~33k chars ≪ 64k tokens).
-          const chunkCatalog = buildWorkoutCatalog(
+          const chunkCatalog = withMarathonPreparation(buildWorkoutCatalog(
             catalogObjective,
             cStart,
             cEnd,
             totalWeeks,
             { ...phaseOptions(cStart + weekOffset, cEnd + weekOffset), strictPhaseFilter: true, maxItems: 130, chunkIndex: ci, rotationIds: chunkUsedIds, limiters: limiterKeys, prohibitions: planConfig.prohibitions, sportFilter: catalogSportFilter, excludeIdPatterns, excludeTags, historicalUsage, rotationSeed, injuryRisk: toInjuryRiskCatalogOption(planConfig.injuryRisk), maintenanceSports, beginnerIntensitySignal, ...regenGapPhaseOptions }
-          );
+          ), cStart, cEnd);
           chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));
           chunkRepairCatalogs.push(chunkCatalog.map(entry => entry.repairMetadata));
           // ─── SONDE DIAGNOSTIC TRAIL (à retirer après analyse) ───
@@ -518,7 +544,13 @@ export function prepareGenerationContracts(athleteData:PlanAthleteData,planConfi
           }
 
           weeklyQuotas[w] = { ...entry, quota: protectedQuota, phase, expectedPhase:planConfig.windowWeekPhases?.[w], floors: individualized.floors, layout,
-            raceProtection: raceProtectionPrompt(planConfig,w),
+            raceProtection: [raceProtectionPrompt(planConfig,w), (() => {
+              const target=weeklyPaceObjective(catalogObjective,w,planConfig);
+              const pacePhase=quotaPhase(phase) ?? 'base';
+              const range=expectedSpecificMinutes(target,pacePhase,ambitionForQuota);
+              if(target==='marathon' && !/marathon/i.test(catalogObjective)) return `PRÉPARATION MARATHON B : priorité course jusqu’au marathon déclaré, allure marathon_pace sous MLSS, repère ${range?.join('–') ?? ''} min/semaine selon budget course et récupération, jamais obligation si incompatible. Conserver vélo/natation en entretien, pas de pic A ni supplément VO₂max pour chaque sport. L’allure marathon sec n’est pas l’allure Ironman. Utiliser les fiches marathon du catalogue, sans les convertir en allure IM.`;
+              return target.toLowerCase().includes('ironman') && pacePhase==='base' ? 'BASE IRONMAN : allure IM facultative, pas de minimum spécifique obligatoire ; développer endurance et chantiers prioritaires.' : '';
+            })()].filter(Boolean).join('\n'),
             terrainAvailability: planConfig.terrainAvailability,
             volumeBudget: marathonReentryBudget(planConfig,w,
               raceWeek=>Math.max(0,...[2,3,4].map(distance=>buildCoachVolumeBudget(planConfig.volumeRamp,raceWeek-distance,'load',planConfig.weeklyHoursSource,{totalWeeks:effTotalWeeks,objective:planConfig.catalogObjective || planConfig.objective})?.targetMinutes ?? 0)) || undefined,

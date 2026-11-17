@@ -1236,6 +1236,14 @@ export function demandingSessionCap(activeCount: number): number {
   return Math.min(3, Math.max(1, Math.floor(activeCount / 2)));
 }
 
+/** Content-based distinction, not a lactate measurement or tolerance certificate. */
+export function demandingSessionDomain(session: ParsedSession): "severe" | "controlled" | "unknown" {
+  const text = `${session.title} ${session.details}`;
+  if (session.zones?.some(z => /^Z[56]/i.test(z)) || /VO[₂2]|\bVMA\b|\bPMA\b|sprint.*max/i.test(text)) return "severe";
+  if (/sous[- ]seuil|sub[- ]threshold|allure\s+marathon/i.test(text)) return "controlled";
+  return "unknown";
+}
+
 /**
  * Dernière correction ciblée (consigne coach explicite, contre-vérification
  * Codex sur b691980), point B — INTENSITÉ : "STRUCTURE AMBITION (non
@@ -1316,7 +1324,9 @@ function validateDemandingSessionAccumulation(
         rule: "demanding_session_accumulation",
         severity: "warning",
         week: week.weekNumber,
-        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s), tous sports confondus ("${demanding.map((s) => s.title).join('", "')}") — plafond ${cap}, pas un quota obligatoire${beginner ? ` ; niveau ${trainingLevelSignal?.trainingLevel}` : ""}.`,
+        message: beginner
+          ? `S${week.weekNumber}: ${demanding.length} séances exigeantes — plafond débutant ${cap} ; niveau ${trainingLevelSignal?.trainingLevel}.`
+          : `S${week.weekNumber}: ${demanding.length} séances exigeantes, dont ${demanding.filter(s => demandingSessionDomain(s) === "severe").length} au domaine sévère et ${demanding.filter(s => demandingSessionDomain(s) === "controlled").length} à allure marathon/sous-seuil. Plus de trois est autorisé, mais la dose et la récupération sont à revoir ; les pratiques élites sous contrôle lactate ne certifient pas cette semaine.`,
       });
     } else {
       compliant++;

@@ -1799,7 +1799,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     // Anti-contradiction: never mix rest + real session on same day
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
-  lines.push("- PLAFOND COACH : au plus 3 séances dures par semaine, tous sports confondus, compétition et renforcement exigeant compris. Compter les blocs seuil/VO₂max réellement prescrits, pas la zone maximale d’un bref rappel. Un brick exigeant compte une séance, sans ignorer sa charge cumulée. Répartir ce budget entre les priorités ; aucune séance supplémentaire par chantier. Les limites plus prudentes de récupération, reprise marathon, affûtage et débutant priment. Ce plafond est un choix coach, pas une dose optimale universelle.");
+  lines.push("- DOSE INTENSIVE : plus de trois séances de qualité est autorisé, jamais obligatoire. Distinguer allure marathon (sous MLSS), sous-seuil, MLSS et VO₂max ; ne pas traiter Z4 comme un stimulus unique. Casado et al. 2023 (10.3390/ijerph20053782) décrit 3–4 séances guidées par lactate + une VO₂max chez des coureurs élites à 150–180 km/semaine, pas une autorisation générale de 4–5 séances VO₂max. Ne pas imiter le double seuil sans prérequis vérifiés. Compter les blocs prescrits et leur durée, compétition et renforcement exigeant compris. Les créneaux clés sont des priorités, pas chacun une obligation d'intensité. Récupération, reprise marathon, affûtage, niveau débutant et autorisations catalogue priment ; aucune séance supplémentaire par chantier.");
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
   if (derived) {
     const complexRule = derived.complexiteSeances === "simple"
@@ -1807,7 +1807,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       : derived.complexiteSeances === "intermediaire"
         ? "AUTORISÉ : progressions classiques, tempo, seuils simples, intervalles VMA. INTERDIT : doubles seuils, train-low avancé, plyo pliométrique avancée."
         : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
-    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${Math.min(3, derived.qualitesParSemaine)} qualité(s)/semaine au maximum (jamais un quota obligatoire) · complexité "${derived.complexiteSeances}".`);
+    lines.push(`- **🧩 STRUCTURE AMBITION :** repère ${derived.qualitesParSemaine} qualité(s)/semaine, pas un plafond universel ni un quota obligatoire ; ajuster la dose au domaine et à la récupération · complexité "${derived.complexiteSeances}".`);
     lines.push(`  → ${complexRule}`);
     // P0-2 (audit Codex, oct. 2026, consigne coach explicite) : ce nombre est
     // désormais la SEULE source du comptage de séances d'intensité (voir

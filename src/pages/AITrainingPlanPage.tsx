@@ -1861,7 +1861,7 @@ export default function AITrainingPlanPage() {
     // Plans enregistrés : quotas d'allure de course revérifiés à l'ouverture.
     plan.finalValidationIssues.push(...checkSpecificPaceQuotas(plan, objective || config.objective || "",
       (config as { ambitionMeta?: { effective?: string } }).ambitionMeta?.effective ?? (config as { ambition?: string }).ambition ?? "",
-      { trainingLevel: (config as { ambitionMeta?: { trainingLevel?: string } }).ambitionMeta?.trainingLevel ?? null, coachCoef: getSpecificPaceOverride(currentAthlete?.id) }));
+      { trainingLevel: (config as { ambitionMeta?: { trainingLevel?: string } }).ambitionMeta?.trainingLevel ?? null, coachCoef: getSpecificPaceOverride(currentAthlete?.id), raceCalendar: config }));
 
     // Mise à niveau des plans ANCIENS : affûtage minimal déterministe.
     // Idempotent — no-op si le plan respecte déjà la règle (cas normal après

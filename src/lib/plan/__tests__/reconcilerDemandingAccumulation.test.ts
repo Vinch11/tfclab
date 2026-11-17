@@ -63,13 +63,13 @@ function makeThreeQualChunk(): PlanChunk {
 }
 
 describe("enforceDemandingAccumulation — garde-fou proactif accumulation (débutant confirmé uniquement)", () => {
-  it("réduit quatre séances dures à trois sans supprimer de séance ni exiger un niveau", () => {
+  it("préserve quatre séances chez un confirmé, sans remplacement imposé par le seul nombre", () => {
     const chunk = makeThreeQualChunk();
     chunk.weeks[0].sessions.push(qualSession('dimanche'));
     runReconciler([chunk], {}, 2, undefined, {globalTotalWeeks: 12, beginnerIntensitySignal: null});
     expect(chunk.weeks[0].sessions).toHaveLength(4);
-    expect(chunk.weeks[0].sessions.filter(s => s.catalogId === 'VMA_PISTE')).toHaveLength(3);
-    expect(chunk.weeks[0].sessions.filter(s => s.catalogId === 'EF_LONGUE')).toHaveLength(1);
+    expect(chunk.weeks[0].sessions.filter(s => s.catalogId === 'VMA_PISTE')).toHaveLength(4);
+    expect(chunk.weeks[0].sessions.filter(s => s.catalogId === 'EF_LONGUE')).toHaveLength(0);
   });
   it("3 séances 'vo2' / 3 actives, niveau untrained + source manual (fiable) → downgrade l'excédent (seuil=1), jamais de suppression", () => {
     const chunk = makeThreeQualChunk();
