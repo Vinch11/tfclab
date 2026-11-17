@@ -12,47 +12,71 @@ import { PhysiologicalProfileCurves } from './PhysiologicalProfileCurves';
 import { TestMeasurementCurves } from './TestMeasurementCurves';
 import { BEVEL_CHART_COLORS as c, bevelAxisProps, bevelGridProps } from './bevelChartTheme';
 import { labCurveSource } from '@/lib/lab/labProfile';
+import { readLabPeriodRecords } from '@/lib/lab/periodRecords';
+import { Input } from '@/components/ui/input';
 
 interface Props { input: CoachingCompassInput; snapshot: DbSnapshot; snapshots: DbSnapshot[]; tests: DbTest[]; selectedSport?: 'bike' | 'run' }
 
 /** Read-only athlete evidence shared by Dashboard and Lab, never by Compass or plans. */
 export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selectedSport }: Props) {
   const [months, setMonths] = useState(24);
+  const [dates, setDates] = useState<{ from: string; to: string } | null>(null);
+  const [nolioAthlete, setNolioAthlete] = useState('');
+  const [catalogue, setCatalogue] = useState<{ id: string; name: string; has_api_access: boolean }[]>([]);
+  const [catalogueError, setCatalogueError] = useState(false);
+  const from = dates?.from ?? monthsBefore(snapshot.date, months);
+  const to = dates?.to ?? snapshot.date;
+  const call = async (body: Record<string, string>) => {
+    const { data, error } = await supabase.functions.invoke('nolio-v2-oauth', { body });
+    if (error) throw error;
+    return data;
+  };
+  useEffect(() => {
+    let alive = true;
+    setNolioAthlete('');
+    setCatalogue([]);
+    setCatalogueError(false);
+    setDates(null);
+    call({ action: 'catalogues' }).then(data => {
+      if (!data.complete) throw new Error('Catalogue incomplet');
+      if (alive) setCatalogue(data.athletes);
+    }).catch(() => { if (alive) setCatalogueError(true); });
+    return () => { alive = false; };
+  }, [snapshot.athlete_id]);
   const [selection, setSelection] = useState<'bike' | 'run'>('bike');
   const sport = selectedSport ?? (input.sportFocus === 'run' ? 'run' : input.sportFocus === 'triathlon' ? selection : 'bike');
   const [read, setRead] = useState<{ athlete: string; rows: NolioRecordRow[]; loading: boolean; error: boolean }>({ athlete: '', rows: [], loading: true, error: false });
   useEffect(() => {
     let alive = true;
-    setRead({ athlete: snapshot.athlete_id, rows: [], loading: true, error: false });
-    // Fetch all pages: a partial history must never masquerade as the period's best efforts.
+    setRead({ athlete: snapshot.athlete_id, rows: [], loading: !!nolioAthlete, error: false });
+    if (!nolioAthlete || !from || !to || from > to) return;
     const load = async () => {
-      const rows: NolioRecordRow[] = [];
-      for (let offset = 0; ; offset += 500) {
-        const { data, error } = await supabase.from('nolio_records').select('cat,record_type,sport_id,item_seconds,value,date_recorded').eq('athlete_id', snapshot.athlete_id).order('id').range(offset, offset + 499);
-        if (error) throw error;
-        rows.push(...(data ?? []) as NolioRecordRow[]);
-        if (!data || data.length < 500) break;
-      }
+      const rows = await readLabPeriodRecords(nolioAthlete, sport, from, to, call);
       if (alive) setRead({ athlete: snapshot.athlete_id, rows, loading: false, error: false });
     };
     load().catch(() => { if (alive) setRead({ athlete: snapshot.athlete_id, rows: [], loading: false, error: true }); });
     return () => { alive = false; };
-  }, [snapshot.athlete_id]);
-  const from = monthsBefore(snapshot.date, months);
-  const periodSnapshots = useMemo(() => snapshots.filter(s => s.athlete_id === snapshot.athlete_id && s.date >= from && s.date <= snapshot.date), [snapshots, snapshot, from]);
-  const periodTests = useMemo(() => tests.filter(t => t.athlete_id === snapshot.athlete_id && t.date.slice(0, 10) >= from && t.date.slice(0, 10) <= snapshot.date), [tests, snapshot, from]);
-  const env = useMemo(() => nolioEnvelope(read.athlete === snapshot.athlete_id ? read.rows : [], sport === 'bike' ? 'ppr' : 'par', sport === 'bike' ? NOLIO_BIKE_SPORTS : NOLIO_RUN_SPORTS, snapshot.date, months), [read, snapshot, sport, months]);
+  }, [snapshot.athlete_id, nolioAthlete, sport, from, to]);
+  const periodSnapshots = useMemo(() => snapshots.filter(s => s.athlete_id === snapshot.athlete_id && s.date >= from && s.date <= to), [snapshots, snapshot, from, to]);
+  const periodTests = useMemo(() => tests.filter(t => t.athlete_id === snapshot.athlete_id && t.date.slice(0, 10) >= from && t.date.slice(0, 10) <= to), [tests, snapshot, from, to]);
+  const env = useMemo(() => nolioEnvelope(read.athlete === snapshot.athlete_id ? read.rows : [], sport === 'bike' ? 'ppr' : 'par', sport === 'bike' ? NOLIO_BIKE_SPORTS : NOLIO_RUN_SPORTS, to, months, from), [read, snapshot, sport, months, from, to]);
   const bike = useMemo(() => sport === 'bike' ? fitBikeOnNolio(input, env) : null, [input, env, sport]);
   const run = useMemo(() => sport === 'run' ? fitRunOnNolio(env) : null, [env, sport]);
-  const curve = labCurveSource(input, sport, bike, snapshot.date >= from);
+  const curve = labCurveSource(input, sport, bike, snapshot.date >= from && snapshot.date <= to);
   const loading = read.loading || read.athlete !== snapshot.athlete_id;
   const points = env.map(p => ({ seconds: p.durationSec, observed: p.value * (sport === 'run' ? 3.6 : 1), date: p.date, fitted: sport === 'run' && run && p.durationSec >= 180 && p.durationSec <= 1200 ? run.csKmh + run.dPrimeM / p.durationSec * 3.6 : bike?.points.find(v => v.durationSec === p.durationSec)?.fitted ?? null }));
   return <section className="space-y-6" aria-label="Graphiques personnels TFCL">
-    <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground">Période : {from} → {snapshot.date}</span><Select value={String(months)} onValueChange={v => setMonths(Number(v))}><SelectTrigger aria-label="Période des données" className="w-40 min-h-11"><SelectValue /></SelectTrigger><SelectContent>{[6, 12, 24].map(m => <SelectItem key={m} value={String(m)}>{m} mois</SelectItem>)}</SelectContent></Select>
+    <div className="flex flex-wrap items-center gap-3"><span className="text-sm text-muted-foreground">Période : {from} → {to}</span><Select value={dates ? 'custom' : String(months)} onValueChange={v => { if (v === 'custom') setDates({ from, to }); else { setMonths(Number(v)); setDates(null); } }}><SelectTrigger aria-label="Période des données" className="w-40 min-h-11"><SelectValue /></SelectTrigger><SelectContent>{[6, 12, 24].map(m => <SelectItem key={m} value={String(m)}>{m} mois</SelectItem>)}<SelectItem value="custom">Dates au choix</SelectItem></SelectContent></Select>
       {input.sportFocus === 'triathlon' && !selectedSport && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList><TabsTrigger value="bike">Vélo</TabsTrigger><TabsTrigger value="run">Course à pied</TabsTrigger></TabsList></Tabs>}
     </div>
+    <div className="flex flex-wrap items-end gap-3">
+      <label className="text-sm">Du<Input aria-label="Début de période des graphiques" type="date" value={from} max={to} onChange={e => setDates({ from: e.target.value, to })} /></label>
+      <label className="text-sm">Au<Input aria-label="Fin de période des graphiques" type="date" value={to} min={from} max={new Date().toISOString().slice(0, 10)} onChange={e => setDates({ from, to: e.target.value })} /></label>
+      <Select value={nolioAthlete} onValueChange={setNolioAthlete}><SelectTrigger aria-label="Athlète Nolio des graphiques" className="w-64 min-h-11"><SelectValue placeholder="Choisir l’athlète Nolio" /></SelectTrigger><SelectContent>{catalogue.filter(a => a.has_api_access).map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select>
+    </div>
+    {catalogueError && <p role="alert" className="text-sm text-destructive">Connexion Nolio indisponible : aucun record absolu utilisé à la place.</p>}
     {read.error && <p role="alert" className="text-sm text-destructive">Lecture Nolio incomplète : courbes Nolio suspendues.</p>}
-    <LabNolioCalibration sport={sport} bike={bike} run={run} checks={[]} loading={loading} recordCount={env.length} windowMonths={months} range={`${from} → ${snapshot.date}`} />
+    <LabNolioCalibration sport={sport} bike={bike} run={run} checks={[]} loading={loading} recordCount={env.length} windowMonths={dates ? 0 : months} range={`${from} → ${to}`} />
     <section className="border-y border-border py-5 space-y-3"><h3 className="text-xl font-semibold">{sport === 'bike' ? 'Puissance' : 'Vitesse'}–durée · records Nolio</h3>
       {loading ? <p className="text-sm text-muted-foreground">Lecture des records…</p> : !points.length ? <p className="text-sm text-muted-foreground">Aucun record Nolio daté sur cette période. Les résultats enregistrés dans le bilan restent disponibles ci-dessous.</p> : <><div className="h-64"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={points} margin={{ top: 10, right: 15, bottom: 10, left: 0 }}><CartesianGrid {...bevelGridProps} /><XAxis dataKey="seconds" type="number" scale="log" domain={['dataMin', 'dataMax']} tickFormatter={s => `${Number(s) < 60 ? s + ' s' : Math.round(Number(s) / 60) + ' min'}`} {...bevelAxisProps} /><YAxis width={56} {...bevelAxisProps} domain={['auto', 'auto']} /><Tooltip labelFormatter={s => `${s} s`} formatter={(v: number, n: string) => [`${v.toFixed(1)} ${sport === 'bike' ? 'W' : 'km/h'}`, n]} /><Scatter dataKey="observed" name="Record Nolio" fill={c.amber} isAnimationActive={false} /><Line dataKey="fitted" name="Courbe TFCL personnalisée" stroke={c.periwinkle} dot={false} connectNulls={false} isAnimationActive={false} /></ComposedChart></ResponsiveContainer></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="text-left text-muted-foreground"><th>Durée</th><th>Record</th><th>Date Nolio</th></tr></thead><tbody>{points.map(p => <tr key={p.seconds} className="border-t border-border"><td className="py-2">{p.seconds} s</td><td>{p.observed.toFixed(1)} {sport === 'bike' ? 'W' : 'km/h'}</td><td>{p.date}</td></tr>)}</tbody></table></div></>}
     </section>

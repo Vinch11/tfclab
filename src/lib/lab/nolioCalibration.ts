@@ -12,9 +12,9 @@ export interface EnvelopePoint { durationSec: number; value: number; date: strin
 const FIT_MIN_SEC = 30, FIT_MAX_SEC = 1200;
 export const monthsBefore = (d: string, m: number) => { const x = new Date(d.slice(0, 10) + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() - m); return x.toISOString().slice(0, 10); };
 
-/** Best record per duration for one sport family, made monotone (a longer effort can't exceed a shorter best). */
-export function nolioEnvelope(rows: NolioRecordRow[], cat: 'ppr' | 'par' | 'phrr', sports: number[] | null, refDate: string, windowMonths = 24): EnvelopePoint[] {
-  const from = monthsBefore(refDate, windowMonths);
+/** Best observed record per duration within both bounds, without altering observed values. */
+export function nolioEnvelope(rows: NolioRecordRow[], cat: 'ppr' | 'par' | 'phrr', sports: number[] | null, refDate: string, windowMonths = 24, startDate?: string): EnvelopePoint[] {
+  const from = startDate ?? monthsBefore(refDate, windowMonths);
   const best = new Map<number, EnvelopePoint>();
   for (const r of rows) {
     if (r.cat !== cat || r.record_type !== 'time' || (sports && !sports.includes(r.sport_id))) continue;

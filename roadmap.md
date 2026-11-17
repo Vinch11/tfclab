@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Records Dashboard/100%lab : lecture directe Nolio v2 des meilleurs efforts de la période choisie, dates libres, chaque variante active interrogée ; aucun record absolu de secours. Emanuela 01/06–12/11 : 34 efforts vélo, 26 course, téléphone sans débordement ; neuf tests passent et deux générateurs déployés avec succès. Compass et bilans inchangés.
+
 - [x] Vitesse critique : fiche 3/7/12 min, records course Nolio stockés sur période, confirmation et sauvegarde/relecture par bilan ; propositions existantes réservées aux valeurs récentes confirmées et acceptées une par une. Parcours connecté sur athlète temporaire supprimé : 14,4 km/h et D′ 150 m, rechargement et vélo préservé, téléphone sans débordement ; 34 tests. Envoi des séances Nolio et récupération automatique des tours restent dans le chantier d’évaluation ci-dessous ; aucune génération réelle de plan vérifiée ici.
 
 - [x] Évaluation TFCL lot 1 : contrat des résultats, neuf Days vélo/course en aperçu structuré, parcours VC 3/7/12 min daté, bilan de référence canonique et TTE course séparé ; Emanuela connectée ordinateur/téléphone vérifiée. Détails : docs/assessment-results-contract-2026-11-17.md.
