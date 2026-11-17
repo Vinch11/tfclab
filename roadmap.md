@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Dashboard Staff/Profil et 100%lab : projection commune sur records Nolio datés, période 6/12/24 mois, historiques/tests filtrés, pas de courbe métabolique de secours ni points lactate/O₂ inventés ; Emanuela connectée vélo/course/téléphone et Dashboard vérifiés, 34 tests passent, deux générateurs synchronisés/déployés et relus. Compass et données inchangés.
+- [ ] Règle globale des graphiques personnels : blocs métaboliques indépendants du Dashboard, carte Analyse Nolio, import CSV, autres pages et rapports à migrer/auditer ; analyse séance par séance FC/dérive non réalisée, lecture actuelle sans stream cardio ; Vince non vérifié. Inventaire et limites : docs/athlete-evidence-graphs-2026-11-17.md.
+
 - [x] Version sweep 17/11 : aperçu et deux générateurs compatibles ; parcours IA, adaptations, QA, exports, DET et tâches lus. Déclencheurs CI élargis aux sources réellement empreintées pour détecter les déclarations oubliées. Limites et inventaire : docs/release-compatibility-sweep-2026-11-17.md ; aucune génération, écriture de plan, export ou publication.
 
 - [x] Académie masquée et contenu conservé ; 100%lab par athlète avec oxydation, énergie, oxygène, lactate vélo, historiques, zones, puissance-durée et tests, pédagogie et inconnues explicites. Emanuela connectée vérifiée ordinateur/téléphone, sélection course/vélo et redirection Académie ; Compass et plans inchangés. Modèle lactate course et courbes métaboliques natation non disponibles, pas d’équivalence INSCYD revendiquée.

@@ -14,9 +14,13 @@ describe('100%lab Nolio calibration', () => {
     expect(env.find(p => p.durationSec === 30)?.value).toBe(322);
     expect(env.find(p => p.durationSec === 60)?.value).toBe(292);
   });
-  it('makes the envelope monotone', () => {
+  it('preserves observed values rather than inventing a shorter record', () => {
     const env = nolioEnvelope([row('ppr', 18, 600, 200), row('ppr', 18, 900, 230)], 'ppr', [18], '2026-11-12');
-    expect(env.map(p => p.value)).toEqual([230, 230]);
+    expect(env.map(p => p.value)).toEqual([200, 230]);
+  });
+  it('uses only dated records inside the chosen period including its end', () => {
+    const source = [row('ppr', 18, 30, 322, '2026-06-01'), row('ppr', 18, 60, 500, '2026-12-01'), { ...row('ppr', 18, 120, 700), date_recorded: null }, row('ppr', 18, 300, 245, '2026-11-12')];
+    expect(nolioEnvelope(source, 'ppr', [18], '2026-11-12', 6).map(p => p.value)).toEqual([322, 245]);
   });
   it('fits VO2max within ±15 % of the bilan and reproduces records within 12 %', () => {
     const fit = fitBikeOnNolio(input, nolioEnvelope(rows, 'ppr', [14, 18], '2026-11-12'))!;

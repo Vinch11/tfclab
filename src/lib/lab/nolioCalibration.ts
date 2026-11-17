@@ -10,7 +10,7 @@ export interface NolioRecordRow { cat: string; record_type: string; sport_id: nu
 export interface EnvelopePoint { durationSec: number; value: number; date: string | null }
 
 const FIT_MIN_SEC = 30, FIT_MAX_SEC = 1200;
-const monthsBefore = (d: string, m: number) => { const x = new Date(d + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() - m); return x.toISOString().slice(0, 10); };
+export const monthsBefore = (d: string, m: number) => { const x = new Date(d.slice(0, 10) + 'T00:00:00Z'); x.setUTCMonth(x.getUTCMonth() - m); return x.toISOString().slice(0, 10); };
 
 /** Best record per duration for one sport family, made monotone (a longer effort can't exceed a shorter best). */
 export function nolioEnvelope(rows: NolioRecordRow[], cat: 'ppr' | 'par' | 'phrr', sports: number[] | null, refDate: string, windowMonths = 24): EnvelopePoint[] {
@@ -18,13 +18,13 @@ export function nolioEnvelope(rows: NolioRecordRow[], cat: 'ppr' | 'par' | 'phrr
   const best = new Map<number, EnvelopePoint>();
   for (const r of rows) {
     if (r.cat !== cat || r.record_type !== 'time' || (sports && !sports.includes(r.sport_id))) continue;
-    if (!positive(r.value) || !positive(r.item_seconds) || (r.date_recorded && r.date_recorded < from)) continue;
+    const date = r.date_recorded?.slice(0, 10);
+    if (!positive(r.value) || !positive(r.item_seconds) || !date || date < from || date > refDate.slice(0, 10)) continue;
     const cur = best.get(r.item_seconds);
-    if (!cur || r.value > cur.value) best.set(r.item_seconds, { durationSec: r.item_seconds, value: r.value, date: r.date_recorded });
+    if (!cur || r.value > cur.value) best.set(r.item_seconds, { durationSec: r.item_seconds, value: r.value, date });
   }
   const pts = [...best.values()].sort((a, b) => a.durationSec - b.durationSec);
   if (cat === 'phrr') return pts;
-  for (let i = pts.length - 2; i >= 0; i--) if (pts[i].value < pts[i + 1].value) pts[i] = { ...pts[i + 1], durationSec: pts[i].durationSec };
   return pts;
 }
 
@@ -104,7 +104,7 @@ export function coherenceChecks(input: CoachingCompassInput, snapshot: { ftp?: n
     if (positive(bv)) { const g = pct(bike.vlamax, bv); out.push({ key: 'vla', sport: 'bike', label: 'VLamax vélo', bilan: bv.toFixed(2), nolio: bike.vlamax.toFixed(2), gapPct: g, level: level(g, 15, 30), note: 'VLamax qui reproduit vos sprints et efforts courts Nolio.' }); }
   }
   const p300 = at(300);
-  if (positive(snapshot.map5min_w) && positive(p300)) { const g = pct(snapshot.map5min_w, p300); out.push({ key: 'p300', sport: 'bike', label: 'Record 5 min', bilan: `${snapshot.map5min_w} W`, nolio: `${p300} W`, gapPct: g, level: level(g, 5, 10), note: 'Meilleur 5 min Nolio sur 24 mois comparé au bilan.' }); }
+  if (positive(snapshot.map5min_w) && positive(p300)) { const g = pct(snapshot.map5min_w, p300); out.push({ key: 'p300', sport: 'bike', label: 'Record 5 min', bilan: `${snapshot.map5min_w} W`, nolio: `${p300} W`, gapPct: g, level: level(g, 5, 10), note: 'Meilleur 5 min Nolio sur la période sélectionnée comparé au bilan.' }); }
   const p5 = at(5);
   if (positive(snapshot.pmax_5s) && positive(p5)) { const g = pct(snapshot.pmax_5s, p5); out.push({ key: 'p5', sport: 'bike', label: 'Record 5 s', bilan: `${snapshot.pmax_5s} W`, nolio: `${p5} W`, gapPct: g, level: level(g, 8, 15), note: 'Meilleur 5 s Nolio comparé au bilan.' }); }
   if (run && positive(snapshot.vma) && run.vma6Kmh) { const g = pct(snapshot.vma, run.vma6Kmh); out.push({ key: 'vma', sport: 'run', label: 'VMA ↔ meilleur 6 min', bilan: `${snapshot.vma} km/h`, nolio: `${run.vma6Kmh} km/h`, gapPct: g, level: level(g, 5, 10), note: 'Une VMA bien au-dessus du meilleur 6 min Nolio est à vérifier.' }); }

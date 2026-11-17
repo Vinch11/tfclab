@@ -17,7 +17,7 @@ const metrics: { key: ProfileCurveMetric; title: string; icon: typeof Wind; note
 const dateLabel = (date: string) => date.split('-').reverse().slice(0, 2).join('/');
 const format = (value: number) => new Intl.NumberFormat('fr-BE', { maximumFractionDigits: 2 }).format(value);
 
-export function PhysiologicalProfileCurves({ input, snapshots, snapshot, selectedSport, tfclLabels = false }: { input: CoachingCompassInput; snapshots: DbSnapshot[]; snapshot: DbSnapshot | null; selectedSport?: 'bike' | 'run'; tfclLabels?: boolean }) {
+export function PhysiologicalProfileCurves({ input, snapshots, snapshot, selectedSport, tfclLabels = false, hideExploratory = false }: { input: CoachingCompassInput; snapshots: DbSnapshot[]; snapshot: DbSnapshot | null; selectedSport?: 'bike' | 'run'; tfclLabels?: boolean; hideExploratory?: boolean }) {
   const [selection, setSelection] = useState<'bike' | 'run'>('bike');
   const tri = input.sportFocus === 'triathlon';
   const sport = selectedSport ?? (tri ? selection : input.sportFocus === 'run' ? 'run' : 'bike');
@@ -68,7 +68,7 @@ export function PhysiologicalProfileCurves({ input, snapshots, snapshot, selecte
         </article>;
       })}
     </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    {!hideExploratory && <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <section className="min-w-0 border-t border-border pt-5"><h4 className="font-semibold">Demande en oxygène et économie</h4><p className="text-xs text-muted-foreground mt-1">{tfclLabels ? 'Valeur TFCL' : 'Estimation'} · {sport === 'run' ? 'Coût dérivé de l’indice de course, relation linéaire sur terrain plat' : 'Rendement mécanique hypothétique de 23 %, pas une économie vélo mesurée'}</p>
         <div className="h-64 mt-4">{model.oxygen.length ? <ResponsiveContainer width="100%" height="100%"><ComposedChart data={model.oxygen} margin={{ top: 10, right: 12, bottom: 18, left: 0 }}><CartesianGrid {...bevelGridProps} /><XAxis dataKey="intensity" type="number" domain={['dataMin', 'dataMax']} {...bevelAxisProps} tickFormatter={v => sport === 'run' ? format(Number(v)) : String(Math.round(Number(v)))} label={{ value: unit, position: 'insideBottom', offset: -10 }} /><YAxis width={42} {...bevelAxisProps} /><Tooltip formatter={(v: number) => [`${format(v)} ml/kg/min`, 'O₂ estimé']} labelFormatter={v => `${format(Number(v))} ${unit}`} /><Line dataKey="oxygen" stroke={colors.periwinkle} strokeDasharray="5 5" dot={false} isAnimationActive={false} />{input.vo2max != null && <ReferenceLine y={input.vo2max} stroke={colors.muted} label={{ value: 'VO₂max enregistrée', position: 'insideTopRight', fontSize: 10 }} />}{model.reference != null && <ReferenceLine x={model.reference} stroke={colors.amber} strokeDasharray="3 3" />}{model.thresholds && <ReferenceLine x={model.thresholds.lt1Power} stroke={colors.sky} strokeDasharray="3 3" label={{ value: 'LT1 estimé', position: 'insideTopLeft', fontSize: 10 }} />}{model.thresholds && <ReferenceLine x={model.thresholds.lt2Power} stroke={colors.periwinkle} strokeDasharray="3 3" label={{ value: 'LT2 estimé', position: 'insideBottomLeft', fontSize: 10 }} />}</ComposedChart></ResponsiveContainer> : <div className="h-full flex items-center justify-center text-sm text-muted-foreground">Données insuffisantes · {sport === 'run' ? 'VO₂max, VMA et économie requis' : 'VO₂max, poids et FTP requis'}</div>}</div>
       </section>
@@ -77,6 +77,7 @@ export function PhysiologicalProfileCurves({ input, snapshots, snapshot, selecte
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">{model.zones.zones.map(z => <div key={z.id}><span className="font-semibold">{z.id} </span>{z.label}<p className="text-muted-foreground">{model.reference == null ? 'Données insuffisantes' : z.absolute}</p></div>)}</div>
       </section>
     </div>
+    }
     <details className="border-t border-border text-sm"><summary className="min-h-11 flex items-center cursor-pointer font-medium">Sources et limites scientifiques</summary><div className="space-y-2 text-muted-foreground pb-4"><p>Mesure documentée : provenance explicite, protocole et capteur renseignés. Une saisie, un record Nolio ou un niveau de fiabilité ne certifient pas une mesure.</p><p>Les points correspondent aux bilans enregistrés jusqu’au bilan de référence. Les changements de capteur, de protocole ou de méthode limitent la comparaison. La demande en oxygène est modélisée ; aucun point de calorimétrie ou prélèvement lactate n’est inventé.</p><p>Bilan : {snapshot?.date ?? 'non renseigné'}. Les domaines et zones suivent la doctrine TFCL ; FTP, CP et MLSS ne sont pas interchangeables. Équivalence scientifique INSCYD non démontrée.</p></div></details>
   </section>;
 }
