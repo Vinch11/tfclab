@@ -123,3 +123,9 @@ Deno.test("start to run: walking and jogging remain distinct in watch guidance",
   assertEquals(String(steps[1].name).includes("Marche · RPE 3/10"),true);
   assertEquals(String(steps[1].comment).includes("2min marche"),true);
 });
+
+Deno.test("recovery: a free rest never inherits the Main part's threshold zone",()=>{
+  const steps=buildStructuredFromParts([{part:"Main",text:"4x6min Z4 r=1min libre",zones:["Z4"]}],{fcMax:185});
+  assertEquals(steps.filter(s=>s.type==="step"&&s.intensity_type==="rest").map(s=>s.type==="step"?s.target_type:null),["no_target","no_target","no_target"]);
+  assertEquals(steps.filter(s=>s.type==="step"&&s.intensity_type==="active").every(s=>s.type==="step"&&s.target_type==="heartrate"),true);
+});

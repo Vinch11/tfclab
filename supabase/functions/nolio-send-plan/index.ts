@@ -1154,7 +1154,7 @@ export function buildStructuredFromParts(
         // Work and rest use their own text: the recovery zone must not widen the work target.
         const localZones=node.text.match(/\bZ[1-7][abc]?\b/gi)||[];
         let target=buildTargetFromText(node.text,refs);
-        if(target.target_type==="no_target" && localZones.length===0 && part.zones.length===1)
+        if(!node.recovery && target.target_type==="no_target" && localZones.length===0 && part.zones.length===1)
           target=buildTargetFromZones(part.zones,refs);
         if(target.target_type==="heartrate" && !refs.fcMax && !/\bbpm\b/i.test(node.text))
           target={target_type:"no_target"};
