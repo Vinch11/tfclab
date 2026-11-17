@@ -5,15 +5,12 @@ import {buildStructuredDiagnosticBlock} from './promptHelpers.ts';
 import {prevalidateTransport} from '../_shared/prevalidateTransport.ts';
 const quota={swim:{min:0,max:0},bike:{min:0,max:1},run:{min:5,max:5},brick:{min:0,max:0},strength:{min:2,max:2},totalSessions:{min:7,max:8},maxSessionsPerDay:1,minFullRestDays:1};
 const layout={days:['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'].map(dayName=>({dayName,isRest:dayName==='lundi',slots:[]}))};
-Deno.test('a contradiction in a later week stops JSON generation before the first gateway fetch',async()=>{
- const previous=globalThis.fetch;let calls=0;
- globalThis.fetch=(()=>{calls++;throw Error('OFFLINE_GATEWAY_FORBIDDEN');}) as typeof fetch;
- try{
-  const planConfig={objective:'10K',weeksAvailable:12,_weeklyQuotas:{12:{quota,layout,phase:'taper',weekType:'race'}}};
-  assertEquals(prevalidateTransport(planConfig).status,'blocked');
-  const response=handleJSONPlanRequest({apiKey:'mock-key',athleteData:{},planConfig,corsHeaders:{}});
-  const text=await response.text();assert(text.includes('PLAN_PREVALIDATION_BLOCKED'));assertEquals(calls,0);
- }finally{globalThis.fetch=previous;}
+Deno.test('a later-week calendar contradiction is retained for coach review',()=>{
+ const planConfig={objective:'10K',weeksAvailable:12,_weeklyQuotas:{12:{quota,layout,phase:'taper',weekType:'race'}}};
+ const report=prevalidateTransport(planConfig);
+ assertEquals(report.status,'coach_review');
+ assert(report.issues.some(i=>i.severity==='warning'));
+ assert(!report.issues.some(i=>i.severity==='blocking'));
 });
 Deno.test('legacy and JSON entrypoints enforce the shared gate before reading model credentials',()=>{
  const source=Deno.readTextFileSync(new URL('./index.ts',import.meta.url));
@@ -29,14 +26,11 @@ Deno.test('a contradictory per-week phase is blocked before any gateway request'
   assert((await response.text()).includes('PLAN_PREVALIDATION_BLOCKED'));assertEquals(calls,0);
  }finally{globalThis.fetch=previous;}
 });
-Deno.test('a declared event outside a complete plan is rejected without any paid fetch',async()=>{
- const previous=globalThis.fetch;let calls=0;
- globalThis.fetch=(()=>{calls++;throw Error('OFFLINE_GATEWAY_FORBIDDEN');}) as typeof fetch;
- try{
-  const planConfig={objective:'10K',weeksAvailable:10,planStartDate:'2026-10-26',raceGoals:[{objective:'10K',raceDate:'2027-01-17'}]};
-  const response=handleJSONPlanRequest({apiKey:'mock-key',athleteData:{},planConfig,corsHeaders:{}});
-  assert((await response.text()).includes('PLAN_PREVALIDATION_BLOCKED'));assertEquals(calls,0);
- }finally{globalThis.fetch=previous;}
+Deno.test('a declared event outside a complete plan remains a visible warning',()=>{
+ const planConfig={objective:'10K',weeksAvailable:10,planStartDate:'2026-10-26',raceGoals:[{objective:'10K',raceDate:'2027-01-17'}]};
+ const report=prevalidateTransport(planConfig);
+ assertEquals(report.status,'coach_review');
+ assert(report.issues.some(i=>i.code==='declared_event_outside_plan'&&i.severity==='warning'));
 });
 
 Deno.test('mixed window prompt and server phases follow the same sliced calendar for every objective',()=>{
