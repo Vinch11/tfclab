@@ -37,7 +37,7 @@ export function LabLoadCharacteristics({ input, snapshot, sport, compare }: Prop
         <h4 className="font-semibold text-sm">{card.title}</h4><p className="text-xs text-muted-foreground">{card.unit} · axe % VO₂max</p>
         <div className="h-56 mt-3">{card.unavailable ? empty(card.unavailable) : !rows.length ? empty(`Données insuffisantes : ${model.missing.join(', ')}.`) :
           <ResponsiveContainer width="100%" height="100%"><ComposedChart data={rows} syncId="lab-load" margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
-            <CartesianGrid {...bevelGridProps} /><XAxis dataKey="intensity" type="number" domain={[20, 100]} {...bevelAxisProps} /><YAxis {...bevelAxisProps} width={44} domain={card.id === 'share' ? [0, 100] : ['auto', 'auto']} />
+            <CartesianGrid {...bevelGridProps} /><XAxis dataKey="intensity" type="number" domain={[20, 100]} {...bevelAxisProps} /><YAxis {...bevelAxisProps} width={44} domain={card.id === 'share' ? [0, 100] : ['auto', 'auto']} {...(card.id === 'share' ? { ticks: [0, 25, 50, 75, 100], allowDataOverflow: true } : {})} />
             <Tooltip {...tip(card.unit)} />
             {card.id === 'sub' && m?.fatmax && <ReferenceLine x={m.fatmax} stroke={c.mint} strokeWidth={14} strokeOpacity={0.15} />}
             {markerLines.map(([l, x]) => <ReferenceLine key={l} x={x} stroke={c.muted} strokeDasharray="3 4" label={{ value: l, position: 'insideTop', fontSize: 10 }} />)}

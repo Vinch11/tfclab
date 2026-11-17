@@ -1,8 +1,9 @@
 import type { DbSnapshot } from '@/hooks/useCloudData';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
-import { calculateLactateClearance, calculateLactateProduction, findLactateThresholds, findSteadyStateLactate, intensityToPowerWatts } from '@/lib/v2/maderMetabolicModel';
+import { findLactateThresholds, intensityToPowerWatts } from '@/lib/v2/maderMetabolicModel';
 import { generateMaderPowerDurationCurve } from '@/lib/v2/maderPowerDurationCurve';
 import { labMetabolicCurves, positive } from './labProfile';
+import { labLactateKinetics } from './nolioCalibration';
 
 const EFF = 0.23;
 export type LabSport = 'bike' | 'run';
@@ -16,12 +17,12 @@ export function labLoadCharacteristics(input: CoachingCompassInput, sport: LabSp
   const vo2 = input.vo2max!, weight = input.poids!;
   const vma = positive(input.vma) ? input.vma : null;
   const rows = base.points.map(p => {
-    const lactate = sport === 'bike' ? findSteadyStateLactate(p.intensity, vo2, vlamax, weight) : null;
     const total = p.fatEnergy + p.carbEnergy;
+    const kin = sport === 'bike' ? labLactateKinetics(p.intensity, vo2, vlamax, weight) : null;
     return { ...p, watts: sport === 'bike' ? Math.round(intensityToPowerWatts(p.intensity, vo2, weight, EFF)) : null,
       speed: sport === 'run' && vma ? Math.round(vma * p.intensity) / 100 : null,
-      production: sport === 'bike' ? calculateLactateProduction(p.intensity, vlamax) : null,
-      clearance: sport === 'bike' && lactate != null ? calculateLactateClearance(p.intensity, vo2, lactate) : null,
+      production: kin?.production ?? null,
+      clearance: kin?.elimination ?? null,
       fatShare: total > 0 ? (p.fatEnergy / total) * 100 : null, carbShare: total > 0 ? (p.carbEnergy / total) * 100 : null };
   });
   const t = sport === 'bike' ? findLactateThresholds({ vo2max: vo2, weight, vlamax }) : null;
