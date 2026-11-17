@@ -134,7 +134,7 @@ export function NolioSessionButton({ session, ctx, sessionIndex = 0 }: Props) {
       const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
       const sentCount = result?.sent ?? 0;
       const errs = result?.errors ?? [];
-      if (sentCount > 0) {
+      if (sentCount > 0 && errs.length === 0) {
         toast.success("Séance envoyée vers Nolio ✅");
         ctx.markSent(key);
         setSent(true);

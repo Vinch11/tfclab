@@ -5,6 +5,7 @@
 // id_partner = clé de déduplication côté Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { firstDurationSeconds, parsePrescription, prescriptionPartsFromText, splitSportParts, type PrescriptionNode } from "../_shared/nolioPrescription.ts";
 import {planExportSafetyProblems} from '../_shared/planExportSafety.ts';
 import {
   deriveTrainingZonesEdge,
@@ -47,6 +48,8 @@ type ParsedSession = {
   weekNumber: number;
   dayIndex: number; // 0=Lun ... 6=Dim
   sessionIndex?: number; // 0 = première séance du jour, 1 = deuxième, etc.
+  /** Internal, stable segment index for an explicitly split multisport session. */
+  exportPartIndex?: number;
   sport: string;
   title: string;
   details: string;
@@ -59,16 +62,7 @@ type ParsedSession = {
   objectif?: string;
   /** Alternatives terrain (trail) calculées côté client depuis la fiche bibliothèque. */
   alternatives?: TerrainAlternative[];
-  /**
-   * `structure` sert ici UNIQUEMENT à la description texte (buildDescription
-   * lit warm-up/main/cool-down pour le rendu 🔥/💪/🧘) — ne pas tenter d'en
-   * dériver un structured_workout chiffré. Nécessaire pour les séances dont
-   * chaque "part" encode une SÉQUENCE de plusieurs étapes minutées (ex.
-   * semaines de test TFCL/CAP) plutôt qu'une seule consigne : buildStructuredFromParts
-   * suppose une part = une étape, et produit des durées/cibles fausses en
-   * essayant de condenser toute la séquence en un seul step (ou en détectant
-   * à tort un pattern de répétition dans le texte concaténé).
-   */
+  /** Explicit description-only export, used for sessions without watch guidance. */
   noStructuredWorkout?: boolean;
   /**
    * structured_workout déjà construit côté appelant (un step par étape,
@@ -126,7 +120,7 @@ type Body = {
 
 type NolioStep = {
   type: "step";
-  step_duration_type: "duration";
+  step_duration_type: "duration" | "distance";
   step_duration_value: number;
   intensity_type: "warmup" | "active" | "rest" | "cooldown" | "repetition";
   target_type: "no_target" | "power" | "pace" | "pace_min100" | "min/100m" | "heartrate" | "duration" | "rpe";
@@ -191,29 +185,7 @@ export function computeTargetValue(
 
 /** Parse "30min", "20 min", "1h", "1h30", "45'", "45 s" → secondes. Retourne null si aucun match. */
 export function parseDurationToSec(text: string): number | null {
-  if (!text) return null;
-  const t = text.toLowerCase();
-  // 1h30 / 1h
-  const hm = t.match(/(\d+)\s*h\s*(\d{1,2})?/);
-  if (hm) {
-    const h = parseInt(hm[1], 10) || 0;
-    const m = hm[2] ? parseInt(hm[2], 10) : 0;
-    const sec = h * 3600 + m * 60;
-    if (sec > 0) return sec;
-  }
-  // 30min / 30 min / 30'
-  const mm = t.match(/(\d+)\s*(?:min|'|’)/);
-  if (mm) {
-    const m = parseInt(mm[1], 10) || 0;
-    if (m > 0) return m * 60;
-  }
-  // 45 s / 45sec
-  const ss = t.match(/(\d+)\s*(?:s|sec)\b/);
-  if (ss) {
-    const s = parseInt(ss[1], 10) || 0;
-    if (s > 0) return s;
-  }
-  return null;
+  return firstDurationSeconds(text);
 }
 
 export function normalizeStr(s: string): string {
@@ -437,6 +409,14 @@ export function buildTargetFromText(
     }
   }
 
+  // Absolute targets are already prescribed: preserve their dimension and bounds.
+  const watts=parseRange(t,"(?:w|watts?)\\b");
+  if(watts)return {target_type:"power",target_value_min:watts.min,target_value_max:watts.max,target_value:(watts.min+watts.max)/2};
+  const singleW=t.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(?:w|watts?)\b/);
+  if(singleW){const v=Number(singleW[1]);return {target_type:"power",target_value_min:v,target_value_max:v,target_value:v};}
+  const bpm=parseRange(t,"bpm\\b");
+  if(bpm)return {target_type:"heartrate",target_value_min:bpm.min,target_value_max:bpm.max,target_value:(bpm.min+bpm.max)/2};
+
   // X-Y% FTP
   const ftpRange = t.match(/(\d+)\s*[-–—]\s*(\d+)\s*%\s*ftp/);
   if (ftpRange && refs.ftp) {
@@ -485,37 +465,17 @@ export function buildTargetFromText(
 
 /** Détecte NxM' ou N×M' dans le texte, et extrait la récup après "/". */
 export function parseRepetitionPattern(text: string): {
-  reps: number;
-  workSec: number;
-  restSec: number | null;
-  restText: string;
+  reps:number; workSec:number; restSec:number|null; restText:string;
 } | null {
-  if (!text) return null;
-  // Formats supportés :
-  //   4x8'  4×8 min  10×30s
-  //   8× (1min trot + 2min marche)   ← format marche-course Start to Run
-  //   6× 3min / 1min récup
-  const m = text.match(/(\d+)\s*[x×]\s*\(?\s*(\d+)\s*(?:(')|(’)|(min)|(s\b|sec\b|"))/i);
-  if (!m) return null;
-  const reps = parseInt(m[1], 10);
-  const workVal = parseInt(m[2], 10);
-  const isSeconds = /^(s|sec|")$/i.test(m[6] ?? "");
-  const workSec = isSeconds ? workVal : workVal * 60;
-  if (!reps || !workSec) return null;
-  // Récup : segment après "/" OU après "+" (format parenthésé "1min trot + 2min marche")
-  let restSec: number | null = null;
-  let restText = "";
-  const after = text.slice(m.index! + m[0].length);
-  const sepMatch = after.match(/[\/+]/);
-  if (sepMatch) {
-    // Coupe au niveau de la parenthèse fermante si présente
-    const raw = after.slice(sepMatch.index! + 1);
-    const closeIdx = raw.indexOf(")");
-    restText = (closeIdx >= 0 ? raw.slice(0, closeIdx) : raw.split(/[.;]/)[0]).trim();
-    restSec = parseDurationToSec(restText);
-  }
-  return { reps, workSec, restSec, restText };
-
+  const t=(text || "").replace(/[’′]/g,"'").replace(/''/g,'"');
+  const m=t.match(/^\s*(\d+)\s*[x×]\s*(\d+(?:[.,]\d+)?\s*(?:min\b|sec\b|s\b|'|"))/i);
+  if(!m)return null;
+  const workSec=firstDurationSeconds(m[2]);
+  if(workSec===null)return null;
+  const after=t.slice(m[0].length);
+  const rest=after.match(/(?:\s+r\s*[=:]\s*|\s+r[ée]cup(?:[ée]ration)?\s*[:=]?\s*|\s+repos\s*[:=]?\s*|[\/+]\s*)(\d.*)$/i);
+  const restText=rest?.[1]?.trim() || "";
+  return {reps:Number(m[1]),workSec,restSec:restText?firstDurationSeconds(restText):null,restText};
 }
 
 function cleanTargetFields(src: Record<string, unknown>) {
@@ -625,7 +585,7 @@ export function canonicalizeStructuredShape(input: unknown): unknown {
  *     • Natation (sport_id 19) → duration sans cible (rest naturel)
  * Ref: https://github.com/NolioApp/NolioAPI-Documentation/wiki/Structured-Workout
  */
-function normalizeStructuredWorkoutForNolio(
+export function normalizeStructuredWorkoutForNolio(
   input: unknown,
   refs?: AthleteRefs,
   sportId?: number,
@@ -702,68 +662,9 @@ function normalizeStructuredWorkoutForNolio(
 
 
 
-    // Rest + no_target → cible Z1 sport-aware (bike: power + step_percent_*, run: HR)
-    if (
-      !rpeMode &&
-      src.type === "step" &&
-      src.intensity_type === "rest" &&
-      src.target_type === "no_target"
-    ) {
-      const isBike = sportId === 14 || sportId === 18;
-      const isRun = sportId === 2 || sportId === 52;
-      const ftp = refs?.ftp;
-      const fcMax = refs?.fcMax;
+    // An unprescribed recovery target stays free: no implicit watts or bpm.
 
-      if (isBike && typeof ftp === "number" && ftp > 0) {
-        const lo = Math.round(ftp * 0.45);
-        const hi = Math.round(ftp * 0.55);
-        src.target_type = "power";
-        src.target_value_min = lo;
-        src.target_value_max = hi;
-        src.target_value = Math.round((lo + hi) / 2);
-
-      } else if (isRun && typeof fcMax === "number" && fcMax > 0) {
-        const lo = Math.round(fcMax * 0.50);
-        const hi = Math.round(fcMax * 0.60);
-        src.target_type = "heartrate";
-        src.target_value_min = lo;
-        src.target_value_max = hi;
-        src.target_value = Math.round((lo + hi) / 2);
-      }
-      // 🏊 Natation rest : pas de cible naturelle. Forcer target_type="no_target"
-      // (SANS target_value_*) pour éviter la pastille "empty_unit" côté Nolio.
-      if (sportId === 19) {
-        src.target_type = "no_target";
-        delete (src as Record<string, unknown>).target_value;
-        delete (src as Record<string, unknown>).target_value_min;
-        delete (src as Record<string, unknown>).target_value_max;
-        delete (src as Record<string, unknown>).target_unit;
-        delete (src as Record<string, unknown>).manual_values;
-
-      }
-
-    }
-
-    // Run/Trail (sport_id 2/52) : step_duration_type "distance" interdit côté Nolio.
-    if (
-      (sportId === 2 || sportId === 52) &&
-      src.type === "step" &&
-      src.step_duration_type === "distance"
-    ) {
-      const distM = typeof src.step_duration_value === "number" ? src.step_duration_value : null;
-      const vma = refs?.vma;
-      if (distM !== null && distM > 0 && typeof vma === "number" && vma > 0) {
-        const speedMs = vma * (1000 / 3600);
-        src.step_duration_type = "duration";
-        src.step_duration_value = Math.round(distM / speedMs);
-      } else if (distM !== null && distM > 0) {
-        src.step_duration_type = "duration";
-        src.step_duration_value = Math.round(distM / 4);
-      } else {
-        src.step_duration_type = "duration";
-        src.step_duration_value = typeof src.step_duration_value === "number" ? src.step_duration_value : 60;
-      }
-    }
+    // Preserve prescribed distances; Nolio supports duration and distance steps.
 
     // ============ CIBLES OFFICIELLES NOLIO ============
     // - Vélo (sport 14/18) : target_type="power", valeurs en W (depuis FTP),
@@ -797,9 +698,7 @@ function normalizeStructuredWorkoutForNolio(
       // Nolio affiche déjà l'allure lisible à partir de target_value → doublon avec
       // la fiche descriptive (buildDescription). Voir issue "steps redondants".
 
-      // 🏊 NATATION → toute cible mal typée en amont (ex: étiquette de zone "Z2" détectée
-      // comme FC) est redirigée vers "pace" : c'est la seule dimension pertinente en
-      // natation, convertie plus bas en target_type "pace_min100" officiel Nolio.
+      // A non-pace target cannot be reinterpreted as seconds/100m.
       if (
         isSwim &&
         src.target_type !== "no_target" &&
@@ -807,11 +706,11 @@ function normalizeStructuredWorkoutForNolio(
         src.target_type !== "min/100m" &&
         src.target_type !== "pace_min100"
       ) {
-        src.target_type = "pace";
+        src.target_type = "no_target";
+        delete src.target_value;
+        delete src.target_value_min;
+        delete src.target_value_max;
       }
-
-
-
 
       if (src.target_type === "power" && isBike) {
         const ftp = refs?.ftp;
@@ -1094,7 +993,7 @@ const S2R_RPE_LEGEND =
 // aucun rendu HTML/markdown ; le seul champ où un formatage est documenté (`comment`
 // d'un step) précise explicitement "you can add linebreaks with \n" — pas de balises.
 // Des balises <b>/<ul>/<li> envoyées ici s'afficheraient donc telles quelles à l'athlète.
-function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): string {
+export function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): string {
   const MAX_LEN = 4000;
 
   // Nettoyage transversal : retire [ID:...], tags #xxx isolés, markdown **gras** (non
@@ -1116,10 +1015,10 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
     return lines.map((l) => `- ${l}`).join("\n");
   };
 
-  const findPart = (name: string) =>
-    (s.structure ?? []).find((p) =>
-      normalizeStr(p.part).includes(normalizeStr(name))
-    );
+  const findPart = (name: string) => {
+    const matches=(s.structure ?? []).filter(p=>normalizeStr(p.part).includes(normalizeStr(name)));
+    return matches.length ? {text:matches.map(p=>p.text).join("\n")} : undefined;
+  };
 
   const cleanedDetails = clean(s.details);
   const cleanedObjectif = clean(s.objectif);
@@ -1145,8 +1044,8 @@ function buildDescription(s: ParsedSession, sportId?: number, rpeMode = false): 
   // Fallback : aucune structure exploitable → texte brut simple.
   if (!hasStructure) {
     const parts: string[] = [];
-    const intent = cleanedObjectif || cleanedDetails;
-    if (intent) parts.push(`🎯 ${intent}`);
+    if (cleanedObjectif) parts.push(`🎯 ${cleanedObjectif}`);
+    if (cleanedDetails) parts.push(cleanedDetails);
     if (rpeMode) {
       parts.push(
         "🗣️ Intensité au ressenti (RPE) — marche RPE 1-2, course RPE 4-5 (phrases complètes possibles). Aucune allure ni FC imposée.",
@@ -1221,78 +1120,68 @@ function preferExplicitTarget<
 }
 
 /** Construit structured_workout depuis le tableau `structure` (warm/main/cool). */
-function buildStructuredFromParts(
+export function buildStructuredFromParts(
   structure: WorkoutStructurePart[],
   refs: AthleteRefs,
-  wbalProfile?: WbalProfile | null,
+  _wbalProfile?: WbalProfile | null,
 ): NolioStructuredItem[] {
-  const items: NolioStructuredItem[] = [];
-  for (const p of structure) {
-    const intensity = mapPartToIntensity(p.part);
-    const text = p.text || "";
-
-    // Tentative répétition (uniquement pour parties actives)
-    if (intensity === "active") {
-      const rep = parseRepetitionPattern(text);
-      if (rep) {
-        const fromZones = buildTargetFromZones(p.zones || [], refs);
-        const fromText = buildTargetFromText(text, refs);
-        const target = preferExplicitTarget(fromZones, fromText);
-        const activeStep: NolioStep = {
-          type: "step",
-          step_duration_type: "duration",
-          step_duration_value: rep.workSec,
-          intensity_type: "active",
-          ...target,
-          notes: text.slice(0, 500),
-        };
-        const restTarget = rep.restText
-          ? buildTargetFromText(rep.restText, refs)
-          : { target_type: "no_target" as const };
-        const restStep: NolioStep = {
-          type: "step",
-          step_duration_type: "duration",
-          step_duration_value: rep.restSec ?? 120,
-          intensity_type: "rest",
-          ...restTarget,
-          ...(rep.restText ? { notes: rep.restText.slice(0, 500) } : {}),
-        };
-        items.push({
-          type: "repetition",
-          intensity_type: "repetition",
-          value: rep.reps,
-          steps: [activeStep, restStep],
+  const steps:NolioStep[]=[];
+  for(const part of structure){
+    const defaultIntensity=mapPartToIntensity(part.part);
+    const nodes=parsePrescription(part.text);
+    const append=(items:PrescriptionNode[]):void=>{
+      for(const node of items){
+        if(node.kind==="repeat"){
+          for(let n=0;n<node.times;n++)append(node.steps);
+          continue;
+        }
+        if(steps.length>=1000)throw new Error("Prescription trop longue pour un export structuré.");
+        // Work and rest use their own text: the recovery zone must not widen the work target.
+        const localZones=node.text.match(/\bZ[1-7][abc]?\b/gi)||[];
+        let target=buildTargetFromText(node.text,refs);
+        if(target.target_type==="no_target" && localZones.length===0 && part.zones.length===1)
+          target=buildTargetFromZones(part.zones,refs);
+        if(target.target_type==="heartrate" && !refs.fcMax && !/\bbpm\b/i.test(node.text))
+          target={target_type:"no_target"};
+        steps.push({
+          type:"step",step_duration_type:node.unit,step_duration_value:node.value,
+          intensity_type:node.recovery?"rest":/\b(?:cool|RC)\b|retour au calme/i.test(node.text)?"cooldown":defaultIntensity,
+          ...target,notes:node.text.slice(0,500),
         });
-        continue;
       }
-    }
-
-    // Durée : texte → wbalProfile → défauts
-    let duration = parseDurationToSec(text);
-    if (duration == null) {
-      if (wbalProfile?.blocks?.length && intensity === "active") {
-        duration = wbalProfile.blocks[0]?.durationSec ?? 1200;
-      } else {
-        duration = intensity === "active" ? 1200 : 600;
-      }
-    }
-
-    const fromZones = buildTargetFromZones(p.zones || [], refs);
-    const fromText = buildTargetFromText(text, refs);
-    const target = preferExplicitTarget(fromZones, fromText);
-    items.push({
-      type: "step",
-      step_duration_type: "duration",
-      step_duration_value: Math.max(1, duration),
-      intensity_type: intensity,
-      ...target,
-      ...(text ? { notes: text.slice(0, 500) } : {}),
-    });
+    };
+    append(nodes);
   }
-  return items;
+  if(!steps.length)throw new Error("La prescription ne contient aucune étape exécutable.");
+  return steps;
 }
 
-
+/** Compile the current occurrence before any calendar write. Catalogue caches cannot replace its dose. */
+export function prepareCurrentSession(s:ParsedSession,refs:AthleteRefs):ParsedSession[] {
+  if(s.isRest)return [s];
+  if(s.noStructuredWorkout || s.structuredWorkout?.length)return [{...s}];
+  const parts=Array.isArray(s.structure)&&s.structure.length?s.structure:prescriptionPartsFromText(s.details);
+  if(mapSport(s.sport,s.title,s.id)===20)
+    return [{...s,structure:parts,noStructuredWorkout:true}];
+  if(!parts.length)throw new Error("Prescription manquante : préciser les étapes avant l'export.");
+  const segments=splitSportParts(s.sport,parts);
+  return segments.map((segment,index)=>{
+    const sportId=mapSport(segment.sport,s.title,s.id);
+    const structuredWorkout=buildStructuredFromParts(segment.parts,refs,s.wbalProfile);
+    for(const step of structuredWorkout){
+      if(step.type!=="step")continue;
+      const note=step.notes||"";
+      if((sportId===2||sportId===52)&&(/\bFTP\b|\b\d+\s*W\b|\/\s*100\s*m/i.test(note)))
+        throw new Error("Cible incompatible avec la course : "+note);
+      if(sportId===19&&(/\bFTP\b|\b\d+\s*W\b|\/\s*km\b/i.test(note)))
+        throw new Error("Cible incompatible avec la natation : "+note);
+    }
+    return {...s,sport:segment.sport,structure:segment.parts,structuredWorkout,
+      details:segment.parts.map(p=>p.part+": "+p.text).join(" | "),
+      ...(segments.length>1?{title:s.title+" — "+(index+1)+"/"+segments.length+" "+segment.sport,exportPartIndex:index}:{}),
+    };
+  });
+}
 
 // Mapping basé sur les vrais sport_id Nolio découverts via GET /api/get/training/
 // 2=Course à pied, 14=Vélo Route, 18=Vélo Home Trainer, 19=Natation, 20=Renforcement, 52=Trail
@@ -1782,6 +1671,17 @@ Deno.serve(async (req) => {
       body.refs ?? {},
     );
 
+    const prepared:ParsedSession[]=[];
+    const prescriptionErrors:Array<{week:number;day:number;status:number;detail:string}>=[];
+    for(const session of body.sessions){
+      try{prepared.push(...prepareCurrentSession(session,athleteRefs));}
+      catch(error){prescriptionErrors.push({week:session.weekNumber,day:session.dayIndex,status:422,detail:error instanceof Error?error.message:String(error)});}
+    }
+    if(prescriptionErrors.length)return new Response(JSON.stringify({sent:0,skipped:0,errors:prescriptionErrors}),{
+      status:200,headers:{...corsHeaders,"Content-Type":"application/json"},
+    });
+    body.sessions=prepared;
+
     const refreshTokenStr = (tokenRow.refresh_token as string | null) ?? null;
     const accessTokenRef = {
       current: await refreshIfNeeded(admin, userId, {
@@ -1795,42 +1695,7 @@ Deno.serve(async (req) => {
     let skipped = 0;
     const errors: { week: number; day: number; status: number; detail?: string }[] = [];
     const debugLog: Array<Record<string, unknown>> = [];
-
-    // Préchargement des overrides Nolio par session_id (structured_workout + sport_id personnalisés)
-    const sessionIds = Array.from(
-      new Set(
-        body.sessions
-          .map((s) => (s?.id ?? "").trim())
-          .filter((id) => id.length > 0),
-      ),
-    );
-    const overridesMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
-    const generatedMap = new Map<string, { sport_id: number; structured_workout: unknown }>();
-    if (sessionIds.length > 0) {
-      const { data: ovRows } = await admin
-        .from("nolio_workout_overrides")
-        .select("session_id, sport_id, structured_workout")
-        .in("session_id", sessionIds);
-      for (const r of (ovRows ?? []) as Array<{ session_id: string; sport_id: number; structured_workout: unknown }>) {
-        overridesMap.set(r.session_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
-      }
-      // Structures Nolio générées par IA et validées (status='ok'). Priorité inférieure aux overrides manuels.
-      const { data: genRows } = await admin
-        .from("nolio_structures_generated")
-        .select("workout_id, sport_id, structured_workout, status")
-        .in("workout_id", sessionIds)
-        .eq("status", "ok");
-      for (const r of (genRows ?? []) as Array<{ workout_id: string; sport_id: number; structured_workout: unknown }>) {
-        generatedMap.set(r.workout_id, { sport_id: r.sport_id, structured_workout: r.structured_workout });
-      }
-
-      // ❌ Prefix matching supprimé : trop d'erreurs en matchant des variantes incorrectes
-      // (ex: B_TR_HILLREPS_PRO → B_TR_HILLREPS_8x2_PRO = séance différente).
-      // Si l'ID exact n'est pas trouvé, on tombe sur le parsing automatique du texte
-      // de la séance — plus fiable qu'un mauvais match.
-    }
-
-
+    const completion=new Map<string,{weekNumber:number;dayIndex:number;sessionIndex:number;ok:boolean}>();
 
     for (let i = 0; i < body.sessions.length; i++) {
       const s = body.sessions[i];
@@ -1845,55 +1710,10 @@ Deno.serve(async (req) => {
         (s.weekNumber - 1) * 7 + s.dayIndex,
       );
 
-      const structure = Array.isArray(s.structure) ? s.structure : [];
-      const overrideKey = (s.id ?? "").trim();
-      const override = overrideKey ? overridesMap.get(overrideKey) : undefined;
-      let structured_workout: unknown = Array.isArray(s.structuredWorkout) && s.structuredWorkout.length > 0
-        ? s.structuredWorkout
-        : null;
-      let usedOverride = false;
-
-      // Détection du shape de l'override :
-      //  - Nouveau (parts) : [{ part, text, zones }] → on remplace la `structure`
-      //    source et on relance le parsing automatique.
-      //  - Ancien (Nolio brut) : [{ type:"step"|"repetition", ... }] → usage direct.
-      let sourceStructure: WorkoutStructurePart[] = structure;
-      if (override && Array.isArray(override.structured_workout) && override.structured_workout.length > 0) {
-        const first = (override.structured_workout as unknown[])[0] as Record<string, unknown> | undefined;
-        const isPartsShape = first !== undefined && typeof first === "object" && "part" in first;
-        if (isPartsShape) {
-          sourceStructure = (override.structured_workout as unknown as WorkoutStructurePart[]).map((p) => ({
-            part: String(p.part ?? ""),
-            text: String(p.text ?? ""),
-            zones: Array.isArray(p.zones) ? p.zones.map((z) => String(z)) : [],
-          }));
-          usedOverride = true;
-        } else {
-          structured_workout = override.structured_workout;
-          usedOverride = true;
-        }
-      }
-
-      // Si pas d'override manuel : tenter la structure générée par IA (status='ok').
-      let usedGenerated = false;
-      if (!usedOverride && overrideKey) {
-        const gen = generatedMap.get(overrideKey);
-        if (gen && Array.isArray(gen.structured_workout) && gen.structured_workout.length > 0) {
-          // Strategy C : recalcul depuis pct_* avec refs de l'athlète destinataire,
-          // fallback sur target_value_* stocké (valeurs absolues figées au moment du batch).
-          structured_workout = recomputeAbsoluteFromPct(gen.structured_workout, athleteRefs);
-          usedGenerated = true;
-        }
-      }
-
-      if (structured_workout == null && sourceStructure.length > 0 && !s.noStructuredWorkout) {
-        let built = buildStructuredFromParts(sourceStructure, athleteRefs, s.wbalProfile ?? null);
-        // Garde-fou : jamais de wrapper repetition à la racine englobant toute la séance.
-        if (built && built.length === 1 && built[0].type === "repetition") {
-          built = (built[0] as NolioRepStep).steps;
-        }
-        structured_workout = built;
-      }
+      // Preflight compiled this occurrence. ID-only catalogue caches cannot replace it.
+      const structured_workout = s.noStructuredWorkout ? null : s.structuredWorkout;
+      const usedOverride = false;
+      const usedGenerated = false;
 
       const sessionIndex = Number.isFinite(s.sessionIndex as number) ? Number(s.sessionIndex) : 0;
       // Fix "aucun changement visible dans Nolio après un re-envoi" (audit coach) :
@@ -1909,7 +1729,7 @@ Deno.serve(async (req) => {
       // l'ancienne séance, jamais mise à jour). id_partner est maintenant
       // stable pour un même (athlète, semaine, jour, index) quel que soit le
       // jour d'envoi — un ré-envoi remplace toujours la bonne séance.
-      const idPartner = body.kind === 'test' ? parseInt(
+      const baseIdPartner = body.kind === 'test' ? parseInt(
         String(body.nolio_athlete_id) + '7' +
         String(Math.floor(Date.parse(`${dateStart}T00:00:00Z`) / 86400000) % 100000).padStart(5, '0') +
         String(sessionIndex),
@@ -1921,24 +1741,9 @@ Deno.serve(async (req) => {
         String(sessionIndex),
         10,
       );
-      const generatedForSport = usedGenerated && overrideKey ? generatedMap.get(overrideKey) : undefined;
-      const sportId = usedOverride && override
-        ? override.sport_id
-        : generatedForSport
-          ? generatedForSport.sport_id
-          : mapSport(s.sport, s.title, s.id ?? null);
-
-
-      // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
-      // On ignore systématiquement les erreurs (404/inexistante = cas normal).
-      const deleteRes = await postSession({
-        url: NOLIO_DELETE_TRAINING_URL,
-        accessTokenRef,
-        refreshTokenStr,
-        admin,
-        userId,
-        payload: { id_partner: idPartner, athlete_id: body.nolio_athlete_id },
-      }).catch(() => null);
+      const idPartner = s.exportPartIndex ? Number(String(baseIdPartner)+"9"+String(s.exportPartIndex)) : baseIdPartner;
+      if(!Number.isSafeInteger(idPartner))throw new Error("Identifiant Nolio hors limites.");
+      const sportId = mapSport(s.sport, s.title, s.id ?? null);
 
       const payload: Record<string, unknown> = {
         id_partner: idPartner,
@@ -1953,9 +1758,9 @@ Deno.serve(async (req) => {
         // 🔒 IMPORTANT : le normalizer DOIT toujours s'exécuter sur la valeur finale de
         // `structured_workout`, peu importe la source (override manuel, structure générée
         // par IA récupérée depuis `nolio_structures_generated`, ou parsing automatique).
-        // C'est ici qu'on applique : conversion pace → m/s, distance run/trail → durée s,
-        // remap rest/no_target → cible Z1, suppression des clés null/undefined, etc.
-        let normalized = normalizeStructuredWorkoutForNolio(
+        // C'est ici qu'on applique la conversion des allures en m/s et le schéma API,
+        // en préservant les distances, les répétitions et les récupérations prescrites.
+        const normalized = normalizeStructuredWorkoutForNolio(
           canonicalizeStructuredShape(structured_workout),
           athleteRefs,
           sportId,
@@ -1965,8 +1770,7 @@ Deno.serve(async (req) => {
           // dans le nom + le commentaire de chaque bloc.
           false,
         );
-        // 🏊 Natation : 1 min de pause entre chaque bloc de premier niveau.
-        if (sportId === 19) normalized = insertSwimBlockRests(normalized);
+        // Recoveries come exclusively from the prescription; never add swimming pauses.
         const summary = summarizeStructuredWorkout(normalized);
 
         if (summary.durationSec > 0) payload.duration = summary.durationSec;
@@ -1978,6 +1782,17 @@ Deno.serve(async (req) => {
           payload.structured_workout = normalized;
         }
       }
+
+      // Suppression préalable : la séance peut déjà exister avec un sport_id obsolète.
+      // On ignore systématiquement les erreurs (404/inexistante = cas normal).
+      const deleteRes = await postSession({
+        url: NOLIO_DELETE_TRAINING_URL,
+        accessTokenRef,
+        refreshTokenStr,
+        admin,
+        userId,
+        payload: { id_partner: idPartner, athlete_id: body.nolio_athlete_id },
+      }).catch(() => null);
 
       let res = await postSession({
         url: NOLIO_CREATE_TRAINING_URL,
@@ -2065,6 +1880,9 @@ Deno.serve(async (req) => {
         console.error("nolio_sync_log per-session insert failed", perSessionLogErr);
       }
 
+      const slotKey=[s.weekNumber,s.dayIndex,sessionIndex].join(":");
+      const previous=completion.get(slotKey);
+      completion.set(slotKey,{weekNumber:s.weekNumber,dayIndex:s.dayIndex,sessionIndex,ok:res.ok&&(previous?.ok??true)});
       if (res.ok) sent += 1;
       else errors.push({ week: s.weekNumber, day: s.dayIndex, status: res.status, detail: res.detail });
 
@@ -2094,6 +1912,7 @@ Deno.serve(async (req) => {
       sent,
       skipped,
       total: body.sessions.length,
+      completedSessions:[...completion.values()].filter(s=>s.ok).map(({ok:_,...slot})=>slot),
       errors: errors.slice(0, 20),
     }), {
       status: 200,

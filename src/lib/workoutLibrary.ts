@@ -2968,7 +2968,7 @@ export const WorkoutLibrary: LibraryWorkout[] = [
     when: "Build / Peak",
     phase: ["build", "peak"],
     avoid: "Fatigue importante",
-    durationMin: [50, 75],
+    durationMin: [50, 50],
     metricKey: "allure",
     sportKey: "course",
     structure: [
