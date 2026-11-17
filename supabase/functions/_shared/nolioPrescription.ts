@@ -67,6 +67,9 @@ function recoverySplit(text: string): {work:string;rest:string|null;paired:boole
     if(text[i]==="(")depth++;
     if(text[i]===")")depth--;
     if(depth!==0)continue;
+    // "/100m" belongs to a swim pace (1:30/100m or CSS+5s/100m), not a rest.
+    if(text[i]==="/" && /^\/\s*100\s*m\b/i.test(text.slice(i))
+      && /(?:\d+[:']\d{1,2}"?|\bCSS\s*[+−-]\s*\d+(?:\s*[-–]\s*\d+)?\s*(?:sec(?:ondes?)?|s))\s*$/i.test(text.slice(0,i)))continue;
     if(i>0 && text[i]!=="/" && !/\s/.test(text[i-1]))continue;
     const m=text.slice(i).match(marker);
     if(m) return { work:text.slice(0,i).trim(),rest:text.slice(i+m[0].length).trim(),paired:m[0].trim().startsWith("/") };

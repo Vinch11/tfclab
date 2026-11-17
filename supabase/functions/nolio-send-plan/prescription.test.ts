@@ -109,3 +109,8 @@ Deno.test("swim: both CSS offset endpoints survive a relative pace range",()=>{
   assertEquals(steps[0].target_value_min,1.053);
   assertEquals(steps[0].target_value_max,1.136);
 });
+
+Deno.test("swim: a distance recovery remains a recovery, unlike a pace denominator",()=>{
+  const steps=normalize("4x100m Z4 / 100m souple",19,{css:90});
+  assertEquals(steps.filter(s=>s.intensity_type==="rest").map(s=>s.step_duration_value),[100,100,100,100]);
+});
