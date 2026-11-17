@@ -13,6 +13,14 @@ Faire de la page 100%lab un écran de laboratoire sombre et dense : une grille d
 
 Sous chaque graphique : une ligne de repères (watts ou allure, FC, lactate) et le petit texte pédagogique déjà présent, replié discrètement.
 
+## Des courbes ancrées sur les vraies données de l'athlète
+- Chaque courbe part des valeurs TFCL du bilan de référence (VO₂max, VLamax, FTP/VMA, seuil, poids), pas de profil générique.
+- Points réels superposés : records Nolio (puissances 1-20 min, chronos), séances analysées (lactate/FC mesurés si présents, efforts de seuil, sorties longues), tests encodés.
+- Chaque point indique sa source (bilan, record Nolio, séance Nolio, test) et sa date ; un point « à vérifier » reste visible comme tel.
+- Écart courbe ↔ point réel affiché : on voit si le modèle colle aux séances.
+- Comparaison : choisir un deuxième bilan (ou une date) pour superposer l'ancienne courbe en pointillés et voir l'évolution.
+- Rien n'est réécrit dans les bilans ni utilisé par les plans.
+
 ## Présentation
 - Thème sombre dédié à la page 100%lab uniquement (le reste de l'app garde le thème Bevel).
 - En-tête : athlète, date du bilan, sport, mention discrète « valeurs TFCL ».
@@ -29,8 +37,9 @@ Sous chaque graphique : une ligne de repères (watts ou allure, FC, lactate) et 
 ## Étapes
 1. Préparer les 2 nouvelles courbes (production/élimination du lactate, part aérobie/anaérobie) depuis le modèle Mader déjà calibré.
 2. Construire la grille sombre et les 6 cartes.
-3. Ajouter le curseur synchronisé et les repères partagés.
-4. Vérifier sur Emanuela et Vince (ordinateur, tablette, téléphone), tests des nouvelles courbes.
+3. Superposer records/séances Nolio et tests, puis le mode comparaison entre deux bilans.
+4. Ajouter le curseur synchronisé et les repères partagés.
+5. Vérifier sur Emanuela et Vince (ordinateur, tablette, téléphone), tests des nouvelles courbes.
 
 ## Technique
 - `src/lib/lab/labProfile.ts` : ajout `labLactateBalance` et `labEnergyContribution` (lecture seule, `maderMetabolicModel`).
