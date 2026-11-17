@@ -94,7 +94,7 @@ describe("validateDemandingSessionAccumulation — classification pondérée par
     );
     const issue = result.issues.find((i) => i.rule === "demanding_session_accumulation");
     expect(issue).toBeDefined();
-    expect(issue?.severity).toBe("error");
+    expect(issue?.severity).toBe("warning");
   });
 
   it("une SEULE vraie séance seuil parmi 3 reste non signalée (sous le seuil proportionnel)", () => {

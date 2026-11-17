@@ -1219,7 +1219,7 @@ const RELIABLE_TRAINING_LEVEL_SOURCES = new Set(["manual", "auto-tss"]);
 const DEMANDING_MIN_HIGH_MINUTES = 10;
 const DEMANDING_MIN_HIGH_RATIO = 0.25;
 
-function isGenuinelyDemandingSession(session: ParsedSession): boolean {
+export function isGenuinelyDemandingSession(session: ParsedSession): boolean {
   if (session.isRest) return false;
   const d = parseSessionDurationMin(session);
   if (d === null || d <= 0) return classifySessionIntensity(session) === "high";
@@ -1233,7 +1233,7 @@ function isGenuinelyDemandingSession(session: ParsedSession): boolean {
  *  planReconciler.ts) applique exactement le même seuil — la détection
  *  (ici) et la correction (là) doivent s'accorder. */
 export function demandingSessionCap(activeCount: number): number {
-  return Math.max(1, Math.floor(activeCount / 2));
+  return Math.min(3, Math.max(1, Math.floor(activeCount / 2)));
 }
 
 /**
@@ -1299,27 +1299,24 @@ function validateDemandingSessionAccumulation(
   trainingLevelSignal?: TrainingLevelSignal | null,
 ): { issues: ValidationIssue[]; score: number } {
   const issues: ValidationIssue[] = [];
-  if (
-    !trainingLevelSignal ||
-    !RELIABLE_TRAINING_LEVEL_SOURCES.has(trainingLevelSignal.trainingLevelSource) ||
-    !BEGINNER_TRAINING_LEVELS.has(trainingLevelSignal.trainingLevel)
-  ) {
-    return { issues, score: 100 };
-  }
+  const beginner = !!trainingLevelSignal &&
+    RELIABLE_TRAINING_LEVEL_SOURCES.has(trainingLevelSignal.trainingLevelSource) &&
+    BEGINNER_TRAINING_LEVELS.has(trainingLevelSignal.trainingLevel);
 
   let compliant = 0;
   let checked = 0;
   for (const week of plan.weeks) {
     const active = week.sessions.filter((s) => !s.isRest);
-    if (active.length === 0 || weekHasRaceDay(week)) continue;
+    if (active.length === 0) continue;
     checked++;
     const demanding = active.filter((s) => isGenuinelyDemandingSession(s));
-    if (demanding.length > demandingSessionCap(active.length)) {
+    const cap = beginner ? demandingSessionCap(active.length) : 3;
+    if (demanding.length > cap) {
       issues.push({
         rule: "demanding_session_accumulation",
-        severity: "error",
+        severity: "warning",
         week: week.weekNumber,
-        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s) sur ${active.length} ("${demanding.map((s) => s.title).join('", "')}") — accumulation excessive pour un niveau ${trainingLevelSignal.trainingLevel} (source ${trainingLevelSignal.trainingLevelSource})`,
+        message: `S${week.weekNumber}: ${demanding.length} séance(s) exigeante(s), tous sports confondus ("${demanding.map((s) => s.title).join('", "')}") — plafond ${cap}, pas un quota obligatoire${beginner ? ` ; niveau ${trainingLevelSignal?.trainingLevel}` : ""}.`,
       });
     } else {
       compliant++;

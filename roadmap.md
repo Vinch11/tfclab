@@ -1,13 +1,14 @@
 # Roadmap
 
 ## Plans utilisables — corrections approuvées 17 novembre
+- [x] Accord 18:41 : plafond de trois séances dures/semaine tous sports confondus partagé validation/réconciliation et prompts ; 52 tests passent, deux générateurs déployés, version alignée. Original et Nolio préservés.
 - [x] Volumes calculés depuis les séances, compétition séparée et identité des courses partagée écran/PDF.
 - [x] Corrections ciblées des mentions explicites d’allure IM ; nutrition vélo/course et absence de tolérance confirmée précisées avant génération.
 - [x] Plafonds de reprise marathon transmis avant génération depuis une référence pré-course fixe ; minima de développement retirés.
 - [x] Alternatives limitées aux séances course compatibles ; PDF sans deuxième prescription de catalogue ni modification vélo propre à l’export.
 - [ ] Allocation déterministe des blocs exigeants et continuité dosée du renforcement : audit disponible, métadonnées de blocs/expérience et règles sportives de dose à compléter sans inventer de plafonds universels.
 - [ ] Reconstruction complète de la reprise et contrôle du contenu du jour J : plafonds/instructions préparés, réparation catalogue et validation sur une nouvelle sortie réelle restent à établir.
-- [ ] Revue d’une nouvelle génération réelle sur copie Emanuela et validation multisports complète : autorisation distincte requise ; ancien plan consulté et PDF ouvert en lecture seule, sans sauvegarde ni Nolio.
+- [ ] Revue de la copie Emanuela : génération réelle autorisée des 32 semaines assemblée le 17 novembre à 19:04, cycle 3:1, Séville 21/02/2027 et IM 27/06/2027. Aucun enregistrement de plan ni Nolio. Encore non utilisable : 10 conflits critiques de réconciliation et 107 avertissements affichés, 94 écarts de quota ; niveau prudent faute de charge connue. Analyse des conflits qualité/quota et revue intégrale/PDF restent à terminer ; ne pas certifier le résultat.
 
 - [x] Records Dashboard/100%lab : lecture directe Nolio v2 des meilleurs efforts de la période choisie, dates libres, chaque variante active interrogée ; aucun record absolu de secours. Emanuela 01/06–12/11 : 34 efforts vélo, 26 course, téléphone sans débordement ; neuf tests passent et deux générateurs déployés avec succès. Compass et bilans inchangés.
 

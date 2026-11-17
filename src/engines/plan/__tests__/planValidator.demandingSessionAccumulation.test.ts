@@ -71,11 +71,19 @@ function vp(p: ParsedPlan, trainingLevelSignal?: { trainingLevel: string; traini
 }
 
 describe("validateDemandingSessionAccumulation — accumulation de séances exigeantes (débutant confirmé uniquement)", () => {
+  it("au plus trois séances dures tous sports confondus, même sans niveau fiable", () => {
+    const sessions = ['Course', 'Vélo', 'Natation', 'Course'].map(sport => ({ sport, title: 'Seuil Z4', details: '3x10min Z4', durationMin: 60, zones: ['Z4'] }));
+    for (const objective of ['5 KM', '10 KM', 'SEMI', 'MARATHON', 'TRAIL', '70.3', 'IRONMAN']) {
+      const result = validatePlan(plan([week(1, sessions)]), objective);
+      expect(result.issues.find(i => i.rule === 'demanding_session_accumulation')?.severity).toBe('warning');
+    }
+    expect(vp(plan([week(1, sessions.slice(0,3))]), null).issues.find(i => i.rule === 'demanding_session_accumulation')).toBeUndefined();
+  });
   it("3 séances 'high' la même semaine, niveau untrained/manual → flaguée", () => {
     const result = vp(plan([week(1, THREE_DEMANDING_SESSIONS)]), { trainingLevel: "untrained", trainingLevelSource: "manual" });
     const issue = result.issues.find((i) => i.rule === "demanding_session_accumulation");
     expect(issue).toBeDefined();
-    expect(issue?.severity).toBe("error");
+    expect(issue?.severity).toBe("warning");
   });
 
   it("2 séances 'high' sur 3 séances/semaine (seuil proportionnel = 1) → flaguée", () => {

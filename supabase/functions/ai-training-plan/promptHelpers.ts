@@ -1799,6 +1799,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
     // Anti-contradiction: never mix rest + real session on same day
     lines.push(`- **⚠️ Anti-contradiction :** Si un jour a une séance d'entraînement, NE PAS ajouter de ligne "Repos" pour ce même jour. Le Repos est UNIQUEMENT pour les jours sans aucune séance.`);
   }
+  lines.push("- PLAFOND COACH : au plus 3 séances dures par semaine, tous sports confondus, compétition et renforcement exigeant compris. Compter les blocs seuil/VO₂max réellement prescrits, pas la zone maximale d’un bref rappel. Un brick exigeant compte une séance, sans ignorer sa charge cumulée. Répartir ce budget entre les priorités ; aucune séance supplémentaire par chantier. Les limites plus prudentes de récupération, reprise marathon, affûtage et débutant priment. Ce plafond est un choix coach, pas une dose optimale universelle.");
   if (config.ambition) lines.push(`- **Niveau d'ambition :** ${config.ambition}`);
   if (derived) {
     const complexRule = derived.complexiteSeances === "simple"
@@ -1806,7 +1807,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
       : derived.complexiteSeances === "intermediaire"
         ? "AUTORISÉ : progressions classiques, tempo, seuils simples, intervalles VMA. INTERDIT : doubles seuils, train-low avancé, plyo pliométrique avancée."
         : "AUTORISÉ : doubles seuils, train-low, plyo avancée, back-to-back, séances complexes multi-blocs.";
-    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${derived.qualitesParSemaine} qualité(s)/semaine · complexité "${derived.complexiteSeances}".`);
+    lines.push(`- **🧩 STRUCTURE AMBITION (non négociable) :** ${Math.min(3, derived.qualitesParSemaine)} qualité(s)/semaine au maximum (jamais un quota obligatoire) · complexité "${derived.complexiteSeances}".`);
     lines.push(`  → ${complexRule}`);
     // P0-2 (audit Codex, oct. 2026, consigne coach explicite) : ce nombre est
     // désormais la SEULE source du comptage de séances d'intensité (voir

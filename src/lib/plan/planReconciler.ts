@@ -38,7 +38,7 @@ import {
 } from "../../../supabase/functions/_shared/repairSportingEquivalence";
 import { extractLimiterKeywords } from "@/lib/plan/limiterKeywords";
 import { startToRunMaxSessionMin } from "@/engines/plan/sessionSizingMatrix";
-import { isRaceDaySession } from "@/engines/plan/planValidator";
+import { isRaceDaySession, isGenuinelyDemandingSession, demandingSessionCap } from "@/engines/plan/planValidator";
 import { effectiveSessionQuota, countQuotaSessions } from "../../../supabase/functions/_shared/sessionQuotaAccounting";
 import { isRaceEventTitle } from "../../../supabase/functions/_shared/raceDayIdentity";
 import { isRaceSimIncompatibleWithObjective } from "./raceSimCompatibility";
@@ -2018,10 +2018,6 @@ function enforceMaxSessionsPerDay(
 const DEMANDING_ACCUMULATION_LEVELS = new Set(["untrained", "light"]);
 const DEMANDING_ACCUMULATION_RELIABLE_SOURCES = new Set(["manual", "auto-tss"]);
 
-function demandingSessionCap(activeCount: number): number {
-  return Math.max(1, Math.floor(activeCount / 2));
-}
-
 function sessionZoneMaxForFamily(s: PlanSession): number {
   if (!s.custom && s.catalogId) {
     const fiche = ficheFor(s.catalogId);
@@ -2040,9 +2036,9 @@ function enforceDemandingAccumulation(
   phaseCtx?: PhaseCtx,
   quotasByWeek?: Record<number, WeekQuotaEntry>,
 ): void {
-  if (!trainingLevelSignal) return;
-  if (!DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource)) return;
-  if (!DEMANDING_ACCUMULATION_LEVELS.has(trainingLevelSignal.trainingLevel)) return;
+  const beginner = !!trainingLevelSignal &&
+    DEMANDING_ACCUMULATION_RELIABLE_SOURCES.has(trainingLevelSignal.trainingLevelSource) &&
+    DEMANDING_ACCUMULATION_LEVELS.has(trainingLevelSignal.trainingLevel);
 
   for (const ch of chunks) {
     for (const wk of ch.weeks ?? []) {
@@ -2051,8 +2047,16 @@ function enforceDemandingAccumulation(
       const active = sessions.filter(s => s.sport !== "rest");
       if (active.length === 0) continue;
 
-      const cap = demandingSessionCap(active.length);
-      const demanding = active.filter(s => intensityFamily(sessionZoneMaxForFamily(s)) === "vo2");
+      const cap = beginner ? demandingSessionCap(active.length) : 3;
+      const demanding = active.filter(s => {
+        const fiche = !s.custom && s.catalogId ? ficheFor(s.catalogId) : null;
+        return isGenuinelyDemandingSession({
+          sport: s.sport ?? '', durationMin: s.durationMin, title: s.title ?? '', details: s.details || fiche?.structure.map(p => p.text).join('; ') || '',
+          zones: s.zones ?? fiche?.structure.flatMap(p => p.zones ?? []),
+          weekNumber: wk.weekNumber, weekTheme: wk.theme ?? '', phase: wk.phase ?? '',
+          dayName: s.day ?? '', dayIndex: 0, isRest: false,
+        });
+      });
       if (demanding.length <= cap) continue;
 
       // Conserve en priorité les séances-clé (même logique que
@@ -2077,10 +2081,10 @@ function enforceDemandingAccumulation(
           restrictToIds,
           ledger,
           excludeFamily: "vo2",
-          allowedCandidateIntentFamilies: ["seuil", "endurance_fondamentale", "recuperation"],
+          allowedCandidateIntentFamilies: ["endurance_fondamentale", "recuperation"],
           objectiveKey: phaseCtx?.objectiveKey,
           levelSignal: phaseCtx?.beginnerIntensitySignal,
-          weekZoneCap: resolveRepairWeekZoneCap(wk, quotaEntry),
+          weekZoneCap: Math.min(2, resolveRepairWeekZoneCap(wk, quotaEntry) ?? 2),
           weekType: resolveRepairWeekType(wk, quotaEntry),
         }, id ?? undefined);
         const label = id ?? s.title ?? "custom";
@@ -2088,7 +2092,7 @@ function enforceDemandingAccumulation(
           assignFiche(s, repl, s.durationMin, ledger);
           counters.demanding_accumulation_downgraded = (counters.demanding_accumulation_downgraded ?? 0) + 1;
           logs.push(
-            `[demanding_accumulation_downgraded] S${wk.weekNumber} ${s.day} ${label} (${demanding.length} séances "vo2" sur ${active.length} actives > seuil ${cap}, niveau ${trainingLevelSignal.trainingLevel}/${trainingLevelSignal.trainingLevelSource}) → ${repl.id}`,
+            `[demanding_accumulation_downgraded] S${wk.weekNumber} ${s.day} ${label} (${demanding.length} séances "vo2" sur ${active.length} actives > seuil ${cap}, niveau ${trainingLevelSignal?.trainingLevel ?? "non précisé"}/${trainingLevelSignal?.trainingLevelSource ?? "inconnu"}) → ${repl.id}`,
           );
         } else {
           counters.demanding_accumulation_unresolved = (counters.demanding_accumulation_unresolved ?? 0) + 1;
