@@ -862,7 +862,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                         </div>
 
                         {/* Comparatif Actuel → Cible */}
-                        {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} />}
+                        {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} paceThresholdSecPerKm={input.paceThresholdSecPerKm ?? null} />}
                         {!vmaReference && axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
                         {!vmaReference && hasValues && (
                           <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
