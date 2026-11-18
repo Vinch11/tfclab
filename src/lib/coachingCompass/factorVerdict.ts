@@ -6,7 +6,7 @@
 import { assessVmaReference, type VmaReference } from './vmaReference';
 
 export type EvidenceStatus = 'deficit' | 'ok' | 'unknown';
-export interface FactorEvidence { key: string; label: string; status: EvidenceStatus; detail: string; observationGroup?: string; referenceQuality?: 'supported' | 'hypothesis' }
+export interface FactorEvidence { key: string; label: string; status: EvidenceStatus; detail: string }
 export type FactorVerdictKind = 'probable_limiter' | 'gap_to_confirm' | 'no_apparent_deficit' | 'to_measure';
 export interface FactorVerdict { kind: FactorVerdictKind; label: string; evidence: FactorEvidence[] }
 
@@ -19,11 +19,9 @@ const LABELS: Record<FactorVerdictKind, string> = {
 
 export function computeFactorVerdict(evidence: FactorEvidence[]): FactorVerdict {
   const deficits = evidence.filter(e => e.status === 'deficit').length;
-  const independentDeficits = new Set(evidence.filter(e => e.status === 'deficit' && e.referenceQuality !== 'hypothesis').map(e => e.observationGroup ?? e.key)).size;
-  const contradictions = evidence.some(e => e.status === 'ok' && e.referenceQuality !== 'hypothesis');
   const known = evidence.filter(e => e.status !== 'unknown').length;
-  const kind: FactorVerdictKind = independentDeficits >= 2 && !contradictions ? 'probable_limiter'
-    : deficits > 0 ? 'gap_to_confirm'
+  const kind: FactorVerdictKind = deficits >= 2 ? 'probable_limiter'
+    : deficits === 1 ? 'gap_to_confirm'
     : known > 0 ? 'no_apparent_deficit'
     : 'to_measure';
   return { kind, label: LABELS[kind], evidence };
@@ -45,7 +43,6 @@ export function buildVmaEvidence(input: {
   const a = input.reference ? assessVmaReference(input.vma, input.reference) : null;
   evidence.push({
     key: 'vma_vs_scenario', label: 'VMA face au repère d’ambition',
-    observationGroup: 'vma_snapshot', referenceQuality: 'hypothesis',
     status: !a || a.status === 'unavailable' ? 'unknown' : a.status === 'below' ? 'deficit' : 'ok',
     detail: !a || a.status === 'unavailable' ? 'VMA ou repère indisponible.'
       : a.status === 'below' ? `${a.gapKmh?.toFixed(1)} km/h sous le repère (extrapolé).` : 'Dans ou au-dessus du repère (extrapolé).',
@@ -57,7 +54,6 @@ export function buildVmaEvidence(input: {
     const pct = Math.round(fraction * 100);
     evidence.push({
       key: 'threshold_fraction', label: 'Seuil en % de VMA',
-      observationGroup: 'vma_snapshot', referenceQuality: 'hypothesis',
       status: fraction >= THRESHOLD_FRACTION_HIGH ? 'deficit' : 'ok',
       detail: fraction >= THRESHOLD_FRACTION_HIGH
         ? `Seuil à ${pct} % de VMA : seuil déjà proche du plafond, la VMA freine plus probablement.`

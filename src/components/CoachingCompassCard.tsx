@@ -30,7 +30,6 @@ import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimite
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { CompassVmaReference } from '@/components/CompassVmaReference';
 import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaReference } from '@/lib/coachingCompass/vmaReference';
-import { FACTOR_STATUS_LABELS, getObjectiveContext, readObjectiveFactor } from '@/lib/coachingCompass/objectiveReading';
 
 // Local wording only: detailed provenance remains unchanged in reports and stored data.
 const compassSourceLabel = (source: string) => source === 'snapshot'
@@ -687,10 +686,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
   const displayAxes = presentation?.axes ?? compass.radarAxes;
   const disciplineAxes = presentation?.disciplineAxes;
   const explanationAxes = disciplineAxes ? [...disciplineAxes.bike, ...disciplineAxes.run] : displayAxes;
-  const objectiveContext = getObjectiveContext(input.objectif);
-  const objectiveFactors = objectiveContext ? explanationAxes.map(axis => readObjectiveFactor(axis, input.objectif, input.ambition)) : [];
-  const priorityFactors = objectiveFactors.filter(factor => factor.status === 'priority');
-  const confirmLabels = [...new Set(objectiveFactors.filter(factor => factor.status === 'confirm').map(factor => factor.label))];
   const _ambition = (input.ambition || "age_group") as AmbitionLevel;
   const _objectif = input.objectif || "IM";
   const _sportForTargets =
@@ -731,14 +726,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
       </CardHeader>
 
       <CardContent className="pt-0 px-3 sm:px-6">
-        {objectiveContext && <section className="mb-4 border-b border-border pb-4" data-testid="compass-objective-reading">
-          <div className="flex items-center gap-2"><Target className="h-4 w-4 shrink-0 text-primary" /><h3 className="text-sm font-semibold">Ce qui manque pour l’objectif</h3></div>
-          <p className="mt-1 text-xs font-medium">{objectiveContext.label} · {input.ambition === 'finisher' ? 'Finisher' : input.ambition === 'age_group' ? 'Groupe d’âge' : input.ambition === 'competitor' ? 'Compétiteur' : input.ambition === 'elite' ? 'Élite' : input.ambition}{input.athleteAge != null && input.athleteAge > 0 ? ` · ${input.athleteAge} ans` : ''}</p>
-          <p className="mt-2 text-xs text-muted-foreground">{objectiveContext.focus}.</p>
-          {priorityFactors.length > 0 ? <ul className="mt-2 space-y-1 text-xs">{priorityFactors.map(factor => <li key={factor.key}><strong>{factor.label}</strong> — {factor.reason}</li>)}</ul> : <p className="mt-2 text-sm font-medium">Aucun manque prioritaire suffisamment étayé à ce stade.</p>}
-          {confirmLabels.length > 0 && <p className="mt-1 text-xs text-warning">Les comparaisons disponibles restent à confirmer ; leurs raisons figurent près des jauges.</p>}
-          <details className="mt-1 text-xs text-muted-foreground"><summary className="flex min-h-11 cursor-pointer items-center">Pourquoi ces conclusions ?</summary><p className="pb-2">Les cibles internes et le scénario VMA ne suffisent pas à identifier ce qui freine cet objectif. Les mesures, leurs protocoles et les performances comparables doivent étayer la conclusion. L’âge n’applique aucun coefficient supplémentaire. Les priorités du plan restent inchangées.</p></details>
-        </section>}
         {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
@@ -829,14 +816,14 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 </span>
               </div>
 
-              <details className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
-                <summary className="min-h-11 flex items-center cursor-pointer text-sm font-semibold">Priorités actuelles du plan · inchangées</summary>
+              <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
+                <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
                 <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{presentation?.priorityMetrics.join(" → ") || "Aucune priorité étayée disponible"}</p>
                 {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
                 {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
                 {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
-              </details>
+              </div>
               {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
                 {explanationAxes.map((axis, index) => {
@@ -845,7 +832,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   const vmaReference = axis.key === 'vma' ? getVmaReference(input.objectif, input.ambition) : null;
                   const vmaAssessment = vmaReference ? assessVmaReference(axis.value, vmaReference) : null;
                   const statusLabel = vmaAssessment?.status !== 'unavailable' && vmaAssessment ? vmaAssessment.label : axisAssessment(axis);
-                  const objectiveFactor = objectiveContext ? readObjectiveFactor(axis, input.objectif, input.ambition) : null;
 
                   const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
                   const isInverse = axis.key === "vlamax"; // lower is better
@@ -878,10 +864,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                             axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
                             "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
                           )}>
-                            {objectiveFactor ? FACTOR_STATUS_LABELS[objectiveFactor.status] : statusLabel}
+                            {statusLabel}
                           </Badge>
                         </div>
-                        {objectiveFactor && <p className="mt-1 text-xs text-muted-foreground">{objectiveFactor.reason}</p>}
 
                         {/* Comparatif Actuel → Cible */}
                         {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} paceThresholdSecPerKm={input.paceThresholdSecPerKm ?? null} />}

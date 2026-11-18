@@ -25,10 +25,10 @@ describe('factorVerdict', () => {
     const v = computeFactorVerdict(buildVmaEvidence({ vma: 10, paceThresholdSecPerKm: 450, reference: ref }));
     expect(v.kind).toBe('gap_to_confirm');
   });
-  it('VMA below scenario and its derived threshold ratio remain unconfirmed', () => {
+  it('VMA below scenario with threshold ≥88 % VMA → probable limiter', () => {
     // 10 km/h, seuil 6:00/km = 10 → 100 %? use 6:40 = 9 km/h → 90 %
     const v = computeFactorVerdict(buildVmaEvidence({ vma: 10, paceThresholdSecPerKm: 400, reference: ref }));
-    expect(v.kind).toBe('gap_to_confirm');
+    expect(v.kind).toBe('probable_limiter');
   });
   it('missing VMA and threshold → to measure', () => {
     expect(computeFactorVerdict(buildVmaEvidence({ vma: null, paceThresholdSecPerKm: null, reference: ref })).kind).toBe('to_measure');

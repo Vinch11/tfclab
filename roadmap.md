@@ -1,7 +1,7 @@
 # Roadmap
 
 ## Plan Compass — objectifs et catégories d’âge
-- [x] Lecture simplifiée livrée pour les 12 objectifs hors Start to Run : synthèse visible, conclusions près des jauges, priorités du plan repliées et inchangées ; extrapolations et calculs dépendants ne créent plus de limiteur probable. Emanuela et Vince connectés vérifiés ordinateur/téléphone, aucun débordement ; 176 tests passent, compilation OK, deux générateurs déployés et versions relues (200). Aucun bilan, plan ou Nolio modifié, site non publié. Les références actuelles ne permettent pas de priorité scientifique ferme sur ces deux profils : conclusions « à confirmer », revue sportive coach restante avant validation de leur interprétation.
+- [x] Derniers ajouts annulés à la demande du coach le 18 novembre à 20:17 UTC : Compass restauré à l’état précédent, synthèse et conclusions ajoutées retirées. Emanuela connectée vérifiée ordinateur/téléphone ; 157 tests passent, compilation OK, deux générateurs redéployés avec succès et versions relues (200). Aucun plan, bilan ou Nolio modifié, site non publié. La lecture simplifiée précédemment livrée est abandonnée.
 - [x] Simplifier le plan pour montrer directement au coach les manques prioritaires face à l’objectif, sans nouveau parcours complexe ni modification des plans IA.
 - [x] Retirer Start to Run du périmètre du plan et de sa matrice de validation ; conserver cet objectif dans l’application existante.
 

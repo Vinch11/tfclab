@@ -1,7 +1,5 @@
 # Architecture rules
 
-- Objective-specific Compass reading lives in `coachingCompass/objectiveReading`, display-only and guarded by prescription isolation tests; internal targets and VMA scenarios cannot establish priorities. Why: unsupported comparisons must not become training needs.
-
 - AI session export compiles the current occurrence through `_shared/nolioPrescription`; catalogue ID caches cannot replace its dose. Preserve distance steps and explicit recoveries, split named multisport segments, and report ambiguous prescriptions before calendar writes. Why: stored recipes and lossy text parsing changed what the athlete received.
 
 - Plan contracts: see `src/engines/plan/AGENTS.md`.

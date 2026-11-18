@@ -16,7 +16,7 @@ export function CompassVmaReference({ objective, ambition, value, paceThresholdS
       {assessment.status === 'inside' && <p className="text-[10px] text-muted-foreground">VMA dans le repère choisi : pas de déficit de vitesse aérobie apparent. Examiner le seuil et l’endurance spécifique avant de choisir le chantier de préparation.</p>}
       {assessment.status === 'above' && <p className="text-[10px] text-muted-foreground">VMA au-dessus du repère choisi : la vitesse aérobie ne ressort pas comme frein dans cette comparaison. Cela ne garantit pas la performance visée.</p>}
       <details className="text-xs" data-testid="compass-vma-verdict">
-        <summary className="min-h-11 flex flex-wrap items-center gap-x-1 cursor-pointer">Indices de lecture VMA · à confronter aux performances</summary>
+        <summary className="min-h-11 flex flex-wrap items-center gap-x-1 cursor-pointer"><span className="text-muted-foreground">Hypothèse de lecture :</span><strong className={verdict.kind === 'probable_limiter' ? 'text-warning' : ''}>{verdict.kind === 'probable_limiter' ? 'VMA à examiner en priorité — non confirmée' : verdict.label}</strong></summary>
         <ul className="space-y-1 pb-2 text-[10px] text-muted-foreground">
           {verdict.evidence.map(e => <li key={e.key} className="border-l border-border pl-2 py-1">
             <span className="font-medium text-foreground">{e.status === 'deficit' ? '△' : e.status === 'ok' ? '○' : '?'} {e.label}</span>
