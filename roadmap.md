@@ -1,5 +1,10 @@
 # Roadmap
 
+## Références Compass approuvées — 18 novembre 20:56
+- [x] Scores de réussite implicites du Compass remplacés par valeurs et écarts en unités réelles ; hypothèses historiques sans coefficient général d’âge, VLamax/FatMax sans note. Référence Assis séparée des hypothèses ; aucune norme catégorie × ambition revendiquée.
+- [x] Tables FRIEND 2022 P5/P25/P50/P75/P90/P95 par sexe, décennie 20–89 ans et modalité ajoutées ; Emanuela femmes 50–59 vérifiée, aucun percentile individuel sans CPET documenté. Seuil course réel 11,4 km/h / 88 % VMA affiché sans allure de course inférée. Distribution de résultats d’épreuve non chargée : nécessite jeu comparable sourcé, aucun classement inventé.
+- [x] Emanuela originale connectée ordinateur/téléphone vérifiée ; 192 tests puis 24 tests ciblés après corrections de typage passent, compilation OK. Deux générateurs déployés avec succès, GET 200 et même release ID vérifiés ; aucun bilan, classement, plan, calendrier Nolio ni publication modifié.
+
 ## Vérification scientifique des scores Compass — 18 novembre 20:42
 - [x] Reproduire en lecture seule les scores du profil original d’Emanuela, IM Compétiteur : FTP/kg 3,62/3,64 après réduction d’âge, VO₂max 52/49,3, VMA 13/14,4 (scénario extrapolé). Aucune donnée ni prescription modifiée.
 - [x] Références vérifiées : FRIEND 2022 (22 379 tests, percentiles VO₂peak par âge/sexe et tapis/vélo), Knechtle 2024 (687 696 résultats Ironman, pas de mesures physiologiques individuelles) et Malkinson 2022 (bases VO₂max et podiums séparées, pas de profils appariés). Réponse : distinguer percentile de population, percentile de performance et indices physiologiques ; aucune norme complète objectif × âge × ambition ni cible inventée, Compass et plans inchangés.
