@@ -1,5 +1,8 @@
 # Roadmap
 
+## Compte personnel Nolio — vérification transversale
+- [x] Sélecteurs/lectures et diagnostic de connexion vérifiés ; compte personnel ajouté aux sondes, synchronisation préserve les liens explicites sans inférence de nom. 21 tests passent, deux fonctions déployées. Aucun import/envoi/exécution de tâche ; inventaire dans docs/nolio-personal-account-flow-sweep.md.
+
 ## Plans utilisables — corrections approuvées 17 novembre
 - [x] Corrections 21:12 : quatrième séance non remplacée automatiquement chez un confirmé, revue par domaines ; protections débutants/récupération conservées. Allure marathon B datée avant IM dans préparation et quotas ; trois fiches structurées documentées (marathon 3×8/60min, rappel 2×8/45min, vélo facile 60min), repères longs protégés contre rotation. Deux générateurs déployés avec succès ; 167 tests ciblés passent après reprise isolée du test lent. Original et Nolio inchangés.
 - [ ] Validation réelle restante : copie Emanuela connectée prévalidée 32 semaines, 7 familles, Bien entraînée, 3:1, Séville B 21/02 et IM 27/06 ; avertissements S1 charge inconnue et S30 plage catalogue encore affichés. Rejeu local S30 montre des plages admissibles, écart aperçu/local non résolu. Nouvelle génération et revue semaine/PDF non effectuées dans ce tour.

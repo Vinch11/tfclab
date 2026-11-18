@@ -4,6 +4,7 @@
 // /get/training/ et /get/metric/ ne sont pas encore appelés (autorisation en cours).
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
+import { includeLinkedOwner } from "./ownProfile.ts";
 
 const NOLIO_CLIENT_ID = "THi6TP72G6ZJVHsIdPxA9BRsZ4kVQZiVd0k6ilKv";
 const NOLIO_TOKEN_URL = "https://www.nolio.io/api/token/";
@@ -159,7 +160,7 @@ Deno.serve(async (req) => {
       refresh_token: (tokenRow.refresh_token as string | null) ?? null,
       expires_at: (tokenRow.expires_at as string | null) ?? null,
     });
-    log(`STEP 1b — Token utilisé (préfixe): ${accessToken.slice(0, 12)}... (longueur: ${accessToken.length})`);
+    log("STEP 1b — Connexion Nolio prête");
 
     // 2) Appelle l'API Nolio — athlètes du coach
     log(`STEP 2 — GET ${NOLIO_ATHLETES_URL}`);
@@ -256,7 +257,13 @@ Deno.serve(async (req) => {
 
     // Si un athlète spécifique est demandé, restreindre la liste Nolio à celui-ci
     let targetAthleteName: string | null = null;
-    let nolioAthletesScoped = nolioAthletes;
+    // The owner's profile is separate from the coached list. Retain existing explicit links.
+    const ownerResponse = await fetch("https://www.nolio.io/api/get/user/", {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    }).catch(() => null);
+    const ownerProfile = ownerResponse?.ok ? await ownerResponse.json().catch(() => null) : null;
+    let nolioAthletesScoped: NolioAthlete[] = includeLinkedOwner(nolioAthletes, ownerProfile,
+      [...(existing ?? []).flatMap(a => a.nolio_id != null ? [Number(a.nolio_id)] : []), ...(requestedNolioId != null ? [requestedNolioId] : [])]);
     if (requestedAthleteId || requestedNolioId != null) {
       const targetTfcl = (existing ?? []).find(a =>
         (requestedAthleteId && a.id === requestedAthleteId) ||
@@ -264,7 +271,7 @@ Deno.serve(async (req) => {
       );
       targetAthleteName = targetTfcl?.name ?? null;
       const targetNolioId = requestedNolioId ?? (targetTfcl?.nolio_id != null ? Number(targetTfcl.nolio_id) : null);
-      nolioAthletesScoped = nolioAthletes.filter(na => Number(na.nolio_id) === targetNolioId);
+      nolioAthletesScoped = nolioAthletesScoped.filter(na => Number(na.nolio_id) === targetNolioId);
       log(`SCOPE — athlète unique demandé (id=${requestedAthleteId}, nolio_id=${targetNolioId}, name=${targetAthleteName}) → ${nolioAthletesScoped.length} match Nolio`);
     }
 

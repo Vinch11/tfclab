@@ -118,7 +118,8 @@ Deno.serve(async (req) => {
       };
       const [me, athletes, windows] = await Promise.all([get("me/"), get("me/athletes/?limit=100"), get("metrics/records/")]);
       const raw = athletes.data as { data?: Array<Record<string, unknown>>; results?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
-      const list = Array.isArray(raw) ? raw : raw?.data ?? raw?.results ?? [];
+      const coached = Array.isArray(raw) ? raw : raw?.data ?? raw?.results ?? [];
+      const list = me.status === 200 ? withOwnNolioProfile(coached, me.data) : coached;
       return json({
         me: { status: me.status, error: me.status >= 400 ? me.data : undefined },
         athletes: { status: athletes.status, count: list.length, has_api_access: list.filter((a) => a.has_api_access).length,
@@ -266,7 +267,8 @@ Deno.serve(async (req) => {
       }
       const [me, athletes, windows] = await Promise.all([get("me/"), get("me/athletes/?limit=100"), get("metrics/records/")]);
       const rawList = athletes.data as { data?: Array<Record<string, unknown>> } | Array<Record<string, unknown>>;
-      const list = Array.isArray(rawList) ? rawList : rawList?.data ?? [];
+      const coached = Array.isArray(rawList) ? rawList : rawList?.data ?? [];
+      const list = me.status === 200 ? withOwnNolioProfile(coached, me.data) : coached;
       return json({
         me: { status: me.status },
         athletes: { status: athletes.status, count: list.length,
