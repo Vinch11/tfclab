@@ -32,7 +32,7 @@ function b10kTo703Config(overrides: Record<string, unknown> = {}) {
 
 Deno.test("buildUserPrompt — athlète 42 ans, ambition elite : STRUCTURE AMBITION affiche 3/sem, jamais réduit à 2 par l'âge seul", () => {
   const prompt = buildUserPrompt({ age: 42 }, b10kTo703Config());
-  assertStringIncludes(prompt, "STRUCTURE AMBITION (non négociable) :** 3 qualité(s)/semaine");
+  assertStringIncludes(prompt, "STRUCTURE AMBITION :** repère 3 qualité(s)/semaine, pas un plafond universel ni un quota obligatoire");
   assert(
     !prompt.includes("STRUCTURE AMBITION (non négociable) :** 2 qualité(s)/semaine"),
     "l'âge seul (42 ans, règle Master >40) ne doit plus plafonner silencieusement le nombre de qualités/sem fixé par l'ambition (contradiction confirmée, audit Codex P0-2)",
@@ -44,19 +44,19 @@ Deno.test("buildUserPrompt — athlète 42 ans, ambition elite : STRUCTURE AMBIT
 
 Deno.test("buildUserPrompt — athlète 55 ans, ambition elite : même principe, espacement 72h (pas 48h), nombre toujours piloté par l'ambition", () => {
   const prompt = buildUserPrompt({ age: 55 }, b10kTo703Config());
-  assertStringIncludes(prompt, "STRUCTURE AMBITION (non négociable) :** 3 qualité(s)/semaine");
+  assertStringIncludes(prompt, "STRUCTURE AMBITION :** repère 3 qualité(s)/semaine, pas un plafond universel ni un quota obligatoire");
   assertStringIncludes(prompt, "espacement ≥72h");
 });
 
 Deno.test("buildUserPrompt — athlète <40 ans : aucune mention Master ajoutée (comportement inchangé)", () => {
   const prompt = buildUserPrompt({ age: 30 }, b10kTo703Config());
-  assertStringIncludes(prompt, "STRUCTURE AMBITION (non négociable) :** 3 qualité(s)/semaine");
+  assertStringIncludes(prompt, "STRUCTURE AMBITION :** repère 3 qualité(s)/semaine, pas un plafond universel ni un quota obligatoire");
   assert(!prompt.includes("règles MASTER"));
 });
 
 Deno.test("buildUserPrompt — age absent (data vide) : comportement historique inchangé, aucun crash", () => {
   const prompt = buildUserPrompt({}, b10kTo703Config());
-  assertStringIncludes(prompt, "STRUCTURE AMBITION (non négociable) :** 3 qualité(s)/semaine");
+  assertStringIncludes(prompt, "STRUCTURE AMBITION :** repère 3 qualité(s)/semaine, pas un plafond universel ni un quota obligatoire");
   assert(!prompt.includes("règles MASTER"));
 });
 

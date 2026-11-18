@@ -429,6 +429,11 @@ function buildPlanHTML(
 
     const sessionRows = week.sessions.map((rawS, sessionIdx) => {
       const s = rawS;
+      // Print the dose actually saved for this occurrence, including sessions
+      // whose prose only describes technique. Never borrow a catalogue duration.
+      const durationHtml = !s.isRest && typeof s.durationMin === 'number' && Number.isFinite(s.durationMin) && s.durationMin > 0
+        ? `<span class="session-duration" style="font-size:11px;white-space:nowrap;">Durée prévue : ${formatScheduledMinutes(s.durationMin)}</span>`
+        : '';
 
       const dateStr = weekStart && s.dayIndex >= 0 ? formatSessionDate(weekStart, s.dayIndex) : "";
       const trailAlts = s.isRest
@@ -453,6 +458,7 @@ function buildPlanHTML(
             <strong style="color:#14131A;font-size:12px;min-width:90px;">${s.dayName}</strong>
             ${dateStr ? `<span style="font-size:10.5px;color:#6E6B78;">${dateStr}</span>` : ""}
             ${getSportBadge(s.sport)}
+            ${durationHtml}
             <span style="font-weight:600;color:#14131A;font-size:12px;flex:1;">${renderTitleForPDF(s.title, fiche)}</span>
           </div>`;
         const body = `<div style="padding:8px 12px;font-size:11px;color:#2B2933;line-height:1.5;white-space:pre-wrap;${s.isRest ? 'color:#97949F;' : ''}">${formatFicheText(s.details || "")}</div>`;
@@ -486,7 +492,7 @@ function buildPlanHTML(
         <td style="padding:6px 10px;border:1px solid #DAD6CC;white-space:nowrap;vertical-align:top;font-weight:600;color:#2B2933;">${s.dayName}</td>
         <td style="padding:6px 10px;border:1px solid #DAD6CC;vertical-align:top;">${getSportBadge(s.sport)}</td>
         <td style="padding:6px 10px;border:1px solid #DAD6CC;font-weight:600;vertical-align:top;color:#14131A;">${renderTitleForPDF(s.title, fiche)}</td>
-        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${formatFicheText(s.details || "")}</td>
+        <td style="padding:6px 10px;border:1px solid #DAD6CC;font-size:11px;vertical-align:top;word-wrap:break-word;color:#5C5966;line-height:1.5;white-space:pre-wrap;">${durationHtml ? `${durationHtml}<br>` : ''}${formatFicheText(s.details || "")}</td>
       </tr>
       ${ficheRow}
       ${altsRow}

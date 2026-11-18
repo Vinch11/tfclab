@@ -26,13 +26,13 @@ describe("buildWorkoutCatalog — prérequis des protocoles avancés", () => {
     })).not.toContain(ID);
   });
 
-  it("respecte une décision explicite du coach", () => {
+  it("ne transforme pas une approbation coach en dispense des prérequis vérifiés", () => {
     expect(idsFor({
       trainingLevel: "light",
       trainingLevelSource: "manual",
       weeklyHours: 4,
       approvedAdvancedSessionIds: [ID],
-    })).toContain(ID);
+    })).not.toContain(ID);
   });
 
   it("transmet l'intention structurée et marque explicitement les fiches non vérifiées", () => {

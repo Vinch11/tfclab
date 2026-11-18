@@ -1,0 +1,321 @@
+{
+  "referenceCommit": "6bb104cd81377870765a971e2da58b85271c7b0c",
+  "harnessCorrection": "Map mixed catalogue cards to their executable recovery/brick occurrence sport; production code unchanged.",
+  "cases": 600,
+  "invariantSha256": "dc5c31291b7b0755ef4be1da6d957dd431df824d3f634633cbd70bf2d712c12e",
+  "blockedIds": [
+    "703:highly_trained:competitor:unknown",
+    "IM:trained:competitor:known_synthetic",
+    "IM:trained:elite:unknown",
+    "IM:highly_trained:world_class:unknown",
+    "Olympic:trained:world_class:unknown",
+    "Olympic:highly_trained:elite:unknown",
+    "Marathon:trained:competitor:unknown",
+    "Marathon:trained:competitor:known_synthetic",
+    "Marathon:trained:elite:unknown",
+    "Marathon:trained:elite:known_synthetic",
+    "Marathon:trained:world_class:unknown",
+    "Marathon:trained:world_class:known_synthetic",
+    "Marathon:highly_trained:competitor:unknown",
+    "Marathon:highly_trained:competitor:known_synthetic",
+    "Marathon:highly_trained:elite:unknown",
+    "Marathon:highly_trained:elite:known_synthetic",
+    "Marathon:highly_trained:world_class:unknown",
+    "Marathon:highly_trained:world_class:known_synthetic",
+    "Semi:trained:competitor:unknown",
+    "Semi:trained:competitor:known_synthetic",
+    "Semi:trained:elite:unknown",
+    "Semi:trained:elite:known_synthetic",
+    "Semi:trained:world_class:unknown",
+    "Semi:trained:world_class:known_synthetic",
+    "Semi:highly_trained:competitor:unknown",
+    "Semi:highly_trained:competitor:known_synthetic",
+    "Semi:highly_trained:elite:unknown",
+    "Semi:highly_trained:elite:known_synthetic",
+    "Semi:highly_trained:world_class:unknown",
+    "Semi:highly_trained:world_class:known_synthetic",
+    "5K:trained:competitor:unknown",
+    "5K:trained:competitor:known_synthetic",
+    "5K:trained:elite:unknown",
+    "5K:trained:elite:known_synthetic",
+    "5K:trained:world_class:unknown",
+    "5K:trained:world_class:known_synthetic",
+    "5K:highly_trained:competitor:unknown",
+    "5K:highly_trained:competitor:known_synthetic",
+    "5K:highly_trained:elite:unknown",
+    "5K:highly_trained:elite:known_synthetic",
+    "5K:highly_trained:world_class:unknown",
+    "5K:highly_trained:world_class:known_synthetic",
+    "10K:trained:competitor:unknown",
+    "10K:trained:competitor:known_synthetic",
+    "10K:trained:elite:unknown",
+    "10K:trained:elite:known_synthetic",
+    "10K:trained:world_class:unknown",
+    "10K:trained:world_class:known_synthetic",
+    "10K:highly_trained:competitor:unknown",
+    "10K:highly_trained:competitor:known_synthetic",
+    "10K:highly_trained:elite:unknown",
+    "10K:highly_trained:elite:known_synthetic",
+    "10K:highly_trained:world_class:unknown",
+    "10K:highly_trained:world_class:known_synthetic",
+    "IM:trained:elite:unknown:lcw_3day",
+    "IM:highly_trained:world_class:unknown:lcw_3day"
+  ],
+  "catalogueAlerts": [
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:competitor:unknown",
+      "week": 5,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:world_class:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:world_class:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:world_class:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "703:light:world_class:known_synthetic",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:age_group:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:age_group:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:age_group:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:age_group:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:elite:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:elite:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:trained:elite:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 8,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:competitor:unknown",
+      "week": 11,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:world_class:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:world_class:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "703:highly_trained:world_class:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:age_group:known_synthetic",
+      "week": 5,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:light:world_class:unknown",
+      "week": 5,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:competitor:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:competitor:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:competitor:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:competitor:known_synthetic",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:elite:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:elite:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:elite:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:trained:elite:unknown",
+      "week": 4,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:age_group:known_synthetic",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:age_group:known_synthetic",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:age_group:known_synthetic",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 1,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 2,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 3,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 8,
+      "sport": "brick"
+    },
+    {
+      "id": "IM:highly_trained:world_class:unknown",
+      "week": 11,
+      "sport": "brick"
+    }
+  ]
+}
