@@ -3,17 +3,7 @@ import { postProcessParsedPlan } from "../computePlan";
 import type { ParsedPlan, ParsedSession } from "@/lib/aiPlanParser";
 import type { PlanGenerationConfig } from "../types";
 
-/**
- * Bug réel corrigé (audit "dashboard/plan/export", passe 6). postProcessParsedPlan
- * calculait computedVolumeMin/computedVolumeStr DEUX FOIS de suite avec deux
- * algorithmes différents : le premier sommait toutes les durées explicites du
- * texte (parseSessionDurationMin), le second (computeWeekVolumeMin — lookup
- * catalogue puis fallback par sport, prend la durée la PLUS LONGUE trouvée, pas
- * la somme) écrasait INCONDITIONNELLEMENT le résultat du premier pour chaque
- * semaine. Le premier calcul était donc mort — son résultat n'était jamais lu.
- * Ce test verrouille le fait que le volume hebdo affiché suit bien le second
- * algorithme (max), pas le premier (somme), qui a été supprimé.
- */
+/** Delivered endurance time: primary prescription, never a fabricated sport fallback. */
 
 function makeSession(over: Partial<ParsedSession>): ParsedSession {
   return {
@@ -53,7 +43,7 @@ const baseConfig: PlanGenerationConfig = {
   ambition: "sub",
 };
 
-describe("postProcessParsedPlan — computedVolumeMin suit l'algorithme 'durée max' (computeWeekVolumeMin), pas 'somme des durées' (mort)", () => {
+describe("postProcessParsedPlan — durée de la prescription principale", () => {
   it("un texte avec deux mentions de durée (90min et 60min) donne un volume de 90min (max), pas 150min (somme)", () => {
     const session = makeSession({
       details: "Sortie 90min. Version courte alternative 60min si fatigue.",
@@ -62,9 +52,25 @@ describe("postProcessParsedPlan — computedVolumeMin suit l'algorithme 'durée 
     expect(plan.weeks[0].computedVolumeMin).toBe(90);
   });
 
-  it("un texte sans durée extractible retombe sur le fallback par sport (vélo → 90min), pas sur 0", () => {
+  it.each([
+    ["60min Z2. Alternative longue 90min si disponible.", 60],
+    ["30min échauffement + 45min Z2 + 15min retour au calme", 90],
+    ["30min échauffement (alternative courte 15min) + 45min Z2 + 15min retour au calme", 90],
+    ["90min Z2, alternative courte 60min si fatigue.", 90],
+  ])("ne confond pas étapes et variantes : %s", (details, minutes) => {
+    const { plan } = postProcessParsedPlan(makePlan(makeSession({ details })), baseConfig, undefined);
+    expect(plan.weeks[0].computedVolumeMin).toBe(minutes);
+  });
+
+  it("conserve la durée choisie par le coach", () => {
+    const { plan } = postProcessParsedPlan(makePlan(makeSession({ durationMin: 60, details: "90min. Alternative courte 60min." })), baseConfig, undefined);
+    expect(plan.weeks[0].computedVolumeMin).toBe(60);
+  });
+
+  it("une durée absente reste inconnue et visible", () => {
     const session = makeSession({ sport: "Vélo", title: "Endurance", details: "Rouler tranquillement en Z2." });
     const { plan } = postProcessParsedPlan(makePlan(session), baseConfig, undefined);
-    expect(plan.weeks[0].computedVolumeMin).toBe(90);
+    expect(plan.weeks[0].computedVolumeMin).toBeUndefined();
+    expect(plan.weeks[0].computedVolumeStr).toBe("Durées à préciser");
   });
 });

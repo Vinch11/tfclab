@@ -18,3 +18,18 @@ describe("structure Nolio depuis le texte du plan", () => {
     expect(nolioStructureForSession({ details: "Main: 30' Z2", isRest: true })).toBeNull();
   });
 });
+
+describe("priorité à la séance réellement affichée", () => {
+  it("une dose du plan remplace la recette du catalogue même sans intitulés de parties", () => {
+    const p=nolioStructureForSession({details:"4x6min Z4 r=3min Z1",durationMin:33},[{part:"Main",text:"3x10min Z4 / 3min Z1",zones:["Z4"]}]);
+    expect(p).toHaveLength(1);
+    expect(p?.[0].text).toBe("4x6min Z4 r=3min Z1");
+  });
+  it("ne remplace pas une prescription imprécise par une autre dose du catalogue", () => {
+    expect(nolioStructureForSession({details:"Séance selon sensations"},[{part:"Main",text:"3x10min Z4 / 3min Z1",zones:["Z4"]}])).toBeNull();
+  });
+  it("conserve une tranche de répétitions pour signalement, sans choisir arbitrairement", () => {
+    const p=nolioStructureForSession({details:"Main: 4-6x5min Z4 r=2min",durationMin:45});
+    expect(p?.[0].text).toContain("4-6x5min");
+  });
+});

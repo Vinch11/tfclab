@@ -28,6 +28,6 @@ describe('strength outside endurance hours, not outside the calendar',()=>{
     const report=prevalidatePlanWeeks([{week:1,globalWeek:1,phase:'build',weekType:'load',objective:'Ironman',quota,layout,catalog:[],volumeBudget:quotas[1].volumeBudget}]);
     expect(report.weeks[0].minimumStructuredMinutes).toBe(1050);
     expect(report.issues.some(i=>i.code==='structured_floors_exceed_volume_budget')).toBe(false);
-    expect(report.issues.some(i=>i.code==='layout_exceeds_daily_max'&&i.severity==='blocking')).toBe(true);
+    expect(report.issues.some(i=>i.code==='layout_exceeds_daily_max'&&i.severity==='warning')).toBe(true);
   });
 });

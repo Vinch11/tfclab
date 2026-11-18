@@ -528,21 +528,8 @@ export function postProcessParsedPlan(
     );
   }
 
-  // Bug réel corrigé (audit "dashboard/plan/export", passe 6) : ce fichier
-  // calculait computedVolumeMin/computedVolumeStr DEUX FOIS de suite, avec deux
-  // algorithmes différents (le premier sommait uniquement les durées explicites
-  // du texte via parseSessionDurationMin, en préservant la valeur précédente
-  // si rien n'était extractible ; le second, computeWeekVolumeMin — ajouté par
-  // un audit ultérieur, cf. commentaire ci-dessous — recalcule via lookup
-  // catalogue puis fallback par sport, sans jamais laisser de semaine sans
-  // valeur). Le second passage écrasait INCONDITIONNELLEMENT le résultat du
-  // premier pour chaque semaine, rendant le premier calcul (et sa garde
-  // "ne pas écraser si rien d'extractible") entièrement mort — le volume
-  // hebdo affiché au coach ne dépendait donc en réalité que du second calcul,
-  // jamais du premier. Premier passage supprimé (aucun changement de
-  // comportement : son résultat n'était de toute façon jamais lu).
-  //
-  // #7 audit : calcul volume hebdo réel (remplace placeholder textuel identique)
+  // Same delivered-session accounting as the viewer and print timeline.
+  // Unknown endurance durations remain unknown; no catalogue/sport fallback.
   for (const w of plan.weeks) {
     const time=weeklyTimeBreakdown(w.sessions);
     w.computedVolumeMin = time.missing ? undefined : time.endurance;

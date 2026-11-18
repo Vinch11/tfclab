@@ -20,7 +20,7 @@ describe('existing physiological priorities remain independent of coach load cat
   expect(trained.planConfig.identifiedLimitersRaw??[]).toEqual(identified);
   expect(light.planConfig.recentLoad?.source).toBe('MANUAL');
   expect(light.planConfig.recentLoad?.status).toBe('unknown');
-  if(!objective.startsWith('Trail')) expect(light.planConfig.weeklyHoursSource).toBe('internal-matrix');
+  if(!objective.startsWith('Trail')) expect(light.planConfig.weeklyHoursSource).toBe('recommended-range');
   expect(light.planConfig.ambitionMeta?.trainingLevelSource).toBe('manual');
   if(!objective.startsWith('Trail')) expect(light.planConfig.volumeRamp!.week1HoursMax).toBeLessThanOrEqual(trained.planConfig.volumeRamp!.week1HoursMax);
   else expect(light.planConfig.volumeRamp).toBeUndefined(); // Dedicated trail route has no road matrix; no invented capacity.

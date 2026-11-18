@@ -1428,13 +1428,14 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       });
       clearInterval(interval);
       if (error) throw error;
-      const result = data as { sent?: number; errors?: { status: number; detail?: string }[] } | null;
+      const result = data as { sent?: number; completedSessions?: {weekNumber:number;dayIndex:number;sessionIndex:number}[]; errors?: { status: number; detail?: string }[] } | null;
       const sentCount = result?.sent ?? 0;
       const errs = result?.errors ?? [];
-      setBulkProgress({ done: sentCount, total: targetSessions.length });
+      const completed=result?.completedSessions ?? (errs.length===0 ? enriched : []);
+      setBulkProgress({ done: completed.length, total: targetSessions.length });
 
       if (sentCount > 0) {
-        enriched.slice(0, sentCount).forEach((s) => {
+        completed.forEach((s) => {
           markSent(sessionKey(nolioCtx.athleteId, s.weekNumber, s.dayIndex, s.sessionIndex ?? 0));
         });
       }

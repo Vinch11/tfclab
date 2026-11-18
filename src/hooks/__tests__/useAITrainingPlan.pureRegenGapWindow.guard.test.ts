@@ -88,7 +88,7 @@ describe("useAITrainingPlan — garde-fou anti-régression : une fenêtre de ré
   });
 
   it("applique regenGapPhaseOptions au buildWorkoutCatalog principal de la boucle chunkCatalogs", () => {
-    const chunkLoopIdx = source.indexOf("const chunkCatalog = buildWorkoutCatalog(");
+    const chunkLoopIdx = source.indexOf("const chunkCatalog = withMarathonPreparation(buildWorkoutCatalog(");
     expect(chunkLoopIdx, "l'appel buildWorkoutCatalog de chunkCatalogs est introuvable").toBeGreaterThan(-1);
     const chunkLoopEndIdx = source.indexOf("chunkCatalogs.push(serializeCatalogForPrompt(chunkCatalog));");
     expect(chunkLoopEndIdx).toBeGreaterThan(chunkLoopIdx);

@@ -677,7 +677,12 @@ export function parseSessionDurationMin(session: ParsedSession): number | null {
   if (typeof session.durationMin === 'number' && Number.isFinite(session.durationMin) && session.durationMin > 0) {
     return session.durationMin;
   }
-  const text = `${session.title} ${session.details}`.toLowerCase();
+  // An explicitly labelled alternative is a different prescription, not an
+  // additional block. Keep the primary dose even when the alternative is longer.
+  const primaryText = (value: string) => value
+    .replace(/\([^)]*\b(?:alternative|version\s+(?:courte|longue)|option\s+(?:courte|longue))\b[^)]*\)/gi, '')
+    .replace(/\b(?:version\s+(?:courte|longue)(?:\s+alternative)?|alternative(?:\s+(?:courte|longue))?|option\s+(?:courte|longue))\b[^.!?\n]*(?:[.!?]|$)/gi, '');
+  const text = primaryText(`${session.title} ${session.details}`).toLowerCase();
   if (!text.trim()) return null;
 
   let total = 0;

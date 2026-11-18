@@ -1,5 +1,7 @@
 # Architecture rules
 
+- AI session export compiles the current occurrence through `_shared/nolioPrescription`; catalogue ID caches cannot replace its dose. Preserve distance steps and explicit recoveries, split named multisport segments, and report ambiguous prescriptions before calendar writes. Why: stored recipes and lossy text parsing changed what the athlete received.
+
 - Plan contracts: see `src/engines/plan/AGENTS.md`.
 
 - Compass sport diagnostics use `engines/diagnostic/{running,cycling}CompassDiagnostic`, sport-specific observations and existing targets without feeding plan rankings; shared VO₂max and load-derived TTE cannot rank priorities. Why: parallel diagnoses must not transfer measurements across sports or change prescription.

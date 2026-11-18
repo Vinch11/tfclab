@@ -42,6 +42,8 @@ describe("workoutDurationResolver", () => {
 
   it("gère les plages dégénérées et nulles", () => {
     expect(resolveCanonicalDuration({ durationMin: [60, 60] }, "peak")).toBe(60);
+    expect(resolveCanonicalDuration({ durationMin: [42, 42] }, "build")).toBe(42);
+    expect(resolveCanonicalDuration({ durationMin: [49.5, 49.5] }, "taper")).toBe(49.5);
     expect(resolveCanonicalDuration({ durationMin: [0, 0] }, "build")).toBe(0);
   });
 

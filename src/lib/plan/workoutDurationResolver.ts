@@ -57,7 +57,9 @@ export function resolveCanonicalDuration(
     return Math.min(Math.max(explicit, lo), hi || explicit);
   }
   if (!Number.isFinite(lo) || !Number.isFinite(hi) || hi <= 0) return 0;
-  if (hi <= lo) return roundDuration(lo);
+  // A fixed dose is already a prescription (e.g. 42 minutes), not a range
+  // to interpolate or round beyond its own catalogue contract.
+  if (hi <= lo) return lo;
   const weight = PHASE_DURATION_WEIGHT[phase] ?? PHASE_DURATION_WEIGHT.build;
   const raw = lo + (hi - lo) * weight;
   return Math.min(hi, Math.max(lo, roundDuration(raw)));

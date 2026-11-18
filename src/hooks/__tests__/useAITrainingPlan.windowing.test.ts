@@ -195,11 +195,13 @@ describe("computeObjectiveAwareWindows — plan multi-objectifs (Manu-like : Mar
     expect(covered.size).toBe(39);
   });
 
-  it("la semaine du marathon (S22) est dans une fenêtre taguée cycle Marathon, pas dans une fenêtre neutre de 15 semaines", () => {
+  it("un marathon B ne crée pas de cycle A ; la fenêtre reste bornée à un chunk", () => {
     const { chunkSize } = computeChunkSizing("Ironman", 39);
     const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
     const windowWithMarathonWeek = windows.find((w) => w.from <= 22 && 22 <= w.to);
-    expect(windowWithMarathonWeek?.cycle).toEqual({ objective: "Marathon", startWeek: 1, endWeek: 22 });
+    expect(windowWithMarathonWeek).toBeDefined();
+    expect(windowWithMarathonWeek?.cycle).toBeUndefined();
+    expect(windowWithMarathonWeek!.to - windowWithMarathonWeek!.from + 1).toBeLessThanOrEqual(chunkSize);
   });
 
   it("sans le fix (découpage à plat, ignorant les cycles) : la fenêtre contenant S22 s'étendrait jusqu'à S30, en plein cycle Ironman", () => {
@@ -296,12 +298,15 @@ describe("computeObjectiveAwareWindows — plan Emanuela-like (Marathon S1-21 �
     { objective: "Ironman", raceDate: IRONMAN_DATE, priority: "A" },
   ];
 
-  it("produit une fenêtre neutre (sans cycle) couvrant exactement S22-23, le creux inter-cycles", () => {
+  it("conserve la couverture après un marathon B sans fabriquer un deuxième pic", () => {
     const { chunkSize } = computeChunkSizing("Ironman", 39);
     const windows = computeObjectiveAwareWindows(39, chunkSize, raceGoals, PLAN_START);
     const gapWindow = windows.find((w) => !w.cycle && w.from <= 22 && 22 <= w.to);
     expect(gapWindow, "aucune fenêtre neutre ne couvre S22 — le creux inter-cycles a-t-il disparu ?").toBeTruthy();
-    expect(gapWindow).toEqual({ from: 22, to: 23 });
+    expect(gapWindow!.from).toBeLessThanOrEqual(22);
+    expect(gapWindow!.to).toBeGreaterThanOrEqual(23);
+    expect(gapWindow!.to - gapWindow!.from + 1).toBeLessThanOrEqual(chunkSize);
+    expect(windows.every(w => w.cycle === undefined)).toBe(true);
   });
 
   it("cette fenêtre de régénération (2 semaines) est TOUJOURS sous le seuil de chunking triathlon (6) — le catalogue restreint gated sur needsChunking ne se déclenche jamais pour elle", () => {

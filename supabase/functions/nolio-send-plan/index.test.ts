@@ -442,7 +442,7 @@ Deno.test("summarizeStructuredWorkout — repetition sans value valide → reps=
 Deno.test("summarizeStructuredWorkout — distance + target_value (vitesse) → durée dérivée", () => {
   // 100 m à 2 m/s → 50s
   const out = summarizeStructuredWorkout([
-    { type: "step", step_duration_type: "distance", step_duration_value: 100, target_value: 2 },
+    { type: "step", step_duration_type: "distance", step_duration_value: 100, target_type: "pace", target_value: 2 },
   ]);
   assertEquals(out.distanceMeters, 100);
   assertEquals(out.durationSec, 50);

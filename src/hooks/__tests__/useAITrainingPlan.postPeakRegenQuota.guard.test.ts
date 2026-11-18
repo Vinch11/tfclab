@@ -53,7 +53,7 @@ describe("useAITrainingPlan — garde-fou anti-régression : les semaines de ré
   it("force weekType='recovery' pour toute semaine hors des segments de cycles connus, avant inferWeekType", () => {
     const isPostPeakIdx = source.indexOf("const isPostPeakRegenWeek =");
     expect(isPostPeakIdx, "la détection isPostPeakRegenWeek est introuvable").toBeGreaterThan(-1);
-    const weekTypeIdx = source.indexOf('const weekType = isPostPeakRegenWeek\n          ? "recovery"');
+    const weekTypeIdx = source.indexOf('const weekType = protectedRaceWeekType(planConfig,w,isPostPeakRegenWeek\n          ? "recovery"');
     expect(
       weekTypeIdx,
       "weekType ne force plus 'recovery' pour une semaine de régénération inter-cycles — la fausse 'régénération post-pic' (plan Emanuela) redeviendrait une semaine de charge complète",

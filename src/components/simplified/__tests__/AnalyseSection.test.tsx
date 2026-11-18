@@ -100,7 +100,8 @@ describe("AnalyseSection — cohérence headline / score (pas de double scoring 
 
     render(<AnalyseSection diagnostic={diagnostic} />);
 
-    expect(screen.getByText("Profil équilibré — Prêt")).toBeInTheDocument();
+    expect(screen.queryByText("Profil équilibré — Prêt")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Repères favorables")).toHaveLength(2);
     expect(screen.getByText("82")).toBeInTheDocument();
     // Catégorie "ready" → ne doit jamais afficher le libellé "À développer"
     // (le bug exact rapporté : titre "Prêt" + badge "À développer").
@@ -116,9 +117,9 @@ describe("AnalyseSection — cohérence headline / score (pas de double scoring 
 
     render(<AnalyseSection diagnostic={diagnostic} />);
 
-    expect(screen.getByText("Profil équilibré — En progression")).toBeInTheDocument();
+    expect(screen.queryByText("Profil équilibré — En progression")).not.toBeInTheDocument();
     expect(screen.getByText("54")).toBeInTheDocument();
-    expect(screen.getByText("À développer")).toBeInTheDocument();
+    expect(screen.getAllByText("Profil à développer")).toHaveLength(2);
     expect(screen.queryByText("Au-dessus")).not.toBeInTheDocument();
   });
 

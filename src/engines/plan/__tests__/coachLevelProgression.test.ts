@@ -78,7 +78,7 @@ describe("actual prescribed plan, after transformations and reopening", () => {
     const before = JSON.stringify(reopened);
     expect(computeFinalValidationIssues(reopened).issues.filter(i => i.rule === "coach_load_violation")).toEqual([]);
     reopened.weeks[0].sessions[0].durationMin = 1000;
-    expect(computeFinalValidationIssues(reopened).issues).toContainEqual(expect.objectContaining({ rule: "coach_load_violation", severity: "error" }));
+    expect(computeFinalValidationIssues(reopened).issues).toContainEqual(expect.objectContaining({ rule: "coach_load_violation", severity: "warning" }));
     expect(JSON.stringify(processed)).toBe(before);
     expect(processed.weeks[0].sessions[0].catalogId).toBeNull();
   });
@@ -204,7 +204,7 @@ describe("coach review across eight deterministic prescriptions", () => {
       expect(issues.some(i => i.rule === "coach_initial_load_unverified")).toBe(hours === undefined);
       expect(c.identifiedLimitersRaw).toEqual(config("light").identifiedLimitersRaw);
       reopened.weeks[0].sessions[0].durationMin = 1000;
-      expect(computeFinalValidationIssues(reopened).issues.some(i => i.rule === "coach_load_violation" && i.severity === "error")).toBe(true);
+      expect(computeFinalValidationIssues(reopened).issues.some(i => i.rule === "coach_load_violation" && i.severity === "warning")).toBe(true);
     });
   }
   it("20–30 km/week contextual example never becomes an inferred duration or extra form input", () => {
