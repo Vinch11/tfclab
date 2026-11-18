@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import planningBaseline from './planningContractBaseline.json';
+import targetCalibrationTransitions from './targetCalibrationTransitions.json';
 import { matrixCsv } from "../matrixCsv";
 import { describe,it,expect,vi } from "vitest";
 import { writeFileSync,mkdirSync } from "node:fs";
@@ -38,12 +39,18 @@ describe("offline scope inventory and combinatorial planning contracts",()=>{
     expect(row.preparationIssues.catalogue_id_not_roundtripped??0).toBe(0);
     expect(row.preparationIssues.canonical_prescription_contract_conflict??0).toBe(0);
   }
+  // Audit 2026-11-18: verify the ten intentional limiter-only changes before
+  // replaying the original baseline. Do not rebaseline doses, warnings or pools.
+  for (const transition of targetCalibrationTransitions) {
+    expect(rows.find(row => row.id === transition.id)?.limiterOrder).toEqual(transition.after);
+  }
   // Reference replay: production 6bb104c with only the mixed-card fixture corrected.
   // All 600 complete rows matched this patch before recording the baseline.
   // Preserve phases, limiters, pools, doses and all capacity/diversity warnings.
   const invariants=rows.map(({preparationIssues,weekly,residuals:_residuals,...identity})=>({...identity,
     preparationIssues:Object.fromEntries(Object.entries(preparationIssues).filter(([key])=>!key.startsWith('catalogue_week_'))),
-    weekly:weekly.map(({missingSports:_missingSports,...week})=>week)}));
+    weekly:weekly.map(({missingSports:_missingSports,...week})=>week),
+    limiterOrder:targetCalibrationTransitions.find(change=>change.id===identity.id)?.before ?? identity.limiterOrder}));
   expect(createHash('sha256').update(JSON.stringify(invariants)).digest('hex')).toBe(planningBaseline.invariantSha256);
   expect(rows.filter(r=>Object.keys(r.preparationIssues).some(k=>k.startsWith('preflight_'))).map(r=>r.id)).toEqual(planningBaseline.blockedIds);
   expect(rows.reduce((sum,r)=>sum+(r.preparationIssues.catalogue_week_sport_shortfall??0),0)).toBe(0);

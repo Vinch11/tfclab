@@ -100,23 +100,23 @@ it.each([
         prescriptionApplicable: false,
       });
       expect(rankPrescriptionGaps(x.gapAnalysis).map((g) => g.metric)).not
-        .toContain("W' (kJ)");
+        .not.toContain("W' (kJ)");
     }
   },
 );
 it.each(["Sprint", "Olympic", "703", "IM"])(
-  "%s still ranks the valid cycling W prime without changing its numerical assessment",
+  "%s retains cycling W prime descriptively without an uncalibrated automatic priority",
   (objectif) => {
     const x = detectUnifiedLimiter({ ...input, objectif, sportFocus: "tri" }),
       w = x.gapAnalysis.find((g) => g.metric === "W' (kJ)")!;
     expect(w).toMatchObject({
       value: 60,
       measurementDiscipline: "bike",
-      prescriptionApplicable: true,
+      prescriptionApplicable: false,
       status: "limiting",
     });
     expect(x.categoryRanking.flatMap((c) => c.metrics.map((g) => g.metric)))
-      .toContain("W' (kJ)");
+      .not.toContain("W' (kJ)");
   },
 );
 it("the diagnostic bridge retains all original cycling measurements and historical W prime", () => {

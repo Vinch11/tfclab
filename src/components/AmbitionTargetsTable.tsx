@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Target, Printer, Download, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AMBITION_TARGETS, normalizeObjective } from "@/lib/physiologicalTargets";
+import { AMBITION_TARGETS, getTargetsForAmbition } from "@/lib/physiologicalTargets";
 import { 
   AmbitionLevel, 
   AMBITION_LEVELS_ORDERED, 
@@ -95,13 +95,13 @@ function generatePrintHtml(objectives: string[], ambition: AmbitionLevel | "all"
     if (!targets) return "";
 
     const cells = ambitions.map(amb => {
-      const t = targets[amb];
+      const t = getTargetsForAmbition(obj, amb);
       const def = getAmbitionDefinition(amb);
       return `
         <td class="${amb}">
           <div><strong>VLamax:</strong> ${t.vlamax.optimal.toFixed(2)}</div>
           <div><strong>TTE:</strong> ${t.tte_min}min</div>
-          <div><strong>FTP/kg:</strong> ${t.ftp_kg_min.toFixed(1)}</div>
+          <div><strong>${t.vma_min != null ? "VMA" : "FTP/kg"}:</strong> ${(t.vma_min ?? t.ftp_kg_min).toFixed(1)}</div>
         </td>
       `;
     }).join("");
@@ -138,7 +138,7 @@ function generatePrintHtml(objectives: string[], ambition: AmbitionLevel | "all"
     </tbody>
   </table>
   <div class="footer">
-    VLamax en mmol/L/s (valeur optimale) • TTE en minutes • FTP/kg en W/kg (minimum)
+    Repères de coaching non validés par âge/sexe. VLamax en mmol/L/s • TTE en minutes • FTP/kg en W/kg (minimum)
   </div>
 </body>
 </html>`;
@@ -224,7 +224,8 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
 
       <CardContent className="p-0">
         <div className="overflow-x-auto">
-          <Table>
+          <p className="text-xs text-muted-foreground mb-3">Repères de coaching, pas des normes scientifiques par âge et sexe ni des garanties de chrono ou de qualification. TTE : comparer uniquement des protocoles identiques.</p>
+            <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="font-semibold min-w-[120px]">Objectif</TableHead>
@@ -253,7 +254,7 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
                       {OBJECTIVE_LABELS[obj] || obj}
                     </TableCell>
                     {displayedAmbitions.map(amb => {
-                      const t = targets[amb];
+                      const t = getTargetsForAmbition(obj, amb);
                       const def = getAmbitionDefinition(amb);
                       
                       return (
@@ -268,8 +269,8 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
                               <span className="font-mono font-medium">{t.tte_min}min</span>
                             </div>
                             <div className="flex items-center justify-between px-1">
-                              <span className="text-muted-foreground">FTP/kg</span>
-                              <span className="font-mono font-medium">{t.ftp_kg_min.toFixed(1)}</span>
+                              <span className="text-muted-foreground">{t.vma_min != null ? "VMA (km/h)" : "FTP/kg"}</span>
+                              <span className="font-mono font-medium">{(t.vma_min ?? t.ftp_kg_min).toFixed(1)}</span>
                             </div>
                           </div>
                         </TableCell>
@@ -287,7 +288,7 @@ export function AmbitionTargetsTable({ className }: AmbitionTargetsTableProps) {
           <div className="flex flex-wrap gap-x-4 gap-y-1 justify-center">
             <span><strong>VLamax:</strong> valeur optimale (mmol/L/s)</span>
             <span><strong>TTE:</strong> minimum requis (minutes)</span>
-            <span><strong>FTP/kg:</strong> minimum requis (W/kg)</span>
+            <span><strong>FTP/kg:</strong> repère de coaching (W/kg)</span>
           </div>
         </div>
       </CardContent>

@@ -2059,6 +2059,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         if (sport === "tri_70_3" || sport === "ironman") return null;
         return (
           <GapAmbitionPanel
+            targetTimeMinutes={targetTimeMinutesForObjective}
             vmaKmh={gapContext.vmaKmh}
             thresholdPaceSecPerKm={gapContext.thresholdPaceSecPerKm}
             ambition={gapContext.ambition}

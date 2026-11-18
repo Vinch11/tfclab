@@ -1,21 +1,8 @@
 /**
- * ═══════════════════════════════════════════════════════════════════════════════
- * VLAMAX TARGETS — SOURCE UNIQUE (TFCL™)
- *
- * Cible VLamax UNIVERSELLE par distance de course (mmol/L/s).
- * Ancrages : Mader-Heck + INSCYD 2026 (cohortes > 1000 athlètes).
- *
- * PRINCIPE :
- *   - La cible physiologique dépend UNIQUEMENT de la distance (contrainte
- *     métabolique du crossover glucidique). Elle NE dépend PAS de l'ambition.
- *   - C'est l'IMPORTANCE / la priorité du levier VLamax qui varie selon
- *     l'ambition (ex : "Sprint Ban" ignoré pour un finisher). Cette
- *     modulation est gérée ailleurs (lorangStrategyEngine, etc.).
- *
- * DÉRIVATION VÉLO / NATATION :
- *   VLamax_bike ≈ VLamax_run − 0.06 (plancher 0.20).
- *   Natation ≈ vélo (peu discriminant hors sprint).
- * ═══════════════════════════════════════════════════════════════════════════════
+ * Historical, sport-specific TFCL coaching ranges. Not universal optimal ranges.
+ * The bike/run offset is a modeling convention, never a conversion of measured
+ * VLamax. Quittmann et al. (2021), doi:10.1055/a-1273-7589, supports testing
+ * each modality separately, not these numeric objective/ambition cut-offs.
  */
 
 export interface VlamaxTargetRange {
@@ -55,7 +42,7 @@ const FLOOR = 0.20;
 export function normalizeVlamaxKey(objectif: string | null | undefined): keyof typeof RUN_TARGETS {
   if (!objectif) return '703';
   const raw = String(objectif).toLowerCase().trim();
-  const s = raw.replace(/[\s_\-\.]/g, '');
+  const s = raw.replace(/[\s_.-]/g, '');
 
   if (s === '5k' || s === '5km' || s === '5000m') return '5k';
   if (s === '10k' || s === '10km' || s === '10000m') return '10k';
@@ -65,7 +52,8 @@ export function normalizeVlamaxKey(objectif: string | null | undefined): keyof t
   // physiologique pour un format court (audit qualité plans IA).
   if (s.includes('sprint')) return 'sprint_tri';
   if (s.includes('olymp') || s === 'cd' || s.includes('courtedistance')) return 'olympic_tri';
-  if (s.includes('semi') || s.includes('half')) return 'semi';
+  if (s === 'half' || s.includes('halfironman') || s.includes('703')) return '703';
+  if (s.includes('semi') || s.includes('halfmarathon')) return 'semi';
   if (s.includes('marathon') && !s.includes('semi') && !s.includes('half')) {
     // "marathon", "fullmarathon"
     if (s.includes('ironman') || s.includes('im')) return 'im';

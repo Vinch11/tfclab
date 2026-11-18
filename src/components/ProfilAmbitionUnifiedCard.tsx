@@ -1,3 +1,4 @@
+import { calculateAge } from '@/lib/ageAdjustment';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * PROFIL & AMBITION UNIFIED CARD — Phase 1f UX
@@ -225,6 +226,8 @@ export function ProfilAmbitionUnifiedCard({
           {/* Progression Tab — deferred (heavy chart) */}
           <LazyTabsContent value="progression" activeValue={activeTab} showLoader className="px-4 pb-4 mt-0">
             <AmbitionProgressChart
+              age={calculateAge(athlete.birth_date)}
+              sex={athlete.sex}
               snapshots={snapshots.filter(s => s.athlete_id === athlete.id)}
               objectif={athlete.goal || "IM"}
               ambition={ambition}

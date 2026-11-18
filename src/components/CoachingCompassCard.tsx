@@ -522,6 +522,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   ].filter(r => r.m?.value !== null);
 
+  const [isOpen, setIsOpen] = useState(false);
   if (metrics.length === 0) return null;
 
   const confidenceLabel = (c: number) =>
@@ -530,7 +531,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
-  const [isOpen, setIsOpen] = useState(false);
+
 
   return (
     <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
@@ -762,7 +763,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 Niveau 1 — Profil physiologique
               </span>
               <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
-                Repères par rapport aux cibles internes — pas une probabilité de réussite en course. Les priorités du diagnostic sont présentées séparément.
+                Repères de coaching non validés par âge et sexe — pas une probabilité de réussite en course. Les ajustements d’âge sont indicatifs ; aucun percentile ou statut de qualification ne peut être déduit de ces cibles. Les priorités du diagnostic restent des hypothèses à confronter au terrain.
               </p>
               <div className="mt-1">
                 {disciplineAxes ? <div data-testid="triathlon-compasses">

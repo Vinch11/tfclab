@@ -1,11 +1,11 @@
 // =============================================
 // NIVEAU D'AMBITION ATHLÈTE — Grille 5 paliers "Parcours athlète"
-// Ancrée sur des percentiles AG réels :
+// Objectifs de classement indicatifs, sans calibration physiologique validée :
 //   discovery   → Finisher dans les temps officiels        (clé interne: finisher)
 //   confirmed   → Top 50% AG                                (clé interne: age_group)
 //   competitor  → Top 25% AG / podium local                 (clé interne: competitor)
 //   qualifiable → Top 10% AG — slot National/Européen       (clé interne: elite)
-//   world_class → Top 3% AG — slot Mondial / podium overall (clé interne: world_class)
+//   world_class → Viser le plus haut niveau — aucun percentile garanti par les cibles (clé interne: world_class)
 //
 // IMPORTANT — Stratégie de migration :
 // Les 4 anciennes clés (finisher/age_group/competitor/elite) restent les CLÉS
@@ -57,7 +57,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
     id: "age_group",
     label: "Confirmé",
     shortLabel: "CONF",
-    description: "Top 50% catégorie d'âge — performance solide",
+    description: "Performance solide — classement à situer selon âge, sexe et épreuve",
     icon: "🎯",
     color: "text-blue-500"
   },
@@ -65,7 +65,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
     id: "competitor",
     label: "Compétiteur",
     shortLabel: "COMP",
-    description: "Top 25% AG — podium local, haut de tableau",
+    description: "Viser le haut du classement de sa catégorie",
     icon: "🏆",
     color: "text-amber-500"
   },
@@ -73,7 +73,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
     id: "elite",
     label: "Qualifiable",
     shortLabel: "QUAL",
-    description: "Top 10% AG — slot National/Européen accessible",
+    description: "Viser une qualification — critères propres à l’épreuve et à la catégorie",
     icon: "🎟️",
     color: "text-orange-500"
   },
@@ -81,7 +81,7 @@ export const AMBITION_DEFINITIONS: Record<AmbitionLevel, AmbitionDefinition> = {
     id: "world_class",
     label: "Elite",
     shortLabel: "ELITE",
-    description: "Top 3% AG — slot Mondial / podium overall",
+    description: "Viser le plus haut niveau — aucun percentile garanti par les cibles",
     icon: "👑",
     color: "text-purple-500"
   }

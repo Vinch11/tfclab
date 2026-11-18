@@ -301,7 +301,7 @@ describe("computeDiagnostic", () => {
       expect(lowMetabolic).toBeGreaterThan(highMetabolic);
     });
 
-    it("intègre le gap W' (clé 'W' (kJ)') dans le robustnessScore, pas seulement l'Économie", () => {
+    it("ne déduit pas la robustesse d’une norme W prime absolue non calibrée", () => {
       // La comparaison de chaîne utilisait "W'" alors que unifiedLimiterDetection.ts
       // pousse la métrique sous la clé "W' (kJ)" → le gap W' était silencieusement
       // ignoré, robustnessScore ne reflétant que l'Économie.
@@ -314,7 +314,8 @@ describe("computeDiagnostic", () => {
       const result = computeDiagnostic(goodEconomyBadWprime);
       const robustness = result.readiness.potential.sources.robustness.value;
 
-      expect(robustness).toBeLessThan(90);
+      const withoutWprime = computeDiagnostic({ ...goodEconomyBadWprime, wprimeKj: null });
+      expect(robustness).toBe(withoutWprime.readiness.potential.sources.robustness.value);
     });
 
     it("intègre le gap VMA dans l'aerobicScore en mode running, au lieu de l'ignorer", () => {

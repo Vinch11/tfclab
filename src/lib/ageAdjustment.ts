@@ -776,7 +776,7 @@ export function getAgeAdjustedTargets(
   
   // TTE: ajusté par le facteur TTE spécifique (déclin plus modéré)
   const tteAgeFactor = getTTEAgeFactor(age);
-  const tteTarget = Math.max(35, Math.round(baseTteTarget * tteAgeFactor));
+  const tteTarget = Math.round(baseTteTarget * tteAgeFactor);
   
   const ageAdjustmentApplied = perfAgeFactor < 1.0;
   
