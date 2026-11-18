@@ -762,9 +762,16 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
-              <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
-                Repères de coaching non validés par âge et sexe — pas une probabilité de réussite en course. Les ajustements d’âge sont indicatifs ; aucun percentile ou statut de qualification ne peut être déduit de ces cibles. Les priorités du diagnostic restent des hypothèses à confronter au terrain.
-              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 mb-2">Profil actuel face aux repères d’ambition · un écart n’est pas, à lui seul, un limiteur confirmé.</p>
+              <details className="mb-2 text-xs text-muted-foreground">
+                <summary className="min-h-11 flex items-center cursor-pointer font-medium">Nature des repères et limites de lecture</summary>
+                <dl className="space-y-2 pb-2">
+                  <div><dt className="font-medium text-foreground">Bilan individuel</dt><dd>Valeurs enregistrées ou estimées, à interpréter selon leur source et le protocole propre au sport.</dd></div>
+                  <div><dt className="font-medium text-foreground">Cibles internes</dt><dd>Repères de coaching existants, pas des exigences scientifiquement validées par objectif, âge ou sexe. Les couleurs situent l’écart à ces repères, pas la probabilité de réussir.</dd></div>
+                  <div><dt className="font-medium text-foreground">Scénario VMA extrapolé</dt><dd>Calcul depuis des groupes de marathoniens et une correspondance d’ambition de coaching ; pas une mesure de cohorte VMA ni une cible spécifique validée pour cette épreuve. En triathlon, il ne décrit pas la course après vélo.</dd></div>
+                  <div><dt className="font-medium text-foreground">Limiteur à confirmer</dt><dd>Le seuil, les performances récentes et la tenue de l’effort doivent étayer l’interprétation. Les priorités du plan restent celles du diagnostic existant.</dd></div>
+                </dl>
+              </details>
               <div className="mt-1">
                 {disciplineAxes ? <div data-testid="triathlon-compasses">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
@@ -892,7 +899,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                                     : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
                                 )}
                               >
-                                {remainsToWork ? `Δ ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} à combler` : "Cible interne atteinte"}
+                                {remainsToWork ? `Écart au repère : ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : "Cible interne atteinte"}
                               </Badge>
                             )}
                           </div>

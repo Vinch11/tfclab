@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Références VMA du Compass
+- [x] Lecture seule : nature des repères dépliable, écart VMA sans prescription implicite et hypothèse non confirmée distinguée des priorités historiques ; aucun calcul ou classement modifié.
 - [x] Radar course : silhouette pleine utilisant le repère VMA local, contraste renforcé et labels agrandis ; radars empilés sur téléphone sans défilement horizontal. Emanuela connectée vérifiée ordinateur/téléphone, 47 tests réussis, deux générateurs déployés ; mesures et plans inchangés, frontend non publié.
 - [x] Écart VMA intégré au radar (point bilan, cercle repère et trait d’écart) et petite jauge semi-circulaire identique aux autres catégories ; barre et conclusion répétée retirées. Emanuela connectée vérifiée ordinateur/téléphone, 47 tests, deux générateurs déployés, plans inchangés, frontend non publié.
 - [x] Position VMA face au repère d’ambition, écart au bas de fourchette et signal limitant potentiel ajoutés ; dedans/au-dessus sans déficit apparent, valeurs absentes non classées. Emanuela connectée : 13,0 vs 14,4–16,5 km/h, écart 1,4, vérifié ordinateur/téléphone ; 46 tests, deux générateurs déployés, plans inchangés et site non publié.
