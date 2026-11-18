@@ -9,6 +9,7 @@ const displayOnlyModules = [
   'src/lib/coachingCompass/factorVerdict.ts',
   'src/lib/coachingCompass/referenceRegistry.ts',
   'src/lib/coachingCompass/profileComparison.ts',
+  'src/lib/coachingCompass/objectiveReading.ts',
 ].map(file => resolve(root, file));
 
 function resolveModule(from: string, specifier: string): string | undefined {
