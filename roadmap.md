@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Références VMA du Compass
+- [x] Radar course : silhouette pleine utilisant le repère VMA local, contraste renforcé et labels agrandis ; radars empilés sur téléphone sans défilement horizontal. Emanuela connectée vérifiée ordinateur/téléphone, 47 tests réussis, deux générateurs déployés ; mesures et plans inchangés, frontend non publié.
 - [x] Écart VMA intégré au radar (point bilan, cercle repère et trait d’écart) et petite jauge semi-circulaire identique aux autres catégories ; barre et conclusion répétée retirées. Emanuela connectée vérifiée ordinateur/téléphone, 47 tests, deux générateurs déployés, plans inchangés, frontend non publié.
 - [x] Position VMA face au repère d’ambition, écart au bas de fourchette et signal limitant potentiel ajoutés ; dedans/au-dessus sans déficit apparent, valeurs absentes non classées. Emanuela connectée : 13,0 vs 14,4–16,5 km/h, écart 1,4, vérifié ordinateur/téléphone ; 46 tests, deux générateurs déployés, plans inchangés et site non publié.
 - [x] Scénarios VMA objectif × ambition ajoutés en lecture seule ; calcul de sensibilité depuis Gordon 2017, contexte triathlon frais et sources dépliables, sans norme percentile prétendue. Bilan Emanuela connecté vérifié ordinateur/téléphone, 35 tests réussis, diagnostics/plans inchangés ; deux générateurs redéployés pour aligner la release, frontend non publié.
