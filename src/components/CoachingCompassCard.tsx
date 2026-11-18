@@ -29,7 +29,7 @@ import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { CompassVmaReference } from '@/components/CompassVmaReference';
-import { getVmaReference } from '@/lib/coachingCompass/vmaReference';
+import { assessVmaReference, getVmaReference } from '@/lib/coachingCompass/vmaReference';
 
 // Local wording only: detailed provenance remains unchanged in reports and stored data.
 const compassSourceLabel = (source: string) => source === 'snapshot'
@@ -806,7 +806,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
                   const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
                   const vmaReference = axis.key === 'vma' ? getVmaReference(input.objectif, input.ambition) : null;
-                  const statusLabel = vmaReference && axis.value != null ? 'Référence indicative' : axisAssessment(axis);
+                  const vmaAssessment = vmaReference ? assessVmaReference(axis.value, vmaReference) : null;
+                  const statusLabel = vmaAssessment?.status !== 'unavailable' && vmaAssessment ? vmaAssessment.label : axisAssessment(axis);
 
                   const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
                   const isInverse = axis.key === "vlamax"; // lower is better
@@ -825,13 +826,15 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                     )}>
                       <div className="shrink-0 flex flex-col items-center gap-1">
                         <span className="text-base">{emoji}</span>
-                        <MetricMiniGauge axis={vmaReference ? { ...axis, target: null } : axis} />
+                        {!vmaReference && <MetricMiniGauge axis={axis} />}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-bold">{axis.label}</p>
                           <Badge variant="outline" className={cn(
-                            "text-[9px] h-4 px-1.5",
+                            "text-[9px] min-h-4 h-auto whitespace-normal px-1.5",
+                            vmaAssessment?.status === 'below' ? "border-warning/40 text-warning" :
+                            vmaAssessment?.status === 'inside' || vmaAssessment?.status === 'above' ? "border-success/40 text-success" :
                             statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "border-border text-muted-foreground" :
                             axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
                             axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :

@@ -1,8 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { getVmaReference } from '../vmaReference';
+import { assessVmaReference, getVmaReference } from '../vmaReference';
 import { getVmaTargetByAmbition } from '@/lib/physiologicalTargets';
 
 describe('VMA reference scenarios — display only', () => {
+  it('flags a potential limiter below the ambition reference and quantifies the gap', () => {
+    expect(assessVmaReference(13, getVmaReference('IM', 'competitor'))).toMatchObject({ status: 'below', gapKmh: 1.4 });
+  });
+  it.each([14.4, 15, 16.5])('does not flag a VMA deficit inside the reference, including boundaries %s', value => {
+    expect(assessVmaReference(value, getVmaReference('IM', 'competitor'))).toMatchObject({ status: 'inside', gapKmh: 0 });
+  });
+  it('does not penalize a VMA above the reference', () => {
+    expect(assessVmaReference(18, getVmaReference('IM', 'competitor'))).toMatchObject({ status: 'above', gapKmh: 0 });
+  });
+  it.each([null, 0, -1, NaN, Infinity])('never classifies missing or invalid VMA %s as a deficit', value => {
+    expect(assessVmaReference(value, getVmaReference('IM', 'competitor'))).toMatchObject({ status: 'unavailable', gapKmh: null });
+  });
+  it('reassesses the same profile when ambition changes', () => {
+    expect(assessVmaReference(13, getVmaReference('IM', 'finisher')).status).toBe('inside');
+    expect(assessVmaReference(13, getVmaReference('IM', 'competitor')).status).toBe('below');
+  });
   it('calculates the competitor sensitivity range from the published marathon group', () => {
     expect(getVmaReference('Marathon', 'competitor')).toMatchObject({ low: 14.4, high: 16.5 });
   });

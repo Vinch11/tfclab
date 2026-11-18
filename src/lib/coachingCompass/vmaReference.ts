@@ -11,6 +11,22 @@ export interface VmaReference {
   sources: Array<{ title: string; url: string; detail: string }>;
 }
 
+/** Coaching signal against this scenario, not a causal or clinical diagnosis. */
+export function assessVmaReference(value: number | null, reference: VmaReference | null) {
+  const valid = value != null && Number.isFinite(value) && value > 0;
+  if (!valid || !reference) return { status: 'unavailable' as const, gapKmh: null, label: 'Comparaison indisponible' };
+  if (value < reference.low) return {
+    status: 'below' as const,
+    gapKmh: Math.round((reference.low - value) * 10) / 10,
+    label: 'VMA potentiellement limitante',
+  };
+  return {
+    status: value > reference.high ? 'above' as const : 'inside' as const,
+    gapKmh: 0,
+    label: 'Pas de déficit VMA apparent',
+  };
+}
+
 // Gordon et al. 2017, table 1: VO₂max and gross oxygen cost at LT2.
 // These are paired group means, not individually measured vVO₂max.
 const marathonGroups = {
