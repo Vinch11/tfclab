@@ -31,7 +31,7 @@ describe('vlamaxTargets — SOURCE UNIQUE', () => {
 
   it('alias normalisés (semi/half/half-marathon)', () => {
     expect(normalizeVlamaxKey('Semi')).toBe('semi');
-    expect(normalizeVlamaxKey('Half')).toBe('semi');
+    expect(normalizeVlamaxKey('Half')).toBe('703');
     expect(normalizeVlamaxKey('half-marathon')).toBe('semi');
     expect(normalizeVlamaxKey('Ironman')).toBe('im');
     expect(normalizeVlamaxKey('70.3')).toBe('703');

@@ -1,45 +1,9 @@
 /**
- * =============================================
- * PHYSIOLOGICAL TARGETS - SINGLE SOURCE OF TRUTH
- * =============================================
- * 
- * This file is the ONLY source of truth for all physiological targets
- * used throughout the Two For Coaching Lab application.
- * 
- * All other files MUST import from here instead of defining their own constants.
- * 
- * Methodology:
- * - VLamax: min/max/optimal define the acceptable range for an objective
- * - TTE: minimum threshold in minutes for race readiness
- * - FTP/kg: minimum power-to-weight ratio for bike/tri objectives
- * - Charge: optimal weekly TSS for the objective
- *
- * Ambition levels:
- * - finisher: Complete the race (relaxed thresholds)
- * - age_group: Category performance, top 50% (moderate thresholds)
- * - competitor: Top 25%, podium potential (demanding thresholds)
- * - elite: Championship qualification / overall podium (elite thresholds)
- *
- * ============================================================================
- * SCIENTIFIC REFERENCES — TTE @ CP/MLSS (R6)
- * ============================================================================
- * - Karsten et al. 2014, J Sports Sci: TTE @ CP = 41 ± 17 min (cycling, N=14)
- * - Morgan et al. 2019, Eur J Appl Physiol: TTE @ CP = 48.3 ± 19.3 min (running)
- * - Black et al. 2017, J Appl Physiol: TTE @ CP = 45–60 min
- * - Burnley & Jones 2018, Eur J Sport Sci: TTE > 70 min rarely observed
- * - Joyner 1991, J Appl Physiol: elite marathon @ 94–100% MLSS for 120–130 min
- *   → implied TTE @ MLSS > 60 min (semi-elite/elite)
- * - Plafond physiologique consensus : ~70–80 min (Burnley 2018)
- *
- * Implications matrice :
- * - Ultra elite plafonné à 65 min (R1) — au-delà = hors plage observée
- * - Semi competitor/elite alignés Joyner (R2) : 50/55 min
- * - 5K/Sprint : TTE est SECONDAIRE (limiteur prime = VO2max). Les valeurs
- *   ci-dessous restent informatives mais ne doivent pas être priorisées (R3).
- * ============================================================================
+ * Shared coaching benchmarks, NOT validated objective × ambition × age × sex norms.
+ * Numeric tables express historical TFCL coaching hypotheses; neither cohort means
+ * nor CP/FTP/MLSS protocols establish universal readiness thresholds. See
+ * docs/target-calibration.md for evidence, limitations and validation requirements.
  */
-
-
 
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 import { getVlamaxTarget as _getVlamaxTargetCanonical, normalizeVlamaxKey } from "./v2/vlamaxTargets";
@@ -674,16 +638,28 @@ const OBJECTIVE_ALIASES: Record<string, string> = {
 /**
  * Normalize objective string to canonical form
  */
+function lookupPhysiologicalObjective(objectif: string): string | undefined {
+  const compact = (value: string) => value.toLowerCase().trim().replace(/[\s_.-]/g, '');
+  const key = compact(objectif);
+  const canonical = Object.keys(AMBITION_TARGETS).find(value => compact(value) === key);
+  if (canonical) return canonical;
+  const alias = Object.keys(OBJECTIVE_ALIASES).find(value => compact(value) === key);
+  return alias ? OBJECTIVE_ALIASES[alias] : undefined;
+}
+
+export function isKnownPhysiologicalObjective(objectif: string): boolean {
+  return lookupPhysiologicalObjective(objectif) !== undefined;
+}
+
 export function normalizeObjective(objectif: string): string {
-  if (AMBITION_TARGETS[objectif]) return objectif;
-  const alias = OBJECTIVE_ALIASES[objectif] || OBJECTIVE_ALIASES[objectif.toLowerCase()];
-  return alias || "703"; // Default to 703 if unknown
+  // Legacy numeric callers retain a fallback; the diagnostic explicitly rejects unknown goals.
+  return lookupPhysiologicalObjective(objectif) ?? "703";
 }
 
 /**
  * Multiplicateurs `world_class` (Elite top 3% AG) appliqués post-lookup
  * sur la base du palier `elite` (= "Qualifiable" UI).
- * Sources : grilles qualif Mondial 70.3 (Kraichgau) + percentile 3% AG marathon.
+ * Historical coaching increments, not a validated percentile conversion.
  */
 function applyWorldClassMultipliers(base: ObjectiveTargets): ObjectiveTargets {
   return {
@@ -720,12 +696,12 @@ export function getTargetsForAmbition(
 ): ObjectiveTargets {
   const normalized = normalizeObjective(objectif);
   const targets = AMBITION_TARGETS[normalized];
-  if (!targets) return AMBITION_TARGETS["703"].age_group;
-
-  if (ambition === "world_class") {
-    return applyWorldClassMultipliers(targets.elite);
-  }
-  return targets[ambition as keyof AmbitionTargets] || targets.age_group;
+  const table = targets ?? AMBITION_TARGETS["703"];
+  const base = ambition === "world_class"
+    ? applyWorldClassMultipliers(table.elite)
+    : table[ambition as keyof AmbitionTargets] ?? table.age_group;
+  // No caller may retrieve the obsolete ambition-dependent VLamax table.
+  return { ...base, vlamax: getVLamaxRange(normalized, ambition) };
 }
 
 /**
@@ -790,7 +766,7 @@ export function getVLamaxRange(objectif: string, _ambition?: AmbitionLevel, spor
   // trop haute" faussées, chiffre divergent entre pages pour le même
   // athlète. Ne s'applique QUE quand `sport` n'a pas été fourni explicitement
   // : un appelant qui demande 'bike' pour un triathlète reste inchangé.
-  if (!sport && RUN_ONLY_VLAMAX_KEYS.has(normalizeVlamaxKey(objectif))) {
+  if (!sport && (RUN_ONLY_VLAMAX_KEYS.has(normalizeVlamaxKey(objectif)) || /ultra|trail|start.?to.?run/i.test(objectif))) {
     discipline = 'run';
   }
   const range = _getVlamaxTargetCanonical(objectif, discipline);
@@ -810,11 +786,11 @@ export function getVLamaxOptimal(objectif: string, ambition?: AmbitionLevel, spo
 /**
  * Facteur de décroissance TTE par âge (R5).
  * Local (évite import circulaire avec v2/unifiedLimiterDetection).
- * Aligné sur Lepers & Cattagni 2012, Tanaka & Seals 2008.
+ * Historical coaching heuristic, not validated TTE norms by age or sex.
  *  <30: 1.00 | 30-39: 0.99 | 40-49: 0.97 | 50-59: 0.94 | ≥60: 0.90
  */
 export function getTTEAgeFactorLocal(age: number | null | undefined): number {
-  if (age == null || age < 30) return 1.0;
+  if (age == null || !Number.isFinite(age) || age < 30) return 1.0;
   if (age < 40) return 0.99;
   if (age < 50) return 0.97;
   if (age < 60) return 0.94;

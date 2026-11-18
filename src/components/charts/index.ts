@@ -11,7 +11,7 @@ export { EnergyContributionChart } from "./EnergyContributionChart";
 export { StaffModeToggle } from "./StaffModeToggle";
 export { ScientificChartsDashboard } from "./ScientificChartsDashboard";
 export { MetabolicCompassCAP } from "./MetabolicCompassCAP";
-export { AmbitionProgressChart, calculateAmbitionPredictions, type AmbitionPrediction } from "./AmbitionProgressChart";
+export { AmbitionProgressChart } from "./AmbitionProgressChart";
 export { AmbitionProgressMini } from "./AmbitionProgressMini";
 export { CadenceProfileChart } from "./CadenceProfileChart";
 export { MiniGauge } from "./MiniGauge";

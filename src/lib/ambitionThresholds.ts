@@ -1,9 +1,9 @@
 /**
  * Ambition-Aware UI Thresholds
- * 
+ *
  * Uses the SAME scoring functions as the Coaching Compass
  * to ensure consistency across all UI components.
- * 
+ *
  * ✅ V2: Age adjustment applied to FTP/kg, VMA, TTE, VO2max targets
  *    (aligned with Compass and Unified Limiter)
  */
@@ -24,8 +24,8 @@ export interface MetricEvaluation {
 
 /** Derive status from a 0-100 score — same thresholds as Compass UI */
 function statusFromScore(score: number): MetricStatus {
-  if (score >= 75) return "ok";
-  if (score >= 50) return "warning";
+  if (score >= 100) return "ok";
+  if (score >= 90) return "warning";
   return "critical";
 }
 
@@ -43,12 +43,13 @@ export function evaluateVLamax(
   const targets = getVLamaxRange(objectif, ambition, sport ?? undefined);
   const optimal = targets.optimal;
 
-  const targetLabel = `≤ ${optimal.toFixed(2)} (${targets.min.toFixed(2)}–${targets.max.toFixed(2)})`;
+  const targetLabel = `${targets.min.toFixed(2)}–${targets.max.toFixed(2)} (repère ${optimal.toFixed(2)})`;
 
   if (value === null) return { status: "neutral", target: targetLabel, targetValue: optimal, score: 0 };
 
-  const score = scoreRelativeToTargetInverse(value, optimal);
-  return { status: statusFromScore(score), target: targetLabel, targetValue: optimal, score };
+  const score = value < targets.min ? Math.max(0, value / targets.min * 100) : scoreRelativeToTargetInverse(value, optimal);
+  const status: MetricStatus = value < targets.min ? "warning" : value <= optimal ? "ok" : value <= targets.max ? "warning" : "critical";
+  return { status, target: targetLabel, targetValue: optimal, score };
 }
 
 /**
@@ -68,7 +69,7 @@ export function evaluateTTE(
   if (value === null || value === 0) return { status: "neutral", target: `≥ ${target} min`, targetValue: target, score: 0 };
 
   const score = scoreRelativeToTarget(value, target);
-  return { status: statusFromScore(score), target: `≥ ${target} min`, targetValue: target, score };
+  return { status: value >= target ? "ok" : value >= target * 0.85 ? "warning" : "critical", target: `≥ ${target} min`, targetValue: target, score };
 }
 
 /**
@@ -88,7 +89,7 @@ export function evaluateFtpKg(
   if (value === null) return { status: "neutral", target: `≥ ${target.toFixed(1)} W/kg`, targetValue: target, score: 0 };
 
   const score = scoreRelativeToTarget(value, target);
-  return { status: statusFromScore(score), target: `≥ ${target.toFixed(1)} W/kg`, targetValue: target, score };
+  return { status: value >= target ? "ok" : value >= target * 0.9 ? "warning" : "critical", target: `≥ ${target.toFixed(1)} W/kg`, targetValue: target, score };
 }
 
 /**
@@ -108,7 +109,7 @@ export function evaluateVO2max(
   if (value === null) return { status: "neutral", target: `≥ ${target} ml/kg/min`, targetValue: target, score: 0 };
 
   const score = scoreRelativeToTarget(value, target);
-  return { status: statusFromScore(score), target: `≥ ${target} ml/kg/min`, targetValue: target, score };
+  return { status: value >= target ? "ok" : value >= target * 0.9 ? "warning" : "critical", target: `≥ ${target} ml/kg/min`, targetValue: target, score };
 }
 
 /**
@@ -127,16 +128,16 @@ export function evaluateReadiness(
     elite:       { ok: 86, warning: 70 },   // Qualifiable
     world_class: { ok: 92, warning: 78 },   // Elite (top 3%)
   };
-  
+
   const thresholds = potentielThresholds[ambition];
 
   if (potentielScore === null || potentielScore === 0) return { status: "neutral", target: `≥ ${thresholds.ok}%`, targetValue: thresholds.ok, score: 0 };
 
   // Use the score as-is since potentiel is already 0-100
   const score = scoreRelativeToTarget(potentielScore, thresholds.ok);
-  return { 
-    status: statusFromScore(score), 
-    target: `≥ ${thresholds.ok}%`, 
+  return {
+    status: potentielScore >= thresholds.ok ? "ok" : potentielScore >= thresholds.warning ? "warning" : "critical",
+    target: `≥ ${thresholds.ok}%`,
     targetValue: thresholds.ok,
     score,
   };

@@ -103,6 +103,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     objectif: input.objectif,
     ambition: input.ambition,
     age: input.age,
+    sex: input.sex,
     vma: input.vma,
     sportFocus: input.sportFocus,
     targetRaceDurationMin: input.targetRaceDurationMin ?? null,
@@ -115,7 +116,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
   const normalized = normalizeObjective(input.objectif);
   const vlamaxRange = getVLamaxRange(input.objectif, input.ambition, input.sportFocus);
   const currentTargets = {
-    ...getTargetsForAmbition(normalized, input.ambition),
+    ...limiter.targetsUsed,
     vlamax: vlamaxRange,
   };
 
@@ -156,7 +157,7 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     targets: {
       current: currentTargets,
       vlamaxRange,
-      adjustedForAge: input.age !== null && input.age >= 40,
+      adjustedForAge: input.age !== null && input.age >= 30,
     },
     injuryRisk: {
       run: runInjuryRisk,

@@ -18,12 +18,12 @@ export function assessVmaReference(value: number | null, reference: VmaReference
   if (value < reference.low) return {
     status: 'below' as const,
     gapKmh: Math.round((reference.low - value) * 10) / 10,
-    label: 'VMA potentiellement limitante',
+    label: 'Sous le scénario publié — ne démontre pas un limiteur',
   };
   return {
     status: value > reference.high ? 'above' as const : 'inside' as const,
     gapKmh: 0,
-    label: 'Pas de déficit VMA apparent',
+    label: 'Dans ou au-dessus du scénario — ne valide pas l’ambition',
   };
 }
 

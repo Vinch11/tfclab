@@ -1,0 +1,78 @@
+[
+  {
+    "id": "StartToRun:untrained:age_group:unknown",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:light:world_class:known_synthetic",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:trained:elite:known_synthetic",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:trained:world_class:unknown",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:trained:world_class:known_synthetic",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:highly_trained:competitor:known_synthetic",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:highly_trained:elite:unknown",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:highly_trained:elite:known_synthetic",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "StartToRun:highly_trained:world_class:unknown",
+    "before": [
+      "VO2max"
+    ],
+    "after": []
+  },
+  {
+    "id": "TrailMountain:highly_trained:world_class:known_synthetic",
+    "before": [
+      "TTE",
+      "VMA",
+      "VO2max"
+    ],
+    "after": [
+      "TTE",
+      "VO2max",
+      "VMA"
+    ]
+  }
+]

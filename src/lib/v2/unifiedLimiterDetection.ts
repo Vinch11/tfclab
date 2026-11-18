@@ -1,13 +1,14 @@
+import { getTargetCalibration, type TargetCalibrationContext } from '@/lib/targetCalibration';
 import { canGuidePrescription, isRunningOnlyPrescription } from "@/lib/limiterPrescription";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * UNIFIED LIMITER DETECTION — TFCL METHOD™
  * Single Source of Truth for Limiting Factor Identification
- * 
+ *
  * OBJECTIF:
  * Garantir que tous les outils (Compass, Matrix, Report, Lorang) utilisent
  * la MÊME logique pour identifier le facteur limitant principal.
- * 
+ *
  * ARCHITECTURE:
  * - Inputs: données physiologiques normalisées
  * - Output: facteur limitant + leviers + confiance
@@ -16,11 +17,12 @@ import { canGuidePrescription, isRunningOnlyPrescription } from "@/lib/limiterPr
  */
 
 import { interpretDecoupling, DECOUPLING_THRESHOLDS } from "@/lib/durabilityDecoupling";
-import { 
-  getTargetsForAmbition, 
+import {
+  isKnownPhysiologicalObjective,
+  getTargetsForAmbition,
   getVLamaxRange,
   normalizeObjective,
-  type ObjectiveTargets 
+  type ObjectiveTargets
 } from "@/lib/physiologicalTargets";
 import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 
@@ -28,7 +30,7 @@ import { AmbitionLevel, DEFAULT_AMBITION } from "@/types/ambitionLevel";
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type UnifiedLimiter = 
+export type UnifiedLimiter =
   | "aerobic_engine"      // VO2max / FTP/kg insuffisant
   | "glycolytic"          // VLamax trop haute (consommation glycogène excessive)
   | "anaerobic_capacity"  // W' trop bas ou trop haut vs cible objectif
@@ -39,13 +41,13 @@ export type UnifiedLimiter =
   | "none";               // Profil équilibré
 
 // Sous-type pour préciser la faiblesse aérobie
-export type AerobicWeaknessDetail = 
+export type AerobicWeaknessDetail =
   | "vo2max_low"          // Capacité aérobie (plafond) insuffisante
   | "ftp_kg_low"          // Expression aérobie (puissance/poids) insuffisante
   | "both_low"            // Les deux sont limitants
   | "none";               // Pas de faiblesse aérobie
 
-export type UnifiedLever = 
+export type UnifiedLever =
   | "increase_vo2max"
   | "decrease_vlamax"
   | "adjust_anaerobic"
@@ -65,18 +67,19 @@ export interface UnifiedLimiterInput {
   tte: number | null;
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
-  
+
   // Running-specific
   vma: number | null;              // VMA en km/h — utilisé à la place de FTP/kg en mode running
   sportFocus?: "bike" | "run" | "tri"; // Discipline principale
-  
+
   // Disponibilité
   availabilityScore: number | null; // 0-100
   hasHealthAlerts: boolean;
-  
+
   // Contexte
   objectif: string;
   ambition: AmbitionLevel;
+  sex?: "M" | "F" | null; // Context only: no validated sex multiplier for these coaching tables.
   age: number | null;               // Âge pour ajustement des cibles
   targetRaceDurationMin?: number | null; // F-24 : durée cible course (coach) pour évaluer la durabilité
   /**
@@ -179,7 +182,7 @@ export function buildCategoryRanking(gapAnalysis: UnifiedGapAnalysis[]): Categor
   for (const gap of gapAnalysis) {
     // On ne retient que les métriques limitantes (ou clairement en dessous de la cible)
     if (!canGuidePrescription(gap) || gap.status === "unknown" || gap.value === null) continue;
-    if (gap.status !== "limiting" && gap.gap >= -3) continue;
+    if (gap.status !== "limiting" && gap.gapPercent >= -3) continue;
 
     const category = METRIC_TO_CATEGORY[gap.metric] ?? "unknown";
     const impact = Math.abs(gap.weightedImpact ?? gap.gap);
@@ -219,26 +222,27 @@ export interface FatigueWarning {
 }
 
 export interface UnifiedLimiterResult {
+  targetCalibration: TargetCalibrationContext;
   // Limiteur principal (JAMAIS "availability" — voir fatigueWarning)
   primaryLimiter: UnifiedLimiter;
   limiterLabel: string;
   limiterEmoji: string;
   limiterExplanation: string;
-  
+
   // ⚠️ Avertissement fatigue (remplace l'ancien limiteur "availability")
   // La disponibilité n'est PAS un limiteur physiologique : elle ne conditionne
   // pas la périodisation. Elle génère un avertissement contextuel.
   fatigueWarning: FatigueWarning;
-  
+
   // ⚠️ Avertissement données insuffisantes
   insufficientData: boolean;         // true si trop de métriques clés manquent
   insufficientDataMessage: string | null;
   missingMetrics: string[];          // Liste des métriques manquantes
-  
+
   // Détail faiblesse aérobie (si applicable)
   aerobicWeaknessDetail: AerobicWeaknessDetail;
   aerobicWeaknessLabel: string | null;
-  
+
   // Levier prioritaire
   primaryLever: UnifiedLever;
   leverLabel: string;
@@ -269,11 +273,11 @@ export interface UnifiedLimiterResult {
   isRobust: boolean;           // true si gap clair entre limiteurs
   robustnessScore: number;     // 0-100
   robustnessNote: string;
-  
+
   // Confiance
   confidence: number;          // 0-1
   confidenceLabel: string;
-  
+
   // Métadonnées
   targetsUsed: ObjectiveTargets;
   version: string;
@@ -439,7 +443,7 @@ export function getFatmaxTargets(objectif: string): { min: number; optimal: numb
 export function getWprimeTargets(objectif: string, ambition: AmbitionLevel): { min: number; optimal: number; max: number } {
   const normalized = normalizeObjective(objectif);
   const targets = WPRIME_TARGETS[normalized] || WPRIME_TARGETS["703"];
-  return targets[ambition] || targets.world_class || targets.elite || targets.age_group;
+  return targets[ambition] || targets.age_group;
 }
 
 // Cibles VO2max par objectif et ambition (ml/kg/min) — VALEURS DE RÉFÉRENCE < 30 ANS
@@ -459,9 +463,9 @@ const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
 
 /**
  * Calcule le facteur d'ajustement VO2max par âge
- * Basé sur Hawkins & Wiswell 2003, Tanaka & Seals 2008 :
- * déclin ~5-7% par décennie chez les athlètes entraînés Masters
- * 
+ * Historical TFCL heuristic. Published age trends do NOT validate these exact
+ * steps for an individual or a specific ambition/sex. Not an age-grading table.
+ *
  * < 30 ans : 1.00 (référence)
  * 30-39 ans : 0.96 (−4%)
  * 40-49 ans : 0.91 (−9%)
@@ -469,7 +473,7 @@ const VO2MAX_TARGETS: Record<string, Record<string, number>> = {
  * ≥ 60 ans : 0.78 (−22%)
  */
 export function getVo2maxAgeFactor(age: number | null): number {
-  if (age === null || age < 30) return 1.0;
+  if (age == null || !Number.isFinite(age) || age < 30) return 1.0;
   if (age < 40) return 0.96;
   if (age < 50) return 0.91;
   if (age < 60) return 0.85;
@@ -479,10 +483,9 @@ export function getVo2maxAgeFactor(age: number | null): number {
 /**
  * Facteur d'ajustement par âge pour les métriques de performance (FTP/kg, VMA)
  * Déclin plus modéré que le VO2max (~5-7% par décennie après 30 ans)
- * 
- * Basé sur Peinado et al. 2018, Lepers et al. 2013 :
- * déclin ~5-7% par décennie pour FTP/VMA chez les Masters.
- * 
+ *
+ * Historical coaching coefficients, not validated FTP/VMA norms by age/sex.
+ *
  * < 30 ans : 1.00
  * 30-39 ans : 0.98 (−2%)
  * 40-49 ans : 0.95 (−5%)
@@ -490,7 +493,7 @@ export function getVo2maxAgeFactor(age: number | null): number {
  * ≥ 60 ans : 0.86 (−14%)
  */
 export function getPerformanceAgeFactor(age: number | null): number {
-  if (age === null || age < 30) return 1.0;
+  if (age == null || !Number.isFinite(age) || age < 30) return 1.0;
   if (age < 40) return 0.98;
   if (age < 50) return 0.95;
   if (age < 60) return 0.91;
@@ -500,8 +503,8 @@ export function getPerformanceAgeFactor(age: number | null): number {
 /**
  * Facteur d'ajustement TTE par âge
  * Le TTE décline moins vite — l'endurance se maintient mieux
- * (Lepers & Cattagni 2012, Tanaka & Seals 2008)
- * 
+ * Historical coaching hypothesis; no protocol-specific validation of these factors.
+ *
  * < 30 ans : 1.00
  * 30-39 ans : 0.99 (−1%)
  * 40-49 ans : 0.97 (−3%)
@@ -509,7 +512,7 @@ export function getPerformanceAgeFactor(age: number | null): number {
  * ≥ 60 ans : 0.90 (−10%)
  */
 export function getTTEAgeFactor(age: number | null): number {
-  if (age === null || age < 30) return 1.0;
+  if (age == null || !Number.isFinite(age) || age < 30) return 1.0;
   if (age < 40) return 0.99;
   if (age < 50) return 0.97;
   if (age < 60) return 0.94;
@@ -517,34 +520,19 @@ export function getTTEAgeFactor(age: number | null): number {
   return 0.90;
 }
 
-/**
- * Priorisation VLamax chez les masters.
- *
- * Source : INSCYD "State of Endurance Performance & Optimization 2025"
- * (N = 9 468, statistique descriptive terrain) — chez les athlètes > 50 ans,
- * la trainabilité VO₂max reste présente mais la VLamax dérive spontanément à la
- * hausse. Le levier le plus rentable devient donc la réduction de la VLamax
- * plutôt que la poussée VO₂max.
- *
- * ⚠️ Garde-fou de priorisation uniquement — n'altère ni la valeur mesurée,
- * ni les cibles physiologiques, ni les coefficients Mader.
- */
-export function getMastersVlamaxPriorityFactor(age: number | null): number {
-  if (age === null || age < 50) return 1.0;
-  if (age < 60) return 1.15;
-  return 1.25;
+/** Age alone cannot establish which physiological lever is most trainable. */
+export function getMastersVlamaxPriorityFactor(_age: number | null): number {
+  return 1;
 }
-
-
 
 /**
  * Retourne un message explicatif sur l'ajustement par âge
  */
 export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
-  if (age === null || age < 30) return null;
+  if (age == null || !Number.isFinite(age) || age < 30) return null;
   const factor = getVo2maxAgeFactor(age);
   const reductionPct = Math.round((1 - factor) * 100);
-  return `Cible ajustée à ${age} ans (−${reductionPct}% vs < 30 ans)`;
+  return `Repère de coaching ajusté à ${age} ans (−${reductionPct}% vs < 30 ans)`;
 }
 
 /**
@@ -552,9 +540,10 @@ export function getVo2maxAgeAdjustmentLabel(age: number | null): string | null {
  */
 export function getVo2maxTarget(objectif: string, ambition: string, age: number | null = null): number {
   const normalized = normalizeObjective(objectif);
-  const targets = VO2MAX_TARGETS[normalized] || VO2MAX_TARGETS["703"];
-  const baseTarget = targets[ambition] ?? targets.world_class ?? targets.elite ?? targets.age_group;
-  
+  const key = normalized === "TrailLong" || normalized === "TrailMountain" ? "Trail" : normalized;
+  const targets = VO2MAX_TARGETS[key] || VO2MAX_TARGETS["703"];
+  const baseTarget = targets[ambition] ?? targets.age_group;
+
   const ageFactor = getVo2maxAgeFactor(age);
   return Math.round(baseTarget * ageFactor * 10) / 10;
 }
@@ -577,12 +566,21 @@ function adjustTTETarget(baseTarget: number, age: number | null): number {
 // FONCTION PRINCIPALE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiterResult {
+export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimiterResult {
+  const positive = (value: number | null) => value != null && Number.isFinite(value) && value > 0 ? value : null;
+  const input: UnifiedLimiterInput = { ...rawInput,
+    vo2max: positive(rawInput.vo2max), ftpKg: positive(rawInput.ftpKg), vma: positive(rawInput.vma),
+    vlamax: positive(rawInput.vlamax), tte: positive(rawInput.tte), wprimeKj: positive(rawInput.wprimeKj),
+    fatmax: positive(rawInput.fatmax),
+    age: getTargetCalibration(rawInput.age, rawInput.sex).age,
+  };
+  const unsupportedContext = !isKnownPhysiologicalObjective(input.objectif) ||
+    (rawInput.age != null && (rawInput.age < 18 || rawInput.age > 100 || !Number.isFinite(rawInput.age)));
   const normalized = normalizeObjective(input.objectif);
   const targets = getTargetsForAmbition(normalized, input.ambition);
   const weights = getWeights(normalized);
   const fatmaxTargets = getFatmaxTargets(normalized);
-  
+
   // Déterminer si on est en mode running
   // Mode running = sportFocus "run" OU objectif running-only
   // (Note: on n'exige PLUS que ftpKg soit null — un coureur peut avoir des
@@ -592,15 +590,15 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const isRunningMode = input.sportFocus === "run" || isRunningOnlyPrescription(input.objectif);
   const hasVmaTarget = targets.vma_min !== undefined && targets.vma_min !== null;
   const useVma = isRunningMode && hasVmaTarget;
-  
+
   const gapAnalysis: UnifiedGapAnalysis[] = [];
-  
+
   // 1. Analyse Expression Aérobie — VMA (running) ou FTP/kg (vélo/tri)
   if (useVma) {
     // Mode Running : VMA remplace FTP/kg (cible ajustée selon l'âge)
     const vmaTarget = adjustPerformanceTarget(targets.vma_min!, input.age);
-    const vmaGap = input.vma !== null 
-      ? (input.vma - vmaTarget) / vmaTarget 
+    const vmaGap = input.vma !== null
+      ? (input.vma - vmaTarget) / vmaTarget
       : 0;
     gapAnalysis.push({
       metric: "VMA",
@@ -608,18 +606,18 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       target: vmaTarget,
       gap: input.vma !== null ? input.vma - vmaTarget : 0,
       gapPercent: vmaGap * 100,
-      status: input.vma === null ? "unknown" 
-        : input.vma >= vmaTarget ? "optimal" 
-        : input.vma >= vmaTarget * 0.9 ? "acceptable" 
+      status: input.vma === null ? "unknown"
+        : input.vma >= vmaTarget ? "optimal"
+        : input.vma >= vmaTarget * 0.9 ? "acceptable"
         : "limiting",
       weight: weights.aerobic,
       weightedImpact: vmaGap < 0 ? Math.abs(vmaGap) * weights.aerobic * 100 : 0,
     });
-  } else {
+  } else if (!isRunningMode) {
     // Mode Vélo/Tri : FTP/kg (cible ajustée selon l'âge)
     const ftpKgTarget = adjustPerformanceTarget(targets.ftp_kg_min, input.age);
-    const ftpKgGap = input.ftpKg !== null 
-      ? (input.ftpKg - ftpKgTarget) / ftpKgTarget 
+    const ftpKgGap = input.ftpKg !== null
+      ? (input.ftpKg - ftpKgTarget) / ftpKgTarget
       : 0;
     gapAnalysis.push({
       metric: "FTP/kg",
@@ -627,20 +625,20 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       target: ftpKgTarget,
       gap: input.ftpKg !== null ? input.ftpKg - ftpKgTarget : 0,
       gapPercent: ftpKgGap * 100,
-      status: input.ftpKg === null ? "unknown" 
-        : input.ftpKg >= ftpKgTarget ? "optimal" 
-        : input.ftpKg >= ftpKgTarget * 0.9 ? "acceptable" 
+      status: input.ftpKg === null ? "unknown"
+        : input.ftpKg >= ftpKgTarget ? "optimal"
+        : input.ftpKg >= ftpKgTarget * 0.9 ? "acceptable"
         : "limiting",
       weight: weights.aerobic,
       weightedImpact: ftpKgGap < 0 ? Math.abs(ftpKgGap) * weights.aerobic * 100 : 0,
     });
   }
-  
+
   // 1b. Analyse VO2max (Capacité Aérobie) - séparée de FTP/kg ou VMA
   // Note: VO2max target ajustée selon ambition, objectif ET âge
   const vo2maxTarget = getVo2maxTarget(normalized, input.ambition, input.age);
-  const vo2maxGap = input.vo2max !== null 
-    ? (input.vo2max - vo2maxTarget) / vo2maxTarget 
+  const vo2maxGap = input.vo2max !== null
+    ? (input.vo2max - vo2maxTarget) / vo2maxTarget
     : 0;
   const vo2maxLimiting = input.vo2max !== null && input.vo2max < vo2maxTarget * 0.9;
   gapAnalysis.push({
@@ -656,21 +654,23 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weight: weights.aerobic * (useVma ? 0.85 : 0.9), // Légèrement moins en mode running car VMA intègre déjà le VO2max
     weightedImpact: vo2maxGap < 0 ? Math.abs(vo2maxGap) * weights.aerobic * (useVma ? 0.85 : 0.9) * 100 : 0,
   });
-  
+
   // 2. Analyse VLamax (Glycolytic)
   // VLamax: plus bas est mieux pour endurance (inversé)
   const vlamaxRange = getVLamaxRange(normalized, input.ambition, input.sportFocus);
-  const vlamaxGap = input.vlamax !== null 
-    ? (input.vlamax - vlamaxRange.optimal) / vlamaxRange.optimal 
+  const vlamaxGap = input.vlamax !== null
+    ? (input.vlamax - vlamaxRange.optimal) / vlamaxRange.optimal
     : 0;
   const vlamaxExcess = input.vlamax !== null && input.vlamax > vlamaxRange.max;
   gapAnalysis.push({
     metric: "VLamax",
+    ...(input.vlamax != null && input.vlamax < vlamaxRange.min ? { prescriptionNote: "Sous le repère de coaching : vérifier le protocole et les besoins de course ; ne pas réduire davantage automatiquement." } : {}),
     value: input.vlamax,
     target: vlamaxRange.optimal,
     gap: input.vlamax !== null ? input.vlamax - vlamaxRange.optimal : 0,
     gapPercent: vlamaxGap * 100,
     status: input.vlamax === null ? "unknown"
+      : input.vlamax < vlamaxRange.min ? "acceptable"
       : input.vlamax <= vlamaxRange.optimal ? "optimal"
       : input.vlamax <= vlamaxRange.max ? "acceptable"
       : "limiting",
@@ -679,15 +679,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     // L'ancienne formule (Δ absolu mmol/L/s × 100) sous-pondérait massivement la VLamax
     // (~0.9 pour gap 0.12) vs VO2max -4% (~3.4) → faisait sortir le VO2max en limiteur #1
     // alors que la VLamax dominait clairement le profil.
-    // ✅ MASTERS (INSCYD 2025, N=9 468) : chez les >50 ans, la trainabilité VO₂max reste
-    // correcte mais la VLamax dérive spontanément à la hausse avec l'âge. Le levier le plus
-    // rentable devient donc la réduction VLamax → on rehausse son poids de classement.
     weightedImpact: input.vlamax !== null && vlamaxGap > 0
       ? Math.abs(vlamaxGap) * weights.glycolytic * 100 * getMastersVlamaxPriorityFactor(input.age)
       : 0,
   });
 
-  
+
   // 2b. Analyse W' (Capacité Anaérobie absolue)
   // W' a une cible bidirectionnelle: trop bas = pas assez de punch, trop haut = profil trop glycolytique
   // ⚠️ GUARD RENFORCÉ: W' est exclu du classement des limiteurs si :
@@ -700,12 +697,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const wprimePhysiologicallyImplausible = input.wprimeKj !== null && input.wprimeKj < 3;
   const shouldExcludeWprime = cpIsImplausible || cpIsSuspectWithLowWprime || wprimePhysiologicallyImplausible;
   const effectiveWprime = shouldExcludeWprime ? null : input.wprimeKj;
-  
+
   const wprimeTargets = getWprimeTargets(normalized, input.ambition);
   const wprimeTooLow = effectiveWprime !== null && effectiveWprime < wprimeTargets.min;
   const wprimeTooHigh = effectiveWprime !== null && effectiveWprime > wprimeTargets.max;
   const wprimeGapValue = effectiveWprime !== null
-    ? wprimeTooLow 
+    ? wprimeTooLow
       ? (effectiveWprime - wprimeTargets.min) / wprimeTargets.min
       : wprimeTooHigh
         ? (effectiveWprime - wprimeTargets.max) / wprimeTargets.max
@@ -714,8 +711,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   gapAnalysis.push({
     metric: "W' (kJ)",
     measurementDiscipline: "bike",
-    prescriptionApplicable: !isRunningOnlyPrescription(input.objectif),
-    ...(isRunningOnlyPrescription(input.objectif) ? {prescriptionNote: "Indicateur cycliste conservé au bilan ; ne guide pas la prescription CAP."} : {}),
+    prescriptionApplicable: false,
+    prescriptionNote: "Réserve cycliste absolue : pas de norme validée par masse, sexe et protocole permettant de classer ce besoin automatiquement.",
     value: effectiveWprime,
     target: wprimeTargets.optimal,
     gap: effectiveWprime !== null ? effectiveWprime - wprimeTargets.optimal : 0,
@@ -725,15 +722,15 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
       : (effectiveWprime >= wprimeTargets.min * 0.85 && effectiveWprime <= wprimeTargets.max * 1.15) ? "acceptable"
       : "limiting",
     weight: weights.anaerobic,
-    weightedImpact: (wprimeTooLow || wprimeTooHigh) 
-      ? Math.abs(wprimeGapValue) * weights.anaerobic * 100 
+    weightedImpact: (wprimeTooLow || wprimeTooHigh)
+      ? Math.abs(wprimeGapValue) * weights.anaerobic * 100
       : 0,
   });
 
   // 3. Analyse TTE (Specific Endurance) — cible ajustée selon l'âge
   const tteTarget = adjustTTETarget(targets.tte_min, input.age);
-  const tteGap = input.tte !== null 
-    ? (input.tte - tteTarget) / tteTarget 
+  const tteGap = input.tte !== null
+    ? (input.tte - tteTarget) / tteTarget
     : 0;
   gapAnalysis.push({
     metric: "TTE",
@@ -749,63 +746,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weightedImpact: tteGap < 0 ? Math.abs(tteGap) * weights.tte * 100 : 0,
   });
 
-  // F-24 — Durabilité standalone : compare TTE effectif à une cible **intensité-relative**
-  // dérivée de la durée de course. Le TTE se mesure AU SEUIL (typiquement 40-90 min), alors
-  // qu'une course longue se court LARGEMENT SOUS le seuil. Comparer brut TTE vs durée totale
-  // créerait un faux déficit systémique (ex : marathon 210 min vs TTE 60 min → toujours
-  // "limiting"). On applique donc une fraction d'intensité de course (% du seuil tenu en
-  // épreuve) pour exprimer la cible TTE équivalente :
-  //   intensityFraction ≈ pace_course / pace_seuil
-  //     10K / Olympic       ~ 0.98  (couru ≈ au seuil)
-  //     Semi / 70.3 run     ~ 0.92
-  //     Marathon / 70.3 bk  ~ 0.85
-  //     IM / Trail long     ~ 0.75
-  //     Ultra               ~ 0.68
-  // Cible = raceDuration × intensityFraction, plafonnée à 90 min (limite physiologique TTE).
-  // La règle ne s'active que si une estimation de temps de course est fournie explicitement.
-  // ⚠️ Garde anti-faux-positif : si le TTE atteint déjà la cible principale
-  // ajustée à l'âge (bloc TTE ci-dessus, gap ≥ 0), l'athlète possède la
-  // durabilité physiologique requise pour son objectif. Inutile de générer
-  // une "Durabilité" limitante via le plafond 90 min des courses longues —
-  // cela créait un faux limiteur secondaire "TTE insuffisant" alors même que
-  // le TTE est au-dessus de la cible (cas Vince : TTE 70 vs cible 44).
-  if (input.tte !== null && input.targetRaceDurationMin && input.targetRaceDurationMin > 0 && input.tte < tteTarget) {
-    const raceDur = input.targetRaceDurationMin;
-    const obj = (input.objectif || "").toLowerCase();
-    const intensityFraction =
-      obj.includes("ironman") || obj === "im" ? 0.75
-      : obj.includes("ultra") ? 0.68
-      : obj.includes("70.3") || obj.includes("marathon") && !obj.includes("semi") ? 0.85
-      : obj.includes("trail") ? 0.75
-      : obj.includes("semi") || obj.includes("half") ? 0.92
-      : obj.includes("10k") || obj.includes("olympic") || obj.includes("olympique") ? 0.98
-      : 0.90;
-    // Cible TTE = durée course × fraction d'intensité, bornée [30 min, 90 min] (TTE physio max)
-    const durabilityTarget = Math.min(90, Math.max(30, raceDur * intensityFraction));
-    const durabilityRawGap = input.tte - durabilityTarget;
-    const durabilityRelGap = durabilityRawGap / durabilityTarget;
-    const minutesShort = -durabilityRawGap;
-    const status: UnifiedGapAnalysis["status"] = durabilityRawGap >= 0
-      ? "optimal"
-      : minutesShort <= 10 ? "acceptable"
-      : "limiting";
-    const severityBoost = minutesShort > 30 ? 1.4
-      : minutesShort > 15 ? 1.15
-      : 1.0;
-    const impact = durabilityRawGap < 0
-      ? Math.abs(durabilityRelGap) * weights.tte * 100 * severityBoost
-      : 0;
-    gapAnalysis.push({
-      metric: "Durabilité",
-      value: input.tte,
-      target: Math.round(durabilityTarget),
-      gap: durabilityRawGap,
-      gapPercent: durabilityRelGap * 100,
-      status,
-      weight: weights.tte,
-      weightedImpact: impact,
-    });
-  }
+  // TTE at threshold is not durability during prolonged sub-threshold exercise.
+  // A race duration (predicted or requested) must never manufacture that measurement.
 
   // Durabilité sous-maximale (test de découplage Z2) — entrée QUALITATIVE.
   // Répond à « la durabilité est-elle un verrou ? » sans test jusqu'à l'épuisement.
@@ -843,21 +785,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
 
 
 
-  
-  // 4. Analyse FatMax (Metabolic Efficiency)
-  // ⚠️ GUARD COHÉRENCE VLamax↔FatMax (modèle Mader-Heck)
-  // FatMax est physiologiquement DÉRIVÉE de VLamax : une VLamax optimale
-  // implique mécaniquement une FatMax élevée. Si VLamax est ≤ cible (oxydatif),
-  // un gap FatMax négatif révèle un problème de mesure/source, pas un vrai limiteur.
-  // → On neutralise son weightedImpact pour qu'elle ne sorte pas comme limiteur #1.
-  const vlamaxIsOptimal = input.vlamax !== null && input.vlamax <= targets.vlamax.optimal;
-  const fatmaxGap = input.fatmax !== null 
-    ? (input.fatmax - fatmaxTargets.optimal) / fatmaxTargets.optimal 
+
+  // 4. Independent FatMax observations are not invalidated by a VLamax model.
+  const fatmaxGap = input.fatmax !== null
+    ? (input.fatmax - fatmaxTargets.optimal) / fatmaxTargets.optimal
     : 0;
   const fatmaxRawImpact = fatmaxGap < 0 ? Math.abs(fatmaxGap) * weights.fatmax * 100 : 0;
-  // Si VLamax est optimale ET FatMax semble limitante → incohérence du modèle.
-  // On neutralise l'impact (mais on garde la valeur affichée pour transparence).
-  const fatmaxImpactNeutralized = vlamaxIsOptimal && fatmaxGap < 0;
   gapAnalysis.push({
     metric: "FatMax",
     value: input.fatmax,
@@ -865,14 +798,13 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     gap: input.fatmax !== null ? input.fatmax - fatmaxTargets.optimal : 0,
     gapPercent: fatmaxGap * 100,
     status: input.fatmax === null ? "unknown"
-      : fatmaxImpactNeutralized ? "acceptable"  // Cohérence VLamax → pas limitant
       : input.fatmax >= fatmaxTargets.optimal ? "optimal"
       : input.fatmax >= fatmaxTargets.min ? "acceptable"
       : "limiting",
     weight: weights.fatmax,
-    weightedImpact: fatmaxImpactNeutralized ? 0 : fatmaxRawImpact,
+    weightedImpact: fatmaxRawImpact,
   });
-  
+
   // 5. Analyse Économie (Modulateur d'Efficience — JAMAIS limiteur #1)
   // ⚠️ DOCTRINE TFCL : l'Économie de course/pédalage est un MULTIPLICATEUR
   // des 4 piliers physiologiques (aérobie, glycolyse, durabilité, neuromusculaire).
@@ -882,8 +814,8 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   //   transparence et alimente le score de modulation côté Compass).
   // Cohérent avec l'UI qui classe l'Économie sous "MODULATEUR — EFFICIENCE",
   // séparé des 4 piliers principaux.
-  const economyGap = input.economyScore !== null 
-    ? (input.economyScore - 70) / 70 
+  const economyGap = input.economyScore !== null
+    ? (input.economyScore - 70) / 70
     : 0;
   gapAnalysis.push({
     metric: "Économie",
@@ -898,18 +830,27 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     weight: weights.economy,
     weightedImpact: 0,  // ✅ Modulateur — exclu du classement des limiteurs primaires
   });
-  
+
   // 6. Analyse Disponibilité — RETIRÉE V2.1
   // La disponibilité n'est plus incluse dans le gap analysis car
   // la fatigue n'est renseignée qu'une fois toutes les 3-4 semaines.
-  
+
+  if (normalized === "StartToRun" || unsupportedContext) {
+    for (const gap of gapAnalysis) {
+      gap.prescriptionApplicable = false;
+      gap.status = "unknown";
+      gap.prescriptionNote = "Population ou objectif non calibré. Débutant : progression et tolérance observée, pas de norme physiologique de compétition.";
+      gap.weightedImpact = 0;
+    }
+  }
+
   // Tri par impact pondéré (plus grand = plus limitant)
   const sortedGaps = [...gapAnalysis].sort((a, b) => b.weightedImpact - a.weightedImpact);
-  
+
   // Identification du limiteur principal
   const topGap = sortedGaps[0];
   const secondGap = sortedGaps[1];
-  
+
   // ── Fatigue Warning (remplace l'ancien limiteur "availability") ──────────
   // La disponibilité n'est JAMAIS un limiteur primaire. Elle génère un
   // avertissement contextuel qui n'influence PAS la périodisation IA.
@@ -1013,10 +954,10 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
   const aerobicExprIsLimiting = aerobicExpressionAnalysis?.status === "limiting";
   const vo2maxIsLimiting = vo2maxAnalysis?.status === "limiting";
   const isVmaMode = aerobicExpressionAnalysis?.metric === "VMA";
-  
+
   let aerobicWeaknessDetail: AerobicWeaknessDetail = "none";
   let aerobicWeaknessLabel: string | null = null;
-  
+
   if (primaryLimiter === "aerobic_engine") {
     if (aerobicExprIsLimiting && vo2maxIsLimiting) {
       aerobicWeaknessDetail = "both_low";
@@ -1033,12 +974,12 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
         : "Expression aérobie (FTP/kg) insuffisante — puissance relative trop faible";
     }
   }
-  
+
   // Calcul de la robustesse (gap clair entre 1er et 2ème limiteur physio)
   const gapDifference = (topPhysioGap?.weightedImpact ?? 0) - (secondPhysioGap?.weightedImpact ?? 0);
   const isRobust = gapDifference > 10 || (topPhysioGap?.weightedImpact ?? 0) > 20;
   const robustnessScore = clamp(gapDifference * 5 + 50, 0, 100);
-  
+
   // Calcul de la confiance globale et détection données insuffisantes
   // En mode running, la métrique critique aérobie est VMA au lieu de FTP/kg
   const aerobicCriticalMetric = useVma
@@ -1054,52 +995,53 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     { key: "fatmax", label: "FatMax", value: input.fatmax },
     { key: "economyScore", label: "Économie", value: input.economyScore },
   ];
-  
+
   const missingCritical = CRITICAL_METRICS.filter(m => m.value === null);
   const missingSecondary = SECONDARY_METRICS.filter(m => m.value === null);
   const missingMetrics = [...missingCritical, ...missingSecondary].map(m => m.label);
-  
+
   const dataCount = 6 - missingMetrics.length;
   const confidence = dataCount / 6;
-  
+
   // Garde insuffisance: si ≥2 métriques critiques manquent, on ne peut pas conclure
-  const insufficientData = missingCritical.length >= 2;
+  const insufficientData = missingCritical.length >= 2 || unsupportedContext || normalized === "StartToRun";
   const insufficientDataMessage = insufficientData
-    ? `Données insuffisantes (${missingMetrics.join(", ")} manquant${missingMetrics.length > 1 ? "s" : ""}) — le diagnostic peut être trompeur.`
+    ? `Comparaison non concluante : données manquantes ou population/objectif sans cible validée. ${missingMetrics.join(", ")}`
     : missingCritical.length === 1
       ? `Attention : ${missingCritical[0].label} manquant — diagnostic partiel.`
       : null;
-  
+
   // Si données insuffisantes ET aucun limiteur fort détecté → forcer "none" avec avertissement
   // plutôt que de laisser croire à un profil équilibré
   const effectiveLimiter = insufficientData && primaryLimiter === "none" ? "none" : primaryLimiter;
-  
+
   const limiterInfo = LIMITER_INFO[effectiveLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
-  
+
   return {
+    targetCalibration: getTargetCalibration(input.age, input.sex),
     primaryLimiter: effectiveLimiter,
-    limiterLabel: insufficientData && effectiveLimiter === "none" 
-      ? "Données insuffisantes" 
+    limiterLabel: insufficientData && effectiveLimiter === "none"
+      ? "Données insuffisantes"
       : limiterInfo.label,
-    limiterEmoji: insufficientData && effectiveLimiter === "none" 
-      ? "❓" 
+    limiterEmoji: insufficientData && effectiveLimiter === "none"
+      ? "❓"
       : limiterInfo.emoji,
     limiterExplanation: insufficientData && effectiveLimiter === "none"
       ? `Impossible de déterminer le facteur limitant. Métriques manquantes : ${missingMetrics.join(", ")}.`
       : primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
         ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
         : limiterInfo.description,
-    
+
     fatigueWarning,
-    
+
     insufficientData,
     insufficientDataMessage,
     missingMetrics,
-    
+
     aerobicWeaknessDetail,
     aerobicWeaknessLabel,
-    
+
     primaryLever,
     leverLabel: leverInfo.label,
     leverEmoji: leverInfo.emoji,
@@ -1110,27 +1052,33 @@ export function detectUnifiedLimiter(input: UnifiedLimiterInput): UnifiedLimiter
     secondaryLeverLabel: secondaryLimiter !== "none" ? LEVER_INFO[secondaryLever].label : null,
 
     severity,
-    
+
     gapAnalysis: gapAnalysis.filter(g => g.metric !== "Disponibilité"),
     categoryRanking,
 
-    
+
     isRobust: insufficientData ? false : isRobust,
     robustnessScore: insufficientData ? 0 : robustnessScore,
-    robustnessNote: insufficientData 
+    robustnessNote: insufficientData
       ? "Données insuffisantes pour une décision fiable"
-      : isRobust 
-        ? "Décision claire — facteur limitant nettement identifié"
+      : isRobust
+        ? "Écart net aux repères de coaching — causalité et calibration individuelles à confirmer"
         : "Décision marginale — plusieurs facteurs proches, validation coach recommandée",
-    
+
     confidence,
-    confidenceLabel: confidence >= 0.8 ? "Très élevée" 
+    confidenceLabel: confidence >= 0.8 ? "Données bien renseignées (cibles non validées)"
       : confidence >= 0.6 ? "Élevée"
       : confidence >= 0.4 ? "Moyenne"
       : "Limitée",
-    
-    targetsUsed: targets,
-    version: "1.2.0",
+
+    targetsUsed: {
+      ...targets,
+      vlamax: vlamaxRange,
+      tte_min: tteTarget,
+      ftp_kg_min: adjustPerformanceTarget(targets.ftp_kg_min, input.age),
+      vma_min: targets.vma_min == null ? undefined : adjustPerformanceTarget(targets.vma_min, input.age),
+    },
+    version: "1.3.0",
   };
 }
 
