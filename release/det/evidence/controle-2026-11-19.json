@@ -1,0 +1,226 @@
+{
+  "observedAtUtc": "2026-11-18T23:23:20.454418+00:00",
+  "dateBrussels": "2026-11-19",
+  "sourceCommit": "8a4c4b514468615551001650980b439205d4cc68",
+  "public": {
+    "manifestBytes": 337,
+    "manifestSha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+    "manifest": {
+      "schema": 1,
+      "version": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+      "entry": "worker.js.gz",
+      "encoding": "gzip",
+      "bytes": 804727,
+      "sha256": "419ff8aca16368f84c1e3dd274eb20db08427faf6592a0b35e157c5e046f8025",
+      "workerSha256": "7a8f44c16e1a70e07571aac862771be206300d9d2b3b5b559758cb8f0733fbe1"
+    },
+    "canonicalAndPinnedWorkerEqualGit": true,
+    "formAssetsSha256": {
+      "coach-Bk6vxo2v.mjs": "8097955f8f01dd3db3cac924b61f81ac549e9d22d25cfcd74775d10a9902d3f7",
+      "mount-Bgbj93vn.mjs": "dffcd21a2f535ca21cc4f40b763fdc45ce78b2d04b92409e99b406ba793facab",
+      "mount-DSsecdaE.css": "013aa7987f441548d901109cb8e6c246e6345179d53c493cc6aabf0ce7be588d",
+      "nolioRemote-Dv1fw5Po.mjs": "b34afdfa0a4326cff2582f7eca5ce617328e87908b4f67063ef1458329ee14a9"
+    },
+    "formAssetsVerified": true,
+    "publicConfigurationMarkersPresent": true,
+    "generalRelease": {
+      "manifestVersion": 2,
+      "components": {
+        "frontend": "3c7ef98fb287e4637563fb4e35e60bcb3c6a284b5ed81b64053cf121762767e0",
+        "ai-training-plan": "bc07129045bca1ae37f5ff3cb22a9debf6c5be9d67077c7938f48ab98c0956c2",
+        "ai-training-plan-test": "c19563be0ea71070b1ce3057b303ed82474ebf12bc5f04e615a990a1532cc6f5"
+      },
+      "contractHash": "be8705c37209078320fb6814d1c14d20afed58b4ccded541e24a414e976fe4fd",
+      "catalogueHash": "66127242fdda967c9bf103c066474cee08d6f3f46392ea9e8828c36de290fd0b",
+      "lockHash": "6f8e5dc7e0d095e8c4cecea05fa1e72e0bc71b5a46c2f90db888a0d8caf23158",
+      "releaseId": "ca5e1dbfb5b7b8cf5ea900af223d2f7d26a06b95b7258fac4ea25c95c1adcb04",
+      "attested": false,
+      "deploymentAttested": false,
+      "provenance": "declared-source",
+      "sourceCommit": null,
+      "sourceEpoch": null
+    },
+    "formBuiltAgainst": "abdba7ae82cc70ba8410bae9250c800bf43f3998afe24c07dd33683d550b6acb"
+  },
+  "newlyMergedPullRequests": [
+    {
+      "number": 483,
+      "mergedAt": "2026-11-18T09:34:07Z",
+      "mergeCommit": "61ec5956703f1e8153900cb66d30d41de8ca76e3",
+      "files": [
+        ".github/workflows/ci.yml",
+        "AGENTS.md",
+        "docs/nolio-ia-prescription-fidelity.md",
+        "docs/plan-durations-contract-review-2026-11-17.md",
+        "src/components/AIPlanViewer.tsx",
+        "src/components/NolioSessionButton.tsx",
+        "src/components/simplified/__tests__/AnalyseSection.test.tsx",
+        "src/engines/plan/__tests__/coachLevelProgression.test.ts",
+        "src/engines/plan/__tests__/computePlan.weeklyVolume.test.ts",
+        "src/engines/plan/computePlan.ts",
+        "src/engines/plan/planValidator.ts",
+        "src/hooks/__tests__/useAITrainingPlan.postPeakRegenQuota.guard.test.ts",
+        "src/hooks/__tests__/useAITrainingPlan.prevalidation.test.tsx",
+        "src/hooks/__tests__/useAITrainingPlan.pureRegenGapWindow.guard.test.ts",
+        "src/hooks/__tests__/useAITrainingPlan.windowing.test.ts",
+        "src/lib/__tests__/aiPlanPDFExport.test.ts",
+        "src/lib/__tests__/workoutCatalogBuilder.advancedPrerequisites.test.ts",
+        "src/lib/__tests__/workoutDurationResolver.test.ts",
+        "src/lib/aiPlanPDFExport.ts",
+        "src/lib/enrichedWorkoutsV3.ts",
+        "src/lib/plan/__tests__/enduranceStrengthBudget.test.ts",
+        "src/lib/plan/__tests__/lovableBuild.test.ts",
+        "src/lib/plan/__tests__/nolioCatalogDuration.test.ts",
+        "src/lib/plan/__tests__/nolioPrescription.test.ts",
+        "src/lib/plan/__tests__/nolioSessionStructure.test.ts",
+        "src/lib/plan/nolioSessionStructure.ts",
+        "src/lib/plan/workoutDurationResolver.ts",
+        "src/lib/workoutCatalogBuilder.ts",
+        "src/lib/workoutLibrary.ts",
+        "src/pages/__tests__/criticalBlockingGate.test.ts",
+        "src/qa/sports-plan-lab/__tests__/globalLimiterTransmission.test.ts",
+        "src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts",
+        "src/qa/sports-plan-lab/__tests__/planningContractBaseline.json",
+        "src/qa/sports-plan-lab/planningMatrix.ts",
+        "supabase/functions/_shared/nolioPrescription.ts",
+        "supabase/functions/_shared/planReleaseManifest.ts",
+        "supabase/functions/ai-training-plan-test/prevalidation.test.ts",
+        "supabase/functions/ai-training-plan-test/promptHelpers.masterAmbitionIntensityReconciliation.test.ts",
+        "supabase/functions/ai-training-plan/prevalidation.test.ts",
+        "supabase/functions/ai-training-plan/promptHelpers.masterAmbitionIntensityReconciliation.test.ts",
+        "supabase/functions/nolio-send-plan/index.test.ts",
+        "supabase/functions/nolio-send-plan/index.ts",
+        "supabase/functions/nolio-send-plan/prescription.test.ts"
+      ],
+      "reviews": [],
+      "comments": [],
+      "url": "https://github.com/Vinch11/tfclab/pull/483"
+    },
+    {
+      "number": 484,
+      "mergedAt": "2026-11-18T09:33:55Z",
+      "mergeCommit": "16d05cea2edb7cf5c4c118d3478a7b24a7073ca9",
+      "files": [
+        "docs/plan-durations-contract-review-2026-11-17.md",
+        "src/components/simplified/__tests__/AnalyseSection.test.tsx",
+        "src/engines/plan/__tests__/coachLevelProgression.test.ts",
+        "src/engines/plan/__tests__/computePlan.weeklyVolume.test.ts",
+        "src/engines/plan/computePlan.ts",
+        "src/engines/plan/planValidator.ts",
+        "src/hooks/__tests__/useAITrainingPlan.postPeakRegenQuota.guard.test.ts",
+        "src/hooks/__tests__/useAITrainingPlan.prevalidation.test.tsx",
+        "src/hooks/__tests__/useAITrainingPlan.pureRegenGapWindow.guard.test.ts",
+        "src/hooks/__tests__/useAITrainingPlan.windowing.test.ts",
+        "src/lib/__tests__/aiPlanPDFExport.test.ts",
+        "src/lib/__tests__/workoutCatalogBuilder.advancedPrerequisites.test.ts",
+        "src/lib/__tests__/workoutDurationResolver.test.ts",
+        "src/lib/aiPlanPDFExport.ts",
+        "src/lib/plan/__tests__/enduranceStrengthBudget.test.ts",
+        "src/lib/plan/__tests__/lovableBuild.test.ts",
+        "src/lib/plan/workoutDurationResolver.ts",
+        "src/pages/__tests__/criticalBlockingGate.test.ts",
+        "src/qa/sports-plan-lab/__tests__/globalLimiterTransmission.test.ts",
+        "src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts",
+        "src/qa/sports-plan-lab/__tests__/planningContractBaseline.json",
+        "src/qa/sports-plan-lab/planningMatrix.ts",
+        "supabase/functions/_shared/planReleaseManifest.ts",
+        "supabase/functions/ai-training-plan-test/prevalidation.test.ts",
+        "supabase/functions/ai-training-plan-test/promptHelpers.masterAmbitionIntensityReconciliation.test.ts",
+        "supabase/functions/ai-training-plan/prevalidation.test.ts",
+        "supabase/functions/ai-training-plan/promptHelpers.masterAmbitionIntensityReconciliation.test.ts"
+      ],
+      "reviews": [],
+      "comments": [],
+      "url": "https://github.com/Vinch11/tfclab/pull/484"
+    },
+    {
+      "number": 485,
+      "mergedAt": "2026-11-18T13:42:19Z",
+      "mergeCommit": "098b289b3c6f58ed51bab3fa3bd59c04f6ad6d31",
+      "files": [
+        "docs/target-calibration.md",
+        "src/components/AIPlanViewer.tsx",
+        "src/components/AmbitionTargetsTable.tsx",
+        "src/components/CoachingCompassCard.tsx",
+        "src/components/GapAmbitionPanel.tsx",
+        "src/components/ProfilAmbitionUnifiedCard.tsx",
+        "src/components/charts/AmbitionProgressChart.tsx",
+        "src/components/charts/index.ts",
+        "src/engines/diagnostic/__tests__/computeDiagnostic.test.ts",
+        "src/engines/diagnostic/computeDiagnostic.ts",
+        "src/lib/__tests__/targetCalibration.audit.test.ts",
+        "src/lib/ageAdjustment.ts",
+        "src/lib/ambitionProgress.ts",
+        "src/lib/ambitionThresholds.ts",
+        "src/lib/coachingCompass/vmaReference.ts",
+        "src/lib/physiologicalTargets.ts",
+        "src/lib/plan/__tests__/disciplineCoachLimiters.test.ts",
+        "src/lib/targetCalibration.ts",
+        "src/lib/v2/__tests__/vlamaxTargets.test.ts",
+        "src/lib/v2/unifiedLimiterDetection.ts",
+        "src/lib/v2/vlamaxTargets.ts",
+        "src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts",
+        "src/qa/sports-plan-lab/__tests__/targetCalibrationTransitions.json",
+        "src/types/ambitionLevel.ts",
+        "supabase/functions/_shared/planReleaseManifest.ts"
+      ],
+      "reviews": [],
+      "comments": [],
+      "url": "https://github.com/Vinch11/tfclab/pull/485"
+    }
+  ],
+  "oracle": {
+    "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+    "preservedOriginalSuccesses": 156,
+    "recordedReplay": "s1-144.json",
+    "decisions": {
+      "assembled": 164,
+      "missing_data": 34,
+      "engine_limit": 2,
+      "outside_det": 25
+    },
+    "newMatrixExecution": false
+  },
+  "witnesses": {
+    "recordedReplay": "parcours-publie.json#/latestReceipt/publishedWitnessReplay",
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43334331672",
+    "newBrowserExecution": false,
+    "publicWorkerByteIdentityVerified": true
+  },
+  "acceptance": {
+    "independentSportReview": {
+      "status": "sans_preuve",
+      "evidence": null
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    },
+    "nolioOAuth": {
+      "currentState": "not_observed_this_audit"
+    }
+  },
+  "scope": "Contrôle des fichiers publiés et des preuves GitHub. Les 600 scénarios de PR 485 ne remplacent pas les 200 cas DET ; les dix changements de priorités documentés ne sont pas une nouvelle recette DET. Les fusions de PR ne prouvent pas le déploiement des fonctions Edge ni la réception Nolio/montre.",
+  "preservedMainHead": "136b0bdd9f4214c416b2e22ee7c8468c6b36f751",
+  "remaining": "34 demandes initiales de données ; 2 limites moteur semi ; 26 limites après historiques synthétiques dans le dossier existant. Start to Run hors DET. Aucun nouveau motif d’incompatibilité sportive déduit d’un échec de recherche.",
+  "writes": {
+    "detOrV3Source": false,
+    "ai": false,
+    "lovable": false,
+    "nolio": false,
+    "productionDeployment": false
+  },
+  "allConditionsProven": false
+}

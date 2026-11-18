@@ -1,5 +1,11 @@
 # DET 2.1 — lecture des plans de référence
 
+## Contrôle du 19 novembre : fusions IA et diagnostic
+
+Les PR 483 et 484 ont été fusionnées le 18 novembre, suivies de la PR 485 sur les cibles et le diagnostic. Les octets du worker DET publié restent ceux de `ccd8cd85`, identiques au paquet testé ; les deux copies du worker et les quatre fichiers du formulaire ont été contrôlés. La matrice de 600 scénarios de la PR 485 ne remplace pas l'oracle DET de 200 cas. Ses dix changements de priorités documentés ne constituent pas un nouveau rejeu DET. Les résultats enregistrés restent 164 plans assemblés, 34 demandes de données et 2 limites moteur, avec les 156 succès initiaux conservés et 25 Start to Run hors DET. [Contrôle et états des PR](controle-2026-11-19.json)
+
+Les PR relues ne contiennent ni revue sportive indépendante des témoins DET ni identifiants d'envoi/relecture Nolio et observation montre du pilote. Une fusion GitHub ne prouve pas le déploiement des fonctions Edge. Les évolutions et restaurations du Compass dans `main` sont conservées ; aucune modification du moteur IA, aucun export réel et aucune génération Lovable ne sont effectués ici. Les limites moteur déjà documentées restent ouvertes : ce contrôle n'est pas une validation générale.
+
 ## Contrôle du 18 novembre : publication et preuves de réception
 
 Les octets publics du manifeste, du worker canonique et du worker fixé au formulaire correspondent toujours à la version `ccd8cd85` de cette branche. Les quatre fichiers du formulaire correspondent à leurs empreintes déclarées. Les PR 476 à 482 sont fusionnées. Le contrôle relit les décisions enregistrées : les 156 succès d'origine sont conservés, avec 164 plans assemblés, 34 demandes de données, 2 limites moteur et 25 cas Start to Run hors DET. Il ne constitue pas une nouvelle exécution de la matrice ou du navigateur. [Octets, références et limites du contrôle](controle-2026-11-18.json)
