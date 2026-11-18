@@ -29,7 +29,7 @@ import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { CompassVmaReference } from '@/components/CompassVmaReference';
-import { assessVmaReference, getVmaReference } from '@/lib/coachingCompass/vmaReference';
+import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaReference } from '@/lib/coachingCompass/vmaReference';
 
 // Local wording only: detailed provenance remains unchanged in reports and stored data.
 const compassSourceLabel = (source: string) => source === 'snapshot'
@@ -104,7 +104,7 @@ interface CoachingCompassCardProps {
 // RADAR CHART — SVG avec zone optimale
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number }) {
+function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: RadarAxis[]; size?: number; vmaReference?: VmaReference | null }) {
   const glowId = useId();
   const cx = size / 2;
   const cy = size / 2;
@@ -129,14 +129,14 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
   const optimalPath = `M ${optimalOuter.map(p => `${p.x},${p.y}`).join(" L ")} Z M ${optimalInner.map(p => `${p.x},${p.y}`).join(" L ")} Z`;
 
   // Data polygon
-  const dataPoints = axes.map((a, i) => getPoint(i, a.score));
+  const dataPoints = axes.map((a, i) => getPoint(i, a.key === 'vma' && vmaReference ? vmaReferencePosition(a.value, vmaReference) ?? 0 : a.score));
   const polygonStr = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
 
   const scoreColor = (s: number) =>
     s >= 75 ? "hsl(var(--success))" : s >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
 
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none">
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none" role="img" aria-label={vmaReference ? 'Compass course : écart VMA au repère ambition' : 'Compass physiologique'}>
       <defs>
         <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
@@ -210,10 +210,17 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
       />}
 
       {/* Data points with colored halos */}
-      {dataPoints.map((p, i) => axes[i].value != null && axes[i].target != null ? (
+      {dataPoints.map((p, i) => axes[i].value != null && (axes[i].key === 'vma' && vmaReference ? vmaReferencePosition(axes[i].value, vmaReference) != null : axes[i].target != null) ? (
         <g key={`dot-${i}`}>
-          <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
-          <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
+          {axes[i].key === 'vma' && vmaReference ? <g data-testid="radar-vma-gap">
+            <title>{assessVmaReference(axes[i].value, vmaReference).label} · écart {assessVmaReference(axes[i].value, vmaReference).gapKmh ?? '—'} km/h au repère extrapolé</title>
+            <line x1={p.x} y1={p.y} x2={getPoint(i, 100).x} y2={getPoint(i, 100).y} className="stroke-warning" strokeWidth="3" strokeDasharray="3 2" />
+            <circle cx={getPoint(i, 100).x} cy={getPoint(i, 100).y} r="5" className="fill-background stroke-primary" strokeWidth="2" />
+            <circle cx={p.x} cy={p.y} r="4.5" className={assessVmaReference(axes[i].value, vmaReference).status === 'below' ? 'fill-warning stroke-background' : 'fill-success stroke-background'} strokeWidth="2" />
+          </g> : <>
+            <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
+            <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
+          </>}
         </g>
       ) : null)}
 
@@ -254,10 +261,10 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
               textAnchor="middle"
               dominantBaseline="middle"
               fill={axis.value != null && axis.target != null ? scoreColor(axis.score) : "hsl(var(--muted-foreground))"}
-              fontSize={12}
+              fontSize={axis.key === 'vma' && vmaReference ? 9 : 12}
               fontWeight={800}
             >
-              {axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : axis.value != null && axis.value > 0 ? `${axis.value.toFixed(1)} ${axis.unit}` : "—"}
+              {axis.key === 'vma' && vmaReference && vmaReferencePosition(axis.value, vmaReference) != null ? `Écart ${assessVmaReference(axis.value, vmaReference).gapKmh?.toFixed(1)} km/h` : axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : axis.value != null && axis.value > 0 ? `${axis.value.toFixed(1)} ${axis.unit}` : "—"}
             </text>
           </g>
         );
@@ -267,14 +274,15 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
 }
 
 /** Display-only gauge: uses the existing radar score, never confidence or a new target. */
-function MetricMiniGauge({ axis }: { axis: RadarAxis }) {
-  const hasComparison = axis.value != null && axis.value > 0 && axis.target != null && Number.isFinite(axis.score);
-  const score = hasComparison ? Math.max(0, Math.min(100, axis.score)) : 0;
-  const tone = !hasComparison ? "text-muted-foreground" : score >= 75 ? "text-success" : score >= 50 ? "text-warning" : "text-destructive";
+function MetricMiniGauge({ axis, reference = null }: { axis: RadarAxis; reference?: VmaReference | null }) {
+  const position = reference ? vmaReferencePosition(axis.value, reference) : null;
+  const hasComparison = reference ? position != null : axis.value != null && axis.value > 0 && axis.target != null && Number.isFinite(axis.score);
+  const score = reference ? position ?? 0 : hasComparison ? Math.max(0, Math.min(100, axis.score)) : 0;
+  const tone = !hasComparison ? "text-muted-foreground" : reference ? assessVmaReference(axis.value, reference).status === 'below' ? 'text-warning' : 'text-success' : score >= 75 ? "text-success" : score >= 50 ? "text-warning" : "text-destructive";
   return (
     <svg viewBox="0 0 56 34" className={cn("h-[34px] w-14", tone)} role="img"
-      aria-label={`${axis.label} : ${hasComparison ? `${score}/100, repère relatif à la cible interne` : 'comparaison non définie'}`}>
-      <title>{hasComparison ? 'Repère relatif à la cible interne, pas un pourcentage de confiance' : 'Comparaison non définie'}</title>
+      aria-label={`${axis.label} : ${reference && hasComparison ? `${Math.round(score)}/100 du bas du repère ambition extrapolé` : hasComparison ? `${score}/100, repère relatif à la cible interne` : 'comparaison non définie'}`}>
+      <title>{reference ? 'VMA relative au bas du repère ambition extrapolé ; pas une mesure de confiance' : hasComparison ? 'Repère relatif à la cible interne, pas un pourcentage de confiance' : 'Comparaison non définie'}</title>
       <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" className="stroke-border" strokeWidth="4" strokeLinecap="round" />
       {hasComparison && <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
       <text x="28" y="29" textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="600">{hasComparison ? Math.round(score) : '—'}</text>
@@ -758,12 +766,13 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   <div className="grid grid-cols-2 min-w-[580px] gap-4 print:min-w-0">
                     {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
                       <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
-                      <SignatureRadar axes={disciplineAxes[sport]} size={320} />
+                      <SignatureRadar axes={disciplineAxes[sport]} size={320} vmaReference={sport === 'run' ? getVmaReference(input.objectif, input.ambition) : null} />
                       <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
                     </section>)}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <SignatureRadar axes={displayAxes} size={320} />}
+                </div> : <SignatureRadar axes={displayAxes} size={320} vmaReference={getVmaReference(input.objectif, input.ambition)} />}
+                {getVmaReference(input.objectif, input.ambition) && <p className="mt-2 text-[10px] text-muted-foreground">VMA : cercle vide = bas du repère ambition extrapolé ; point plein = bilan ; trait pointillé = écart à développer. Priorités du plan inchangées.</p>}
               </div>
 
               {/* Completeness bar */}
@@ -826,7 +835,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                     )}>
                       <div className="shrink-0 flex flex-col items-center gap-1">
                         <span className="text-base">{emoji}</span>
-                        {!vmaReference && <MetricMiniGauge axis={axis} />}
+                        <MetricMiniGauge axis={axis} reference={vmaReference} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">

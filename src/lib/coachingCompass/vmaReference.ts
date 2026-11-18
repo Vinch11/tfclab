@@ -27,6 +27,12 @@ export function assessVmaReference(value: number | null, reference: VmaReference
   };
 }
 
+/** Local geometry shared by the radar overlay and mini gauge; never mutates axes. */
+export function vmaReferencePosition(value: number | null, reference: VmaReference | null): number | null {
+  if (value == null || !Number.isFinite(value) || value <= 0 || !reference) return null;
+  return Math.max(0, Math.min(100, value / reference.low * 100));
+}
+
 // Gordon et al. 2017, table 1: VO₂max and gross oxygen cost at LT2.
 // These are paired group means, not individually measured vVO₂max.
 const marathonGroups = {

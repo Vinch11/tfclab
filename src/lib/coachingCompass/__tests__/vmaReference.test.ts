@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { assessVmaReference, getVmaReference } from '../vmaReference';
+import { assessVmaReference, getVmaReference, vmaReferencePosition } from '../vmaReference';
 import { getVmaTargetByAmbition } from '@/lib/physiologicalTargets';
 
 describe('VMA reference scenarios — display only', () => {
+  it('shares the same local VMA position between radar and gauge without changing prescription', () => {
+    const ref = getVmaReference('IM', 'competitor');
+    expect(vmaReferencePosition(13, ref)).toBeCloseTo(90.2778, 3);
+    expect(vmaReferencePosition(18, ref)).toBe(100);
+    expect(vmaReferencePosition(null, ref)).toBeNull();
+    expect(getVmaTargetByAmbition('IM', 'competitor')).toBeNull();
+  });
   it('flags a potential limiter below the ambition reference and quantifies the gap', () => {
     expect(assessVmaReference(13, getVmaReference('IM', 'competitor'))).toMatchObject({ status: 'below', gapKmh: 1.4 });
   });
