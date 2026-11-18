@@ -1,5 +1,8 @@
 # Roadmap
 
+## Plan Compass — objectifs et catégories d’âge
+- [x] Retirer Start to Run du périmètre du plan et de sa matrice de validation ; conserver cet objectif dans l’application existante.
+
 ## Références VMA du Compass
 - [x] Lecture seule : nature des repères dépliable, écart VMA sans prescription implicite et hypothèse non confirmée distinguée des priorités historiques ; aucun calcul ou classement modifié.
 - [x] Radar course : silhouette pleine utilisant le repère VMA local, contraste renforcé et labels agrandis ; radars empilés sur téléphone sans défilement horizontal. Emanuela connectée vérifiée ordinateur/téléphone, 47 tests réussis, deux générateurs déployés ; mesures et plans inchangés, frontend non publié.

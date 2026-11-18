@@ -8,11 +8,10 @@ La première livraison reste séparée des prescriptions IA/DET : aucun changeme
 
 ## 1. Couvrir tous les objectifs dès le départ
 
-Construire une matrice exhaustive des **13 objectifs actuellement proposés**, avec toutes les ambitions disponibles et leurs cas non applicables :
+Construire une matrice exhaustive des **12 objectifs retenus (Start to Run exclu)**, avec toutes les ambitions disponibles et leurs cas non applicables. Cette exclusion concerne ce chantier, sans supprimer Start to Run de l’application existante.
 
 | Famille | Objectifs | Points à examiner selon les observations disponibles |
 | --- | --- | --- |
-| Initiation | Start to Run | Capacité à courir continuellement, tolérance à la charge, progression vers la distance choisie ; pas de norme de podium imposée |
 | Course sur route | 5 km, 10 km, semi-marathon, marathon | Performance récente, vitesse critique/seuil, capacité aérobie mesurée dans la bonne modalité, tenue de l’allure sur la durée ; poids de chaque facteur propre à la distance |
 | Triathlon | Sprint, Olympique, 70.3, Ironman | Natation, vélo, course, transitions et course après vélo ; endurance et alimentation documentées selon la durée |
 | Trail | Trail général, trail court, trail montagne, ultra-trail | Durée, distance, dénivelé, altitude, technicité, montée/descente, endurance et alimentation ; aucun simple transfert des normes route |
@@ -28,7 +27,6 @@ Conserver les ambitions existantes, et ajouter dans la comparaison Compass un co
 - Finir, chrono visé ou classement visé ; préciser podium général ou de catégorie.
 - Catégorie officielle de l’épreuve, sexe/catégorie de classement et âge selon le règlement applicable à la date de course.
 - Pour le triathlon, temps par discipline si connus ; un chrono total seul ne permet pas d’attribuer un déficit au vélo ou à la course.
-- Pour Start to Run, distance et continuité de course visées plutôt qu’une ambition compétitive artificielle.
 
 Sans ces précisions, conserver une lecture générale explicitement approximative, pas fabriquer un chrono ou une catégorie.
 
@@ -94,8 +92,8 @@ Ne pas ajouter de faux scores scientifiques ou de pourcentages de confiance. Une
 
 ## 7. Valider la couverture et la séparation avec les plans
 
-- Tests couvrant les 13 objectifs, toutes les ambitions disponibles, différentes catégories d’âge, mesures absentes, contradictions et références insuffisantes.
-- Cas de contrôle : bon niveau statistique mais endurance insuffisante ; VMA modeste mais chrono déjà réalisé ; chrono total triathlon sans temps par discipline ; trail sans parcours ; podium avec petit effectif ; Start to Run sans objectif compétitif.
+- Tests couvrant les 12 objectifs retenus, toutes les ambitions disponibles, différentes catégories d’âge, mesures absentes, contradictions et références insuffisantes ; exclusion explicite de Start to Run.
+- Cas de contrôle : bon niveau statistique mais endurance insuffisante ; VMA modeste mais chrono déjà réalisé ; chrono total triathlon sans temps par discipline ; trail sans parcours ; podium avec petit effectif.
 - Vérifier que deux valeurs issues du même test ne créent pas une confirmation artificielle.
 - Faire relire les conclusions par le coach sur des profils représentatifs de chaque famille ; Emanuela et Vincent sont deux cas réels, pas une validation de toutes les disciplines.
 - Vérifier les parcours réels sur ordinateur et téléphone, sources et observations consultables.
@@ -113,7 +111,7 @@ La connexion éventuelle des nouvelles conclusions aux plans IA/DET sera une dé
 
 ## Détails techniques
 
-- Étendre la couche de comparaison en lecture seule de `coachingCompass`, avec couverture exhaustive de `ObjectifType` et séparation des données de référence, observations et conclusions.
+- Étendre la couche de comparaison en lecture seule de `coachingCompass`, avec couverture exhaustive de `ObjectifType` hors `StartToRun`, explicitement exclu, et séparation des données de référence, observations et conclusions.
 - Réutiliser les règles existantes de sélection du bilan et de séparation des mesures par sport.
 - Conserver et étendre les tests d’isolation des prescriptions ; ne pas changer `unifiedLimiterDetection`, `planConfigBuilder` ou les règles physiologiques des générateurs.
 - Stocker tout nouveau contexte de comparaison séparément des champs de prescription existants ; utiliser les accès athlète déjà autorisés et vérifier les droits si un stockage supplémentaire devient nécessaire.
