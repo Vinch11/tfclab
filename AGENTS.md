@@ -20,15 +20,9 @@
 
 - Export AI plan cycles through Nolio v2 as one non-overlapping banner per existing phase, with parallel ranked workstreams in its text; resolve the stored athlete link server-side, preview before confirmation, preserve foreign/edited cycles and verify created cycles by readback. Why: calendar phases must not duplicate sessions, overwrite coach work or target a guessed athlete.
 
-- Preserve VO2max and VMA as distinct ranked coach priorities in plan coverage, explicitly sharing their aerobic stimulus without duplicating session totals; latest page order overrides a restored coach payload. Why: family deduplication and stale policies hid the coach's L2.
-- Catalogue duration deviations are warnings in final plan validation, while incompatible sport, phase, intensity and structure retain their content checks. Why: a volume adjustment must not be treated as a fundamental goal/content conflict.
-
 - Critical metrics (CP/W′, CS/D′) are stored per snapshot with status estimate|confirmed, separate from the legacy CP/VLamax model; only coach-confirmed recent values produce plan interval proposals, applied only when the coach accepts each one. Why: record fits must not silently become measurements or rewrite sessions.
 
-- Explicit strength frequency and double-day limits are carried in weekly quota contracts shared by layout, prevalidation and final validation; run-cycle maintenance adds only selected sports without removing run targets. Why: prompt-only choices contradicted imposed calendars.
 - Audited demanding-family definitions and ID safety policies live in `supabase/functions/_shared`, re-exported by the client and checked independently by JSON catalogue contracts. Why: coach approval must not waive verified level, hours or permanent exclusions.
-- All generation paths preserve the selected start date, even without an active plan, and update the A race contract; stored limiter policies cannot override visible frequency. Why: silent resets shortened plans.
-- Terrain eligibility uses explicit catalogue metadata and the prescribed day in shared checks, with terrain carried to final validation; B/C races remain tune-ups rather than independent peaks. Why: available terrain and race priorities must not remain prompt-only preferences.
 
 - Nolio v2 period imports prefill only empty observed snapshot fields after coach selection; never infer thresholds or confirmed protocols from records. Why: best efforts are not laboratory measurements.
 - Nolio test review distinguishes quick records from coach-confirmed protocols; the period finder lists every candidate with a confidence badge (test found / to check / information) and fills only coach-ticked, empty fields; FTP may only be proposed "to check" from a 20-min test lap, and VLamax or CSS are never written. Why: records cannot certify a test, but hiding uncertain values made the tool unusable.
