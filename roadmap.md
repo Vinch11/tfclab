@@ -1,5 +1,9 @@
 # Roadmap
 
+## Vérification scientifique des scores Compass — 18 novembre 20:42
+- [x] Reproduire en lecture seule les scores du profil original d’Emanuela, IM Compétiteur : FTP/kg 3,62/3,64 après réduction d’âge, VO₂max 52/49,3, VMA 13/14,4 (scénario extrapolé). Aucune donnée ni prescription modifiée.
+- [x] Références vérifiées : FRIEND 2022 (22 379 tests, percentiles VO₂peak par âge/sexe et tapis/vélo), Knechtle 2024 (687 696 résultats Ironman, pas de mesures physiologiques individuelles) et Malkinson 2022 (bases VO₂max et podiums séparées, pas de profils appariés). Réponse : distinguer percentile de population, percentile de performance et indices physiologiques ; aucune norme complète objectif × âge × ambition ni cible inventée, Compass et plans inchangés.
+
 ## Plan Compass — objectifs et catégories d’âge
 - [x] Derniers ajouts annulés à la demande du coach le 18 novembre à 20:17 UTC : Compass restauré à l’état précédent, synthèse et conclusions ajoutées retirées. Emanuela connectée vérifiée ordinateur/téléphone ; 157 tests passent, compilation OK, deux générateurs redéployés avec succès et versions relues (200). Aucun plan, bilan ou Nolio modifié, site non publié. La lecture simplifiée précédemment livrée est abandonnée.
 - [x] Simplifier le plan pour montrer directement au coach les manques prioritaires face à l’objectif, sans nouveau parcours complexe ni modification des plans IA.
