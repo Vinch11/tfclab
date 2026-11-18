@@ -22,7 +22,7 @@ export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selec
   const [months, setMonths] = useState(24);
   const [dates, setDates] = useState<{ from: string; to: string } | null>(null);
   const [nolioAthlete, setNolioAthlete] = useState('');
-  const [catalogue, setCatalogue] = useState<{ id: string; name: string; has_api_access: boolean }[]>([]);
+  const [catalogue, setCatalogue] = useState<{ id: string; name: string; has_api_access: boolean; is_self?: boolean }[]>([]);
   const [catalogueError, setCatalogueError] = useState(false);
   const from = dates?.from ?? monthsBefore(snapshot.date, months);
   const to = dates?.to ?? snapshot.date;
@@ -76,7 +76,7 @@ export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selec
     <div className="flex flex-wrap items-end gap-3">
       {dates && <><label className="text-sm">Du<Input aria-label="Début de période des graphiques" type="date" value={from} max={to} onChange={e => setDates({ from: e.target.value, to })} /></label>
       <label className="text-sm">Au<Input aria-label="Fin de période des graphiques" type="date" value={to} min={from} max={new Date().toISOString().slice(0, 10)} onChange={e => setDates({ from, to: e.target.value })} /></label></>}
-      <Select value={nolioAthlete} onValueChange={setNolioAthlete}><SelectTrigger aria-label="Compte Nolio de l’athlète" className="w-64 min-h-11"><SelectValue placeholder={athleteName ? `Relier le compte Nolio de ${athleteName}` : 'Relier le compte Nolio'} /></SelectTrigger><SelectContent>{catalogue.filter(a => a.has_api_access).map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}</SelectContent></Select>
+      <Select value={nolioAthlete} onValueChange={setNolioAthlete}><SelectTrigger aria-label="Compte Nolio de l’athlète" className="w-full sm:w-64 min-h-11"><SelectValue placeholder={athleteName ? `Relier le compte Nolio de ${athleteName}` : 'Relier le compte Nolio'} /></SelectTrigger><SelectContent>{catalogue.filter(a => a.has_api_access).map(a => <SelectItem key={a.id} value={a.id}>{a.name}{a.is_self ? ' · Mon compte' : ''}</SelectItem>)}</SelectContent></Select>
     </div>
     {nolioAthlete && athleteName && catalogue.length > 0 && catalogue.find(a => a.id === nolioAthlete)?.name.trim().toLowerCase() !== athleteName.trim().toLowerCase() && <p role="alert" className="text-sm text-destructive">Le compte Nolio choisi ne porte pas le nom de {athleteName} : vérifie qu’il s’agit bien du même athlète.</p>}
     {catalogueError && <p role="alert" className="text-sm text-destructive">Connexion Nolio indisponible : aucun record absolu utilisé à la place.</p>}

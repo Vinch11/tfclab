@@ -3,7 +3,7 @@
 // Tokens never leave the server. Read-only: no write call to Nolio.
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { ownsPersonalConnection, validPeriod, canReadTestSession } from "./recordContract.ts";
+import { ownsPersonalConnection, validPeriod, canReadTestSession, withOwnNolioProfile } from "./recordContract.ts";
 import { handleCycles } from "./cycles.ts";
 import { summarizeStreamsByMinute } from "./streamSummary.ts";
 
@@ -184,15 +184,20 @@ Deno.serve(async (req) => {
         }
         return { items, complete: false };
       };
+      const readableAthletes = async () => {
+        const [athletes, me] = await Promise.all([collection('me/athletes/'), get('me/')]);
+        if (me.status >= 400) throw new Error('nolio_own_profile_unavailable');
+        return { ...athletes, items: withOwnNolioProfile(athletes.items, me.data) };
+      };
       if (action === 'catalogues') {
-        const [athletes, sports, windows] = await Promise.all([collection('me/athletes/'), collection('sports/'), get('metrics/records/')]);
+        const [athletes, sports, windows] = await Promise.all([readableAthletes(), collection('sports/'), get('metrics/records/')]);
         if (windows.status >= 400) return json({ error:'records_catalogue_unavailable' }, 502);
-        return json({ athletes: athletes.items.map(a => ({id:a.id,name:a.name,has_api_access:a.has_api_access})), sports: sports.items.map(s => ({id:s.id,name:s.name,sport_base:s.sport_base})), windows:(windows.data as {windows?: unknown})?.windows, complete:athletes.complete && sports.complete });
+        return json({ athletes: athletes.items.map(a => ({id:a.id,name:a.name,has_api_access:a.has_api_access,is_self:a.is_self === true})), sports: sports.items.map(s => ({id:s.id,name:s.name,sport_base:s.sport_base})), windows:(windows.data as {windows?: unknown})?.windows, complete:athletes.complete && sports.complete });
       }
       if (action === 'test_sessions' || action === 'protocol_session') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete)) return json({error:'invalid_session_request'},400);
         if (action === 'protocol_session' && (typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training))) return json({error:'invalid_session_request'},400);
-        const athletes = await collection('me/athletes/');
+        const athletes = await readableAthletes();
         if (!athletes.complete || !athletes.items.some(a => a.id === body.athlete && a.has_api_access === true)) return json({error:'athlete_not_accessible'},403);
         const sessions = await collection('real/trainings/?' + new URLSearchParams({athlete:body.athlete,date_from:body.from,date_to:body.to}));
         if (!sessions.complete) return json({error:'incomplete_session_list'},502);
@@ -226,7 +231,7 @@ Deno.serve(async (req) => {
       }
       if (action === 'test_session') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.training !== 'string' || !/^trn_[A-Za-z0-9_-]+$/.test(body.training)) return json({error:'invalid_session_request'},400);
-        const athletes=await collection('me/athletes/');
+        const athletes=await readableAthletes();
         if(!athletes.complete||!athletes.items.some(a=>a.id===body.athlete&&a.has_api_access===true))return json({error:'athlete_not_accessible'},403);
         const query=new URLSearchParams({athlete:body.athlete,date_from:body.from,date_to:body.to});
         const sessions=await collection('real/trainings/?'+query);
@@ -250,8 +255,8 @@ Deno.serve(async (req) => {
       }
       if (action === 'records') {
         if (!validPeriod(body.from, body.to) || typeof body.athlete !== 'string' || !/^usr_[A-Za-z0-9_-]+$/.test(body.athlete) || typeof body.sport !== 'string' || !/^spt_[A-Za-z0-9_-]+$/.test(body.sport) || !['ppr','phrr','par','ptr','pvar','pcadr'].includes(body.cat) || !['time','distance'].includes(body.record_type)) return json({error:'invalid_record_request'},400);
-        const [athletes, sports] = await Promise.all([collection('me/athletes/'), collection('sports/')]);
-        if (!athletes.items.some(a => a.id === body.athlete && a.has_api_access === true) || !sports.items.some(s => s.id === body.sport)) return json({error:'athlete_or_sport_not_accessible'},403);
+        const [athletes, sports] = await Promise.all([readableAthletes(), collection('sports/')]);
+        if (!athletes.complete || !sports.complete || !athletes.items.some(a => a.id === body.athlete && a.has_api_access === true) || !sports.items.some(s => s.id === body.sport)) return json({error:'athlete_or_sport_not_accessible'},403);
         const query = new URLSearchParams({athlete:body.athlete,sports:body.sport,cat:body.cat,record_type:body.record_type,from:body.from,to:body.to,top:'1'});
         const result = await get('metrics/records/?' + query);
         if (result.status >= 400) return json({error:result.status === 429 ? 'nolio_rate_limit' : 'records_read_failed',status:result.status},502);
