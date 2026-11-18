@@ -1,0 +1,25 @@
+{
+  "scope": "QA c3941303-40d2-447e-9b87-867d82727fd1 / backend lkjesdacgpolrwfxulbo only",
+  "page": "/__qa/coach-a-recipe (DEV only, no ProtectedRoute, own guard)",
+  "recipeCode": "QA_A_RECIPE_V1_NON_PRESCRIPTIVE",
+  "reportTable": {"name": "qa_coach_recipe_reports", "columns": ["id","coach_id","athlete_id","recipe_code","run_id","kind(reference|final|partial|recovery)","verified_user_id","reference_version_id","reference_current_sha256","report","created_at"], "rls": "INSERT/SELECT owner only (coach_id = verified_user_id = auth.uid(), athlete owned); no UPDATE/DELETE grant or policy"},
+  "exercisedInThisTurn": {
+    "unitTests": "src/qa/coach-a-recipe/__tests__/recipe.test.ts 15/15 (guard not-dev/origin/signed-out/B/not-owned/ready/timeout, verdict, lost-ACK + readback-unavailable wrappers on saver)",
+    "typecheck": "tsgo OK", "lint": "0 errors",
+    "signedOutBrowser": "test browser LOVABLE_BROWSER_AUTH_STATUS=signed_out: page shows 'Non connecté', button disabled, 0 POST/PATCH/DELETE",
+    "devServer": "stale Vite deps cache (504 Outdated Optimize Dep) cleared and dev server restarted before check"
+  },
+  "notExercised": "Coach A recipe itself (requires Vince's own browser session); no A write, no A JWT in test browser",
+  "fingerprintsBefore": {
+    "A_4_original_versions_md5": "543e381a32500dfcf59bc1e384d3e752",
+    "A_current_md5": "34230fb711707b19d9766814105f0a33",
+    "A_version_count": 4,
+    "B_versions": {"count": 11, "md5": "b2455793c35daa532d2cf10719e80156"},
+    "B_current_md5": "9f1138007edf53f2fa541c38441f59fa",
+    "B_review_contexts": 1,
+    "qa_coach_recipe_reports_rows": 0
+  },
+  "manifest": {"releaseId": "843d84aa39038d7ebd5dd24aaf2056cfbba0498e157dca6a3b518e084303ec56", "attested": false},
+  "deployed": ["ai-training-plan", "ai-training-plan-test"],
+  "noNolio": true, "noAI": true, "sportsAttestation": false
+}

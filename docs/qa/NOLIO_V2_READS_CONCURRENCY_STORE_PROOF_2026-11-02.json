@@ -1,0 +1,99 @@
+{
+ "schema": "tfcl-qa-proof-v1",
+ "date": "2026-11-02",
+ "project": "QA c3941303, backend lkjesdacgpolrwfxulbo, non publié",
+ "nolioAuthenticatedRequests": 0,
+ "releaseDeclaration": {
+  "releaseId": "0b5234c9e3f7d9f71e35dae3b7053b33d633a82ea2bcd2231717609c9638af9a",
+  "attested": false,
+  "deploymentAttested": false
+ },
+ "imports": {
+  "source": "Vinch11/tfclab@6cf4ec0800aae23fac697be5a5428ae5380abe0a",
+  "files": [
+   "docs/qa/nolio-v2/read-contract-2026-11-02.json (sha256 5627666e…d915, vérifié)",
+   "read-contract-2026-11-02.source.json",
+   "READ_CONTRACT_2026-11-02.md",
+   "docs/qa/NOLIO_V2_INDEPENDENT_COUNTEREXAMPLES_2026-11-02.json",
+   "docs/qa/NOLIO_V2_ROOT_DATABASE_PROBE_2026-11-02.json"
+  ]
+ },
+ "1_reads": {
+  "kind": "FAKE_HTTP (fetch mock conforme au contrat, vrai adaptateur httpFetch + vrai sendPlannedV2)",
+  "implemented": "listPage GET collection/ athlete,date_from=date_to,limit=100,starting_after ; {data,has_more} validé, ids préfixés ; getDetail collection+encodeURIComponent(id)+'/' ?athlete ; pas de recurrence_action ; redirect:error ; non-200/JSON invalide/forme/timeout ⇒ lecture inconnue",
+  "normalization": "ids de nœud et resolved ignorés ; unités de lecture converties ; workout []/tags []/show_rpe false/durée-distance dérivées retirés seulement si absents de l'envoi ; changement dose/ordre/tag/heure ⇒ non exact",
+  "tests": [
+   "2e page + détail conforme ⇒ confirmé sans POST",
+   "id détail discordant ⇒ ambigu",
+   "contre-exemple wrong_event_confirmed ⇒ jamais confirmé",
+   "401/429/503 ⇒ STOPPED_UNCONFIRMED sans POST",
+   "8 erreurs liste ⇒ lecture inconnue"
+  ],
+  "realSendsBlocked": true
+ },
+ "2_concurrency": {
+  "kind": "REAL_SQL via deux requêtes PostgREST serveur indépendantes (Edge qa-nolio-v2-concurrency-probe, JWT B, getClaims + propriété plan avant service-role), vraie RPC nolio_v2_claim_operation dans une enveloppe tenant la transaction (2000 ms avant/après)",
+  "planVersion": "1e2d1b05-025e-8b01-9067-edeee234575a (B)",
+  "sessionKey": "__qa_concurrency_probe_bef11148-7558-43c6-a80f-04ad908c5e19",
+  "callA": {
+   "pid": 156545,
+   "txid": 1639,
+   "t0": "2026-11-02T20:18:46.432669+00:00",
+   "rowsSeenBefore": 0,
+   "claimStart": "2026-11-02T20:18:48.43869+00:00",
+   "claimEnd": "2026-11-02T20:18:48.445401+00:00",
+   "claimed": true,
+   "tEnd": "2026-11-02T20:18:50.447786+00:00"
+  },
+  "callB": {
+   "pid": 156546,
+   "txid": 1640,
+   "t0": "2026-11-02T20:18:46.453103+00:00",
+   "rowsSeenBefore": 0,
+   "claimStart": "2026-11-02T20:18:48.456795+00:00",
+   "claimEnd": "2026-11-02T20:18:50.451177+00:00",
+   "claimed": false,
+   "existingState": "sending",
+   "tEnd": "2026-11-02T20:18:52.453611+00:00"
+  },
+  "interpretation": "pid distincts ; les deux voient 0 ligne ; transactions qui se chevauchent (B démarre 20 ms après A, A commit à 20:18:50.447) ; la réservation de B commence pendant la transaction de A, attend son commit puis renvoie claimed:false/sending. Une seule réservation.",
+  "closed": "sending→rejected via vraie RPC de transition (true), détail QA_CONCURRENCY_PROBE_NO_NOLIO, remote_id null",
+  "foreignPlanNegative": {
+   "error": "plan_not_owned"
+  },
+  "ledgerRowsTechnical": 2,
+  "ledgerRowsSends": 0
+ },
+ "3_connectionStore": {
+  "table": "nolio_v2_connections (vide, RLS sans policy, aucun privilège anon/authenticated, service_role seulement)",
+  "privileges": "authenticated SELECT=false, anon SELECT=false, EXECUTE probe/claim authenticated=false ; REST JWT B ⇒ 42501",
+  "loader": "connectionStore.ts : lié coach authentifié + athlète du plan, statut actif, V2, app partenaire/équipe, scopes, expiration >60 s, consentement daté, refs usr_/spt_ confirmées ; jamais V1 ni défaut",
+  "realJwtB": {
+   "status": "BLOCKED",
+   "reason": "no_authorized_v2_connection",
+   "network": "none",
+   "planVersionId": "042b1ca6-0c4c-85d8-9288-21cab56099a9",
+   "sessionsInPlan": 75
+  },
+  "connectionsCreated": 0,
+  "tests": "14 cas fake store/validation"
+ },
+ "data": {
+  "A_versions": "4, md5 543e381a32500dfcf59bc1e384d3e752 inchangé",
+  "A_plan": "md5 34230fb711707b19d9766814105f0a33 inchangé",
+  "B_versions": 10,
+  "deleted": 0
+ },
+ "checks": {
+  "vitest_nolio": "99 (3 suites) + lovableBuild 5",
+  "tsgo_app": "OK",
+  "eslint_touched": "OK",
+  "deno_check": "non exécuté (crash natif précédent)"
+ },
+ "limits": [
+  "Lectures prouvées seulement contre des réponses simulées du contrat ; aucune lecture Nolio réelle",
+  "Aucune connexion V2/OAuth configurée ; envois réels BLOQUÉS",
+  "Fonction QA de sonde déployée : à retirer avant toute production",
+  "Choix futur DET/IA conservé ; aucune revue sportive"
+ ]
+}

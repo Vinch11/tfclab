@@ -1,0 +1,105 @@
+{
+  "title": "Nolio V2 QA — chargement borné sur /__qa/pilot-review",
+  "scope": "QA isolée uniquement (projet c3941303…, backend QA). Aucun envoi/dry_run/activation/GET Nolio réel par l'agent ou les tests. Aucune publication.",
+  "baseSourceSha": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+  "finalSourceNote": "Commit final attribué par la plateforme après ce message ; empreintes de fichiers ci-dessous.",
+  "rootCause": {
+    "proven": [
+      "Client : callV2 utilisait withTimeout 8 s sur invoke sans catch ; le rejet QaStepTimeout remontait non géré dans NolioV2ProgressPanel.run (ni catch ni finally) et onAfterAction n'était pas attendu : aucune issue visible.",
+      "Serveur : readAll bornait chaque page à 15 s mais pas le total (jusqu'à 10 pages sports + 20 pages bibliothèque séquentielles) ; la bibliothèque retardait les sports ; budget client (8 s) < budget serveur."
+    ],
+    "possibleNotProven": [
+      "Lenteur réelle de l'API Nolio ou corps de réponse non résolu ; aucun journal load_refs disponible côté fonction (0 ligne trouvée), donc la cause réseau effective n'est pas observée."
+    ]
+  },
+  "budgets": {
+    "serverSportsMs": 12000,
+    "serverExercisesMs": 8000,
+    "serverRefsTotalMs": 20000,
+    "clientLoadRefsMs": 45000,
+    "clientOtherActionsMs": 20000,
+    "clientAuthStepMs": 8000,
+    "note": "45 s = garde + load_refs/activate + une relecture d'état, même verrou. status/start/select : 20 s sans relecture."
+  },
+  "behaviour": [
+    "Échéance via Promise.race sur fetch ET body, AbortController, timers nettoyés.",
+    "Sports en échec/timeout ⇒ UNKNOWN, rien stocké, anciens refs conservés.",
+    "Bibliothèque lente ⇒ sports renvoyés, exercises.status = timeout|partial|unknown, force bloquée.",
+    "Redirection (redirect:error) et schéma hors contrat restent bloquants.",
+    "Client : verrou synchrone, budget sur garde auth+propriété+invoke, signal abort transmis à invoke, génération invalidée sur changement d'identité / onAuthStateChange / démontage, aucune relance auto, aucun useEffect réseau.",
+    "Après load_refs/activate : une seule relecture d'état bornée ; son échec s'affiche à part sans effacer le résultat.",
+    "Logs serveur : action, status, reason (enum), exercises (enum), ms — aucune URL, jeton ou contenu."
+  ],
+  "files": {
+    "src/qa/pilot-review/boundedV2Action.ts": "beb29f17daecd7a62197c2bf1cada30e3470f43f8659e37cc7ac78e9d6997b19",
+    "src/pages/__qa/PilotReviewPage.tsx": "605638e7e7bb8e3bdea9412a6524d143eb8ea00d39b3ff3f701039ef0d46a716",
+    "src/qa/pilot-review/NolioV2ProgressPanel.tsx": "8d885cc5ff5e8c5123b902751be29d752aae23d093d5cd0e7f92f266791b8353",
+    "supabase/functions/_shared/nolioV2/refs.ts": "c965f517196050572b3beb963aa3503bc30657a5b91653d322caf1075ecba0d3",
+    "supabase/functions/nolio-v2-oauth/index.ts": "36b17f028a067c0b93f1612a3f3086ee5f1a4f1ec0f09303492051c4b045a284",
+    "src/qa/pilot-review/__tests__/nolioV2LoadingBounded.test.tsx": "7f8c00770a2e3a0f5a5fc5ba0dbf3abd6d2c11b9ec5c5cb106de37f117e4ba43",
+    "supabase/functions/_shared/planReleaseManifest.ts": "fe10177b5d76c71416638c6380907c145bc754c40d2814be538ac9bcf2b70438"
+  },
+  "tests": {
+    "new": "nolioV2LoadingBounded.test.tsx : 10/10 (fetch jamais résolu, body jamais résolu, pages lentes budget total, bibliothèque lente, invoke rejet, invoke timeout, double clic, réponse tardive stale, panneau double clic + relecture KO visible, budget serveur < client)",
+    "suites": "src/qa/pilot-review + src/lib/nolio : 184/184 (10 fichiers)",
+    "typecheck": "tsgo OK",
+    "lint": "0 erreur (1 avertissement fast-refresh préexistant)",
+    "deno": "deno check : panique native du runtime (crash Rust), non exécutable localement — à vérifier en CI GitHub"
+  },
+  "deployment": {
+    "deployed": [
+      "nolio-v2-oauth"
+    ],
+    "deployedSourceSha256": "9b2a8762a6fc590a8fce0aab7afd9c3ff78922a9d5e507e3f8308ff8d963ccaa",
+    "liveCheck": "POST sans session ⇒ 401",
+    "notRedeployed": "ai-training-plan / ai-training-plan-test (lisent la déclaration régénérée) — non demandé dans ce lot"
+  },
+  "releaseDeclaration": {
+    "releaseId": "bd8b3c1f50bdcc17f97957af01400b34c4fcdb7f8635af3a9088eb66e9d5a785",
+    "attested": false
+  },
+  "dataUntouched": "Grant, jetons, sélection, consentement, archives A/B et états OAuth non lus ni modifiés.",
+  "handoff": "Sur /__qa/pilot-review (Coach A) : « Vérifier l'état de connexion Nolio V2 » puis « Charger les sports Nolio ». Fin garantie ≤ 45 s avec message français ; dry_run/envoi réel toujours ABSENT.",
+  "frontReviewFix": {
+    "reviewedCommit": "764a6200a157ab8e227b9edf8f0fa079c052c68e",
+    "fixed": [
+      "Premier clic : plus d'invalidation à la première identité vérifiée (époque = vrai changement A→B / A→bloqué / SIGNED_OUT / autre uid seulement).",
+      "Garde + invoke purs (aucun setter) ; setWho/setBlocked appliqués seulement si l'exécution est courante ; invoke jamais lancé après expiration, invalidation ou démontage.",
+      "start : clé du lien = identité vérifiée renvoyée dans le résultat, pas la closure who.",
+      "load_refs/activate : action + une relecture sous le MÊME verrou et budget global 45 s ; résultat publié dès obtention et conservé si la relecture échoue."
+    ],
+    "budgetsClient": {
+      "loadRefsOrActivateTotalWithReadbackMs": 45000,
+      "statusStartSelectMs": 20000,
+      "authStepMs": 8000
+    },
+    "tests": "pilotReviewNolioPage.test.tsx (vraie page, client simulé, fake timers) 5/5 ; total suites pilot-review + nolio + page : 189/189 (11 fichiers) ; tsgo OK ; lint 0 erreur",
+    "files": {
+      "src/pages/__qa/PilotReviewPage.tsx": "7eb5052e88fea5888935f9c3d1621316ed645357906a8521aae09e3110101283",
+      "src/qa/pilot-review/boundedV2Action.ts": "cad79dba31bb8092b74003a7ab8520e57aac7a6fce53ab688cbd3b6d7d19b096",
+      "src/pages/__qa/__tests__/pilotReviewNolioPage.test.tsx": "dc003b2c5e77006f5786aa9bdfea4d8d4eeafc6aacedc7acab8ed8958d085c15"
+    },
+    "server": "Aucune source serveur modifiée ni redéployée ; seule la déclaration non attestée planReleaseManifest.ts a été régénérée (empreinte des sources frontend).",
+    "baseHeadBeforeFinalCommit": "9b13c2e821ff274692927aa6a4c1cfde657c932a"
+  },
+  "addendum_AtoB_f76d64e9": {
+    "cause": "auth callback reset without clearing who/idRef -> whoKey effect re-invalidated first B status",
+    "fix": "single invalidation on auth change/SIGNED_OUT, idRef=null, who=null, session status re-read or signed-out",
+    "serverChanged": false,
+    "redeployed": false,
+    "nolioNetwork": false,
+    "newTests": [
+      "A->B then first status B persists, 1 invoke",
+      "sign-out disables controls, 0 invoke"
+    ],
+    "results": {
+      "tests": "208 passed / 1 skipped (QA+Nolio suites)",
+      "tsgo": "OK",
+      "lint": "0 errors"
+    },
+    "manifest": {
+      "releaseId": "8a4a2b73a1056b0fc1933f04d58d5ff91202b9489efc02c234c3ff69d9203fb1",
+      "attested": false
+    }
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-03",
+  "status": "ready_for_authenticated_full_plan_dry_run",
+  "sourceCommit": "27d8a1ae2c79447b5617d151770c9890729bc50d",
+  "sportsValidation": {
+    "acquired": true,
+    "pr": 454,
+    "scope": "synthetic declared configurations; individual coach review remains"
+  },
+  "injectedTests": {
+    "sessions": 128,
+    "operations": 75,
+    "run": 58,
+    "strength": 16,
+    "competition": 1,
+    "rest": 53,
+    "refused": 0,
+    "targetedTestsPassed": 298,
+    "releaseManifestTestsPassed": 22,
+    "source": "Lovable completed task report; not independently reexecuted"
+  },
+  "independentServerCheck": {
+    "snapshotCommit": "cfbc0532c9a1d039786a890ff089cec980b8afed",
+    "sourceFiles": 23,
+    "runUrl": "https://github.com/Vinch11/tfclab/actions/runs/41716944859",
+    "status": "completed",
+    "conclusion": "success",
+    "scope": "Deno static types; no execution or provider requests"
+  },
+  "realEvidence": {
+    "singleTechnicalSession": "HTTP 201 plus exact unique calendar readback already acquired",
+    "fullPlan": "not executed"
+  },
+  "remaining": [
+    "Authenticated full-plan dry-run and receipt readback",
+    "Full-plan real export implementation and explicit coach-reviewed trial",
+    "DET/AI selector integration, AI provenance and application integration tests"
+  ],
+  "limits": {
+    "productionChanged": false,
+    "mainMerged": false,
+    "automaticSportsApproval": false
+  }
+}

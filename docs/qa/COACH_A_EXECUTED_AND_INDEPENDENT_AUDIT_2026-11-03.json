@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-03",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backendRef": "lkjesdacgpolrwfxulbo",
+  "sourceShaAtRun": "1a43da93f4b4c61519deb6644eff4fc9d6358bf5",
+  "persistedReport": {
+    "created_at": "2026-11-03 09:50:30.254967+00",
+    "id": "bbfc0b8e-2625-491e-bccf-a9c92f026ccf",
+    "reference_current_sha256": "fc99f7e509aa54aa28d0f2df8b0ef7215a7af802d546ea53195b84ce623978c4",
+    "reference_version_id": "d396341a-859c-80a5-8c67-1c04d47afa2a",
+    "report": {
+      "athleteId": "c155204f-43e2-4367-9b66-6d068ef89212",
+      "backendRef": "lkjesdacgpolrwfxulbo",
+      "createdVersionIds": [
+        "ac9123c4-b19b-8126-bd3b-583678ed5b2d",
+        "27f01dbc-47e5-8b2b-a8d9-90a8a1e2f2ce",
+        "a3cc2e44-b995-8d5f-9197-7ed388de46f3",
+        "2fb267f0-9fd7-8859-88e3-633fc8c7c175",
+        "da8d6eef-53fd-8588-8e13-e1890a8d851a",
+        "d396341a-859c-80a5-8c67-1c04d47afa2a",
+        "2c2d2ca2-44ee-8a60-bcfa-b5290191b2d0",
+        "9314f36c-bc69-8159-8340-7c15b1c34006"
+      ],
+      "currentReference": {
+        "reportOk": true,
+        "sha": "fc99f7e509aa54aa28d0f2df8b0ef7215a7af802d546ea53195b84ce623978c4",
+        "versionId": "d396341a-859c-80a5-8c67-1c04d47afa2a"
+      },
+      "executedAt": "2026-11-03T09:50:30.097Z",
+      "labels": {
+        "ai": false,
+        "newLogin": false,
+        "nolio": false,
+        "nonPrescriptive": true,
+        "sportsAttestation": false
+      },
+      "limits": [
+        "Une perte de réponse est SIMULÉE dans le navigateur après un vrai insert HTTP : ce n'est pas une coupure réseau réelle.",
+        "Les versions créées sont des fixtures techniques, pas une génération ni une revue sportive.",
+        "Les empreintes de B ne sont pas lisibles sous le JWT de A : leur comparaison avant/après est faite par le contrôle administrateur.",
+        "Ce rapport n'est ni une attestation sportive ni la preuve d'un nouveau login."
+      ],
+      "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+      "recipeCode": "QA_A_RECIPE_V1_NON_PRESCRIPTIVE",
+      "runId": "df34b87b-8b03-4532-9467-9f109330e49e",
+      "steps": [
+        {
+          "code": "IDENTITY",
+          "detail": "getUser() serveur = Coach A ; athlète A propriétaire.",
+          "label": "Vérifier l'identité (getSession puis getUser serveur) et l'athlète A propriétaire",
+          "verdict": "PASS"
+        },
+        {
+          "code": "BASELINE_BEFORE",
+          "detail": "Archives intactes 4/4 ; plan courant présent.",
+          "label": "Relever les 4 archives historiques A (empreintes) et le plan courant A",
+          "refs": {
+            "baselineSha256": {
+              "30909fcd-c421-4e35-b6ed-cbf1436fe77e": "29feb12f464632f3c3cac367b88478a2e5718c4fc09d530641d27c956c30c2e2",
+              "b50e51e4-f89b-4e77-b92a-123894163ab4": "5b2e67a763acaaab7c4219356e88508c5ed5476c6fa41a7a261d9611a13d62f0",
+              "dbef1593-d86d-4f23-a587-29bd67e6936f": "90c706f09863690c7cd8a0c4622401178141a5e96c30479b38e0b16aa0377714",
+              "f49326ef-528d-4f75-9d64-047a9c705585": "ccecd0fd5c319571572b94fb58465731b9ac354bba5cc39c7506482a1672571e"
+            },
+            "currentSha256": "fc99f7e509aa54aa28d0f2df8b0ef7215a7af802d546ea53195b84ce623978c4"
+          },
+          "verdict": "PASS"
+        },
+        {
+          "code": "SAVE_SYNTHETIC",
+          "detail": "CONFIRMED (readback_match_after_ok)",
+          "label": "Sauvegarder une version technique SYNTHÉTIQUE NON PRESCRIPTIVE",
+          "refs": {
+            "versionId": "ac9123c4-b19b-8126-bd3b-583678ed5b2d"
+          },
+          "verdict": "PASS"
+        },
+        {
+          "code": "SAME_PAYLOAD_NEW_INSTANCE",
+          "detail": "CONFIRMED (already_present_identical) ; même ID : oui ; lignes avec cet ID : 1.",
+          "label": "Même envoi depuis une nouvelle instance : même ID, une seule ligne",
+          "verdict": "PASS"
+        },
+        {
+          "code": "DOUBLE_CLICK",
+          "detail": "1er : CONFIRMED ; 2e : IN_PROGRESS (already_pending) ; lignes : 1.",
+          "label": "Double clic simulé : la deuxième demande n'envoie rien",
+          "verdict": "PASS"
+        },
+        {
+          "code": "ACK_LOST_AFTER_COMMIT",
+          "detail": "Vrai insert : accepté ; réponse simulée perdue → CONFIRMED (readback_match_after_lost) ; nouvel essai : CONFIRMED (already_present_identical) ; lignes : 1.",
+          "label": "Réponse perdue simulée APRÈS le vrai insert, puis relecture",
+          "verdict": "PASS"
+        },
+        {
+          "code": "READBACK_UNAVAILABLE",
+          "detail": "Sans relecture : UNKNOWN (readback_unavailable_after_ok) — pas de succès affiché ; reprise : CONFIRMED (already_present_identical) ; lignes : 1.",
+          "label": "Relecture indisponible simulée : jamais de faux succès, puis reprise",
+          "verdict": "PASS"
+        },
+        {
+          "code": "REOPEN",
+          "detail": "Version relue, contenu identique.",
+          "label": "Rouvrir la version sauvegardée (relecture exacte)",
+          "verdict": "PASS"
+        },
+        {
+          "code": "EDIT_APPEND_ONLY",
+          "detail": "Nouvelle version CONFIRMED (readback_match_after_ok) ; ID distinct : oui ; originale inchangée : oui.",
+          "label": "Renommer : nouvelle version, l'originale reste identique",
+          "refs": {
+            "renamedVersionId": "da8d6eef-53fd-8588-8e13-e1890a8d851a"
+          },
+          "verdict": "PASS"
+        },
+        {
+          "code": "CURRENT_RESTORE_CYCLE",
+          "detail": "Synthétique → courant : CONFIRMED (receipt_exact) ; rétablissement : CONFIRMED (receipt_exact) ; courant final identique à la référence : oui.",
+          "label": "Plan courant : référence sauvegardée, restauration synthétique puis rétablissement exact",
+          "refs": {
+            "referenceVersionId": "d396341a-859c-80a5-8c67-1c04d47afa2a"
+          },
+          "verdict": "PASS"
+        },
+        {
+          "code": "ISOLATION_SELECT_B",
+          "detail": "Lignes B visibles : 0.",
+          "label": "Isolement : aucune donnée de B visible",
+          "verdict": "PASS"
+        },
+        {
+          "code": "ISOLATION_INSERT_B",
+          "detail": "Athlète B/coach A : refusé 42501 ; coach B usurpé : refusé 42501 ; lignes relues : 0.",
+          "label": "Isolement : insert lié à l'athlète B ou coach B usurpé refusé",
+          "verdict": "PASS"
+        },
+        {
+          "code": "ISOLATION_PATCH_B",
+          "detail": "Lignes renvoyées : 0.",
+          "label": "Isolement : PATCH du courant B (même athlete_id) → 0 ligne",
+          "verdict": "PASS"
+        },
+        {
+          "code": "BASELINE_AFTER",
+          "detail": "Archives intactes 4/4 ; courant identique : oui.",
+          "label": "Les 4 archives historiques A et le plan courant A sont inchangés",
+          "refs": {
+            "baselineSha256": {
+              "30909fcd-c421-4e35-b6ed-cbf1436fe77e": "29feb12f464632f3c3cac367b88478a2e5718c4fc09d530641d27c956c30c2e2",
+              "b50e51e4-f89b-4e77-b92a-123894163ab4": "5b2e67a763acaaab7c4219356e88508c5ed5476c6fa41a7a261d9611a13d62f0",
+              "dbef1593-d86d-4f23-a587-29bd67e6936f": "90c706f09863690c7cd8a0c4622401178141a5e96c30479b38e0b16aa0377714",
+              "f49326ef-528d-4f75-9d64-047a9c705585": "ccecd0fd5c319571572b94fb58465731b9ac354bba5cc39c7506482a1672571e"
+            },
+            "currentSha256": "fc99f7e509aa54aa28d0f2df8b0ef7215a7af802d546ea53195b84ce623978c4"
+          },
+          "verdict": "PASS"
+        }
+      ],
+      "verdict": "PASS",
+      "verifiedUser": {
+        "method": "getSession puis getUser() serveur, session navigateur existante",
+        "userId": "573e045a-bbea-4e37-a30f-33183b9fbe13"
+      }
+    },
+    "verified_user_id": "573e045a-bbea-4e37-a30f-33183b9fbe13"
+  },
+  "independentAdminReadback": {
+    "rows": [
+      {
+        "control": "A_original_archives",
+        "fingerprint": "543e381a32500dfcf59bc1e384d3e752",
+        "rows": "4"
+      },
+      {
+        "control": "A_current",
+        "fingerprint": "34230fb711707b19d9766814105f0a33",
+        "rows": "1"
+      },
+      {
+        "control": "B_all_archives",
+        "fingerprint": "b2455793c35daa532d2cf10719e80156",
+        "rows": "11"
+      },
+      {
+        "control": "B_current",
+        "fingerprint": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+        "rows": "1"
+      },
+      {
+        "control": "A_current_equals_archived_reference",
+        "fingerprint": "true",
+        "rows": "1"
+      }
+    ]
+  },
+  "expectedFingerprints": {
+    "A_original_archives": "543e381a32500dfcf59bc1e384d3e752",
+    "A_current": "34230fb711707b19d9766814105f0a33",
+    "B_all_archives": "b2455793c35daa532d2cf10719e80156",
+    "B_current": "e46b4b279c0ca2b1f4f4ddda257be5c9"
+  },
+  "verdict": "PASS_FOR_TESTED_STORAGE_SCENARIOS",
+  "limits": [
+    "User browser existing authenticated Coach A session; not a new login",
+    "Technical synthetic non-prescriptive fixtures; no sporting approval",
+    "Lost acknowledgment and unavailable readback simulated after real database writes",
+    "Admin readbacks corroborate integrity, not user JWT authorization; user-session report separately exercises RLS",
+    "No Nolio request, no IA inference, no production promotion"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+ "schema": "tfcl-qa-proof-v1",
+ "date": "2026-11-02",
+ "project": "QA c3941303 / lkjesdacgpolrwfxulbo, non publié",
+ "nolioAuthenticatedRequests": 0,
+ "aiCalls": 0,
+ "releaseDeclaration": {
+  "releaseId": "3e3ae35670fa41daf1a8ce85c7c98dfbdafc7be65182bf1f13b69d76e3ae2175",
+  "attested": false,
+  "deploymentAttested": false
+ },
+ "A_adaptationArchive": {
+  "change": "usePlanAdaptation : archive via AppendOnlyPlanVersionSaver + supabasePlanVersionTransport (identité contenu hors _provenance.generatedAt, read-back exact, aucun UPDATE) ; tout état non CONFIRMED bloque persistPlan ; échec du courant après archive = AdaptationWriteError 'État partiel' ; aucune annonce de succès global",
+  "legacy": "anciennes archives [ADAPTATION] à UUID aléatoire ni rapprochées ni supprimées",
+  "detRefusal": "applyPatch et regenerateWindow refusent explicitement un plan DET (provenance DET ou séance detStructuredWorkout) avant patch/IA/archive, message coach ; voie IA inchangée",
+  "unitTests": "hook 24/24 (ACK perdu + nouvelle instance ⇒ 1 ligne même id ; archive refusée/invisible/divergente ⇒ courant non écrit ; courant en échec ⇒ partiel ; refus DET deux routes) ; module 6/6 (dose/ordre/moteur/raison ⇒ 5 ids distincts, generatedAt stocké conservé)",
+  "realJwtB": {
+   "kind": "VRAI HTTP/JWT B, module de la voie commune (pas l'UI) ; perte d'ACK simulée APRÈS insert réel ; écriture du courant simulée refusée sans requête",
+   "getUserIsB": true,
+   "try1": "CONFIRMED readback_match_after_lost, stage current_not_confirmed",
+   "try2_newInstance_newGeneratedAt": "CONFIRMED already_present_identical, même id 8995316b-ead1-8944-98f0-8f7d241192c5",
+   "rowsForReason": 1,
+   "storedGeneratedAt": "2026-11-02T20:30:00Z (premier)",
+   "currentPlanUnchanged": true,
+   "currentPlanIsDet": true
+  },
+  "notExercised": "adaptation par l'UI avec B : son plan courant est DET (refus) ; patch IA réel non lancé"
+ },
+ "B_dryRun": {
+  "fix": "dry_run_ok seulement si 200≤status<300 et corps objet JSON ; sinon DRY_RUN_NOT_VALIDATED",
+  "test": "vrai sendPlannedV2 + vrai fetchNolioV2Http : status 0 local ⇒ DRY_RUN_NOT_VALIDATED, zéro fetch ; 204/302/lost non validés ; 200 objet validé (transport simulé)",
+  "nolioDryRunEnabled": false
+ },
+ "checks": {
+  "fullVitest": "3402 passés / 2 échecs corrigés puis 8/8 (test dry-run sans séance structurée) ; 1 skipped, 6 todo",
+  "tsgo": "OK",
+  "eslintTouched": "OK",
+  "build": "voir journal preview"
+ },
+ "fingerprints": {
+  "A_versions": "4, 543e381a32500dfcf59bc1e384d3e752",
+  "A_plan": "34230fb711707b19d9766814105f0a33",
+  "B_first6": "ba7680aa1111f9966c9ead97df3f6749",
+  "B_total": 11,
+  "B_new_this_lot": 1,
+  "nolioLedgerTechnicalRows": [
+   "__qa_root_atomic_20261102 rejected",
+   "__qa_concurrency_probe_bef11148… rejected"
+  ],
+  "deleted": 0
+ },
+ "functions": "nolio-v2-send-plan, ai-training-plan, ai-training-plan-test redéployées",
+ "limits": [
+  "pas de revue sportive",
+  "aucun dry-run/connexion Nolio réels",
+  "adaptation UI non exercée en navigateur",
+  "choix futur DET/IA conservé, aucun repli"
+ ]
+}

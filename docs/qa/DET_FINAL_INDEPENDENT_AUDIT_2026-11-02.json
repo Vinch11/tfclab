@@ -1,0 +1,132 @@
+{
+  "schema": "tfcl.qa.final-independent-audit.v1",
+  "date": "2026-11-02",
+  "qaProject": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "qaSourceSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+  "releaseId": "3e3ae35670fa41daf1a8ce85c7c98dfbdafc7be65182bf1f13b69d76e3ae2175",
+  "attested": false,
+  "deploymentAttested": false,
+  "database": {
+    "method": "read-only admin SQL, integrity proof not JWT",
+    "at": "2026-11-02T20:43:58Z",
+    "result": {
+      "a_current_fp": "34230fb711707b19d9766814105f0a33",
+      "a_versions": 4,
+      "a_versions_fp": "543e381a32500dfcf59bc1e384d3e752",
+      "b_coach_version_fp": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+      "b_current": 1,
+      "b_current_fp": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+      "b_first6_fp": "ba7680aa1111f9966c9ead97df3f6749",
+      "b_sessions_with_clock": 75,
+      "b_versions": 11,
+      "closed_technical_rows": 2,
+      "current_owner_mismatches": 0,
+      "ledger_rows": 2,
+      "reviews": 1,
+      "v2_connections": 0,
+      "version_owner_mismatches": 0
+    }
+  },
+  "pureModules": {
+    "method": "Node24 transform exact shared sources; synthetic operations, zero network",
+    "dryRun": {
+      "fetches": 0,
+      "report": {
+        "status": "DRY_RUN_NOT_VALIDATED",
+        "reason": "dry_run_not_server_validated:SYNTH:status_0",
+        "results": [
+          {
+            "sessionKey": "SYNTH",
+            "state": "dry_run_rejected",
+            "remoteId": null
+          }
+        ]
+      }
+    },
+    "counterexamples": {
+      "sourceQA": "de454207973d8a3e3592e76a8f623a60622b4f48",
+      "validClock": "09:00",
+      "refusals": [
+        {
+          "name": "impossible_date",
+          "refusal": "date_invalid"
+        },
+        {
+          "name": "negative_multiple_dose_axes",
+          "refusal": "input:0:dose_must_have_exactly_one_axis:seconds|meters"
+        },
+        {
+          "name": "negative_dose",
+          "refusal": "input:0:dose_seconds_not_finite_positive"
+        },
+        {
+          "name": "unknown_metric",
+          "refusal": "input:0:target_metric_unknown"
+        },
+        {
+          "name": "duration_inconsistent",
+          "refusal": "input:chosen_duration_differs_from_blocks:120!=60"
+        }
+      ],
+      "wrongRemoteContentExactMatch": false,
+      "syntheticOnly": true,
+      "networkCalls": 0
+    }
+  },
+  "denoCI": {
+    "runId": 41521748335,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41521748335",
+    "snapshotCommit": "eb27b9105ace5c7a0a03590ddf3f58533d94f3dd",
+    "branch": "qa/nolio-v2-deno-check-20261102",
+    "conclusion": "success",
+    "qaSourceSha": "de454207973d8a3e3592e76a8f623a60622b4f48",
+    "files": [
+      {
+        "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+        "sha256": "5a4280cba73fa1d8918d2e63cf93aa27ca38ff5c6926567df72db2bcf1367bbe"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+        "sha256": "a18c99e786091818eae8aa662f0e534c54078c7ee6622ddcfdad5be2b583ee27"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+        "sha256": "22d9fc5e51039f13f998f463773768b29fe3852fdee7e35dc60c8d3c09302f5c"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+        "sha256": "eca4eaf6466253ac97928bdfd2d44ea26116b594322bbff9e6a18416cd6c8974"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+        "sha256": "8db0456df417eb3e16eed4243ac3c27c38d259681d4d5b63e32587df2d14b8dc"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+        "sha256": "0b5f945f63a5af95811de2bada7523f2c33b370b4860e0eaf543e9c6e1c9dd5e"
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+        "sha256": "4b6f55a0dfee3cb6f5c1f44373918de5517c7483e28e3f4845c436437c6654fc"
+      },
+      {
+        "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+        "sha256": "48900464969e6c02c01eba7af8fcea0393748353bfdc45ff6bdc8bc1754d58f8"
+      },
+      {
+        "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+        "sha256": "7ac64395e2fd86e643f7462c4ad2a9f9d19d96eaed857e619015ca6911b20622"
+      }
+    ],
+    "scope": "nine server files; typecheck only, no deployment or Nolio"
+  },
+  "limits": [
+    "same-session reopen, no new login",
+    "Coach A writes unavailable",
+    "no actual Nolio account/reads/dry-run/export",
+    "sporting human review absent",
+    "one real coach-input profile qualified, not general engine GO",
+    "QA probe still deployed, exclude before production"
+  ],
+  "pilot": "not_activated"
+}

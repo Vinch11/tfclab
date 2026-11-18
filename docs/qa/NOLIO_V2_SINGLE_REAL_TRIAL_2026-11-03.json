@@ -1,0 +1,195 @@
+{
+  "scope": "QA only — project c3941303-40d2-447e-9b87-867d82727fd1, backend lkjesdacgpolrwfxulbo; base 2408a31fda4f7d23e1912b3084149e4f77410870",
+  "realSendByAgent": "NONE — no authenticated Nolio GET/POST from build tools; real execution only by coach click",
+  "priorFact": {
+    "dryRunReceipt": "fbc96836-1add-4f57-9a64-d3ce4378f428",
+    "http": 201,
+    "outcome": "DRY_RUN_VALID",
+    "at": "2026-11-03T17:40:46.850824Z",
+    "realSend": "ABSENT"
+  },
+  "sources": {
+    "openapi": {
+      "url": "https://www.nolio.io/api/v2/openapi.json",
+      "sha256": "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238",
+      "fetched": "2026-11-03 public, no auth"
+    },
+    "guide": {
+      "url": "https://media.cdn.nolio.io/api/migration-v1-to-v2.md",
+      "sha256": "7dcea57aebae5da3bd1aef0aa59028d33a2ebf69e1c36656d7b2b9f5aaa7a48d"
+    }
+  },
+  "contract": {
+    "create": "POST /api/v2/planned/trainings/ -> 201 PlannedTraining (id ptrn_…); unknown fields 400; no dedup (guide §5.3)",
+    "list": "GET /api/v2/planned/trainings/?athlete&date_from&date_to&limit<=100&starting_after -> {data,has_more}, newest first",
+    "detail": "GET /api/v2/planned/trainings/{id}/?athlete — only full representation (workout, description)",
+    "limits": [
+      "list items are PlannedTraining selected fields: description/workout read from detail of EVERY item of the day",
+      "events beyond coach visibility fence hidden except own creations",
+      "429: do not retry in a loop (guide); recipe never re-POSTs",
+      "dry_run of the exact real body not performed: real body differs from validated fixture only by name/description/marker"
+    ]
+  },
+  "design": {
+    "reuse": [
+      "fetchNolioV2Http (fixed origin, redirect error, refuses dry_run)",
+      "exactRemoteMatch/stripReadDefaults",
+      "loadV2ConnectionWithRefresh",
+      "canonical/sha256Hex"
+    ],
+    "notReused": "sendPlannedV2 + nolio_v2_operations: ledger requires an owned plan_versions row and allows retry after 429 and confirms on returned id; a dedicated freeze/CAS table avoids inserting a technical plan into the coach history",
+    "freeze": "qa_nolio_v2_trials UNIQUE(coach, athlete, recipe); date (tomorrow UTC, date-only) + payload SHA-256 immutable by trigger; states frozen->sending->post_accepted|post_refused|post_unconfirmed only",
+    "reservation": "RPC qa_nolio_v2_trial_claim_send CAS frozen->sending BEFORE POST; any other state => no POST forever",
+    "verifiedUnique": "full list of the day + detail of each item; exactly one TFCLab marker, exact detail match, id equals returned id when known",
+    "budgets": {
+      "postServerMs": 15000,
+      "verifyServerMs": 20000,
+      "client": 45000
+    }
+  },
+  "acl": {
+    "qa_nolio_v2_trials": "anon none; authenticated column SELECT own (remote_id hidden); service_role SELECT/INSERT/UPDATE (trigger-guarded), no DELETE",
+    "qa_nolio_v2_trial_receipts": "anon none; authenticated SELECT own; service_role SELECT/INSERT only (append-only)",
+    "rpc": "freeze/claim_send/finish_send EXECUTE service_role only"
+  },
+  "files": {
+    "supabase/functions/_shared/nolioV2/trialSession.ts": "beb79454fb1ed73be0c65136271cd179ffeaf72adcc60d03f28f6fe925e82209",
+    "supabase/functions/nolio-v2-trial-session/index.ts": "c18f59c4139fcc37181c6a3320c1ee7ec6e8eddead514896f767fa92934715f6",
+    "src/qa/pilot-review/trialReceipt.ts": "f69c39c2667d890c2d9199456789f58b7948f8aee44fb0e1d1e1ec3c9e9f737b",
+    "src/qa/pilot-review/__tests__/nolioTrialSession.test.ts": "e319edb97b540fa40ff14dea7819372ad336230d0db8cad4f1e743223c1db458",
+    "drizzle/migrations/0015_qa_nolio_v2_trial_session.sql": "a3694eb7cad747e9835615cb60e9ec019839b51151744b016140d16a53bb77bb",
+    "drizzle/migrations/0016_qa_nolio_v2_trial_acl_tighten.sql": "service_role ACL tightened",
+    "src/pages/__qa/PilotReviewPage.tsx": "a4f494aae44c1df19c6c7053d85f17087cf5151f4e8354edeeb74f83ff2c460e",
+    "drizzle/migrations/0017_qa_nolio_v2_trial_null_safe_checks.sql": "1a11823a893bb66cb9dbf82d7df03e0b1e260a1bba4b5059df34f4f1b860a95c"
+  },
+  "tests": {
+    "vitest_pilot_review": "131 passed (8 files)",
+    "lovableBuild_manifest": "5 passed",
+    "tsgo": "OK",
+    "eslint": "OK (1 pre-existing warning)",
+    "deno": "not run locally"
+  },
+  "deployment": {
+    "function": "nolio-v2-trial-session",
+    "sourceSha256": "9f0222ee659e4d9fbecc9c7f1c3358d97c8accd4187107d6f47a3b65ac5aa9b2",
+    "noJwt": 401,
+    "otherFunctionsRedeployed": "none",
+    "published": false
+  },
+  "manifest": {
+    "releaseId": "2ea17fbe59a39490b4ba6315a05a8ca2d0d54c40bade1c88212ad32beb631412",
+    "attested": false
+  },
+  "realResult": "NOT YET — no trial prepared or sent during this build",
+  "untouched": [
+    "V1",
+    "production TFCLab v2.1",
+    "main",
+    "publication",
+    "sender nolio-v2-send-plan",
+    "dry-run function",
+    "OAuth/grant/association",
+    "plans/plan_versions",
+    "DET/IA choice"
+  ],
+  "review": {
+    "source": "eeb173a8896462aed445ea732416be0ad30ad8b3",
+    "fixes": {
+      "recipient": "prepare/send resolve the NOLIO recipient name on the server from the active connection -> its grant (status active, selected_athlete_ref == ref put in the hashed body, exactly one allowed_athletes entry with has_api_access) — no Nolio call; returned only in the coach's HTTP response bound to payloadSha256, never stored in receipts/logs/proofs; unconfirmed => prepare and send BLOCKED, nothing frozen/sent; divergent hash => no name; UI shows Nolio name separately from TFCLab sheet name and hides send button without it",
+      "sqlNullSafety": "0017: VERIFIED_UNIQUE requires action verify, code exact_unique, items_read NOT NULL >=1, marker/exact NOT NULL =1; POST_ACCEPTED requires action send + http_status NOT NULL =201; trials post_accepted requires remote_id + post_http_status NOT NULL =201. Verified: 3 constraints validated; predicate evaluation with SQL CHECK NULL semantics on 7 synthetic VALUES rows (no table write, no real athlete/grant): null counts/0 items/wrong code/null http/200 rejected, valid cases pass. ACL unchanged (receipts append-only)",
+      "clientVerifier": "VERIFIED_UNIQUE only with integer items_read>=1, marker=exact=1, code exact_unique on both response and receipt; null on both sides rejected",
+      "readBudget": "stop token set at deadline: no new list page or detail GET starts after it, late detail result discarded (test: detail answering after timeout, following details never start, single UNKNOWN read_timeout receipt)"
+    }
+  },
+  "networkPrecision": "prepare writes nothing to the Nolio calendar and performs no calendar GET/POST, but the connection loader may renew the OAuth token (refresh endpoint) when it expires within 10 min. The no-network tests cover only the calendar transport with an injected loader.",
+  "denoTypecheckFiles": [
+    "supabase/functions/nolio-v2-trial-session/index.ts",
+    "supabase/functions/_shared/nolioV2/trialSession.ts",
+    "supabase/functions/_shared/nolioV2/httpFetch.ts",
+    "supabase/functions/_shared/nolioV2/plannedClient.ts",
+    "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+    "supabase/functions/_shared/nolioV2/connectionStore.ts",
+    "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+    "supabase/functions/_shared/nolioV2/oauth.ts",
+    "supabase/functions/_shared/nolioV2/dryRun.ts"
+  ],
+  "rootVerification": {
+    "date": "2026-11-03",
+    "finalSavedSource": "e71a70c15ffbd87958dd85f60304e42ca75260f0",
+    "sourceRead": "21 server files independently read at the immutable final source; all imports resolved; 19 previous server files byte-identical",
+    "ci": {
+      "runId": 41691971887,
+      "url": "https://github.com/Vinch11/tfclab/actions/runs/41691971887",
+      "snapshotCommit": "23a6c6095ad3c380b3c8288a9811e6fc1cd33202",
+      "conclusion": "success",
+      "files": 21,
+      "scope": "Deno static types, no function execution or provider request"
+    },
+    "codeReview": {
+      "recipient": "Actual Nolio target resolved on server from matching active connection and grant, then bound to the frozen body hash. No private values inspected in tooling.",
+      "receipts": "NULL-safe positive constraints and client integer counters checked in final source and live schema.",
+      "deadline": "Stop token checked before and after each list/detail request; late results cannot start subsequent reads or write a second receipt."
+    },
+    "liveDatabaseChecks": {
+      "anon_receipt_read": false,
+      "client_claim_send_execute": false,
+      "client_receipt_delete": false,
+      "client_receipt_insert": false,
+      "client_receipt_update": false,
+      "client_remote_id_read": false,
+      "client_trial_id_read": true,
+      "coach_a_receipts": 0,
+      "coach_a_trials": 0,
+      "corrected_constraints_validated": true,
+      "service_receipt_delete": false,
+      "service_receipt_update": false
+    },
+    "recipientMetadataOnly": {
+      "active_connections": 1,
+      "grant_matches": 1,
+      "recipient_metadata_confirmable": true
+    },
+    "preservation": {
+      "hashMethod": "SHA-256 of PostgreSQL plan_json::text encoded as UTF-8, compared using the same method before/after; distinct from browser canonical hashes",
+      "archivesA4Unchanged": true,
+      "currentPlansAandBUnchanged": true,
+      "archives": [
+        {
+          "id": "30909fcd-c421-4e35-b6ed-cbf1436fe77e",
+          "postgres_jsonb_sha256": "db28f098846877f4428155fe9ae6b0996203e0c07e923f1a0679e9d85c056fa6"
+        },
+        {
+          "id": "b50e51e4-f89b-4e77-b92a-123894163ab4",
+          "postgres_jsonb_sha256": "f21ac646dfd8803d53fe9fa215fc8b995490945edc88ee9def3b905e9d06e4d5"
+        },
+        {
+          "id": "dbef1593-d86d-4f23-a587-29bd67e6936f",
+          "postgres_jsonb_sha256": "7f712d84b6baca9401a26b39f4e67db1d0c141f1717445d0eae2c3eee2155714"
+        },
+        {
+          "id": "f49326ef-528d-4f75-9d64-047a9c705585",
+          "postgres_jsonb_sha256": "860f94af88ca66184a946b54ea2b0b28287c0a22bdc5ea39eb8a824de9568905"
+        }
+      ],
+      "currentPlans": [
+        {
+          "athlete_id": "9758ace0-da71-4200-87bf-04e74bbb4ed9",
+          "coach_id": "6b4c1722-2105-4889-ab14-41bab798cdf7",
+          "postgres_jsonb_sha256": "465befc734c9bdd7269e1c523d9e035b5d491e37e347b3b4b4b94959e890f4f6"
+        },
+        {
+          "athlete_id": "c155204f-43e2-4367-9b66-6d068ef89212",
+          "coach_id": "573e045a-bbea-4e37-a30f-33183b9fbe13",
+          "postgres_jsonb_sha256": "7f712d84b6baca9401a26b39f4e67db1d0c141f1717445d0eae2c3eee2155714"
+        }
+      ]
+    },
+    "actualRealSend": "NOT_EXECUTED; 0 Coach A trials and 0 trial receipts at final read-only check",
+    "limits": [
+      "Positive dry-run was performed earlier by the coach; this preparation does not prove an actual calendar creation.",
+      "131 tests use injected/synthetic inputs; SQL negative cases were evaluated as predicates, not as actual table inserts.",
+      "CI verifies saved source types; the deployed runtime source is not independently cryptographically attested.",
+      "No new login, actual token refresh, full-plan export or sporting approval proven."
+    ]
+  }
+}

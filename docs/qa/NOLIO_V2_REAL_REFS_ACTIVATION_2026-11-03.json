@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-03",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "scope": "QA isolated only; no production publication or promotion",
+  "evidence": [
+    {
+      "source": "User browser screenshot at 15:41 Europe/Brussels",
+      "result": "Real authenticated reference loading visible; matches independent metadata read"
+    },
+    {
+      "source": "Independent SQL aggregate projection, no token or private provider identity values",
+      "referenceRead": [
+        {
+          "active_connections": 0,
+          "athlete_selected": true,
+          "consent_confirmed": true,
+          "exercise_count": 242,
+          "exercise_status": "loaded",
+          "refresh_state": "idle",
+          "remote_refs_loaded_at": "2026-11-03 14:40:04.451149+00",
+          "sports_count": 97,
+          "status": "pending_refs",
+          "token_generation": 1,
+          "usable_sports_count": 27
+        }
+      ],
+      "activation": [
+        {
+          "active_connections": 1,
+          "athlete_selected": true,
+          "consent_confirmed": true,
+          "exercise_count": 242,
+          "exercise_status": "loaded",
+          "refresh_state": "idle",
+          "remote_refs_loaded_at": "2026-11-03 14:43:19.657091+00",
+          "sports_count": 97,
+          "status": "active",
+          "token_generation": 1,
+          "usable_sports_count": 27
+        }
+      ]
+    },
+    {
+      "source": "User browser screenshot at 15:44 Europe/Brussels",
+      "result": "All local connection stages checked including active and readyForTrial; real dry_run/send proof explicitly ABSENT"
+    }
+  ],
+  "verdict": {
+    "oauth": "REAL_CONFIRMED",
+    "athleteSelectionAndConsent": "REAL_CONFIRMED",
+    "sportsReferenceRead": "REAL_CONFIRMED",
+    "exerciseReferenceRead": "REAL_CONFIRMED",
+    "localActivation": "REAL_CONFIRMED",
+    "providerDryRun": "NOT_PROVEN",
+    "providerCalendarSend": "NOT_PROVEN",
+    "tokenRefresh": "NOT_PROVEN"
+  },
+  "privacy": "Only counts, safe booleans and state metadata are recorded. No access/refresh/client secret, JWT, Nolio athlete ref, sport/exercise IDs or screenshot committed.",
+  "limits": [
+    "Activation is a local association; it does not create a Nolio planned workout.",
+    "Successful reference reads do not prove sporting safety or complete-plan export.",
+    "User's initial HTML splash incident recovered on retry; its precise browser-level root cause is not independently observed.",
+    "Last observed saved QA source before bootstrap work: 1626acd828828099a1d85e851bf15e2453b92240; the user's DEV browser run is not a signed runtime attestation."
+  ]
+}

@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-03",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "sourceShaBeforeOAuth": "a3b72c11351f0c7ffa6b29fc0b7b8f04ef727d82",
+  "dataIntegrity": {
+    "rows": [
+      {
+        "control": "A_original_archives",
+        "fingerprint": "543e381a32500dfcf59bc1e384d3e752",
+        "rows": "4"
+      },
+      {
+        "control": "A_current",
+        "fingerprint": "34230fb711707b19d9766814105f0a33",
+        "rows": "1"
+      },
+      {
+        "control": "B_all_archives",
+        "fingerprint": "b2455793c35daa532d2cf10719e80156",
+        "rows": "11"
+      },
+      {
+        "control": "B_current",
+        "fingerprint": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+        "rows": "1"
+      }
+    ]
+  },
+  "independentPolicyAudit": {
+    "rows": [
+      {
+        "grants": [
+          {
+            "grantee": "anon",
+            "privilege_type": "INSERT"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "SELECT"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "UPDATE"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "DELETE"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "TRUNCATE"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "REFERENCES"
+          },
+          {
+            "grantee": "anon",
+            "privilege_type": "TRIGGER"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "INSERT"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "SELECT"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "UPDATE"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "DELETE"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "TRUNCATE"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "REFERENCES"
+          },
+          {
+            "grantee": "authenticated",
+            "privilege_type": "TRIGGER"
+          }
+        ],
+        "human_qa_reviews": 0,
+        "policies": [
+          {
+            "cmd": "SELECT",
+            "policyname": "qa pilot review: owner select",
+            "qual": "(coach_id = auth.uid())",
+            "with_check": null
+          },
+          {
+            "cmd": "INSERT",
+            "policyname": "qa pilot review: owner insert",
+            "qual": null,
+            "with_check": "((coach_id = auth.uid()) AND (EXISTS ( SELECT 1\n   FROM athletes a\n  WHERE ((a.id = qa_pilot_review_reports.athlete_id) AND (a.coach_id = auth.uid())))) AND ((plan_version_id IS NULL) OR (EXISTS ( SELECT 1\n   FROM plan_versions v\n  WHERE ((v.id = qa_pilot_review_reports.plan_version_id) AND (v.coach_id = qa_pilot_review_reports.coach_id) AND (v.coach_id = auth.uid()) AND (v.athlete_id = qa_pilot_review_reports.athlete_id))))))"
+          }
+        ]
+      }
+    ]
+  },
+  "grantCorrectionApplied": {
+    "tables": [
+      "qa_pilot_review_reports",
+      "qa_coach_recipe_reports"
+    ],
+    "anonPrivileges": [],
+    "authenticatedPrivileges": [
+      "SELECT",
+      "INSERT"
+    ],
+    "noDataMutation": true
+  },
+  "scope": "QA only, no production, no Nolio request or human opinion",
+  "limits": [
+    "OAuth V2 implementation in progress separately",
+    "Reviewed grants and policy expressions are metadata proof, not a fresh JWT test",
+    "CDP PDF is not native iPhone print proof",
+    "Race session duration absent; no value fabricated"
+  ]
+}

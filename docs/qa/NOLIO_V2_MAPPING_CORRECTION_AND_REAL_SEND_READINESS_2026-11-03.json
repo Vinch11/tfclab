@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-03",
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "baseSource": "27d8a1ae2c79447b5617d151770c9890729bc50d",
+  "coachSimulationReadback": {
+    "kind": "admin_sql_metadata_integrity_not_jwt",
+    "planVersionPrefix": "472d8632",
+    "totalSessions": 128,
+    "totalOps": 75,
+    "receipts": 75,
+    "distinctOpIndex": 75,
+    "distinctSessionKeys": 75,
+    "distinctBodyHashes": 75,
+    "valid201": 75,
+    "refused": 0,
+    "unknown": 0,
+    "bodiesWereUnmarked": true,
+    "validatesRealMarkedBodies": false
+  },
+  "untouched": {
+    "trials": 1,
+    "trialReceipts": 3,
+    "ledgerRowsBefore": 2
+  },
+  "realSend": {
+    "implemented": true,
+    "enabled": false,
+    "blockingReasonsForQaPlan": [
+      "plan_not_prescription_allowed",
+      "plan_is_synthetic_non_prescriptive",
+      "human_plan_attestation_absent"
+    ],
+    "edgeAttestationSource": null,
+    "batchMaxNewPosts": 8,
+    "dbUniqueSessionIndex": "nv2_ops_session_unique(plan_version_id,session_key,path)"
+  },
+  "deploy": {
+    "nolio-v2-plan-dry-run": "231ecb7c183fe2e758a954e3915cd76969ee130d300d358376d89a1fe5c82fd7",
+    "nolio-v2-send-plan": "8d179546c5e7ff2216401a6c313540f4e48d96e905a0b887c0000f39deec6f92",
+    "probeNoJwt": {
+      "nolio-v2-plan-dry-run": 401,
+      "nolio-v2-send-plan": 401
+    }
+  },
+  "tests": {
+    "nolioAndQaSuites": {
+      "files": 18,
+      "passed": 318
+    },
+    "newRealSend": 13,
+    "newMapping": 7,
+    "releaseManifest": 5,
+    "tsgo": "ok",
+    "eslint": "0 errors, 1 pre-existing warning",
+    "denoCheckShared": [
+      "planSend.ts",
+      "marker.ts",
+      "plannedClient.ts"
+    ],
+    "denoCiRequired": [
+      "supabase/functions/nolio-v2-send-plan/index.ts",
+      "supabase/functions/nolio-v2-plan-dry-run/index.ts"
+    ]
+  },
+  "release": {
+    "releaseId": "6c983c9b0985efa186d651d80a8e07a35a206db07550af9981ba54cf86a8e9db",
+    "attested": false
+  },
+  "browser": {
+    "scope": "local Chromium localhost:8080 only",
+    "initial": "504 outdated deps (node_modules/.vite missing)",
+    "remediation": "rm node_modules/.vite + one dev restart",
+    "after": "cold+reload render, splash removed, 0 page errors, no external Nolio/function requests"
+  },
+  "notDone": [
+    "no authenticated Nolio call incl GET",
+    "no JWT impersonation",
+    "no paid AI",
+    "no calendar write",
+    "no Coach A rows",
+    "no attestation fabricated",
+    "no prod/V1/main/publish"
+  ],
+  "files": {
+    "supabase/functions/_shared/nolioV2/marker.ts": "1d615ce846841e0e3fab69c428a57c14a7e35f7aea60f85325c09aa207fd179f",
+    "supabase/functions/_shared/nolioV2/planSend.ts": "db9e39405b5cd144b34eb4e3b76f2636fa8895dfe2a629c1bc7cb1f38b602456",
+    "supabase/functions/_shared/nolioV2/planDryRun.ts": "53842de924819adb12254dc717229fd2d3e3051632c7dd86e62e0881471bf9d6",
+    "supabase/functions/_shared/nolioV2/plannedClient.ts": "ec2e114cbea4bc45723e1e3ce4b86790015588d2be01ccee4e15cb72193a66ad",
+    "supabase/functions/nolio-v2-send-plan/index.ts": "e5fb622b4cae49efea85f0033413ccb710a4c3f1e00a7048edc99209f35f779f",
+    "supabase/functions/nolio-v2-plan-dry-run/index.ts": "27f19380256b925589d3b3996aef59b879202adae8fdc188f7e6cf26f5e5a006",
+    "src/qa/pilot-review/exerciseMapping.ts": "1c377849c1549ea07f8fcaed3ecd7b229dec3400c3eca48ff73155ea2edfd5a8",
+    "src/qa/pilot-review/ExerciseMappingEditor.tsx": "da866760dce4e9df139bf924f4ae9490dfe6ad5d27b5bcb740b7681ca81d8225",
+    "src/qa/pilot-review/realSendView.ts": "2703623a880b063d2b842844fccd64ccd79b50d87df2ef3a80d3ebc87c2750c5",
+    "src/qa/pilot-review/NolioV2ProgressPanel.tsx": "96e298d1000c26e4732c39f9180cc15897117e6f867ca4b1c29bb34593008f92",
+    "src/pages/__qa/PilotReviewPage.tsx": "96acd329b1e4ba85624623a6ceb779edf802137296011bc8b90683e85c58771b",
+    "src/qa/pilot-review/__tests__/nolioPlanRealSend.test.ts": "2aef538115f127bf4c01c532fb03662266d5e2cfa1263517be11d0d6ccf9e72e",
+    "src/qa/pilot-review/__tests__/exerciseMapping.test.tsx": "11332585b0241a47593525b4b075b752f4fcdda6ca7d74946136259552399a95",
+    "src/qa/pilot-review/__tests__/nolioPlanDryRun.test.ts": "26dd0a64bc14da010d9d11a5312973608e77c8d18900283a0d0bd4cffff06b43",
+    "src/lib/nolio/__tests__/nolioV2Durable.test.ts": "72c8d3856983bab32f69069683327c4d4130b84efa9ef144d52667cc8474070d",
+    "supabase/functions/_shared/planReleaseManifest.ts": "85119476cb8839f9d8e67e3ae3905119c2a22b2189fc66a8a7276261c12490ff"
+  },
+  "independentCI": {
+    "source": "c82da135af91fba306c1fd8ed7febefd4a404c11",
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41780659209",
+    "conclusion": "success",
+    "files": 25,
+    "scope": "Deno static check only; no execution or provider calls"
+  }
+}

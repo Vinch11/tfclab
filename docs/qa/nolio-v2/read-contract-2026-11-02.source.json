@@ -1,0 +1,71 @@
+{
+  "sourceUrl": "https://www.nolio.io/api/v2/openapi.json",
+  "accept": "application/vnd.oai.openapi+json",
+  "sourceSha256": "bc43cbcd9298e6190237680024c4d969654e47b60bd646cf45d6d02b9b4a1965",
+  "extractedFile": "read-contract-2026-11-02.json",
+  "extractedSha256": "5627666ed0149a31d2982164d3efbf302384112f51233159265a4a769606d915",
+  "operations": [
+    {
+      "method": "GET",
+      "path": "/api/v2/planned/trainings/",
+      "parameters": [
+        "athlete",
+        "date_from",
+        "date_to",
+        "fields",
+        "group",
+        "limit",
+        "recurrence",
+        "starting_after",
+        "time_in_zones",
+        "with_revision",
+        "with_description_html"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/planned/trainings/{id}/",
+      "parameters": [
+        "athlete",
+        "group",
+        "id",
+        "recurrence_action",
+        "with_description_html"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/planned/competitions/",
+      "parameters": [
+        "athlete",
+        "date_from",
+        "date_to",
+        "fields",
+        "group",
+        "limit",
+        "recurrence",
+        "starting_after",
+        "time_in_zones",
+        "with_revision",
+        "with_description_html"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/api/v2/planned/competitions/{id}/",
+      "parameters": [
+        "athlete",
+        "group",
+        "id",
+        "recurrence_action",
+        "with_description_html"
+      ]
+    }
+  ],
+  "componentCounts": {
+    "securitySchemes": 2,
+    "schemas": 36
+  },
+  "refClosure": true,
+  "note": "Complete GET operations and transitively referenced components copied from the verified official snapshot; no Nolio authentication or request."
+}

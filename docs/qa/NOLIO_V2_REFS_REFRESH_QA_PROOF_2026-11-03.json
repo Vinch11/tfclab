@@ -1,0 +1,190 @@
+{
+  "project": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "backend": "lkjesdacgpolrwfxulbo",
+  "scope": "QA only; no production/main/publish; no Nolio request by the agent; no token/secret value read or printed",
+  "baseSource": "dd4ac886 (frontend) / working tree at 583dab00 before this batch's commit",
+  "contractSources": {
+    "openapi": {
+      "url": "https://www.nolio.io/api/v2/openapi.json",
+      "format": "YAML (3.1.0)",
+      "sha256": "75e3850e12c2b81d9d34eed3656109f8ece270d45324dd2f48b12c13652f9238",
+      "fetched": "2026-11-03T13:17Z"
+    },
+    "migrationGuide": {
+      "url": "https://media.cdn.nolio.io/api/migration-v1-to-v2.md",
+      "sha256": "7dcea57aebae5da3bd1aef0aa59028d33a2ebf69e1c36656d7b2b9f5aaa7a48d"
+    },
+    "endpointsUsed": {
+      "GET /api/v2/settings/sports/?athlete=usr_…": "SettingsSportUserList{data,has_more}; item id spu_, sport spt_, name, is_active, is_structured_workout_enabled; planned:read accepted; 403 if athlete not managed / API closed",
+      "GET /api/v2/library/exercises/": "LibraryExerciseList; id exf_; scope library:read; 'never invent an id'",
+      "POST /api/token/ grant_type=refresh_token": "guide §4.1: access 24h, refresh rotated on each refresh, no grace period, serialize per user"
+    },
+    "notUsed": "GET /api/v2/sports/ (global catalog, not athlete-allowed list); no name matching"
+  },
+  "modifiedCode": {
+    "supabase/functions/_shared/nolioV2/tokenRefresh.ts": "17178c289e7912a0ccc7ef08c10a158f4aa670c08488a7943203c19dfb989c12 (new)",
+    "supabase/functions/_shared/nolioV2/refs.ts": "5b2bcd21a50d4c9b5fa1e349c4e733f20d9b9ed0bb3fb8f969451f5c8f6c716f (new)",
+    "supabase/functions/_shared/nolioV2/oauth.ts": "42c8d58e961ebbb354e9df0101b897433fc9cf96b5c8bcc35c65e1300d70afe6",
+    "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts": "851929f359cae86dcb2414dd5ac5f5677c3670b06277ef7f66d378645267b3bd",
+    "supabase/functions/_shared/nolioV2/connectionStore.ts": "1aa74c71a64cecfe8461f1535aef06f0b20afc1638167c31656a35ac779f6eba",
+    "supabase/functions/nolio-v2-oauth/index.ts": "6be92e4531bbc73053487a1f35901dca10b62bfb41124cc48ae6e79ef7dc75b8",
+    "supabase/functions/nolio-v2-oauth-callback/index.ts": "2cc5dbb72f8ff18acdc5e7ab912b65ef0a1655812349e96abe41b8e53fd27c0f (unchanged; reconnect now goes through RPC via store)",
+    "supabase/functions/nolio-v2-send-plan/index.ts": "5f3441990094ea1c2f4c3c35017de45a1745ea91e8140a65f7638fe6acea9238 (loader with refresh; not executed)",
+    "src/qa/pilot-review/NolioV2ProgressPanel.tsx": "c5a9c0895f04a192cf2cfab14d4cd375e88d2be804210cbf71d982a84d3bfcdd (new)",
+    "src/pages/__qa/PilotReviewPage.tsx": "progress panel wired; hardcoded 'opérationnel : non' removed; identity change resets V2 state",
+    "src/qa/pilot-review/review.ts": "prerequisite text no longer claims OAuth/store unbuilt; mapper card labelled synthetic/local",
+    "supabase/functions/_shared/planReleaseManifest.ts": "regenerated, attested:false, releaseId ccd46766445c48cc3c5093400329c3ebcb41f153ccb6fbbbc0a157f0f7b2c0c5"
+  },
+  "denoCheckClosureForCI": [
+    "supabase/functions/nolio-v2-oauth/index.ts",
+    "supabase/functions/nolio-v2-oauth-callback/index.ts",
+    "supabase/functions/nolio-v2-send-plan/index.ts",
+    "supabase/functions/_shared/nolioV2/{oauth,oauthStoreSupabase,tokenRefresh,refs,connectionStore,httpFetch,plannedClient,plannedMapper,planSessions,ledgerSupabase,localTime}.ts"
+  ],
+  "migration": {
+    "file": "drizzle/migrations/0011_nolio_v2_refs_refresh_qa.sql",
+    "sha256": "8dc7a8c02a0e0890a8f753324b5f312614265a8ecbab8bd55ee89fe873d725b7",
+    "grants": "added token_generation (default 1), refresh_state idle|refreshing|needs_reconnect|unknown, refresh_lock_id/until, remote_refs(+loaded_at); status adds 'active'",
+    "connections": "added grant_id, token_generation",
+    "rpcs": [
+      "nolio_v2_grant_reconnect",
+      "nolio_v2_refresh_begin",
+      "nolio_v2_refresh_commit",
+      "nolio_v2_refresh_fail",
+      "nolio_v2_store_remote_refs",
+      "nolio_v2_activate_connection"
+    ],
+    "privilegesVerifiedLive": "has_function_privilege: anon=false, authenticated=false, service_role=true for all six; tables grants/connections/states: anon/authenticated SELECT=false",
+    "lazyMigrationOfRealGrant": "column defaults only (generation 1, idle, refs null); no token value read or copied"
+  },
+  "refreshDesign": {
+    "serialization": "durable row lock (FOR UPDATE) + refresh_state 'refreshing' + lock_id lease 30s; one grant per Nolio account else account_ambiguous (no merge)",
+    "expiredLease": "becomes 'unknown' — never authorizes a repeat refresh",
+    "fencing": "commit requires same lock_id AND generation; reconnect bumps generation, clears lock, revokes linked connections",
+    "outcomes": "invalid_grant/401 ⇒ needs_reconnect; lost/5xx/429/200 without rotated refresh_token ⇒ unknown, no retry; commit fenced ⇒ superseded",
+    "linkedConnections": "commit updates grant tokens + every active connection with grant_id in the same transaction",
+    "wiring": "nolio-v2-oauth load_refs (lazy, user click) and nolio-v2-send-plan loader (not executed)"
+  },
+  "tests": {
+    "newFile": "src/lib/nolio/__tests__/nolioV2RefsRefresh.test.ts (18 tests)",
+    "covers": [
+      "two concurrent refreshes ⇒ one outbound request",
+      "response lost after provider commit ⇒ UNKNOWN, no retry even after lease expiry",
+      "crashed holder ⇒ unknown, zero requests",
+      "invalid_grant / 5xx / 429 / missing rotation",
+      "reconnect during refresh ⇒ fenced",
+      "stale generation / ambiguous account / missing config ⇒ zero requests",
+      "scope reduction",
+      "sports pagination, partial page, 403, schema drift ⇒ unknown",
+      "library:read missing ⇒ force blocked",
+      "forged sport/exercise ids, other athlete, revoked athlete, consent, digest, refs age, already active",
+      "status never exposes token values; proof ABSENT",
+      "loader refresh then reload",
+      "migration REVOKE/GRANT text"
+    ],
+    "updatedExisting": [
+      "nolioV2OAuth.test.ts (status asserts stages instead of operational:false)",
+      "nolioV2Durable.test.ts (guard order with new loader name)"
+    ],
+    "results": "vitest src/lib src/qa src/pages: 292 files passed; Nolio+pilot-review: 8 files / 148 tests passed; tsgo OK; eslint OK on changed files",
+    "denoNative": "not run here (known native crash); run deno check on closure above in GitHub CI"
+  },
+  "realOAuthMetadataBefore": {
+    "grants": 1,
+    "grantStatus": "pending_refs (athlete already selected by user)",
+    "appType": "team",
+    "apiVersion": "v2",
+    "tokenExpiry": "2026-11-04T13:11:46.529Z",
+    "refreshTokenStored": true,
+    "connections": 0,
+    "states": 4,
+    "plan_versions": 23,
+    "plans": 2,
+    "operations": 2
+  },
+  "realOAuthMetadataAfter": {
+    "grants": 1,
+    "grantStatus": "pending_refs",
+    "generation": 1,
+    "refreshState": "idle",
+    "remoteRefsLoaded": false,
+    "connections": 0,
+    "states": 4,
+    "plan_versions": 23,
+    "plans": 2
+  },
+  "mockedVsLive": {
+    "mocked": "all Nolio HTTP (sports, exercises, token refresh) and RPC semantics in vitest",
+    "live": "migration applied; privileges read; deployed functions answer 401 without JWT; callback bogus state 303 to fixed QA route",
+    "notDone": "no Nolio GET/POST/refresh by agent; no sports loaded; no activation; no sender call; no dry_run; no synthetic row seeded"
+  },
+  "deployed": [
+    "nolio-v2-oauth",
+    "nolio-v2-oauth-callback",
+    "nolio-v2-send-plan",
+    "ai-training-plan",
+    "ai-training-plan-test"
+  ],
+  "handoff": {
+    "route": "/__qa/pilot-review (signed in as Coach A)",
+    "buttons": [
+      "Vérifier l'état de connexion Nolio V2",
+      "Charger les sports Nolio",
+      "associate each plan sport + optional exercise + IANA timezone",
+      "tick confirmation",
+      "Activer la connexion (aucun envoi)"
+    ],
+    "expectedAfter": "stages up to 'Prête pour un essai manuel'; 'Preuve dry_run / envoi réel : ABSENTE'"
+  },
+  "knownGaps": [
+    "Sports are restricted to is_active && is_structured_workout_enabled; competitions (no workout tree) are not mappable via this list in this batch (competition ref stays null).",
+    "Exercise library limited to 20 pages (2000 items); beyond ⇒ 'partial' and force blocked.",
+    "Token endpoint response schema is not in the OpenAPI; only standard OAuth2 fields are read."
+  ],
+  "followUp_2026-11-03_loaderFailClosed": {
+    "fix": "loadV2ConnectionWithRefresh: every non-REFRESHED outcome (IN_PROGRESS, SUPERSEDED, UNKNOWN, NEEDS_RECONNECT, AMBIGUOUS, BLOCKED) now returns ok:false; the pre-refresh cached row is never returned even if its access token is still time-valid. IN_PROGRESS => reason token_refresh_in_progress_retry_later, no extra provider request.",
+    "commitFence": "Migration 0012 nolio_v2_refresh_commit recounts grants per nolio_user_ref at COMMIT; duplicate => no token written, grant needs_reconnect, active connections of that grant revoked, reason account_ambiguous (mapped to AMBIGUOUS). Reconnect already bumps generation + clears lock => fenced; commit updates only status='active' connections so a revoked connection is never reactivated. Privileges: REVOKE PUBLIC/anon/authenticated, EXECUTE service_role only.",
+    "limit": "Single grant per Nolio account only. Implementation chooses account_ambiguous (fail closed) instead of a shared token pool; multiple coaches/athletes mapped to the same Nolio account are NOT supported. Acceptable for the closed QA single-grant setup.",
+    "files": [
+      "supabase/functions/_shared/nolioV2/connectionStore.ts",
+      "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+      "drizzle/migrations/0012_nolio_v2_refresh_commit_account_fence.sql",
+      "src/lib/nolio/__tests__/nolioV2RefsRefresh.test.ts",
+      "supabase/functions/_shared/planReleaseManifest.ts",
+      "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+      "src/pages/__qa/PilotReviewPage.tsx",
+      "src/lib/nolio/__tests__/nolioV2ExerciseLabels.test.ts"
+    ],
+    "denoCiPaths": [
+      "supabase/functions/nolio-v2-send-plan/index.ts",
+      "supabase/functions/nolio-v2-oauth/index.ts",
+      "supabase/functions/nolio-v2-oauth-callback/index.ts"
+    ],
+    "tests": "src/lib/nolio + src/qa/pilot-review + src/pages/__qa: 9 files, 174/174 pass. tsgo + eslint OK (1 pre-existing warning).",
+    "mockedOnly": true,
+    "nolioRequestsByAgent": 0,
+    "tokenValuesRead": false,
+    "grantOrAthleteSelectionModified": false,
+    "manifest": {
+      "releaseId": "fd7cfaa944c2ee7ebab5ba1d9514425fac70e675aa6313373505951f15c6e4d8",
+      "attested": false
+    },
+    "redeployedQA": [
+      "nolio-v2-send-plan",
+      "nolio-v2-oauth",
+      "nolio-v2-oauth-callback",
+      "ai-training-plan",
+      "ai-training-plan-test"
+    ],
+    "exerciseLabelsFix": "PilotReviewPage exerciseLabels now = requiredExerciseLabels(sessionsFromPlanJson(plan).sessions): recursive walk of detStructuredWorkout.nodes (nested repeats), same predicate as mapper (nodeRequiresExercise: sport strength OR reps dose OR repsTarget), unique exact leaf labels; no details/catalogue parsing; sessions without DTO skipped (mapper refusal stays explicit). Test src/lib/nolio/__tests__/nolioV2ExerciseLabels.test.ts."
+  },
+  "independentFinalDeno": {
+    "runId": 41647546843,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41647546843",
+    "conclusion": "success",
+    "snapshotCommit": "ed6e796109e1c43115c16a564bc20bfc685c7228",
+    "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+    "files": 15,
+    "mode": "Deno check only; no source execution/deployment/provider calls or secret access"
+  }
+}

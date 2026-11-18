@@ -1,0 +1,141 @@
+{
+  "kind": "synthetic_qa_only",
+  "verifiedFrom": "isolated-lovable-qa-2026-11-01",
+  "note": "Non-prescriptive synthetic storage and re-open proof; never use for actual training.",
+  "versions": [
+    {
+      "objective": "QA_UI_V3",
+      "plan_json": {
+        "_coachLimiterOrder": [
+          "aerobic_ceiling",
+          "fractional_utilization"
+        ],
+        "_markdown": "# QA V3\nNE PAS TRANSMETTRE",
+        "_objective": "70.3",
+        "_planStartDate": "2026-11-02",
+        "_qaFixture": true,
+        "_qaNonPrescriptive": true,
+        "_raceGoals": [
+          {
+            "date": "2027-05-09",
+            "objective": "70.3",
+            "priority": "A",
+            "raceDate": "2027-05-09"
+          }
+        ],
+        "_recipeId": "TFCL_QA_UI_20261101",
+        "_revision": 3,
+        "diagnostic": "Test technique de stockage, non destiné à un entraînement.",
+        "phases": [
+          {
+            "name": "base",
+            "objective": "Recette technique uniquement",
+            "weeks": "1"
+          }
+        ],
+        "strategicRecap": {
+          "limiters": [],
+          "synergies": []
+        },
+        "title": "QA — restauration V3 NON PRESCRIPTIVE",
+        "totalWeeks": 1,
+        "weeks": [
+          {
+            "coachNotes": "FICTIF, NE PAS PRESCRIRE",
+            "computedVolumeMin": 40,
+            "computedVolumeStr": "40min",
+            "phase": "base",
+            "phaseObjective": "Contrôle d'affichage",
+            "sessions": [
+              {
+                "catalogId": null,
+                "custom": true,
+                "dayIndex": 0,
+                "dayName": "Lundi",
+                "details": "Séance fictive de test de sauvegarde.",
+                "durationMin": 40,
+                "isKeySession": false,
+                "isRest": false,
+                "phase": "base",
+                "sport": "run",
+                "title": "QA TEST TECHNIQUE — NE PAS PRESCRIRE",
+                "weekNumber": 1,
+                "weekTheme": "Semaine synthétique QA",
+                "zones": []
+              }
+            ],
+            "theme": "Semaine synthétique QA",
+            "weekNumber": 1
+          }
+        ]
+      }
+    },
+    {
+      "objective": "QA_UI_V4",
+      "plan_json": {
+        "_coachLimiterOrder": [
+          "aerobic_ceiling",
+          "fractional_utilization"
+        ],
+        "_markdown": "# QA V4\nNE PAS TRANSMETTRE",
+        "_objective": "70.3",
+        "_planStartDate": "2026-11-02",
+        "_qaFixture": true,
+        "_qaNonPrescriptive": true,
+        "_raceGoals": [
+          {
+            "date": "2027-05-09",
+            "objective": "70.3",
+            "priority": "A",
+            "raceDate": "2027-05-09"
+          }
+        ],
+        "_recipeId": "TFCL_QA_UI_20261101",
+        "_revision": 4,
+        "diagnostic": "Test technique de stockage, non destiné à un entraînement.",
+        "phases": [
+          {
+            "name": "base",
+            "objective": "Recette technique uniquement",
+            "weeks": "1"
+          }
+        ],
+        "strategicRecap": {
+          "limiters": [],
+          "synergies": []
+        },
+        "title": "QA — restauration V4 NON PRESCRIPTIVE",
+        "totalWeeks": 1,
+        "weeks": [
+          {
+            "coachNotes": "FICTIF, NE PAS PRESCRIRE",
+            "computedVolumeMin": 45,
+            "computedVolumeStr": "45min",
+            "phase": "base",
+            "phaseObjective": "Contrôle d'affichage",
+            "sessions": [
+              {
+                "catalogId": null,
+                "custom": true,
+                "dayIndex": 0,
+                "dayName": "Lundi",
+                "details": "Séance fictive de test de sauvegarde.",
+                "durationMin": 45,
+                "isKeySession": false,
+                "isRest": false,
+                "phase": "base",
+                "sport": "run",
+                "title": "QA TEST TECHNIQUE — NE PAS PRESCRIRE",
+                "weekNumber": 1,
+                "weekTheme": "Semaine synthétique QA",
+                "zones": []
+              }
+            ],
+            "theme": "Semaine synthétique QA",
+            "weekNumber": 1
+          }
+        ]
+      }
+    }
+  ]
+}

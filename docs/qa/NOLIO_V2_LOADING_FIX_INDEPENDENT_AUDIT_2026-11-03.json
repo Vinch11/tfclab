@@ -1,0 +1,164 @@
+{
+  "date": "2026-11-03",
+  "scope": "Isolated QA only. No publication, production, V1, main, remote Nolio mutation or real provider request by the agent.",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "serverSourceCommit": "764a6200a157ab8e227b9edf8f0fa079c052c68e",
+  "independentCi": {
+    "runId": 41650858367,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41650858367",
+    "headSha": "ea7d90f1aaf45da9e7f934cbe3eb80b0ca0446af",
+    "conclusion": "success",
+    "jobId": 125968301300,
+    "method": "deno check --node-modules-dir=none, 15 exact immutable server source files; no execution",
+    "provenance": {
+      "date": "2026-11-03",
+      "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+      "sourceCommit": "764a6200a157ab8e227b9edf8f0fa079c052c68e",
+      "sourceRead": "exact raw content at explicit immutable Lovable ref",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+          "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895",
+          "size": 9062
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+          "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069",
+          "size": 6654
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+          "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb",
+          "size": 3070
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+          "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05",
+          "size": 3736
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+          "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
+          "size": 2447
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+          "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f",
+          "size": 19186
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+          "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb",
+          "size": 27144
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/oauth.ts",
+          "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
+          "size": 25115
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+          "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
+          "size": 3523
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+          "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4",
+          "size": 8143
+        },
+        {
+          "path": "supabase/functions/_shared/nolioV2/refs.ts",
+          "gitBlobSha": "f324cabeea680afab3770f6483c3ff0361213a25",
+          "size": 10895
+        },
+        {
+          "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+          "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47",
+          "size": 5692
+        },
+        {
+          "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+          "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
+          "size": 4433
+        },
+        {
+          "path": "supabase/functions/nolio-v2-oauth/index.ts",
+          "gitBlobSha": "15e59c5768215bc5a6cb9e5e2c860a5cb51cca57",
+          "size": 5392
+        },
+        {
+          "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+          "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
+          "size": 1586
+        }
+      ],
+      "method": "Deno check only on isolated QA branch, no execution/deploy/provider requests/secret access",
+      "change": "Bounded references transport and response-body pagination plus safe duration logs. Frontend reviewed separately.",
+      "limits": [
+        "Static types only; no live Nolio load/refresh/activation/send proof"
+      ],
+      "previousCheck": {
+        "runId": 41647546843,
+        "conclusion": "success",
+        "snapshotCommit": "ed6e796109e1c43115c16a564bc20bfc685c7228"
+      }
+    }
+  },
+  "verifiedGrantMetadata": [
+    {
+      "active_connections": 0,
+      "api_version": "v2",
+      "app_type": "team",
+      "athlete_selected": true,
+      "consent_confirmed": true,
+      "refresh_state": "idle",
+      "remote_refs_loaded": false,
+      "status": "pending_refs",
+      "token_generation": 1
+    }
+  ],
+  "reviewFindingsFixed": [
+    "8s client timeout was unhandled while server pagination had per-page 15s with no total.",
+    "Transport and body bounded even if AbortSignal ignored; sports12s, optional exercise library8s; timeout library never marked loaded.",
+    "Initial identity must not invalidate first status/start; authorization URL uses identity returned by guarded action.",
+    "Expired or invalidated guard cannot initiate backend call or mutate frontend identity.",
+    "load_refs/activation action plus exactly one readback share one lock and total45s; result retained if readback fails.",
+    "Real auth A-to-B invalidates once; first B status persists. Sign-out clears session UI and disables controls."
+  ],
+  "limits": [
+    "Real Nolio sports read not yet confirmed in user's session.",
+    "CI validates types only, not live provider reachability or token refresh.",
+    "Provider root cause unobserved: no load_refs log was found; code defects are independently confirmed.",
+    "No sporting attestation or real send/dry_run proof."
+  ],
+  "finalSourceCommit": "1626acd828828099a1d85e851bf15e2453b92240",
+  "ciSourcesUnchangedInFinal": true,
+  "latestPageTests": {
+    "path": "src/pages/__qa/__tests__/pilotReviewNolioPage.test.tsx",
+    "passed": 7,
+    "realComponentRendered": true,
+    "backendMocked": true
+  },
+  "latestRelatedTests": {
+    "passed": 208,
+    "skipped": 1,
+    "failed": 0,
+    "selection": "src/pages/__qa src/qa supabase/functions/_shared/nolioV2 src/lib/__tests__/nolio*",
+    "notASumWithPreviousRuns": true
+  },
+  "previousRelatedTestRun": {
+    "passed": 189,
+    "sourceCommit": "f76d64e97c901048e2d855d9d3bfc906d0080f06",
+    "selection": "src/pages/__qa/__tests__/pilotReviewNolioPage.test.tsx src/qa/pilot-review src/lib/nolio"
+  },
+  "frontChecks": {
+    "types": "pass",
+    "lintErrors": 0,
+    "lintWarnings": 1,
+    "previewBuild": "pass"
+  },
+  "release": {
+    "releaseId": "8a4a2b73a1056b0fc1933f04d58d5ff91202b9489efc02c234c3ff69d9203fb1",
+    "attested": false
+  }
+}

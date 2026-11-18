@@ -1,0 +1,534 @@
+{
+ "schema": "tfcl-qa-pilot-review-handoff-v1",
+ "date": "2026-11-03",
+ "project": "c3941303-40d2-447e-9b87-867d82727fd1",
+ "backend": "lkjesdacgpolrwfxulbo",
+ "scope": "QA isolée, non publiée. Aucun main/production/publication, aucun Nolio réseau, aucune IA, aucune attestation.",
+ "coachARecipe": {
+  "runId": "df34b87b-8b03-4532-9467-9f109330e49e",
+  "reportId": "bbfc0b8e-2625-491e-bccf-a9c92f026ccf",
+  "result": "14/14 PASS",
+  "executedIn": "navigateur réel de l'utilisateur (Coach A)",
+  "nature": "QA de stockage, pas un nouveau login ni une approbation sportive",
+  "rerunHere": false
+ },
+ "adminFingerprints": {
+  "A_original4_md5": "543e381a32500dfcf59bc1e384d3e752",
+  "A_current_md5": "34230fb711707b19d9766814105f0a33",
+  "A_current_equals_archived_ref": "d396341a-859c-80a5-8c67-1c04d47afa2a",
+  "B_all11_md5": "b2455793c35daa532d2cf10719e80156",
+  "B_current_raw_md5": "e46b4b279c0ca2b1f4f4ddda257be5c9",
+  "source": "fournies par l'utilisateur (SELECT admin, preuve d'intégrité, pas JWT)"
+ },
+ "delivered": {
+  "route": "/__qa/pilot-review (DEV + backend QA + getSession/getUser + A/B + athlète possédé, timeout 8s)",
+  "files": [
+   "src/pages/__qa/PilotReviewPage.tsx",
+   "src/qa/pilot-review/review.ts",
+   "src/qa/pilot-review/__tests__/review.test.ts",
+   "drizzle/migrations/0007_qa_pilot_review_reports.sql",
+   "src/App.tsx",
+   "src/components/QaRlsAuditLink.tsx",
+   "src/pages/__qa/DetLabPage.tsx (lien)",
+   "src/pages/__qa/CoachARecipePage.tsx (lien)",
+   "src/lib/aiPlanPDFExport.ts (buildPlanHTML exporté, rendu inchangé)",
+   "supabase/functions/_shared/planReleaseManifest.ts (non attesté)"
+  ],
+  "sqlTable": "public.qa_pilot_review_reports : SELECT/INSERT authenticated seulement, RLS coach_id=auth.uid() + athlète possédé + version possédée ; CHECK interdit sportingAttestation/prescriptionAllowed/sourceQualification/release/nolioSend ≠ false ; aucun UPDATE/DELETE."
+ },
+ "scenarios": {
+  "marathon-16w-age_group-tte-source-preferred": {
+   "kind": "accepted",
+   "sessions": 75,
+   "structured": 74,
+   "structureRefused": 1
+  },
+  "marathon-40w-age_group-tte-source-preferred": {
+   "kind": "accepted",
+   "sessions": 188,
+   "structured": 187,
+   "structureRefused": 1
+  },
+  "marathon-16w-competitor-reviewed-placement-tte-source-preferred": {
+   "kind": "accepted",
+   "sessions": 103,
+   "structured": 102,
+   "structureRefused": 1
+  },
+  "marathon-40w-competitor-reviewed-placement-tte-source-preferred": {
+   "kind": "accepted",
+   "sessions": 258,
+   "structured": 257,
+   "structureRefused": 1
+  },
+  "marathon-16w-competitor-tte-source-preferred": {
+   "kind": "refused",
+   "reason": "empty_catalogue_domain_week_1",
+   "blockingCodes": [
+    "det_v3_recovery_safe_slot_unfillable",
+    "det_empty_catalogue_slot"
+   ],
+   "nodes": 0,
+   "expectedRefusal": true
+  },
+  "marathon-40w-competitor-tte-source-preferred": {
+   "kind": "refused",
+   "reason": "empty_catalogue_domain_week_1",
+   "blockingCodes": [
+    "det_v3_recovery_safe_slot_unfillable",
+    "det_empty_catalogue_slot"
+   ],
+   "nodes": 0,
+   "expectedRefusal": true
+  },
+  "marathon-16w-tte-source-preferred": {
+   "kind": "refused",
+   "reason": "contraintes_non_satisfaites",
+   "blockingCodes": [
+    "det_v351_marathon_exact_source_horizon_evidence_unverified"
+   ],
+   "nodes": 4291,
+   "expectedRefusal": true
+  },
+  "marathon-40w-tte-source-preferred": {
+   "kind": "refused",
+   "reason": "contraintes_non_satisfaites",
+   "blockingCodes": [
+    "limiter_coherence",
+    "det_v351_marathon_exact_source_horizon_evidence_unverified"
+   ],
+   "nodes": 17510,
+   "expectedRefusal": true
+  }
+ },
+ "pdf": {
+  "method": "HTML réel de buildPlanHTML (vrai export) → Chromium headless page.pdf A4, media print ; contrôle par séance checkPdfHtml ; débordement horizontal mesuré par bloc",
+  "results": {
+   "marathon-16w-age_group-tte-source-preferred.landscape-compact": {
+    "blocks": 128,
+    "uniq": 128,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 16,
+    "bytes": 192274,
+    "htmlPerSession": {
+     "expected": 75,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-age_group-tte-source-preferred.landscape-full": {
+    "blocks": 128,
+    "uniq": 128,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 16,
+    "bytes": 211159,
+    "htmlPerSession": {
+     "expected": 75,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-age_group-tte-source-preferred.portrait-compact": {
+    "blocks": 128,
+    "uniq": 128,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 17,
+    "bytes": 279128,
+    "htmlPerSession": {
+     "expected": 75,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-age_group-tte-source-preferred.portrait-full": {
+    "blocks": 128,
+    "uniq": 128,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 17,
+    "bytes": 302518,
+    "htmlPerSession": {
+     "expected": 75,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-competitor-reviewed-placement-tte-source-preferred.landscape-compact": {
+    "blocks": 140,
+    "uniq": 140,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 18,
+    "bytes": 205387,
+    "htmlPerSession": {
+     "expected": 103,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-competitor-reviewed-placement-tte-source-preferred.landscape-full": {
+    "blocks": 140,
+    "uniq": 140,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 18,
+    "bytes": 205387,
+    "htmlPerSession": {
+     "expected": 103,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-competitor-reviewed-placement-tte-source-preferred.portrait-compact": {
+    "blocks": 140,
+    "uniq": 140,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 20,
+    "bytes": 300192,
+    "htmlPerSession": {
+     "expected": 103,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-16w-competitor-reviewed-placement-tte-source-preferred.portrait-full": {
+    "blocks": 140,
+    "uniq": 140,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 20,
+    "bytes": 300194,
+    "htmlPerSession": {
+     "expected": 103,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S16-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-age_group-tte-source-preferred.landscape-compact": {
+    "blocks": 320,
+    "uniq": 320,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 38,
+    "bytes": 367879,
+    "htmlPerSession": {
+     "expected": 188,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-age_group-tte-source-preferred.landscape-full": {
+    "blocks": 320,
+    "uniq": 320,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 40,
+    "bytes": 392958,
+    "htmlPerSession": {
+     "expected": 188,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-age_group-tte-source-preferred.portrait-compact": {
+    "blocks": 320,
+    "uniq": 320,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 41,
+    "bytes": 595215,
+    "htmlPerSession": {
+     "expected": 188,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-age_group-tte-source-preferred.portrait-full": {
+    "blocks": 320,
+    "uniq": 320,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 41,
+    "bytes": 631434,
+    "htmlPerSession": {
+     "expected": 188,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-competitor-reviewed-placement-tte-source-preferred.landscape-compact": {
+    "blocks": 350,
+    "uniq": 350,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 44,
+    "bytes": 403372,
+    "htmlPerSession": {
+     "expected": 258,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-competitor-reviewed-placement-tte-source-preferred.landscape-full": {
+    "blocks": 350,
+    "uniq": 350,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 44,
+    "bytes": 422191,
+    "htmlPerSession": {
+     "expected": 258,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-competitor-reviewed-placement-tte-source-preferred.portrait-compact": {
+    "blocks": 350,
+    "uniq": 350,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 48,
+    "bytes": 646059,
+    "htmlPerSession": {
+     "expected": 258,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   },
+   "marathon-40w-competitor-reviewed-placement-tte-source-preferred.portrait-full": {
+    "blocks": 350,
+    "uniq": 350,
+    "clippedX": 0,
+    "clippedKeys": [],
+    "banner": true,
+    "docOverflowX": false,
+    "pages": 48,
+    "bytes": 666906,
+    "htmlPerSession": {
+     "expected": 258,
+     "incompatibilities": 1,
+     "detail": [
+      {
+       "channel": "pdf",
+       "code": "det_duration_absent",
+       "sessionKey": "S40-J6-7",
+       "detail": "durée DET absente : le PDF n'en invente pas"
+      }
+     ]
+    }
+   }
+  },
+  "finding": "Dans les 4 plans × 4 formats, 1 incompatibilité : la dernière séance (course, S16-J6-7 / S40-J6-7) n'a pas de durée DET ; le PDF n'en invente pas et le contrôle la signale. Non corrigé (pas d'invention).",
+  "limits": [
+   "Aucun découpage vertical/coupure de page vérifié automatiquement ; seule la première vue a été regardée",
+   "Revue visuelle humaine page par page non faite",
+   "PDF générés dans /tmp du bac à sable, non conservés dans le projet",
+   "75 séances/17 pages antérieur = preuve précédente, non réutilisée comme validation"
+  ]
+ },
+ "nolio": {
+  "status": "BLOCKED_CONNECTION_NOT_CONFIGURED",
+  "requestsSent": 0,
+  "note": "mapper pur local, références synthétiques ; aucun GET/POST/dry_run",
+  "missingCapabilities": [
+   "écran OAuth V2 + callback QA",
+   "écriture serveur du magasin nolio_v2_connections"
+  ]
+ },
+ "tests": {
+  "new": "review.test.ts 9 tests",
+  "run": "pilot-review + detExportConformity (2) + det-lab : 6 fichiers, 54/54 PASS",
+  "types": "tsgo OK",
+  "lint": "eslint fichiers nouveaux : 0 erreur",
+  "browserSignedOut": "/__qa/pilot-review via lien flottant SPA : statut non connecté, boutons générer/versions/avis inactifs"
+ },
+ "notExercised": [
+  "Page en session authentifiée A ou B",
+  "Enregistrement réel d'un avis QA humain",
+  "Nouvelle connexion A/B",
+  "Revue sportive indépendante",
+  "Nolio réel",
+  "Attestation production"
+ ],
+ "releaseId": "8a43df11af0867894699bb60e1307d4f10578bb7d1ea9583b02616bee7688c8c",
+ "attested": false,
+ "edgeDeployed": [
+  "ai-training-plan",
+  "ai-training-plan-test"
+ ],
+ "pilot": "désactivé ; prescriptionAllowed reste false",
+ "auditFollowUp": {
+  "rlsPolicyFix": {
+   "defect": "politique INSERT 0007 : sous-requête résolue en v.athlete_id = v.athlete_id (tautologie)",
+   "fix": "drizzle/migrations/0008_qa_pilot_review_fix_version_binding.sql, colonnes externes qualifiées qa_pilot_review_reports.*",
+   "pgPoliciesVerified": "v.id = qa_pilot_review_reports.plan_version_id AND v.coach_id = qa_pilot_review_reports.coach_id AND v.coach_id = auth.uid() AND v.athlete_id = qa_pilot_review_reports.athlete_id ; athlète a.id = qa_pilot_review_reports.athlete_id",
+   "appendOnly": "inchangé : SELECT/INSERT seuls, aucun UPDATE/DELETE",
+   "limit": "Refus serveur d'un athlète/version non concordant NON exercé sous vrai JWT (session A seulement dans le navigateur de l'utilisateur ; aucun JWT simulé en SQL). Preuve = expression pg_policies lue + test de régression du SQL."
+  },
+  "nolioDiagnostics": "detExportConformity ne présente plus les règles statiques V1 ni 'mapper inexistant' ; code nolio_v2_connection_not_configured + renvoi au préflight V2 pur de /__qa/pilot-review. Magasin V2 compté 0 (contrôle indépendant de l'utilisateur).",
+  "printPath": "Parcours utilisateur = HTML → /print-preview → impression native (src/lib/print/AGENTS.md). Les boutons de la page passent par exportAIPlanToPDF → openPrintableHTML → /print-preview. Les PDF Chromium page.pdf (CDP) ne sont qu'une preuve de test, ni une génération applicative ni une preuve iPhone/impression native.",
+  "tests": "review.test.ts 10 + detExportConformity 2 fichiers : 29/29 ; tsgo OK"
+ },
+ "codeReviewFixes": {
+  "nolioPreview": "nolioOfflinePreview réutilise sessionsFromPlanJson (même fonction que nolio-v2-send-plan) : _planStartDate sauvegardé, clés S{semaine}-J{jour}-{i}, coachStart conservé ; tout problème d'extraction ⇒ aucun mapping, problèmes affichés. Aucun défaut de date/jour/horaire.",
+  "engineBinding": "L'avis est lié à _provenance.engineVersion/releaseId du plan revu ; provenance absente/malformée ⇒ refus ; scénario généré maintenant doit concorder avec le moteur chargé ; incohérence au submit ⇒ STALE. Page affiche moteur d'origine et code chargé séparément.",
+  "labels": "Boutons Acceptable en QA / À corriger / Je ne sais pas ; enums stockés inchangés.",
+  "structure": "Structure detStructuredWorkout sauvegardée et créneau coach affichés par séance (volet dépliable).",
+  "readback": "Relecture compare tous les champs soumis (coach, athlète, source, version, scénario, moteur, release, décisions, rapport) ; écart ⇒ UNKNOWN.",
+  "tests": "116/116 (revue, export, Nolio) ; tsgo OK ; lint 0 erreur.",
+  "finalLimitations": [
+   "Refus serveur athlète/version non concordant non exercé sous vrai JWT",
+   "Aucun avis humain enregistré par l'agent ; page authentifiée non exercée par l'agent",
+   "Durée de la séance de course finale absente : signalée, jamais inventée",
+   "PDF CDP = preuve de test seulement ; impression native/iPhone non prouvée",
+   "Nolio V2 BLOCKED_CONNECTION_NOT_CONFIGURED, zéro requête",
+   "16 rendus PDF non relancés (correctifs revue seulement)"
+  ]
+ },
+ "grantsFix": {
+  "migration": "drizzle/migrations/0009_qa_reports_narrow_grants.sql (REVOKE ALL anon/authenticated + GRANT SELECT, INSERT authenticated ; idempotent)",
+  "verifiedHasTablePrivilege": "qa_pilot_review_reports et qa_coach_recipe_reports : authenticated SELECT+INSERT seulement ; anon aucun ; UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER refusés aux deux rôles",
+  "rls": "politiques SELECT/INSERT inchangées (propriétaire, liaison version qualifiée)",
+  "humanReviews": 0,
+  "limit": "Privilèges vérifiés via has_table_privilege (catalogue), pas par un TRUNCATE/INSERT réel sous JWT A/B ; insert propre sous JWT non rejoué."
+ }
+}

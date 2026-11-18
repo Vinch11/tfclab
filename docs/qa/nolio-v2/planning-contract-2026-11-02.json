@@ -1,0 +1,1572 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Nolio V2 planning contract subset",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://www.nolio.io",
+      "description": "Production"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorBody"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "ApiErrorBody": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "windows": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "team_name": {
+            "type": "string"
+          },
+          "athlete_name": {
+            "type": "string"
+          },
+          "team_options_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "BatchOperation": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "body": {}
+        },
+        "required": [
+          "method",
+          "path"
+        ]
+      },
+      "BatchRequest": {
+        "type": "object",
+        "properties": {
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchOperation"
+            }
+          },
+          "dry_run": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "operations"
+        ]
+      },
+      "BatchResponse": {
+        "type": "object",
+        "properties": {
+          "dry_run": {
+            "type": "boolean"
+          },
+          "batch_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_undoable": {
+            "type": "boolean"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BatchResult"
+            }
+          }
+        },
+        "required": [
+          "batch_id",
+          "dry_run",
+          "is_undoable",
+          "results"
+        ]
+      },
+      "BatchResult": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "integer"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "body": {},
+          "resource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "body",
+          "index",
+          "method",
+          "path",
+          "resource",
+          "status"
+        ]
+      },
+      "FrequencyEnum": {
+        "enum": [
+          "daily",
+          "weekly",
+          "monthly"
+        ],
+        "type": "string"
+      },
+      "GoalTypeEnum": {
+        "enum": [
+          "a",
+          "b"
+        ],
+        "type": "string"
+      },
+      "MigrationIdPair": {
+        "type": "object",
+        "properties": {
+          "v1_id": {
+            "type": "integer"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "v1_id"
+        ]
+      },
+      "MigrationIds": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MigrationIdPair"
+            }
+          },
+          "not_found": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        },
+        "required": [
+          "data",
+          "not_found"
+        ]
+      },
+      "NullEnum": {
+        "type": "null"
+      },
+      "PatchedPlannedCompetitionUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "goal_type": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GoalTypeEnum"
+              },
+              {
+                "$ref": "#/components/schemas/NullEnum"
+              }
+            ]
+          },
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurrence_action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceActionEnum"
+              }
+            ],
+            "default": "one"
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "description_html": {
+            "type": "string"
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "show_rpe": {
+            "type": "boolean"
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "date_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "sport": {
+            "type": "string"
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            }
+          }
+        }
+      },
+      "PatchedPlannedTrainingUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "recurrence": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRule"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recurrence_action": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceActionEnum"
+              }
+            ],
+            "default": "one"
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "description_html": {
+            "type": "string"
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "show_rpe": {
+            "type": "boolean"
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "date_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "sport": {
+            "type": "string"
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            }
+          }
+        }
+      },
+      "PlannedCompetitionCreateRequest": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "goal_type": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/GoalTypeEnum"
+              },
+              {
+                "$ref": "#/components/schemas/NullEnum"
+              }
+            ]
+          },
+          "recurrence": {
+            "$ref": "#/components/schemas/RecurrenceRule"
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "description_html": {
+            "type": "string"
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "show_rpe": {
+            "type": "boolean"
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "date_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "sport": {
+            "type": "string"
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            }
+          }
+        },
+        "required": [
+          "date_start",
+          "name",
+          "sport"
+        ]
+      },
+      "PlannedTrainingCreateRequest": {
+        "type": "object",
+        "properties": {
+          "recurrence": {
+            "$ref": "#/components/schemas/RecurrenceRule"
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "time": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "moment": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "description_html": {
+            "type": "string"
+          },
+          "duration": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "distance": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_gain": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "elevation_loss": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "value": {
+                "type": "number"
+              },
+              "unit": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "value",
+              "unit"
+            ]
+          },
+          "rpe": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "show_rpe": {
+            "type": "boolean"
+          },
+          "coggan_load": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "maximum": 5000,
+            "minimum": 1
+          },
+          "color": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "date_start": {
+            "type": "string",
+            "format": "date"
+          },
+          "sport": {
+            "type": "string"
+          },
+          "workout": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            }
+          }
+        },
+        "required": [
+          "date_start",
+          "name",
+          "sport"
+        ]
+      },
+      "RecurrenceActionEnum": {
+        "enum": [
+          "one",
+          "following",
+          "all"
+        ],
+        "type": "string"
+      },
+      "RecurrenceRule": {
+        "type": "object",
+        "properties": {
+          "frequency": {
+            "$ref": "#/components/schemas/FrequencyEnum"
+          },
+          "interval": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "weekdays": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "maximum": 7,
+              "minimum": 1
+            }
+          },
+          "until": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "week": {
+                    "type": "integer"
+                  },
+                  "day": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "week",
+                  "day"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "period_count": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "frequency"
+        ]
+      },
+      "WorkoutAmrap": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "amrap"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "open_ended": {
+            "type": "boolean"
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          }
+        },
+        "required": [
+          "kind",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutDistance": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "m",
+              "km",
+              "mi"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutDryRun": {
+        "type": "object",
+        "properties": {
+          "dry_run": {
+            "type": "boolean"
+          },
+          "is_valid": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dry_run",
+          "is_valid",
+          "summary"
+        ]
+      },
+      "WorkoutDuration": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "s",
+              "min",
+              "h"
+            ]
+          }
+        },
+        "required": [
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutEmom": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "emom"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "interval": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "open_ended": {
+            "type": "boolean"
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          }
+        },
+        "required": [
+          "kind",
+          "interval",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutExercise": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "exercise"
+          },
+          "id": {
+            "type": "string"
+          },
+          "exercise": {
+            "type": "string"
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutSet"
+            },
+            "minItems": 1
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "exercise",
+          "sets"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutExercises": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WorkoutExercise"
+        },
+        "minItems": 1
+      },
+      "WorkoutForTime": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "for_time"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          }
+        },
+        "required": [
+          "kind",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutNode": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/WorkoutStep"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutRepeat"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutExercise"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutSuperset"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutEmom"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutForTime"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutAmrap"
+          }
+        ]
+      },
+      "WorkoutRepeat": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "repeat"
+          },
+          "id": {
+            "type": "string"
+          },
+          "times": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutNode"
+            },
+            "minItems": 1
+          },
+          "skip_last": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "kind",
+          "times",
+          "steps"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutSet": {
+        "type": "object",
+        "properties": {
+          "reps": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "distance": {
+            "$ref": "#/components/schemas/WorkoutDistance"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "tempo": {
+            "type": "string"
+          },
+          "laterality": {
+            "type": "string",
+            "enum": [
+              "alternate",
+              "left",
+              "right",
+              "fifty_fifty"
+            ]
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/WorkoutTargets"
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutStep": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "step"
+          },
+          "id": {
+            "type": "string"
+          },
+          "duration": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          },
+          "distance": {
+            "$ref": "#/components/schemas/WorkoutDistance"
+          },
+          "targets": {
+            "$ref": "#/components/schemas/WorkoutTargets"
+          },
+          "intensity": {
+            "type": "string",
+            "enum": [
+              "warmup",
+              "work",
+              "rest",
+              "cooldown",
+              "ramp_up",
+              "ramp_down",
+              "max_effort",
+              "freeride"
+            ]
+          },
+          "lap_advance": {
+            "type": "boolean"
+          },
+          "comment": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "targets"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutSuperset": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "const": "superset"
+          },
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "comment": {
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "exercises": {
+            "$ref": "#/components/schemas/WorkoutExercises"
+          },
+          "rest": {
+            "$ref": "#/components/schemas/WorkoutDuration"
+          }
+        },
+        "required": [
+          "kind",
+          "rounds",
+          "exercises"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTarget": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/WorkoutTargetZone"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetMetric"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRaw"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRpe"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetRir"
+          },
+          {
+            "$ref": "#/components/schemas/WorkoutTargetNoTarget"
+          }
+        ]
+      },
+      "WorkoutTargetMetric": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "metric"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "number",
+            "minimum": 0
+          },
+          "percent_max": {
+            "type": "number",
+            "minimum": 0
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type",
+          "metric",
+          "percent"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetNoTarget": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "no_target"
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRaw": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "raw"
+          },
+          "value": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value_max": {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "unit"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRir": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "rir"
+          },
+          "rir": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rir_max": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type",
+          "rir"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetRpe": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "rpe"
+          },
+          "rpe": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "rpe_max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type",
+          "rpe"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargetZone": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "zone"
+          },
+          "zone": {
+            "type": [
+              "integer",
+              "string"
+            ]
+          },
+          "stream": {
+            "type": "string",
+            "enum": [
+              "heartrate",
+              "watts",
+              "pace",
+              "cadence",
+              "va"
+            ]
+          },
+          "resolved": {
+            "type": "object",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "type",
+          "zone"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutTargets": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/WorkoutTarget"
+        },
+        "minItems": 1,
+        "maxItems": 2
+      }
+    }
+  }
+}

@@ -1,0 +1,236 @@
+{
+  "date": "2026-11-03",
+  "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+  "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+  "unpublished": true,
+  "deno": {
+    "runId": 41647546843,
+    "url": "https://github.com/Vinch11/tfclab/actions/runs/41647546843",
+    "conclusion": "success",
+    "snapshotCommit": "ed6e796109e1c43115c16a564bc20bfc685c7228",
+    "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+    "files": 15,
+    "mode": "Deno check only; no source execution/deployment/provider calls or secret access"
+  },
+  "sourceClosure": {
+    "date": "2026-11-03",
+    "projectId": "c3941303-40d2-447e-9b87-867d82727fd1",
+    "sourceCommit": "1dd90fc6b99a67b52707ec6a0f1d362c9ccba559",
+    "sourceRead": "exact raw content at explicit immutable Lovable ref",
+    "files": [
+      {
+        "path": "supabase/functions/_shared/nolioV2/connectionStore.ts",
+        "gitBlobSha": "f39743333ace7345ee153164e6cc669f10aaa895",
+        "size": 9062
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/httpFetch.ts",
+        "gitBlobSha": "937c706839aead85d41fd7f8539e3a42fae76069",
+        "size": 6654
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/ledgerSupabase.ts",
+        "gitBlobSha": "344140178af781791992d96a7340b25bd91519eb",
+        "size": 3070
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/localTime.ts",
+        "gitBlobSha": "6ce05555adb17a814dd16cd33964afca94a14b05",
+        "size": 3736
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/oauth.ts",
+        "gitBlobSha": "042cc9b27136c286810acb5ee2bbd58b7561bcef",
+        "size": 25115
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/oauthStoreSupabase.ts",
+        "gitBlobSha": "62d856b59ed0ee20e6164519f8e7ee460b66e848",
+        "size": 3523
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/planSessions.ts",
+        "gitBlobSha": "9519c8b92ed45a6751a5238708366858f7a04fb2",
+        "size": 2447
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/plannedClient.ts",
+        "gitBlobSha": "3999926544916f44ad47d3a495223c5aa5a81d2f",
+        "size": 19186
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/plannedMapper.ts",
+        "gitBlobSha": "a498a7eb4f267fa025df4c6403a2b3d664b4d8bb",
+        "size": 27144
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/refs.ts",
+        "gitBlobSha": "331dfdb01141ac10ddc745f94c7cb82ecfcf1b05",
+        "size": 9392
+      },
+      {
+        "path": "supabase/functions/_shared/nolioV2/tokenRefresh.ts",
+        "gitBlobSha": "6dceb4a6d319312562c079a12ee4d1b4ddbe7fe4",
+        "size": 8143
+      },
+      {
+        "path": "supabase/functions/nolio-v2-oauth-callback/index.ts",
+        "gitBlobSha": "02b647a80a88fa95cbc19ec280c5beca6902408e",
+        "size": 1586
+      },
+      {
+        "path": "supabase/functions/nolio-v2-oauth/index.ts",
+        "gitBlobSha": "08e2ec2f093158c3b9d4ab690ece1b6343d60ebf",
+        "size": 5294
+      },
+      {
+        "path": "supabase/functions/nolio-v2-send-plan/index.ts",
+        "gitBlobSha": "daf16ab51f4b761f8f778bfe56161294608ddc47",
+        "size": 5692
+      },
+      {
+        "path": "supabase/functions/qa-nolio-v2-concurrency-probe/index.ts",
+        "gitBlobSha": "5b621c30791674748fb0afd8127c8e23a1cc197a",
+        "size": 4433
+      }
+    ],
+    "method": "Deno check only on QA branch; no execution/deploy/database/Nolio provider requests or secret access",
+    "limits": [
+      "Static types only, not live OAuth refresh/refs/activation/send",
+      "SQL implementation separate live metadata review; no token values read"
+    ],
+    "previousCheck": {
+      "runId": 41646966587,
+      "conclusion": "success",
+      "snapshotCommit": "a85ea7e826502184e9a710860e7babbb5486f914"
+    },
+    "changeSincePrevious": "plannedMapper adds exact recursive exercise-label helper; recheck final immutable source"
+  },
+  "databaseMetadata": {
+    "rows": [
+      {
+        "active_connections": 0,
+        "grant_metadata": [
+          {
+            "app_type": "team",
+            "athlete_selected": true,
+            "consent_confirmed": true,
+            "generation": 1,
+            "refresh_state": "idle",
+            "refs_loaded": false,
+            "status": "pending_refs"
+          }
+        ],
+        "rpc_access": [
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_activate_connection",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_claim_operation",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_grant_reconnect",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_refresh_begin",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_refresh_commit",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_refresh_fail",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_store_remote_refs",
+            "service_exec": true
+          },
+          {
+            "anon_exec": false,
+            "authenticated_exec": false,
+            "fn": "nolio_v2_transition_operation",
+            "service_exec": true
+          }
+        ],
+        "token_table_grants": null
+      }
+    ]
+  },
+  "planIntegrityBefore": {
+    "rows": [
+      {
+        "check_name": "A_original_versions",
+        "count": "4",
+        "fingerprint": "543e381a32500dfcf59bc1e384d3e752"
+      },
+      {
+        "check_name": "A_current",
+        "count": "1",
+        "fingerprint": "34230fb711707b19d9766814105f0a33"
+      },
+      {
+        "check_name": "B_all_versions",
+        "count": "11",
+        "fingerprint": "b2455793c35daa532d2cf10719e80156"
+      },
+      {
+        "check_name": "B_current",
+        "count": "1",
+        "fingerprint": "e46b4b279c0ca2b1f4f4ddda257be5c9"
+      }
+    ]
+  },
+  "planIntegrityAfter": {
+    "rows": [
+      {
+        "check_name": "A_original_versions",
+        "count": "4",
+        "fingerprint": "543e381a32500dfcf59bc1e384d3e752"
+      },
+      {
+        "check_name": "A_current",
+        "count": "1",
+        "fingerprint": "34230fb711707b19d9766814105f0a33"
+      },
+      {
+        "check_name": "B_all_versions",
+        "count": "11",
+        "fingerprint": "b2455793c35daa532d2cf10719e80156"
+      },
+      {
+        "check_name": "B_current",
+        "count": "1",
+        "fingerprint": "e46b4b279c0ca2b1f4f4ddda257be5c9"
+      }
+    ]
+  },
+  "agentProviderCalls": 0,
+  "agentTokenValuesRead": false,
+  "realProgress": "User OAuth grant verified independently; user athlete selection and consent persisted; no active connection or remote refs loaded at audit",
+  "limits": [
+    "References/refresh/activation tested with mocked HTTP/RPC; real ones unexercised",
+    "No actual provider dry_run/send/readback proof",
+    "Single grant per Nolio account; shared multi-athlete token pool unsupported, ambiguous account fails closed",
+    "Competition identity still not configurable through this refs batch; full plan export not proven",
+    "QA only; no sporting/prescription/production attestation"
+  ]
+}
