@@ -28,6 +28,8 @@ import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
+import { CompassVmaReference } from '@/components/CompassVmaReference';
+import { getVmaReference } from '@/lib/coachingCompass/vmaReference';
 
 // Local wording only: detailed provenance remains unchanged in reports and stored data.
 const compassSourceLabel = (source: string) => source === 'snapshot'
@@ -757,7 +759,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                     {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
                       <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
                       <SignatureRadar axes={disciplineAxes[sport]} size={320} />
-                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
+                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
                     </section>)}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
@@ -803,7 +805,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 {explanationAxes.map((axis, index) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
                   const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-                  const statusLabel = axisAssessment(axis);
+                  const vmaReference = axis.key === 'vma' ? getVmaReference(input.objectif, input.ambition) : null;
+                  const statusLabel = vmaReference && axis.value != null ? 'Référence indicative' : axisAssessment(axis);
 
                   const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
                   const isInverse = axis.key === "vlamax"; // lower is better
@@ -815,21 +818,21 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   return (
                     <div key={`${axis.key}-${index}`} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
-                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "bg-muted/20 border-border" :
+                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "bg-muted/20 border-border" :
                       axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
                       axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
                       "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
                     )}>
                       <div className="shrink-0 flex flex-col items-center gap-1">
                         <span className="text-base">{emoji}</span>
-                        <MetricMiniGauge axis={axis} />
+                        <MetricMiniGauge axis={vmaReference ? { ...axis, target: null } : axis} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-bold">{axis.label}</p>
                           <Badge variant="outline" className={cn(
                             "text-[9px] h-4 px-1.5",
-                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' ? "border-border text-muted-foreground" :
+                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "border-border text-muted-foreground" :
                             axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
                             axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
                             "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
@@ -839,8 +842,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                         </div>
 
                         {/* Comparatif Actuel → Cible */}
-                        {axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
-                        {hasValues && (
+                        {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} />}
+                        {!vmaReference && axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
+                        {!vmaReference && hasValues && (
                           <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
                               <span className="text-muted-foreground">Actuel</span>
@@ -874,7 +878,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                           </div>
                         )}
 
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{vmaReference ? 'La VMA situe le moteur aérobie course. Le seuil, l’économie et l’endurance spécifique déterminent aussi la performance ; cette fourchette ne constitue pas une allure de séance.' : explanation.detail}</p>
                         {axis.source !== 'snapshot' && <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{compassSourceLabel(axis.source ?? 'unknown')}</p>}
                       </div>
                     </div>

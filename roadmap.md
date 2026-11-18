@@ -1,5 +1,8 @@
 # Roadmap
 
+## Références VMA du Compass
+- [x] Scénarios VMA objectif × ambition ajoutés en lecture seule ; calcul de sensibilité depuis Gordon 2017, contexte triathlon frais et sources dépliables, sans norme percentile prétendue. Bilan Emanuela connecté vérifié ordinateur/téléphone, 35 tests réussis, diagnostics/plans inchangés ; deux générateurs redéployés pour aligner la release, frontend non publié.
+
 ## Compte personnel Nolio — vérification transversale
 - [x] Sélecteurs/lectures et diagnostic de connexion vérifiés ; compte personnel ajouté aux sondes, synchronisation préserve les liens explicites sans inférence de nom. 21 tests passent, deux fonctions déployées. Aucun import/envoi/exécution de tâche ; inventaire dans docs/nolio-personal-account-flow-sweep.md.
 
