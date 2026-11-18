@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Plan Compass — objectifs et catégories d’âge
+- [x] Simplifier le plan pour montrer directement au coach les manques prioritaires face à l’objectif, sans nouveau parcours complexe ni modification des plans IA.
 - [x] Retirer Start to Run du périmètre du plan et de sa matrice de validation ; conserver cet objectif dans l’application existante.
 
 ## Références VMA du Compass
