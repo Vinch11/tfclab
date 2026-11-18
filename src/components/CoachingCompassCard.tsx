@@ -25,7 +25,6 @@ import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { LimiterImpactCard } from "@/components/LimiterImpactCard";
-import { RunningCompassDiagnosis } from './RunningCompassDiagnosis';
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
@@ -261,6 +260,22 @@ function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number
           </g>
         );
       })}
+    </svg>
+  );
+}
+
+/** Display-only gauge: uses the existing radar score, never confidence or a new target. */
+function MetricMiniGauge({ axis }: { axis: RadarAxis }) {
+  const hasComparison = axis.value != null && axis.value > 0 && axis.target != null && Number.isFinite(axis.score);
+  const score = hasComparison ? Math.max(0, Math.min(100, axis.score)) : 0;
+  const tone = !hasComparison ? "text-muted-foreground" : score >= 75 ? "text-success" : score >= 50 ? "text-warning" : "text-destructive";
+  return (
+    <svg viewBox="0 0 56 34" className={cn("h-[34px] w-14", tone)} role="img"
+      aria-label={`${axis.label} : ${hasComparison ? `${score}/100, repère relatif à la cible interne` : 'comparaison non définie'}`}>
+      <title>{hasComparison ? 'Repère relatif à la cible interne, pas un pourcentage de confiance' : 'Comparaison non définie'}</title>
+      <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" className="stroke-border" strokeWidth="4" strokeLinecap="round" />
+      {hasComparison && <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
+      <text x="28" y="29" textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="600">{hasComparison ? Math.round(score) : '—'}</text>
     </svg>
   );
 }
@@ -743,14 +758,10 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                       <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
                       <SignatureRadar axes={disciplineAxes[sport]} size={320} />
                       <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">Cible non définie pour cet objectif</span>}</dd></div>)}</dl>
-                      {sport === 'run' && presentation?.runningDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></div>}
-                      {sport === 'bike' && presentation?.cyclingDiagnostic && <div className="hidden sm:block"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></div>}
                     </section>)}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <><SignatureRadar axes={displayAxes} size={320} />{presentation?.runningDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} />}{presentation?.cyclingDiagnostic && <RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" />}</>}
-                {disciplineAxes && presentation?.cyclingDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.cyclingDiagnostic} sport="bike" /></section>}
-                {disciplineAxes && presentation?.runningDiagnostic && <section className="sm:hidden"><RunningCompassDiagnosis diagnostic={presentation.runningDiagnostic} /></section>}
+                </div> : <SignatureRadar axes={displayAxes} size={320} />}
               </div>
 
               {/* Completeness bar */}
@@ -787,20 +798,6 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
                 {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
               </div>
-              <h3 className="mt-4 text-sm font-semibold">Informations complémentaires</h3>
-              {presentation && <div className="mt-2 border-b border-border pb-3 text-xs space-y-1" data-testid="compass-durability">
-                <div className="space-y-3 py-2" data-testid="compass-sport-references">
-                  {(['running', 'cycling'] as const).map(sport => {
-                    const refs = presentation.sportReferences.filter(r => r.sport === sport);
-                    return refs.length ? <section key={sport} className="space-y-1"><h4 className="font-semibold">{sport === 'running' ? 'Repères course' : 'Repères vélo'}</h4>{refs.map(r => <p key={r.label}>{r.label} : {r.value != null ? `${r.value.toFixed(r.unit === 'kJ' || r.unit === 'km/h' ? 1 : 0)} ${r.unit}` : 'Données insuffisantes'} · {compassSourceLabel(r.source)}{r.conditions && <span className="block text-muted-foreground">{r.conditions}</span>}</p>)}</section> : null;
-                  })}
-                  <p className="text-muted-foreground">W′/D′ : repères complémentaires, pas une note générale de capacité anaérobie ; les watts course dépendent du capteur.</p>
-                </div>
-                <p className="font-medium">Robustesse à l’effort prolongé : durabilité non évaluée</p>
-                {presentation.decouplingRun != null && <p className="text-muted-foreground">Découplage course : {presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>}
-                {presentation.tteBike && <p>TTE vélo : {presentation.tteBike.tte_min > 0 ? `${presentation.tteBike.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteBike.source)}</p>}
-                {presentation.tteRun && <p>TTE course : {presentation.tteRun.tte_min > 0 ? `${presentation.tteRun.tte_min} min` : "Données insuffisantes"} · {compassSourceLabel(presentation.tteRun.source)}</p>}
-              </div>}
               {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
               <div className="mt-3 space-y-1.5 px-1">
                 {explanationAxes.map((axis, index) => {
@@ -823,7 +820,10 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                       axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
                       "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
                     )}>
-                      <span className="text-base mt-0.5">{emoji}</span>
+                      <div className="shrink-0 flex flex-col items-center gap-1">
+                        <span className="text-base">{emoji}</span>
+                        <MetricMiniGauge axis={axis} />
+                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-bold">{axis.label}</p>
@@ -926,7 +926,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               level="Niveau 2 — Priorité historique du plan"
               icon={<AlertTriangle className="w-4 h-4" />}
               title={`${limiter.icon} ${limiter.label}`}
-              subtitle="Classement conservé ; les diagnostics par sport ci-dessus précisent les écarts, les sources et les limites."
+              subtitle="Classement conservé ; les repères par sport ci-dessus précisent les valeurs, les cibles et les sources."
               accentClass="bg-[hsl(var(--destructive)/0.8)]"
               badge={staffMode ? limiter.confidence : null}
             >
