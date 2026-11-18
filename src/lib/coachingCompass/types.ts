@@ -267,8 +267,6 @@ export interface CoachingCompassInput {
   ambition: string;
   sportFocus: "bike" | "run" | "triathlon" | null;
   athleteAge: number | null;
-  /** Stored sex, used only for display-only population references. */
-  athleteSex?: 'M' | 'F' | null;
   athleteId?: string;
 
   /**

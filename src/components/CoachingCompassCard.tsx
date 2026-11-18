@@ -28,8 +28,7 @@ import { LimiterImpactCard } from "@/components/LimiterImpactCard";
 import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
-import { CompassScientificReferences } from '@/components/CompassScientificReferences';
-import { comparisonAxes } from '@/lib/coachingCompass/scientificComparison';
+import { CompassVmaReference } from '@/components/CompassVmaReference';
 import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaReference } from '@/lib/coachingCompass/vmaReference';
 
 // Local wording only: detailed provenance remains unchanged in reports and stored data.
@@ -136,7 +135,7 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
     (axis.key === 'vma' && vmaReference ? vmaReferencePosition(axis.value, vmaReference) != null : axis.target != null && Number.isFinite(axis.score)));
 
   const scoreColor = (s: number) =>
-    s >= 100 ? "hsl(var(--primary))" : "hsl(var(--warning))";
+    s >= 75 ? "hsl(var(--success))" : s >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
 
   return (
     <svg viewBox={`-28 -20 ${size + 56} ${size + 48}`} className="w-full max-w-[380px] mx-auto select-none" role="img" aria-label={vmaReference ? 'Compass course : profil athlète et écart VMA au repère ambition' : 'Compass physiologique'}>
@@ -268,7 +267,7 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
               fontSize={axis.key === 'vma' && vmaReference ? 10 : 12}
               fontWeight={800}
             >
-              {axis.value != null && axis.value > 0 ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)}` : '—'}
+              {axis.key === 'vma' && vmaReference && vmaReferencePosition(axis.value, vmaReference) != null ? `Écart ${assessVmaReference(axis.value, vmaReference).gapKmh?.toFixed(1)} km/h` : axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : axis.value != null && axis.value > 0 ? `${axis.value.toFixed(1)} ${axis.unit}` : "—"}
             </text>
           </g>
         );
@@ -277,16 +276,21 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
   );
 }
 
-/** Gauge only expresses the gap to a coaching hypothesis, not race readiness. */
-function MetricMiniGauge({ axis }: { axis: RadarAxis }) {
-  const hasComparison = axis.value != null && axis.value > 0 && axis.target != null && axis.target > 0;
-  const score = hasComparison ? axis.score : 0;
-  const gap = hasComparison && axis.value != null && axis.target != null ? axis.value - axis.target : null;
-  return <svg viewBox="0 0 56 34" className={cn('h-[34px] w-14', gap != null && gap < 0 ? 'text-warning' : 'text-muted-foreground')} role="img" aria-label={`${axis.label} : ${gap == null ? 'pas de cible scientifique validée' : `écart ${gap.toFixed(1)} ${axis.unit} à l’hypothèse de coaching`}`}>
-    <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" className="stroke-border" strokeWidth="4" strokeLinecap="round" />
-    {hasComparison && <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
-    <text x="28" y="29" textAnchor="middle" fill="currentColor" fontSize="10" fontWeight="600">{gap == null ? '—' : gap < 0 ? gap.toFixed(1) : '≥ rep.'}</text>
-  </svg>;
+/** Display-only gauge: uses the existing radar score, never confidence or a new target. */
+function MetricMiniGauge({ axis, reference = null }: { axis: RadarAxis; reference?: VmaReference | null }) {
+  const position = reference ? vmaReferencePosition(axis.value, reference) : null;
+  const hasComparison = reference ? position != null : axis.value != null && axis.value > 0 && axis.target != null && Number.isFinite(axis.score);
+  const score = reference ? position ?? 0 : hasComparison ? Math.max(0, Math.min(100, axis.score)) : 0;
+  const tone = !hasComparison ? "text-muted-foreground" : reference ? assessVmaReference(axis.value, reference).status === 'below' ? 'text-warning' : 'text-success' : score >= 75 ? "text-success" : score >= 50 ? "text-warning" : "text-destructive";
+  return (
+    <svg viewBox="0 0 56 34" className={cn("h-[34px] w-14", tone)} role="img"
+      aria-label={`${axis.label} : ${reference && hasComparison ? `${Math.round(score)}/100 du bas du repère ambition extrapolé` : hasComparison ? `${score}/100, repère relatif à la cible interne` : 'comparaison non définie'}`}>
+      <title>{reference ? 'VMA relative au bas du repère ambition extrapolé ; pas une mesure de confiance' : hasComparison ? 'Repère relatif à la cible interne, pas un pourcentage de confiance' : 'Comparaison non définie'}</title>
+      <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" className="stroke-border" strokeWidth="4" strokeLinecap="round" />
+      {hasComparison && <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
+      <text x="28" y="29" textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="600">{hasComparison ? Math.round(score) : '—'}</text>
+    </svg>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -679,9 +683,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
 
   const { limiter, leverage, decision } = compass;
   const presentation = compass.presentation;
-  const displayAxes = comparisonAxes(input, presentation?.axes ?? compass.radarAxes);
-  const originalDisciplines = presentation?.disciplineAxes;
-  const disciplineAxes = originalDisciplines ? { bike: comparisonAxes(input, originalDisciplines.bike), run: comparisonAxes(input, originalDisciplines.run) } : undefined;
+  const displayAxes = presentation?.axes ?? compass.radarAxes;
+  const disciplineAxes = presentation?.disciplineAxes;
   const explanationAxes = disciplineAxes ? [...disciplineAxes.bike, ...disciplineAxes.run] : displayAxes;
   const _ambition = (input.ambition || "age_group") as AmbitionLevel;
   const _objectif = input.objectif || "IM";
@@ -736,7 +739,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             <div className="flex items-center gap-2 min-w-0">
               <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
               <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Projection du modèle · pas le chrono visé</p>
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Temps de course cible</p>
                 <p className="text-sm font-semibold truncate">
                   {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)}
                 </p>
@@ -759,12 +762,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
                 Niveau 1 — Profil physiologique
               </span>
-              <p className="text-xs text-muted-foreground mt-0.5 mb-2">Profil mesuré et écarts aux hypothèses de coaching · aucune note de réussite de l’objectif.</p>
+              <p className="text-xs text-muted-foreground mt-0.5 mb-2">Profil actuel face aux repères d’ambition · un écart n’est pas, à lui seul, un limiteur confirmé.</p>
               <details className="mb-2 text-xs text-muted-foreground">
                 <summary className="min-h-11 flex items-center cursor-pointer font-medium">Nature des repères et limites de lecture</summary>
                 <dl className="space-y-2 pb-2">
                   <div><dt className="font-medium text-foreground">Bilan individuel</dt><dd>Valeurs enregistrées ou estimées, à interpréter selon leur source et le protocole propre au sport.</dd></div>
-                  <div><dt className="font-medium text-foreground">Cibles internes</dt><dd>Hypothèses historiques non validées par catégorie. Elles ne sont plus abaissées par un coefficient général d’âge dans ce Compass ; les plans restent inchangés. VLamax et FatMax restent des observations sans note de réussite.</dd></div>
+                  <div><dt className="font-medium text-foreground">Cibles internes</dt><dd>Repères de coaching existants, pas des exigences scientifiquement validées par objectif, âge ou sexe. Les couleurs situent l’écart à ces repères, pas la probabilité de réussir.</dd></div>
                   <div><dt className="font-medium text-foreground">Scénario VMA extrapolé</dt><dd>Calcul depuis des groupes de marathoniens et une correspondance d’ambition de coaching ; pas une mesure de cohorte VMA ni une cible spécifique validée pour cette épreuve. En triathlon, il ne décrit pas la course après vélo.</dd></div>
                   <div><dt className="font-medium text-foreground">Limiteur à confirmer</dt><dd>Le seuil, les performances récentes et la tenue de l’effort doivent étayer l’interprétation. Les priorités du plan restent celles du diagnostic existant.</dd></div>
                 </dl>
@@ -774,13 +777,17 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
                     {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
                       <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
-                      <SignatureRadar axes={disciplineAxes[sport]} size={320}  />
-                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{'Pas de cible validée pour cette catégorie'}</span>}</dd></div>)}</dl>
+                      <SignatureRadar axes={disciplineAxes[sport]} size={320} vmaReference={sport === 'run' ? getVmaReference(input.objectif, input.ambition) : null} />
+                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
                     </section>)}
                   </div>
                   <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <SignatureRadar axes={displayAxes} size={320}  />}
-                <p className="mt-2 text-xs text-muted-foreground">Contours : hypothèses de coaching sans correction générale d’âge. Points : bilan individuel. Les axes sans référence ne reçoivent ni note ni couleur de réussite.</p>
+                </div> : <SignatureRadar axes={displayAxes} size={320} vmaReference={getVmaReference(input.objectif, input.ambition)} />}
+                {getVmaReference(input.objectif, input.ambition) && <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-primary/30 border border-primary" />Profil de l’athlète</span>
+                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-border" />Repères d’ambition</span>
+                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-warning" />Écart VMA · repère extrapolé</span>
+                </div>}
               </div>
 
               {/* Completeness bar */}
@@ -796,7 +803,18 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 </div>
               </div>
 
-              <CompassScientificReferences input={input} />
+              {/* Légende couleurs */}
+              <div className="flex items-center gap-4 mt-2 px-2">
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Proche de la cible
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50–74 Écart à la cible
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 Écart important
+                </span>
+              </div>
 
               <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
                 <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
@@ -811,7 +829,9 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                 {explanationAxes.map((axis, index) => {
                   const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
                   const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-                  const statusLabel = axis.value == null || axis.value <= 0 ? 'Données insuffisantes' : axis.target == null ? 'Observation · sans norme validée' : 'Hypothèse de coaching · non normative';
+                  const vmaReference = axis.key === 'vma' ? getVmaReference(input.objectif, input.ambition) : null;
+                  const vmaAssessment = vmaReference ? assessVmaReference(axis.value, vmaReference) : null;
+                  const statusLabel = vmaAssessment?.status !== 'unavailable' && vmaAssessment ? vmaAssessment.label : axisAssessment(axis);
 
                   const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
                   const isInverse = axis.key === "vlamax"; // lower is better
@@ -823,29 +843,35 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                   return (
                     <div key={`${axis.key}-${index}`} className={cn(
                       "flex items-start gap-2.5 p-2.5 rounded-lg border",
-                      statusLabel === "Données insuffisantes" || axis.target == null ? "bg-muted/20 border-border" :
-                      axis.score >= 100 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
+                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "bg-muted/20 border-border" :
+                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
                       axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
                       "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
                     )}>
                       <div className="shrink-0 flex flex-col items-center gap-1">
                         <span className="text-base">{emoji}</span>
-                        <MetricMiniGauge axis={axis} />
+                        <MetricMiniGauge axis={axis} reference={vmaReference} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <p className="text-xs font-bold">{axis.label}</p>
                           <Badge variant="outline" className={cn(
                             "text-[9px] min-h-4 h-auto whitespace-normal px-1.5",
-                            axis.target == null ? 'border-border text-muted-foreground' : 'border-warning/40 text-warning' 
+                            vmaAssessment?.status === 'below' ? "border-warning/40 text-warning" :
+                            vmaAssessment?.status === 'inside' || vmaAssessment?.status === 'above' ? "border-success/40 text-success" :
+                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "border-border text-muted-foreground" :
+                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
                           )}>
                             {statusLabel}
                           </Badge>
                         </div>
 
                         {/* Comparatif Actuel → Cible */}
-                        {axis.value != null && axis.target == null && <p className="mt-1 text-xs">Bilan : <strong>{formatVal(axis.value)} {axis.unit}</strong> · aucune fourchette validée pour l’objectif, l’âge et l’ambition ; aucun déficit ni aptitude conclus.</p>}
-                        {hasValues && (
+                        {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} paceThresholdSecPerKm={input.paceThresholdSecPerKm ?? null} />}
+                        {!vmaReference && axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
+                        {!vmaReference && hasValues && (
                           <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
                               <span className="text-muted-foreground">Actuel</span>
@@ -854,7 +880,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                             </div>
                             <span className="text-muted-foreground/40 text-[10px]">→</span>
                             <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
-                              <span className="text-muted-foreground">Hypothèse non ajustée</span>
+                              <span className="text-muted-foreground">Cible interne</span>
                               <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
                               <span className="text-muted-foreground/60">{axis.unit}</span>
                               {axis.key === "vlamax" && vlamaxRange && (
@@ -873,13 +899,13 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
                                     : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
                                 )}
                               >
-                                {remainsToWork ? `Écart au repère : ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : "Au-dessus du repère · objectif non validé"}
+                                {remainsToWork ? `Écart au repère : ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : "Cible interne atteinte"}
                               </Badge>
                             )}
                           </div>
                         )}
 
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{vmaReference ? 'La VMA situe le moteur aérobie course. Le seuil, l’économie et l’endurance spécifique déterminent aussi la performance ; cette fourchette ne constitue pas une allure de séance.' : explanation.detail}</p>
                         {axis.source !== 'snapshot' && <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{compassSourceLabel(axis.source ?? 'unknown')}</p>}
                       </div>
                     </div>

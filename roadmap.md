@@ -1,9 +1,7 @@
 # Roadmap
 
-## Références Compass approuvées — 18 novembre 20:56
-- [x] Scores de réussite implicites du Compass remplacés par valeurs et écarts en unités réelles ; hypothèses historiques sans coefficient général d’âge, VLamax/FatMax sans note. Référence Assis séparée des hypothèses ; aucune norme catégorie × ambition revendiquée.
-- [x] Tables FRIEND 2022 P5/P25/P50/P75/P90/P95 par sexe, décennie 20–89 ans et modalité ajoutées ; Emanuela femmes 50–59 vérifiée, aucun percentile individuel sans CPET documenté. Seuil course réel 11,4 km/h / 88 % VMA affiché sans allure de course inférée. Distribution de résultats d’épreuve non chargée : nécessite jeu comparable sourcé, aucun classement inventé.
-- [x] Emanuela originale connectée ordinateur/téléphone vérifiée ; 192 tests puis 24 tests ciblés après corrections de typage passent, compilation OK. Deux générateurs déployés avec succès, GET 200 et même release ID vérifiés ; aucun bilan, classement, plan, calendrier Nolio ni publication modifié.
+## Retrait Compass — 18 novembre 21:09
+- [x] Dernier ajout annulé : Compass restauré exactement à la version précédente ; section FRIEND/Assis et comparaisons ajoutées retirées. Emanuela connectée vérifiée ordinateur/téléphone sans erreur ni débordement, 48 tests réussis, compilation OK. Deux générateurs déployés avec succès et versions relues par GET ?release=1 (200, même release ID) ; les GET sans ce paramètre ont retourné 500, sans génération. Aucun bilan, plan ou calendrier Nolio modifié ; site non publié.
 
 ## Vérification scientifique des scores Compass — 18 novembre 20:42
 - [x] Reproduire en lecture seule les scores du profil original d’Emanuela, IM Compétiteur : FTP/kg 3,62/3,64 après réduction d’âge, VO₂max 52/49,3, VMA 13/14,4 (scénario extrapolé). Aucune donnée ni prescription modifiée.
