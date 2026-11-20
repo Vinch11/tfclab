@@ -1,7 +1,7 @@
 /**
  * TriTestDayPage — TFCL Tri Test Day™
  * Protocole triathlon combiné sur 2 jours (ou 3 séances séparées).
- * Onglets : Natation, Vélo, Course. Synthèse triathlon avec pondération distance.
+ * Onglets : Natation, Vélo, Course. Synthèse par discipline.
  */
 
 import { useState } from "react";
@@ -70,17 +70,7 @@ export default function TriTestDayPage() {
   };
 
 
-  const ratios = distance === "IM"
-    ? { swim: 0.10, bike: 0.55, run: 0.35 }
-    : distance === "703"
-      ? { swim: 0.12, bike: 0.52, run: 0.36 }
-      : { swim: 0.15, bike: 0.50, run: 0.35 };
-
   const num = (v: string) => { const n = parseFloat((v || "").replace(",", ".")); return Number.isFinite(n) ? n : 0; };
-  const vlamaxTriPondere =
-    (num(vlamaxBike) * ratios.bike + num(vlamaxRun) * ratios.run) /
-    Math.max(0.0001, (num(vlamaxBike) > 0 ? ratios.bike : 0) + (num(vlamaxRun) > 0 ? ratios.run : 0));
-
   // VO2max estimé depuis VMA (Léger & Mercier 1984 : VO2max ≈ 3.5 × VMA)
   const vo2maxEst = num(vma) > 0 ? num(vma) * 3.5 : 0;
 
@@ -102,7 +92,7 @@ export default function TriTestDayPage() {
       fc_max: num(fcMax) > 0 ? num(fcMax) : null,
       fc_repos: num(fcRepos) > 0 ? num(fcRepos) : null,
       vo2max: vo2maxEst > 0 ? Math.round(vo2maxEst * 10) / 10 : null,
-      coach_notes: `TFCL Tri Test Day™ — Distance ${distance} — VLamax tri pondérée ${vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} mmol/L/s · Ratios temps: nage ${(ratios.swim * 100).toFixed(0)}% / vélo ${(ratios.bike * 100).toFixed(0)}% / run ${(ratios.run * 100).toFixed(0)}% · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
+      coach_notes: `TFCL Tri Test Day™ — Distance ${distance} · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -285,12 +275,9 @@ export default function TriTestDayPage() {
               <Metric label="VMA" value={vma || "—"} unit="km/h" />
               <Metric label="VLamax vélo" value={vlamaxBike || "—"} unit="mmol/L/s" />
               <Metric label="VLamax run" value={vlamaxRun || "—"} unit="mmol/L/s" />
-              <Metric label="VLamax tri (pondérée)" value={vlamaxTriPondere > 0 ? vlamaxTriPondere.toFixed(2) : "—"} unit="mmol/L/s" />
             </div>
             <p className="text-[11px] text-muted-foreground leading-relaxed bg-background/60 rounded p-2 border border-border/60">
-              <b>Note :</b> Pour le triathlon, la VLamax effective est une moyenne pondérée selon la distribution
-              temps de course : <b>IM</b> (nage 10% / vélo 55% / run 35%), <b>70.3</b> (nage 12% / vélo 52% / run 36%).
-              Ratios utilisés ici : nage {(ratios.swim * 100).toFixed(0)}% / vélo {(ratios.bike * 100).toFixed(0)}% / run {(ratios.run * 100).toFixed(0)}%.
+              Examiner la VLamax estimée séparément à vélo et en course. Vérifier la tenue de l’allure après le vélo sur un enchaînement daté.
             </p>
             <Button className="w-full" onClick={handleCreate} disabled={!currentAthlete}>
               Créer snapshot triathlon
@@ -305,7 +292,7 @@ export default function TriTestDayPage() {
             </button>
             <p className="text-[10px] text-muted-foreground border-t border-border/40 pt-2">
               <b>Références :</b> Wakayoshi 1992 (CSS), Coggan & Allen 2010 (FTP), Billat 2001 (VMA),
-              Mader 1976 (VLamax). Pondérations : data Ironman Hawaii pro fields.
+              Mader 1976 (VLamax).
             </p>
           </CardContent>
         </Card>

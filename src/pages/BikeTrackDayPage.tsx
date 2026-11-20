@@ -76,6 +76,7 @@ export default function BikeTrackDayPage() {
   const fcMax = effectiveRefs.fcMax ?? num(fcMaxManual);
 
   // Bloc 1 — sprints (HT puissance directe OU route vitesse+pente)
+  const [p5s, setP5s] = useState("");
   const [p10s, setP10s] = useState("");
   const [p30s, setP30s] = useState("");
   const [p60s, setP60s] = useState("");
@@ -114,6 +115,7 @@ export default function BikeTrackDayPage() {
     heightCmManual: { value: heightCmManual, set: setHeightCmManual, default: "" },
     fcReposManual: { value: fcReposManual, set: setFcReposManual, default: "" },
     fcMaxManual: { value: fcMaxManual, set: setFcMaxManual, default: "" },
+    p5s: { value: p5s, set: setP5s, default: "" },
     p10s: { value: p10s, set: setP10s, default: "" },
     p30s: { value: p30s, set: setP30s, default: "" },
     p60s: { value: p60s, set: setP60s, default: "" },
@@ -168,7 +170,8 @@ export default function BikeTrackDayPage() {
       const labelDate = (r: { d: string | null; src: string }) =>
         r.d ? `${r.src === "manual" ? "Manuel ✍️" : "Nolio"} · ${new Date(r.d).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "2-digit" })}` : (r.src === "manual" ? "Manuel ✍️" : "Nolio");
       const dates: Record<string, string | null> = {};
-      const r5 = pick(5); if (r5) { setP10s(String(Math.round(r5.v))); dates.p10s = labelDate(r5); }
+      const r5 = pick(5); if (r5) { setP5s(String(Math.round(r5.v))); dates.p5s = labelDate(r5); }
+      const r10 = pick(10); if (r10) { setP10s(String(Math.round(r10.v))); dates.p10s = labelDate(r10); }
       const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = labelDate(r30); }
       const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = labelDate(r60); }
       const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = labelDate(r300); }
@@ -208,9 +211,8 @@ export default function BikeTrackDayPage() {
     const fractUtil = map > 0 && ftp > 0 ? ftp / map : 0;
 
     const fcD = num(fcDebutZ2), fcF = num(fcFinZ2);
-    const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
+    const driftPct = fcD > 0 && fcF > 0 ? ((fcF - fcD) / fcD) * 100 : null;
     const ratioZ2Ftp = num(puissanceZ2) > 0 && ftp > 0 ? num(puissanceZ2) / ftp : 0;
-    const fatMaxPct = ftp > 0 ? Math.max(50, Math.min(78, 65 - driftPct * 2)) : 0;
 
     const tteEst = fractUtil > 0 ? Math.max(25, Math.min(75, 30 + (fractUtil - 0.75) * 400)) : 0;
 
@@ -230,8 +232,8 @@ export default function BikeTrackDayPage() {
       p30s_w: p30 > 0 ? p30 : null,
       p60s_w: p60 > 0 ? p60 : null,
       map5min_w: map > 0 ? map : null,
-      tte_min: tteEst > 0 ? tteEst : null,
-      pmax_5s: p10 > 0 ? p10 : null, // sprint 10s en approximation du Pmax 5s
+      tte_min: null,
+      pmax_5s: num(p5s) || null,
       weight_kg: massKg > 0 ? massKg : null,
       vo2max: vo2maxEst > 0 ? vo2maxEst : null,
     });
@@ -245,9 +247,9 @@ export default function BikeTrackDayPage() {
       vlamaxConfidenceLabel: vlamaxResult.confidenceLabel,
       vlamaxFormula: vlamaxResult.formulaLabel,
       vlamaxWarnings: vlamaxResult.warnings,
-      driftPct, ratioZ2Ftp, fatMaxPct, tteEst,
+      driftPct, ratioZ2Ftp, tteEst,
     };
-  }, [setup, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
+  }, [setup, p5s, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
 
   const canCreate = !!currentAthlete && calc.ftp > 0;
 
@@ -265,8 +267,8 @@ export default function BikeTrackDayPage() {
       fc_max: fcMax > 0 ? fcMax : null,
       ftp: calc.ftp || null,
       vlamax: calc.vlamaxEst || null,
-      // sprint 10s utilisé comme approximation du Pmax 5s (surestimation ~5–8% acceptable)
-      pmax_5s: calc.p10 || null,
+      pmax_5s: num(p5s) || null,
+      vlamax_source: "estimated",
       vo2max: calc.vo2maxEst > 0 ? Math.round(calc.vo2maxEst * 10) / 10 : null,
       map5min_w: calc.map || null,
       // Bug réel corrigé (audit coach "câblage snapshot") : p30s_w recevait
@@ -277,8 +279,8 @@ export default function BikeTrackDayPage() {
       // coach_notes (pas de colonne dédiée, même politique que Pool Day).
       p30s_w: calc.p30 || null,
       p60s_w: calc.p60 || null,
-      tte_observed_min: calc.tteEst || null,
-      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · FatMax ${fmt(calc.fatMaxPct, 0)}% · TTE ${fmt(calc.tteEst, 0)}min${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
+
+      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · TTE estimée ${fmt(calc.tteEst, 0)}min · sprint 10 s ${fmt(calc.p10, 0)} W${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -507,6 +509,9 @@ export default function BikeTrackDayPage() {
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
+              <Label htmlFor="bike-day-five-sec">Meilleure puissance sur 5 s, si enregistrée (W)</Label>
+              <Input id="bike-day-five-sec" type="number" value={p5s} onChange={e => setP5s(e.target.value)} />
+              {nolioDates.p5s && <small>{nolioDates.p5s}</small>}
               <Label>MAP 5 min (W)</Label>
               <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
               {fmtNolioDate(nolioDates.map5min) && (
@@ -578,7 +583,7 @@ export default function BikeTrackDayPage() {
               <Badge variant="secondary">20 min</Badge>
             </div>
             <CardDescription className="text-xs">
-              15 min Z2 stable (FC 65-72% FCmax) — mesure du drift et estimation FatMax.
+              15 min Z2 stable (FC 65-72% FCmax) — mesure de la variation de fréquence cardiaque.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -595,9 +600,9 @@ export default function BikeTrackDayPage() {
               <Input type="number" value={puissanceZ2} onChange={(e) => setPuissanceZ2(e.target.value)} placeholder="180" />
             </div>
             <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
-              <Metric label="Drift cardiaque" value={fmt(calc.driftPct, 1)} unit="%" />
+              <p className="col-span-full text-xs text-muted-foreground">La variation de fréquence cardiaque décrit cette séance. Les estimations de substrats se consultent dans 100 % Lab, avec leurs hypothèses.</p>
+              <Metric label="Drift cardiaque" value={calc.driftPct == null ? "—" : calc.driftPct.toFixed(1)} unit="%" />
               <Metric label="Z2/FTP" value={fmt(calc.ratioZ2Ftp * 100, 0)} unit="%" />
-              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" />
             </div>
           </CardContent>
         </Card>
@@ -615,7 +620,6 @@ export default function BikeTrackDayPage() {
               <Metric label="MAP" value={fmt(calc.map, 0)} unit="W" big />
               <Metric label="W'" value={fmt(calc.wPrime, 0)} unit="J" big />
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
-              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% FTP" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
