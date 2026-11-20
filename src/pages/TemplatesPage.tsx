@@ -1296,13 +1296,7 @@ export default function TemplatesPage() {
       athleteId: selectedAthlete.id,
       objectif: selectedAthlete.goal || "IM",
       activeSnapshotId: selectedAthlete.active_snapshot_id,
-      tests: athleteTests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests: athleteTests,
       snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
 

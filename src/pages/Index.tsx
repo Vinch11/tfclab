@@ -1,4 +1,4 @@
-import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
+import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { computeCoachingCompass } from '@/lib/coachingCompass';
 import { getVo2maxTarget } from '@/lib/v2/unifiedLimiterDetection';
@@ -60,7 +60,7 @@ import { LorangTestChecklist } from "@/components/LorangTestChecklist";
 import { FatMaxTFCLCard } from "@/components/FatMaxTFCLCard";
 import { FatMaxRaceIntensityChart } from "@/components/charts/FatMaxRaceIntensityChart";
 import { FatCarbOxidationChart } from "@/components/charts/FatCarbOxidationChart";
-import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
+import { computeFatMaxTFCL, estimateProfileFatMaxPctFTP, FatMaxObjectif } from "@/lib/v2/fatmaxTFCL";
 import { ObjectifPrincipal } from "@/lib/reference";
 // ✅ Zones Métaboliques - Carte unifiée (Phase 1b UX)
 import { MetabolicZonesUnifiedCard } from "@/components/MetabolicZonesUnifiedCard";
@@ -532,17 +532,12 @@ const Index = () => {
       athleteId: currentAthlete.id,
       objectif: currentAthlete.goal || "IM",
       activeSnapshotId: currentAthlete.active_snapshot_id,
-      tests: tests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests,
+      sportOverride: isRunningOnly ? "cap" : "velo",
       snapshots: snapshots.map(mapSnapshotToV2),
       raceRecords: raceRecordsForVlamax,
     });
-  }, [currentAthlete, tests, snapshots, raceRecordsForVlamax]);
+  }, [currentAthlete, tests, snapshots, raceRecordsForVlamax, isRunningOnly]);
 
 
   const vlamax = vlamaxEffectif.value ?? 0;
@@ -688,28 +683,6 @@ const Index = () => {
   }, [currentAthlete, effectiveCloudSnapshot, currentAmbition]);
   const targetRaceDurationMin = targetRacePrediction?.targetRaceDurationMin ?? null;
 
-  const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
-    if (!currentAthlete) return null;
-    return detectUnifiedLimiter({
-      vo2max: effectiveCloudSnapshot?.vo2max ?? null,
-      ftpKg: ftp_kg,
-      vlamax: vlamaxEffectif.value,
-      wprimeKj: wprimeKjForLimiter,
-      cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
-      tte: tteEffectif.tte_min,
-      fatmax: null,
-      economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
-      availabilityScore: null,
-      hasHealthAlerts: false,
-      objectif: currentAthlete.goal || "IM",
-      ambition: currentAmbition,
-      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
-      vma: effectiveCloudSnapshot?.vma ?? null,
-      sportFocus: isRunningOnly ? "run" : "bike",
-      targetRaceDurationMin,
-    });
-  }, [currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter, isRunningOnly, targetRaceDurationMin]);
-
   // ✅ DIAGNOSTIC & PRESCRIPTION UNIFIÉS — Source unique pour TOUS les onglets
   const { dashDiagnostic, dashPrescription } = useMemo(() => {
     if (!currentAthlete || !effectiveCloudSnapshot) {
@@ -771,9 +744,9 @@ const Index = () => {
       protocolQuality: effectiveCloudSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForLimiter,
       cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
-      // Audit 2D F29: ancre FatMax canonique unifiée (computeFatMaxAnchorPctFTP)
+      // Audit 2D F29: ancre FatMax canonique unifiée (estimateProfileFatMaxPctFTP)
       // Formule: clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)
-      fatmax: computeFatMaxAnchorPctFTP(vlamaxEffectif.value, effectiveCloudSnapshot.vo2max ?? null),
+      fatmax: isRunningOnly ? null : estimateProfileFatMaxPctFTP(vlamaxEffectif.value, effectiveCloudSnapshot.vo2max, effectiveCloudSnapshot.weight_kg, effectiveCloudSnapshot.ftp),
       forceDevMode: effectiveCloudSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveCloudSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {
@@ -816,7 +789,32 @@ const Index = () => {
     });
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy, getCheckinsForAthlete]);
+
+  const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
+    if (dashDiagnostic) return dashDiagnostic.limiter;
+    if (!currentAthlete) return null;
+    return detectUnifiedLimiter({
+      vo2max: effectiveCloudSnapshot?.vo2max ?? null,
+      ftpKg: ftp_kg,
+      vlamax: vlamaxEffectif.value,
+      vlamaxSource: vlamaxEffectif.v2?.source ?? vlamaxEffectif.source,
+      tteSource: tteEffectif.source,
+      wprimeKj: wprimeKjForLimiter,
+      cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
+      tte: tteEffectif.tte_min,
+      fatmax: null,
+      economyScore: effectiveCloudSnapshot?.run_economy_score ?? null,
+      availabilityScore: null,
+      hasHealthAlerts: false,
+      objectif: currentAthlete.goal || "IM",
+      ambition: currentAmbition,
+      age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
+      vma: effectiveCloudSnapshot?.vma ?? null,
+      sportFocus: isRunningOnly ? "run" : "bike",
+      targetRaceDurationMin,
+    });
+  }, [dashDiagnostic, currentAthlete, effectiveCloudSnapshot, ftp_kg, vlamaxEffectif, tteEffectif, currentAmbition, wprimeKjForLimiter, cpResultForLimiter, isRunningOnly, targetRaceDurationMin]);
 
   // ✅ Potentiel Physiologique — Bug réel corrigé (audit "estimations
   // physiologiques", Cluster 2) : dérivait auparavant d'un stub 2 facteurs
@@ -961,7 +959,10 @@ const Index = () => {
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
-      vlamaxRunReference: isRunningOnly ? { value: vlamaxEffectif.value, source: vlamaxEffectif.source } : (() => { const r = resolveVlamaxForGoal({ ...effectiveCloudSnapshot, sport_main: 'run' }); return r.value != null ? { value: r.value, source: (r.confidence ?? 0) >= 0.9 ? 'test' : 'estimated' } : { value: effectiveCloudSnapshot.vlamax_run ?? null, source: 'snapshot' }; })(),
+      vlamaxRunReference: isRunningOnly ? vlamaxEffectif : computeVLamaxEffectif({
+        athleteId: currentAthlete.id, objectif: currentAthlete.goal || "IM", sportOverride: "cap",
+        activeSnapshotId: effectiveCloudSnapshot.id, snapshots: [effectiveCloudSnapshot], tests, raceRecords: raceRecordsForVlamax,
+      }),
       tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
       tteEffectifRun: computeTTEEffectif({ sport: 'run', objectif: currentAthlete.goal || 'IM', age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null, tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null, tte_proxy_confidence: runDurabilityProxy?.confidence ?? null, tte_proxy_label: runDurabilityProxy?.label ?? null }),
       fatigueEffectif: fatigueEffectifForCompass ? {
@@ -1011,9 +1012,13 @@ const Index = () => {
         : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       athleteId: currentAthlete.id,
+      athleteSex: currentAthlete.sex,
+      css: effectiveCloudSnapshot.css ?? null,
+      performanceObservation: storedPerformance(currentAthlete.goal || "IM", effectiveCloudSnapshot),
+      performanceGoal: readPerformanceGoal(comparisonGoals(currentAthlete.refs)[`${currentAthlete.goal || "IM"}:${currentAmbition}`]),
       targetRacePrediction,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction, tests, raceRecordsForVlamax]);
 
   const dashboardPresentation = useMemo(() => compassInputMemo ? computeCoachingCompass(compassInputMemo).presentation : null, [compassInputMemo]);
   const dashboardAxes = dashboardPresentation?.disciplineAxes
@@ -1786,6 +1791,11 @@ const Index = () => {
               return (
                 <CoachingCompassCard
                   input={alignedInput}
+                  onSavePerformanceGoal={async (goal) => {
+                    if (!currentAthlete) return false;
+                    const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
+                    return updateAthlete(currentAthlete.id, { refs: { ...refs, compassPerformance: { ...comparisonGoals(refs), [`${currentAthlete.goal || "IM"}:${currentAmbition}`]: goal } } as Parameters<typeof updateAthlete>[1]["refs"] });
+                  }}
                   athleteName={contextCurrentAthlete?.nom}
                   staffMode={staffMode}
                 />

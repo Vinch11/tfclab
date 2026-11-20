@@ -191,6 +191,13 @@ describe("computeDiagnostic", () => {
       expect(result.meta.dataCompleteness).toBeLessThan(0.3);
     });
 
+    it("compte la durée observée dans la discipline du bilan", () => {
+      const run: DiagnosticInput = { ...EMPTY_INPUT, objectif: "Marathon", sportFocus: "run" };
+      const coverage = (changes: Partial<DiagnosticInput>) => computeDiagnostic({ ...run, ...changes }).meta.dataCompleteness;
+      expect(coverage({ tteObservedMin: 45, tss7d: 500, css: 90 })).toBe(coverage({}));
+      expect(coverage({ tteObservedMinRun: 45 })).toBeGreaterThan(coverage({}));
+    });
+
     it("signale des données incomplètes dans les alertes", () => {
       const result = computeDiagnostic(EMPTY_INPUT);
       const hasIncompleteAlert = result.synthesis.alerts.some(

@@ -25,10 +25,10 @@ describe('factorVerdict', () => {
     const v = computeFactorVerdict(buildVmaEvidence({ vma: 10, paceThresholdSecPerKm: 450, reference: ref }));
     expect(v.kind).toBe('gap_to_confirm');
   });
-  it('VMA below scenario with threshold ≥88 % VMA → probable limiter', () => {
+  it('VMA and derived threshold ratio are not independent evidence', () => {
     // 10 km/h, seuil 6:00/km = 10 → 100 %? use 6:40 = 9 km/h → 90 %
     const v = computeFactorVerdict(buildVmaEvidence({ vma: 10, paceThresholdSecPerKm: 400, reference: ref }));
-    expect(v.kind).toBe('probable_limiter');
+    expect(v.kind).toBe('gap_to_confirm');
   });
   it('missing VMA and threshold → to measure', () => {
     expect(computeFactorVerdict(buildVmaEvidence({ vma: null, paceThresholdSecPerKm: null, reference: ref })).kind).toBe('to_measure');
@@ -37,4 +37,11 @@ describe('factorVerdict', () => {
     const e = buildVmaEvidence({ vma: 15, paceThresholdSecPerKm: 260, reference: getVmaReference('IM', 'age_group'), isTriathlon: true });
     expect(e.find(x => x.key === 'run_off_bike')?.status).toBe('unknown');
   });
+  it('does not count duplicate keys, shared observations, or extrapolations as independent', () => {
+    const a = { key: 'a', label: '', status: 'deficit' as const, detail: '' };
+    expect(computeFactorVerdict([a, a]).kind).toBe('gap_to_confirm');
+    expect(computeFactorVerdict([{ ...a, independenceGroup: 'test' }, { ...a, key: 'b', independenceGroup: 'test' }]).kind).toBe('gap_to_confirm');
+    expect(computeFactorVerdict([a, { ...a, key: 'b', extrapolated: true }]).kind).toBe('gap_to_confirm');
+  });
+
 });

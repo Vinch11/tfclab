@@ -1,3 +1,4 @@
+import { hasBikeVlamaxMeasurementEvidence, hasRunVlamaxMeasurementEvidence, hasLactateProtocol, protocolSport } from "./vlamaxEvidence";
 import { compareSnapshotsNewestFirst } from "@/lib/referenceSnapshot";
 // =============================================
 // VLAMAX EFFECTIF - Source unique de vérité
@@ -101,6 +102,7 @@ export interface VLamaxEffectif {
 
 // Types pour les données cloud
 interface TestCloud {
+  sport?: string | null;
   athlete_id: string;
   vlamax: number | null;
   date?: string;
@@ -121,36 +123,12 @@ interface TestCloud {
  * celui-ci renvoie `insufficient`.
  */
 function isLabMeasuredVlamaxTest(t: TestCloud): boolean {
-  const type = (t.type || "").toUpperCase();
-  if (type === "LACTATE_LAB" || type === "VLAMAX_LAB" || type === "LAB") return true;
-  const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
-  if (/(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack)) return true;
-  return false;
+  return hasLactateProtocol(t.type, [t.name, t.note, t.raw?.protocol].filter(Boolean).join(" ")) ||
+    hasLactateProtocol(t.raw?.source, t.raw?.protocol);
 }
 
-export function hasBikeVlamaxMeasurementEvidence(s: SnapshotCloud): boolean {
-  if (isLabMeasuredVlamaxSnapshot(s)) return true;
-  return ((s as { source?: string | null }).source || "").toLowerCase() === "staff";
-}
-
-function isLabMeasuredVlamaxSnapshot(s: SnapshotCloud): boolean {
-  const source = (s.vlamax_source || "").toLowerCase();
-  if (["lab", "labo", "lactate_lab", "vlamax_lab"].includes(source)) return true;
-  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
-  return /(labo|lactat[e]? lab|prise de sang|blood lactate|lab measurement)/.test(haystack);
-}
-
-/**
- * Détecte un test VLamax provenant d'un protocole CAP/course (sprint terrain
- * en running). Ces tests ne sont PAS représentatifs de la glycolyse vélo et
- * doivent être exclus du pipeline `sport=velo` pour éviter qu'un sprint CAP
- * récent (ex. "Sprint 15s CAP" 0.71) ne masque la VLamax vélo réelle.
- */
-function isCapSpecificVlamaxTest(t: TestCloud): boolean {
-  const type = (t.type || "").toLowerCase();
-  if (type.includes("cap") || type.includes("run")) return true;
-  const haystack = `${t.name || ""} ${t.note || ""} ${t.raw?.source || ""} ${t.raw?.protocol || ""}`.toLowerCase();
-  return /(\bcap\b|course à pied|running|run\b|sprint.*cap|cap.*sprint)/.test(haystack);
+function vlamaxTestSport(t: TestCloud) {
+  return protocolSport(t.sport) ?? protocolSport([t.type, t.name, t.raw?.protocol].join(" ").replace(/_/g, " "));
 }
 
 interface SnapshotCloud {
@@ -284,7 +262,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     effectiveSnapshot &&
     effectiveSnapshot.vlamax_run != null &&
     effectiveSnapshot.vlamax_run > 0 &&
-    isLabMeasuredVlamaxSnapshot(effectiveSnapshot)
+    hasRunVlamaxMeasurementEvidence(effectiveSnapshot)
   ) {
     const ageDays = computeDataAgeDays(effectiveSnapshot.date);
     const protocolLabel = effectiveSnapshot.vlamax_protocol || "Test CAP (sprint lactate)";
@@ -316,7 +294,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // saisie en mode Staff (le coach déclare une mesure lactate de laboratoire).
   // Une VLamax estimée stockée ailleurs n'est jamais présentée comme mesurée.
   if (
-    sport !== "cap" &&
+    sport === "velo" &&
     effectiveSnapshot &&
     effectiveSnapshot.vlamax != null &&
     effectiveSnapshot.vlamax > 0 &&
@@ -348,15 +326,17 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
   // non-labo (Sprint 15s, Score G, saisies coach) sont reclassés en fallback :
   // ils ne sont consultés que si l'estimateur renvoie `insufficient` (bloc D).
   // =============================================
-  const athleteTestsAll = tests.filter(t => t.athlete_id === athleteId && t.vlamax != null);
-  const athleteTests = sport === "cap"
-    ? athleteTestsAll.filter(isLabMeasuredVlamaxTest)
-    // Pour sport=velo/natation : exclure les tests CAP-spécifiques (Sprint 15s CAP, etc.)
-    // qui mesurent la glycolyse en course et polluent la VLamax vélo.
-    : athleteTestsAll.filter(t => !isCapSpecificVlamaxTest(t));
-  
-  if (athleteTests.length > 0) {
-    const sortedTests = [...athleteTests].sort((a, b) => {
+  const athleteTests = tests.filter(t => {
+    if (t.athlete_id !== athleteId || t.vlamax == null || !Number.isFinite(t.vlamax) || t.vlamax <= 0) return false;
+    const modality = vlamaxTestSport(t);
+    // Older unlabelled sprints were cycling estimates. They cannot certify a lactate protocol.
+    return modality === sport || (sport === "velo" && !t.sport && modality == null && !isLabMeasuredVlamaxTest(t));
+  });
+  const labTests = athleteTests.filter(isLabMeasuredVlamaxTest);
+  const candidates = labTests.length ? labTests : athleteTests;
+
+  if (candidates.length > 0 && (sport !== "cap" || labTests.length > 0)) {
+    const sortedTests = [...candidates].sort((a, b) => {
       const dateA = a.date || a.created_at || "";
       const dateB = b.date || b.created_at || "";
       return dateB.localeCompare(dateA);
@@ -368,7 +348,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     
     const v2Input: VLamaxV2Input = {
       rawValue: mostRecentTest.vlamax!,
-      source: "test_terrain",
+      source: labTests.length ? "test_labo" : "test_terrain",
       sport,
       previousEffective,
       factors: {
@@ -377,7 +357,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         dataAgeDays: ageDays,
       },
       sourceLabels: [mostRecentTest.name || mostRecentTest.type || "Test terrain"],
-      reason: `Test terrain: ${mostRecentTest.name || mostRecentTest.type}`,
+      reason: `Test ${labTests.length ? "lactate" : "terrain"} : ${mostRecentTest.name || mostRecentTest.type}`,
     };
     const v2 = computeVLamaxV2(v2Input);
     return wrapV2Result(v2, {
@@ -409,7 +389,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         runningPowerMax: effectiveSnapshot.running_power_max ?? null,
         runningPowerThreshold: effectiveSnapshot.running_power_threshold ?? null,
         weightKg: weight_kg ?? null,
-        vlamaxRunMeasured: isLabMeasuredVlamaxSnapshot(effectiveSnapshot) ? effectiveSnapshot.vlamax_run ?? null : null,
+        vlamaxRunMeasured: hasRunVlamaxMeasurementEvidence(effectiveSnapshot) ? effectiveSnapshot.vlamax_run ?? null : null,
       });
 
       if (capEst.method !== "insufficient" && capEst.value > 0) {
@@ -496,7 +476,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     // JAMAIS en dériver une VLamax — mieux vaut "unknown" (bloc D) qu'une
     // estimation glycolytique vélo faussement présentée comme une VLamax course.
     // =============================================
-    const hasV2Data = sport !== "cap" && ftp != null && ftp > 0 && (
+    const hasV2Data = sport === "velo" && ftp != null && ftp > 0 && (
       (effectiveSnapshot.p30s_w != null && effectiveSnapshot.p30s_w > 0) ||
       (effectiveSnapshot.p60s_w != null && effectiveSnapshot.p60s_w > 0) ||
       (effectiveSnapshot.map5min_w != null && effectiveSnapshot.map5min_w > 0) ||
@@ -554,7 +534,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     // ⚠️ Même garde-fou que C1 : FTP/Pmax sont des métriques vélo, réservées
     // à sport !== "cap".
     // =============================================
-    const hasMinimumData = sport !== "cap" && ftp != null && weight_kg != null && weight_kg > 0;
+    const hasMinimumData = sport === "velo" && ftp != null && Number.isFinite(ftp) && ftp > 0 && weight_kg != null && Number.isFinite(weight_kg) && weight_kg > 0;
     
     if (hasMinimumData) {
       const ftpKg = ftp! / weight_kg!;
@@ -593,6 +573,16 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       };
       const v2 = computeVLamaxV2(v2Input);
       return wrapV2Result(v2);
+    }
+  }
+
+  if (sport === "cap") {
+    const test = [...athleteTests].sort((a, b) => (b.date ?? b.created_at ?? "").localeCompare(a.date ?? a.created_at ?? ""))[0];
+    const value = test?.vlamax ?? effectiveSnapshot?.vlamax_run;
+    if (value != null && Number.isFinite(value) && value > 0) {
+      const v2 = computeVLamaxV2({ rawValue: value, source: test ? "test_terrain" : "estimation", sport,
+        sourceLabels: [test?.name ?? "Valeur course renseignée"], reason: "Repère course à confirmer par un protocole lactate" });
+      return wrapV2Result(v2, { date: test?.date ?? effectiveSnapshot?.date, testName: test?.name });
     }
   }
 

@@ -68,6 +68,11 @@ export interface UnifiedLimiterInput {
   fatmax: number | null;           // % FTP où FatMax atteint
   economyScore: number | null;     // 0-100
 
+  /** Raw observations are accepted by the low-level engine; app adapters supply their provenance. */
+  vlamaxSource?: string;
+  tteSource?: string;
+  fatmaxSource?: "model" | "observed";
+
   // Running-specific
   vma: number | null;              // VMA en km/h — utilisé à la place de FTP/kg en mode running
   sportFocus?: "bike" | "run" | "tri"; // Discipline principale
@@ -679,7 +684,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
     // L'ancienne formule (Δ absolu mmol/L/s × 100) sous-pondérait massivement la VLamax
     // (~0.9 pour gap 0.12) vs VO2max -4% (~3.4) → faisait sortir le VO2max en limiteur #1
     // alors que la VLamax dominait clairement le profil.
-    weightedImpact: input.vlamax !== null && vlamaxGap > 0
+    weightedImpact: vlamaxExcess
       ? Math.abs(vlamaxGap) * weights.glycolytic * 100 * getMastersVlamaxPriorityFactor(input.age)
       : 0,
   });
@@ -834,6 +839,27 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   // 6. Analyse Disponibilité — RETIRÉE V2.1
   // La disponibilité n'est plus incluse dans le gap analysis car
   // la fatigue n'est renseignée qu'une fois toutes les 3-4 semaines.
+
+  // Preserve the number in the profile while keeping proxies out of automatic decisions.
+  const unconfirmed = new Map<string, string>();
+  if (input.vlamaxSource !== undefined && !["test_labo", "snapshot", "observed"].includes(input.vlamaxSource)) {
+    unconfirmed.set("VLamax", "Estimation à confronter à un test lactate dans cette discipline.");
+  }
+  if (input.fatmaxSource === "model") {
+    unconfirmed.set("FatMax", "Valeur dérivée du profil métabolique. Une calorimétrie à l’effort apporterait une observation indépendante.");
+  }
+  if (input.tteSource !== undefined && input.tteSource !== "observed") {
+    unconfirmed.set("TTE", "Durée au seuil à confirmer par un effort continu documenté jusqu’à épuisement.");
+  }
+  for (const gap of gapAnalysis) {
+    const note = unconfirmed.get(gap.metric);
+    if (note && gap.value !== null) {
+      gap.prescriptionApplicable = false;
+      gap.prescriptionNote = note;
+      gap.weightedImpact = 0;
+      gap.status = "unknown";
+    }
+  }
 
   if (normalized === "StartToRun" || unsupportedContext) {
     for (const gap of gapAnalysis) {
@@ -996,8 +1022,8 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
     { key: "economyScore", label: "Économie", value: input.economyScore },
   ];
 
-  const missingCritical = CRITICAL_METRICS.filter(m => m.value === null);
-  const missingSecondary = SECONDARY_METRICS.filter(m => m.value === null);
+  const missingCritical = CRITICAL_METRICS.filter(m => m.value === null || unconfirmed.has(m.label));
+  const missingSecondary = SECONDARY_METRICS.filter(m => m.value === null || unconfirmed.has(m.label));
   const missingMetrics = [...missingCritical, ...missingSecondary].map(m => m.label);
 
   const dataCount = 6 - missingMetrics.length;

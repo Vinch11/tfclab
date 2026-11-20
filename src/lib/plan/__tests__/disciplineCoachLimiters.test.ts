@@ -23,6 +23,12 @@ const input: UnifiedLimiterInput = {
   ambition: "age_group",
   age: 35,
 };
+const measuredLimiter = detectUnifiedLimiter({
+  ...input,
+  vlamaxSource: "test_labo",
+  fatmaxSource: "observed",
+  tteSource: "observed",
+});
 export const defaultCoachPayload: CoachProfileFormPayload = {
   metabolicProfile: "balanced",
   primaryLimiter: "glycolytic",
@@ -56,10 +62,18 @@ it("the actual coach adapter preserves the complete automatic list by default", 
   const after = applyCoachProfileOverrides(
     defaultCoachPayload,
     base,
-    x.diagnostic,
+    { ...x.diagnostic, limiter: measuredLimiter },
   );
   expect(after.identifiedLimitersRaw).toEqual(base.identifiedLimitersRaw);
   expect(base).toEqual(before);
+});
+it("a saved metabolic priority from power alone is removed on reopening the coach form", () => {
+  const x = preparePrevalidationFixture("B-10K");
+  const config = applyCoachProfileOverrides(defaultCoachPayload, {
+    ...x.planConfig, identifiedLimitersRaw: ["VLamax", "VMA"],
+  }, x.diagnostic);
+  expect(config.identifiedLimitersRaw).not.toContain("VLamax");
+  expect(config.identifiedLimitersRaw).toContain("VMA");
 });
 it("a missing VMA does not make cycling FTP a running prescription limiter", () => {
   const result = detectUnifiedLimiter({
@@ -99,7 +113,7 @@ it.each([
         measurementDiscipline: "bike",
         prescriptionApplicable: false,
       });
-      expect(rankPrescriptionGaps(x.gapAnalysis).map((g) => g.metric)).not
+      expect(rankPrescriptionGaps(x.gapAnalysis).map((g) => g.metric))
         .not.toContain("W' (kJ)");
     }
   },
@@ -155,7 +169,7 @@ it("legacy manual priorities promote choices without erasing the remaining appli
       overriddenByCoach: { primary: true, secondary: false },
     },
     base,
-    x.diagnostic,
+    { ...x.diagnostic, limiter: measuredLimiter },
   );
   expect(after.identifiedLimitersRaw).toEqual([
     "VO2max",
@@ -184,7 +198,7 @@ it("only explicit exclusions remove metrics, and no stale cycling selection can 
       excludedLimiterMetrics: ["FatMax"],
     },
     base,
-    x.diagnostic,
+    { ...x.diagnostic, limiter: measuredLimiter },
   );
   expect(after.identifiedLimitersRaw).toEqual(["VMA", "VLamax"]);
   expect(after.prohibitions).toEqual(base.prohibitions);

@@ -1,6 +1,5 @@
 import type { DbSnapshot, DbTest } from '@/hooks/useCloudData';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
-import { resolveVlamaxForGoal } from '@/lib/vlamaxResolver';
 import { computeVLamaxEffectif } from '@/lib/vlamaxEffectif';
 import { resolveCompassSportFocus } from '@/lib/sportMainDeduction';
 import { calculateCarbOxidation, calculateFatOxidation, findSteadyStateLactate, findLactateThresholds } from '@/lib/v2/maderMetabolicModel';
@@ -16,8 +15,10 @@ export function labCurveSource(input: CoachingCompassInput, sport: 'bike' | 'run
 
 /** Projection only; the reference is selected upstream by pickReferenceSnapshot. */
 export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, ambition: string): CoachingCompassInput {
-  const bike = computeVLamaxEffectif({ athleteId: snapshot.athlete_id, objectif: goal, activeSnapshotId: snapshot.id, snapshots: [snapshot], tests: tests.filter(t => t.athlete_id === snapshot.athlete_id && t.date.slice(0, 10) <= snapshot.date && !/run|cap|course/i.test(t.sport ?? '')), sportOverride: 'velo' });
-  const run = resolveVlamaxForGoal({ ...snapshot, sport_main: 'run' });
+  const inputs = { athleteId: snapshot.athlete_id, objectif: goal, activeSnapshotId: snapshot.id,
+    snapshots: [snapshot], tests: tests.filter(t => t.date.slice(0, 10) <= snapshot.date) };
+  const bike = computeVLamaxEffectif({ ...inputs, sportOverride: 'velo' });
+  const run = computeVLamaxEffectif({ ...inputs, sportOverride: 'cap' });
   const thresholds = positive(snapshot.vo2max) && positive(snapshot.weight_kg) && positive(bike.value) ? findLactateThresholds({ vo2max: snapshot.vo2max, weight: snapshot.weight_kg, vlamax: bike.value }) : null;
   return {
     athleteId: snapshot.athlete_id, objectif: goal, ambition,
@@ -29,7 +30,7 @@ export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, 
     vma: snapshot.vma, paceThresholdSecPerKm: snapshot.pace_threshold_sec_per_km,
     runEconomyScore: snapshot.run_economy_score, hrDriftPct: snapshot.run_hr_drift_pct,
     vlamaxEffectif: { value: positive(bike.value) ? bike.value : null, confidence: bike.confidence, source: bike.source },
-    vlamaxRunReference: { value: run.value, source: run.value == null ? 'unknown' : 'estimated' },
+    vlamaxRunReference: { value: run.value, source: run.source },
     tteEffectif: { tte_min: snapshot.tte_observed_min ?? 0, confidence: positive(snapshot.tte_observed_min) ? 1 : 0, source: positive(snapshot.tte_observed_min) ? 'observed' : 'unknown' },
     tteEffectifRun: { tte_min: snapshot.tte_observed_min_run ?? 0, confidence: positive(snapshot.tte_observed_min_run) ? 1 : 0, source: positive(snapshot.tte_observed_min_run) ? 'observed' : 'unknown' },
     criticalMetrics: snapshot.critical_metrics, fatmax: null, wprimeKj: null,

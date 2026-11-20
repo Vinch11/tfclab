@@ -177,6 +177,11 @@ export interface RadarAxis {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface CoachingCompassInput {
+  /** Display-only explicit goal; never inferred from race prediction. */
+  performanceObservation?: { seconds: number; date: string | null } | null;
+  performanceGoal?: import("./performanceComparison").PerformanceGoal | null;
+  css?: number | null;
+  athleteSex?: string | null;
   // Données snapshot
   ftp: number | null;
   poids: number | null;
@@ -215,7 +220,7 @@ export interface CoachingCompassInput {
     limiterLabel?: string;
     limiterEmoji?: string;
     limiterExplanation?: string;
-    gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number; prescriptionApplicable?: boolean }>;
+    gapAnalysis: Array<{ metric: string; gap: number; weightedImpact: number; value?: number | null; prescriptionApplicable?: boolean; prescriptionNote?: string }>;
     categoryRanking?: Array<{ category: string; metrics: Array<{ metric: string; weightedImpact: number; prescriptionApplicable?: boolean }> }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;

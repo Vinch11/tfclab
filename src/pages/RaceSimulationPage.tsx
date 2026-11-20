@@ -405,7 +405,7 @@ export default function RaceSimulationPage() {
     // P1 — Pénalité glycolytique segment course basée sur la VLamax CAP (run), pas la bike.
     // F41 — insufficient-data guard : pas de fake 0.4. Si VLamax absente,
     // on n'applique aucune pénalité glyco (on ne devine pas un profil).
-    const vlamaxRunVal = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
+    const vlamaxRunVal = vlamaxRunEffectif?.value ?? null;
 
     // P2 — Indice de durabilité observé chronos (Riegel semi→marathon), consommé
     // par estimateRunSplitMin (pénalité -1.5% si >1.04, -3% si >1.08).
@@ -507,7 +507,7 @@ export default function RaceSimulationPage() {
     if (!weight) return { bike: null as number | null, run: null as number | null };
     const compute = (sport: 'velo' | 'cap', durationMin: number) => {
       const vla = sport === 'cap'
-        ? (vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null)
+        ? (vlamaxRunEffectif?.value ?? null)
         : (vlamaxEffectif?.value ?? null);
       const { baseRate } = computeBaseRateMader(
         weight,
@@ -589,7 +589,7 @@ export default function RaceSimulationPage() {
     };
     const cpWkg = cpWkgUnified;
     // P1 — Pour le segment course (CAP ou run du tri), on injecte la VLamax CAP run.
-    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif) : vlamaxEffectif;
     // P2 — Fallback paceThreshold via raceTimeEstimator (RAW) si effective absent.
     // Override what-if appliqué uniquement au segment course (le seuil run ne
     // sert pas pour la zone bike, qui pilote sur FTP/CP).
@@ -653,7 +653,7 @@ export default function RaceSimulationPage() {
     const cpWkg = cpWkgUnified;
     const paceThr = paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null;
     return computePacingEnvelope({
-      vlamaxEffectif: vlamaxRunEffectif ?? vlamaxEffectif,
+      vlamaxEffectif: vlamaxRunEffectif,
       tteEffectif: tteEffectifRun ?? tteEffectif, fatmax,
       potentielPhysiologiqueScore, fatigueIndex: null,
       raceObjective, sport: 'run',
@@ -669,7 +669,7 @@ export default function RaceSimulationPage() {
   
   const rules = React.useMemo(() => {
     if (!envelope) return null;
-    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif) : vlamaxEffectif;
     return generateDisciplineRules({
       envelope,
       vlamaxEffectif: vlamaxForSport,
@@ -699,7 +699,7 @@ export default function RaceSimulationPage() {
   const scenarios = React.useMemo(() => {
     if (!envelope) return null;
     // P1 — VLamax discipline-aware (run du tri = vlamax_run, pas vlamax bike).
-    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif ?? vlamaxEffectif) : vlamaxEffectif;
+    const vlamaxForSport = discipline === 'run' ? (vlamaxRunEffectif) : vlamaxEffectif;
     return simulatePacingScenarios({
       envelope,
       raceObjective,
@@ -1334,7 +1334,7 @@ export default function RaceSimulationPage() {
                 paceThresholdSecKm={paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km ?? raceChronoEstimate?.paceThreshold_sec_km ?? null}
                 weightKg={activeSnapshot?.weight_kg ?? null}
                 vlamaxBike={vlamaxEffectif?.value ?? null}
-                vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                vlamaxRun={vlamaxRunEffectif?.value ?? null}
                 vo2max={activeSnapshot?.vo2max ?? null}
                 tteMin={tteEffectif?.tte_min ?? null}
                 tteMinRun={tteEffectifRun?.tte_min ?? null}
@@ -1361,7 +1361,7 @@ export default function RaceSimulationPage() {
                   runEnvelope={envelopeRun}
                   paceThresholdSecKm={(paceThresholdOverrideSecKm ?? activeSnapshot?.pace_threshold_sec_per_km)!}
                   vma={activeSnapshot?.vma ?? null}
-                  vlamaxRun={vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null}
+                  vlamaxRun={vlamaxRunEffectif?.value ?? null}
                   tteMinRun={tteEffectifRun?.tte_min ?? tteEffectif?.tte_min ?? null}
                   runDurationMin={isTriathlon ? segmentDurationMin.run : raceDurationMin}
                   weightKg={activeSnapshot?.weight_kg ?? null}
@@ -1433,7 +1433,7 @@ export default function RaceSimulationPage() {
               ) : (
                 (() => {
                   const goalLabel = String((raceGoals?.[0]?.race_type) || (activeSnapshot as any)?.objectif || objectif || 'IM');
-                  const vlaRun = vlamaxRunEffectif?.value ?? vlamaxEffectif?.value ?? null;
+                  const vlaRun = vlamaxRunEffectif?.value ?? null;
                   const vlaBike = vlamaxEffectif?.value ?? null;
                   const bikeMin = (isTriathlon || lcwActive || discipline === 'bike') ? (isTriathlon || lcwActive ? segmentDurationMin.bike : raceDurationMin) : segmentDurationMin.bike;
                   const runMin = (isTriathlon || lcwActive) ? segmentDurationMin.run : (discipline === 'run' ? raceDurationMin : segmentDurationMin.run);

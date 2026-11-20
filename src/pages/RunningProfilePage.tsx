@@ -141,44 +141,8 @@ export default function RunningProfilePage() {
       // RaceSimulationPage.tsx (vlamaxRunEffectif, segment course du tri).
       sportOverride: "cap",
       activeSnapshotId: currentAthlete.active_snapshot_id,
-      tests: tests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
-      snapshots: snapshots.map(s => ({
-        id: s.id,
-        athlete_id: s.athlete_id,
-        date: s.date,
-        vlamax: s.vlamax,
-        ftp: s.ftp,
-        pmax_5s: s.pmax_5s,
-        weight_kg: s.weight_kg,
-        sport_main: s.sport_main,
-        p30s_w: s.p30s_w,
-        p60s_w: s.p60s_w,
-        map5min_w: s.map5min_w,
-        tte_observed_min: s.tte_observed_min,
-        protocol_quality: s.protocol_quality,
-        objectif: s.objectif,
-        vo2max: s.vo2max,
-        vma: (s as any).vma ?? null,
-        pace_threshold_sec_per_km: (s as any).pace_threshold_sec_per_km ?? null,
-        running_power_threshold: (s as any).running_power_threshold ?? null,
-        running_power_max: (s as any).running_power_max ?? null,
-        running_power_1s: (s as any).running_power_1s ?? null,
-        running_power_5s: (s as any).running_power_5s ?? null,
-        running_power_30s: (s as any).running_power_30s ?? null,
-        running_power_60s: (s as any).running_power_60s ?? null,
-        running_power_5min: (s as any).running_power_5min ?? null,
-        // ✅ VLamax CAP mesurée (sprint lactate / test terrain)
-        vlamax_run: (s as any).vlamax_run ?? null,
-        vlamax_source: (s as any).vlamax_source ?? null,
-        vlamax_protocol: (s as any).vlamax_protocol ?? null,
-        sprint_15s_distance: (s as any).sprint_15s_distance ?? null,
-      })),
+      tests: tests,
+      snapshots,
     });
   }, [currentAthlete, tests, snapshots, athleteGoal]);
 
@@ -282,7 +246,7 @@ export default function RunningProfilePage() {
       vlamax_run: {
         value: vlamaxEffectif.value ?? 0,
         confidence: vlamaxEffectif.value != null ? vlamaxEffectif.confidence : 0,
-        source: vlamaxEffectif.source === "test" ? "field_test" as const : "estimation" as const,
+        source: vlamaxEffectif.source === "snapshot" ? "lab" as const : vlamaxEffectif.source === "test" ? "field_test" as const : "estimation" as const,
       },
       durability_run: {
         value: tteEffectif.tte_min,

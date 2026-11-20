@@ -56,12 +56,12 @@ function baseInput(overrides: Partial<CoachingCompassInput> = {}): CoachingCompa
 }
 
 describe("computeCoachingCompass — FatMax utilise le FTP et le poids réels", () => {
-  it("le FatMax diffère selon que ftp/poids réels sont fournis ou non (preuve qu'ils sont bien transmis)", () => {
+  it("le FatMax en % de FTP exige une puissance et un poids renseignés", () => {
     const withoutRealPower = computeCoachingCompass(baseInput({ vo2max: 55 }));
     const withRealPower = computeCoachingCompass(
       baseInput({ vo2max: 55, ftp: 280, poids: 70 })
     );
-    expect(withoutRealPower.profile.fatmax.value).not.toBeNull();
+    expect(withoutRealPower.profile.fatmax.value).toBeNull();
     expect(withRealPower.profile.fatmax.value).not.toBeNull();
     expect(withRealPower.profile.fatmax.value).not.toBe(withoutRealPower.profile.fatmax.value);
   });

@@ -316,13 +316,7 @@ export function getAssistantContext(params: GetAssistantContextParams): Assistan
     athleteId: athlete.id,
     objectif: athlete.goal || "IM",
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: tests.map(t => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name,
-    })),
+    tests: tests,
     snapshots: snapshots.map(mapSnapshotToV2),
   }) : null;
   

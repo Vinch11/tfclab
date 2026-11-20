@@ -161,11 +161,8 @@ describe("Intégration — computeDiagnostic().readiness → adaptPotentielV2ToL
   it("le score adapté pour le Dashboard vient bien du moteur riche (4 piliers), pas du stub 2 facteurs", () => {
     const diagnostic = computeDiagnostic(BASE_INPUT);
     const adapted = adaptPotentielV2ToLegacyShape(diagnostic.readiness);
-    // Le stub 2-facteurs (VLamax=0.45 ≤ 0.50 → 70, TTE=40 ≥ 30 → 70, moyenne 70)
-    // donnerait 70/"En progression" pour ce profil — le moteur riche doit
-    // diverger nettement (score plus élevé, catégorie différente), confirmant
-    // qu'on n'est plus sur l'ancien stub.
     expect(adapted.score).not.toBe(70);
-    expect(adapted.label).not.toBe("En progression");
+    expect(adapted.score).toBe(diagnostic.readiness.readiness.score);
+    expect(adapted.label).toBe(diagnostic.readiness.readiness.categoryLabel);
   });
 });

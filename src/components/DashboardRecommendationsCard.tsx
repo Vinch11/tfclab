@@ -122,13 +122,7 @@ export function DashboardRecommendationsCard({
       athleteId,
       objectif,
       activeSnapshotId: activeSnapshot.id,
-      tests: tests.map((t) => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests: tests,
       snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
 

@@ -16,6 +16,7 @@ export function computeCyclingCompassDiagnostic(input: {
   };
   const supportedTte = new Set(['observed', 'records', 'test_labo', 'test_terrain', 'test']);
   const priorities = axes.flatMap(axis => {
+    if (axis.key === 'vlamax' && !['observed', 'snapshot', 'test_labo'].includes(axis.source ?? 'unknown')) return [];
     const detail = details[axis.key];
     if (!detail || (axis.key === 'vo2max' && input.vo2Shared)) return [];
     if (axis.key === 'tte' && !supportedTte.has(axis.source ?? 'unknown')) return [];

@@ -1,3 +1,5 @@
+import { CompassPerformanceComparison } from "./CompassPerformanceComparison";
+import type { PerformanceGoal } from "@/lib/coachingCompass/performanceComparison";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL COACHING COMPASS™ — Graphique Signature
@@ -94,6 +96,7 @@ const FLOW_PEDAGOGY = {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 interface CoachingCompassCardProps {
+  onSavePerformanceGoal?: (goal: PerformanceGoal) => Promise<boolean>;
   input: CoachingCompassInput;
   athleteName?: string;
   staffMode?: boolean;
@@ -649,7 +652,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 // COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function CoachingCompassCard({ input, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
+export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
   const [staffMode, setStaffMode] = useState(initialStaffMode);
 
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
@@ -669,11 +672,12 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
           </div>
         </CardHeader>
         <CardContent>
+          <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
             <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
-              Renseignez au moins VMA (ou FTP), poids et VLamax dans un snapshot pour activer le Compass.
+              Ajoutez des résultats récents et un test spécifique au sport pour enrichir le diagnostic. Les capacités non renseignées restent inconnues.
             </p>
           </div>
         </CardContent>
@@ -726,6 +730,8 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
       </CardHeader>
 
       <CardContent className="pt-0 px-3 sm:px-6">
+        <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
+        <details><summary className="text-sm cursor-pointer mb-3">Profil historique et diagnostics — scores ≠ préparation à l’objectif</summary>
         {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
@@ -739,7 +745,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             <div className="flex items-center gap-2 min-w-0">
               <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
               <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Temps de course cible</p>
+                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Projection du profil (estimation)</p>
                 <p className="text-sm font-semibold truncate">
                   {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)}
                 </p>
@@ -1069,6 +1075,7 @@ export function CoachingCompassCard({ input, staffMode: initialStaffMode = false
             {compass.meta.disclaimer} — v{compass.meta.version}
           </p>
         )}
+        </details>
       </CardContent>
     </Card>
   );

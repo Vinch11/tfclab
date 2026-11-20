@@ -130,7 +130,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { predictRaceDurationMin, AMBITION_LEVEL_TO_PREDICTOR } from "@/lib/raceTimePredictor";
-import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
+import { estimateProfileFatMaxPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { NutritionUnifiedCard } from "@/components/NutritionUnifiedCard";
 import { getEffectiveSnapshot } from "@/lib/effectiveRefs";
@@ -1262,13 +1262,8 @@ export default function AITrainingPlanPage() {
       athleteId: athlete.id,
       objectif: obj,
       activeSnapshotId: athlete.active_snapshot_id,
-      tests: athleteTests.map(t => ({
-        athlete_id: t.athlete_id,
-        vlamax: t.vlamax,
-        date: t.date,
-        type: t.type,
-        name: t.name,
-      })),
+      tests: athleteTests,
+      sportOverride: sportFocus === "run" ? "cap" : "velo",
       snapshots: athleteSnapshots.map(mapSnapshotToV2),
     });
 
@@ -1292,7 +1287,7 @@ export default function AITrainingPlanPage() {
       thresholdPaceSecPerKm: (activeSnap as any).pace_threshold_sec_km ?? activeSnap.pace_threshold_sec_per_km ?? null,
       ftp: refs.ftp ?? null,
       weightKg: refs.weightKg ?? null,
-      vlamaxRun: vlamaxEffectifPrecomputed.value ?? null,
+      vlamaxRun: sportFocus === "run" ? vlamaxEffectifPrecomputed.value : activeSnap.vlamax_run ?? null,
     })?.targetRaceDurationMin ?? null;
 
     const latestCheckin = (getCheckinsForAthlete(athlete.id) ?? [])
@@ -1345,7 +1340,7 @@ export default function AITrainingPlanPage() {
       protocolQuality: activeSnap.protocol_quality,
       wprimeKj: cpResult?.wprimeKJ ?? null,
       cpDataQuality: cpResult?.dataQuality ?? null,
-      fatmax: computeFatMaxAnchorPctFTP(vlamaxEffectifPrecomputed.value, refs.vo2max ?? null),
+      fatmax: sportFocus === "run" ? null : estimateProfileFatMaxPctFTP(vlamaxEffectifPrecomputed.value, refs.vo2max ?? null, refs.weightKg ?? null, refs.ftp ?? null),
       forceDevMode: activeSnap.force_development_mode ?? false,
       giIssuesFlag: activeSnap.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {

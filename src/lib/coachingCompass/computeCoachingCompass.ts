@@ -41,7 +41,7 @@ import {
   getVmaTargetByAmbition,
 } from "@/lib/physiologicalTargets";
 import { getVo2maxTarget, getPerformanceAgeFactor, getTTEAgeFactor, getFatmaxTargets, getWprimeTargets } from "@/lib/v2/unifiedLimiterDetection";
-import { computeFatMaxAnchorPctFTP } from "@/lib/v2/fatmaxTFCL";
+import { estimateProfileFatMaxPctFTP } from "@/lib/v2/fatmaxTFCL";
 import { calibrateVO2maxFromFTP } from "@/lib/v2/metabolicSimulator";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { buildCompassPresentation } from "./presentation";
@@ -101,45 +101,7 @@ export function computeCoachingCompass(input: CoachingCompassInput): TFCLCoachin
 // PROFIL PHYSIOLOGIQUE — Lecture des données existantes
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * Estime la FatMax en **% FTP/seuil** (échelle 0-100).
- * Délègue à l'ancre canonique unifiée `computeFatMaxAnchorPctFTP` (fatmaxTFCL.ts).
- *
- * Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ce
- * docblock décrivait encore l'ANCIENNE formule (régression linéaire isolée,
- * remplacée depuis par l'ancrage MLSS calibré α=1.98 — voir fatmaxTFCL.ts)
- * avec des exemples chiffrés qui ne correspondaient plus au comportement
- * réel de la fonction (jusqu'à ~12 points d'écart pour les VLamax élevées).
- * Ne pas dupliquer la formule ici : se référer à fatmaxTFCL.ts pour le
- * détail du calcul (MLSS → LT1 → FatMax) — ce commentaire ne donne que des
- * exemples de sortie, recalculés sur le comportement actuel.
- *
- * ⚠️ IMPORTANT : retourne un % (0-100), PAS des watts. Indépendant du FTP,
- * fonctionne en mode running (pas de FTP vélo nécessaire) — via le ratio de
- * repli quand `ftp`/`weightKg` réels ne sont pas fournis.
- *
- * Exemples (VO2max=50, poids par défaut 70kg, sans FTP réel) :
- *   VLamax 0.30 → 76%  (profil lipidique)
- *   VLamax 0.40 → 68%  (équilibré)
- *   VLamax 0.55 → 56%  (cible IM/Marathon)
- *   VLamax 0.70 → 43%  (glycolytique dominant)
- */
-function estimateFatMaxFromProfile(
-  ftp: number | null,
-  vlamax: number | null,
-  vo2max: number | null = null,
-  weightKg: number | null = null,
-): number | null {
-  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : ftp
-  // et weightKg n'étaient jamais transmis à computeFatMaxAnchorPctFTP, qui
-  // retombait alors sur le poids par défaut (70kg) et le ratio de repli
-  // FTP≈76%×puissance-VO2max au lieu de la conversion réelle — un écart de
-  // ~12 points de %FTP par rapport au FatMax calculé correctement ailleurs
-  // (ExportTools.tsx, fatmaxTFCL.ts) pour le même athlète dans le même
-  // export. Audit #7 : source unique — pas de duplication de formule ici,
-  // juste les inputs réels qui manquaient.
-  return computeFatMaxAnchorPctFTP(vlamax, vo2max, weightKg, ftp);
-}
+
 
 /**
  * TTE (minutes) correspondant à une durabilité de 100/100 pour un objectif
@@ -221,7 +183,7 @@ function buildPhysiologicalProfile(input: CoachingCompassInput): TFCLPhysiologic
     : null;
 
   // FatMax : donnée directe > estimation VLamax+FTP
-  const fatmaxValue = input.fatmax ?? estimateFatMaxFromProfile(input.ftp, input.vlamaxEffectif.value, input.vo2max, input.poids);
+  const fatmaxValue = input.sportFocus === "run" ? null : input.fatmax ?? estimateProfileFatMaxPctFTP(input.vlamaxEffectif.value, input.vo2max, input.poids, input.ftp);
   const fatmaxSource = input.fatmax ? "snapshot" : (fatmaxValue ? "estimation" : "unknown");
 
   // Durabilité = expression directe du TTE, calibrée selon l'objectif
@@ -350,7 +312,7 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
   if (input.limiterResult?.primaryLimiter && input.limiterResult.primaryLimiter !== "none") {
     const lr = input.limiterResult;
     const mapped = LIMITER_MAP[lr.primaryLimiter!] ?? { type: "unknown" as LimiterType, icon: "❓" };
-    const topGap = lr.gapAnalysis?.[0];
+    const topGap = lr.categoryRanking?.[0]?.metrics[0] ?? lr.gapAnalysis?.filter(g => canGuidePrescription(g)).sort((a,b) => b.weightedImpact - a.weightedImpact)[0];
     
     // Labels depuis le Unified Limiter (source de vérité)
     const label = lr.limiterLabel || lr.primaryLimiter!;
@@ -366,8 +328,15 @@ function buildLimiter(input: CoachingCompassInput): TFCLLimiter {
       description,
       icon,
       metricsUsed: lr.gapAnalysis?.filter(g => g.weightedImpact > 0 && canGuidePrescription(g)).map(g => g.metric) ?? [],
-      confidence: lr.confidence >= 70 ? "high" : lr.confidence >= 50 ? "moderate" : "low",
+      confidence: lr.confidence >= 0.7 ? "high" : lr.confidence >= 0.5 ? "moderate" : "low",
     };
+  }
+
+  if (input.limiterResult?.primaryLimiter === "none") {
+    const lr = input.limiterResult;
+    return { type: "unknown", label: lr.limiterLabel || "Aucun limiteur identifié",
+      description: lr.limiterExplanation || "Confronter le bilan aux exigences de l’épreuve.",
+      impactScore: 0, metricsUsed: [], icon: lr.limiterEmoji || "❓", confidence: "low" };
   }
 
   // Priorité 2 : Strategy Engine (Lorang) — fallback
@@ -467,7 +436,7 @@ function buildLeverage(input: CoachingCompassInput, limiter: TFCLLimiter): TFCLL
   const baseLever = LIMITER_TO_LEVER[limiter.type] ?? LIMITER_TO_LEVER.unknown;
   
   // Enrichir avec les prescriptions du Strategy Engine si disponibles
-  if (input.strategyResult?.activatedLevers?.length) {
+  if (limiter.type !== "unknown" && input.strategyResult?.activatedLevers?.length) {
     // Chercher le lever du Strategy Engine qui correspond au limiteur
     const matchingLever = findMatchingLever(input.strategyResult.activatedLevers, limiter.type);
     const topLever = matchingLever ?? input.strategyResult.activatedLevers[0];
@@ -561,8 +530,8 @@ function buildDecision(
     primaryWorkouts: leverage.workoutExamples,
     physiologicalTargets: leverage.expectedAdaptations,
     prohibitions,
-    athleteMessage: sr?.athleteMessage ?? leverage.description,
-    coachRationale: sr?.summary
+    athleteMessage: limiter.type !== "unknown" && sr?.athleteMessage ? sr.athleteMessage : leverage.description,
+    coachRationale: limiter.type === "unknown" ? limiter.description : sr?.summary
       ? `${sr.summary.mainAction}. ${sr.summary.whyThis}`
       : `Limiteur identifié : ${limiter.label}. Levier prioritaire : ${leverage.label}.`,
   };

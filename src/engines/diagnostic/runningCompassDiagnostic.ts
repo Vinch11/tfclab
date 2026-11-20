@@ -54,6 +54,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
     tte: { explanation: 'La durée tenue au seuil course est sous la cible interne. Un arrêt volontaire indique seulement un minimum ; cet écart ne prouve pas une perte de performance après effort prolongé.', lever: 'Consolider progressivement le temps de travail au seuil course ; vérifier le protocole avant de conclure.' },
   };
   const priorities = axes.flatMap(axis => {
+    if (axis.key === 'vlamax' && !['observed', 'snapshot', 'test_labo'].includes(axis.source ?? 'unknown')) return [];
     // A common VO₂max observation is not a sport-specific running diagnosis.
     if (axis.key === 'vo2max' && input.vo2Source === 'shared') return [];
     if (axis.value == null || axis.target == null || axis.target <= 0) return [];

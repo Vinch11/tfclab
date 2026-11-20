@@ -150,6 +150,12 @@ const VO2MAX_DEFAULT_ML_KG_MIN = 50;
  *  ailleurs dans la base (caffeineProtocol.ts, recoveryProtocol.ts, etc.). */
 const WEIGHT_DEFAULT_KG = 70;
 
+/** Athlete-facing model estimate requires all individual inputs. */
+export function estimateProfileFatMaxPctFTP(vlamax: number | null, vo2max: number | null, weightKg: number | null, ftp: number | null): number | null {
+  if (![vlamax, vo2max, weightKg, ftp].every(value => value != null && Number.isFinite(value) && value > 0)) return null;
+  return computeFatMaxAnchorPctFTP(vlamax, vo2max, weightKg, ftp);
+}
+
 /**
  * Audit 2D F29, puis re-calibrage (audit "estimations physiologiques") —
  * Ancre FatMax canonique (%FTP)
