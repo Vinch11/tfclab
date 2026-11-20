@@ -1,4 +1,3 @@
-import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
@@ -49,7 +48,7 @@ import { buildChartePageHTML } from "@/data/charteInterpretation";
 import { computeCRR, computeChargeScore, getCRRTargets, type ChargeRecenteReference, type ChargeScore } from "@/lib/chargeRecenteReference";
 import type { TemplateWeek, TemplateSession } from "@/lib/templates/docxTemplateLoader";
 // ✅ NEW: Import FatMax TFCL et Nutrition V2
-import { computeFatMaxTFCL, computeFatMaxAnchorPctFTP, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
+import { computeFatMaxTFCL, estimateProfileFatMaxPctFTP, type FatMaxTFCLResult, FATMAX_DEFINITIONS, FATMAX_ACADEMY_CONTENT } from "@/lib/v2/fatmaxTFCL";
 import { computeNutritionV2, type NutritionPredictiveV2, NUTRITION_PHILOSOPHY } from "@/lib/v2/nutritionV2";
 // ✅ NEW: Strategic Roadmap Engine
 import { computeStrategicRoadmap, type StrategicRoadmap, type RoadmapPhase as SmartRoadmapPhase, computeLorangStrategy, type LorangStrategyResult, type LorangLeverActivation, type LorangProhibitionRule, type ClassifiableRaceGoal } from "@/engines/decision";
@@ -1488,18 +1487,14 @@ function buildExportPayload(
   const athleteTests = tests.filter(t => t.athlete_id === athlete.id);
   const athleteCheckins = checkins.filter(c => c.athlete_id === athlete.id);
   
+  const sportFocusForLimiter = determineSportFocusForLimiter(athlete.goal || "IM");
   // Calculer VLamax effectif (legacy)
   const vlamaxLegacy = computeVLamaxEffectif({
     athleteId: athlete.id,
     objectif: athlete.goal || "IM",
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: athleteTests.map(t => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name
-    })),
+    tests: athleteTests,
+    sportOverride: sportFocusForLimiter === "run" ? "cap" : "velo",
     snapshots: athleteSnapshots.map(mapSnapshotToV2)
   });
   
@@ -1513,7 +1508,7 @@ function buildExportPayload(
   // sport via sa propre regex interne, qui peut diverger de
   // determineSportFocusForLimiter (déjà la référence pour le reste de cet
   // export) pour un objectif limite.
-  const sportFocusForLimiter = determineSportFocusForLimiter(objectifForLimiter);
+
   // Calculer TTE effectif (legacy) — F33: âge propagé
   const tteLegacy = computeTTEEffectif({
     ftp: effectiveRefs.ftp,
@@ -1589,9 +1584,9 @@ function buildExportPayload(
       protocolQuality: effectiveSnapshot.protocol_quality ?? null,
       wprimeKj: wprimeKjForPayload,
       cpDataQuality: cpResultForPayload?.dataQuality ?? null,
-      // Audit 2D F29: ancre FatMax canonique unifiée (computeFatMaxAnchorPctFTP)
+      // Audit 2D F29: ancre FatMax canonique unifiée (estimateProfileFatMaxPctFTP)
       // Formule: clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82)
-      fatmax: computeFatMaxAnchorPctFTP(vlamaxLegacy.value, effectiveSnapshot.vo2max ?? null),
+      fatmax: sportFocusForLimiter === "run" ? null : estimateProfileFatMaxPctFTP(vlamaxLegacy.value, effectiveSnapshot.vo2max, effectiveSnapshot.weight_kg, effectiveSnapshot.ftp),
       forceDevMode: effectiveSnapshot.force_development_mode ?? false,
       giIssuesFlag: effectiveSnapshot.gi_issues_flag ?? false,
       checkinData: latestCheckin ? {
@@ -1750,6 +1745,8 @@ function buildExportPayload(
         vo2max: effectiveSnapshot?.vo2max ?? null,
         ftpKg: ftpKg,
         vlamax: vlamax.value,
+        vlamaxSource: vlamax.v2?.source ?? vlamax.source,
+        tteSource: tte.source,
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
         tte: tte.tte_min,
@@ -2130,7 +2127,10 @@ function buildExportPayload(
         paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
         fatmax: null,
         vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
-        vlamaxRunReference: sportFocusForLimiter === 'run' ? { value: vlamax.value, source: vlamax.source } : (() => { const r = effectiveSnapshot ? resolveVlamaxForGoal({ ...effectiveSnapshot, sport_main: 'run' }) : null; return r?.value != null ? { value: r.value, source: (r.confidence ?? 0) >= 0.9 ? 'test' : 'estimated' } : { value: effectiveSnapshot?.vlamax_run ?? null, source: 'snapshot' }; })(),
+        vlamaxRunReference: sportFocusForLimiter === 'run' ? vlamax : computeVLamaxEffectif({
+          athleteId: athlete.id, objectif: objectifForLimiter, sportOverride: 'cap',
+          activeSnapshotId: effectiveSnapshot?.id, snapshots: athleteSnapshots, tests: athleteTests,
+        }),
         tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
         tteEffectifRun: computeTTEEffectif({
           objectif: athlete.goal || "IM", sport: "run", age: athleteAge,

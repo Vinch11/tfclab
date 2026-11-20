@@ -17,6 +17,8 @@ export function mapSnapshotToV2(s: DbSnapshot) {
     id: s.id,
     athlete_id: s.athlete_id,
     date: s.date,
+    source: s.source,
+    created_at: s.created_at,
     vlamax: s.vlamax,
     vlamax_run: (s as any).vlamax_run ?? null, // ✅ requis pour routing CAP/run dans computeVLamaxEffectif
     ftp: s.ftp,

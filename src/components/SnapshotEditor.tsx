@@ -1,3 +1,4 @@
+import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -274,7 +275,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   };
 
   const handleSave = async () => {
-    await updateSnapshot(snapshot.id, {
+    const saved = await updateSnapshot(snapshot.id, {
       date,
       sport_main: sportMain || null,
       ftp: numOrNull(ftp) != null ? Math.round(numOrNull(ftp)!) : null,
@@ -284,6 +285,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       // ✅ VLamax uniquement sauvegardée en mode Staff
       vlamax: staffMode ? numOrNull(vlamax) : snapshot.vlamax,
       vlamax_run: staffMode ? numOrNull(vlamaxRun) : snapshot.vlamax_run,
+      ...(staffMode ? staffLactateUpdate(snapshot, numOrNull(vlamax), numOrNull(vlamaxRun)) : {}),
       vma: numOrNull(vma),
       // ✅ Tlim@vVO2max (Billat 1996) — calibrage volume 30/30
       tlim_vvo2max_min: numOrNull(tlimVvo2max),
@@ -307,7 +309,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       time_half_sec: parseRaceTime(timeHalf),
       time_marathon_sec: parseRaceTime(timeMarathon),
     } as any);
-    setOpen(false);
+    if (saved) setOpen(false);
   };
 
   const handleOpen = (isOpen: boolean) => {

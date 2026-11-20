@@ -92,6 +92,9 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     vo2max: input.vo2max,
     ftpKg: input.ftpKg,
     vlamax: vlamax.value,
+    vlamaxSource: vlamax.v2?.source ?? vlamax.source,
+    tteSource: tte.source,
+    fatmaxSource: input.fatmaxSource ?? "model",
     wprimeKj: input.wprimeKj,
     cpDataQuality: input.cpDataQuality,
     // Durabilité inconnue ≠ durabilité nulle : null = « Données insuffisantes ».
@@ -206,6 +209,7 @@ function computeVLamaxFromInput(input: DiagnosticInput): VLamaxEffectif {
     p60s_w: input.p60sW,
     map5min_w: input.map5minW,
     tte_observed_min: input.tteObservedMin,
+    tte_observed_min_run: input.tteObservedMinRun,
     protocol_quality: input.protocolQuality,
     objectif: input.objectif,
     vo2max: input.vo2max,
@@ -301,7 +305,7 @@ function computeReadinessFromInput(
   let robustnessScore = 50;
 
   for (const gap of limiter.gapAnalysis) {
-    if (!canGuidePrescription(gap)) continue;
+    if (gap.value === null || gap.status === "unknown" || !canGuidePrescription(gap)) continue;
     if (gap.metric === "VO2max" || gap.metric === "FTP/kg" || gap.metric === "VMA") {
       const score = Math.max(0, Math.min(100, 100 + gap.gapPercent));
       aerobicScore = Math.min(aerobicScore === 50 ? score : aerobicScore, score);
@@ -556,6 +560,7 @@ function generateHeadline(
     return `Fatigue critique — priorité récupération avant toute qualité`;
   }
   if (limiter.primaryLimiter === "none") {
+    if (limiter.insufficientData) return "Données insuffisantes pour identifier un limiteur";
     return `Profil équilibré — ${readiness.readiness.categoryLabel}`;
   }
   // Use limiter-specific severity instead of global readiness to avoid contradictions
@@ -576,31 +581,14 @@ function generateHeadline(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeDataCompleteness(input: DiagnosticInput): number {
-  // ✅ VLamax adaptée à l'objectif : pour un runner pur, c'est vlamax_run
-  // qui compte dans la complétude (pas la VLamax vélo).
-  const goalVlamax = input.sportFocus === "run" ? input.vlamaxRun : input.vlamax;
-
-  const fields: (number | null | undefined)[] = [
-    input.vo2max,
-    input.ftp,
-    input.ftpKg,
-    goalVlamax,
-    input.tteObservedMin ?? input.tss7d,
-    input.pmax5s,
-    input.weightKg,
-  ];
-
-  if (input.sportFocus === "run" || input.sportFocus === "tri") {
-    fields.push(input.vma, input.css, input.runEconomyScore);
+  const fields = [input.vo2max, input.weightKg, input.tteObservedMin];
+  if (input.sportFocus !== "run") {
+    fields.push(input.ftp, input.vlamax, input.pmax5s, input.p30sW, input.p60sW, input.map5minW);
   }
-  if (input.sportFocus === "bike" || input.sportFocus === "tri") {
-    fields.push(input.p30sW, input.p60sW, input.map5minW);
+  if (input.sportFocus !== "bike") {
+    fields.push(input.vma, input.vlamaxRun, input.paceThresholdSecPerKm, input.runEconomyScore);
   }
-  // En triathlon on attend AUSSI vlamax_run (scoring CAP-spécifique)
-  if (input.sportFocus === "tri") {
-    fields.push(input.vlamaxRun);
-  }
-
+  if (input.sportFocus === "tri") fields.push(input.css);
   const present = fields.filter(f => f !== null && f !== undefined).length;
   return Math.round((present / fields.length) * 100) / 100;
 }

@@ -44,3 +44,10 @@ Les 13 objectifs disposent d'une lecture propre : IM, 703, Sprint, Olympic, 5K, 
 [Étude trail 2019](https://www.frontiersin.org/journals/physiology/articles/10.3389/fphys.2019.00506/full) : 17 coureurs entraînés, tests en laboratoire et terrain. Elle justifie d'examiner séparément montées et descentes ; elle ne fournit pas une cible physiologique universelle pour un ultra.
 
 Cette extension couvre les parcours de comparaison, pas une validation scientifique universelle des cibles. Les normes conditionnelles manquantes restent explicitement manquantes.
+
+## Interprétation du bilan métabolique
+
+Le test de sprint avec prélèvement renseigne sur l’accumulation de lactate sanguin dans la discipline testée. Une estimation par puissance ou allure reste visible et demande une confirmation. Le classement automatique écarte aussi le FatMax calculé à partir du même profil et les durées au seuil déduites de la charge ou des records. Une observation indépendante de FatMax conserve sa place si sa provenance est renseignée. Les cibles internes servent à proposer au coach des facteurs à examiner.
+
+- Wackerhage, Kabasakalis, Seiler & Heck (2025). Distinction entre modèle musculaire, accumulation sanguine et protocole de sprint. [Sports Medicine](https://doi.org/10.1007/s40279-025-02259-6).
+- Poffé, Van Dael & Van Schuylenbergh (2024). Comparaison du MLSS à vélo avec des essais à charge constante. Les méthodes décrivent 31 cyclistes recrutés et 29 analysés après deux exclusions. Biais moyen de +4,6 W, écarts individuels de 3,1 à 7,3 % chez 12 participants. La précision propre à TFCLab reste à déterminer. [Frontiers in Sports and Active Living](https://doi.org/10.3389/fspor.2024.1376876).

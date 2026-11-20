@@ -221,13 +221,12 @@ export function useCloudData() {
   };
 
   const updateAthlete = async (id: string, updates: TablesUpdate<"athletes">) => {
-    const { error } = await supabase.from("athletes").update(updates).eq("id", id);
-    if (error) {
-      toast.error("Erreur lors de la mise à jour");
-      if (import.meta.env.DEV) console.error("Update athlete error");
+    const { data, error } = await supabase.from("athletes").update(updates).eq("id", id).select("*").single();
+    if (error || data?.id !== id) {
+      toast.error("La mise à jour de l’athlète n’a pas pu être confirmée.");
       return false;
     }
-    setAthletes((prev) => prev.map((a) => (a.id === id ? { ...a, ...updates } : a)));
+    setAthletes((prev) => prev.map(a => a.id === id ? data : a));
     return true;
   };
 
@@ -398,6 +397,7 @@ export function useCloudData() {
 
     const insertPayload: TablesInsert<"snapshots"> = {
       ...validated,
+      id: crypto.randomUUID(),
       ...(finalSport ? { sport_main: finalSport } : {}),
       coach_id: user.id,
     };
@@ -415,15 +415,14 @@ export function useCloudData() {
     }
 
     // PostgREST can sometimes return 0 rows on insert+select; fallback fetch.
-    const row = inserted?.[0] as DbSnapshot | undefined;
+    const row = inserted?.find(item => item.id === insertPayload.id && item.athlete_id === snapshot.athlete_id && item.coach_id === user.id);
     if (!row) {
       const { data: fetched, error: fetchError } = await supabase
         .from("snapshots")
         .select("*")
         .eq("coach_id", user.id)
         .eq("athlete_id", snapshot.athlete_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .eq("id", insertPayload.id!)
         .maybeSingle();
 
       if (fetchError || !fetched) {
@@ -451,14 +450,13 @@ export function useCloudData() {
       toast.error(`Données invalides : ${describeSnapshotIssues(updateCheck.error.issues)}`);
       return false;
     }
-    const { error } = await supabase.from("snapshots").update(cleanUpdates).eq("id", id);
-    if (error) {
-      const detail = error.details || error.message || "Erreur inconnue";
-      toast.error(`Mise à jour snapshot échouée : ${detail}`);
-      console.error("Update snapshot error:", error.message, error.details, error.code, JSON.stringify(cleanUpdates));
+    const { data: saved, error } = await supabase.from("snapshots").update(cleanUpdates)
+      .eq("id", id).select("*").single();
+    if (error || saved?.id !== id) {
+      toast.error("Le bilan modifié n’a pas pu être confirmé.");
       return false;
     }
-    setSnapshots((prev) => prev.map((s) => (s.id === id ? enrichSnapshotWithRunEconomy({ ...s, ...updates }) as DbSnapshot : s)));
+    setSnapshots((prev) => prev.map(s => s.id === id ? enrichSnapshotWithRunEconomy(saved) as DbSnapshot : s));
     toast.success("Profil mis à jour");
     return true;
   };
@@ -481,13 +479,11 @@ export function useCloudData() {
 
   // Set active snapshot for an athlete (effective profile)
   const setActiveSnapshot = async (athleteId: string, snapshotId: string | null) => {
-    const { error } = await supabase
-      .from("athletes")
-      .update({ active_snapshot_id: snapshotId })
-      .eq("id", athleteId);
-    if (error) {
-      toast.error("Erreur lors de la mise à jour du snapshot actif");
-      if (import.meta.env.DEV) console.error("Set active snapshot error");
+    const { data, error } = await supabase.from("athletes")
+      .update({ active_snapshot_id: snapshotId }).eq("id", athleteId)
+      .select("id, active_snapshot_id").single();
+    if (error || data?.id !== athleteId || data.active_snapshot_id !== snapshotId) {
+      toast.error("Le changement de bilan actif n’a pas pu être confirmé.");
       return false;
     }
     setAthletes((prev) => prev.map((a) => 

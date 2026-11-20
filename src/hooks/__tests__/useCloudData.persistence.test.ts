@@ -82,6 +82,29 @@ describe("cloud data persistence through mocked transport", () => {
     reopened.unmount();
   });
 
+  it("confirms the exact newly created bilan after reopening, and rejects a missing update", async () => {
+    const hook = renderHook(() => useCloudData());
+    await waitFor(() => expect(hook.result.current.loading).toBe(false));
+    let insertedId = "";
+    await act(async () => {
+      const saved = await hook.result.current.addSnapshot({ athlete_id: athleteId, coach_id: transport.user.id,
+        date: "2026-11-20", source: "staff", vlamax: .31, vlamax_run: .56,
+        vlamax_source: "lab", vlamax_protocol: "Sprint lactate course", vo2max: 54,
+      } as Parameters<typeof hook.result.current.addSnapshot>[0]);
+      expect(saved?.athlete_id).toBe(athleteId);
+      insertedId = saved!.id;
+      expect(await hook.result.current.setActiveSnapshot(athleteId, insertedId)).toBe(true);
+      expect(await hook.result.current.updateSnapshot("inexistant", { vma: 19 })).toBe(false);
+    });
+    hook.unmount();
+    const reopened = renderHook(() => useCloudData());
+    await waitFor(() => expect(reopened.result.current.loading).toBe(false));
+    expect(reopened.result.current.athletes[0].active_snapshot_id).toBe(insertedId);
+    expect(reopened.result.current.getSnapshotsForAthlete(athleteId).find(row => row.id === insertedId))
+      .toMatchObject({ vlamax: .31, vlamax_run: .56, vlamax_protocol: "Sprint lactate course" });
+    reopened.unmount();
+  });
+
   it("a rejected save leaves both the prior local plan and stored plan unchanged", async () => {
     const hook = renderHook(() => useCloudData());
     await waitFor(() => expect(hook.result.current.loading).toBe(false));

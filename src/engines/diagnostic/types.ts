@@ -105,6 +105,7 @@ export interface DiagnosticInput {
   
   // FatMax
   fatmax: number | null;
+  fatmaxSource?: "observed" | "model";
   
   // Flags
   forceDevMode: boolean;

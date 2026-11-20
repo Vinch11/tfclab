@@ -20,7 +20,7 @@ export function completeProfile(input: CoachingCompassInput, css: number | null 
     const axes = sport === 'run' ? view.runningDiagnostic?.axes ?? [] : view.cyclingDiagnostic?.axes ?? view.axes;
     const indicators: CompleteIndicator[] = axes.filter(a => !['fatmax', 'wprime', 'durability'].includes(a.key)).map(a => ({
       key: a.key, label: a.label, value: positive(a.value), unit: a.unit, target: positive(a.target), source: a.source ?? 'unknown',
-      explanation: a.key === 'tte' ? 'Durée tenue au seuil. Un arrêt volontaire donne un minimum, pas une durée jusqu’à épuisement.' : a.key === 'vo2max' && view.sport === 'triathlon' ? 'Valeur commune enregistrée : elle ne constitue pas deux tests spécifiques vélo et course.' : 'Comparaison à la cible interne de l’objectif ; ce n’est pas une probabilité de réussite.',
+      explanation: a.key === 'vlamax' ? 'Un sprint avec prélèvement renseigne sur l’accumulation de lactate sanguin. Une valeur issue de la puissance ou de l’allure est une estimation à confronter au terrain.' : a.key === 'tte' ? 'Durée tenue au seuil. Un arrêt volontaire donne un minimum, pas une durée jusqu’à épuisement.' : a.key === 'vo2max' && view.sport === 'triathlon' ? 'Valeur commune enregistrée : elle ne constitue pas deux tests spécifiques vélo et course.' : 'Comparaison à la cible interne de l’objectif ; ce n’est pas une probabilité de réussite.',
     }));
     const add = (key: string, label: string, value: number | null | undefined, unit: string, explanation: string, source = 'snapshot') => {
       if (!indicators.some(i => i.key === key)) indicators.push({ key, label, value: positive(value), unit, target: null, source: positive(value) == null ? 'unknown' : source, explanation });

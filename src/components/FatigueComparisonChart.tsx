@@ -79,13 +79,7 @@ export function FatigueComparisonChart({
         athleteId,
         objectif,
         activeSnapshotId: snap.id,
-        tests: athleteTests.map(t => ({
-          athlete_id: t.athlete_id,
-          vlamax: t.vlamax,
-          date: t.date,
-          type: t.type,
-          name: t.name,
-        })),
+        tests: athleteTests,
         snapshots: athleteSnapshots.map(mapSnapshotToV2),
       });
 

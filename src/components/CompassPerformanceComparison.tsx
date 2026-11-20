@@ -17,6 +17,10 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const disciplines = compareDisciplines(input.objectif, draft, input);
   const olympic = input.objectif === 'Olympic' && input.athleteAge != null && input.athleteAge >= 18 ? olympicCohort(input.athleteSex) : null;
   const pace = result.pace == null ? null : Math.round(result.pace);
+  const diagnosis = input.limiterResult;
+  const lead = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none' ? diagnosis.categoryRanking?.[0] : null;
+  const leadMetrics = lead?.metrics.filter(metric => metric.prescriptionApplicable !== false && metric.weightedImpact > 0);
+  const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
   const save = async () => {
     if (!draft || !onSave) return;
     setBusy(true);
@@ -28,6 +32,13 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
     <h3 className="font-semibold">Que manque-t-il pour l’objectif ?</h3>
     <p className="text-sm">{input.objectif} · {input.ambition || 'Ambition non renseignée'} · {result.category} · {input.athleteSex === 'F' ? 'Femme' : input.athleteSex === 'M' ? 'Homme' : 'Sexe non renseigné'}</p>
     <p className="text-xs text-muted-foreground">Le chrono ci-dessous est l’objectif choisi par le coach. Une projection du profil ou un score sur 100 ne mesure pas les chances de réussite.</p>
+    {diagnosis && <div aria-label="Priorité du bilan" className="space-y-1 border-l-2 border-primary pl-3 text-sm">
+      <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {leadMetrics?.length ? diagnosis.limiterLabel : 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
+      {!!leadMetrics?.length && <p>Écart aux repères de l’objectif sur {leadMetrics.map(metric => metric.metric).join(', ')}. À confronter à une performance récente dans la discipline.</p>}
+      {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
+        <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>
+      </details>}
+    </div>}
     <div className="flex flex-wrap items-end gap-3 print:hidden">
       <label className="text-sm">{demands?.kind === 'beginner' ? 'Durée continue visée (minutes)' : 'Chrono total visé (minutes)'}<input aria-label="Chrono total visé en minutes" type="number" min="1" max="10080" step="any" className="block border rounded p-2 w-40 bg-background" value={minutes} onChange={e => { setMinutes(e.target.value); setMessage(''); }} /></label>
       {result.distance?.tri && <label className="text-sm">Split course visé (minutes)<input aria-label="Split course visé en minutes" type="number" min="1" step="any" className="block border rounded p-2 w-40 bg-background" value={run} onChange={e => { setRun(e.target.value); setMessage(''); }} /></label>}

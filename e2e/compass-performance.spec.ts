@@ -17,3 +17,16 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
   await expect(total).toHaveValue('187');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('the coach sees why estimates are provisional and which observation supports a priority', async ({ page }) => {
+  await page.goto('/__e2e/compass-performance');
+  const panel = page.getByLabel('Priorité du bilan');
+  await expect(panel).toContainText('Aucun facteur suffisamment étayé');
+  await panel.getByText('Données à confirmer').click();
+  for (const metric of ['VLamax', 'FatMax', 'TTE']) {
+    await expect(panel.getByRole('listitem').filter({ hasText: metric }).first()).toBeVisible();
+  }
+  await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
+  await expect(panel).toContainText('Facteur à examiner en priorité');
+  await expect(panel).toContainText('Écart aux repères de l’objectif sur TTE');
+});

@@ -1,3 +1,4 @@
+import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // =============================================
 // PROFIL PHYSIOLOGIQUE MANAGER - Gestion des Profils Two For Coaching Lab™ (Cloud)
 // Anciennement "Snapshot Manager"
@@ -280,8 +281,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       coach_id: "", // replaced in hook
       date: formData.date,
       source: staffMode && vlamax ? "staff" : "manual", // ✅ Marquer source "staff" si VLamax mesurée
-      // Preuve de mesure : la VLamax vélo saisie en mode Staff est déclarée mesurée en labo.
-      ...(staffMode && vlamax ? { vlamax_source: "lab", vlamax_protocol: "Mesure lactate (saisie coach)" } : {}),
+      ...staffLactateUpdate({}, vlamax, vlamaxRun),
       cycle_tag: formData.cycle_tag || null,
       sport_main: formData.sport_main || null,
       confidence: parseNum(formData.confidence),
@@ -372,7 +372,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     // Parse VLamax CAP fields — en mode Staff, un champ vide doit vraiment supprimer la valeur verrouillée.
     const vlamaxRun = staffMode ? parseNum(formData.vlamax_run) : editingSnapshot.vlamax_run;
-    const shouldClearVlamaxRunLock = staffMode && vlamaxRun == null && editingSnapshot.vlamax_run != null;
     const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
 
     const updated = await updateSnapshot(editingSnapshot.id, {
@@ -386,15 +385,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       css: parseNum(formData.css),
       vo2max,
       vlamax, // ✅ Conserve valeur existante si mode standard
-      ...(staffMode && vlamax != null && vlamax !== editingSnapshot.vlamax
-        ? { source: "staff" }
-        : {}),
-      vlamax_run: vlamaxRun, // ✅ VLamax CAP
-      ...(shouldClearVlamaxRunLock ? {
-        vlamax_source: null,
-        vlamax_protocol: null,
-        vlamax_is_reference: false,
-      } : {}),
+      vlamax_run: vlamaxRun,
+      ...staffLactateUpdate(editingSnapshot, vlamax, vlamaxRun),
       weight_kg: parseNum(formData.weight_kg),
       fat_pct: parseNum(formData.fat_pct),
       pmax_5s: parseNum(formData.pmax_5s) ? Math.round(parseNum(formData.pmax_5s)!) : null,
@@ -459,9 +451,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     const success = await updateSnapshot(s.id, {
       vlamax_run: null,
-      vlamax_source: null,
-      vlamax_protocol: null,
-      vlamax_is_reference: false,
+      ...staffLactateUpdate(s, s.vlamax, null),
     } as Partial<DbSnapshot>);
 
     if (success && editingSnapshot?.id === s.id) {

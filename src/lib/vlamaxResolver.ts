@@ -1,3 +1,4 @@
+import { hasRunVlamaxMeasurementEvidence } from "./vlamaxEvidence";
 /**
  * VLAMAX RESOLVER — Source unique de vérité pour choisir
  * la VLamax adaptée à l'objectif de l'athlète.
@@ -68,10 +69,6 @@ interface SnapshotLike {
   vo2max?: number | null;
 }
 
-function isLabMeasuredVlamaxRun(s: SnapshotLike): boolean {
-  const haystack = `${s.vlamax_source || ""} ${s.vlamax_protocol || ""}`.toLowerCase();
-  return /(labo|lactat|prise de sang|blood lactate|lab measurement)/.test(haystack);
-}
 
 interface AthleteLike {
   goal?: string | null;
@@ -103,7 +100,7 @@ export function resolveVlamaxForGoal(
   //   - ou en dernier fallback si l'estimateur renvoie `insufficient`.
   if (sport === "run") {
     const rawRun = snapshot.vlamax_run ?? null;
-    const isLab = rawRun != null && isLabMeasuredVlamaxRun(snapshot);
+    const isLab = rawRun != null && hasRunVlamaxMeasurementEvidence(snapshot);
 
     // Bug réel corrigé (audit "estimations physiologiques", Cluster 1) : une
     // mesure labo passait ici par estimateVLamaxCap comme une simple entrée

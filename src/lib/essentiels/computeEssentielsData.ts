@@ -111,13 +111,7 @@ export function computeEssentielsData(args: {
     objectif: athlete.objectif || "IM",
     sportOverride: isRunGoal ? "cap" : undefined,
     activeSnapshotId: athlete.active_snapshot_id,
-    tests: (tests || []).map((t: any) => ({
-      athlete_id: t.athlete_id,
-      vlamax: t.vlamax,
-      date: t.date,
-      type: t.type,
-      name: t.name,
-    })),
+    tests: (tests || []),
     snapshots: (snapshots || []).map(mapSnapshotToV2),
   });
 
