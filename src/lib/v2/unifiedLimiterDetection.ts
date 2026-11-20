@@ -100,6 +100,7 @@ export interface UnifiedLimiterInput {
 export interface UnifiedGapAnalysis {
   /** Original CP contract is cycling. Keep the assessment even when it cannot prescribe this sport. */
   measurementDiscipline?: "bike";
+  fieldHypothesisImpact?: number;
   prescriptionApplicable?: boolean;
   prescriptionNote?: string;
   metric: string;
@@ -843,10 +844,10 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   // Preserve the number in the profile while keeping proxies out of automatic decisions.
   const unconfirmed = new Map<string, string>();
   if (input.vlamaxSource !== undefined && !["test_labo", "snapshot", "observed"].includes(input.vlamaxSource)) {
-    unconfirmed.set("VLamax", "Estimation à confronter à un test lactate dans cette discipline.");
+    unconfirmed.set("VLamax", "Comparer le profil de sprint et la puissance ou l’allure soutenue sur plusieurs efforts récents de la même discipline.");
   }
   if (input.fatmaxSource === "model") {
-    unconfirmed.set("FatMax", "Valeur dérivée du profil métabolique. Une calorimétrie à l’effort apporterait une observation indépendante.");
+    unconfirmed.set("FatMax", "Estimation liée au modèle métabolique. Examiner la tenue de l’allure ou de la puissance sur sortie longue, avec le ravitaillement documenté.");
   }
   if (input.tteSource !== undefined && input.tteSource !== "observed") {
     unconfirmed.set("TTE", "Durée au seuil à confirmer par un effort continu documenté jusqu’à épuisement.");
@@ -854,6 +855,9 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   for (const gap of gapAnalysis) {
     const note = unconfirmed.get(gap.metric);
     if (note && gap.value !== null) {
+      if (!unsupportedContext && normalized !== "StartToRun" && gap.status === "limiting" && gap.weightedImpact > 0) {
+        gap.fieldHypothesisImpact = gap.weightedImpact;
+      }
       gap.prescriptionApplicable = false;
       gap.prescriptionNote = note;
       gap.weightedImpact = 0;

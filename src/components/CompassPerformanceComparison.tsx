@@ -21,6 +21,14 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const lead = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none' ? diagnosis.categoryRanking?.[0] : null;
   const leadMetrics = lead?.metrics.filter(metric => metric.prescriptionApplicable !== false && metric.weightedImpact > 0);
   const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
+  const rankedMetrics = new Set(diagnosis?.categoryRanking?.flatMap(group => group.metrics.map(metric => metric.metric)));
+  const fieldRanking = (diagnosis?.gapAnalysis ?? []).flatMap(metric => {
+    const hypothesis = metric.fieldHypothesisImpact != null;
+    const impact = hypothesis ? metric.fieldHypothesisImpact : metric.weightedImpact;
+    if (metric.value == null || !impact || impact <= 0) return [];
+    if (!hypothesis && (metric.prescriptionApplicable === false || !rankedMetrics.has(metric.metric))) return [];
+    return [{ metric, impact, hypothesis }];
+  }).sort((a, b) => b.impact - a.impact);
   const save = async () => {
     if (!draft || !onSave) return;
     setBusy(true);
@@ -35,6 +43,16 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
     {diagnosis && <div aria-label="Priorité du bilan" className="space-y-1 border-l-2 border-primary pl-3 text-sm">
       <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {leadMetrics?.length ? diagnosis.limiterLabel : 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
       {!!leadMetrics?.length && <p>Écart aux repères de l’objectif sur {leadMetrics.map(metric => metric.metric).join(', ')}. À confronter à une performance récente dans la discipline.</p>}
+      {!!fieldRanking.length && <div>
+        <strong>Classement des écarts à examiner</strong>
+        <p>Ordre selon la grandeur de l’écart et le poids du facteur pour l’objectif. Les repères sont des repères de coaching.</p>
+        <ol aria-label="Écarts classés pour le coach" className="list-decimal pl-5">{fieldRanking.map(({ metric, hypothesis }) => <li key={metric.metric}>
+          <strong>{metric.metric}</strong>{metric.gapPercent != null && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
+          {' · '}{hypothesis ? 'Hypothèse issue du modèle' : 'Priorité du bilan'}
+          {hypothesis && <p>{metric.prescriptionNote}</p>}
+        </li>)}</ol>
+        {fieldRanking.some(row => row.hypothesis) && <p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p>}
+      </div>}
       {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
         <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>
       </details>}
