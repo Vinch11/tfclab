@@ -177,6 +177,11 @@ export interface RadarAxis {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface CoachingCompassInput {
+  /** Display-only explicit goal; never inferred from race prediction. */
+  performanceObservation?: { seconds: number; date: string | null } | null;
+  performanceGoal?: import("./performanceComparison").PerformanceGoal | null;
+  css?: number | null;
+  athleteSex?: string | null;
   // Données snapshot
   ftp: number | null;
   poids: number | null;

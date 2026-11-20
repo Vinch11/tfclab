@@ -1,3 +1,4 @@
+import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
 import { resolveVlamaxForGoal } from "@/lib/vlamaxResolver";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { computeCoachingCompass } from '@/lib/coachingCompass';
@@ -1011,6 +1012,10 @@ const Index = () => {
         : resolveCompassSportFocus(effectiveCloudSnapshot, { goal: currentAthlete.goal }, "triathlon"),
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       athleteId: currentAthlete.id,
+      athleteSex: currentAthlete.sex,
+      css: effectiveCloudSnapshot.css ?? null,
+      performanceObservation: storedPerformance(currentAthlete.goal || "IM", effectiveCloudSnapshot),
+      performanceGoal: readPerformanceGoal(comparisonGoals(currentAthlete.refs)[`${currentAthlete.goal || "IM"}:${currentAmbition}`]),
       targetRacePrediction,
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction]);
@@ -1786,6 +1791,11 @@ const Index = () => {
               return (
                 <CoachingCompassCard
                   input={alignedInput}
+                  onSavePerformanceGoal={async (goal) => {
+                    if (!currentAthlete) return false;
+                    const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
+                    return updateAthlete(currentAthlete.id, { refs: { ...refs, compassPerformance: { ...comparisonGoals(refs), [`${currentAthlete.goal || "IM"}:${currentAmbition}`]: goal } } as Parameters<typeof updateAthlete>[1]["refs"] });
+                  }}
                   athleteName={contextCurrentAthlete?.nom}
                   staffMode={staffMode}
                 />
