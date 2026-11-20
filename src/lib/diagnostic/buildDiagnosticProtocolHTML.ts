@@ -102,7 +102,7 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
       {
-        title: "Bloc 3 — VMA (Léger-Boucher / 1500m)",
+        title: "Bloc 3 — Repère de vitesse aérobie (1 500 m)",
         duration: "~15 min",
         instructions: [
           "Test 1500m à allure maximale stable.",
@@ -119,7 +119,7 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
       {
-        title: "Bloc 4 — Seuil / TTE (5km tempo)",
+        title: "Bloc 4 — Allure soutenue (5 km tempo)",
         duration: "~25 min",
         instructions: [
           "Récup active 10 min.",
@@ -168,10 +168,10 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
       {
         title: "Formules de calcul",
         items: [
-          "VMA (km/h) = distance_1500m / temps_1500m × 3.6 (corrigée +2% piste extérieure).",
-          "Allure seuil ≈ 1.06 × allure VMA (zone 88-92% VMA pour 30-60 min).",
+          "Vitesse sur 1 500 m (km/h) = 5 400 / temps en secondes. Repère de terrain pour estimer la VMA.",
+          "Allure du 5 km tempo (s/km) = temps du bloc en secondes / 5. Vérifier ce repère dans une autre séance.",
           "VLamax_run ≈ −0.5066 + 0.01420 × distance_15s (RMSE 0.073, N=15).",
-          "TTE estimé = f(VLamax, économie, %seuil) — voir moteur Mader-Heck.",
+          "Le 5 km s’arrête à une distance prévue. La durée jusqu’à épuisement au seuil reste à mesurer si nécessaire.",
           "FatMax ≈ clamp(78 − 52·(VLa−0.25) + 0.15·(VO2−50), 48, 82) %VMA.",
           "FC max retenue = max(FC pic 1500m, FC pic 5km).",
         ],

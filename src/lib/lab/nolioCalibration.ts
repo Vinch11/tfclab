@@ -28,25 +28,28 @@ export function nolioEnvelope(rows: NolioRecordRow[], cat: 'ppr' | 'par' | 'phrr
   return pts;
 }
 
-export interface BikeFit { vo2max: number; vlamax: number; mlssW: number; mlssPct: number; errorPct: number; n: number; atBound: boolean; points: { durationSec: number; observed: number; bilan: number | null; fitted: number; date: string | null }[] }
+export interface BikeFit { sensitivity: { profiles: number; vo2Min: number; vo2Max: number; vlaMin: number; vlaMax: number }; vo2max: number; vlamax: number; mlssW: number; mlssPct: number; errorPct: number; n: number; atBound: boolean; points: { durationSec: number; observed: number; bilan: number | null; fitted: number; date: string | null }[] }
 
 /**
  * Least-squares fit of VO₂max and VLamax on the Nolio power–duration envelope (30 s – 20 min; shorter efforts are neuromuscular, not glycolytic).
  * Asymmetric: the model must reach real records (records are a lower bound of capacity).
  * VO₂max bounded to ±15 % of the bilan, VLamax to 0.15–0.90 mmol/L/s.
  */
-export function fitBikeOnNolio(input: CoachingCompassInput, env: EnvelopePoint[]): BikeFit | null {
+export function fitBikeOnNolio(input: Pick<CoachingCompassInput, 'vo2max' | 'poids' | 'vlamaxEffectif'>, env: EnvelopePoint[]): BikeFit | null {
   if (!positive(input.vo2max) || !positive(input.poids)) return null;
   const pts = env.filter(p => p.durationSec >= FIT_MIN_SEC && p.durationSec <= FIT_MAX_SEC);
   if (pts.length < 4 || !pts.some(p => p.durationSec <= 120) || !pts.some(p => p.durationSec >= 300)) return null;
   const durs = pts.map(p => p.durationSec), weight = input.poids;
-  let best: { vo2: number; vla: number; loss: number } | null = null;
+  const candidates: { vo2: number; vla: number; loss: number; watts: number[] }[] = [];
+  let best: (typeof candidates)[number] | undefined;
   for (let vo2 = input.vo2max * 0.85; vo2 <= input.vo2max * 1.15 + 1e-9; vo2 += 0.5) {
     for (let vla = 0.15; vla <= 0.9 + 1e-9; vla += 0.01) {
       const curve = generateMaderPowerDurationCurve({ vo2max: vo2, vlamax: vla, weight }, durs).points;
       let loss = 0;
       curve.forEach((m, i) => { const r = Math.log(m.powerWatts / pts[i].value); loss += (r < 0 ? 4 : 1) * r * r; });
-      if (!best || loss < best.loss) best = { vo2, vla, loss };
+      const candidate = { vo2, vla, loss, watts: curve.map(point => point.powerWatts) };
+      candidates.push(candidate);
+      if (!best || loss < best.loss) best = candidate;
     }
   }
   if (!best) return null;
@@ -58,7 +61,13 @@ export function fitBikeOnNolio(input: CoachingCompassInput, env: EnvelopePoint[]
   if (!mlss) return null;
   const errorPct = Math.round(Math.sqrt(fitted.reduce((s, m, i) => s + ((m.powerWatts - pts[i].value) / pts[i].value) ** 2, 0) / pts.length) * 1000) / 10;
   const atBound = Math.abs(best.vo2 - input.vo2max * 0.85) < 0.3 || Math.abs(best.vo2 - input.vo2max * 1.15) < 0.6 || vla <= 0.15 || vla >= 0.9;
-  return { atBound, vo2max: vo2, vlamax: vla, mlssW: mlss.power, mlssPct: mlss.intensityPct, errorPct, n: pts.length,
+  // Exploratory tolerance on curve shape, not a statistical interval for the athlete.
+  const similar = candidates.filter(c => c.watts.every((w, i) => Math.abs(w - fitted[i].powerWatts) <= 0.02 * fitted[i].powerWatts));
+  // The displayed rounded profile may differ fractionally from the searched grid.
+  const vo2Values = [vo2, ...similar.map(c => c.vo2)], vlaValues = [vla, ...similar.map(c => c.vla)];
+  const sensitivity = { profiles: similar.length, vo2Min: Math.min(...vo2Values), vo2Max: Math.max(...vo2Values),
+    vlaMin: Math.min(...vlaValues), vlaMax: Math.max(...vlaValues) };
+  return { atBound, sensitivity, vo2max: vo2, vlamax: vla, mlssW: mlss.power, mlssPct: mlss.intensityPct, errorPct, n: pts.length,
     points: pts.map((p, i) => ({ durationSec: p.durationSec, observed: p.value, bilan: bilan?.[i].powerWatts ?? null, fitted: fitted[i].powerWatts, date: p.date })) };
 }
 

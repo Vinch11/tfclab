@@ -18,7 +18,11 @@ export function LabNolioCalibration({ sport, bike, run, checks, loading, recordC
       <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[['VO₂max recalée', `${fit.vo2max}`, 'ml/kg/min'], ['VLamax recalée', fit.vlamax.toFixed(2), 'mmol/L/s'], ['MLSS recalé', `${fit.mlssW}`, `W · ${Math.round(fit.mlssPct)} % VO₂max`], ['Écart modèle ↔ records', `${fit.errorPct}`, `% · ${fit.n} durées`]].map(([l, v, u]) => <div key={l}><dt className="text-xs text-muted-foreground">{l}</dt><dd className="text-xl font-semibold tabular-nums">{v} <span className="text-xs font-normal text-muted-foreground">{u}</span></dd></div>)}
       </dl>
-      {fit.atBound && <p className="text-xs text-destructive">Le recalage touche une limite (VO₂max ±15 % du bilan ou VLamax 0,15–0,90) : le bilan et les records Nolio se contredisent fortement.</p>}
+      <p className="text-sm">{fit.sensitivity.profiles > 1
+        ? `Plusieurs profils reproduisent une courbe à 2 % près sur chacune des durées retenues. Parmi les profils explorés, la VO₂max va de ${fit.sensitivity.vo2Min.toFixed(1)} à ${fit.sensitivity.vo2Max.toFixed(1)} ml/kg/min et la VLamax de ${fit.sensitivity.vlaMin.toFixed(2)} à ${fit.sensitivity.vlaMax.toFixed(2)} mmol/L/s.`
+        : "La grille explorée distingue le profil retenu à la tolérance choisie de 2 % sur chaque puissance."}
+        {" "}Cette sensibilité décrit les courbes du modèle. Pour décider d’un travail spécifique, confronter l’hypothèse à un effort daté sur une autre journée.</p>
+      {fit.atBound && <p className="text-xs text-destructive">Le recalage touche une limite (VO₂max ±15 % du bilan ou VLamax 0,15–0,90) : vérifier les efforts retenus et les valeurs de départ.</p>}
       <div className="h-64"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={fit.points} margin={{ top: 8, right: 8, bottom: 4, left: 0 }}>
         <CartesianGrid {...bevelGridProps} /><XAxis dataKey="durationSec" type="number" scale="log" domain={['dataMin', 'dataMax']} tickFormatter={dur} {...bevelAxisProps} /><YAxis {...bevelAxisProps} width={56} domain={["auto", "auto"]} unit=" W" />
         <Tooltip labelFormatter={(v: number) => dur(v)} formatter={(v: number, n: string) => [`${v} W`, n]} />

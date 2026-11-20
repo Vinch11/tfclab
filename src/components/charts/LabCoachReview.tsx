@@ -1,3 +1,5 @@
+import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
+import { staffEvidenceRows } from "@/lib/coachingCompass/staffEvidence";
 import {
   LineChart,
   Line,
@@ -7,23 +9,45 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { replayPriorities } from "@/lib/lab/replay";
+import {
+  followupEvidence,
+  raceForecastReview,
+  replayPriorities,
+} from "@/lib/lab/replay";
 import {
   AMBITION_DEFINITIONS,
   type AmbitionLevel,
 } from "@/types/ambitionLevel";
 import { OBJECTIVE_DEMANDS } from "@/lib/coachingCompass/objectiveDemands";
 import { useState } from "react";
-import type { DbSnapshot } from "@/hooks/useCloudData";
-import { rankedFieldGaps } from "@/lib/coachingCompass/rankedFieldGaps";
+import type { DbSnapshot, DbTest } from "@/hooks/useCloudData";
+import {
+  describeFieldGap,
+  rankedFieldGaps,
+} from "@/lib/coachingCompass/rankedFieldGaps";
 import type { CoachingCompassInput } from "@/lib/coachingCompass/types";
 import { objectiveDemands } from "@/lib/coachingCompass/objectiveDemands";
 import { coachingAction, clock, earlierBilans } from "@/lib/lab/coachReview";
 import type { LabSport } from "@/lib/lab/loadCharacteristics";
 
-export function LabPriorities({ input }: { input: CoachingCompassInput }) {
+export function LabPriorities({
+  input,
+  snapshot,
+  tests,
+}: {
+  input: CoachingCompassInput;
+  snapshot: DbSnapshot;
+  tests: DbTest[];
+}) {
   const ranks = rankedFieldGaps(input.limiterResult);
   const goal = input.performanceGoal;
+  const evidence = staffEvidenceRows(
+    snapshot.athlete_id,
+    snapshot,
+    tests,
+  ).filter((row) => row.date && row.date.slice(0, 10) <= snapshot.date);
+  const longSessions = parseStoredDurability(snapshot.critical_metrics);
+  const demands = objectiveDemands(input.objectif);
   return (
     <section id="priorites" className="rounded-lg border bg-card p-5 space-y-3">
       <h3 className="text-xl font-semibold">
@@ -37,42 +61,114 @@ export function LabPriorities({ input }: { input: CoachingCompassInput }) {
       </p>
       <h4 className="font-semibold">Priorités du Compass</h4>
       {!ranks.length && (
-        <p>Aucun écart suffisamment documenté pour être classé.</p>
+        <p>
+          Aucun écart suffisamment documenté pour être classé.{" "}
+          {demands?.kind === "beginner"
+            ? "Noter la durée courue confortablement et la récupération le lendemain lors de la prochaine sortie."
+            : `Commencer par une séance existante en lien avec l’objectif. Point à vérifier · ${demands?.checks[0] ?? "effort récent comparable"}.`}
+        </p>
       )}
       <ol className="list-decimal space-y-2 pl-6">
-        {ranks.map(({ metric, hypothesis }) => (
-          <li key={metric.metric}>
-            <details>
-              <summary className="cursor-pointer">
-                {metric.metric} ·{" "}
-                {metric.gapPercent == null
-                  ? ""
-                  : "écart au repère " +
-                    (metric.gapPercent > 0 ? "+" : "") +
-                    Math.round(metric.gapPercent) +
-                    " % · "}
-                {hypothesis ? "Hypothèse du modèle" : "Priorité du bilan"}
-              </summary>
-              <p>
-                Valeur du bilan {metric.value}.{" "}
-                {metric.prescriptionNote ||
-                  "Comparer ce repère avec une performance datée dans la même discipline."}
-              </p>
-              <a
-                className="underline"
-                href={
-                  /FatMax|VLamax/i.test(metric.metric)
-                    ? "#lab-metabolisme"
-                    : /TTE|durabil/i.test(metric.metric)
-                      ? "#lab-seances"
-                      : "#lab-evolution"
-                }
-              >
-                Examiner les données de terrain
-              </a>
-            </details>
-          </li>
-        ))}
+        {ranks.map((row) => {
+          const { metric, hypothesis } = row;
+          const reading = describeFieldGap(row);
+          const sport =
+            metric.metric === "VMA" || input.sportFocus === "run"
+              ? "run"
+              : "bike";
+          const labels: Record<string, string[]> = {
+            VMA: ["VMA", "Allure seuil"],
+            "FTP/kg": ["FTP", "Poids"],
+            VO2max: ["VO₂max"],
+            TTE: ["Durée déclarée au seuil"],
+            VLamax: [
+              "VLamax",
+              sport === "run" ? "Distance sprint 15 s" : "Puissance 30 s",
+            ],
+            FatMax: ["FTP", "VLamax"],
+            "Durabilité (découplage)": ["Dérive cardiaque de séance"],
+          };
+          const sessions = /TTE|durabilité|VLamax|FatMax/i.test(metric.metric)
+            ? (longSessions[sport]?.sessions.filter(
+                (s) => s.date?.slice(0, 10) <= snapshot.date,
+              ) ?? [])
+            : [];
+          const matching = evidence.filter(
+            (e) =>
+              labels[metric.metric]?.includes(e.label) &&
+              [
+                sport === "run" ? "Course" : "Vélo",
+                "Contexte",
+                "Non précisé",
+              ].includes(e.sport),
+          );
+          return (
+            <li key={metric.metric}>
+              <details>
+                <summary className="cursor-pointer">
+                  {metric.metric} ·{" "}
+                  {metric.gapPercent == null
+                    ? ""
+                    : "écart au repère " +
+                      (metric.gapPercent > 0 ? "+" : "") +
+                      Math.round(metric.gapPercent) +
+                      " % · "}
+                  {hypothesis ? "Hypothèse du modèle" : "Priorité du bilan"}
+                </summary>
+                <p>
+                  {reading.comparison || `Valeur du bilan ${metric.value}`}.{" "}
+                  {reading.confidence}.{" "}
+                  {metric.prescriptionNote ||
+                    "Comparer ce repère avec une performance datée dans la même discipline."}
+                </p>
+                {matching.length > 0 && (
+                  <ul className="list-disc pl-5 text-sm">
+                    {matching.map((e) => (
+                      <li key={e.label + e.sport}>
+                        {e.label} · {e.result} · bilan du {e.date} · {e.source}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {sessions.length > 0 && (
+                  <details>
+                    <summary>
+                      Sorties longues à confronter à cette hypothèse
+                    </summary>
+                    <ul>
+                      {sessions.map((s) => (
+                        <li key={s.id}>
+                          {s.date.slice(0, 10)} · {s.name} · {s.durationMin} min
+                          · variation de {s.changePct} % entre le début et la
+                          fin.
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+                <p>
+                  {coachingAction(
+                    input.objectif,
+                    sport,
+                    /TTE|durab|FatMax/i.test(metric.metric),
+                  )}
+                </p>
+                <a
+                  className="underline"
+                  href={
+                    /FatMax|VLamax/i.test(metric.metric)
+                      ? "#lab-metabolisme"
+                      : /TTE|durabil/i.test(metric.metric)
+                        ? "#lab-seances"
+                        : "#lab-evolution"
+                  }
+                >
+                  Examiner les données de terrain
+                </a>
+              </details>
+            </li>
+          );
+        })}
       </ol>
       <p className="text-sm text-muted-foreground">
         {objectiveDemands(input.objectif)?.checks.join(" · ")}
@@ -321,10 +417,12 @@ export function BlindReview({
   snapshots,
   reference,
   birth,
+  tests = [],
 }: {
   snapshots: DbSnapshot[];
   reference: DbSnapshot;
   birth?: string | null;
+  tests?: DbTest[];
 }) {
   const earlier = earlierBilans(snapshots, reference);
   const [id, setId] = useState(earlier[0]?.id ?? "");
@@ -355,6 +453,10 @@ export function BlindReview({
     reveal && ambition
       ? replayPriorities(first, scenarioGoal, ambition, age)
       : [];
+  const race =
+    reveal && ambition
+      ? raceForecastReview(first, next, scenarioGoal, ambition)
+      : null;
   const fields = [
     ["ftp", "FTP (W)"],
     ["map5min_w", "5 min vélo (W)"],
@@ -454,12 +556,35 @@ export function BlindReview({
           </h4>
           {ranks.length ? (
             <ol className="list-decimal pl-5">
-              {ranks.map((r) => (
-                <li key={r.metric.metric}>
-                  {r.metric.metric}
-                  {r.hypothesis ? " · hypothèse" : ""}
-                </li>
-              ))}
+              {ranks.map((r) => {
+                const evidence = followupEvidence(
+                  r,
+                  first,
+                  next,
+                  scenarioGoal,
+                  tests,
+                );
+                return (
+                  <li key={r.metric.metric}>
+                    {r.metric.metric}
+                    {r.hypothesis ? " · hypothèse" : ""}
+                    {evidence.length ? (
+                      <ul>
+                        {evidence.map((e) => (
+                          <li key={e.id}>
+                            {e.date} · {e.text}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm">
+                        Vérification ouverte · aucun effort daté directement
+                        comparable identifié pour ce facteur.
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
             </ol>
           ) : (
             <p>Données insuffisantes pour classer un écart.</p>
@@ -488,6 +613,22 @@ export function BlindReview({
             </ul>
           ) : (
             <p>Aucun chrono de course daté disponible sur cet intervalle.</p>
+          )}
+          {race && (
+            <div>
+              <h4 className="font-semibold">
+                Prévision du bilan initial face à la course du {race.date}
+              </h4>
+              <p>
+                Prévu {clock(race.predictedSeconds)} · réalisé{" "}
+                {clock(race.observed)} · erreur {clock(race.error)} (min:s).
+              </p>
+              <p>
+                {race.baselineError == null
+                  ? "Aucun ancien chrono daté sur cette distance pour la comparaison."
+                  : `Dernier chrono sur cette distance ${clock(race.baseline!)} · erreur en le reconduisant ${clock(race.baselineError)} (min:s).`}
+              </p>
+            </div>
           )}
           <p>
             Comparer avec ton observation initiale. Un changement de valeur seul

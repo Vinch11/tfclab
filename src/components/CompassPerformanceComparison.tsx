@@ -1,4 +1,4 @@
-import { rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
+import { describeFieldGap, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
 import { useState } from 'react';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
@@ -40,11 +40,15 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
       {!!fieldRanking.length && <div>
         <strong>Classement des écarts à examiner</strong>
         <p>Ordre selon la grandeur de l’écart et le poids du facteur pour l’objectif. Les repères sont des repères de coaching.</p>
-        <ol aria-label="Écarts classés pour le coach" className="list-decimal pl-5">{fieldRanking.map(({ metric, hypothesis }) => <li key={metric.metric}>
+        <ol aria-label="Écarts classés pour le coach" className="list-decimal pl-5">{fieldRanking.map(row => {
+          const { metric, hypothesis } = row;
+          const reading = describeFieldGap(row);
+          return <li key={metric.metric}>
           <strong>{metric.metric}</strong>{metric.gapPercent != null && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
           {' · '}{hypothesis ? 'Hypothèse issue du modèle' : 'Priorité du bilan'}
+          <p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
           {hypothesis && <p>{metric.prescriptionNote}</p>}
-        </li>)}</ol>
+        </li>})}</ol>
         {fieldRanking.some(row => row.hypothesis) && <p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p>}
       </div>}
       <a className="inline-block py-2 text-primary underline" href="/lab#priorites">Examiner les priorités dans 100 % Lab</a>

@@ -102,6 +102,9 @@ export default function TrackDayPage() {
   const [t600m, setT600m] = useState("");
 
   // Bloc 3 — Seuil
+  const [trackVariant, setTrackVariant] = useState("timed");
+  const [sec1500, setSec1500] = useState("");
+  const [secTempo5k, setSecTempo5k] = useState("");
   const [d6min, setD6min] = useState("");
   const [d20min, setD20min] = useState("");
 
@@ -136,6 +139,9 @@ export default function TrackDayPage() {
     t400m: { value: t400m, set: setT400m, default: "" },
     t1000m: { value: t1000m, set: setT1000m, default: "" },
     t600m: { value: t600m, set: setT600m, default: "" },
+    trackVariant: { value: trackVariant, set: setTrackVariant, default: "timed" },
+    sec1500: { value: sec1500, set: setSec1500, default: "" },
+    secTempo5k: { value: secTempo5k, set: setSecTempo5k, default: "" },
     d6min: { value: d6min, set: setD6min, default: "" },
     d20min: { value: d20min, set: setD20min, default: "" },
     fcDebutZ2: { value: fcDebutZ2, set: setFcDebutZ2, default: "" },
@@ -270,19 +276,19 @@ export default function TrackDayPage() {
     const vma400Warning = vma400Raw > 30;
     // VMA depuis 6 min (Léger)
     const vma6min = num(d6min) > 0 ? (num(d6min) / 6) * 60 / 1000 * 1.05 : 0;
-    const vmaConfirmee = vma6min > 0 ? vma6min : (vma1km > 0 ? vma1km : 0);
+    const vmaConfirmee = trackVariant === "distance" ? (num(sec1500) > 0 ? 5400 / num(sec1500) : 0)
+      : vma6min > 0 ? vma6min : (vma1km > 0 ? vma1km : 0);
 
 
     // Allure seuil depuis 20 min
-    const vSeuilKmh = num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
+    const vSeuilKmh = trackVariant === "distance" ? (num(secTempo5k) > 0 ? 18000 / num(secTempo5k) : 0) : num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
 
     const tteEst = ratioSeuilVMA > 0 ? Math.max(25, Math.min(75, 30 + (ratioSeuilVMA - 0.85) * 400)) : 0;
 
     const fcD = num(fcDebutZ2);
     const fcF = num(fcFinZ2);
-    const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
-    const fatMaxPct = fcD > 0 ? Math.max(50, Math.min(78, 65 - driftPct * 2)) : 0;
+    const driftPct = fcD > 0 && fcF > 0 ? ((fcF - fcD) / fcD) * 100 : null;
 
     // VLamax — Score G fusionne sprints disponibles + ratio seuil/VMA inversé
     const sprintRefs = [22, 18, 12, 8];
@@ -312,10 +318,10 @@ export default function TrackDayPage() {
       vma400, vma400Warning, vma6min, vmaConfirmee,
       vSeuilKmh, ratioSeuilVMA,
       tteEst,
-      driftPct, fatMaxPct,
+      driftPct,
       scoreG, vlamaxEst, vo2maxEst,
     };
-  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, secTempo5k, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0;
@@ -330,6 +336,9 @@ export default function TrackDayPage() {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "track_day",
+      critical_metrics: { trackDay: trackVariant === "distance"
+        ? { protocol: "1500m_5km_tempo", sec1500: num(sec1500) || null, secTempo5k: num(secTempo5k) || null }
+        : { protocol: "6min_20min", metres6: num(d6min) || null, metres20: num(d20min) || null } },
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
       fc_max: fcMax > 0 ? fcMax : null,
@@ -339,11 +348,11 @@ export default function TrackDayPage() {
       // consomme sprint_15s_distance + vma + ratio seuil/VMA. Écrire vlamax_run ici court-circuite
       // le pipeline et fige une estimation locale. Voir memoire cap-sprint-15s-no-vlamax-write.
 
-      tte_observed_min_run: calc.tteEst || null,
+
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
       pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
-      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)} — FatMax est. ${fmt(calc.fatMaxPct, 0)}% VMA${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
+      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)}${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -386,6 +395,7 @@ export default function TrackDayPage() {
           </Button>
         </div>
 
+        <p className="text-sm text-muted-foreground">Le protocole Nolio et la fiche imprimée utilisent un 1 500 m et un 5 km. Choisir cette variante dans le bloc 3 pour y reporter les temps réalisés.</p>
         <TestSessionsNolioExport routes={['track-day']} />
 
         {/* Setup */}
@@ -716,25 +726,26 @@ export default function TrackDayPage() {
               <Badge variant="secondary">35 min</Badge>
             </div>
             <CardDescription className="text-xs leading-relaxed">
-              • Test <b>6 min max</b> sur piste (distance parcourue en mètres)
-              <br />• Récup 10 min
-              <br />• Test <b>20 min max</b> (distance parcourue)
+              Choisir le protocole effectivement réalisé. L’allure du bloc prolongé donne un repère de terrain à confirmer.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <Label>Distance 6 min (m)</Label>
-              <Input type="number" value={d6min} onChange={(e) => setD6min(e.target.value)} placeholder="1850" />
-              {fmtNolioDate(nolioDates.d6min) && (
-                <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.d6min)}</div>
-              )}
-            </div>
-            <div>
-              <Label>Distance 20 min (m)</Label>
-              <Input type="number" value={d20min} onChange={(e) => setD20min(e.target.value)} placeholder="5600" />
-            </div>
+            <label className="sm:col-span-2">Protocole réalisé
+              <select className="block rounded border bg-background p-2" value={trackVariant} onChange={e => setTrackVariant(e.target.value)}>
+                <option value="timed">6 min et 20 min · distances parcourues</option>
+                <option value="distance">1 500 m maximal et 5 km tempo · fiche et Nolio</option>
+              </select>
+            </label>
+            {trackVariant === "distance" ? <>
+              <label>Temps du 1 500 m maximal (s)<Input type="number" min="1" value={sec1500} onChange={e => setSec1500(e.target.value)} /></label>
+              <label>Temps du 5 km tempo (s)<Input type="number" min="1" value={secTempo5k} onChange={e => setSecTempo5k(e.target.value)} /></label>
+            </> : <>
+              <label>Distance 6 min (m)<Input type="number" value={d6min} onChange={e => setD6min(e.target.value)} placeholder="1850" />
+                {fmtNolioDate(nolioDates.d6min) && <small>{fmtNolioDate(nolioDates.d6min)}</small>}</label>
+              <label>Distance 20 min (m)<Input type="number" value={d20min} onChange={e => setD20min(e.target.value)} placeholder="5600" /></label>
+            </>}
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1 text-xs">
-              <Metric label="VMA 6min" value={fmt(calc.vma6min, 1)} unit="km/h" />
+              <Metric label={trackVariant === "distance" ? "Vitesse sur 1 500 m · repère VMA" : "VMA 6 min estimée"} value={fmt(trackVariant === "distance" ? calc.vmaConfirmee : calc.vma6min, 1)} unit="km/h" />
               <Metric label="V seuil" value={fmt(calc.vSeuilKmh, 1)} unit="km/h" />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" />
@@ -770,8 +781,8 @@ export default function TrackDayPage() {
               <Input type="number" value={allureZ2SecKm} onChange={(e) => setAllureZ2SecKm(e.target.value)} placeholder="300" />
             </div>
             <div className="sm:col-span-3 grid grid-cols-2 gap-2 mt-1 text-xs">
-              <Metric label="Drift cardiaque" value={fmt(calc.driftPct, 1)} unit="%" />
-              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% VMA" />
+              <p className="col-span-full text-xs text-muted-foreground">La variation de fréquence cardiaque décrit cette séance. Les estimations de substrats se consultent dans 100 % Lab, avec leurs hypothèses.</p>
+              <Metric label="Drift cardiaque" value={calc.driftPct == null ? "—" : calc.driftPct.toFixed(1)} unit="%" />
             </div>
           </CardContent>
         </Card>
@@ -792,7 +803,6 @@ export default function TrackDayPage() {
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
-              <Metric label="FatMax est." value={fmt(calc.fatMaxPct, 0)} unit="% VMA" big />
             </div>
             {(() => {
               const fields = [

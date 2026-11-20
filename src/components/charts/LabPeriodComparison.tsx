@@ -1,4 +1,6 @@
-import { useEffect, useState } from "react";
+import type { DbSnapshot } from "@/hooks/useCloudData";
+import { periodForecast } from "@/lib/lab/periodForecast";
+import { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -36,6 +38,9 @@ export async function readNolio(body: Record<string, string>) {
 
 interface Props {
   athlete: string;
+  owner: string;
+  snapshots: DbSnapshot[];
+  ambition: string;
   sport: LabSport;
   from: string;
   to: string;
@@ -49,6 +54,9 @@ export function LabPeriodComparison({
   to,
   latest,
   goal,
+  owner,
+  snapshots,
+  ambition,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [previous, setPrevious] = useState<EnvelopePoint[] | null>(null);
@@ -83,6 +91,17 @@ export function LabPeriodComparison({
   const rows = compareRecords(previous ?? [], latest, sport);
   const number = (v: number) =>
     sport === "bike" ? Math.round(v) + " W" : clock(v) + "/km";
+  const forecast = useMemo(
+    () =>
+      end && previous
+        ? periodForecast(sport, previous, latest, end, to, owner, snapshots)
+        : [],
+    [sport, previous, latest, end, to, owner, snapshots],
+  );
+  const meanError = (key: "modelError" | "baselineError") =>
+    Math.round(
+      forecast.reduce((sum, row) => sum + row[key], 0) / forecast.length,
+    );
   const common = rows.filter((row) => row.delta != null);
   const sustained = common[common.length - 1];
   return (
@@ -211,6 +230,45 @@ export function LabPeriodComparison({
                   ". Vérifier le caractère maximal, le terrain et le matériel avant de conclure à une évolution."
                 : "Aucune durée commune documentée. Une période moins fournie ne permet pas de conclure à une baisse."}
             </p>
+            <details>
+              <summary className="cursor-pointer font-semibold">
+                La courbe précédente prévoyait-elle les nouveaux efforts ?
+              </summary>
+              {forecast.length ? (
+                <>
+                  <p>
+                    {goal} · {ambition} · {forecast.length} durées sur{" "}
+                    {new Set(forecast.map((r) => r.date)).size} journée(s).
+                    Erreur absolue moyenne sur les nouveaux records · modèle{" "}
+                    {meanError("modelError")} {sport === "bike" ? "W" : "s/km"}{" "}
+                    · ancien record à durée égale {meanError("baselineError")}{" "}
+                    {sport === "bike" ? "W" : "s/km"}.
+                  </p>
+                  <ul>
+                    {forecast.map((r) => (
+                      <li key={r.seconds}>
+                        {r.date} · {clock(r.seconds)} · prévu{" "}
+                        {number(r.prediction)} · réalisé {number(r.observed)} ·
+                        ancien record {number(r.baseline)}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    Les prévisions utilisent uniquement la première période.
+                    Plusieurs durées peuvent venir de la même sortie. Vérifier
+                    la comparabilité et l’engagement avant d’interpréter ces
+                    écarts.
+                  </p>
+                </>
+              ) : (
+                <p>
+                  Vérification en attente de durées communes avec une courbe
+                  antérieure exploitable.
+                  {sport === "bike" &&
+                    " Le vélo nécessite un bilan avec poids et VO₂max enregistré avant la deuxième période, dont la dernière modification précède aussi cette période."}
+                </p>
+              )}
+            </details>
             <p>{recordReading(rows, sport, goal)}</p>
             <p>
               <strong>Pour {goal}.</strong>{" "}

@@ -220,7 +220,7 @@ export interface CoachingCompassInput {
     limiterLabel?: string;
     limiterEmoji?: string;
     limiterExplanation?: string;
-    gapAnalysis: Array<{ metric: string; gap: number; gapPercent?: number; status?: string; fieldHypothesisImpact?: number; weightedImpact: number; value?: number | null; prescriptionApplicable?: boolean; prescriptionNote?: string }>;
+    gapAnalysis: Array<{ metric: string; gap: number; target?: number; weight?: number; gapPercent?: number; status?: string; fieldHypothesisImpact?: number; weightedImpact: number; value?: number | null; prescriptionApplicable?: boolean; prescriptionNote?: string }>;
     categoryRanking?: Array<{ category: string; metrics: Array<{ metric: string; weightedImpact: number; prescriptionApplicable?: boolean }> }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;

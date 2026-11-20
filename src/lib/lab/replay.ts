@@ -1,4 +1,13 @@
-import type { DbSnapshot } from "@/hooks/useCloudData";
+import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
+import { storedPerformance } from "@/lib/coachingCompass/performanceComparison";
+import { reviewedTte, validTestDate } from "@/lib/testMeasurementReview";
+import {
+  predictRaceDurationMin,
+  AMBITION_LEVEL_TO_PREDICTOR,
+} from "@/lib/raceTimePredictor";
+import type { RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
+import type { Tables } from "@/integrations/supabase/types";
+import type { DbSnapshot, DbTest } from "@/hooks/useCloudData";
 import { rankedFieldGaps } from "@/lib/coachingCompass/rankedFieldGaps";
 import { objectiveDemands } from "@/lib/coachingCompass/objectiveDemands";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
@@ -50,4 +59,131 @@ export function replayPriorities(
     hasHealthAlerts: false,
   });
   return rankedFieldGaps(limiter);
+}
+
+/** Use only independent, dated road results stored on the original bilan as predictors. */
+export function raceForecastReview(
+  first: DbSnapshot,
+  next: DbSnapshot,
+  goal: string,
+  ambition: AmbitionLevel,
+) {
+  if (
+    first.athlete_id !== next.athlete_id ||
+    next.date <= first.date ||
+    objectiveDemands(goal)?.kind !== "road"
+  )
+    return null;
+  const knownByCutoff = [first.created_at, first.updated_at].every(
+    (t) => t && validTestDate(t.slice(0, 10)) && t.slice(0, 10) <= first.date,
+  );
+  if (!knownByCutoff) return null;
+  const performed = storedPerformance(goal, next);
+  if (
+    !performed ||
+    !validTestDate(performed.date) ||
+    performed.date <= first.date ||
+    performed.date > next.date
+  )
+    return null;
+  const old = storedPerformance(goal, first);
+  const baseline =
+    old && validTestDate(old.date) && old.date <= first.date
+      ? old.seconds
+      : null;
+  const fields = first as DbSnapshot & Partial<Tables<"snapshots">>;
+  const chronos: RaceChronos = {};
+  for (const distance of ["5k", "10k", "20k", "half", "marathon"] as const) {
+    const date = fields[`time_${distance}_date`],
+      sec = fields[`time_${distance}_sec`];
+    if (
+      validTestDate(date) &&
+      date <= first.date &&
+      typeof sec === "number" &&
+      sec > 0
+    )
+      chronos[`time_${distance}_sec`] = sec;
+  }
+  const predicted = predictRaceDurationMin({
+    objective: goal,
+    ambition: AMBITION_LEVEL_TO_PREDICTOR[ambition],
+    raceChronos: chronos,
+    vmaKmh: first.vma,
+    thresholdPaceSecPerKm: first.pace_threshold_sec_per_km,
+  });
+  if (!predicted) return null;
+  const predictedSeconds = Math.round(predicted.targetRaceDurationMin * 60);
+  return {
+    date: performed.date,
+    observed: performed.seconds,
+    predictedSeconds,
+    source: predicted.source,
+    baseline,
+    error: Math.abs(predictedSeconds - performed.seconds),
+    baselineError:
+      baseline == null ? null : Math.abs(baseline - performed.seconds),
+  };
+}
+
+/** Subsequent evidence for the original priority, keeping the original coaching target fixed. */
+export function followupEvidence(
+  rank: ReturnType<typeof rankedFieldGaps>[number],
+  first: DbSnapshot,
+  next: DbSnapshot,
+  goal: string,
+  tests: DbTest[],
+) {
+  if (first.athlete_id !== next.athlete_id || next.date <= first.date)
+    return [];
+  const sport = objectiveDemands(goal)?.kind === "tri" ? "bike" : "run";
+  const inWindow = (date: unknown): date is string =>
+    validTestDate(date) && first.date < date && date <= next.date;
+  const { metric, target } = rank.metric;
+  if (metric === "TTE" || metric === "VMA") {
+    return tests.flatMap((t) => {
+      if (
+        t.athlete_id !== first.athlete_id ||
+        !t.raw ||
+        typeof t.raw !== "object" ||
+        Array.isArray(t.raw)
+      )
+        return [];
+      const raw = t.raw;
+      if (!inWindow(raw.testDate) || !Number.isFinite(target)) return [];
+      const isTte = metric === "TTE";
+      const observed =
+        isTte && t.sport === sport && reviewedTte(raw, sport)
+          ? raw.tte_minutes
+          : !isTte && t.sport === "run" && raw.conditionsConfirmed === true
+            ? raw.vma
+            : null;
+      if (
+        typeof observed !== "number" ||
+        !Number.isFinite(observed) ||
+        observed <= 0
+      )
+        return [];
+      const unit = isTte ? "min" : "km/h",
+        difference = observed - target!;
+      return [
+        {
+          id: t.id,
+          date: raw.testDate,
+          text: `${t.name} · ${observed} ${unit} · ${Math.abs(difference).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} ${unit} ${difference < 0 ? "sous" : "au-dessus de"} l’ancien repère de ${target!.toLocaleString("fr-FR")} ${unit}.`,
+        },
+      ];
+    });
+  }
+  if (metric === "FTP/kg" || metric === "VO2max") return [];
+  if (!rank.hypothesis && !metric.startsWith("Durabilité")) return [];
+  const sessions =
+    parseStoredDurability(next.critical_metrics)[sport]?.sessions ?? [];
+  const fresh = sessions.filter(
+    (s) => inWindow(s.date?.slice(0, 10)) && Number.isFinite(s.changePct),
+  );
+  return [...new Map(fresh.map((s) => [s.id, s])).values()].map((s) => ({
+    id: s.id,
+    date: s.date.slice(0, 10),
+    text: `${s.name} · ${s.durationMin} min · variation de ${s.changePct} % entre début et fin. Ce résultat renseigne la tenue de l’effort. La cause métabolique reste à vérifier.`,
+  }));
 }

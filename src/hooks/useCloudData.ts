@@ -14,6 +14,7 @@ import {
   testSchema,
   validateOrNull 
 } from "@/lib/validationSchemas";
+import { fieldDayObservations } from "@/lib/fieldDayObservations";
 import { enrichSnapshotWithRunEconomy } from "@/lib/runningEconomySimple";
 import {assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 import type {ParsedPlan} from '@/lib/aiPlanParser';
@@ -168,7 +169,7 @@ export function useCloudData() {
       // on l'estime via Léger/Di Prampero. Préserve traçabilité via run_economy_score_source.
       // → Tous les consommateurs (Compass, MLSS, AI Plan, Exports…) bénéficient automatiquement.
       const enrichedSnapshots = ((snapshotsRes.data as DbSnapshot[]) || []).map((s) =>
-        enrichSnapshotWithRunEconomy(s) as DbSnapshot,
+        enrichSnapshotWithRunEconomy(fieldDayObservations(s)) as DbSnapshot,
       );
       setSnapshots(enrichedSnapshots);
       setCheckins((checkinsRes.data as DbCheckin[]) || []);
@@ -431,12 +432,12 @@ export function useCloudData() {
         return null;
       }
 
-      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fetched as DbSnapshot) as DbSnapshot, ...prev]);
+      setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fieldDayObservations(fetched as DbSnapshot)) as DbSnapshot, ...prev]);
       toast.success("Snapshot créé");
       return fetched as DbSnapshot;
     }
 
-    setSnapshots((prev) => [enrichSnapshotWithRunEconomy(row) as DbSnapshot, ...prev]);
+    setSnapshots((prev) => [enrichSnapshotWithRunEconomy(fieldDayObservations(row)) as DbSnapshot, ...prev]);
     toast.success("Snapshot créé");
     return row;
   };
@@ -456,7 +457,7 @@ export function useCloudData() {
       toast.error("Le bilan modifié n’a pas pu être confirmé.");
       return false;
     }
-    setSnapshots((prev) => prev.map(s => s.id === id ? enrichSnapshotWithRunEconomy(saved) as DbSnapshot : s));
+    setSnapshots((prev) => prev.map(s => s.id === id ? enrichSnapshotWithRunEconomy(fieldDayObservations(saved)) as DbSnapshot : s));
     toast.success("Profil mis à jour");
     return true;
   };
