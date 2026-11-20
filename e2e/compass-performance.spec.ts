@@ -22,6 +22,7 @@ test('the coach sees why estimates are provisional and which observation support
   await page.goto('/__e2e/compass-performance');
   const panel = page.getByLabel('Priorité du bilan');
   await expect(panel).toContainText('Aucun facteur suffisamment étayé');
+  await expect(panel.getByRole('list', { name: 'Écarts classés pour le coach' })).toContainText('Hypothèse issue du modèle');
   await panel.getByText('Données à confirmer').click();
   for (const metric of ['VLamax', 'FatMax', 'TTE']) {
     await expect(panel.getByRole('listitem').filter({ hasText: metric }).first()).toBeVisible();

@@ -5,6 +5,20 @@ import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 const input = { athleteId: 'A', objectif: 'Marathon', ambition: 'competitor', athleteAge: 42, athleteSex: 'F', vma: 14, vo2max: 47, paceThresholdSecPerKm: 290 } as CoachingCompassInput;
 afterEach(cleanup);
 describe('Compass goal interaction', () => {
+  it('ranks all actionable and provisional field gaps by weighted impact', () => {
+    const observed = { metric: 'VMA', gap: -2, gapPercent: -12, value: 14, weightedImpact: 10 };
+    const estimated = { metric: 'VLamax', gap: .2, gapPercent: 40, value: .7, weightedImpact: 0, fieldHypothesisImpact: 15, prescriptionApplicable: false };
+    const excluded = { metric: "W′ vélo", gap: -8, value: 12, weightedImpact: 30, prescriptionApplicable: false };
+    render(<CompassPerformanceComparison input={{ ...input, limiterResult: {
+      primaryLimiter: 'aerobic_engine', confidence: .7, categoryRanking: [{ category: 'aerobic', metrics: [observed] }],
+      gapAnalysis: [observed, excluded, estimated],
+    } }} />);
+    const rows = screen.getByRole('list', { name: 'Écarts classés pour le coach' }).querySelectorAll('li');
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toHaveTextContent('VLamax · écart au repère +40 %');
+    expect(rows[0]).toHaveTextContent('Hypothèse');
+    expect(rows[1]).toHaveTextContent('VMA · écart au repère -12 %');
+  });
   it('saves an explicit target, and never prefills the predicted race time', async () => {
     const save = vi.fn().mockResolvedValue(true);
     render(<CompassPerformanceComparison input={{ ...input, targetRacePrediction: { targetRaceDurationMin: 190, source: 'daniels_scenario', confidence: .8, reference: '' } }} onSave={save} />);
