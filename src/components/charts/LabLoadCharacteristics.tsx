@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { coachingAction } from '@/lib/lab/coachReview';
+import { useState, useMemo } from 'react';
 import { Area, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import type { DbSnapshot } from '@/hooks/useCloudData';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
@@ -6,9 +7,9 @@ import { labEnergyContribution, labLoadCharacteristics, labObservedPoints, type 
 import { BEVEL_CHART_COLORS as c, bevelAxisProps, bevelGridProps } from './bevelChartTheme';
 
 type Series = { key: string; label: string; color: string; area?: boolean; stack?: string };
-interface Props { input: CoachingCompassInput; snapshot: DbSnapshot; sport: LabSport; compare?: { input: CoachingCompassInput; date: string } | null }
+interface Props { coachReading?: boolean; input: CoachingCompassInput; snapshot: DbSnapshot; sport: LabSport; compare?: { input: CoachingCompassInput; date: string } | null }
 
-export function LabLoadCharacteristics({ input, snapshot, sport, compare }: Props) {
+export function LabLoadCharacteristics({ input, snapshot, sport, compare, coachReading }: Props) {
   const model = useMemo(() => labLoadCharacteristics(input, sport), [input, sport]);
   const cmp = useMemo(() => compare ? labLoadCharacteristics(compare.input, sport) : null, [compare, sport]);
   const observed = useMemo(() => labObservedPoints(snapshot, input, sport), [snapshot, input, sport]);
@@ -16,6 +17,8 @@ export function LabLoadCharacteristics({ input, snapshot, sport, compare }: Prop
   const cmpContribution = useMemo(() => compare ? labEnergyContribution(compare.input, sport) : [], [compare, sport]);
   const rows = useMemo(() => model.rows.map((r, i) => ({ ...r, ...(cmp?.rows[i] ? { cmpOxygen: cmp.rows[i].oxygen, cmpLactate: cmp.rows[i].lactate, cmpFat: cmp.rows[i].fat, cmpCarbs: cmp.rows[i].carbs, cmpProduction: cmp.rows[i].production, cmpFatShare: cmp.rows[i].fatShare } : {}) })), [model, cmp]);
   const contrib = useMemo(() => contribution.map((r, i) => ({ ...r, cmpAerobic: cmpContribution[i]?.aerobic })), [contribution, cmpContribution]);
+  const [intensity, setIntensity] = useState(60);
+  const selected = rows.find(r => r.intensity === intensity);
   const m = model.markers;
   const axisUnit = (i: number) => { const r = rows.find(x => x.intensity === i); return r?.watts ? `${r.watts} W` : r?.speed ? `${r.speed.toFixed(1)} km/h` : ''; };
   const markerLines = m ? [m.lt1 && ['LT1', m.lt1], m.lt2 && ['MLSS', m.lt2], m.fatmax && ['FatMax', m.fatmax]].filter(Boolean) as [string, number][] : [];
@@ -32,6 +35,7 @@ export function LabLoadCharacteristics({ input, snapshot, sport, compare }: Prop
   return <section className="space-y-5" aria-label="Load Characteristics TFCL">
     <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-semibold text-primary">LOAD CHARACTERISTICS</p><h3 className="text-xl font-semibold">Profil de charge · {sport === 'run' ? 'Course à pied' : 'Vélo'}</h3></div>
       <div className="flex flex-wrap gap-4 text-xs text-muted-foreground"><span className="flex items-center gap-2"><svg width="18" height="4" aria-hidden><path d="M0 2H18" stroke="currentColor" strokeWidth="3" /></svg>Courbe TFCL personnalisée · {snapshot.date}</span>{compare && <span className="flex items-center gap-2"><svg width="18" height="4" aria-hidden><path d="M0 2H18" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" /></svg>Comparé : {compare.date}</span>}<span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-full bg-foreground" />Repères enregistrés du bilan</span></div></div>
+    {coachReading && rows.length > 0 && <label className="block">Examiner les valeurs du modèle à <select className="border rounded p-1 bg-background" value={intensity} onChange={e=>setIntensity(Number(e.target.value))}>{rows.map(r=><option key={r.intensity} value={r.intensity}>{r.intensity} % VO₂max</option>)}</select></label>}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {cards.map(card => <article key={card.id} className="min-w-0 rounded-lg border border-border bg-card p-4">
         <h4 className="font-semibold text-sm">{card.title}</h4><p className="text-xs text-muted-foreground">{card.unit} · axe % VO₂max</p>
@@ -45,6 +49,14 @@ export function LabLoadCharacteristics({ input, snapshot, sport, compare }: Prop
             {compare && card.cmpKey && <Line dataKey={card.cmpKey} name={`Bilan ${compare.date}`} stroke={c.muted} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} />}
           </ComposedChart></ResponsiveContainer>}</div>
         <div className="flex flex-wrap gap-3 text-xs mt-2">{card.series.map(s => <span key={s.key} className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm" style={{ background: s.color }} />{s.label}</span>)}</div>
+        {coachReading && selected && !card.unavailable && <div className="text-sm mt-2">
+          <p>À {intensity} % VO₂max · {card.series.map(s => {
+            const value = selected[s.key as keyof typeof selected];
+            return s.label+' '+(typeof value === 'number' ? value.toFixed(1)+' '+card.unit : 'indisponible');
+          }).join(' · ')}</p>
+          {compare && card.cmpKey && typeof selected[card.cmpKey as keyof typeof selected] === 'number' && <p>Au bilan du {compare.date}, {card.series[0].label} · {Number(selected[card.cmpKey as keyof typeof selected]).toFixed(1)} {card.unit} à la même intensité relative.</p>}
+          <p>{card.id==='sub' || card.id==='share' ? 'Modèle des substrats. Vérifier la tenue et le ravitaillement sur une sortie spécifique avant de modifier la stratégie de course.' : coachingAction(input.objectif,sport,card.id!=='o2')}</p>
+        </div>}
         <details className="mt-2 text-xs text-muted-foreground"><summary className="cursor-pointer">Lire ce graphique</summary><p className="mt-1 leading-relaxed">{card.note}</p></details>
       </article>)}
       <article className="min-w-0 rounded-lg border border-border bg-card p-4">

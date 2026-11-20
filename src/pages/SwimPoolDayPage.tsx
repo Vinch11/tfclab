@@ -168,6 +168,7 @@ export default function SwimPoolDayPage() {
       fc_repos: fcRepos > 0 ? fcRepos : null,
       fc_max: fcMax > 0 ? fcMax : null,
       css: calc.cssPer100 || null,
+      critical_metrics: { poolDay: { poolMetres: Number(poolLen), t200: num(t200), t400: num(t400) } },
       // ⚠ Ne PAS écrire vlamax_run ni tte_observed_min (champs CAP/bike).
       // Les indices natation (vlamaxSwimIdx, tteEst) restent tracés dans coach_notes
       // en attendant l'ajout des colonnes dédiées vlamax_swim / tte_observed_min_swim.
