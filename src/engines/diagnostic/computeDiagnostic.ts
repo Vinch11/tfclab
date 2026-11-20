@@ -581,12 +581,12 @@ function generateHeadline(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function computeDataCompleteness(input: DiagnosticInput): number {
-  const fields = [input.vo2max, input.weightKg, input.tteObservedMin];
+  const fields = [input.vo2max, input.weightKg];
   if (input.sportFocus !== "run") {
-    fields.push(input.ftp, input.vlamax, input.pmax5s, input.p30sW, input.p60sW, input.map5minW);
+    fields.push(input.ftp, input.vlamax, input.tteObservedMin, input.pmax5s, input.p30sW, input.p60sW, input.map5minW);
   }
   if (input.sportFocus !== "bike") {
-    fields.push(input.vma, input.vlamaxRun, input.paceThresholdSecPerKm, input.runEconomyScore);
+    fields.push(input.vma, input.vlamaxRun, input.tteObservedMinRun ?? null, input.paceThresholdSecPerKm, input.runEconomyScore);
   }
   if (input.sportFocus === "tri") fields.push(input.css);
   const present = fields.filter(f => f !== null && f !== undefined).length;
