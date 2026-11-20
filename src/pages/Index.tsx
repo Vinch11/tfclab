@@ -227,7 +227,8 @@ import {
 } from "@/types/ambitionLevel";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 
-const Index = () => {
+type LabProjection = import("@/lib/coachingCompass/types").CoachingCompassInput;
+const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => React.ReactElement } = {}) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1028,6 +1029,8 @@ const Index = () => {
 
   const { markAsReferenceWeek } = useDecisionReliability();
 
+  if (renderLab) return renderLab(compassInputMemo);
+
   // Handlers
   const handleAddAthlete = async () => {
     if (!newAthleteName.trim()) {
@@ -1782,6 +1785,7 @@ const Index = () => {
                   limiterEmoji: dashDiagnostic.limiter.limiterEmoji,
                   limiterExplanation: dashDiagnostic.limiter.limiterExplanation,
                   gapAnalysis: dashDiagnostic.limiter.gapAnalysis,
+                  categoryRanking: dashDiagnostic.limiter.categoryRanking,
                   confidence: dashDiagnostic.limiter.confidence,
                   fatigueWarning: (dashDiagnostic.limiter as any).fatigueWarning ?? null,
                 },

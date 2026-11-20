@@ -1,3 +1,4 @@
+import { rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
 import { useState } from 'react';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
@@ -21,14 +22,7 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const lead = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none' ? diagnosis.categoryRanking?.[0] : null;
   const leadMetrics = lead?.metrics.filter(metric => metric.prescriptionApplicable !== false && metric.weightedImpact > 0);
   const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
-  const rankedMetrics = new Set(diagnosis?.categoryRanking?.flatMap(group => group.metrics.map(metric => metric.metric)));
-  const fieldRanking = (diagnosis?.gapAnalysis ?? []).flatMap(metric => {
-    const hypothesis = metric.fieldHypothesisImpact != null;
-    const impact = hypothesis ? metric.fieldHypothesisImpact : metric.weightedImpact;
-    if (metric.value == null || !impact || impact <= 0) return [];
-    if (!hypothesis && (metric.prescriptionApplicable === false || !rankedMetrics.has(metric.metric))) return [];
-    return [{ metric, impact, hypothesis }];
-  }).sort((a, b) => b.impact - a.impact);
+  const fieldRanking = rankedFieldGaps(diagnosis);
   const save = async () => {
     if (!draft || !onSave) return;
     setBusy(true);
@@ -53,6 +47,7 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
         </li>)}</ol>
         {fieldRanking.some(row => row.hypothesis) && <p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p>}
       </div>}
+      <a className="inline-block py-2 text-primary underline" href="/lab#priorites">Examiner les priorités dans 100 % Lab</a>
       {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
         <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>
       </details>}
