@@ -89,6 +89,17 @@ function SessionBlocks({
   if (!laps) return <p role="status">Lecture des intervalles…</p>;
   if (!laps.length) return <p>Aucun tour enregistré pour cette séance.</p>;
   const points = laps.map((l) => lapMeasures(l, sport));
+  if (points.length === 1) {
+    const p = points[0];
+    return (
+      <p>
+        {session.name} · Tour unique ·{" "}
+        {p.effort ? fmt(p.effort) : "intensité indisponible"}
+        {p.heart ? " · " + p.heart + " bpm" : ""}. Deux blocs distincts sont
+        nécessaires pour lire une évolution.
+      </p>
+    );
+  }
   const a = points[first],
     b = points[last];
   return (
@@ -177,6 +188,13 @@ export function LabSessionReview({
               Date.parse(s.date) > Date.parse(selected.date)),
         ) ?? [])
       : [];
+  const [freshId, setFreshId] = useState("");
+  const fresh = list?.find(
+    (s) =>
+      s.id === freshId &&
+      s.sportBase === "running" &&
+      s.date.slice(0, 10) !== selected?.date.slice(0, 10),
+  );
   const linked = runs.find((s) => s.id === runId);
   async function load() {
     setBusy(true);
@@ -245,6 +263,7 @@ export function LabSessionReview({
               onChange={(e) => {
                 setId(e.target.value);
                 setRunId("");
+                setFreshId("");
               }}
             >
               <option value="">Choisir une séance</option>
@@ -298,6 +317,34 @@ export function LabSessionReview({
                 session={linked}
                 {...{ athlete, from, to }}
               />
+              <label className="block">
+                Course à frais sur terrain comparable, confirmée par le coach{" "}
+                <select
+                  className="max-w-full border rounded bg-background"
+                  value={fresh?.id ?? ""}
+                  onChange={(e) => setFreshId(e.target.value)}
+                >
+                  <option value="">Choisir une autre séance</option>
+                  {list
+                    .filter(
+                      (s) =>
+                        s.sportBase === "running" &&
+                        s.date.slice(0, 10) !== selected?.date.slice(0, 10),
+                    )
+                    .map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.date.slice(0, 10)} · {s.name}
+                      </option>
+                    ))}
+                </select>
+              </label>
+              {fresh && (
+                <SessionBlocks
+                  key={fresh.id}
+                  session={fresh}
+                  {...{ athlete, from, to }}
+                />
+              )}
               <p>
                 Comparer le début de cette course à un effort à frais sur un
                 terrain similaire. Vérifier l’intensité du vélo et le

@@ -294,6 +294,29 @@ export function SnapshotReview({
   );
 }
 
+function datedRaces(row: DbSnapshot, after: string) {
+  const columns = row as DbSnapshot &
+    Partial<import("@/integrations/supabase/types").Tables<"snapshots">>;
+  return (["5k", "10k", "20k", "half", "marathon"] as const).flatMap(
+    (distance) => {
+      const date = columns[`time_${distance}_date`],
+        seconds = columns[`time_${distance}_sec`];
+      if (!date || date <= after || date > row.date || !(seconds > 0))
+        return [];
+      return [
+        {
+          label:
+            distance === "half"
+              ? "Semi-marathon"
+              : distance.replace("k", " km"),
+          date,
+          seconds,
+        },
+      ];
+    },
+  );
+}
+
 export function BlindReview({
   snapshots,
   reference,
@@ -319,6 +342,7 @@ export function BlindReview({
   const next = [...earlier, reference]
     .filter((s) => s.date > first.date)
     .sort((a, b) => a.date.localeCompare(b.date))[0];
+  const results = datedRaces(next, first.date);
   const scenarioGoal =
     goal ||
     (objectiveDemands(first.objectif || "") ? first.objectif || "" : "");
@@ -451,6 +475,20 @@ export function BlindReview({
                 </li>
               ))}
           </ul>
+          <h4 className="font-semibold">
+            Résultats de course datés entre les bilans
+          </h4>
+          {results.length ? (
+            <ul>
+              {results.map((r) => (
+                <li key={r.label}>
+                  {r.label} · {r.date} · {clock(r.seconds)} (min:s)
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Aucun chrono de course daté disponible sur cet intervalle.</p>
+          )}
           <p>
             Comparer avec ton observation initiale. Un changement de valeur seul
             ne démontre pas que ce facteur expliquait le résultat en course.

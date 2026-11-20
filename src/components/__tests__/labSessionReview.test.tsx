@@ -78,5 +78,5 @@ it("opens actual measured laps and requires choosing the post-bike run", async (
   fireEvent.change(screen.getByLabelText(/Course effectivement enchaînée/), {
     target: { value: "r" },
   });
-  expect(await screen.findByText(/4:30\/km → 4:30\/km/)).toBeVisible();
+  expect(await screen.findByText(/Tour unique · 4:30\/km/)).toBeVisible();
 });
