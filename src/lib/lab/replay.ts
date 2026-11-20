@@ -169,12 +169,36 @@ export function followupEvidence(
         {
           id: t.id,
           date: raw.testDate,
-          text: `${t.name} · ${observed} ${unit} · ${Math.abs(difference).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} ${unit} ${difference < 0 ? "sous" : "au-dessus de"} l’ancien repère de ${target!.toLocaleString("fr-FR")} ${unit}.`,
+          text: `${t.name} · ${observed} ${unit} · ${Math.abs(difference).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} ${unit} ${difference < 0 ? "sous" : difference > 0 ? "au-dessus de" : "d’écart avec"} l’ancien repère de ${target!.toLocaleString("fr-FR")} ${unit}.`,
         },
       ];
     });
   }
-  if (metric === "FTP/kg" || metric === "VO2max") return [];
+  if (metric === "FTP/kg" || metric === "VO2max") {
+    const unit = metric === "FTP/kg" ? "W/kg" : "ml/kg/min";
+    const value =
+      metric === "FTP/kg"
+        ? next.ftp && next.weight_kg && next.weight_kg > 0
+          ? next.ftp / next.weight_kg
+          : null
+        : next.vo2max;
+    if (
+      value == null ||
+      value <= 0 ||
+      !Number.isFinite(value) ||
+      !Number.isFinite(target)
+    )
+      return [];
+    const read = (n: number) =>
+      n.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    return [
+      {
+        id: next.id,
+        date: next.date,
+        text: `Bilan suivant · ${read(value)} ${unit} pour le repère initial de ${read(target!)} ${unit}. Vérifier la date et le protocole du nouveau test avant de confirmer une évolution.`,
+      },
+    ];
+  }
   if (!rank.hypothesis && !metric.startsWith("Durabilité")) return [];
   const sessions =
     parseStoredDurability(next.critical_metrics)[sport]?.sessions ?? [];
