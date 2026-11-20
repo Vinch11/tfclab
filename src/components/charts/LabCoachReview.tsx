@@ -12,6 +12,7 @@ import {
 import {
   followupEvidence,
   raceForecastReview,
+  roadForecastCohort,
   replayPriorities,
 } from "@/lib/lab/replay";
 import {
@@ -418,17 +419,22 @@ export function BlindReview({
   reference,
   birth,
   tests = [],
+  athletes = [],
 }: {
   snapshots: DbSnapshot[];
   reference: DbSnapshot;
   birth?: string | null;
   tests?: DbTest[];
+  athletes?: { id: string; dateNaissance?: string | null }[];
 }) {
   const earlier = earlierBilans(snapshots, reference);
   const [id, setId] = useState(earlier[0]?.id ?? "");
   const [goal, setGoal] = useState("");
   const [ambition, setAmbition] = useState<AmbitionLevel | "">("");
   const [opinion, setOpinion] = useState("");
+  const [minTime, setMinTime] = useState(""),
+    [maxTime, setMaxTime] = useState("");
+  const [showCohort, setShowCohort] = useState(false);
   const [reveal, setReveal] = useState(false);
   const first = earlier.find((s) => s.id === id);
   if (!first)
@@ -456,6 +462,19 @@ export function BlindReview({
   const race =
     reveal && ambition
       ? raceForecastReview(first, next, scenarioGoal, ambition)
+      : null;
+  const cohort =
+    reveal && showCohort && ambition
+      ? roadForecastCohort(
+          snapshots,
+          athletes,
+          first.coach_id,
+          next.date,
+          scenarioGoal,
+          ambition,
+          Number(minTime),
+          maxTime ? Number(maxTime) : Infinity,
+        )
       : null;
   const fields = [
     ["ftp", "FTP (W)"],
@@ -614,6 +633,60 @@ export function BlindReview({
           ) : (
             <p>Aucun chrono de course daté disponible sur cet intervalle.</p>
           )}
+          {objectiveDemands(scenarioGoal)?.kind === "road" &&
+            athletes.length > 0 && (
+              <details onToggle={(e) => setShowCohort(e.currentTarget.open)}>
+                <summary className="cursor-pointer font-semibold">
+                  Erreur des prévisions chez les adultes suivis sur cette
+                  distance
+                </summary>
+                <p>
+                  Objectif {scenarioGoal} · scénario {ambition}. Filtrer le
+                  niveau de performance par le dernier chrono connu avant la
+                  course (minutes).
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <label>
+                    De{" "}
+                    <input
+                      type="number"
+                      min="0"
+                      aria-label="Chrono antérieur minimum"
+                      value={minTime}
+                      onChange={(e) => setMinTime(e.target.value)}
+                      className="w-20 rounded border bg-background p-1"
+                    />{" "}
+                    min
+                  </label>
+                  <label>
+                    À{" "}
+                    <input
+                      type="number"
+                      min="0"
+                      aria-label="Chrono antérieur maximum"
+                      value={maxTime}
+                      onChange={(e) => setMaxTime(e.target.value)}
+                      className="w-20 rounded border bg-background p-1"
+                    />{" "}
+                    min
+                  </label>
+                </div>
+                {maxTime && Number(maxTime) < Number(minTime) ? (
+                  <p>Le maximum doit atteindre au moins le minimum.</p>
+                ) : cohort ? (
+                  <p>
+                    {cohort.races} course(s) · {cohort.athletes} athlète(s).
+                    Erreur absolue moyenne · TFCLab {clock(cohort.modelError)} ·
+                    ancien chrono {clock(cohort.baselineError)} (min:s).
+                  </p>
+                ) : (
+                  <p>
+                    Aucune paire datée avec un ancien chrono comparable pour ce
+                    groupe.
+                  </p>
+                )}
+              </details>
+            )}
           {race && (
             <div>
               <h4 className="font-semibold">

@@ -1,3 +1,4 @@
+import { compareSnapshotsNewestFirst } from "@/lib/referenceSnapshot";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { storedPerformance } from "@/lib/coachingCompass/performanceComparison";
 import { reviewedTte, validTestDate } from "@/lib/testMeasurementReview";
@@ -210,4 +211,68 @@ export function followupEvidence(
     date: s.date.slice(0, 10),
     text: `${s.name} · ${s.durationMin} min · variation de ${s.changePct} % entre début et fin. Ce résultat renseigne la tenue de l’effort. La cause métabolique reste à vérifier.`,
   }));
+}
+
+/** One prospective comparison per dated race, with identical cases for both errors. */
+export function roadForecastCohort(
+  rows: DbSnapshot[],
+  adults: { id: string; dateNaissance?: string | null }[],
+  coachId: string,
+  asOf: string,
+  goal: string,
+  ambition: AmbitionLevel,
+  minMinutes: number,
+  maxMinutes: number,
+) {
+  const results: { model: number; baseline: number; athlete: string }[] = [];
+  if (objectiveDemands(goal)?.kind !== "road") return null;
+  for (const person of adults) {
+    if (!validTestDate(person.dateNaissance)) continue;
+    const adultSince =
+      String(Number(person.dateNaissance.slice(0, 4)) + 18) +
+      person.dateNaissance.slice(4);
+    const history = rows
+      .filter(
+        (s) =>
+          s.athlete_id === person.id &&
+          s.coach_id === coachId &&
+          s.date >= adultSince &&
+          s.date <= asOf,
+      )
+      .sort(compareSnapshotsNewestFirst);
+    const seen = new Set<string>();
+    for (const resultRow of [...history].reverse()) {
+      const race = storedPerformance(goal, resultRow);
+      if (
+        !race ||
+        !validTestDate(race.date) ||
+        race.date > resultRow.date ||
+        seen.has(race.date)
+      )
+        continue;
+      for (const first of history) {
+        if (first.date >= race.date || first.objectif !== goal) continue;
+        const score = raceForecastReview(first, resultRow, goal, ambition);
+        if (!score || score.baseline == null || score.baselineError == null)
+          continue;
+        seen.add(race.date);
+        const minutes = score.baseline / 60;
+        if (minutes >= minMinutes && minutes <= maxMinutes)
+          results.push({
+            model: score.error,
+            baseline: score.baselineError,
+            athlete: person.id,
+          });
+        break;
+      }
+    }
+  }
+  if (!results.length) return null;
+  return {
+    races: results.length,
+    athletes: new Set(results.map((r) => r.athlete)).size,
+    modelError: results.reduce((sum, r) => sum + r.model, 0) / results.length,
+    baselineError:
+      results.reduce((sum, r) => sum + r.baseline, 0) / results.length,
+  };
 }

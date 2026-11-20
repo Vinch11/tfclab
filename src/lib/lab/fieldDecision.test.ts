@@ -7,7 +7,11 @@ import {
 import { fieldDayObservations } from "@/lib/fieldDayObservations";
 import { fitBikeOnNolio } from "./nolioCalibration";
 import { periodForecast } from "./periodForecast";
-import { followupEvidence, raceForecastReview } from "./replay";
+import {
+  followupEvidence,
+  raceForecastReview,
+  roadForecastCohort,
+} from "./replay";
 
 const first: DbSnapshot = {
   id: "a",
@@ -150,6 +154,53 @@ describe("field decisions for a coach", () => {
       ),
     ).toBeNull();
     expect(raceForecastReview(prior, race, "703", "competitor")).toBeNull();
+  });
+  it("groups by previous race level and never counts a copied result, another coach or an underage athlete", () => {
+    const initial = {
+      ...first,
+      objectif: "10K",
+      time_10k_sec: 2400,
+      time_10k_date: "2025-12-22",
+    };
+    const result = {
+      ...later,
+      time_10k_sec: 2390,
+      time_10k_date: "2026-02-01",
+    };
+    const copied = { ...result, id: "c", date: "2026-03-02" };
+    const rows = [
+      initial,
+      result,
+      copied,
+      ...[initial, result].map((s) => ({ ...s, athlete_id: "junior" })),
+      ...[initial, result].map((s) => ({
+        ...s,
+        athlete_id: "foreign",
+        coach_id: "other",
+      })),
+    ];
+    const people = [
+      { id: "runner", dateNaissance: "1985-01-12" },
+      { id: "junior", dateNaissance: "2010-01-12" },
+      { id: "foreign", dateNaissance: "1985-01-12" },
+    ];
+    const group = (lower: number) =>
+      roadForecastCohort(
+        rows,
+        people,
+        "c",
+        copied.date,
+        "10K",
+        "finisher",
+        lower,
+        50,
+      );
+    expect(group(40)).toMatchObject({
+      races: 1,
+      athletes: 1,
+      baselineError: 10,
+    });
+    expect(group(41)).toBeNull();
   });
   it("tracks the original target using a later independent protocol in the original sport", () => {
     const t = {

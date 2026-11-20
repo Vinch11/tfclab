@@ -22,13 +22,19 @@ const reference = {
   time_10k_date: "2026-09-27",
   time_10k_sec: 2880,
 };
-const followup = {
+const followup: DbTest = {
+  coach_id: "coach",
+  date: "2026-09-22",
+  type: "VMA",
+  note: null,
+  vlamax: null,
+  reliability: 1,
   id: "test",
   athlete_id: historical.athlete_id,
   sport: "run",
   name: "Repère piste",
   raw: { vma: 15, testDate: "2026-09-22", conditionsConfirmed: true },
-} as DbTest;
+};
 export default function LabCoachHarness() {
   return (
     <main className="p-4">
