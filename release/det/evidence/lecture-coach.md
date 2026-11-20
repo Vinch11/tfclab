@@ -1,5 +1,13 @@
 # DET 2.1 — lecture des plans de référence
 
+## Contrôle du 21 novembre : nouvelles preuves Compass et Lab
+
+Les PR 486 à 488 sont fusionnées ; la PR 489 est ouverte lors du contrôle. Elles modifient le diagnostic et sa lecture terrain. Les 273 changements de priorités rapportés dans la matrice de 600 configurations de la PR 486 ne constituent pas un nouveau rejeu des 200 cas DET. Les sept paires historiques relues par le Lab ne sont pas une revue sportive indépendante des témoins DET : le document `docs/lab-coach-review.md` sur `main` précise que cette validation reste nécessaire.
+
+Le manifeste public compte toujours 337 octets et les deux copies du worker ainsi que les quatre fichiers du formulaire correspondent à la version testée `ccd8cd85`. Les 156 succès initiaux sont préservés dans le rejeu enregistré, avec 164 plans, 34 demandes de données et 2 limites moteur ; 25 Start to Run restent hors DET. Ces résultats concernent les entrées de cet oracle : ils ne valident pas automatiquement les nouvelles entrées produites par le diagnostic courant. Aucun nouveau rejeu navigateur ou matrice n'est revendiqué ici. [Contrôle et portée des nouvelles preuves](controle-2026-11-21.json)
+
+Les preuves relues ne désignent pas de pilote pour cette recette et ne contiennent toujours pas d'identifiants concordants d'envoi/relecture Nolio ni d'observation des étapes sur sa montre. Les limites moteur restent ouvertes. Aucune modification du moteur IA, de la bibliothèque V3 ou des travaux Compass/Lab du coach n'est effectuée par ce contrôle ; aucune séance n'est envoyée et aucun crédit Lovable n'est engagé.
+
 ## Contrôle du 19 novembre : fusions IA et diagnostic
 
 Les PR 483 et 484 ont été fusionnées le 18 novembre, suivies de la PR 485 sur les cibles et le diagnostic. Les octets du worker DET publié restent ceux de `ccd8cd85`, identiques au paquet testé ; les deux copies du worker et les quatre fichiers du formulaire ont été contrôlés. La matrice de 600 scénarios de la PR 485 ne remplace pas l'oracle DET de 200 cas. Ses dix changements de priorités documentés ne constituent pas un nouveau rejeu DET. Les résultats enregistrés restent 164 plans assemblés, 34 demandes de données et 2 limites moteur, avec les 156 succès initiaux conservés et 25 Start to Run hors DET. [Contrôle et états des PR](controle-2026-11-19.json)

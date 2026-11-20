@@ -1,0 +1,261 @@
+{
+  "dateBrussels": "2026-11-21",
+  "observedAtUtc": "2026-11-20T23:34:05.749565+00:00",
+  "sourceCommit": "fafa7e316e4b3bd22c0b46db4ef4842c5fe1c38b",
+  "mainObserved": "c64dc269b43b185c7f8d85db68bdd35eab584cd9",
+  "public": {
+    "manifestBytes": 337,
+    "manifestSha256": "53efeadbf036c1fddac58e5e94f0521aba56c7135534206b161edac0b992078c",
+    "workerVersion": "det-ccd8cd85b659da80150ed70a469e4d4a01dfc7a097660e05a97d3db3dcfcb410",
+    "bothPublicWorkersMatchGit": true,
+    "fourFormAssetsMatch": true,
+    "generalRelease": {
+      "manifestVersion": 2,
+      "components": {
+        "frontend": "3c7ef98fb287e4637563fb4e35e60bcb3c6a284b5ed81b64053cf121762767e0",
+        "ai-training-plan": "bc07129045bca1ae37f5ff3cb22a9debf6c5be9d67077c7938f48ab98c0956c2",
+        "ai-training-plan-test": "c19563be0ea71070b1ce3057b303ed82474ebf12bc5f04e615a990a1532cc6f5"
+      },
+      "contractHash": "be8705c37209078320fb6814d1c14d20afed58b4ccded541e24a414e976fe4fd",
+      "catalogueHash": "66127242fdda967c9bf103c066474cee08d6f3f46392ea9e8828c36de290fd0b",
+      "lockHash": "6f8e5dc7e0d095e8c4cecea05fa1e72e0bc71b5a46c2f90db888a0d8caf23158",
+      "releaseId": "ca5e1dbfb5b7b8cf5ea900af223d2f7d26a06b95b7258fac4ea25c95c1adcb04",
+      "attested": false,
+      "deploymentAttested": false,
+      "provenance": "declared-source",
+      "sourceCommit": null,
+      "sourceEpoch": null
+    },
+    "formBuiltAgainst": "abdba7ae82cc70ba8410bae9250c800bf43f3998afe24c07dd33683d550b6acb"
+  },
+  "reviewedPullRequests": [
+    {
+      "number": 486,
+      "body": "Le coach compare le profil à un objectif explicite sur les 13 formats de TFCLab. Le Compass présente le facteur à examiner, les observations qui le justifient et les données qu’il reste à confirmer.\n\n- La VLamax conserve la discipline et la provenance du test. Le FatMax calculé et la durée au seuil extrapolée restent descriptifs. Le classement utilisé pour préparer le plan reprend les priorités étayées.\n- Les entrées du bilan et l’objectif sont confirmés après lecture de la ligne sauvegardée. Le parcours synthétique couvre le changement d’athlète et les données historiques.\n- Les sources, les populations et les limites des comparaisons sont documentées dans `docs/compass-performance-evidence-2026-11-20.md`. La capacité à identifier la cause réelle d’une contre-performance reste à valider prospectivement.\n- Rejeu de 600 configurations avant et après modification. La suppression de VLamax/TTE non confirmées concerne 273 scénarios. Les autres priorités conservent leur ordre et les mêmes configurations déclenchent les limites de capacité. Ce contrôle porte sur la configuration des plans.\n- Données synthétiques pour les tests de régression. Aucun changement de schéma SQL ni d’écritures Nolio. Les contrôles de Chromium, WebKit et de préparation à la publication sont suivis dans les vérifications GitHub de cette PR.",
+      "head": "1b270015cf938976f131fd41b95d49b52ee19acb",
+      "merged": "2026-11-20T22:23:56Z",
+      "files": [
+        "docs/compass-performance-evidence-2026-11-20.md",
+        "e2e/compass-performance.spec.ts",
+        "src/App.tsx",
+        "src/components/CoachingCompassCard.tsx",
+        "src/components/CompassPerformanceComparison.tsx",
+        "src/components/DashboardRecommendationsCard.tsx",
+        "src/components/ExportTools.tsx",
+        "src/components/FatigueComparisonChart.tsx",
+        "src/components/SnapshotEditor.tsx",
+        "src/components/SnapshotManager.tsx",
+        "src/components/WahooPersonalizedRecommendations.tsx",
+        "src/components/__tests__/CompassPerformanceComparison.test.tsx",
+        "src/engines/diagnostic/__tests__/computeDiagnostic.test.ts",
+        "src/engines/diagnostic/computeDiagnostic.ts",
+        "src/engines/diagnostic/cyclingCompassDiagnostic.ts",
+        "src/engines/diagnostic/runningCompassDiagnostic.ts",
+        "src/engines/diagnostic/types.ts",
+        "src/hooks/__tests__/useCloudData.persistence.test.ts",
+        "src/hooks/useCloudData.ts",
+        "src/lib/__tests__/potentielPhysiologiqueEffectif.adapter.test.ts",
+        "src/lib/__tests__/snapshotReliability.test.ts",
+        "src/lib/assistant/getAssistantContext.ts",
+        "src/lib/coachingCompass/__tests__/computeCoachingCompass.formulaFixes.test.ts",
+        "src/lib/coachingCompass/__tests__/factorVerdict.test.ts",
+        "src/lib/coachingCompass/__tests__/objectiveDemands.test.ts",
+        "src/lib/coachingCompass/__tests__/performanceComparison.test.ts",
+        "src/lib/coachingCompass/__tests__/prescriptionIsolation.test.ts",
+        "src/lib/coachingCompass/completeProfile.ts",
+        "src/lib/coachingCompass/computeCoachingCompass.ts",
+        "src/lib/coachingCompass/factorVerdict.ts",
+        "src/lib/coachingCompass/objectiveDemands.ts",
+        "src/lib/coachingCompass/performanceComparison.ts",
+        "src/lib/coachingCompass/types.ts",
+        "src/lib/diagnosticMetricPresentation.ts",
+        "src/lib/essentiels/computeEssentielsData.ts",
+        "src/lib/lab/labProfile.ts",
+        "src/lib/mapSnapshotToV2.ts",
+        "src/lib/plan/__tests__/disciplineCoachLimiters.test.ts",
+        "src/lib/v2/fatmaxTFCL.ts",
+        "src/lib/v2/unifiedLimiterDetection.ts",
+        "src/lib/vlamaxEffectif.ts",
+        "src/lib/vlamaxEvidence.ts",
+        "src/lib/vlamaxResolver.ts",
+        "src/pages/AITrainingPlanPage.tsx",
+        "src/pages/Index.tsx",
+        "src/pages/RaceSimulationPage.tsx",
+        "src/pages/RunningProfilePage.tsx",
+        "src/pages/TemplatesPage.tsx",
+        "src/pages/__e2e/CompassPerformanceHarness.tsx",
+        "src/qa/sports-plan-lab/__tests__/globalPlanningMatrix.test.ts",
+        "supabase/functions/_shared/planReleaseManifest.ts"
+      ],
+      "reviews": [],
+      "comments": []
+    },
+    {
+      "number": 487,
+      "body": "Le Compass montre les écarts pertinents dans un ordre commun. Les hypothèses métaboliques ont une priorité de vérification en conditions de terrain. Les prescriptions distinguent toujours les observations indépendantes et les estimations provenant du même modèle. Tests du tri, des signes, des exclusions et du rendu mobile.",
+      "head": "2b480fee1dd4ac0ef149c78bd76d00dc12501251",
+      "merged": "2026-11-20T22:32:55Z",
+      "files": [
+        "e2e/compass-performance.spec.ts",
+        "src/components/CompassPerformanceComparison.tsx",
+        "src/components/__tests__/CompassPerformanceComparison.test.tsx",
+        "src/lib/coachingCompass/types.ts",
+        "src/lib/v2/unifiedLimiterDetection.ts",
+        "supabase/functions/_shared/planReleaseManifest.ts"
+      ],
+      "reviews": [],
+      "comments": []
+    },
+    {
+      "number": 488,
+      "body": "Classement partagé avec le Compass, évolution sur bilans et périodes Nolio, lecture par objectif, comparaison des tours et de la FC, sélection explicite du vélo-course. Rejeu aveugle à partir du bilan antérieur, sans utiliser les résultats ultérieurs comme entrées. Les essais comprennent une relecture technique de sept paires historiques. Une validation indépendante par le coach reste à effectuer. Recette et limites dans docs/lab-coach-review.md.",
+      "head": "affc717923a42b54b034795cd37b0eed307f2652",
+      "merged": "2026-11-20T22:59:30Z",
+      "files": [
+        "docs/lab-coach-review.md",
+        "e2e/lab-coach.spec.ts",
+        "src/App.tsx",
+        "src/components/CompassPerformanceComparison.tsx",
+        "src/components/__tests__/labSessionReview.test.tsx",
+        "src/components/charts/AthleteEvidenceCharts.tsx",
+        "src/components/charts/LabCoachReview.tsx",
+        "src/components/charts/LabLoadCharacteristics.tsx",
+        "src/components/charts/LabPeriodComparison.tsx",
+        "src/components/charts/LabSessionReview.tsx",
+        "src/lib/coachingCompass/rankedFieldGaps.ts",
+        "src/lib/lab/coachReview.test.ts",
+        "src/lib/lab/coachReview.ts",
+        "src/lib/lab/replay.ts",
+        "src/pages/Index.tsx",
+        "src/pages/LabPage.tsx",
+        "src/pages/SwimPoolDayPage.tsx",
+        "src/pages/__e2e/LabCoachHarness.tsx",
+        "supabase/functions/_shared/planReleaseManifest.ts"
+      ],
+      "reviews": [],
+      "comments": []
+    },
+    {
+      "number": 489,
+      "body": "Permet au coach de lire les écarts en unités sportives, de retrouver les observations pertinentes et de vérifier une prévision sur des efforts ultérieurs. La comparaison reprend l’ancien record comme repère simple. Le Lab indique aussi quand plusieurs profils métaboliques expliquent des courbes vélo proches.\n\nCorrige la provenance des durées au seuil, l’import 5 s / 10 s et la saisie du protocole piste envoyé dans Nolio. Le triathlon conserve les estimations vélo et course par discipline. Les évolutions sont couvertes par des tests de non-régression avec des données fictives. Aucun résultat individuel d’athlète n’est inclus.",
+      "head": "a994c99362430798420208b937295b00a1c042ae",
+      "merged": null,
+      "files": [
+        "docs/lab-coach-review.md",
+        "e2e/lab-coach.spec.ts",
+        "src/components/CompassPerformanceComparison.tsx",
+        "src/components/charts/AthleteEvidenceCharts.tsx",
+        "src/components/charts/LabCoachReview.tsx",
+        "src/components/charts/LabNolioCalibration.tsx",
+        "src/components/charts/LabPeriodComparison.tsx",
+        "src/hooks/useCloudData.ts",
+        "src/lib/coachingCompass/rankedFieldGaps.ts",
+        "src/lib/coachingCompass/types.ts",
+        "src/lib/diagnostic/buildDiagnosticProtocolHTML.ts",
+        "src/lib/fieldDayObservations.ts",
+        "src/lib/lab/fieldDecision.test.ts",
+        "src/lib/lab/nolioCalibration.ts",
+        "src/lib/lab/periodForecast.ts",
+        "src/lib/lab/replay.ts",
+        "src/pages/BikeTrackDayPage.tsx",
+        "src/pages/LabPage.tsx",
+        "src/pages/TrackDayPage.tsx",
+        "src/pages/TriTestDayPage.tsx",
+        "src/pages/__e2e/LabCoachHarness.tsx",
+        "supabase/functions/_shared/planReleaseManifest.ts"
+      ],
+      "reviews": [],
+      "comments": []
+    }
+  ],
+  "recordedDetOracle": {
+    "baseline": "d2e1ac7985e3b512ae912447c2ed1489acffbe34",
+    "original156SuccessesPreserved": true,
+    "cases": {
+      "assembled": 164,
+      "missing_data": 34,
+      "engine_limit": 2,
+      "outside_det": 25
+    },
+    "newExecution": false
+  },
+  "witnesses": {
+    "file": "parcours-publie.json#/latestReceipt/publishedWitnessReplay",
+    "workflow": "https://github.com/Vinch11/tfclab/actions/runs/43334331672",
+    "currentPublicWorkerMatchesRecordedEvidence": true,
+    "newBrowserExecution": false
+  },
+  "newEvidenceScope": {
+    "pr486": "600 configurations de plans ; 273 scénarios changent par retrait de VLamax/TTE non confirmées. Ce n’est pas le rejeu DET des 200 cas.",
+    "pr488": "Sept paires historiques sur quatre athlètes. Deux classements et cinq sans écart classable ; aucune paire avec résultat ultérieur daté de semi/10 km. Relecture technique, sans validation indépendante du coach.",
+    "pr489": "Ouverte lors du contrôle ; tests de données fictives et comparaisons terrain, sans preuve de réception DET.",
+    "integration": "La conformité des octets du worker ne valide pas les nouvelles entrées de diagnostic dans le parcours courant. Les résultats de l’oracle enregistré restent attachés à ses entrées d’origine."
+  },
+  "acceptance": {
+    "independentSportReview": {
+      "status": "sans_preuve",
+      "evidence": null
+    },
+    "pilot": {
+      "status": "aucun_pilote_explicitement_identifie_pour_cette_recette"
+    },
+    "nolioV2Send": {
+      "status": "sans_preuve",
+      "operationId": null,
+      "eventId": null
+    },
+    "nolioV2Readback": {
+      "status": "sans_preuve",
+      "matchingEventId": null
+    },
+    "pairedWatchSteps": {
+      "status": "sans_observation",
+      "evidence": null
+    },
+    "nolioOAuth": {
+      "currentState": "not_observed"
+    }
+  },
+  "allConditionsProven": false,
+  "remainingEngineLimits": [
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "elite",
+      "outcome": "engine_limit",
+      "fields": [],
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 4 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 5 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil."
+      ]
+    },
+    {
+      "objective": "Semi",
+      "level": "untrained",
+      "ambition": "world_class",
+      "outcome": "engine_limit",
+      "fields": [],
+      "reasons": [
+        "Rang 1 · Durabilité : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 2 · VO2max : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser.",
+        "Rang 3 · TTE : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course au seuil admissible au niveau de reprise pour ce semi-marathon. La marche-course disponible prépare l’endurance. DET ne sait pas en déduire une dose au seuil.",
+        "Rang 5 · VMA : aucun bloc de travail compatible retenu en semaine de charge pour ce profil et cet objectif. Aucune fiche de course avec des fractions à vitesse aérobie admissible pour ce semi-marathon en reprise. La VMA du bilan donne une vitesse de référence. Le moteur ne dispose pas d’une séance compatible pour l’utiliser."
+      ]
+    }
+  ],
+  "boundaries": {
+    "startToRun": "25 cas hors DET, protocole marche-course.",
+    "missingData": "34 demandes initiales de données ; ne pas remplacer un historique absent par une estimation.",
+    "incompatibility": "Nécessite des contraintes contradictoires prouvées. Aucun nouveau conflit déduit du seul échec de recherche.",
+    "motor": "Deux limites semi initiales, plus 26 limites après historiques synthétiques dans le dossier existant."
+  },
+  "actions": {
+    "productionOrAiModified": false,
+    "detOrV3Modified": false,
+    "lovableGenerationCreditsUsed": false,
+    "nolioWritePerformed": false,
+    "pilotAssumedFromOtherNolioTasks": false
+  }
+}
