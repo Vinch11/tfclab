@@ -1,3 +1,4 @@
+import { DayBlockNav } from "@/components/DayBlockNav";
 import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * TrackDayPage — TFCL Track Day™
@@ -397,6 +398,7 @@ export default function TrackDayPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">Le protocole Nolio et la fiche imprimée utilisent un 1 500 m et un 5 km. Choisir cette variante dans le bloc 3 pour y reporter les temps réalisés.</p>
+        <DayBlockNav sport="run" />
         <DurabilityDayLink sport="run" />
         <TestSessionsNolioExport routes={['track-day']} />
 
@@ -522,7 +524,7 @@ export default function TrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-1" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Zap className="h-4 w-4 text-yellow-500" />
                 Bloc 1 — Neuromusculaire
               </CardTitle>
@@ -669,7 +671,7 @@ export default function TrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-2" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Activity className="h-4 w-4 text-orange-500" />
                 Bloc 2 — Glycolytique
               </CardTitle>
@@ -721,7 +723,7 @@ export default function TrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-3" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Target className="h-4 w-4 text-blue-500" />
                 Bloc 3 — Seuil
               </CardTitle>
@@ -759,7 +761,7 @@ export default function TrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-4" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Heart className="h-4 w-4 text-red-500" />
                 Bloc 4 — Aérobie
               </CardTitle>

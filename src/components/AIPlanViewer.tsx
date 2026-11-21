@@ -19,7 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Calendar, ChevronLeft, ChevronRight, Dumbbell, Waves, Bike,
   Footprints, Moon, FileText, Zap, Save, Loader2, CheckCircle2,
-  RefreshCw, Printer, Target, ArrowRight, Sparkles, AlertTriangle, List,
+  RefreshCw, Printer, Target, Sparkles, AlertTriangle, List,
 } from "lucide-react";
 import { format, addDays, startOfWeek, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -264,7 +264,7 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
       defaultOpen={false}
       storageKey="ai_plan_strategic_recap"
       icon={<Target className="h-4 w-4 text-primary" />}
-      title={<span className="text-sm">Récapitulatif Stratégique</span>}
+      title={<span className="text-base font-semibold">Du limiteur aux séances clés</span>}
     >
         {/* Mini Gantt */}
         {phases.length > 0 && (
@@ -279,7 +279,7 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
         {/* Limiter → Block → Key Sessions flow */}
         <div className="space-y-2">
           {recap.limiters.map((limiter, idx) => (
-            <div key={idx} className="flex items-start gap-2 p-2.5 rounded-lg bg-background/80 border border-border/50">
+            <div key={idx} className="flex items-start gap-3 rounded-2xl border bg-card p-4 first:border-primary/25 first:bg-primary/5">
               <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
                 {limiter.rank}
               </div>
@@ -290,13 +290,10 @@ function StrategicRecapView({ recap, phases, totalWeeks }: { recap: StrategicRec
                     {limiter.status}
                   </Badge>
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground/80">{limiter.block}</span>
-                  <ArrowRight className="h-3 w-3 text-primary/60 flex-shrink-0" />
-                  <Badge variant="outline" className="text-[10px] py-0">{limiter.weeks}</Badge>
-                  <ArrowRight className="h-3 w-3 text-primary/60 flex-shrink-0" />
-                  <span className="text-[11px]">🔑 {limiter.keySessions}</span>
-                </div>
+                <dl className="mt-2 grid gap-2 border-l-2 border-primary/25 pl-3 text-sm">
+                  <div><dt className="text-xs text-muted-foreground">Bloc · {limiter.weeks}</dt><dd className="font-medium">{limiter.block}</dd></div>
+                  <div><dt className="text-xs text-muted-foreground">Séances clés</dt><dd>{limiter.keySessions}</dd></div>
+                </dl>
               </div>
             </div>
           ))}
@@ -544,14 +541,14 @@ function SessionCard({ session: rawSession, date, nolioCtx, onReplaceClick, sess
             </div>
           </div>
 
-          <p className="text-[11px] italic text-foreground/80">🎯 {fiche.objectif}</p>
+          <div className="rounded-xl border-l-2 border-primary bg-primary/5 p-3"><p className="text-xs text-muted-foreground">Objectif de la fiche</p><p className="mt-1 text-sm font-semibold">{fiche.objectif}</p></div>
 
           <div className="space-y-2">
             {fiche.structure.map((s, i) => {
               const body = formatFicheText(s.text);
               const isBlock = /^<(ol|ul|p)\b/.test(body);
               return (
-                <div key={i} className="text-[11px] leading-relaxed">
+                <div key={i} className="relative ml-2 border-l-2 border-border pb-2 pl-4 text-sm leading-relaxed before:absolute before:-left-[5px] before:top-2 before:size-2 before:rounded-full before:bg-primary">
                   <div>
                     <span className="font-semibold">{s.part}</span>
                     {s.zones.length > 0 && (
