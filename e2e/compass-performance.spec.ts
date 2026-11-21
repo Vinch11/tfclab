@@ -25,16 +25,19 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
 test('the coach sees why estimates are provisional and which observation supports a priority', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
   const panel = page.getByLabel('Priorité du bilan');
+  const visibleFactors = panel.getByRole('list', {name:'Facteurs pour l’objectif'});
+  await expect(visibleFactors.getByRole('listitem').first()).toContainText('Profil glycolytique (VLamax)');
+  await expect(visibleFactors.getByRole('listitem').first()).toContainText('Hypothèse à vérifier');
+  await expect(page.getByLabel('Projection de course')).toBeHidden();
   await panel.getByText('Voir les écarts chiffrés').click();
   await expect(panel.getByRole('figure', { name: 'Production maximale de lactate' })).toContainText('Plage de coaching');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await expect(panel).toContainText('hypothèse à vérifier');
   await expect(panel.getByRole('list', { name: 'Écarts classés pour le coach' })).toContainText('Hypothèse issue du modèle');
   await panel.getByText('Données à confirmer').click();
   for (const metric of ['VLamax', 'FatMax', 'TTE']) {
     await expect(panel.getByRole('listitem').filter({ hasText: metric }).first()).toBeVisible();
   }
   await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
-  await expect(panel).toContainText('Facteur à examiner en priorité');
-  await expect(panel.getByRole('list',{name:'Priorités d’entraînement'}).getByRole('listitem').first()).toContainText('TTE');
+  await expect(visibleFactors).toContainText('TTE');
+  await expect(visibleFactors).toContainText('Profil glycolytique (VLamax)');
 });

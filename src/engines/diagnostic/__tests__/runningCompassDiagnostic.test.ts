@@ -37,10 +37,10 @@ describe('Independent running compass diagnosis', () => {
     expect(result.axes.every(a => a.value == null)).toBe(true);
     expect(result.priorities).toEqual([]);
   });
-  it('ranks run-specific VMA and VLamax deficits for Vince without bike inputs', () => {
+  it('does not rank an in-range running VLamax as an excess', () => {
     const result = computeRunningCompassDiagnostic({ ...base, objectif: '10K', age: 42, vma: 16.7, tte: { tte_min: 75, source: 'observed' }, vlamax: { value: .57, source: 'snapshot' } });
     expect(result.priorities.some(p => p.key === 'vma')).toBe(true);
-    expect(result.priorities.some(p => p.key === 'vlamax')).toBe(true);
+    expect(result.priorities.some(p => p.key === 'vlamax')).toBe(false);
     expect(result.priorities.some(p => p.key === 'tte')).toBe(false);
   });
 });

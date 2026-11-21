@@ -157,7 +157,7 @@ function makeSession(
   };
 }
 
-export function nextFieldCheck(input: CoachingCompassInput): {
+export function nextFieldCheck(input: CoachingCompassInput, reviewGlycolysis = false): {
   text: string;
   module?: FieldModule;
   protocol?: "bike_vlamax_sprint_15s" | "run_vlamax_sprint_15s_12min";
@@ -175,6 +175,19 @@ export function nextFieldCheck(input: CoachingCompassInput): {
     return {
       text: "Relever sur une sortie habituelle les minutes courues confortablement et la récupération le lendemain.",
       module: "easy-run",
+    };
+  if (
+    reviewGlycolysis || (!lead.some(r => !r.hypothesis) &&
+      lead.find(r => r.hypothesis && r.metric.metric !== "FatMax")?.metric.metric === "VLamax")
+  )
+    return {
+      text: sport === "run"
+        ? "Revoir un sprint et un effort soutenu récents en course. Si la vitesse courte est préservée et que l’allure visée décroche, orienter le prochain bloc vers la tenue de cette allure."
+        : "Revoir un sprint et un effort soutenu récents à vélo. Si la puissance courte est préservée et que la puissance visée décroche, orienter le prochain bloc vers la tenue de cette puissance.",
+      protocol:
+        sport === "run"
+          ? "run_vlamax_sprint_15s_12min"
+          : "bike_vlamax_sprint_15s",
     };
   if (kind === "trail")
     return {
@@ -194,17 +207,6 @@ export function nextFieldCheck(input: CoachingCompassInput): {
           (r) => !r.hypothesis && /TTE|durabilit/i.test(r.metric.metric),
         ),
       ),
-    };
-  if (
-    lead.find((r) => r.hypothesis && r.metric.metric !== "FatMax")?.metric
-      .metric === "VLamax"
-  )
-    return {
-      text: "Comparer d’abord les efforts courts et soutenus déjà datés du même sport. Si leur rapport reste incertain, reprendre le protocole de sprint avec sa référence soutenue.",
-      protocol:
-        sport === "run"
-          ? "run_vlamax_sprint_15s_12min"
-          : "bike_vlamax_sprint_15s",
     };
   if (
     lead.some((r) => r.metric.metric === "TTE") ||

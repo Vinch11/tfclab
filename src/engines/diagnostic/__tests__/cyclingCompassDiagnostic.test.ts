@@ -3,7 +3,7 @@ import { computeCyclingCompassDiagnostic } from '../cyclingCompassDiagnostic';
 import type { RadarAxis } from '@/lib/coachingCompass/types';
 
 const axis = (key: string, value: number | null, target: number | null, source = 'observed'): RadarAxis => ({ key, value, target, source, label: key, shortLabel: key, score: 0, unit: 'min', icon: '', color: '' });
-const compute = (axes: RadarAxis[], vo2Shared = true) => computeCyclingCompassDiagnostic({ axes, ftp: 188, vo2Shared });
+const compute = (axes: RadarAxis[], vo2Shared = true) => computeCyclingCompassDiagnostic({ axes, ftp: 188, vlamaxUpper: .42, vo2Shared });
 describe('Independent cycling compass diagnosis', () => {
   it('ranks declared bike TTE 35 against its existing 52 minute target', () => {
     const result = compute([axis('tte', 35, 52)]);

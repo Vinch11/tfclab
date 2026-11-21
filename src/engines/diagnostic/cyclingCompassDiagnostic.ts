@@ -6,6 +6,7 @@ export function computeCyclingCompassDiagnostic(input: {
   axes: RadarAxis[];
   ftp: number | null;
   vo2Shared: boolean;
+  vlamaxUpper: number;
 }): RunningCompassDiagnostic {
   const axes = input.axes.map(axis => ({ ...axis }));
   const details: Record<string, { explanation: string; lever: string }> = {
@@ -21,7 +22,7 @@ export function computeCyclingCompassDiagnostic(input: {
     if (!detail || (axis.key === 'vo2max' && input.vo2Shared)) return [];
     if (axis.key === 'tte' && !supportedTte.has(axis.source ?? 'unknown')) return [];
     if (axis.value == null || !Number.isFinite(axis.value) || axis.value <= 0 || axis.target == null || !Number.isFinite(axis.target) || axis.target <= 0) return [];
-    const gapPercent = Math.max(0, (axis.key === 'vlamax' ? axis.value / axis.target - 1 : 1 - axis.value / axis.target) * 100);
+    const gapPercent = Math.max(0, (axis.key === 'vlamax' ? axis.value / input.vlamaxUpper - 1 : 1 - axis.value / axis.target) * 100);
     if (gapPercent <= 0) return [];
     return [{ key: axis.key, label: axis.label, gapPercent, ...detail, provisional: !['observed', 'test_labo'].includes(axis.source ?? 'unknown') }];
   }).sort((a, b) => b.gapPercent - a.gapPercent);

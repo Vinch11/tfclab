@@ -140,6 +140,18 @@ function vlamaxTestSport(t: TestCloud) {
   return protocolSport(t.sport) ?? protocolSport([t.type, t.name, t.raw?.protocol].join(" ").replace(/_/g, " "));
 }
 
+/** Dated context for the coach. A field estimate never becomes a lactate measurement. */
+export function latestSportVlamaxTest(tests: TestCloud[], athleteId: string, sport: "run" | "bike", asOf = new Date().toISOString().slice(0, 10)) {
+  const modality = sport === "run" ? "cap" : "velo";
+  return tests.flatMap(test => {
+    if (test.athlete_id !== athleteId || vlamaxTestSport(test) !== modality ||
+        test.vlamax == null || !Number.isFinite(test.vlamax) || test.vlamax <= 0) return [];
+    const date = validTestDate(test.raw?.testDate) ? test.raw.testDate as string : test.date?.slice(0, 10);
+    if (!validTestDate(date) || date > asOf) return [];
+    return [{ sport, date, value: test.vlamax, lactate: isLabMeasuredVlamaxTest(test) }];
+  }).sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
+}
+
 interface SnapshotCloud {
   id: string;
   athlete_id: string;

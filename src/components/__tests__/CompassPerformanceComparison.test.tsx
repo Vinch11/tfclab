@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CoachingCompassCard } from '../CoachingCompassCard';
 import { CompassPerformanceComparison } from '../CompassPerformanceComparison';
@@ -14,6 +14,9 @@ describe('Compass goal interaction', () => {
       primaryLimiter: 'aerobic_engine', confidence: .7, categoryRanking: [{ category: 'aerobic', metrics: [observed] }],
       gapAnalysis: [observed, excluded, estimated],
     } }} />);
+    const first = within(screen.getByRole('list', { name: 'Facteurs pour l’objectif' })).getAllByRole('listitem')[0];
+    expect(first).toHaveTextContent('Profil glycolytique (VLamax)');
+    expect(first).toHaveTextContent('Hypothèse à vérifier');
     fireEvent.click(screen.getByText('Voir les écarts chiffrés'));
     const rows = screen.getByRole('list', { name: 'Écarts classés pour le coach' }).querySelectorAll('li');
     expect(rows).toHaveLength(2);
@@ -56,6 +59,7 @@ it('shows a one-sided field duration and withholds the chart for conflicting eff
   const duration = { metric: 'TTE', gap: -15, value: 25, target: 40, weightedImpact: 0, fieldBounds: { low: 25, high: null }, fieldEstimateNote: 'Effort continu sur home trainer.' };
   const limiter = { primaryLimiter: 'none', confidence: 0, gapAnalysis: [duration] };
   const view = render(<CompassPerformanceComparison input={{ ...input, limiterResult: limiter }} />);
+  fireEvent.click(screen.getByText('Voir les écarts chiffrés'));
   const chart = screen.getByRole('figure', { name: 'Temps tenu au seuil' });
   expect(chart).toHaveTextContent('Au moins 25 min');
   expect(chart).toHaveTextContent('Repère de coaching40 min');
@@ -66,6 +70,8 @@ it('shows a one-sided field duration and withholds the chart for conflicting eff
 
 it('shows a triathlete’s actual markers before the detailed form even without a ranked limiter', () => {
   render(<CompassPerformanceComparison input={{ ...input, objectif:'IM', sportFocus:'triathlon', ftp:230, css:100, limiterResult:{primaryLimiter:'none', confidence:0, gapAnalysis:[], limiterLabel:'Aucun écart prioritaire établi sur les valeurs disponibles'} }} />);
+  expect(screen.getByText('Chrono et repères par discipline').closest('details')).not.toHaveAttribute('open');
+  fireEvent.click(screen.getByText('Chrono et repères par discipline'));
   expect(screen.getByRole('figure',{name:'Vélo'})).toHaveTextContent('230');
   expect(screen.getByRole('figure',{name:'Natation'})).toHaveTextContent('1:40');
   expect(screen.queryByText(/Aucun écart prioritaire/)).toBeNull();
@@ -91,7 +97,7 @@ it('shows sport-specific rankings without a global limiter or goal time', () => 
     tteEffectifRun: {tte_min: 20, source: "test", confidence: 0.8},
   }} />);
   expect(screen.getByRole('heading', {name:'Hiérarchie des limiteurs'})).toBeVisible();
-  const ranking = screen.getByRole('list', {name:'Classement des facteurs testés'});
+  const ranking = screen.getByRole('list', {name:'Facteurs pour l’objectif'});
   expect(ranking).toHaveTextContent('Vélo');
   expect(ranking).toHaveTextContent('Course à pied');
   const gaps = Array.from(ranking.querySelectorAll('li'), row =>
@@ -106,6 +112,42 @@ it('retains ranked measured categories below the plan activation threshold', () 
   render(<CompassPerformanceComparison input={{ ...input, limiterResult: {
     primaryLimiter:'none', confidence:0.8, categoryRanking:[{category:'aerobic', metrics:[metric]}], gapAnalysis:[metric],
   } }} />);
-  expect(screen.getByRole('list', {name:'Priorités d’entraînement'})).toHaveTextContent('VMA');
-  expect(screen.getByText(/écarts sont modestes/)).toBeVisible();
+  expect(screen.getByRole('list', {name:'Facteurs pour l’objectif'})).toHaveTextContent('VMA');
+  expect(screen.getByText('Écarts modestes à suivre')).toBeVisible();
+});
+
+it('puts a borderline sprint profile and a modest aerobic gap side by side before opening any details', () => {
+  const vma = { metric: 'VMA', gap: -0.7, value: 17, target: 17.7, weightedImpact: 3.6 };
+  const vla = { metric: 'VLamax', gap: .14, value: .59, target: .45, coachingRange: { min: .35, max: .60 }, weightedImpact: 0, prescriptionApplicable: false };
+  const runner: CoachingCompassInput = { ...input, objectif: '10K', sportFocus: 'run',
+    tteEffectif: { tte_min: 0, confidence: 0, source: 'unknown' },
+    vlamaxEffectif: { value: .59, range: { low: .54, high: .64 }, date: '2025-07-10', source: 'estimated', confidence: .4 },
+    latestVlamaxTest: { sport: 'run', date: '2025-06-10', value: .69, lactate: false },
+    limiterResult: { primaryLimiter: 'none', categoryRanking: [{ category: 'aerobic_power', metrics: [vma] }], gapAnalysis: [vma, vla], confidence: .5 },
+  };
+  const view = render(<CoachingCompassCard input={runner} />);
+  expect(screen.getByRole('heading', { name: 'Deux facteurs à départager' })).toBeVisible();
+  expect(screen.getByText('Profil glycolytique (VLamax)')).toBeVisible();
+  expect(screen.getByText(/0,54–0,64/)).toBeVisible();
+  expect(screen.getByText(/Estimation de terrain enregistrée le 10.06.2025/)).toBeVisible();
+  expect(screen.getByText('Vitesse maximale aérobie (VMA)')).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Voir le protocole' })).toHaveAttribute('href', expect.stringContaining('run_vlamax'));
+  view.rerender(<CoachingCompassCard input={{ ...runner, latestVlamaxTest: { ...runner.latestVlamaxTest!, sport: 'bike' } }} />);
+  expect(screen.queryByText('Deux facteurs à départager')).toBeNull();
+  expect(screen.queryByText(/Estimation de terrain enregistrée le 10.06.2025/)).toBeNull();
+});
+
+it('keeps a strong measured glycolytic priority first with an isolated VMA gap below it', () => {
+  const test = { metric: 'VLamax', value: .78, target: .45, coachingRange: { min: .35, max: .60 }, gap: .33, weightedImpact: 30 };
+  const speed = { metric: 'VMA', value: 15, target: 17, gap: -2, weightedImpact: 10 };
+  render(<CompassPerformanceComparison input={{ ...input, objectif: '10K', sportFocus: 'run', limiterResult: {
+    primaryLimiter: 'glycolytic', confidence: .8,
+    categoryRanking: [{ category: 'glycolytic', metrics: [test] }, { category: 'aerobic_power', metrics: [speed] }],
+    gapAnalysis: [speed, test],
+  } }} />);
+  const rows = within(screen.getByRole('list', {name: 'Facteurs pour l’objectif'})).getAllByRole('listitem');
+  expect(rows[0]).toHaveTextContent('Profil glycolytique (VLamax)');
+  expect(rows[0]).toHaveTextContent('0,78 mmol/L/s');
+  expect(rows[1]).toHaveTextContent('VMA');
+  expect(screen.queryByText('Deux facteurs à départager')).toBeNull();
 });
