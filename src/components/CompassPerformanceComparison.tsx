@@ -38,16 +38,16 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
   };
   return <section aria-label="Écart à l’objectif" className="mb-3 space-y-3">
     <header className="flex flex-wrap items-baseline justify-between gap-2 px-1"><div><h3 className="text-2xl font-semibold tracking-tight">{getObjectifLabel(input.objectif as ObjectifType) ?? input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
-      {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes} min</span>}</header>
+      {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes >= 60 ? Math.floor(saved.minutes / 60) + " h " + String(Math.floor(saved.minutes % 60)).padStart(2, "0") : saved.minutes + " min"}</span>}</header>
     <CompassLimiterReading input={input} presentation={presentation}>
     <details className="border-t"><summary className="cursor-pointer py-2 text-sm font-medium">Voir les écarts chiffrés</summary>
       {diagnosis?.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
-        <ol aria-label="Écarts classés pour le coach" className="mt-3 grid list-none gap-3 md:grid-cols-2">{fieldRanking.map(row => {
+        <ol aria-label="Mesures qui expliquent les écarts" className="mt-3 grid list-none gap-3 md:grid-cols-2">{fieldRanking.map(row => {
           const { metric, hypothesis } = row;
           const reading = describeFieldGap(row);
           return <li key={metric.metric} className="space-y-2 rounded-xl border p-3">
           <strong>{metric.metric}</strong>{metric.gapPercent != null && !metric.coachingRange && !metric.fieldBounds && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
-          {' · '}{hypothesis ? 'Hypothèse issue du modèle' : metric.fieldEstimateNote ? 'Priorité estimée sur le terrain' : 'Priorité du bilan'}
+          {' · '}{hypothesis ? 'Hypothèse issue du modèle' : metric.fieldEstimateNote ? 'Estimation de terrain' : 'Valeur du bilan'}
           <FieldMetricComparison metric={metric} hypothesis={hypothesis} />
           <details className="text-sm"><summary className="cursor-pointer py-2 font-medium">Comprendre cet écart</summary><p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
           {hypothesis && <p>{metric.prescriptionNote}</p>}</details>

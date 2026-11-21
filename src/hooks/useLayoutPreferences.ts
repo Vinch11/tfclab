@@ -79,7 +79,6 @@ export const DASHBOARD_SECTIONS: SectionDefinition[] = [
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
   { id: "coaching-compass", label: "Coaching Compass™", icon: "Compass", category: "analyse", defaultVisible: true },
   { id: "analyse-section", label: "Analyse & Métriques", icon: "BarChart", category: "analyse", defaultVisible: true },
-  { id: "limiteurs-section", label: "Facteurs Limitants", icon: "AlertTriangle", category: "analyse", defaultVisible: true },
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive-dashboard", label: "Synthèse Exécutive", icon: "FileText", category: "analyse", defaultVisible: true },
   { id: "vlamax-profile-scale", label: "Profil VLamax — Échelle des spécialités", icon: "Activity", category: "metriques", defaultVisible: true },
@@ -179,7 +178,6 @@ export const UNIVERSAL_SECTIONS: string[] = [
   "getting-started",
   "coaching-compass",
   "analyse-section",
-  "limiteurs-section",
   "leviers-section",
   "synthese-executive-dashboard",
   "athlete-refs",
@@ -372,7 +370,8 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
         defaultSections.some(s => s.id === c.id)
       );
 
-      const merged = [...validConfigs];
+      const showCompass = tabId === "dashboard" && savedConfigs.some(c => c.id === "limiteurs-section" && c.visible);
+      const merged = validConfigs.map(c => showCompass && c.id === "coaching-compass" ? { ...c, visible: true } : c);
 
       const insertMissing = (sectionId: string, anchorIds: string[]) => {
         const def = defaultSections.find(s => s.id === sectionId);
@@ -396,8 +395,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       insertMissing("quick-actions", ["getting-started"]);
       insertMissing("coaching-compass", ["quick-actions", "getting-started"]);
       insertMissing("analyse-section", ["coaching-compass", "quick-actions"]);
-      insertMissing("limiteurs-section", ["analyse-section", "coaching-compass"]);
-      insertMissing("leviers-section", ["limiteurs-section", "analyse-section"]);
+      insertMissing("leviers-section", ["analyse-section", "coaching-compass"]);
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);

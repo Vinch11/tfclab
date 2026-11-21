@@ -1,11 +1,19 @@
-import { isKnownPhysiologicalObjective } from "../physiologicalTargets";
+import type { AmbitionLevel } from "@/types/ambitionLevel";
+import { getVLamaxRange, isKnownPhysiologicalObjective } from "../physiologicalTargets";
 import { rankedFieldGaps, fieldUnits } from "./rankedFieldGaps";
 import { compassDisplaySport } from "./sportPresentation";
 import { objectiveDemands } from "./objectiveDemands";
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from "./types";
 
+// Display tolerance for a descriptive comparison to an internal reference.
+export const referenceTolerancePercent = 3;
+
 type Gap = NonNullable<CoachingCompassInput["limiterResult"]>["gapAnalysis"][number];
-type Factor = { title: string; status: string; facts: string; metric: string; impact: number; hypothesis: boolean };
+type Factor = { title: string; status: string; facts: string; metric: string; impact: number; hypothesis: boolean;
+  observation?: Gap;
+  sport?: "bike" | "run";
+  comparison?: { value: number; target: number; unit: string; range?: { min: number; max: number } };
+};
 const names: Record<string, string> = {
   VLamax: "Profil glycolytique (VLamax)", VMA: "Vitesse maximale aérobie (VMA)",
   TTE: "Tenue au seuil (TTE)", "FTP/kg": "Puissance au seuil (FTP/kg)",
@@ -47,21 +55,27 @@ export function coachPriorities(input: CoachingCompassInput, presentation?: TFCL
     factors.push({
       metric: first.metric, title: usable.map(m => names[m.metric] ?? m.metric).join(" · "),
       status: tied ? "Ordre provisoire" : modest ? "Écart modeste" : metric?.fieldEstimateNote ? "Priorité estimée sur le terrain" : "Écart du bilan",
-      facts: evidence(metric), hypothesis: false, impact: group.totalImpact ?? first.weightedImpact,
+      observation: metric, facts: evidence(metric), hypothesis: false, impact: group.totalImpact ?? first.weightedImpact,
     });
   }
   const hasGlycolytic = gaps.some(row => row.metric.metric === "VLamax");
   for (const { metric, hypothesis, impact } of gaps) {
     if (!hypothesis || (metric.metric === "FatMax" && hasGlycolytic)) continue;
     factors.push({ metric: metric.metric, title: names[metric.metric] ?? metric.metric,
-      status: "Hypothèse à vérifier", facts: evidence(metric), impact, hypothesis: true });
+      observation: metric, status: "Hypothèse à vérifier", facts: evidence(metric), impact, hypothesis: true });
   }
   factors.sort((a, b) => b.impact - a.impact);
   if (!factors.length) {
-    const sports = [{ name: "Vélo", diagnostic: presentation?.cyclingDiagnostic }, { name: "Course à pied", diagnostic: presentation?.runningDiagnostic }];
+    const sports = [{ key: "bike", name: "Vélo", diagnostic: presentation?.cyclingDiagnostic }, { key: "run", name: "Course à pied", diagnostic: presentation?.runningDiagnostic }] as const;
     for (const sport of sports) {
       for (const row of sport.diagnostic?.priorities ?? []) {
-        factors.push({ title: row.label, metric: row.key, status: row.provisional ? "Écart à confirmer" : "Écart du bilan",
+        // Apply the existing 3% descriptive tolerance when only sport references are available.
+        if (row.gapPercent <= referenceTolerancePercent) continue;
+        const axis = sport.diagnostic?.axes.find(axis => axis.key === row.key);
+        const range = row.key === "vlamax" ? getVLamaxRange(input.objectif, (input.ambition || "age_group") as AmbitionLevel, sport.key) : undefined;
+        const target = range?.max ?? axis?.target;
+        const comparison = valid(axis?.value) && valid(target) ? { value: axis.value, target, unit: axis.unit, range } : undefined;
+        factors.push({ sport: sport.key, comparison, title: row.label, metric: row.key, status: row.provisional ? "Écart à confirmer" : "Écart du bilan",
           facts: sport.name + " · " + number(row.gapPercent) + " % d’écart au repère interne", impact: row.gapPercent, hypothesis: false });
       }
     }
@@ -79,6 +93,7 @@ export function coachPriorities(input: CoachingCompassInput, presentation?: TFCL
     range && valid(range.low) && valid(range.high) && range.low <= current.value &&
     vla.value >= vla.coachingRange.min && vla.value <= ceiling && ceiling < range.high;
   const overlap = crosses ? {
+    range, reference: vla.coachingRange,
     facts: "Estimation " + (sport === "run" ? "course" : "vélo") + (current.date ? " du " + day(current.date) : "") +
       " · " + number(vla.value) + " mmol/L/s. Plage du modèle " + number(range.low) + "–" + number(range.high) +
       " mmol/L/s, pour un repère haut de " + number(ceiling) + ".",
