@@ -1,7 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+async function openDetailedProfile(page: Page) {
+  await expect(page.getByRole('tab', { name: 'Décision' })).toHaveAttribute('aria-selected', 'true');
+  await page.getByRole('tab', { name: 'Profil' }).click();
+  await page.getByText('Bilan détaillé et objectif personnel').click();
+}
+
 test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
   const detail = page.getByText('Comparer avec un objectif personnel (facultatif)', {exact:true});
+  await openDetailedProfile(page);
   await detail.click();
   const total = page.getByLabel('Chrono total visé en minutes');
   await total.fill('187');
@@ -9,6 +16,7 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
   await page.getByRole('button', { name: 'Enregistrer l’objectif' }).click();
   await expect(page.getByRole('status')).toContainText('Objectif enregistré');
   await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
+  await openDetailedProfile(page);
   await detail.click();
   await expect(total).toHaveValue('');
   await total.fill('600');
@@ -17,6 +25,7 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
   await expect(page.getByText('Allure demandée : 5:41/km')).toBeVisible();
   await expect(page.getByText('Aucune cohorte chiffrée applicable')).toBeVisible();
   await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
+  await openDetailedProfile(page);
   await detail.click();
   await expect(total).toHaveValue('187');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -24,6 +33,11 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
 
 test('the coach sees why estimates are provisional and which observation supports a priority', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
+  await expect(page.getByRole('region', { name: 'Limiteur', exact: true })).toContainText('VLamax');
+  await page.getByRole('tab', { name: 'Radar' }).click();
+  await expect(page.getByRole('img', { name: /Compass/ })).toBeVisible();
+  await page.getByRole('tab', { name: 'Décision' }).click();
+  await openDetailedProfile(page);
   const panel = page.getByLabel('Priorité du bilan');
   const visibleFactors = panel.getByRole('list', {name:'Facteurs pour l’objectif'});
   await expect(visibleFactors.getByRole('listitem').first()).toContainText('Profil glycolytique (VLamax)');
@@ -38,6 +52,7 @@ test('the coach sees why estimates are provisional and which observation support
     await expect(panel.getByRole('listitem').filter({ hasText: metric }).first()).toBeVisible();
   }
   await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
+  await openDetailedProfile(page);
   await expect(visibleFactors).toContainText('TTE');
   await expect(visibleFactors).toContainText('Profil glycolytique (VLamax)');
 });

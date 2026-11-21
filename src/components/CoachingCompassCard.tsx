@@ -1,3 +1,7 @@
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { coachDecisionReading } from "@/lib/coachingCompass/coachDecisionReading";
+import { fieldCheckLink } from "@/lib/diagnostic/compactFieldAssessment";
+import { getObjectifLabel, type ObjectifType } from "@/types/athlete";
 import { CompassPerformanceComparison } from "./CompassPerformanceComparison";
 import type { PerformanceGoal } from "@/lib/coachingCompass/performanceComparison";
 /**
@@ -12,10 +16,10 @@ import type { PerformanceGoal } from "@/lib/coachingCompass/performanceCompariso
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useId, useMemo, useState } from "react";
+import { Fragment, useId, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Compass, AlertTriangle, ChevronDown } from "lucide-react";
+import { Activity, ArrowDown, Compass, Info, Target, Zap, AlertTriangle, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
@@ -479,7 +483,57 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
 // COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode = false, className }: CoachingCompassCardProps) {
+function DecisionFlow({ input, compass, hasData }: { input: CoachingCompassInput; compass: TFCLCoachingCompassResult; hasData: boolean }) {
+  const { lead, factors, tied, shared, overlap, check } = coachDecisionReading(input, compass.presentation);
+  const uncertain = tied || shared || lead?.hypothesis || lead?.status === "Écart à confirmer";
+  const sport = lead?.sport === "run" ? compass.presentation?.runningDiagnostic : compass.presentation?.cyclingDiagnostic;
+  const sportPriority = lead?.sport ? sport?.priorities.find(row => row.key === lead.metric) : undefined;
+  const matchesPlan = !!lead && !uncertain && !lead.sport && compass.limiter.type !== "unknown" &&
+    compass.limiter.metricsUsed.includes(lead.metric);
+  const title = tied && factors.length > 1 ? factors.slice(0, 2).map(row => row.title).join(" ou ") :
+    shared && lead ? lead.title + " ou profil glycolytique (VLamax)" : lead?.title;
+  const note = overlap && !shared ? "Profil glycolytique (VLamax) à préciser." : undefined;
+  const comparison = lead?.comparison;
+  const native = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: 2 });
+  const evidence = comparison && !comparison.range
+    ? native(comparison.value) + " " + comparison.unit + " pour un repère de " + native(comparison.target) + " " + comparison.unit + "."
+    : lead?.facts;
+  if (!hasData && !lead && !overlap && !input.limiterResult?.gapAnalysis.some(metric => metric.value != null)) {
+    return <p className="rounded-lg bg-muted/30 p-3 text-sm">Données insuffisantes. Renseigne un bilan pour cet athlète et cet objectif.</p>;
+  }
+  const steps = [
+    { label: "Limiteur", Icon: AlertTriangle, title: title ?? (overlap ? "Profil glycolytique à préciser" : "Aucun limiteur établi"),
+      detail: [lead && uncertain ? lead.status : null, evidence, title && note].filter(Boolean).join(" · ") },
+    { label: "Levier", Icon: Zap, title: uncertain || !lead ? "Préciser le profil avant de choisir le bloc" :
+        sportPriority?.lever ?? (matchesPlan ? compass.leverage.label : "Vérifier l’écart sur le terrain") },
+    { label: "Décision", Icon: Target, title: matchesPlan ? compass.decision.recommendedBlock : check.text,
+      detail: matchesPlan ? [...compass.decision.physiologicalTargets, ...compass.decision.prohibitions].join(" · ") : undefined,
+      href: matchesPlan ? undefined : fieldCheckLink(check) },
+  ];
+
+  return <div className="space-y-1">
+    {steps.map(({ label, Icon, title, detail, href }, index) => <Fragment key={label}>
+      {index > 0 && <ArrowDown aria-hidden="true" className="mx-auto size-4 text-muted-foreground/60" />}
+      <section aria-label={label} className="flex gap-3 rounded-lg border border-border/50 bg-muted/30 p-3">
+        <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+        <div className="min-w-0">
+          <h4 className="text-xs font-semibold text-muted-foreground">{label}</h4>
+          <p className="mt-1 text-sm font-semibold">{title}</p>
+          {detail && <p className="mt-1 text-xs text-muted-foreground">{detail}</p>}
+          {href && <a className="mt-2 inline-block text-sm text-primary underline" href={href}>Voir le protocole</a>}
+        </div>
+      </section>
+    </Fragment>)}
+  </div>;
+}
+
+export function CoachingCompassCard(props: CoachingCompassCardProps) {
+  const { athleteId, objectif, ambition } = props.input;
+  return <CompassView key={JSON.stringify([athleteId, objectif, ambition, props.staffMode])} {...props} />;
+}
+
+function CompassView({ input, onSavePerformanceGoal, staffMode = false, className }: CoachingCompassCardProps) {
+  const [detailedProfile, setDetailedProfile] = useState(staffMode);
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
   const coverage = dashboardCoverage(input);
   const coachPolicy = input.athleteId ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null;
@@ -492,38 +546,54 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode = 
   return <Card className={cn("min-w-0 border-border/50 print:shadow-none", className)}>
     <CardHeader className="flex-row items-center gap-2 space-y-0 px-4 pb-3 sm:px-6">
       <Compass aria-hidden="true" className="size-5 text-primary" />
-      <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
+      <div><CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
+        <p className="text-xs text-muted-foreground">{getObjectifLabel(input.objectif as ObjectifType) ?? input.objectif}</p></div>
     </CardHeader>
     <CardContent className="px-3 sm:px-6">
       {compass.fatigueWarning && <FatigueWarning warning={compass.fatigueWarning} />}
-      <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} presentation={presentation} onSave={onSavePerformanceGoal} />
-      {compass.meta.dataCompleteness >= 10 && <details className="rounded-2xl border px-4">
-        <summary className="cursor-pointer py-3 font-medium">Radar et détails physiologiques</summary>
-        <div className="space-y-4 pb-4">
-          <p className="text-sm text-muted-foreground">{coverage.filled} repères sur {coverage.total} renseignés pour ce sport.</p>
+      <Tabs defaultValue="decision" className="space-y-3">
+        <TabsList aria-label="Coaching Compass" className="grid w-full grid-cols-3">
+          <TabsTrigger value="decision"><Target className="mr-1 size-4" />Décision</TabsTrigger>
+          <TabsTrigger value="radar"><Activity className="mr-1 size-4" />Radar</TabsTrigger>
+          <TabsTrigger value="profile"><Info className="mr-1 size-4" />Profil</TabsTrigger>
+        </TabsList>
+        <TabsContent value="decision"><DecisionFlow input={input} compass={compass} hasData={coverage.filled > 0} /></TabsContent>
+        <TabsContent value="radar">
           <div className={disciplines ? "grid gap-4 sm:grid-cols-2" : ""}>
-            {profiles.map(({ sport, axes }) => {
-              const reference = sport === "run" ? getVmaReference(input.objectif, input.ambition) : null;
-              const range = getVLamaxRange(input.objectif, input.ambition as AmbitionLevel, sport ?? undefined);
-              return <section key={sport} className="min-w-0">
-                {disciplines && <h4 className="text-center font-semibold">{sport === "run" ? "Course à pied" : "Vélo"}</h4>}
-                <SignatureRadar axes={axes} vmaReference={reference} />
-                <p className="mb-2 text-xs text-muted-foreground">Profil individuel et repères internes{reference && " · repère VMA extrapolé"}.</p>
-                <dl className="divide-y text-sm">{axes.map(axis => <div key={axis.key} className="flex flex-wrap items-baseline justify-between gap-x-3 py-2">
+            {profiles.map(({ sport, axes }) => <section key={sport} className="min-w-0">
+              {disciplines && <h4 className="text-center font-semibold">{sport === "run" ? "Course à pied" : "Vélo"}</h4>}
+              <SignatureRadar axes={axes} vmaReference={sport === "run" ? getVmaReference(input.objectif, input.ambition) : null} />
+            </section>)}
+          </div>
+          <p className="text-center text-xs text-muted-foreground">{coverage.filled} repères sur {coverage.total} renseignés.</p>
+        </TabsContent>
+        <TabsContent value="profile" className="space-y-4">
+          <Button variant="outline" size="sm" aria-pressed={detailedProfile} onClick={() => setDetailedProfile(!detailedProfile)}>
+            {detailedProfile ? "Vue simplifiée" : "Vue détaillée du coach"}
+          </Button>
+          {profiles.map(({ sport, axes }) => {
+            const range = getVLamaxRange(input.objectif, input.ambition as AmbitionLevel, sport ?? undefined);
+            const displayed = detailedProfile ? axes : axes.filter(axis => ["ftpkg", "vma", "vlamax", "tte"].includes(axis.key));
+            return <section key={sport}>
+              {disciplines && <h4 className="font-semibold">{sport === "run" ? "Course à pied" : "Vélo"}</h4>}
+                <dl className="divide-y text-sm">{displayed.map(axis => <div key={axis.key} className="flex flex-wrap items-baseline justify-between gap-x-3 py-2">
                   <dt>{axis.label}</dt>
                   <dd className="font-medium tabular-nums">{axis.value == null ? "Non renseigné" : axis.value.toLocaleString("fr-BE", { maximumFractionDigits: 2 }) + " " + axis.unit}</dd>
-                  {axis.value != null && <dd className="w-full text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? "unknown")}
+                  {detailedProfile && axis.value != null && <dd className="w-full text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? "unknown")}
                     {axis.key === "vlamax" && " · plage de coaching " + range.min.toLocaleString("fr-BE") + "–" + range.max.toLocaleString("fr-BE") + " mmol/L/s"}
                   </dd>}
                 </div>)}</dl>
-                {reference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={input.vma} paceThresholdSecPerKm={input.paceThresholdSecPerKm} />}
-              </section>;
-            })}
-          </div>
-          {coachPolicy && <p className="text-sm">Ordre enregistré par le coach pour le plan · {coachPolicy.limiterOrder.join(" → ")}</p>}
-          <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} defaultOpen={staffMode} />
-        </div>
-      </details>}
+              {detailedProfile && sport === "run" && getVmaReference(input.objectif, input.ambition) && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={input.vma} paceThresholdSecPerKm={input.paceThresholdSecPerKm} />}
+            </section>;
+          })}
+          {detailedProfile && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} defaultOpen />}
+          {detailedProfile && coachPolicy && <p className="text-sm">Ordre enregistré par le coach pour le plan · {coachPolicy.limiterOrder.join(" → ")}</p>}
+          <details className="rounded-lg border px-3">
+            <summary className="cursor-pointer py-3 text-sm font-medium">Bilan détaillé et objectif personnel</summary>
+            <CompassPerformanceComparison input={input} presentation={presentation} onSave={onSavePerformanceGoal} />
+          </details>
+        </TabsContent>
+      </Tabs>
     </CardContent>
   </Card>;
 }

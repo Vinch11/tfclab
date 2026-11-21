@@ -1,7 +1,7 @@
 /** Synthetic data only. Route guarded by import.meta.env.DEV. */
 import { detectUnifiedLimiter } from '@/lib/v2/unifiedLimiterDetection';
 import { useState } from 'react';
-import { CompassPerformanceComparison } from '@/components/CompassPerformanceComparison';
+import { CoachingCompassCard } from '@/components/CoachingCompassCard';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 import type { PerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
 export default function CompassPerformanceHarness() {
@@ -26,5 +26,5 @@ export default function CompassPerformanceHarness() {
     tteEffectif: { tte_min: 14, confidence: 0.5, source: athlete === 'A' ? 'estimated' : 'observed' },
     fatigueEffectif: null, potentielPhysiologique: null, strategyResult: null, lactateThresholds: null,
   };
-  return <main className="max-w-3xl p-4 mx-auto"><button onClick={() => setAthlete(athlete === 'A' ? 'B' : 'A')}>Changer d’athlète fictif</button><CompassPerformanceComparison key={athlete} input={input} onSave={async goal => { setGoals(previous => ({ ...previous, [athlete]: goal })); return true; }} /></main>;
+  return <main className="max-w-3xl p-4 mx-auto"><button onClick={() => setAthlete(athlete === 'A' ? 'B' : 'A')}>Changer d’athlète fictif</button><CoachingCompassCard key={athlete} input={input} onSavePerformanceGoal={async goal => { setGoals(previous => ({ ...previous, [athlete]: goal })); return true; }} /></main>;
 }

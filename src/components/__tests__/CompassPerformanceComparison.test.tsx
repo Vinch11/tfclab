@@ -5,6 +5,11 @@ import { CompassPerformanceComparison } from '../CompassPerformanceComparison';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 const input = { athleteId: 'A', objectif: 'Marathon', ambition: 'competitor', athleteAge: 42, athleteSex: 'F', vma: 14, vo2max: 47, paceThresholdSecPerKm: 290 } as CoachingCompassInput;
 afterEach(cleanup);
+function openDetailedProfile() {
+  fireEvent.mouseDown(screen.getByRole('tab', { name: 'Profil' }), { button: 0, ctrlKey: false });
+  fireEvent.click(screen.getByText('Bilan détaillé et objectif personnel'));
+}
+
 describe('Compass goal interaction', () => {
   it('ranks all actionable and provisional field gaps by weighted impact', () => {
     const observed = { metric: 'VMA', gap: -2, gapPercent: -12, value: 14, weightedImpact: 10 };
@@ -96,6 +101,7 @@ it('shows sport-specific rankings without a global limiter or goal time', () => 
     tteEffectif: {tte_min: 15, source: 'test', confidence: 0.8},
     tteEffectifRun: {tte_min: 20, source: "test", confidence: 0.8},
   }} />);
+  openDetailedProfile();
   expect(screen.getByRole('heading', {name:'Hiérarchie des limiteurs'})).toBeVisible();
   const ranking = screen.getByRole('list', {name:'Facteurs pour l’objectif'});
   expect(ranking).toHaveTextContent('Vélo');
@@ -126,6 +132,8 @@ it('puts a borderline sprint profile and a modest aerobic gap side by side befor
     limiterResult: { primaryLimiter: 'none', categoryRanking: [{ category: 'aerobic_power', metrics: [vma] }], gapAnalysis: [vma, vla], confidence: .5 },
   };
   const view = render(<CoachingCompassCard input={runner} />);
+  expect(screen.getByLabelText('Limiteur')).toHaveTextContent('VMA) ou profil glycolytique (VLamax)');
+  openDetailedProfile();
   expect(screen.getByRole('heading', { name: 'Deux facteurs à départager' })).toBeVisible();
   expect(screen.getByText('Profil glycolytique (VLamax)')).toBeVisible();
   expect(screen.getByText(/0,54–0,64/)).toBeVisible();
@@ -159,6 +167,11 @@ it('keeps a near-target FTP out of the Ironman hierarchy and links the running T
     tteEffectif: { tte_min: 0, source: 'unknown', confidence: 0 },
     vlamaxEffectif: { value: null, source: 'unknown', confidence: 0 },
   }} />);
+  expect(screen.getByRole('tab', { name: 'Décision' })).toHaveAttribute('aria-selected', 'true');
+  expect(screen.getByLabelText('Limiteur')).toHaveTextContent('40 min pour un repère de 52 min');
+  expect(screen.getByLabelText('Limiteur')).not.toHaveTextContent('FTP');
+  expect(screen.queryByText('Voir les écarts chiffrés')).toBeNull();
+  openDetailedProfile();
   const ranking = screen.getByRole('list', { name: 'Facteurs pour l’objectif' });
   expect(within(ranking).getAllByRole('listitem')).toHaveLength(1);
   expect(within(ranking).getByRole('img', { name: /TTE.*40 min.*52 min/ })).toBeVisible();

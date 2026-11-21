@@ -1,21 +1,15 @@
 import { ReferenceGauge } from "./charts/ReferenceGauge";
 import { FieldComparison, FieldMetricComparison } from "./charts/FieldComparison";
 import { fieldUnits } from "@/lib/coachingCompass/rankedFieldGaps";
-import { coachPriorities } from "@/lib/coachingCompass/coachPriorities";
-import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
+import { coachDecisionReading } from "@/lib/coachingCompass/coachDecisionReading";
+import { fieldCheckLink } from "@/lib/diagnostic/compactFieldAssessment";
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from "@/lib/coachingCompass/types";
 import type { ReactNode } from "react";
 
 export function CompassLimiterReading({ input, presentation, children }: {
   input: CoachingCompassInput; presentation?: TFCLCoachingCompassResult["presentation"]; children: ReactNode;
 }) {
-  const { factors, overlap, tied } = coachPriorities(input, presentation);
-  const lead = factors[0];
-  const shared = overlap?.contested && !lead?.hypothesis;
-  const reviewGlycolysis = shared || (!lead && overlap) || (lead?.metric === "VLamax" && lead.hypothesis);
-  const check = lead?.sport && lead.metric === "tte" && !reviewGlycolysis
-    ? { text: "Vérifier la durée tenue au seuil en " + (lead.sport === "run" ? "course à pied" : "vélo") + " et le motif de l’arrêt dans la séance de référence.", module: lead.sport === "run" ? "hold-run" as const : "hold-bike" as const }
-    : nextFieldCheck(input, !!reviewGlycolysis);
+  const { factors, overlap, tied, lead, shared, check } = coachDecisionReading(input, presentation);
   const url = fieldCheckLink(check);
   const overlapReading = overlap && <div className="space-y-1 border-l-2 border-amber-500 pl-3">
     <h5 className="font-semibold">Profil glycolytique (VLamax)</h5>
