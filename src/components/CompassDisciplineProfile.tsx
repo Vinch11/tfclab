@@ -21,7 +21,16 @@ export function CompassDisciplineProfile({ input, goal, runPace }: {
     { show: tri || input.sportFocus === "run" || ["road","trail","beginner"].includes(demands?.kind ?? ""), name: "Course", icon: Activity, color: "text-violet-700 dark:text-violet-300", tint: "bg-violet-500/10", label: "Allure au seuil", value: input.paceThresholdSecPerKm, target: runPace, unit: "/km", format: paceLabel },
   ].filter(r=>r.show);
   if (!rows.length) return null;
-  return <section aria-label="Repères par discipline" className="grid gap-2 sm:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+  const count = rows.filter(r=>positive(r.value)).length;
+  return <section aria-label="Repères par discipline" className="space-y-2">
+    <div className="flex items-center gap-3 px-1">
+      <svg viewBox="0 0 36 36" width="38" height="38" aria-hidden="true" className="shrink-0 -rotate-90 text-primary">
+        <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeOpacity=".14" strokeWidth="4"/>
+        {count > 0 && <circle cx="18" cy="18" r="14" fill="none" pathLength="100" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${100*count/rows.length} 100`}/>}
+      </svg>
+      <h4 className="font-medium">Repères du bilan <span className="ml-1 text-sm tabular-nums text-muted-foreground">{count} sur {rows.length} renseignés</span></h4>
+    </div>
+    <div className="grid gap-2 sm:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
     {rows.map(({name, icon:Icon, color, tint, label, value, target, unit, format})=>{
       const known = positive(value), comparable = known && positive(target);
       const scale = comparable ? Math.max(value,target)*1.12 : 1;
@@ -30,8 +39,8 @@ export function CompassDisciplineProfile({ input, goal, runPace }: {
         <div className="text-right text-sm text-muted-foreground sm:mt-3 sm:text-left">{label}</div>
         <p className="text-right text-xl font-semibold tabular-nums sm:text-left sm:text-2xl">{known ? format(value) : "—"} {known && <small className="text-sm">{unit}</small>}</p>
         {comparable && <div aria-hidden="true" className="relative col-span-2 my-3 h-2 rounded-full bg-muted"><span className="absolute inset-y-0 rounded-full bg-primary/60" style={{width:(100*value/scale)+'%'}}/><span className="absolute -top-1 h-4 w-1 rounded bg-foreground" style={{left:(100*target/scale)+'%'}}/></div>}
-        <p className="col-span-2 mt-2 text-sm">{positive(target) ? 'Cible de course · '+format(target)+' '+unit : known ? 'Cible à préciser' : 'Repère à renseigner'}</p>
+        {positive(target) && <p className="col-span-2 mt-2 text-sm">Cible de course · {format(target)} {unit}</p>}
       </figure>;
     })}
-  </section>;
+  </div></section>;
 }
