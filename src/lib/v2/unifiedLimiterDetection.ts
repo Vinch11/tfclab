@@ -105,6 +105,10 @@ export interface UnifiedGapAnalysis {
   measurementDiscipline?: "bike";
   fieldHypothesisImpact?: number;
   fieldEstimateNote?: string;
+  /** Display-only bounds from the same sources used for this metric. Null denotes an open end. */
+  fieldBounds?: { low: number | null; high: number | null };
+  fieldBoundsConflict?: boolean;
+  coachingRange?: { min: number; max: number };
   fieldMaxImpact?: number;
   prescriptionApplicable?: boolean;
   prescriptionNote?: string;
@@ -675,6 +679,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   const vlamaxExcess = input.vlamax !== null && input.vlamax > vlamaxRange.max;
   gapAnalysis.push({
     metric: "VLamax",
+    coachingRange: { min: vlamaxRange.min, max: vlamaxRange.max },
     ...(input.vlamax != null && input.vlamax < vlamaxRange.min ? { prescriptionNote: "Sous le repère de coaching : vérifier le protocole et les besoins de course ; ne pas réduire davantage automatiquement." } : {}),
     value: input.vlamax,
     target: vlamaxRange.optimal,
@@ -860,10 +865,11 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   const vla = gapAnalysis.find(g => g.metric === "VLamax")!;
   const range = input.fieldVlamax;
   const sport = isRunningMode ? "run" : "bike";
-  if (unconfirmed.has("VLamax") && range?.sport === sport && vla.value != null &&
+  const applicableRange = unconfirmed.has("VLamax") && range?.sport === sport && vla.value != null &&
       Number.isFinite(range.low) && Number.isFinite(range.high) &&
-      range.low <= vla.value && vla.value <= range.high && range.low > vlamaxRange.max &&
-      !unsupportedContext && normalized !== "StartToRun") {
+      range.low <= vla.value && vla.value <= range.high && !unsupportedContext && normalized !== "StartToRun";
+  if (applicableRange) vla.fieldBounds = { low: range.low, high: range.high };
+  if (applicableRange && range.low > vlamaxRange.max && vla.value != null) {
     // Use the least adverse value in the existing model's sensitivity range.
     vla.fieldMaxImpact = vla.weightedImpact * (range.high - vla.target) / (vla.value - vla.target);
     vla.weightedImpact *= (range.low - vla.target) / (vla.value - vla.target);
@@ -878,9 +884,11 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
     const contradiction = hold.conflict || (input.tteSource === "observed" && duration.value != null &&
       (duration.value < hold.low || (hold.high != null && duration.value > hold.high)));
     if (contradiction) {
+      duration.fieldBoundsConflict = true;
       duration.fieldEstimateNote = "Résultats de tenue contradictoires à " + reference + ". Vérifier la référence et les conditions. " + hold.note;
       unconfirmed.set("TTE", duration.fieldEstimateNote);
     } else if (input.tteSource !== "observed") {
+      duration.fieldBounds = { low: hold.low > 0 ? hold.low : null, high: hold.high };
       const bound = hold.high ?? hold.low;
       duration.value = bound;
       duration.gap = bound - duration.target;

@@ -28,7 +28,7 @@ export function rankedFieldGaps(
 
 type FieldGap = ReturnType<typeof rankedFieldGaps>[number];
 
-const fieldUnits: Record<string, string> = {
+export const fieldUnits: Record<string, string> = {
   VMA: "km/h",
   "FTP/kg": "W/kg",
   VO2max: "ml/kg/min",

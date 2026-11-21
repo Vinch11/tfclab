@@ -1,3 +1,7 @@
+import { Timer } from "lucide-react";
+import { FieldReviewPanel } from "./FieldReviewPanel";
+import { FieldComparison } from "./charts/FieldComparison";
+import { Button } from "./ui/button";
 import { useState } from "react";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import {
@@ -53,15 +57,14 @@ export function FieldHoldForm({
   };
   const ok = validHold(raw, today) && !!reason;
   return (
-    <details className="rounded border p-3">
-      <summary>Documenter un effort continu déjà réalisé</summary>
-      <p>
+    <FieldReviewPanel icon={Timer} title="Documenter un effort continu déjà réalisé">
+      <p className="text-sm leading-relaxed text-foreground/80">
         Choisis un tour stable et continu à une intensité proche du seuil de
         référence. Reprends le même libellé de conditions pour les efforts
         comparables.
       </p>
       <form
-        className="grid gap-2 sm:grid-cols-2"
+        className="grid gap-4 sm:grid-cols-2"
         onSubmit={async (e) => {
           e.preventDefault();
           if (!ok || busy) return;
@@ -108,7 +111,7 @@ export function FieldHoldForm({
             <option value="run">Course</option>
           </select>
         </label>
-        <p>
+        <p className="self-end rounded-xl bg-muted/60 px-4 py-3 text-sm font-medium">
           {reference
             ? "Seuil de référence du bilan · " +
               fieldIntensity(sport, reference)
@@ -148,6 +151,19 @@ export function FieldHoldForm({
             onChange={(e) => setMinutes(e.target.value)}
           />
         </label>
+        {reference != null && reference > 0 && Number.isFinite(intensity) && intensity > 0 && (
+          <div className="sm:col-span-2">
+            <FieldComparison title={sport === "run" ? "Allure tenue et allure au seuil" : "Puissance tenue et FTP"}
+              athlete={{ label: "Effort saisi", bounds: { low: intensity, high: intensity } }}
+              reference={{ label: "Seuil du bilan", bounds: { low: reference, high: reference } }}
+              format={v => fieldIntensity(sport, v)} />
+            <p className="mt-2 text-sm">
+              {intensity === reference ? "L’effort correspond au seuil du bilan."
+                : sport === "run" ? `L’effort a été couru ${Math.abs(intensity - reference)} s/km plus ${intensity < reference ? "vite" : "lentement"} que le seuil.`
+                : `L’effort se situe ${Math.abs(intensity - reference)} W ${intensity > reference ? "au-dessus" : "en dessous"} de la FTP.`}
+            </p>
+          </div>
+        )}
         <label>
           Conditions (parcours, matériel, fatigue préalable){" "}
           <input
@@ -167,23 +183,24 @@ export function FieldHoldForm({
             </option>
           </select>
         </label>
-        <label>
+        <label className="field-checkbox flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
           <input
+            className="h-5 w-5 shrink-0 accent-primary"
             type="checkbox"
             checked={checked}
             onChange={(e) => setChecked(e.target.checked)}
           />{" "}
           J’ai vérifié la trace, la continuité, la stabilité et les conditions.
         </label>
-        <button
+        <Button
           type="submit"
-          className="border rounded p-2 disabled:opacity-50"
+          className="min-h-11 sm:justify-self-start"
           disabled={!ok || busy}
         >
           Enregistrer l’effort
-        </button>
-        <p role="status">{message}</p>
+        </Button>
+        <p role="status" className="self-center text-sm empty:hidden">{message}</p>
       </form>
-    </details>
+    </FieldReviewPanel>
   );
 }

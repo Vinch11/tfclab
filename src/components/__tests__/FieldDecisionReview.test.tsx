@@ -55,6 +55,10 @@ it("saves the athlete, threshold identity, pace in seconds, reason for stopping 
   fireEvent.change(screen.getByLabelText(/Allure tenue/), {
     target: { value: "4:25" },
   });
+  const comparison = screen.getByRole("figure", { name: "Allure tenue et allure au seuil" });
+  expect(comparison).toHaveTextContent("4:25/km");
+  expect(comparison).toHaveTextContent("4:30/km");
+  expect(screen.getByText(/5 s\/km plus vite/)).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText(/Durée continue/), {
     target: { value: "25" },
   });
@@ -92,6 +96,7 @@ it("records the original decision and accepts a contradictory dated follow-up on
   fireEvent.click(
     screen.getByText("Vérifier une priorité sur une prochaine séance"),
   );
+  expect(screen.getByText("Fixer le critère").closest("li")).toHaveAttribute("aria-current", "step");
   fireEvent.change(screen.getByRole("textbox"), {
     target: { value: "Allure sur le dernier bloc à effort comparable." },
   });
@@ -133,6 +138,7 @@ it("records the original decision and accepts a contradictory dated follow-up on
   ];
   view.rerender(<FieldDecisionReview input={input} snapshotId="s" />);
   expect(screen.queryByText(/Privé/)).toBeNull();
+  expect(screen.getByText("Observer la séance").closest("li")).toHaveAttribute("aria-current", "step");
   fireEvent.change(screen.getByLabelText(/Référence de la séance/), {
     target: { value: "Tour 4, allure 4:30/km, même piste et météo." },
   });

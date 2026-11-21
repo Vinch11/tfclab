@@ -48,3 +48,15 @@ describe('Compass goal interaction', () => {
     expect(screen.getByLabelText('Chrono total visé en minutes')).toHaveValue(null);
   });
 });
+
+it('shows a one-sided field duration and withholds the chart for conflicting efforts', () => {
+  const duration = { metric: 'TTE', gap: -15, value: 25, target: 40, weightedImpact: 0, fieldBounds: { low: 25, high: null }, fieldEstimateNote: 'Effort continu sur home trainer.' };
+  const limiter = { primaryLimiter: 'none', confidence: 0, gapAnalysis: [duration] };
+  const view = render(<CompassPerformanceComparison input={{ ...input, limiterResult: limiter }} />);
+  const chart = screen.getByRole('figure', { name: 'Temps tenu au seuil' });
+  expect(chart).toHaveTextContent('Au moins 25 min');
+  expect(chart).toHaveTextContent('Repère de coaching40 min');
+  view.rerender(<CompassPerformanceComparison input={{ ...input, limiterResult: { ...limiter, gapAnalysis: [{ ...duration, fieldBoundsConflict: true, fieldEstimateNote: 'Observations contradictoires.' }] } }} />);
+  expect(screen.queryByRole('figure', { name: 'Temps tenu au seuil' })).toBeNull();
+  expect(screen.getByText('Observations contradictoires.')).toBeInTheDocument();
+});

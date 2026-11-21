@@ -1,3 +1,6 @@
+import { Check, ClipboardCheck } from "lucide-react";
+import { FieldReviewPanel } from "./FieldReviewPanel";
+import { Button } from "./ui/button";
 import { useState } from "react";
 import { format } from "date-fns";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
@@ -114,9 +117,20 @@ export function FieldDecisionReview({
       setBusy(false);
     }
   }
+  const stage = previous ? 2 : record ? 1 : 0;
   return (
-    <details className="space-y-3 rounded border p-4">
-      <summary>Vérifier une priorité sur une prochaine séance</summary>
+    <FieldReviewPanel icon={ClipboardCheck} title="Vérifier une priorité sur une prochaine séance">
+      <ol aria-label="Étapes du suivi" className="flex rounded-2xl bg-muted/60 p-3">
+        {["Fixer le critère", "Observer la séance", "Relire le résultat"].map((label, index) => (
+          <li key={label} aria-current={index === stage ? "step" : undefined} className="relative flex min-w-0 flex-1 flex-col items-center gap-2 px-1 text-center">
+            {index < 2 && <span aria-hidden="true" className="absolute left-1/2 top-3.5 h-px w-full bg-foreground/20" />}
+            <span aria-hidden="true" className={"relative grid h-7 w-7 place-items-center rounded-full border text-sm font-semibold " + (index === stage ? "border-primary bg-foreground text-background" : "border-border bg-card text-foreground")}>
+              {index < stage ? <Check size={15} /> : index + 1}
+            </span>
+            <span className={index === stage ? "text-sm font-semibold" : "text-sm text-foreground/75"}>{label}</span>
+          </li>
+        ))}
+      </ol>
       <label className="block">
         Décision à vérifier{" "}
         <select
@@ -132,7 +146,7 @@ export function FieldDecisionReview({
           <option value="">Enregistrer la décision du jour</option>
           {frozen.map((r) => (
             <option key={r.id} value={r.id}>
-              {r.date.slice(0, 10)} · {r.sport} ·{" "}
+              {r.date.slice(0, 10)} · {r.sport === "run" ? "Course" : r.sport === "bike" ? "Vélo" : r.sport} ·{" "}
               {r.raw && typeof r.raw === "object" && !Array.isArray(r.raw)
                 ? String(r.raw.objective ?? "")
                 : ""}
@@ -204,18 +218,18 @@ export function FieldDecisionReview({
         </label>
       )}
       {!previous && (
-        <button
+        <Button
           type="button"
-          className="rounded border p-2 disabled:opacity-50"
+          className="min-h-11"
           disabled={!canSave || busy}
           onClick={save}
         >
           {record
             ? "Enregistrer l’observation"
             : "Figer la décision et le critère"}
-        </button>
+        </Button>
       )}
-      <p role="status">{status}</p>
-    </details>
+      <p role="status" className="text-sm empty:hidden">{status}</p>
+    </FieldReviewPanel>
   );
 }
