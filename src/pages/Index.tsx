@@ -1,3 +1,4 @@
+import { latestPairs } from "@/lib/diagnostic/durabilityDay";
 import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
@@ -947,6 +948,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
   const compassInputMemo = useMemo(() => {
     if (!currentAthlete || !effectiveCloudSnapshot) return null;
     return {
+      durabilityPairs: latestPairs(tests, currentAthlete.id),
       ftp: effectiveRefs.ftp,
       poids: effectiveRefs.weightKg,
       vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? null,
