@@ -165,9 +165,9 @@ export const BIKE_VLAMAX_SPRINT_15S: IntegratedTestProtocol = {
   category: "VLAMAX",
   difficulty: "moderate",
   
-  objective: "Estimer la VLamax de manière précise en quantifiant la capacité glycolytique réelle via la puissance maximale sur 15 secondes. Ce test permet de calibrer le modèle métabolique pour optimiser nutrition et zones d'entraînement.",
+  objective: "Comparer des puissances de sprint répétées à la FTP documentée. TFCL en déduit une estimation de VLamax. L’exactitude individuelle de cette conversion reste à établir.",
   targetParameters: ["VLamax", "Pmax", "Sprint Ratio"],
-  expectedPrecision: "high",
+  expectedPrecision: "medium",
   reliabilityScore: 0.85,
   
   prerequisites: [
@@ -560,7 +560,7 @@ export const RUN_VLAMAX_SPRINT_15S: IntegratedTestProtocol = {
   
   objective: "Estimer la VLamax en course à pied via la combinaison d'un sprint court (capacité glycolytique) et d'un effort de 12 minutes (capacité aérobie). Le Sprint Ratio calculé permet de caractériser le profil métabolique du coureur.",
   targetParameters: ["VLamax Run", "VMA estimée", "Sprint Ratio CAP"],
-  expectedPrecision: "high",
+  expectedPrecision: "medium",
   reliabilityScore: 0.80,
   
   prerequisites: [

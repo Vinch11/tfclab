@@ -101,7 +101,7 @@ describe("parcours bilan → profil par discipline", () => {
     } as Parameters<typeof computeDiagnostic>[0]);
     const estimated = diagnosis("estimated", false);
     expect(estimated.limiter.primaryLimiter).toBe("none");
-    expect(estimated.synthesis.headline).toContain("insuffisantes");
+    expect(estimated.synthesis.headline).toContain("hypothèse à vérifier");
     for (const metric of ["VLamax", "FatMax", "TTE"]) {
       const gap = estimated.limiter.gapAnalysis.find(g => g.metric === metric);
       expect(gap?.value).toBeGreaterThan(0);

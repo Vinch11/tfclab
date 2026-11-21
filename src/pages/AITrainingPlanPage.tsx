@@ -1,3 +1,4 @@
+import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readCommittedLimiterPolicy, writeCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
 import { prepareGenerationContracts } from "@/lib/plan/prepareGenerationContracts";
 import { applyLongRidePhasePolicy, phasePosition, protectDedicatedRideQuota } from "@/engines/plan/longRidePolicy";
@@ -1296,6 +1297,7 @@ export default function AITrainingPlanPage() {
 
     // Build DiagnosticInput and delegate to the Diagnostic Engine
     const diagnosticInput: DiagnosticInput = {
+      fieldHold: fieldHoldBounds(athleteTests, athlete.id, (sportFocus === "run") ? "run" : "bike", (sportFocus === "run") ? activeSnap.pace_threshold_sec_per_km : activeSnap.ftp, new Date().toISOString().slice(0,10)),
       athleteId: athlete.id,
       athleteName: athlete.name,
       age,

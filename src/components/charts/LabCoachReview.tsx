@@ -1,3 +1,4 @@
+import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { staffEvidenceRows } from "@/lib/coachingCompass/staffEvidence";
 import {
@@ -41,6 +42,8 @@ export function LabPriorities({
   tests: DbTest[];
 }) {
   const ranks = rankedFieldGaps(input.limiterResult);
+  const check = nextFieldCheck(input);
+  const checkUrl = fieldCheckLink(check);
   const goal = input.performanceGoal;
   const evidence = staffEvidenceRows(
     snapshot.athlete_id,
@@ -61,6 +64,9 @@ export function LabPriorities({
         · Bilan du {input.snapshotDate}
       </p>
       <h4 className="font-semibold">Priorités du Compass</h4>
+      <p>{input.limiterResult?.limiterLabel}</p>
+      {input.limiterResult?.gapAnalysis.filter(g => g.fieldEstimateNote && !ranks.some(r => r.metric === g)).map(g => <p key={g.metric}>{g.fieldEstimateNote}</p>)}
+      <p>{check.text} {checkUrl && <a className="underline" href={checkUrl}>Voir le protocole</a>}</p>
       {!ranks.length && (
         <p>
           Aucun écart suffisamment documenté pour être classé.{" "}
@@ -114,7 +120,7 @@ export function LabPriorities({
                       (metric.gapPercent > 0 ? "+" : "") +
                       Math.round(metric.gapPercent) +
                       " % · "}
-                  {hypothesis ? "Hypothèse du modèle" : "Priorité du bilan"}
+                  {hypothesis ? "Hypothèse du modèle" : metric.fieldEstimateNote ? "Priorité estimée sur le terrain" : "Priorité du bilan"}
                 </summary>
                 <p>
                   {reading.comparison || `Valeur du bilan ${metric.value}`}.{" "}
@@ -457,7 +463,7 @@ export function BlindReview({
     : null;
   const ranks =
     reveal && ambition
-      ? replayPriorities(first, scenarioGoal, ambition, age)
+      ? replayPriorities(first, scenarioGoal, ambition, age, tests)
       : [];
   const race =
     reveal && ambition

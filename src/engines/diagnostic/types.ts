@@ -77,6 +77,7 @@ export interface DiagnosticInput {
   /** Date du bilan source : provenance pour la planification, sans recalcul physiologique. */
   snapshotDate?: string | null;
   /** Optionnel — TTE effectif déjà calculé en amont (mirroir de vlamaxEffectifPrecomputed). Si fourni, devient la source unique pour garantir cohérence d'affichage. */
+  fieldHold?: import("@/lib/diagnostic/fieldHold").HoldBounds;
   tteEffectifPrecomputed?: TTEEffectif;
   
   // Fatigue / Disponibilité
