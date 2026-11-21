@@ -178,6 +178,7 @@ export interface RadarAxis {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export interface CoachingCompassInput {
+  durabilityPairs?: ReturnType<typeof import("../diagnostic/durabilityDay").latestPairs>;
   /** Display-only explicit goal; never inferred from race prediction. */
   performanceObservation?: { seconds: number; date: string | null } | null;
   performanceGoal?: import("./performanceComparison").PerformanceGoal | null;

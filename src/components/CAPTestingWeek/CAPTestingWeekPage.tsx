@@ -1,3 +1,4 @@
+import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * CAP Testing Week Page
  * Main page for the CAP Reference Week protocol
@@ -399,6 +400,7 @@ export function CAPTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
+        <DurabilityDayLink sport="run" />
         <TestSessionsNolioExport routes={['week-run', 'critical', 'track-day']} />
         {activeSnapshot && <CriticalSpeedTestPanel key={activeSnapshot.id} snapshot={activeSnapshot} updateSnapshot={updateSnapshot} />}
         {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="run" />}

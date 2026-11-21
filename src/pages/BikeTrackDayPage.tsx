@@ -1,3 +1,4 @@
+import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * BikeTrackDayPage — TFCL Bike Day™
  * Protocole vélo 2h : FTP, VLamax, MAP, W' en une séance.
@@ -322,6 +323,7 @@ export default function BikeTrackDayPage() {
           </Button>
         </div>
 
+        <DurabilityDayLink sport="bike" />
         <TestSessionsNolioExport routes={['bike-day']} />
 
         <Card>

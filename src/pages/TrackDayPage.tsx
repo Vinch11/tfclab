@@ -1,3 +1,4 @@
+import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * TrackDayPage — TFCL Track Day™
  * Protocole piste complet en 2h pour estimer VMA, VLamax, Seuil, TTE, FatMax
@@ -396,6 +397,7 @@ export default function TrackDayPage() {
         </div>
 
         <p className="text-sm text-muted-foreground">Le protocole Nolio et la fiche imprimée utilisent un 1 500 m et un 5 km. Choisir cette variante dans le bloc 3 pour y reporter les temps réalisés.</p>
+        <DurabilityDayLink sport="run" />
         <TestSessionsNolioExport routes={['track-day']} />
 
         {/* Setup */}

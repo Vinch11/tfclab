@@ -1,3 +1,5 @@
+import { DurabilityObservation } from "./DurabilityObservation";
+import { durabilitySession, separateDay } from "@/lib/diagnostic/durabilityDay";
 import { useEffect, useMemo, useState } from 'react';
 import { format, addDays } from 'date-fns';
 import { toast } from 'sonner';
@@ -15,8 +17,10 @@ import { buildTrackDayNolioSession, buildBikeDayNolioSession } from '@/lib/diagn
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { compactSessions, type FieldModule } from "@/lib/diagnostic/compactFieldAssessment";
 
-export type TestRoute = FieldModule | 'track-day' | 'bike-day' | 'week-run' | 'week-bike' | 'critical';
+export type TestRoute = FieldModule | 'durability-run' | 'durability-bike' | 'track-day' | 'bike-day' | 'week-run' | 'week-bike' | 'critical';
 const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSession[] }> = {
+  'durability-run': {label:'Durabilité course', build: () => []},
+  'durability-bike': {label:'Durabilité vélo', build: () => []},
   'cp-bike': {label:'Puissance critique vélo', build: () => compactSessions('cp-bike')},
   'cs-run': {label:'Vitesse critique course', build: () => compactSessions('cs-run')},
   'hold-bike': {label:'Tenue à puissance constante', build: () => compactSessions('hold-bike')},
@@ -37,9 +41,12 @@ export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRou
   const [start, setStart] = useState(() => format(new Date(), 'yyyy-MM-dd'));
   const [holdMinutes, setHoldMinutes] = useState('20');
   const isHold = route === 'hold-bike' || route === 'hold-run';
-  const sessions = useMemo(() => (route === 'hold-bike' || route === 'hold-run'
+  const [between, setBetween] = useState('45');
+  const [targets, setTargets] = useState({bike:'', run:''});
+  const sport = route === 'durability-bike' ? 'bike' : route === 'durability-run' ? 'run' : null;
+  const sessions = useMemo(() => (sport ? durabilitySession(sport, Number(between), targets[sport]) : route === 'hold-bike' || route === 'hold-run'
     ? compactSessions(route, Number(holdMinutes), route === 'hold-bike' ? ftp : pace)
-    : ROUTES[route].build()).filter(s => s.structuredWorkout.length > 0), [route, holdMinutes, ftp, pace]);
+    : ROUTES[route].build()).filter(s => s.structuredWorkout.length > 0), [route, holdMinutes, ftp, pace, sport, between, targets]);
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<number | null>(null);
   const [nolioId, setNolioId] = useState<number | null>(null);
@@ -97,9 +104,13 @@ export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRou
     <button type="button" disabled={!picked.size} onClick={printSelected} className="text-sm underline print:hidden">Imprimer les fiches sélectionnées</button>
     <div className="grid gap-3 sm:grid-cols-2 print:hidden">
       {routes.length > 1 && <Select value={route} onValueChange={v => setRoute(v as TestRoute)}><SelectTrigger aria-label="Parcours de tests" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent>{routes.map(r => <SelectItem key={r} value={r}>{ROUTES[r].label}</SelectItem>)}</SelectContent></Select>}
+      {sport && <><p className="sm:col-span-2 text-sm">{separateDay} Choisir une cible facile déjà tolérée et la durée entre les deux blocs. Durée totale prévue : {40 + Number(between)} min.</p>
+        <label>Cible des deux blocs ({sport === 'run' ? 'min/km' : 'W'})<Input value={targets[sport]} placeholder={sport === 'run' ? '5:30' : '180'} onChange={e=>setTargets({...targets,[sport]:e.target.value})} /></label>
+        <label>Endurance entre les blocs (min)<Input type="number" min="1" max="300" value={between} onChange={e=>setBetween(e.target.value)} /></label></>}
       {isHold && <label className="text-sm">Durée prévisible et tolérée du bloc (min)<Input type="number" min="1" max="120" value={holdMinutes} onChange={e => setHoldMinutes(e.target.value)} /></label>}
       <label className="text-sm">{sessions.length > 1 ? 'Date du premier jour' : 'Date du test'}<Input aria-label="Date du premier jour de tests" type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
     </div>
+    {sport && currentAthlete && <DurabilityObservation key={currentAthlete.id+sport} athleteId={currentAthlete.id} sport={sport} between={Number(between)} target={targets[sport]} />}
     <ul className="divide-y divide-border">{sessions.map((s, i) => <li key={i} className={picked.has(i) ? "py-2" : "py-2 print:hidden"}>
       <div className="flex items-center gap-3"><Checkbox aria-label={`Inclure ${s.title}`} checked={picked.has(i)} onCheckedChange={v => setPicked(p => { const n = new Set(p); v ? n.add(i) : n.delete(i); return n; })} />
         <button type="button" className="flex-1 text-left text-sm min-h-11" onClick={() => setOpen(open === i ? null : i)}><span className="font-medium">{s.title}</span> <span className="text-muted-foreground">· {dateOf(s)}{flat(s).every(x=>x.step_duration_type === 'duration') && ' · ' + Math.round(flat(s).reduce((n,x)=>n+x.step_duration_value,0)/60) + ' min'}</span></button></div>

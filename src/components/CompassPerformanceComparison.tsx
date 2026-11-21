@@ -38,6 +38,11 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
     <h3 className="font-semibold">Que manque-t-il pour l’objectif ?</h3>
     <p className="text-sm">{input.objectif} · {input.ambition || 'Ambition non renseignée'} · {result.category} · {input.athleteSex === 'F' ? 'Femme' : input.athleteSex === 'M' ? 'Homme' : 'Sexe non renseigné'}</p>
     <p className="text-xs text-muted-foreground">Le chrono ci-dessous est l’objectif choisi par le coach. Une projection du profil ou un score sur 100 ne mesure pas les chances de réussite.</p>
+    {input.durabilityPairs?.filter(p=>input.sportFocus==="triathlon" || !input.sportFocus || p.sport===input.sportFocus).map(p=><section key={p.sport} className="rounded-2xl border bg-card p-4">
+      <h4 className="font-semibold">Durabilité · {p.sport==="run"?"Course":"Vélo"} · {p.day}</h4>
+      <p className="text-sm">Deux blocs de 10 min, séparés par {p.between} min d’endurance. Cible {p.target} {p.sport==="run"?"min/km":"W"}.</p>
+      <div className="mt-2 grid grid-cols-2 gap-2">{["Début","Fin"].map((label,i)=><div key={label} className="rounded-xl bg-muted p-3"><strong>{label}</strong><p>{i?p.late:p.early} {p.sport==="run"?"min/km":"W"}</p><p className="text-sm">{i?p.hr2:p.hr1} bpm · ressenti {i?p.rpe2:p.rpe1}/10</p></div>)}</div>
+      <p className="mt-2 text-sm">{p.context}</p></section>)}
     {diagnosis && <div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
       <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis.limiterLabel ?? 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
       {!!leadMetrics?.length && <p>Écart aux repères de l’objectif sur {leadMetrics.map(metric => metric.metric).join(', ')}. À confronter à une performance récente dans la discipline.</p>}

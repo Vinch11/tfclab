@@ -81,7 +81,7 @@ export default function TestsPage() {
     return () => { cancelled = true; };
   }, [selectedAthlete?.id]);
   
-  const modules: FieldModule[] = ["hold-bike","hold-run","cp-bike","cs-run","trail-repeat","easy-run"];
+  const modules: (FieldModule | "durability-bike" | "durability-run")[] = ["hold-bike","hold-run","durability-bike","durability-run","cp-bike","cs-run","trail-repeat","easy-run"];
   const requested = new URLSearchParams(window.location.search).get("module");
   modules.sort((a,b)=>Number(b === requested)-Number(a === requested));
 
@@ -493,7 +493,7 @@ export default function TestsPage() {
               </div>
               
               <TabsContent value="library" className="mt-6">
-                <details open={modules.some(m=>m===requested) || undefined}><summary>Protocoles de terrain ciblés</summary><TestSessionsNolioExport key={requested} routes={modules} ftp={currentSnapshot?.ftp} pace={currentSnapshot?.pace_threshold_sec_per_km} /></details>
+                <details open={modules.some(m=>m===requested) || undefined}><summary>Protocoles de terrain ciblés</summary><TestSessionsNolioExport key={String(requested)+selectedAthleteId} routes={modules} ftp={currentSnapshot?.ftp} pace={currentSnapshot?.pace_threshold_sec_per_km} /></details>
                 {selectedAthlete && <FieldHoldForm key={selectedAthlete.id} athleteId={selectedAthlete.id} ftp={currentSnapshot?.ftp} pace={currentSnapshot?.pace_threshold_sec_per_km} initialSport={requested === "hold-run" ? "run" : "bike"} />}
                 <TestLibraryView
                   tests={INTEGRATED_TESTS_LIBRARY}

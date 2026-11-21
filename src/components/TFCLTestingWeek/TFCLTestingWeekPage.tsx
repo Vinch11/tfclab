@@ -1,3 +1,4 @@
+import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * TFCL Testing Week Page
  * Main page for the TFCL Reference Week protocol
@@ -224,6 +225,7 @@ export function TFCLTestingWeekPage() {
         </Accordion>
 
         {/* Days */}
+        <DurabilityDayLink sport="bike" />
         <TestSessionsNolioExport routes={['week-bike', 'bike-day']} />
         {activeSnapshot && <AssessmentResults snapshot={activeSnapshot} sport="bike" />}
         <div className="space-y-4">

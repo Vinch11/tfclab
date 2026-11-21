@@ -1,3 +1,4 @@
+import { criticalGuide, separateDay } from "./durabilityDay";
 import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import logoUrl from "@/assets/logo-2fc.png";
 /**
@@ -967,6 +968,7 @@ export function buildDiagnosticProtocolHTML(
 
   <h2>3 · Protocole détaillé</h2>
   ${blocksHtml}
+  ${protocol === "bike-day" || protocol === "track-day" ? `<h3>Pour compléter ce Day</h3><p>${criticalGuide[protocol === "bike-day" ? "bike" : "run"]}</p><p>${separateDay} Deux blocs de 10 minutes à la même cible encadrent une période d’endurance choisie par le coach.</p>` : ""}
 
   ${alternativesHtml ? `<h2>4 · Variantes &amp; adaptations <span style="font-size:9pt;font-weight:normal;color:#666;">(si contrainte matériel, terrain ou temps)</span></h2>${alternativesHtml}` : ""}
 
@@ -1152,6 +1154,7 @@ function buildProtocolChapter(
 
     <h2>${chapterNumber}.A — Protocole pas à pas</h2>
     ${blocksHtml}
+    ${protocol === "bike-day" || protocol === "track-day" ? `<p>${criticalGuide[protocol === "bike-day" ? "bike" : "run"]} ${separateDay}</p>` : ""}
 
     ${detailedHtml ? `<h2>${chapterNumber}.B — Cadre scientifique &amp; sécurité</h2>${detailedHtml}` : ""}
 
