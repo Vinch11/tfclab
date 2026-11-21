@@ -91,9 +91,21 @@ it('shows sport-specific rankings without a global limiter or goal time', () => 
     tteEffectifRun: {tte_min: 20, source: "test", confidence: 0.8},
   }} />);
   expect(screen.getByRole('heading', {name:'Hiérarchie des limiteurs'})).toBeVisible();
-  const bike = screen.getByRole('list', {name:'Pistes à vérifier · Vélo'});
-  expect(bike.querySelectorAll('li').length).toBeGreaterThan(0);
-  expect(bike).toHaveTextContent('écart au repère interne');
-  expect(screen.getByRole('list', {name:'Pistes à vérifier · Course à pied'})).toHaveTextContent('Endurance au seuil course');
+  const ranking = screen.getByRole('list', {name:'Classement des facteurs testés'});
+  expect(ranking).toHaveTextContent('Vélo');
+  expect(ranking).toHaveTextContent('Course à pied');
+  const gaps = Array.from(ranking.querySelectorAll('li'), row =>
+    Number(row.textContent?.match(/([\d,]+) %/)?.[1].replace(',', '.')));
+  expect(gaps.length).toBeGreaterThan(1);
+  expect(gaps).toEqual([...gaps].sort((a,b) => b-a));
   expect(screen.queryByText('Aucune priorité étayée disponible')).toBeNull();
+});
+
+it('retains ranked measured categories below the plan activation threshold', () => {
+  const metric = { metric:'VMA', gap:-1, value:14, weightedImpact:4 };
+  render(<CompassPerformanceComparison input={{ ...input, limiterResult: {
+    primaryLimiter:'none', confidence:0.8, categoryRanking:[{category:'aerobic', metrics:[metric]}], gapAnalysis:[metric],
+  } }} />);
+  expect(screen.getByRole('list', {name:'Priorités d’entraînement'})).toHaveTextContent('VMA');
+  expect(screen.getByText(/écarts sont modestes/)).toBeVisible();
 });

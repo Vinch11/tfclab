@@ -43,14 +43,13 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
     ? (diagnosis?.gapAnalysis ?? []).filter(g => fieldUnits[g.metric] && g.value != null && g.target != null && g.target > 0 &&
       !g.fieldEstimateNote && g.prescriptionApplicable !== false && (g.status === 'optimal' || g.status === 'acceptable')).slice(0, 2)
     : [];
-  const priorities = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none'
-    ? (diagnosis.categoryRanking ?? []).map(group => group.metrics.filter(m=>m.weightedImpact > 0 && m.prescriptionApplicable !== false)).filter(group=>group.length).slice(0,3)
-    : [];
+  const priorities = (diagnosis?.categoryRanking ?? []).map(group => group.metrics.filter(m=>m.weightedImpact > 0 && m.prescriptionApplicable !== false)).filter(group=>group.length).slice(0,3);
   const sportGaps = [
     { sport: 'Vélo', rows: presentation?.cyclingDiagnostic?.priorities ?? [] },
     { sport: 'Course à pied', rows: presentation?.runningDiagnostic?.priorities ?? [] },
-  ].filter(group => group.rows.length > 0);
-  const showSportGaps = !priorities.length && !fieldRanking.length && sportGaps.length > 0 &&
+  ].flatMap(({sport, rows}) => rows.map(row => ({ ...row, sport })))
+    .sort((a, b) => b.gapPercent - a.gapPercent);
+  const showSportGaps = !priorities.length && sportGaps.length > 0 &&
     diagnosis?.limiterLabel !== 'Comparaison physiologique non applicable' && demands?.kind !== 'beginner';
   const undecided = diagnosis?.limiterLabel?.includes('à départager');
   const save = async () => {
@@ -66,22 +65,22 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
     <CompassRaceForecast input={input}/>
     {<div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
       <h3 className="text-lg font-semibold">Hiérarchie des limiteurs</h3>
-      {showSportGaps ? <p>Les tests font ressortir ces pistes, classées par écart au repère dans chaque discipline.</p> : noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{comparable.length ? 'Repères dans la plage attendue' : 'Les données comparables ne suffisent pas encore à départager les limiteurs'}</h4>
+      {showSportGaps ? <p>Classement des facteurs testés selon leur écart au repère de l’épreuve et de l’ambition.</p> : priorities.length && diagnosis?.primaryLimiter === 'none' ? <p>Les écarts sont modestes. Voici leur ordre pour cet objectif.</p> : noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{comparable.length ? 'Repères dans la plage attendue' : 'Les données comparables ne suffisent pas encore à départager les limiteurs'}</h4>
         {!!comparable.length && <div className="grid gap-2 sm:grid-cols-2">{comparable.map(metric=><FieldMetricComparison key={metric.metric} metric={metric}/>)}</div>}
       </div> : <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis?.limiterLabel}</p>}
       {priorities.length > 0 && <ol aria-label="Priorités d’entraînement" className="grid gap-2">{priorities.map((group,i)=><li key={group[0].metric} className="flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{undecided ? '≈' : i+1}</span>
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{i+1}</span>
         <div><p className="font-semibold">{group.map(m=>metricNames[m.metric] ?? m.metric).join(' · ')}</p><p className="text-xs text-muted-foreground">{undecided ? 'Ordre provisoire' : i===0 ? 'Premier chantier' : 'Chantier suivant'}</p></div>
       </li>)}</ol>}
-      {!priorities.length && fieldRanking.length > 0 && <ol aria-label="Pistes classées à vérifier" className="list-decimal space-y-2 pl-6">{fieldRanking.slice(0, 3).map(({metric, hypothesis}) =>
+      {!priorities.length && !showSportGaps && fieldRanking.length > 0 && <ol aria-label="Pistes classées à vérifier" className="list-decimal space-y-2 pl-6">{fieldRanking.slice(0, 3).map(({metric, hypothesis}) =>
         <li key={metric.metric}><strong>{metricNames[metric.metric] ?? metric.metric}</strong><span className="block text-xs text-muted-foreground">{hypothesis ? 'Hypothèse du modèle à vérifier' : 'Écart observé dans le bilan'}</span></li>
       )}</ol>}
-      {showSportGaps && sportGaps.map(({sport, rows}) => <section key={sport}>
-        <h4 className="font-semibold">{sport}</h4>
-        <ol aria-label={`Pistes à vérifier · ${sport}`} className="list-decimal space-y-2 pl-6">{rows.slice(0, 3).map(row =>
-          <li key={row.key}><strong>{row.label}</strong><span className="block text-xs text-muted-foreground">{row.gapPercent.toLocaleString('fr-BE', {maximumFractionDigits: 1})} % d’écart au repère interne{row.provisional && ' · à confirmer'}</span></li>
-        )}</ol>
-      </section>)}
+      {showSportGaps && <ol aria-label="Classement des facteurs testés" className="grid gap-2">{sportGaps.map((row, index) =>
+        <li key={row.sport + row.key} className="flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{sportGaps.findIndex(other => other.gapPercent === row.gapPercent) + 1}</span>
+          <div><strong>{row.label}</strong><p className="text-xs text-muted-foreground">{row.sport} · {row.gapPercent.toLocaleString('fr-BE', {maximumFractionDigits: 1})} % d’écart au repère interne{row.provisional && ' · valeur à confirmer'}{index > 0 && sportGaps[index - 1].gapPercent === row.gapPercent && ' · ex æquo'}</p></div>
+        </li>
+      )}</ol>}
       {diagnosis?.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
       {!!fieldRanking.length && <details><summary className="cursor-pointer py-2 font-medium">Voir les écarts chiffrés</summary><div>
 
