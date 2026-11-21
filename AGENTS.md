@@ -1,5 +1,7 @@
 # Architecture rules
 
+- New coach-facing features follow the Bevel visual language. Use a labelled chart, gauge or visual sequence that answers a coaching question, show units and uncertainty in text, and check the reading at phone width.
+
 - AI session export compiles the current occurrence through `_shared/nolioPrescription`; catalogue ID caches cannot replace its dose. Preserve distance steps and explicit recoveries, split named multisport segments, and report ambiguous prescriptions before calendar writes. Why: stored recipes and lossy text parsing changed what the athlete received.
 
 - Plan contracts: see `src/engines/plan/AGENTS.md`.

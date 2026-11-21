@@ -21,7 +21,9 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
 test('the coach sees why estimates are provisional and which observation supports a priority', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
   const panel = page.getByLabel('Priorité du bilan');
-  await expect(panel).toContainText('Aucun facteur suffisamment étayé');
+  await expect(panel.getByRole('figure', { name: 'Production maximale de lactate' })).toContainText('Plage de coaching');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await expect(panel).toContainText('hypothèse à vérifier');
   await expect(panel.getByRole('list', { name: 'Écarts classés pour le coach' })).toContainText('Hypothèse issue du modèle');
   await panel.getByText('Données à confirmer').click();
   for (const metric of ['VLamax', 'FatMax', 'TTE']) {

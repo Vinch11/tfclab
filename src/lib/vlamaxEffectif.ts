@@ -1,3 +1,5 @@
+import { validTestDate } from "./testMeasurementReview";
+import { CRITICAL_POLICY } from "./criticalEfforts";
 import { hasBikeVlamaxMeasurementEvidence, hasRunVlamaxMeasurementEvidence, hasLactateProtocol, protocolSport } from "./vlamaxEvidence";
 import { compareSnapshotsNewestFirst } from "@/lib/referenceSnapshot";
 // =============================================
@@ -73,7 +75,14 @@ export {
 export type VLamaxSource = "test" | "snapshot" | "estimated" | "unknown";
 
 // Détails optionnels pour affichage enrichi
+export interface FieldModelRange {
+  sport: "bike" | "run";
+  low: number;
+  high: number;
+  method: string;
+}
 export interface VLamaxDetails {
+  fieldRange?: FieldModelRange;
   testType?: string;
   testName?: string;
   date?: string;
@@ -170,6 +179,7 @@ interface SnapshotCloud {
 
 interface ComputeVLamaxEffectifParams {
   athleteId: string;
+  asOf?: string;
   objectif: string;
   activeSnapshotId?: string | null;
   tests: TestCloud[];
@@ -221,10 +231,29 @@ function mapV2SourceToLegacy(s: VLamaxV2Source): VLamaxSource {
   }
 }
 
-function computeDataAgeDays(dateStr?: string): number {
+function documentedSprint(test: TestCloud | undefined, sport: SportContext): boolean {
+  const raw = test?.raw;
+  if (!test || !raw || raw.conditionsConfirmed !== true || typeof raw.sensor !== "string" || !raw.sensor.trim() || vlamaxTestSport(test) !== sport) return false;
+  const run = sport === "cap";
+  if (raw.protocolId !== (run ? "run_vlamax_sprint_15s_12min" : "bike_vlamax_sprint_15s")) return false;
+  const reference = run ? raw.dist_12min : raw.ftp_reference;
+  const sprints = (run ? [raw.dist_sprint_1, raw.dist_sprint_2] : [raw.power15s_1, raw.power15s_2, raw.power15s_3])
+    .filter((n): n is number => typeof n === "number" && Number.isFinite(n) && n > 0).sort((a,b) => b-a);
+  return Number.isFinite(reference) && reference > 0 && sprints.length >= 2 &&
+    (sprints[0] - sprints[1]) / (run ? sprints[0] : (sprints[0] + sprints[1]) / 2) <= 0.05;
+}
+
+function fieldRange(v2: VLamaxV2Result, date: string | undefined, qualified: boolean, method: string, asOf: string): FieldModelRange | undefined {
+  const age = validTestDate(date) ? (Date.parse(asOf) - Date.parse(date)) / 86400000 : NaN;
+  if (!qualified || !(age >= 0 && age <= CRITICAL_POLICY.maxAgeDays) || !v2.range || v2.variationWarning || !v2.effective ||
+      v2.range.low > v2.effective || v2.range.high < v2.effective) return;
+  return { ...v2.range, sport: v2.sport === "cap" ? "run" : "bike", method };
+}
+
+function computeDataAgeDays(dateStr: string | undefined, asOf: string): number {
   if (!dateStr) return 0;
   try {
-    return Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000));
+    return Math.max(0, Math.floor((Date.parse(asOf) - new Date(dateStr.slice(0,10)).getTime()) / 86400000));
   } catch { return 0; }
 }
 
@@ -233,7 +262,7 @@ function computeDataAgeDays(dateStr?: string): number {
 // =============================================
 
 export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLamaxEffectif {
-  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride, raceRecords } = params;
+  const { athleteId, objectif, activeSnapshotId, tests, snapshots, previousEffective, sportOverride, raceRecords, asOf = new Date().toISOString().slice(0, 10) } = params;
 
 
   // Déterminer le snapshot effectif
@@ -264,7 +293,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     effectiveSnapshot.vlamax_run > 0 &&
     hasRunVlamaxMeasurementEvidence(effectiveSnapshot)
   ) {
-    const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+    const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
     const protocolLabel = effectiveSnapshot.vlamax_protocol || "Test CAP (sprint lactate)";
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax_run,
@@ -300,7 +329,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     effectiveSnapshot.vlamax > 0 &&
     hasBikeVlamaxMeasurementEvidence(effectiveSnapshot)
   ) {
-    const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+    const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
     const v2Input: VLamaxV2Input = {
       rawValue: effectiveSnapshot.vlamax,
       source: "test_labo",
@@ -333,18 +362,24 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     return modality === sport || (sport === "velo" && !t.sport && modality == null && !isLabMeasuredVlamaxTest(t));
   });
   const labTests = athleteTests.filter(isLabMeasuredVlamaxTest);
-  const candidates = labTests.length ? labTests : athleteTests;
+  const recentDate = (d: unknown) => validTestDate(d) && d <= asOf && (Date.parse(asOf) - Date.parse(d)) / 86400000 <= CRITICAL_POLICY.maxAgeDays;
+  const reviewed = athleteTests.filter(t => documentedSprint(t, sport) && recentDate(t.raw.testDate));
+  const structuredBike = sport === 'velo' && effectiveSnapshot?.source === 'bike_track_day' && recentDate(effectiveSnapshot.date) &&
+    Number(effectiveSnapshot.p30s_w) > Number(effectiveSnapshot.map5min_w) && Number(effectiveSnapshot.map5min_w) > Number(effectiveSnapshot.ftp) && Number(effectiveSnapshot.ftp) > 0;
+  const structuredRun = sport === 'cap' && effectiveSnapshot?.source === 'track_day' && recentDate(effectiveSnapshot.date) &&
+    Number(effectiveSnapshot.sprint_15s_distance) > 0 && Number(effectiveSnapshot.vma) > 0 && Number(effectiveSnapshot.pace_threshold_sec_per_km) > 0;
+  const candidates = labTests.length ? labTests : reviewed.length ? reviewed : structuredBike ? [] : athleteTests;
 
-  if (candidates.length > 0 && (sport !== "cap" || labTests.length > 0)) {
+  if (candidates.length > 0 && (sport !== "cap" || labTests.length > 0 || (reviewed.length > 0 && !structuredRun))) {
     const sortedTests = [...candidates].sort((a, b) => {
-      const dateA = a.date || a.created_at || "";
-      const dateB = b.date || b.created_at || "";
+      const dateA = validTestDate(a.raw?.testDate) ? a.raw.testDate : a.date || a.created_at || "";
+      const dateB = validTestDate(b.raw?.testDate) ? b.raw.testDate : b.date || b.created_at || "";
       return dateB.localeCompare(dateA);
     });
     
     const mostRecentTest = sortedTests[0];
-    const testDate = mostRecentTest.date || mostRecentTest.created_at || "";
-    const ageDays = computeDataAgeDays(testDate);
+    const testDate = validTestDate(mostRecentTest.raw?.testDate) ? mostRecentTest.raw.testDate : mostRecentTest.date || mostRecentTest.created_at || "";
+    const ageDays = computeDataAgeDays(testDate, asOf);
     
     const v2Input: VLamaxV2Input = {
       rawValue: mostRecentTest.vlamax!,
@@ -361,6 +396,8 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     };
     const v2 = computeVLamaxV2(v2Input);
     return wrapV2Result(v2, {
+      fieldRange: fieldRange(v2, mostRecentTest.raw?.testDate, !labTests.length && documentedSprint(mostRecentTest, sport),
+        mostRecentTest.name || "Test de terrain", asOf),
       testType: mostRecentTest.type,
       testName: mostRecentTest.name,
       date: testDate.slice(0, 10),
@@ -393,7 +430,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       });
 
       if (capEst.method !== "insufficient" && capEst.value > 0) {
-        const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+        const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
         const v2Input: VLamaxV2Input = {
           rawValue: capEst.value,
           source: "estimation",
@@ -416,6 +453,8 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         v2.effective = clampVLamax(capEst.value, sport);
         (v2 as any).smoothingApplied = false;
         return wrapV2Result(v2, {
+          fieldRange: fieldRange(v2, effectiveSnapshot.date, effectiveSnapshot.source === "track_day" &&
+            capEst.sources.includes("Sprint 15s") && capEst.sources.includes("Seuil/VMA"), "Track Day · sprint et allure soutenue", asOf),
           protocol: `CAP unifié — ${capEst.sources.join(" + ") || capEst.method}`,
           date: effectiveSnapshot.date,
         });
@@ -445,7 +484,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
 
 
         if (runV2.formula !== "insufficient") {
-          const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+          const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
           const v2Input: VLamaxV2Input = {
             rawValue: runV2.value,
             source: "estimation",
@@ -505,7 +544,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
       });
       
       if (v2Enhanced.formula !== "insufficient") {
-        const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+        const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
         const v2Input: VLamaxV2Input = {
           rawValue: v2Enhanced.value,
           source: "estimation",
@@ -523,6 +562,9 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         // Override confidence with V2 Enhanced confidence (higher quality)
         v2.confidence = Math.max(v2.confidence, v2Enhanced.confidence * 0.9);
         return wrapV2Result(v2, {
+          fieldRange: fieldRange(v2, effectiveSnapshot.date, effectiveSnapshot.source === "bike_track_day" &&
+            Number(effectiveSnapshot.p30s_w) > Number(effectiveSnapshot.map5min_w) && Number(effectiveSnapshot.map5min_w) > Number(ftp) && Number(ftp) > 0,
+            "Bike Day · 30 s, 5 min et FTP", asOf),
           protocol: v2Enhanced.formulaLabel,
           date: effectiveSnapshot.date,
         });
@@ -556,7 +598,7 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
         estimated = ftpContribution;
       }
       
-      const ageDays = computeDataAgeDays(effectiveSnapshot.date);
+      const ageDays = computeDataAgeDays(effectiveSnapshot.date, asOf);
       
       const v2Input: VLamaxV2Input = {
         rawValue: estimated,
@@ -582,7 +624,8 @@ export function computeVLamaxEffectif(params: ComputeVLamaxEffectifParams): VLam
     if (value != null && Number.isFinite(value) && value > 0) {
       const v2 = computeVLamaxV2({ rawValue: value, source: test ? "test_terrain" : "estimation", sport,
         sourceLabels: [test?.name ?? "Valeur course renseignée"], reason: "Repère course à confirmer par un protocole lactate" });
-      return wrapV2Result(v2, { date: test?.date ?? effectiveSnapshot?.date, testName: test?.name });
+      return wrapV2Result(v2, { date: test?.date ?? effectiveSnapshot?.date, testName: test?.name,
+        fieldRange: fieldRange(v2, test?.raw?.testDate, documentedSprint(test, sport), "Sprints 15 s et effort 12 min", asOf) });
     }
   }
 

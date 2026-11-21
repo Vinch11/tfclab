@@ -1,3 +1,4 @@
+import { fieldIntensity } from "../diagnostic/fieldHold";
 import { getTargetCalibration, type TargetCalibrationContext } from '@/lib/targetCalibration';
 import { canGuidePrescription, isRunningOnlyPrescription } from "@/lib/limiterPrescription";
 /**
@@ -70,6 +71,8 @@ export interface UnifiedLimiterInput {
 
   /** Raw observations are accepted by the low-level engine; app adapters supply their provenance. */
   vlamaxSource?: string;
+  fieldVlamax?: import("../vlamaxEffectif").FieldModelRange;
+  fieldHold?: import("../diagnostic/fieldHold").HoldBounds;
   tteSource?: string;
   fatmaxSource?: "model" | "observed";
 
@@ -101,6 +104,12 @@ export interface UnifiedGapAnalysis {
   /** Original CP contract is cycling. Keep the assessment even when it cannot prescribe this sport. */
   measurementDiscipline?: "bike";
   fieldHypothesisImpact?: number;
+  fieldEstimateNote?: string;
+  /** Display-only bounds from the same sources used for this metric. Null denotes an open end. */
+  fieldBounds?: { low: number | null; high: number | null };
+  fieldBoundsConflict?: boolean;
+  coachingRange?: { min: number; max: number };
+  fieldMaxImpact?: number;
   prescriptionApplicable?: boolean;
   prescriptionNote?: string;
   metric: string;
@@ -670,6 +679,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   const vlamaxExcess = input.vlamax !== null && input.vlamax > vlamaxRange.max;
   gapAnalysis.push({
     metric: "VLamax",
+    coachingRange: { min: vlamaxRange.min, max: vlamaxRange.max },
     ...(input.vlamax != null && input.vlamax < vlamaxRange.min ? { prescriptionNote: "Sous le repère de coaching : vérifier le protocole et les besoins de course ; ne pas réduire davantage automatiquement." } : {}),
     value: input.vlamax,
     target: vlamaxRange.optimal,
@@ -852,10 +862,59 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   if (input.tteSource !== undefined && input.tteSource !== "observed") {
     unconfirmed.set("TTE", "Durée au seuil à confirmer par un effort continu documenté jusqu’à épuisement.");
   }
+  const vla = gapAnalysis.find(g => g.metric === "VLamax")!;
+  const range = input.fieldVlamax;
+  const sport = isRunningMode ? "run" : "bike";
+  const applicableRange = unconfirmed.has("VLamax") && range?.sport === sport && vla.value != null &&
+      Number.isFinite(range.low) && Number.isFinite(range.high) &&
+      range.low <= vla.value && vla.value <= range.high && !unsupportedContext && normalized !== "StartToRun";
+  if (applicableRange) vla.fieldBounds = { low: range.low, high: range.high };
+  if (applicableRange && range.low > vlamaxRange.max && vla.value != null) {
+    // Use the least adverse value in the existing model's sensitivity range.
+    vla.fieldMaxImpact = vla.weightedImpact * (range.high - vla.target) / (vla.value - vla.target);
+    vla.weightedImpact *= (range.low - vla.target) / (vla.value - vla.target);
+    vla.fieldEstimateNote = `${range.method} · plage de sensibilité TFCL ${range.low.toFixed(2)}–${range.high.toFixed(2)} mmol/L/s. Même la borne basse dépasse le repère de coaching.`;
+    unconfirmed.delete("VLamax");
+  }
+
+  const duration = gapAnalysis.find(g => g.metric === "TTE")!;
+  const hold = input.fieldHold;
+  if (hold?.sport === sport && !unsupportedContext && normalized !== "StartToRun") {
+    const reference = fieldIntensity(sport, hold.reference);
+    const contradiction = hold.conflict || (input.tteSource === "observed" && duration.value != null &&
+      (duration.value < hold.low || (hold.high != null && duration.value > hold.high)));
+    if (contradiction) {
+      duration.fieldBoundsConflict = true;
+      duration.fieldEstimateNote = "Résultats de tenue contradictoires à " + reference + ". Vérifier la référence et les conditions. " + hold.note;
+      unconfirmed.set("TTE", duration.fieldEstimateNote);
+    } else if (input.tteSource !== "observed") {
+      duration.fieldBounds = { low: hold.low > 0 ? hold.low : null, high: hold.high };
+      const bound = hold.high ?? hold.low;
+      duration.value = bound;
+      duration.gap = bound - duration.target;
+      duration.gapPercent = 100 * duration.gap / duration.target;
+      duration.weightedImpact = 0;
+      duration.status = "unknown";
+      const bounds = hold.high == null ? "au moins " + hold.low : hold.low === 0 ? "au plus " + hold.high : hold.low === hold.high ? String(hold.low) : hold.low + " à " + hold.high;
+      duration.fieldEstimateNote = `Tenue à ${reference} · ${bounds} min d’après les efforts comparables. ${hold.note}`;
+      unconfirmed.set("TTE", duration.fieldEstimateNote);
+      if (hold.high != null && hold.high < duration.target * 0.85) {
+        duration.status = "limiting";
+        duration.weightedImpact = -duration.gapPercent * duration.weight;
+        duration.fieldMaxImpact = 100 * duration.weight * (1 - hold.low / duration.target);
+        unconfirmed.delete("TTE");
+      } else if (hold.low >= duration.target) {
+        duration.status = "optimal";
+        duration.prescriptionNote = duration.fieldEstimateNote;
+        unconfirmed.delete("TTE");
+      }
+    }
+  }
   for (const gap of gapAnalysis) {
     const note = unconfirmed.get(gap.metric);
     if (note && gap.value !== null) {
-      if (!unsupportedContext && normalized !== "StartToRun" && gap.status === "limiting" && gap.weightedImpact > 0) {
+      const contextOnly = gap.metric === "TTE" && (input.tteSource === "load_or_ftp" || !!gap.fieldEstimateNote);
+      if (!contextOnly && !unsupportedContext && normalized !== "StartToRun" && gap.status === "limiting" && gap.weightedImpact > 0) {
         gap.fieldHypothesisImpact = gap.weightedImpact;
       }
       gap.prescriptionApplicable = false;
@@ -1018,7 +1077,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   const CRITICAL_METRICS = [
     aerobicCriticalMetric,
     { key: "vlamax", label: "VLamax", value: input.vlamax },
-    { key: "tte", label: "TTE", value: input.tte },
+    { key: "tte", label: "TTE", value: duration.value },
   ];
   const SECONDARY_METRICS = [
     { key: "wprimeKj", label: "W'", value: input.wprimeKj },
@@ -1026,24 +1085,26 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
     { key: "economyScore", label: "Économie", value: input.economyScore },
   ];
 
-  const missingCritical = CRITICAL_METRICS.filter(m => m.value === null || unconfirmed.has(m.label));
-  const missingSecondary = SECONDARY_METRICS.filter(m => m.value === null || unconfirmed.has(m.label));
-  const missingMetrics = [...missingCritical, ...missingSecondary].map(m => m.label);
-
-  const dataCount = 6 - missingMetrics.length;
-  const confidence = dataCount / 6;
-
-  // Garde insuffisance: si ≥2 métriques critiques manquent, on ne peut pas conclure
-  const insufficientData = missingCritical.length >= 2 || unsupportedContext || normalized === "StartToRun";
-  const insufficientDataMessage = insufficientData
-    ? `Comparaison non concluante : données manquantes ou population/objectif sans cible validée. ${missingMetrics.join(", ")}`
-    : missingCritical.length === 1
-      ? `Attention : ${missingCritical[0].label} manquant — diagnostic partiel.`
-      : null;
-
-  // Si données insuffisantes ET aucun limiteur fort détecté → forcer "none" avec avertissement
-  // plutôt que de laisser croire à un profil équilibré
-  const effectiveLimiter = insufficientData && primaryLimiter === "none" ? "none" : primaryLimiter;
+  const counted = [...CRITICAL_METRICS, ...SECONDARY_METRICS];
+  const missingMetrics = counted.filter(m => m.value == null).map(m => m.label);
+  const provisional = counted.filter(m => m.value != null && unconfirmed.has(m.label)).map(m => m.label);
+  const confidence = (counted.length - missingMetrics.length - provisional.length) / counted.length;
+  const insufficientData = CRITICAL_METRICS.filter(m => m.value == null || unconfirmed.has(m.label)).length >= 2 ||
+    unsupportedContext || normalized === "StartToRun";
+  const candidate = [...gapAnalysis].filter(g => g.fieldHypothesisImpact).sort((a,b) => b.fieldHypothesisImpact! - a.fieldHypothesisImpact!)[0];
+  const partial = [missingMetrics.length && "À renseigner · " + missingMetrics.join(", "), provisional.length && "À vérifier · " + provisional.join(", ")].filter(Boolean).join(". ");
+  const insufficientDataMessage = unsupportedContext || normalized === "StartToRun" ? "Repères de compétition inapplicables à ce profil." : partial || null;
+  const effectiveLimiter = primaryLimiter;
+  const noLead = unsupportedContext || normalized === "StartToRun" ? "Comparaison physiologique non applicable"
+    : candidate ? candidate.metric + " · hypothèse à vérifier"
+    : gapAnalysis.some(g => g.value != null) ? "Aucun écart prioritaire établi sur les valeurs disponibles" : "Données insuffisantes";
+  const contender = topCategory && physiologicalGaps.some(g => g.fieldMaxImpact != null)
+    ? buildCategoryRanking(physiologicalGaps.map(g => ({ ...g, weightedImpact: g.fieldMaxImpact ?? g.weightedImpact })))
+        .find(c => c.category !== topCategory.category && c.totalImpact >= topCategory.totalImpact && c.totalImpact > 5)
+    : undefined;
+  const uncertainOrder = !!contender && primaryLimiter !== "none";
+  const orderNote = uncertainOrder ? "Priorités à départager · " + [topCategory, contender].map(c => c.metrics.map(g => g.metric).join(" + ")).join(" ou ") : "";
+  const estimatedLead = topCategory?.metrics.some(g => !!g.fieldEstimateNote) && primaryLimiter !== "none";
 
   const limiterInfo = LIMITER_INFO[effectiveLimiter];
   const leverInfo = LEVER_INFO[primaryLever];
@@ -1051,14 +1112,11 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   return {
     targetCalibration: getTargetCalibration(input.age, input.sex),
     primaryLimiter: effectiveLimiter,
-    limiterLabel: insufficientData && effectiveLimiter === "none"
-      ? "Données insuffisantes"
-      : limiterInfo.label,
-    limiterEmoji: insufficientData && effectiveLimiter === "none"
-      ? "❓"
-      : limiterInfo.emoji,
-    limiterExplanation: insufficientData && effectiveLimiter === "none"
-      ? `Impossible de déterminer le facteur limitant. Métriques manquantes : ${missingMetrics.join(", ")}.`
+    limiterLabel: effectiveLimiter === "none" ? noLead : uncertainOrder ? orderNote : limiterInfo.label + (estimatedLead ? " · priorité estimée" : ""),
+    limiterEmoji: effectiveLimiter === "none" && insufficientData ? "❓" : limiterInfo.emoji,
+    limiterExplanation: effectiveLimiter === "none" ? [candidate?.prescriptionNote, insufficientDataMessage].filter(Boolean).join(" ") || noLead
+      : uncertainOrder ? orderNote + ". L’ordre change aux bornes des estimations. Vérifier sur une séance spécifique comparable."
+      : estimatedLead ? topCategory!.metrics.filter(g => g.fieldEstimateNote).map(g => g.fieldEstimateNote).join(" ")
       : primaryLimiter === "aerobic_engine" && aerobicWeaknessLabel
         ? `${limiterInfo.description} → ${aerobicWeaknessLabel}`
         : limiterInfo.description,
@@ -1087,9 +1145,9 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
     categoryRanking,
 
 
-    isRobust: insufficientData ? false : isRobust,
-    robustnessScore: insufficientData ? 0 : robustnessScore,
-    robustnessNote: insufficientData
+    isRobust: insufficientData || estimatedLead || uncertainOrder ? false : isRobust,
+    robustnessScore: insufficientData || estimatedLead || uncertainOrder ? 0 : robustnessScore,
+    robustnessNote: uncertainOrder ? orderNote : estimatedLead ? "Priorité estimée · confronter à la performance spécifique." : insufficientData
       ? "Données insuffisantes pour une décision fiable"
       : isRobust
         ? "Écart net aux repères de coaching — causalité et calibration individuelles à confirmer"
@@ -1108,7 +1166,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
       ftp_kg_min: adjustPerformanceTarget(targets.ftp_kg_min, input.age),
       vma_min: targets.vma_min == null ? undefined : adjustPerformanceTarget(targets.vma_min, input.age),
     },
-    version: "1.3.0",
+    version: "1.4.0",
   };
 }
 

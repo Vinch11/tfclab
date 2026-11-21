@@ -1,3 +1,4 @@
+import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
@@ -1542,6 +1543,7 @@ function buildExportPayload(
   let diagnostic: ReturnType<typeof computeDiagnostic> | null = null;
   if (effectiveSnapshot) {
     const diagnosticInput: DiagnosticInput = {
+      fieldHold: fieldHoldBounds(athleteTests, athlete.id, (sportFocusForLimiter === "run") ? "run" : "bike", (sportFocusForLimiter === "run") ? effectiveSnapshot.pace_threshold_sec_per_km : effectiveSnapshot.ftp, new Date().toISOString().slice(0,10)),
       athleteId: athlete.id,
       athleteName: athlete.name,
       age: athleteAge,
@@ -1745,8 +1747,9 @@ function buildExportPayload(
         vo2max: effectiveSnapshot?.vo2max ?? null,
         ftpKg: ftpKg,
         vlamax: vlamax.value,
-        vlamaxSource: vlamax.v2?.source ?? vlamax.source,
-        tteSource: tte.source,
+        fieldVlamax: vlamax.details?.fieldRange,
+      vlamaxSource: vlamax.v2?.source ?? vlamax.source,
+        tteSource: tte.source === "estimated" ? "load_or_ftp" : tte.source,
         wprimeKj: cpResultForPayload ? cpResultForPayload.wprimeKJ : null,
         cpDataQuality: cpResultForPayload ? cpResultForPayload.dataQuality : null,
         tte: tte.tte_min,

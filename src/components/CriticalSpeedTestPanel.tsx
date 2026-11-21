@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import type { DbSnapshot } from '@/hooks/useCloudData';
 import type { CriticalEffort } from '@/lib/criticalEfforts';
-import { parseStoredCriticalMetrics } from '@/lib/criticalMetrics';
+import { criticalEnvelope, parseStoredCriticalMetrics } from '@/lib/criticalMetrics';
 import { criticalSpeedRecords, criticalSpeedTestRows, reviewCriticalSpeed } from '@/lib/diagnostic/criticalSpeedResults';
 import type { NolioRecordRow } from '@/lib/lab/nolioCalibration';
 
@@ -45,7 +45,7 @@ export function CriticalSpeedTestPanel({ snapshot, updateSnapshot }: { snapshot:
     try {
       const { data: latest, error } = await supabase.from('snapshots').select('critical_metrics').eq('id', snapshot.id).eq('athlete_id', snapshot.athlete_id).single();
       if (error) throw error;
-      const metrics = { ...parseStoredCriticalMetrics(latest.critical_metrics), running: stored };
+      const metrics = { ...criticalEnvelope(latest.critical_metrics), running: stored };
       const raw = JSON.parse(JSON.stringify(metrics));
       if (!await updateSnapshot(snapshot.id, { critical_metrics: raw })) throw new Error('save');
       const { data, error: readError } = await supabase.from('snapshots').select('critical_metrics').eq('id', snapshot.id).single();

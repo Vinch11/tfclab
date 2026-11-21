@@ -13,26 +13,32 @@ import { rankedFieldGaps } from "@/lib/coachingCompass/rankedFieldGaps";
 import { objectiveDemands } from "@/lib/coachingCompass/objectiveDemands";
 import { detectUnifiedLimiter } from "@/lib/v2/unifiedLimiterDetection";
 import { estimateProfileFatMaxPctFTP } from "@/lib/v2/fatmaxTFCL";
-import {
-  hasBikeVlamaxMeasurementEvidence,
-  hasRunVlamaxMeasurementEvidence,
-} from "@/lib/vlamaxEvidence";
+import { fieldDayObservations } from "@/lib/fieldDayObservations";
+import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
+import { computeVLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeTTEEffectif } from "@/lib/tteEffectif";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
 /** Historical replay uses only fields stored on the chosen date and explicit scenario assumptions. */
 export function replayPriorities(
-  row: DbSnapshot,
+  original: DbSnapshot,
   goal: string,
   ambition: AmbitionLevel,
   age: number | null,
+  tests: DbTest[] = [],
 ) {
+  if ([original.created_at, original.updated_at].some(stamp => stamp && stamp.slice(0,10) > original.date)) return [];
+  const row = fieldDayObservations(original);
   const kind = objectiveDemands(goal)?.kind;
   if (!kind) return [];
   const tri = kind === "tri";
-  const vla = (tri ? row.vlamax : row.vlamax_run) ?? null;
-  const measured = tri
-    ? hasBikeVlamaxMeasurementEvidence(row)
-    : hasRunVlamaxMeasurementEvidence(row);
+  const sport = tri ? "bike" : "run";
+  const available = tests.filter(t => t.athlete_id === row.athlete_id && t.coach_id === row.coach_id &&
+    validTestDate(t.date.slice(0,10)) && t.date.slice(0,10) <= row.date &&
+    (!t.raw || typeof t.raw !== "object" || Array.isArray(t.raw) || !validTestDate(t.raw.testDate) || t.raw.testDate <= row.date));
+  const vla = computeVLamaxEffectif({ athleteId: row.athlete_id, objectif: goal, sportOverride: tri ? "velo" : "cap",
+    asOf: row.date, tests: available, snapshots: [row] });
+  const tte = computeTTEEffectif({ ...row, sport, objectif: goal, age });
   const limiter = detectUnifiedLimiter({
     objectif: goal,
     ambition,
@@ -41,13 +47,15 @@ export function replayPriorities(
     vma: row.vma ?? null,
     vo2max: row.vo2max ?? null,
     ftpKg: tri && row.weight_kg && row.ftp ? row.ftp / row.weight_kg : null,
-    vlamax: vla,
-    vlamaxSource: measured ? "test_labo" : "estimated",
-    tte: (tri ? row.tte_observed_min : row.tte_observed_min_run) ?? null,
-    tteSource: "observed",
+    vlamax: vla.value,
+    vlamaxSource: vla.v2?.source ?? vla.source,
+    fieldVlamax: vla.details?.fieldRange,
+    fieldHold: fieldHoldBounds(available, row.athlete_id, sport, tri ? row.ftp : row.pace_threshold_sec_per_km, row.date),
+    tte: tte.tte_min > 0 ? tte.tte_min : null,
+    tteSource: tte.source === "estimated" ? "load_or_ftp" : tte.source,
     fatmax: tri
       ? estimateProfileFatMaxPctFTP(
-          vla,
+          vla.value,
           row.vo2max ?? null,
           row.weight_kg ?? null,
           row.ftp ?? null,

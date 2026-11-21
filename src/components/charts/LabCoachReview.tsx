@@ -1,3 +1,5 @@
+import { FieldMetricComparison } from "./FieldComparison";
+import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { staffEvidenceRows } from "@/lib/coachingCompass/staffEvidence";
 import {
@@ -41,6 +43,8 @@ export function LabPriorities({
   tests: DbTest[];
 }) {
   const ranks = rankedFieldGaps(input.limiterResult);
+  const check = nextFieldCheck(input);
+  const checkUrl = fieldCheckLink(check);
   const goal = input.performanceGoal;
   const evidence = staffEvidenceRows(
     snapshot.athlete_id,
@@ -52,7 +56,7 @@ export function LabPriorities({
   return (
     <section id="priorites" className="rounded-lg border bg-card p-5 space-y-3">
       <h3 className="text-xl font-semibold">
-        {input.objectif} · {input.ambition}
+        {input.objectif}{input.ambition && ` · ${AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition}`}
       </h3>
       <p>
         {goal
@@ -61,6 +65,9 @@ export function LabPriorities({
         · Bilan du {input.snapshotDate}
       </p>
       <h4 className="font-semibold">Priorités du Compass</h4>
+      <p>{input.limiterResult?.limiterLabel}</p>
+      {input.limiterResult?.gapAnalysis.filter(g => g.fieldEstimateNote && !ranks.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm">{g.fieldEstimateNote}</p></div>)}
+      <div className="rounded-xl bg-primary/10 p-4 text-sm"><h4 className="font-semibold">Prochaine vérification</h4><p className="mt-1 leading-relaxed">{check.text}</p>{checkUrl && <a className="inline-flex min-h-11 items-center font-medium underline underline-offset-4" href={checkUrl}>Voir le protocole</a>}</div>
       {!ranks.length && (
         <p>
           Aucun écart suffisamment documenté pour être classé.{" "}
@@ -69,7 +76,7 @@ export function LabPriorities({
             : `Commencer par une séance existante en lien avec l’objectif. Point à vérifier · ${demands?.checks[0] ?? "effort récent comparable"}.`}
         </p>
       )}
-      <ol className="list-decimal space-y-2 pl-6">
+      <ol className="space-y-3">
         {ranks.map((row) => {
           const { metric, hypothesis } = row;
           const reading = describeFieldGap(row);
@@ -104,17 +111,18 @@ export function LabPriorities({
               ].includes(e.sport),
           );
           return (
-            <li key={metric.metric}>
+            <li key={metric.metric} className="min-w-0 space-y-3 rounded-xl border p-3">
+              <FieldMetricComparison metric={metric} hypothesis={hypothesis} />
               <details>
-                <summary className="cursor-pointer">
+                <summary className="cursor-pointer py-2 text-sm font-medium">
                   {metric.metric} ·{" "}
-                  {metric.gapPercent == null
+                  {metric.gapPercent == null || metric.coachingRange || metric.fieldBounds
                     ? ""
                     : "écart au repère " +
                       (metric.gapPercent > 0 ? "+" : "") +
                       Math.round(metric.gapPercent) +
                       " % · "}
-                  {hypothesis ? "Hypothèse du modèle" : "Priorité du bilan"}
+                  {hypothesis ? "Hypothèse du modèle" : metric.fieldEstimateNote ? "Priorité estimée sur le terrain" : "Priorité du bilan"}
                 </summary>
                 <p>
                   {reading.comparison || `Valeur du bilan ${metric.value}`}.{" "}
@@ -457,7 +465,7 @@ export function BlindReview({
     : null;
   const ranks =
     reveal && ambition
-      ? replayPriorities(first, scenarioGoal, ambition, age)
+      ? replayPriorities(first, scenarioGoal, ambition, age, tests)
       : [];
   const race =
     reveal && ambition

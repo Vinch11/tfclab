@@ -34,6 +34,9 @@ import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { TestLibraryView } from "@/components/tests/TestLibraryView";
 import { CompletedTestsView } from "@/components/tests/CompletedTestsView";
 import { TestHistoryView } from "@/components/tests/TestHistoryView";
+import { TestSessionsNolioExport } from "@/components/TestSessionsNolioExport";
+import type { FieldModule } from "@/lib/diagnostic/compactFieldAssessment";
+import { FieldHoldForm } from "@/components/FieldHoldForm";
 import { TestExecutionSheet } from "@/components/tests/TestExecutionSheet";
 import { FitImportDialog, type FitTestSaveData, type ProfileUpdates } from "@/components/FitImportDialog";
 import { NolioFitPickerDialog } from "@/components/NolioFitPickerDialog";
@@ -50,7 +53,7 @@ export default function TestsPage() {
   const { tests, addTest, snapshots, updateSnapshot } = useCloudDataContext();
   
   const [activeTab, setActiveTab] = useState("library");
-  const [activeTest, setActiveTest] = useState<IntegratedTestProtocol | null>(null);
+  const [activeTest, setActiveTest] = useState<IntegratedTestProtocol | null>(() => INTEGRATED_TESTS_LIBRARY.find(t => t.id === new URLSearchParams(window.location.search).get("protocol")) ?? null);
   const [sportFilter, setSportFilter] = useState<"all" | "bike" | "run">("all");
   const [fitImportOpen, setFitImportOpen] = useState(false);
   const [nolioPickerOpen, setNolioPickerOpen] = useState(false);
@@ -78,6 +81,10 @@ export default function TestsPage() {
     return () => { cancelled = true; };
   }, [selectedAthlete?.id]);
   
+  const modules: FieldModule[] = ["hold-bike","hold-run","cp-bike","cs-run","trail-repeat","easy-run"];
+  const requested = new URLSearchParams(window.location.search).get("module");
+  modules.sort((a,b)=>Number(b === requested)-Number(a === requested));
+
   const athleteTests = useMemo(() => {
     if (!selectedAthlete) return [];
     return tests.filter(t => t.athlete_id === selectedAthlete.id);
@@ -486,6 +493,8 @@ export default function TestsPage() {
               </div>
               
               <TabsContent value="library" className="mt-6">
+                <details open={modules.some(m=>m===requested) || undefined}><summary>Protocoles de terrain ciblés</summary><TestSessionsNolioExport key={requested} routes={modules} ftp={currentSnapshot?.ftp} pace={currentSnapshot?.pace_threshold_sec_per_km} /></details>
+                {selectedAthlete && <FieldHoldForm key={selectedAthlete.id} athleteId={selectedAthlete.id} ftp={currentSnapshot?.ftp} pace={currentSnapshot?.pace_threshold_sec_per_km} initialSport={requested === "hold-run" ? "run" : "bike"} />}
                 <TestLibraryView
                   tests={INTEGRATED_TESTS_LIBRARY}
                   sportFilter={sportFilter}

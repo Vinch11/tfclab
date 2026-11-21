@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudDataContext } from '@/contexts/CloudDataContext';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
-import { criticalForSessions, parseStoredCriticalMetrics, type StoredCriticalSport } from '@/lib/criticalMetrics';
+import { criticalForSessions, criticalEnvelope, parseStoredCriticalMetrics, type StoredCriticalSport } from '@/lib/criticalMetrics';
 import type { CriticalSport } from '@/lib/criticalEfforts';
 
 const fmtDur = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
@@ -64,7 +64,7 @@ export default function CriticalMetricsPage() {
   const save = async (sport: CriticalSport, review: StoredCriticalSport['coachReview']) => {
     const value = metrics[sport];
     if (!snap || !value) return;
-    const next = { ...metrics, [sport]: { ...value, coachReview: review } };
+    const next = { ...criticalEnvelope(snap.critical_metrics), [sport]: { ...value, coachReview: review } };
     await updateSnapshot(snap.id, { critical_metrics: next as never });
   };
   return <main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">

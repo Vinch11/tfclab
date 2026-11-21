@@ -28,7 +28,7 @@ export function rankedFieldGaps(
 
 type FieldGap = ReturnType<typeof rankedFieldGaps>[number];
 
-const fieldUnits: Record<string, string> = {
+export const fieldUnits: Record<string, string> = {
   VMA: "km/h",
   "FTP/kg": "W/kg",
   VO2max: "ml/kg/min",
@@ -47,13 +47,13 @@ export function describeFieldGap({ metric, hypothesis }: FieldGap) {
   const signed = (n: number) => (n > 0 ? "+" : "") + format(n);
   const comparison =
     unit && Number.isFinite(value) && Number.isFinite(target)
-      ? `${format(value!)} ${unit} pour un repère de ${format(target!)} ${unit} (écart ${signed(value! - target!)} ${unit.startsWith("%") ? "points" : unit})`
+      ? `${metric.fieldEstimateNote && metric.metric === "TTE" ? "Borne de classement " : ""}${format(value!)} ${unit} pour un repère de ${format(target!)} ${unit} (écart ${signed(value! - target!)} ${unit.startsWith("%") ? "points" : unit})`
       : null;
-  const confidence = hypothesis
+  const confidence = metric.fieldEstimateNote ?? (hypothesis
     ? "Confiance limitée · estimation du modèle"
     : metric.metric === "Durabilité (découplage)"
       ? "Indice indirect · conditions de séance à vérifier"
-      : "Valeur du bilan · confirmation terrain à vérifier";
+      : "Valeur du bilan · confirmation terrain à vérifier");
   return {
     comparison,
     confidence,

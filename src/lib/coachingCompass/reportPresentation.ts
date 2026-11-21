@@ -55,6 +55,7 @@ export function buildCompassReportSummaryHTML(compass: TFCLCoachingCompassResult
   return `<section id="${esc(id)}" class="section pagebreakAvoid"><h2>${esc(title)}</h2><p>Cibles internes — pas une probabilité de réussite en course. Valeurs et sources identiques au compass.</p>
     <table><thead><tr><th>Repère</th><th>Valeur</th><th>Cible interne</th><th>Source</th><th>Lecture</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${r.value != null && r.value > 0 ? `${r.value.toFixed(r.unit === 'mmol/L/s' ? 2 : 1)} ${esc(r.unit)}` : 'Données insuffisantes'}</td><td>${r.target != null ? `${r.target} ${esc(r.unit)}` : '—'}</td><td>${esc(metricSourceLabel(r.source))}</td><td>${esc(r.assessment)}</td></tr>`).join('')}</tbody></table>
     <h3>Priorités du diagnostic — classement conservé</h3><p>${esc(compass.limiter?.label ?? 'Données insuffisantes')} · ${esc(compass.presentation?.priorityMetrics.join(' → ') ?? '')}</p>
+    ${(compass.presentation?.fieldNotes ?? []).map(note => '<p>' + esc(note) + '</p>').join('')}
     ${compass.presentation?.wprimeReview ? '<p>W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>' : ''}
     ${buildCompassReportReferencesHTML(compass)}</section>`;
 }

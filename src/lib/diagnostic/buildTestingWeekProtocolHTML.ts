@@ -51,6 +51,7 @@ const blank = (width = "100%") =>
 export type TestingWeekSport = "bike" | "run" | "triathlon" | "triathlon-compact";
 
 export interface NormStep {
+  recoveryBetweenEfforts?: boolean;
   durationMin: number;
   intensityLabel: string;
   notes?: string;

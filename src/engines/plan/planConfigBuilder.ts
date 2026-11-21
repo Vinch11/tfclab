@@ -486,7 +486,8 @@ function formatLimitersForPrompt(
 
       limiters.push(`### Limiteur #${rank} — ${g.metric} (Impact: ${impactScore}/100)`);
       limiters.push(`- Statut : ${statusEmoji}`);
-      limiters.push(`- Valeur actuelle : ${g.value?.toFixed(2) ?? "?"} vs cible : ${g.target?.toFixed(2)}`);
+      if (g.fieldEstimateNote) limiters.push(`- Estimation de terrain · ${g.fieldEstimateNote}`);
+      else limiters.push(`- Valeur actuelle : ${g.value?.toFixed(2) ?? "?"} vs cible : ${g.target?.toFixed(2)}`);
       limiters.push(`- Catégorie séances clés : "${limiterCategory}" (cf. tableau Séances Clés par Limiteur Dan Lorang)`);
       
       if (rank === 1) {

@@ -1,3 +1,5 @@
+import { FieldMetricComparison } from "./charts/FieldComparison";
+import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
 import { describeFieldGap, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
 import { useState } from 'react';
@@ -22,6 +24,8 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const lead = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none' ? diagnosis.categoryRanking?.[0] : null;
   const leadMetrics = lead?.metrics.filter(metric => metric.prescriptionApplicable !== false && metric.weightedImpact > 0);
   const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
+  const check = nextFieldCheck(input);
+  const checkUrl = fieldCheckLink(check);
   const fieldRanking = rankedFieldGaps(diagnosis);
   const save = async () => {
     if (!draft || !onSave) return;
@@ -34,23 +38,26 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
     <h3 className="font-semibold">Que manque-t-il pour l’objectif ?</h3>
     <p className="text-sm">{input.objectif} · {input.ambition || 'Ambition non renseignée'} · {result.category} · {input.athleteSex === 'F' ? 'Femme' : input.athleteSex === 'M' ? 'Homme' : 'Sexe non renseigné'}</p>
     <p className="text-xs text-muted-foreground">Le chrono ci-dessous est l’objectif choisi par le coach. Une projection du profil ou un score sur 100 ne mesure pas les chances de réussite.</p>
-    {diagnosis && <div aria-label="Priorité du bilan" className="space-y-1 border-l-2 border-primary pl-3 text-sm">
-      <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {leadMetrics?.length ? diagnosis.limiterLabel : 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
+    {diagnosis && <div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
+      <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis.limiterLabel ?? 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
       {!!leadMetrics?.length && <p>Écart aux repères de l’objectif sur {leadMetrics.map(metric => metric.metric).join(', ')}. À confronter à une performance récente dans la discipline.</p>}
+      {diagnosis.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
       {!!fieldRanking.length && <div>
         <strong>Classement des écarts à examiner</strong>
-        <p>Ordre selon la grandeur de l’écart et le poids du facteur pour l’objectif. Les repères sont des repères de coaching.</p>
-        <ol aria-label="Écarts classés pour le coach" className="list-decimal pl-5">{fieldRanking.map(row => {
+        <p>L’ordre tient compte de l’écart au repère et de l’importance de chaque facteur pour cet objectif.</p>
+        <ol aria-label="Écarts classés pour le coach" className="mt-3 grid list-none gap-4">{fieldRanking.map(row => {
           const { metric, hypothesis } = row;
           const reading = describeFieldGap(row);
-          return <li key={metric.metric}>
-          <strong>{metric.metric}</strong>{metric.gapPercent != null && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
-          {' · '}{hypothesis ? 'Hypothèse issue du modèle' : 'Priorité du bilan'}
-          <p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
-          {hypothesis && <p>{metric.prescriptionNote}</p>}
+          return <li key={metric.metric} className="space-y-2 rounded-xl border p-3">
+          <strong>{metric.metric}</strong>{metric.gapPercent != null && !metric.coachingRange && !metric.fieldBounds && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
+          {' · '}{hypothesis ? 'Hypothèse issue du modèle' : metric.fieldEstimateNote ? 'Priorité estimée sur le terrain' : 'Priorité du bilan'}
+          <FieldMetricComparison metric={metric} hypothesis={hypothesis} />
+          <details className="text-sm"><summary className="cursor-pointer py-2 font-medium">Comprendre cet écart</summary><p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
+          {hypothesis && <p>{metric.prescriptionNote}</p>}</details>
         </li>})}</ol>
         {fieldRanking.some(row => row.hypothesis) && <p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p>}
       </div>}
+      <div className="rounded-xl bg-primary/10 p-4"><h4 className="font-semibold">Prochaine vérification</h4><p className="mt-1 leading-relaxed">{check.text}</p>{checkUrl && <a className="inline-flex min-h-11 items-center font-medium underline underline-offset-4" href={checkUrl}>Voir le protocole</a>}</div>
       <a className="inline-block py-2 text-primary underline" href="/lab#priorites">Examiner les priorités dans 100 % Lab</a>
       {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
         <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>

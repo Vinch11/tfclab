@@ -1,3 +1,4 @@
+import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { computeCoachingCompass } from '@/lib/coachingCompass';
@@ -697,6 +698,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     const latestCheckin = sortedCheckins[0] || null;
 
     const diagnosticInput: DiagnosticInput = {
+      fieldHold: fieldHoldBounds(tests, currentAthlete.id, (isRunningOnly) ? "run" : "bike", (isRunningOnly) ? effectiveCloudSnapshot.pace_threshold_sec_per_km : effectiveCloudSnapshot.ftp, new Date().toISOString().slice(0,10)),
       athleteId: currentAthlete.id,
       athleteName: currentAthlete.name,
       age,
@@ -790,7 +792,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     });
 
     return { dashDiagnostic: diagnostic, dashPrescription: prescription };
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy, getCheckinsForAthlete]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, isRunningOnly, ftp_kg, wprimeKjForLimiter, cpResultForLimiter, vlamaxEffectif, targetRaceDurationMin, runDurabilityProxy, getCheckinsForAthlete, tests]);
 
   const unifiedLimiterResult = useMemo<UnifiedLimiterResult | null>(() => {
     if (dashDiagnostic) return dashDiagnostic.limiter;
@@ -799,8 +801,9 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       vo2max: effectiveCloudSnapshot?.vo2max ?? null,
       ftpKg: ftp_kg,
       vlamax: vlamaxEffectif.value,
+      fieldVlamax: vlamaxEffectif.details?.fieldRange,
       vlamaxSource: vlamaxEffectif.v2?.source ?? vlamaxEffectif.source,
-      tteSource: tteEffectif.source,
+      tteSource: tteEffectif.source === "estimated" ? "load_or_ftp" : tteEffectif.source,
       wprimeKj: wprimeKjForLimiter,
       cpDataQuality: cpResultForLimiter?.dataQuality ?? null,
       tte: tteEffectif.tte_min,

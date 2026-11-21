@@ -960,10 +960,10 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
 
             {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
             <FlowStep
-              level="Niveau 2 — Priorité historique du plan"
+              level="Niveau 2 — Priorité pour l’objectif"
               icon={<AlertTriangle className="w-4 h-4" />}
               title={`${limiter.icon} ${limiter.label}`}
-              subtitle="Classement conservé ; les repères par sport ci-dessus précisent les valeurs, les cibles et les sources."
+              subtitle={limiter.description}
               accentClass="bg-[hsl(var(--destructive)/0.8)]"
               badge={staffMode ? limiter.confidence : null}
             >
@@ -980,7 +980,7 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <span className="text-[9px] text-muted-foreground">Impact :</span>
                   <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-[hsl(var(--destructive)/0.3)]">
-                    {Math.round(limiter.impactScore * 100)}%
+                    {Number(limiter.impactScore.toFixed(1))} points
                   </Badge>
                   {limiter.metricsUsed.slice(0, 4).map(m => (
                     <Badge key={m} variant="outline" className="text-[8px] h-3.5 px-1 border-border/40 text-muted-foreground">

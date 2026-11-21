@@ -58,6 +58,7 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     sport,
     sportReferences: buildSportReferences(input),
     priorityMetrics,
+    fieldNotes: input.limiterResult?.gapAnalysis.flatMap(g => g.fieldEstimateNote ? [g.fieldEstimateNote] : []),
     wprimeReview: priorityMetrics.some(m => /^W['′]/i.test(m)),
     tteBike: sport !== 'run' && input.sportFocus !== 'run' ? input.tteEffectif : null,
     tteRun: sport === 'bike' ? null : input.sportFocus === "run" ? input.tteEffectif : input.tteEffectifRun ?? null,

@@ -36,10 +36,15 @@ export function toStoredCritical(fit: CriticalFit, efforts: CriticalEffort[], co
 
 const finitePositive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
 
-export function parseStoredCriticalMetrics(raw: unknown): StoredCriticalMetrics {
+/** Shared JSON envelope also contains date-stamped protocol inputs, goals and durability. */
+export function criticalEnvelope(raw: unknown): Record<string, unknown> {
   let value = raw;
   if (typeof raw === 'string') { try { value = JSON.parse(raw); } catch { return {}; } }
-  if (!value || typeof value !== 'object') return {};
+  return value && typeof value === 'object' && !Array.isArray(value) ? { ...value as Record<string, unknown> } : {};
+}
+
+export function parseStoredCriticalMetrics(raw: unknown): StoredCriticalMetrics {
+  const value = criticalEnvelope(raw);
   const out: StoredCriticalMetrics = {};
   for (const sport of ['running', 'cycling', 'runningPower'] as const) {
     const s = (value as Record<string, unknown>)[sport] as Partial<StoredCriticalSport> | undefined;

@@ -12,8 +12,17 @@ import { buildSportTestingNolioSessions, type NolioStepLike, type TestingWeekNol
 import { buildCriticalSpeedNolioSessions } from '@/lib/diagnostic/criticalSpeedAssessment';
 import { buildTrackDayNolioSession, buildBikeDayNolioSession } from '@/lib/diagnostic/dayTestNolioSessions';
 
-export type TestRoute = 'track-day' | 'bike-day' | 'week-run' | 'week-bike' | 'critical';
+import { openPrintableHTML } from "@/lib/openPrintableHTML";
+import { compactSessions, type FieldModule } from "@/lib/diagnostic/compactFieldAssessment";
+
+export type TestRoute = FieldModule | 'track-day' | 'bike-day' | 'week-run' | 'week-bike' | 'critical';
 const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSession[] }> = {
+  'cp-bike': {label:'Puissance critique vélo', build: () => compactSessions('cp-bike')},
+  'cs-run': {label:'Vitesse critique course', build: () => compactSessions('cs-run')},
+  'hold-bike': {label:'Tenue à puissance constante', build: () => compactSessions('hold-bike')},
+  'hold-run': {label:'Tenue à allure constante', build: () => compactSessions('hold-run')},
+  'trail-repeat': {label:'Montée de référence', build: () => compactSessions('trail-repeat')},
+  'easy-run': {label:'Course continue confortable', build: () => compactSessions('easy-run')},
   'track-day': { label: 'TFCL Track Day™', build: () => [buildTrackDayNolioSession()] },
   'bike-day': { label: 'TFCL Bike Day™', build: () => [buildBikeDayNolioSession()] },
   'week-run': { label: 'Semaine de tests course', build: () => buildSportTestingNolioSessions('run') },
@@ -22,11 +31,15 @@ const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSe
 };
 const offset = (s: TestingWeekNolioSession) => (s.weekNumber - 1) * 7 + s.dayIndex;
 
-export function TestSessionsNolioExport({ routes }: { routes: TestRoute[] }) {
+export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRoute[]; ftp?: number | null; pace?: number | null }) {
   const { currentAthlete } = useAthletes();
   const [route, setRoute] = useState<TestRoute>(routes[0]);
   const [start, setStart] = useState(() => format(new Date(), 'yyyy-MM-dd'));
-  const sessions = useMemo(() => ROUTES[route].build().filter(s => s.structuredWorkout.length > 0), [route]);
+  const [holdMinutes, setHoldMinutes] = useState('20');
+  const isHold = route === 'hold-bike' || route === 'hold-run';
+  const sessions = useMemo(() => (route === 'hold-bike' || route === 'hold-run'
+    ? compactSessions(route, Number(holdMinutes), route === 'hold-bike' ? ftp : pace)
+    : ROUTES[route].build()).filter(s => s.structuredWorkout.length > 0), [route, holdMinutes, ftp, pace]);
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<number | null>(null);
   const [nolioId, setNolioId] = useState<number | null>(null);
@@ -61,16 +74,36 @@ export function TestSessionsNolioExport({ routes }: { routes: TestRoute[] }) {
     } catch (e) { toast.error(`Erreur Nolio : ${(e as Error).message}`); } finally { setSending(false); }
   }
 
+  function printSelected() {
+    const doc = document.implementation.createHTMLDocument('Protocoles de terrain TFCL');
+    const add = (parent: HTMLElement, tag: string, value: string) => {
+      const element = doc.createElement(tag);
+      element.textContent = value;
+      parent.append(element);
+      return element;
+    };
+    for (const [i, session] of sessions.entries()) {
+      if (!picked.has(i)) continue;
+      add(doc.body, 'h2', session.title + ' · ' + dateOf(session));
+      add(doc.body, 'p', session.objectif);
+      const list = add(doc.body, 'ol', '');
+      flat(session).forEach(step => add(list, 'li', step.notes));
+    }
+    openPrintableHTML('<!doctype html>' + doc.documentElement.outerHTML, { filenameHint: 'Protocoles de terrain TFCL' });
+  }
+
   return <section aria-label="Séances de tests Nolio" className="space-y-4 border-y border-border py-5">
     <h2 className="text-lg font-semibold">Séances structurées · Nolio</h2>
-    <div className="grid gap-3 sm:grid-cols-2">
+    <button type="button" disabled={!picked.size} onClick={printSelected} className="text-sm underline print:hidden">Imprimer les fiches sélectionnées</button>
+    <div className="grid gap-3 sm:grid-cols-2 print:hidden">
       {routes.length > 1 && <Select value={route} onValueChange={v => setRoute(v as TestRoute)}><SelectTrigger aria-label="Parcours de tests" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent>{routes.map(r => <SelectItem key={r} value={r}>{ROUTES[r].label}</SelectItem>)}</SelectContent></Select>}
+      {isHold && <label className="text-sm">Durée prévisible et tolérée du bloc (min)<Input type="number" min="1" max="120" value={holdMinutes} onChange={e => setHoldMinutes(e.target.value)} /></label>}
       <label className="text-sm">{sessions.length > 1 ? 'Date du premier jour' : 'Date du test'}<Input aria-label="Date du premier jour de tests" type="date" value={start} onChange={e => setStart(e.target.value)} /></label>
     </div>
-    <ul className="divide-y divide-border">{sessions.map((s, i) => <li key={i} className="py-2">
+    <ul className="divide-y divide-border">{sessions.map((s, i) => <li key={i} className={picked.has(i) ? "py-2" : "py-2 print:hidden"}>
       <div className="flex items-center gap-3"><Checkbox aria-label={`Inclure ${s.title}`} checked={picked.has(i)} onCheckedChange={v => setPicked(p => { const n = new Set(p); v ? n.add(i) : n.delete(i); return n; })} />
-        <button type="button" className="flex-1 text-left text-sm min-h-11" onClick={() => setOpen(open === i ? null : i)}><span className="font-medium">{s.title}</span> <span className="text-muted-foreground">· {dateOf(s)}</span></button></div>
-      {open === i && <ol className="ml-8 mt-1 space-y-1">{flat(s).map((x, k) => <li key={k} className="flex gap-3 text-sm"><span className="w-16 shrink-0 tabular-nums text-muted-foreground">{dur(x)}</span><span>{x.notes}</span></li>)}</ol>}
+        <button type="button" className="flex-1 text-left text-sm min-h-11" onClick={() => setOpen(open === i ? null : i)}><span className="font-medium">{s.title}</span> <span className="text-muted-foreground">· {dateOf(s)}{flat(s).every(x=>x.step_duration_type === 'duration') && ' · ' + Math.round(flat(s).reduce((n,x)=>n+x.step_duration_value,0)/60) + ' min'}</span></button></div>
+      <div className={open === i ? "" : "hidden print:block"}><p className="mt-2 text-sm whitespace-pre-line">{s.objectif}</p><ol className="ml-8 mt-1 space-y-1">{flat(s).map((x, k) => <li key={k} className="flex gap-3 text-sm"><span className="w-16 shrink-0 tabular-nums text-muted-foreground">{dur(x)}</span><span>{x.notes}</span></li>)}</ol></div>
     </li>)}</ul>
     {!nolioId && currentAthlete && <p className="text-sm text-muted-foreground">{currentAthlete.nom} n’est pas relié à un compte Nolio : envoi indisponible.</p>}
     <Button onClick={send} disabled={!nolioId || !validDate || !picked.size || sending} className="min-h-11 gap-2">{sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Envoyer {picked.size} séance(s) vers Nolio</Button>

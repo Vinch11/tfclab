@@ -187,7 +187,7 @@ function groupRepeatedEffort(main: NormStep[]): (NolioStepLike | NolioRepStepLik
       }
     }
 
-    items.push(nolioStep("active", effort.durationMin * 60, formatStep(effort)));
+    items.push(nolioStep(effort.recoveryBetweenEfforts ? "rest" : "active", effort.durationMin * 60, formatStep(effort)));
     i++;
   }
 

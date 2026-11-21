@@ -1796,3 +1796,21 @@
   }
 }
 
+
+@layer components {
+  .field-review label:not(.field-checkbox) {
+    @apply flex min-w-0 flex-col gap-1.5 text-sm font-medium;
+  }
+
+  .field-review :is(select, textarea, input:not([type="checkbox"])) {
+    @apply min-h-11 w-full min-w-0 max-w-full rounded-xl border border-input bg-background px-3 py-2 text-base font-normal text-foreground;
+  }
+
+  .field-review :is(select, textarea, input):focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
+
+  .field-review textarea {
+    @apply min-h-24;
+  }
+}

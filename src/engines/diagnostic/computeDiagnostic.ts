@@ -92,8 +92,10 @@ export function computeDiagnostic(input: DiagnosticInput): AthleteDiagnostic {
     vo2max: input.vo2max,
     ftpKg: input.ftpKg,
     vlamax: vlamax.value,
+    fieldHold: input.fieldHold,
+    fieldVlamax: vlamax.details?.fieldRange,
     vlamaxSource: vlamax.v2?.source ?? vlamax.source,
-    tteSource: tte.source,
+    tteSource: tte.source === "estimated" ? "load_or_ftp" : tte.source,
     fatmaxSource: input.fatmaxSource ?? "model",
     wprimeKj: input.wprimeKj,
     cpDataQuality: input.cpDataQuality,
@@ -560,8 +562,7 @@ function generateHeadline(
     return `Fatigue critique — priorité récupération avant toute qualité`;
   }
   if (limiter.primaryLimiter === "none") {
-    if (limiter.insufficientData) return "Données insuffisantes pour identifier un limiteur";
-    return `Profil équilibré — ${readiness.readiness.categoryLabel}`;
+    return limiter.limiterLabel;
   }
   // Use limiter-specific severity instead of global readiness to avoid contradictions
   const worstGap = Math.min(...limiter.gapAnalysis.filter(g => g.status === "limiting" && canGuidePrescription(g)).map(g => g.gap));
