@@ -1,8 +1,10 @@
+import { CompassDisciplineProfile } from "./CompassDisciplineProfile";
+import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { FieldMetricComparison } from "./charts/FieldComparison";
 import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
-import { describeFieldGap, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
+import { describeFieldGap, fieldUnits, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 import { comparePerformance, PERFORMANCE_SOURCES, readPerformanceGoal, type PerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
 
@@ -27,6 +29,13 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const check = nextFieldCheck(input);
   const checkUrl = fieldCheckLink(check);
   const fieldRanking = rankedFieldGaps(diagnosis);
+  const goalDetails = useRef<HTMLDetailsElement>(null);
+  const noPriority = !fieldRanking.length && (!diagnosis?.primaryLimiter || diagnosis.primaryLimiter === 'none');
+  const comparable = noPriority && diagnosis?.limiterLabel !== 'Comparaison physiologique non applicable'
+    ? (diagnosis?.gapAnalysis ?? []).filter(g => fieldUnits[g.metric] && g.value != null && g.target != null && g.target > 0 &&
+      !g.fieldEstimateNote && g.prescriptionApplicable !== false && (g.status === 'optimal' || g.status === 'acceptable')).slice(0, 2)
+    : [];
+  const needsGoal = noPriority && !draft && demands?.kind !== 'beginner';
   const save = async () => {
     if (!draft || !onSave) return;
     setBusy(true);
@@ -35,22 +44,26 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
     finally { setBusy(false); }
   };
   return <section aria-label="Écart à l’objectif" className="mb-5 rounded-xl border border-primary/30 p-4 space-y-3">
-    <h3 className="font-semibold">Que manque-t-il pour l’objectif ?</h3>
-    <p className="text-sm">{input.objectif} · {input.ambition || 'Ambition non renseignée'} · {result.category} · {input.athleteSex === 'F' ? 'Femme' : input.athleteSex === 'M' ? 'Homme' : 'Sexe non renseigné'}</p>
-    <p className="text-xs text-muted-foreground">Le chrono ci-dessous est l’objectif choisi par le coach. Une projection du profil ou un score sur 100 ne mesure pas les chances de réussite.</p>
+    <header className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 className="text-2xl font-semibold tracking-tight">{input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
+      {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes} min</span>}</header>
+    <CompassDisciplineProfile input={input} goal={draft} runPace={pace}/>
     {input.durabilityPairs?.filter(p=>input.sportFocus==="triathlon" || !input.sportFocus || p.sport===input.sportFocus).map(p=><section key={p.sport} className="rounded-2xl border bg-card p-4">
       <h4 className="font-semibold">Durabilité · {p.sport==="run"?"Course":"Vélo"} · {p.day}</h4>
       <p className="text-sm">Deux blocs de 10 min, séparés par {p.between} min d’endurance. Cible {p.target} {p.sport==="run"?"min/km":"W"}.</p>
       <div className="mt-2 grid grid-cols-2 gap-2">{["Début","Fin"].map((label,i)=><div key={label} className="rounded-xl bg-muted p-3"><strong>{label}</strong><p>{i?p.late:p.early} {p.sport==="run"?"min/km":"W"}</p><p className="text-sm">{i?p.hr2:p.hr1} bpm · ressenti {i?p.rpe2:p.rpe1}/10</p></div>)}</div>
       <p className="mt-2 text-sm">{p.context}</p></section>)}
-    {diagnosis && <div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
-      <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis.limiterLabel ?? 'Aucun facteur suffisamment étayé pour être classé en premier.'}</p>
+    {<div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
+      {noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{needsGoal ? 'Quel chrono vise cet athlète ?' : comparable.length ? 'Repères disponibles pour l’objectif' : 'Quelle capacité vérifier en séance ?'}</h4>
+        {needsGoal && <button type="button" className="min-h-11 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground" onClick={()=>{
+          if(goalDetails.current){goalDetails.current.open=true;goalDetails.current.querySelector('input')?.focus();}
+        }}>Préciser l’objectif</button>}
+        {!!comparable.length && <div className="grid gap-2 sm:grid-cols-2">{comparable.map(metric=><FieldMetricComparison key={metric.metric} metric={metric}/>)}</div>}
+      </div> : <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis?.limiterLabel}</p>}
       {!!leadMetrics?.length && <p>Écart aux repères de l’objectif sur {leadMetrics.map(metric => metric.metric).join(', ')}. À confronter à une performance récente dans la discipline.</p>}
-      {diagnosis.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
+      {diagnosis?.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
       {!!fieldRanking.length && <div>
-        <strong>Classement des écarts à examiner</strong>
-        <p>L’ordre tient compte de l’écart au repère et de l’importance de chaque facteur pour cet objectif.</p>
-        <ol aria-label="Écarts classés pour le coach" className="mt-3 grid list-none gap-4">{fieldRanking.map(row => {
+
+        <ol aria-label="Écarts classés pour le coach" className="mt-3 grid list-none gap-3 md:grid-cols-2">{fieldRanking.map(row => {
           const { metric, hypothesis } = row;
           const reading = describeFieldGap(row);
           return <li key={metric.metric} className="space-y-2 rounded-xl border p-3">
@@ -60,15 +73,16 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
           <details className="text-sm"><summary className="cursor-pointer py-2 font-medium">Comprendre cet écart</summary><p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
           {hypothesis && <p>{metric.prescriptionNote}</p>}</details>
         </li>})}</ol>
-        {fieldRanking.some(row => row.hypothesis) && <p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p>}
+        {fieldRanking.some(row => row.hypothesis) && <details><summary className="cursor-pointer py-2">Comment lire une estimation</summary><p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p></details>}
       </div>}
-      <div className="rounded-xl bg-primary/10 p-4"><h4 className="font-semibold">Prochaine vérification</h4><p className="mt-1 leading-relaxed">{check.text}</p>{checkUrl && <a className="inline-flex min-h-11 items-center font-medium underline underline-offset-4" href={checkUrl}>Voir le protocole</a>}</div>
+      {!needsGoal && <div className="rounded-xl bg-primary/10 p-4"><h4 className="font-semibold">Prochaine vérification</h4><p className="mt-1 leading-relaxed">{check.text}</p>{checkUrl && <a className="inline-flex min-h-11 items-center font-medium underline underline-offset-4" href={checkUrl}>Voir le protocole</a>}</div>}
       <a className="inline-block py-2 text-primary underline" href="/lab#priorites">Examiner les priorités dans 100 % Lab</a>
       {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
         <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>
       </details>}
     </div>}
-    <div className="flex flex-wrap items-end gap-3 print:hidden">
+    <details ref={goalDetails} className="rounded-2xl border bg-card p-4"><summary className="cursor-pointer py-2 font-semibold">Objectif chrono et comparaison détaillée</summary>
+    <div className="mt-3 space-y-3"><div className="flex flex-wrap items-end gap-3 print:hidden">
       <label className="text-sm">{demands?.kind === 'beginner' ? 'Durée continue visée (minutes)' : 'Chrono total visé (minutes)'}<input aria-label="Chrono total visé en minutes" type="number" min="1" max="10080" step="any" className="block border rounded p-2 w-40 bg-background" value={minutes} onChange={e => { setMinutes(e.target.value); setMessage(''); }} /></label>
       {result.distance?.tri && <label className="text-sm">Split course visé (minutes)<input aria-label="Split course visé en minutes" type="number" min="1" step="any" className="block border rounded p-2 w-40 bg-background" value={run} onChange={e => { setRun(e.target.value); setMessage(''); }} /></label>}
       {extraFields.map(([key, label]) => <label key={key} className="text-sm">{label}<input aria-label={label} type="number" min={key === 'elevationM' ? '0' : '1'} step="any" className="block border rounded p-2 w-40 bg-background" value={extras[key] ?? ''} onChange={e => { setExtras(previous => ({ ...previous, [key]: e.target.value })); setMessage(''); }} /></label>)}
@@ -110,5 +124,6 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
       <p>Classement par catégorie : un podium dépend de l’épreuve et de ses résultats. Le référentiel actuel ne permet pas d’afficher « top X % ».</p>
     </div>
     <details className="text-xs"><summary className="cursor-pointer">Sources, protocoles et limites</summary>{PERFORMANCE_SOURCES.map(s => <p key={s.url} className="mt-2"><a href={s.url} target="_blank" rel="noreferrer" className="underline">{s.name}</a> — {s.population} {s.protocol} {s.limitation}</p>)}</details>
+    </div></details>
   </section>;
 }

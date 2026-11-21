@@ -1097,7 +1097,7 @@ export function detectUnifiedLimiter(rawInput: UnifiedLimiterInput): UnifiedLimi
   const effectiveLimiter = primaryLimiter;
   const noLead = unsupportedContext || normalized === "StartToRun" ? "Comparaison physiologique non applicable"
     : candidate ? candidate.metric + " · hypothèse à vérifier"
-    : gapAnalysis.some(g => g.value != null) ? "Aucun écart prioritaire établi sur les valeurs disponibles" : "Données insuffisantes";
+    : gapAnalysis.some(g => g.value != null) ? "Priorité à préciser sur le terrain" : "Données insuffisantes";
   const contender = topCategory && physiologicalGaps.some(g => g.fieldMaxImpact != null)
     ? buildCategoryRanking(physiologicalGaps.map(g => ({ ...g, weightedImpact: g.fieldMaxImpact ?? g.weightedImpact })))
         .find(c => c.category !== topCategory.category && c.totalImpact >= topCategory.totalImpact && c.totalImpact > 5)

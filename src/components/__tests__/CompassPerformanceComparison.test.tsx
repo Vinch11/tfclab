@@ -60,3 +60,14 @@ it('shows a one-sided field duration and withholds the chart for conflicting eff
   expect(screen.queryByRole('figure', { name: 'Temps tenu au seuil' })).toBeNull();
   expect(screen.getByText('Observations contradictoires.')).toBeInTheDocument();
 });
+
+it('shows a triathlete’s actual markers before the detailed form even without a ranked limiter', () => {
+  render(<CompassPerformanceComparison input={{ ...input, objectif:'IM', sportFocus:'triathlon', ftp:230, css:100, limiterResult:{primaryLimiter:'none', confidence:0, gapAnalysis:[], limiterLabel:'Aucun écart prioritaire établi sur les valeurs disponibles'} }} />);
+  expect(screen.getByRole('figure',{name:'Vélo'})).toHaveTextContent('230');
+  expect(screen.getByRole('figure',{name:'Natation'})).toHaveTextContent('1:40');
+  expect(screen.queryByText(/Aucun écart prioritaire/)).toBeNull();
+  const details=screen.getByText('Objectif chrono et comparaison détaillée').closest('details');
+  expect(details).not.toHaveAttribute('open');
+  fireEvent.click(screen.getByRole('button',{name:'Préciser l’objectif'}));
+  expect(details).toHaveAttribute('open');
+});
