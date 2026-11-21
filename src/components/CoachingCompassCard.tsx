@@ -377,12 +377,6 @@ function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }
 // TEMPS DE COURSE CIBLE
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function formatTargetRaceDuration(totalMin: number): string {
-  const h = Math.floor(totalMin / 60);
-  const m = Math.round(totalMin % 60);
-  return h > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${m} min`;
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // FATIGUE WARNING
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -724,30 +718,30 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
 
       <CardContent className="pt-0 px-3 sm:px-6">
         <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
+        <section className="my-3 rounded-2xl border bg-card p-3"><h3 className="font-semibold">Profil physiologique du bilan</h3>{disciplineAxes ? <div data-testid="triathlon-compasses">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
+                    {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
+                      <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
+                      <SignatureRadar axes={disciplineAxes[sport]} size={320} vmaReference={sport === 'run' ? getVmaReference(input.objectif, input.ambition) : null} />
+                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
+                    </section>)}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
+                </div> : <SignatureRadar axes={displayAxes} size={320} vmaReference={getVmaReference(input.objectif, input.ambition)} />}
+              <div className="mt-1">
+                {getVmaReference(input.objectif, input.ambition) && <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-primary/30 border border-primary" />Profil de l’athlète</span>
+                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-border" />Repères d’ambition</span>
+                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-warning" />Écart VMA · repère extrapolé</span>
+                </div>}
+              </div>
+
+        </section>
         <details><summary className="text-sm cursor-pointer mb-3">Profil historique et diagnostics — scores ≠ préparation à l’objectif</summary>
         {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
             <FatigueWarning warning={compass.fatigueWarning} />
-          </div>
-        )}
-
-        {/* ─── Temps de course cible (src/lib/raceTimePredictor.ts) ─── */}
-        {input.targetRacePrediction && (
-          <div className="mb-3 rounded-lg border border-border/60 bg-muted/20 px-3 py-2 flex items-center justify-between gap-2 print:break-inside-avoid">
-            <div className="flex items-center gap-2 min-w-0">
-              <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
-              <div className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wide text-muted-foreground">Projection du profil (estimation)</p>
-                <p className="text-sm font-semibold truncate">
-                  {formatTargetRaceDuration(input.targetRacePrediction.targetRaceDurationMin)}
-                </p>
-              </div>
-            </div>
-            <Badge variant="outline" className="text-[9px] shrink-0">
-              {input.targetRacePrediction.confidence >= 0.7 ? "Fiabilité élevée" : input.targetRacePrediction.confidence >= 0.5 ? "Fiabilité modérée" : "Fiabilité limitée"}
-
-            </Badge>
           </div>
         )}
 
@@ -771,24 +765,6 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
                   <div><dt className="font-medium text-foreground">Limiteur à confirmer</dt><dd>Le seuil, les performances récentes et la tenue de l’effort doivent étayer l’interprétation. Les priorités du plan restent celles du diagnostic existant.</dd></div>
                 </dl>
               </details>
-              <div className="mt-1">
-                {disciplineAxes ? <div data-testid="triathlon-compasses">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
-                    {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
-                      <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
-                      <SignatureRadar axes={disciplineAxes[sport]} size={320} vmaReference={sport === 'run' ? getVmaReference(input.objectif, input.ambition) : null} />
-                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
-                    </section>)}
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <SignatureRadar axes={displayAxes} size={320} vmaReference={getVmaReference(input.objectif, input.ambition)} />}
-                {getVmaReference(input.objectif, input.ambition) && <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-primary/30 border border-primary" />Profil de l’athlète</span>
-                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-border" />Repères d’ambition</span>
-                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-warning" />Écart VMA · repère extrapolé</span>
-                </div>}
-              </div>
-
               {/* Completeness bar */}
               <div className="flex items-center gap-2 mt-2 px-2">
                 <span className="text-[9px] text-muted-foreground/50 shrink-0">

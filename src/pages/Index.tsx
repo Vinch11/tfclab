@@ -674,16 +674,16 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       objective: currentAthlete.goal || null,
       ambition: AMBITION_LEVEL_TO_PREDICTOR[currentAmbition],
       raceChronos: chronos,
-      vmaKmh: effectiveCloudSnapshot?.vma ?? null,
+      vmaKmh: effectiveRefs.vma,
       thresholdPaceSecPerKm: (effectiveCloudSnapshot as any)?.pace_threshold_sec_per_km ?? null,
-      ftp: effectiveCloudSnapshot?.ftp ?? null,
-      weightKg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
+      ftp: effectiveRefs.ftp,
+      weightKg: effectiveRefs.weightKg,
       // Ne jamais retomber sur snapshot.vlamax (VLamax vélo) — même garde-fou
       // qu'en #315/#316 : sans vlamax_run, pas de pénalité plutôt qu'une
       // pénalité calculée depuis l'autre discipline.
       vlamaxRun: (effectiveCloudSnapshot as any)?.vlamax_run ?? null,
     });
-  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition]);
+  }, [currentAthlete, effectiveCloudSnapshot, currentAmbition, effectiveRefs]);
   const targetRaceDurationMin = targetRacePrediction?.targetRaceDurationMin ?? null;
 
   // ✅ DIAGNOSTIC & PRESCRIPTION UNIFIÉS — Source unique pour TOUS les onglets
@@ -961,7 +961,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       map5minW: effectiveCloudSnapshot.map5min_w ?? null,
       runEconomyScore: effectiveCloudSnapshot.run_economy_score ?? null,
       hrDriftPct: effectiveCloudSnapshot.run_hr_drift_pct ?? null,
-      vma: effectiveCloudSnapshot.vma ?? null,
+      vma: effectiveRefs.vma,
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
@@ -1019,7 +1019,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       athleteAge: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null,
       athleteId: currentAthlete.id,
       athleteSex: currentAthlete.sex,
-      css: effectiveCloudSnapshot.css ?? null,
+      css: effectiveRefs.css,
       performanceObservation: storedPerformance(currentAthlete.goal || "IM", effectiveCloudSnapshot),
       performanceGoal: readPerformanceGoal(comparisonGoals(currentAthlete.refs)[`${currentAthlete.goal || "IM"}:${currentAmbition}`]),
       targetRacePrediction,
