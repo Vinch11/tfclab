@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { CoachingCompassCard } from '../CoachingCompassCard';
 import { CompassPerformanceComparison } from '../CompassPerformanceComparison';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 const input = { athleteId: 'A', objectif: 'Marathon', ambition: 'competitor', athleteAge: 42, athleteSex: 'F', vma: 14, vo2max: 47, paceThresholdSecPerKm: 290 } as CoachingCompassInput;
@@ -81,4 +82,18 @@ it('distinguishes a general triathlon time from an individual forecast', () => {
   expect(screen.getByLabelText('Projection de course')).toHaveTextContent('Temps indicatif du format');
   expect(screen.getByLabelText('Projection de course')).toHaveTextContent('11 h 00');
   expect(screen.getByLabelText('Chrono total visé en minutes')).toHaveValue(null);
+});
+
+it('shows sport-specific rankings without a global limiter or goal time', () => {
+  render(<CoachingCompassCard input={{ ...input, objectif: 'IM', sportFocus: 'triathlon',
+    ftp: 180, poids: 78, vma: 11, limiterResult: null, vlamaxEffectif: {value: 0.35, source: "test", confidence: 0.8},
+    tteEffectif: {tte_min: 15, source: 'test', confidence: 0.8},
+    tteEffectifRun: {tte_min: 20, source: "test", confidence: 0.8},
+  }} />);
+  expect(screen.getByRole('heading', {name:'Hiérarchie des limiteurs'})).toBeVisible();
+  const bike = screen.getByRole('list', {name:'Pistes à vérifier · Vélo'});
+  expect(bike.querySelectorAll('li').length).toBeGreaterThan(0);
+  expect(bike).toHaveTextContent('écart au repère interne');
+  expect(screen.getByRole('list', {name:'Pistes à vérifier · Course à pied'})).toHaveTextContent('Endurance au seuil course');
+  expect(screen.queryByText('Aucune priorité étayée disponible')).toBeNull();
 });

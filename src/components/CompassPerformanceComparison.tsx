@@ -6,7 +6,7 @@ import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAss
 import { describeFieldGap, fieldUnits, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
 import { useState } from 'react';
-import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
+import type { CoachingCompassInput, TFCLCoachingCompassResult } from '@/lib/coachingCompass/types';
 import { comparePerformance, PERFORMANCE_SOURCES, readPerformanceGoal, type PerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
 
 const metricNames: Record<string,string> = {
@@ -16,7 +16,7 @@ const metricNames: Record<string,string> = {
   "Durabilité (découplage)": "Maintien de l’effort après fatigue",
 };
 
-export function CompassPerformanceComparison({ input, onSave }: { input: CoachingCompassInput; onSave?: (goal: PerformanceGoal) => Promise<boolean> }) {
+export function CompassPerformanceComparison({ input, onSave, presentation }: { input: CoachingCompassInput; presentation?: TFCLCoachingCompassResult["presentation"]; onSave?: (goal: PerformanceGoal) => Promise<boolean> }) {
   const saved = readPerformanceGoal(input.performanceGoal);
   const [minutes, setMinutes] = useState(saved ? String(saved.minutes) : '');
   const [run, setRun] = useState(saved?.runMinutes ? String(saved.runMinutes) : '');
@@ -46,6 +46,12 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
   const priorities = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none'
     ? (diagnosis.categoryRanking ?? []).map(group => group.metrics.filter(m=>m.weightedImpact > 0 && m.prescriptionApplicable !== false)).filter(group=>group.length).slice(0,3)
     : [];
+  const sportGaps = [
+    { sport: 'Vélo', rows: presentation?.cyclingDiagnostic?.priorities ?? [] },
+    { sport: 'Course à pied', rows: presentation?.runningDiagnostic?.priorities ?? [] },
+  ].filter(group => group.rows.length > 0);
+  const showSportGaps = !priorities.length && !fieldRanking.length && sportGaps.length > 0 &&
+    diagnosis?.limiterLabel !== 'Comparaison physiologique non applicable' && demands?.kind !== 'beginner';
   const undecided = diagnosis?.limiterLabel?.includes('à départager');
   const save = async () => {
     if (!draft || !onSave) return;
@@ -59,14 +65,23 @@ export function CompassPerformanceComparison({ input, onSave }: { input: Coachin
       {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes} min</span>}</header>
     <CompassRaceForecast input={input}/>
     {<div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
-      {noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{comparable.length ? 'Repères dans la plage attendue' : 'Priorité à vérifier sur le terrain'}</h4>
+      <h3 className="text-lg font-semibold">Hiérarchie des limiteurs</h3>
+      {showSportGaps ? <p>Les tests font ressortir ces pistes, classées par écart au repère dans chaque discipline.</p> : noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{comparable.length ? 'Repères dans la plage attendue' : 'Les données comparables ne suffisent pas encore à départager les limiteurs'}</h4>
         {!!comparable.length && <div className="grid gap-2 sm:grid-cols-2">{comparable.map(metric=><FieldMetricComparison key={metric.metric} metric={metric}/>)}</div>}
       </div> : <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis?.limiterLabel}</p>}
       {priorities.length > 0 && <ol aria-label="Priorités d’entraînement" className="grid gap-2">{priorities.map((group,i)=><li key={group[0].metric} className="flex items-center gap-3 rounded-xl bg-muted/60 px-3 py-2">
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{undecided ? '≈' : i+1}</span>
         <div><p className="font-semibold">{group.map(m=>metricNames[m.metric] ?? m.metric).join(' · ')}</p><p className="text-xs text-muted-foreground">{undecided ? 'Ordre provisoire' : i===0 ? 'Premier chantier' : 'Chantier suivant'}</p></div>
       </li>)}</ol>}
-      {!priorities.length && fieldRanking[0] && <p className="rounded-xl bg-primary/10 p-3 font-medium">{fieldRanking[0].hypothesis ? 'Première piste à vérifier' : 'Écart à surveiller'} · {metricNames[fieldRanking[0].metric.metric] ?? fieldRanking[0].metric.metric}</p>}
+      {!priorities.length && fieldRanking.length > 0 && <ol aria-label="Pistes classées à vérifier" className="list-decimal space-y-2 pl-6">{fieldRanking.slice(0, 3).map(({metric, hypothesis}) =>
+        <li key={metric.metric}><strong>{metricNames[metric.metric] ?? metric.metric}</strong><span className="block text-xs text-muted-foreground">{hypothesis ? 'Hypothèse du modèle à vérifier' : 'Écart observé dans le bilan'}</span></li>
+      )}</ol>}
+      {showSportGaps && sportGaps.map(({sport, rows}) => <section key={sport}>
+        <h4 className="font-semibold">{sport}</h4>
+        <ol aria-label={`Pistes à vérifier · ${sport}`} className="list-decimal space-y-2 pl-6">{rows.slice(0, 3).map(row =>
+          <li key={row.key}><strong>{row.label}</strong><span className="block text-xs text-muted-foreground">{row.gapPercent.toLocaleString('fr-BE', {maximumFractionDigits: 1})} % d’écart au repère interne{row.provisional && ' · à confirmer'}</span></li>
+        )}</ol>
+      </section>)}
       {diagnosis?.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
       {!!fieldRanking.length && <details><summary className="cursor-pointer py-2 font-medium">Voir les écarts chiffrés</summary><div>
 
