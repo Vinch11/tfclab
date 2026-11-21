@@ -12,11 +12,11 @@ export function CompassRaceForecast({input}: {input: CoachingCompassInput}) {
     triathlon_physio_split: "Vélo et course estimés à partir du profil. Natation et transitions forfaitaires.",
     triathlon_baseline: "Repère général du format et de l’ambition. La projection individuelle reste à établir.",
   };
-  return <section aria-label="Projection de course" className="rounded-2xl bg-primary/10 px-5 py-4">
+  return <section aria-label="Projection de course" className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/15 via-card to-card px-5 py-5 shadow-sm sm:px-7">
     <h4 className="flex items-center gap-2 text-sm font-semibold"><Timer aria-hidden="true" size={18}/>{general ? "Temps indicatif du format" : "Chrono estimé par TFCLab"}</h4>
     {hasTime && prediction ? <>
-      <p className="mt-1 text-4xl font-semibold tracking-tight tabular-nums">{minutes >= 60 ? Math.floor(minutes/60) + " h " + String(minutes%60).padStart(2,"0") : minutes+" min"}</p>
-      <p className="mt-1 text-sm">{sourceText[prediction.source]}</p>
+      <p className="my-3 text-5xl sm:text-6xl font-semibold tracking-tight tabular-nums">{minutes >= 60 ? Math.floor(minutes/60) + " h " + String(minutes%60).padStart(2,"0") : minutes+" min"}</p>
+      <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">{sourceText[prediction.source]}</p>
     </> : <p className="mt-2 text-sm">Projection individuelle indisponible pour ce bilan et cette épreuve.</p>}
   </section>;
 }

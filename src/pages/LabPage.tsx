@@ -1,3 +1,4 @@
+import { PairedBars } from "@/components/charts/PairedBars";
 import { FieldDecisionReview } from "@/components/FieldDecisionReview";
 import { useMemo, useState } from 'react';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
@@ -39,7 +40,20 @@ export default function LabPage({ compass }: { compass?: CoachingCompassInput | 
       {blind && snapshot ? <BlindReview athletes={visibleAthletes} tests={tests} birth={currentAthlete?.dateNaissance} key={snapshot.id} snapshots={snapshots} reference={snapshot} /> : loading ? <Loader2 aria-label="Chargement des bilans" className="h-6 w-6 animate-spin text-primary" /> : !input || !snapshot ? <section className="border-y border-border py-12"><h3 className="text-lg font-semibold">Aucun bilan disponible</h3><p className="text-muted-foreground mt-2">Les courbes nécessitent un bilan enregistré pour cet athlète.</p><Button asChild variant="outline" className="mt-5"><Link to="/essentiels">Ouvrir les bilans</Link></Button></section> : <>
         {compass && compass.athleteId === snapshot.athlete_id && <><LabPriorities input={compass} snapshot={snapshot} tests={tests} /><FieldDecisionReview key={snapshot.athlete_id} input={compass} snapshotId={snapshot.id} /></>}
         {input.sportFocus === 'triathlon' && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList className="min-h-12"><TabsTrigger value="bike" className="min-h-11">Vélo</TabsTrigger><TabsTrigger value="run" className="min-h-11">Course à pied</TabsTrigger></TabsList></Tabs>}
-        <section className="border-y border-border py-6"><h3 className="font-semibold mb-5">Repères · {sport === 'run' ? 'Course à pied' : 'Vélo'}</h3><dl className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-6">{indicators.map(i => <div key={i.key}><dt className="text-xs text-muted-foreground">{i.label}</dt><dd className="mt-2 text-xl font-semibold tabular-nums">{i.value == null ? '—' : Number(i.value.toFixed(2))} <span className="text-xs font-normal">{i.value == null ? '' : i.unit}</span></dd><p className="text-xs text-muted-foreground mt-1">{i.value == null ? 'Données insuffisantes' : /estimat|model|calcul/i.test(i.source) ? 'Valeur TFCL' : 'Valeur enregistrée'}</p><p className="text-xs text-muted-foreground leading-relaxed mt-2">{i.explanation}</p></div>)}</dl></section>
+        <section aria-label="Repères physiologiques" className="space-y-4">
+          <h3 className="text-xl font-semibold">Repères · {sport === 'run' ? 'Course à pied' : 'Vélo'}</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{indicators.map(i => {
+            const formatValue = (value: number) => i.unit === 's/km'
+              ? Math.floor(Math.round(value)/60) + ':' + String(Math.round(value)%60).padStart(2,'0') + ' min/km'
+              : value.toLocaleString('fr-BE', {maximumFractionDigits:2}) + ' ' + i.unit;
+            return <article key={i.key} className="min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
+              {i.value != null && i.target != null ? <PairedBars title={i.label} first={{label:'Athlète',value:i.value,display:formatValue(i.value)}} second={{label:'Repère interne',value:i.target,display:formatValue(i.target)}} />
+                : <><h4 className="text-sm font-medium text-muted-foreground">{i.label}</h4><p className="my-2 text-2xl font-semibold tabular-nums">{i.value == null ? '—' : formatValue(i.value)}</p></>}
+              <p className="mt-3 text-sm text-muted-foreground">{i.value == null ? 'Données insuffisantes' : /estimat|model|calcul/i.test(i.source) ? 'Estimation TFCL' : 'Valeur du bilan'}</p>
+              <details><summary className="cursor-pointer py-2 text-sm font-medium">Interpréter ce repère</summary><p className="text-sm leading-relaxed">{i.explanation}</p></details>
+            </article>;
+          })}</div>
+        </section>
         <SnapshotReview baseline={baseline} onBaseline={setBaselineId} key={snapshot.id + sport} snapshots={snapshots} reference={snapshot} sport={sport} input={input} />
         <AthleteEvidenceCharts baseline={baseline} labReview key={currentAthlete?.id} input={input} snapshot={snapshot} snapshots={snapshots} tests={tests} selectedSport={sport} athleteName={currentAthlete?.nom} />
         {input.sportFocus === 'triathlon' && <section className="border-t border-border pt-6"><h3 className="text-xl font-semibold">Natation</h3><p className="text-2xl font-semibold mt-3">{snapshot.css ?? '—'} <span className="text-sm font-normal">{snapshot.css ? 's/100 m · CSS enregistrée' : 'Données insuffisantes'}</span></p><p className="text-sm text-muted-foreground mt-2">La CSS est un repère de nage, pas un profil métabolique mesuré ; aucune courbe course ou vélo n’est transposée.</p></section>}

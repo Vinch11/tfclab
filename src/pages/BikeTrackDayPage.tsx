@@ -1,3 +1,4 @@
+import { DayBlockNav } from "@/components/DayBlockNav";
 import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * BikeTrackDayPage — TFCL Bike Day™
@@ -323,6 +324,7 @@ export default function BikeTrackDayPage() {
           </Button>
         </div>
 
+        <DayBlockNav sport="bike" />
         <DurabilityDayLink sport="bike" />
         <TestSessionsNolioExport routes={['bike-day']} />
 
@@ -436,7 +438,7 @@ export default function BikeTrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-1" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Zap className="h-4 w-4 text-yellow-500" /> Bloc 1 — Neuromusculaire
               </CardTitle>
               <Badge variant="secondary">15 min</Badge>
@@ -500,7 +502,7 @@ export default function BikeTrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-2" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Activity className="h-4 w-4 text-orange-500" /> Bloc 2 — Capacité Aérobie
               </CardTitle>
               <Badge variant="secondary">30 min</Badge>
@@ -540,7 +542,7 @@ export default function BikeTrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-3" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Target className="h-4 w-4 text-blue-500" /> Bloc 3 — Seuil FTP
               </CardTitle>
               <Badge variant="secondary">35 min</Badge>
@@ -579,7 +581,7 @@ export default function BikeTrackDayPage() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
+              <CardTitle id="day-block-4" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Heart className="h-4 w-4 text-red-500" /> Bloc 4 — Aérobie Basse
               </CardTitle>
               <Badge variant="secondary">20 min</Badge>
