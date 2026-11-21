@@ -34,7 +34,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
   const vmaBase = getVmaTargetByAmbition(input.objectif, input.ambition);
   const vmaTarget = vmaBase ? Math.round(vmaBase * getPerformanceAgeFactor(input.age) * 100) / 100 : null;
   const tteTarget = getTTETargetByAmbition(input.objectif, input.ambition, input.age);
-  const vlaTarget = getVLamaxRange(input.objectif, input.ambition, 'run').optimal;
+  const vlaRange = getVLamaxRange(input.objectif, input.ambition, 'run');
   const tteValue = input.tte && supportedTte.has(input.tte.source) ? positive(input.tte.tte_min) : null;
   const make = (key: string, label: string, value: number | null, target: number | null, unit: string, source: string): RadarAxis => {
     const ratio = value != null && target != null && target > 0 ? value / target : null;
@@ -43,7 +43,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
   };
   const axes = [
     make('vo2max', 'VO₂max · modalité du test à préciser', positive(input.vo2max), getVo2maxTarget(input.objectif, input.ambition, input.age), 'ml/kg/min', input.vo2Source),
-    make('vlamax', 'VLamax course', positive(input.vlamax?.value), vlaTarget, 'mmol/L/s', input.vlamax?.source ?? 'unknown'),
+    make('vlamax', 'VLamax course', positive(input.vlamax?.value), vlaRange.optimal, 'mmol/L/s', input.vlamax?.source ?? 'unknown'),
     make('vma', 'Vitesse maximale aérobie course', positive(input.vma), vmaTarget, 'km/h', 'snapshot'),
     make('tte', 'Endurance au seuil course — TTE', tteValue, tteTarget, 'min', input.tte?.source ?? 'unknown'),
   ];
@@ -58,7 +58,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
     // A common VO₂max observation is not a sport-specific running diagnosis.
     if (axis.key === 'vo2max' && input.vo2Source === 'shared') return [];
     if (axis.value == null || axis.target == null || axis.target <= 0) return [];
-    const gapPercent = Math.max(0, (axis.key === 'vlamax' ? axis.value / axis.target - 1 : 1 - axis.value / axis.target) * 100);
+    const gapPercent = Math.max(0, (axis.key === 'vlamax' ? axis.value / vlaRange.max - 1 : 1 - axis.value / axis.target) * 100);
     if (gapPercent <= 0) return [];
     return [{ key: axis.key, label: axis.label, gapPercent, ...details[axis.key], provisional: !documented(axis.source ?? 'unknown') }];
   }).sort((a, b) => b.gapPercent - a.gapPercent);

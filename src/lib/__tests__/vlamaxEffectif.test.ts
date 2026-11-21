@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
+import { computeVLamaxEffectif, latestSportVlamaxTest, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
 
 // =============================================
 // VLAMAX EFFECTIF — Core Engine Tests
@@ -168,4 +168,13 @@ describe("computeVLamaxEffectif", () => {
       }
     });
   });
+});
+
+it("shows only the latest dated VLamax test of the same athlete and sport", () => {
+  const test = { sport: "run", type: "sprint", athlete_id: "A", date: "2025-05-20", vlamax: .66 };
+  const rows = [test, { ...test, sport: "bike", date: "2025-05-22" }, { ...test, athlete_id: "B", date: "2025-05-23" },
+    { ...test, sport: null, name: "Sprint 15 s", date: "2025-05-25" },
+    { ...test, date: "2025-06-10" }, { ...test, date: "2025-05-24", raw: { testDate: "2025-04-13" } }];
+  expect(latestSportVlamaxTest(rows, "A", "run", "2025-05-30")).toEqual({ value: .66, date: "2025-05-20", sport: "run", lactate: false });
+  expect(latestSportVlamaxTest(rows, "C", "run", "2025-05-30")).toBeNull();
 });

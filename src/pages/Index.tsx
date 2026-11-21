@@ -212,6 +212,7 @@ import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
 import { getDernierSnapshot } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
+import { latestSportVlamaxTest } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 
 import { adaptPotentielV2ToLegacyShape, insufficientPotentielResult, type PotentielPhysiologiqueEffectif } from "@/lib/potentielPhysiologiqueEffectif";
@@ -964,7 +965,11 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       vma: effectiveRefs.vma,
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
-      vlamaxEffectif: { value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source },
+      vlamaxEffectif: {
+        value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source,
+        range: vlamaxEffectif.range, date: vlamaxEffectif.details?.date,
+      },
+      latestVlamaxTest: latestSportVlamaxTest(tests, currentAthlete.id, isRunningOnly ? "run" : "bike"),
       vlamaxRunReference: isRunningOnly ? vlamaxEffectif : computeVLamaxEffectif({
         athleteId: currentAthlete.id, objectif: currentAthlete.goal || "IM", sportOverride: "cap",
         activeSnapshotId: effectiveCloudSnapshot.id, snapshots: [effectiveCloudSnapshot], tests, raceRecords: raceRecordsForVlamax,

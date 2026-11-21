@@ -14,21 +14,14 @@ import type { PerformanceGoal } from "@/lib/coachingCompass/performanceCompariso
 
 import { useId, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Compass, Target, AlertTriangle,
-  Eye, EyeOff, Zap, Info, Clock, Dumbbell,
-  ChevronDown
-} from "lucide-react";
+import { Compass, AlertTriangle, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
-import { axisAssessment, metricSourceLabel } from "@/lib/coachingCompass/presentation";
+import { metricSourceLabel } from "@/lib/coachingCompass/presentation";
 import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
-import { LimiterImpactCard } from "@/components/LimiterImpactCard";
-import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
-import { getVo2maxTarget, getPerformanceAgeFactor } from "@/lib/v2/unifiedLimiterDetection";
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 import { CompassVmaReference } from '@/components/CompassVmaReference';
 import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaReference } from '@/lib/coachingCompass/vmaReference';
@@ -37,63 +30,6 @@ import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaRefe
 const compassSourceLabel = (source: string) => source === 'snapshot'
   ? 'Repère enregistré : son interprétation dépend du test réalisé et des conditions de mesure.'
   : metricSourceLabel(source);
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// EXPLICATIONS PÉDAGOGIQUES — Axes du radar
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
-  aerobic: {
-    short: "Capacité Aérobie (FTP/kg ou VMA)",
-    detail: "Mesure la puissance de ton « moteur » aérobie. Plus le score est élevé, plus tu peux soutenir une intensité forte sur longue durée.",
-  },
-  vo2max: {
-    short: "Moteur aérobie — VO₂max",
-    detail: "La VO₂max représente la quantité maximale d’oxygène que ton corps peut utiliser. Un écart à la cible peut limiter ton potentiel aérobie, mais la performance dépend aussi du seuil, de l’économie et de l’endurance spécifique.",
-  },
-  vma: {
-    short: "Vitesse maximale aérobie — VMA",
-    detail: "La VMA représente ta vitesse à forte sollicitation aérobie. Si elle reste sous la cible de ton objectif, elle peut limiter ta réserve de vitesse ; elle ne correspond pas à une allure soutenable pendant toute la course.",
-  },
-  ftpkg: {
-    short: "Puissance au seuil relative au poids",
-    detail: "La puissance au seuil rapportée à ton poids situe ta capacité à soutenir un effort vélo exigeant. Un écart à la cible peut freiner ta performance, particulièrement en montée ; il ne décrit pas ta capacité en course à pied.",
-  },
-  vlamax: {
-    short: "VLamax (Glycolyse)",
-    detail: "Profil glycolytique, à interpréter selon sa provenance et les exigences de l’épreuve.",
-  },
-  fatmax: {
-    short: "FatMax (Oxydation des graisses)",
-    detail: "Intensité estimée ou mesurée d’oxydation lipidique maximale. Ce repère seul ne mesure ni l’endurance longue ni la quantité de graisses oxydées.",
-  },
-  tte: {
-    short: "Endurance au seuil — TTE",
-    detail: "Temps tenu au seuil : une estimation ou une durée minimale ne constitue pas un test jusqu’à épuisement. Ce repère ne mesure pas la robustesse après plusieurs heures.",
-  },
-  wprime: {
-    short: "W′ (Capacité Anaérobie)",
-    detail: "Travail disponible au-dessus de la puissance critique dans les limites du modèle. Information pour les efforts intenses ; ce n’est pas une mesure de force ou de robustesse Ironman.",
-  },
-  economy: {
-    short: "Économie de mouvement",
-    detail: "Efficience du geste sportif : moins d'énergie gaspillée pour une même vitesse ou puissance. Inclut la cadence, la technique et le rendement musculaire.",
-  },
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// EXPLICATIONS PÉDAGOGIQUES — Niveaux du flux
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const FLOW_PEDAGOGY = {
-  limiter: "Une priorité du modèle n’est pas une cause démontrée : un TTE estimé, W′ ou une économie faible ne prouvent pas une faiblesse de robustesse ou de force.",
-  leverage: "Le levier est une orientation à confronter aux observations propres au sport, pas la preuve d’un mécanisme causal.",
-  decision: "La décision coaching traduit l'analyse en plan d'action concret : type de bloc, durée, séances clés et interdictions.",
-};
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// PROPS
-// ═══════════════════════════════════════════════════════════════════════════════
 
 interface CoachingCompassCardProps {
   onSavePerformanceGoal?: (goal: PerformanceGoal) => Promise<boolean>;
@@ -233,7 +169,6 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
       {/* Labels with emoji, name, score and value */}
       {axes.map((axis, i) => {
         const labelP = getPoint(i, 135);
-        const pedagogy = AXIS_PEDAGOGY[axis.key];
         const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
 
         return (
@@ -279,110 +214,8 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
   );
 }
 
-/** Display-only gauge: uses the existing radar score, never confidence or a new target. */
-function MetricMiniGauge({ axis, reference = null }: { axis: RadarAxis; reference?: VmaReference | null }) {
-  const position = reference ? vmaReferencePosition(axis.value, reference) : null;
-  const hasComparison = reference ? position != null : axis.value != null && axis.value > 0 && axis.target != null && Number.isFinite(axis.score);
-  const score = reference ? position ?? 0 : hasComparison ? Math.max(0, Math.min(100, axis.score)) : 0;
-  const tone = !hasComparison ? "text-muted-foreground" : reference ? assessVmaReference(axis.value, reference).status === 'below' ? 'text-warning' : 'text-success' : score >= 75 ? "text-success" : score >= 50 ? "text-warning" : "text-destructive";
-  return (
-    <svg viewBox="0 0 56 34" className={cn("h-[34px] w-14", tone)} role="img"
-      aria-label={`${axis.label} : ${reference && hasComparison ? `${Math.round(score)}/100 du bas du repère ambition extrapolé` : hasComparison ? `${score}/100, repère relatif à la cible interne` : 'comparaison non définie'}`}>
-      <title>{reference ? 'VMA relative au bas du repère ambition extrapolé ; pas une mesure de confiance' : hasComparison ? 'Repère relatif à la cible interne, pas un pourcentage de confiance' : 'Comparaison non définie'}</title>
-      <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" className="stroke-border" strokeWidth="4" strokeLinecap="round" />
-      {hasComparison && <path d="M 6 28 A 22 22 0 0 1 50 28" pathLength="100" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${score} 100`} />}
-      <text x="28" y="29" textAnchor="middle" fill="currentColor" fontSize="11" fontWeight="600">{hasComparison ? Math.round(score) : '—'}</text>
-    </svg>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// FLOW CONNECTOR — Flèche verticale animée
-// ═══════════════════════════════════════════════════════════════════════════════
-
-function FlowConnector() {
-  return (
-    <div className="flex flex-col items-center py-1">
-      <div className="w-0.5 h-3 bg-gradient-to-b from-primary/40 to-primary/15 rounded-full" />
-      <ChevronDown className="w-3.5 h-3.5 text-primary/40 -mt-0.5" />
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// FLOW STEP — Bloc du flux décisionnel
-// ═══════════════════════════════════════════════════════════════════════════════
-
-interface FlowStepProps {
-  level: string;
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-  accentClass: string;
-  badge?: string | null;
-  children?: React.ReactNode;
-}
-
-function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }: FlowStepProps) {
-  return (
-    <div className="relative print:break-inside-avoid">
-      {/* Level indicator */}
-      <div className="flex items-center gap-2 mb-1.5">
-        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-          {level}
-        </span>
-        {badge && (
-          <Badge variant="outline" className="text-[8px] h-3.5 px-1.5 border-border/50">
-            {badge}
-          </Badge>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className={cn(
-        "relative p-3 rounded-xl border",
-        "bg-gradient-to-r from-muted/40 to-muted/20",
-        "border-border/40"
-      )}>
-        {/* Left accent bar */}
-        <div className={cn("absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full", accentClass)} />
-
-        <div className="pl-3 flex items-start gap-3">
-          <div className={cn(
-            "shrink-0 p-2 rounded-lg border",
-            "bg-background/80 border-border/50",
-            accentClass.replace("bg-", "text-").replace("/80", "")
-          )}>
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold tracking-tight">{title}</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{subtitle}</p>
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// RACE READINESS PANEL — Sidebar
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// ReadinessPanel supprimé — la "Disponibilité" ne peut pas être établie précisément.
-// Seul le Fatigue Warning (issu du snapshot) est conservé.
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// TEMPS DE COURSE CIBLE
-// ═══════════════════════════════════════════════════════════════════════════════
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// FATIGUE WARNING
-// ═══════════════════════════════════════════════════════════════════════════════
-
 function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
-  if (warning.level === "none") return null;
+  if (!warning.level || warning.level === "none" || !warning.message) return null;
 
   const colors = {
     moderate: "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.2)]",
@@ -454,7 +287,7 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
   },
 };
 
-function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
+function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { defaultOpen: boolean; compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
   const profile = compass.profile;
   const isRunning = compass.presentation?.sport === 'run' || sportFocus === "run";
 
@@ -519,7 +352,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 
   ].filter(r => r.m?.value !== null);
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   if (metrics.length === 0) return null;
 
   const confidenceLabel = (c: number) =>
@@ -558,7 +391,7 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
             let delta: number | null = null;
             let deltaLabel = "";
             let deltaPositive = false;
-            if (typeof m.value === "number" && target != null) {
+            if (key !== "VLamax" && typeof m.value === "number" && target != null) {
               if (inverse) {
                 delta = target - m.value;
                 deltaPositive = delta >= 0;
@@ -646,406 +479,51 @@ function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachin
 // COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
-  const [staffMode, setStaffMode] = useState(initialStaffMode);
-
+export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode = false, className }: CoachingCompassCardProps) {
   const compass = useMemo(() => computeCoachingCompass(input), [input]);
-  const coverage = useMemo(() => dashboardCoverage(input), [input]);
-  const coachPolicy = useMemo(() => input.athleteId
-    ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null,
-    [input.athleteId, input.objectif]);
-
-  // ─── Données insuffisantes ───
-  if (compass.meta.dataCompleteness < 10) {
-    return (
-      <Card className={cn("border-border/50 print:break-inside-avoid print:shadow-none", className)}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-muted-foreground" />
-            <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} presentation={compass.presentation} />
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const { limiter, leverage, decision } = compass;
+  const coverage = dashboardCoverage(input);
+  const coachPolicy = input.athleteId ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null;
   const presentation = compass.presentation;
-  const displayAxes = presentation?.axes ?? compass.radarAxes;
-  const disciplineAxes = presentation?.disciplineAxes;
-  const explanationAxes = disciplineAxes ? [...disciplineAxes.bike, ...disciplineAxes.run] : displayAxes;
-  const _ambition = (input.ambition || "age_group") as AmbitionLevel;
-  const _objectif = input.objectif || "IM";
-  const _sportForTargets =
-    input.sportFocus === "run" ? "cap" :
-    input.sportFocus === "bike" ? "bike" :
-    input.sportFocus === "triathlon" ? "tri" :
-    undefined;
-  const vlamaxRange = getVLamaxRange(_objectif, _ambition, _sportForTargets);
+  const disciplines = presentation?.disciplineAxes;
+  const profiles = disciplines
+    ? [{ sport: "bike", axes: disciplines.bike }, { sport: "run", axes: disciplines.run }]
+    : [{ sport: presentation?.sport ?? input.sportFocus, axes: presentation?.axes ?? compass.radarAxes }];
 
-  return (
-    <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
-      {/* ─── Header ─── */}
-      <CardHeader className="pb-2 px-3 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
-              <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-sm sm:text-base font-black tracking-tight">
-                TFCL Coaching Compass™
-              </CardTitle>
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium tracking-wide hidden sm:block">
-                PROFIL → LIMITEUR → LEVIER → DÉCISION
-              </p>
-            </div>
+  return <Card className={cn("min-w-0 border-border/50 print:shadow-none", className)}>
+    <CardHeader className="flex-row items-center gap-2 space-y-0 px-4 pb-3 sm:px-6">
+      <Compass aria-hidden="true" className="size-5 text-primary" />
+      <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
+    </CardHeader>
+    <CardContent className="px-3 sm:px-6">
+      {compass.fatigueWarning && <FatigueWarning warning={compass.fatigueWarning} />}
+      <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} presentation={presentation} onSave={onSavePerformanceGoal} />
+      {compass.meta.dataCompleteness >= 10 && <details className="rounded-2xl border px-4">
+        <summary className="cursor-pointer py-3 font-medium">Radar et détails physiologiques</summary>
+        <div className="space-y-4 pb-4">
+          <p className="text-sm text-muted-foreground">{coverage.filled} repères sur {coverage.total} renseignés pour ce sport.</p>
+          <div className={disciplines ? "grid gap-4 sm:grid-cols-2" : ""}>
+            {profiles.map(({ sport, axes }) => {
+              const reference = sport === "run" ? getVmaReference(input.objectif, input.ambition) : null;
+              const range = getVLamaxRange(input.objectif, input.ambition as AmbitionLevel, sport ?? undefined);
+              return <section key={sport} className="min-w-0">
+                {disciplines && <h4 className="text-center font-semibold">{sport === "run" ? "Course à pied" : "Vélo"}</h4>}
+                <SignatureRadar axes={axes} vmaReference={reference} />
+                <p className="mb-2 text-xs text-muted-foreground">Profil individuel et repères internes{reference && " · repère VMA extrapolé"}.</p>
+                <dl className="divide-y text-sm">{axes.map(axis => <div key={axis.key} className="flex flex-wrap items-baseline justify-between gap-x-3 py-2">
+                  <dt>{axis.label}</dt>
+                  <dd className="font-medium tabular-nums">{axis.value == null ? "Non renseigné" : axis.value.toLocaleString("fr-BE", { maximumFractionDigits: 2 }) + " " + axis.unit}</dd>
+                  {axis.value != null && <dd className="w-full text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? "unknown")}
+                    {axis.key === "vlamax" && " · plage de coaching " + range.min.toLocaleString("fr-BE") + "–" + range.max.toLocaleString("fr-BE") + " mmol/L/s"}
+                  </dd>}
+                </div>)}</dl>
+                {reference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={input.vma} paceThresholdSecPerKm={input.paceThresholdSecPerKm} />}
+              </section>;
+            })}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setStaffMode(!staffMode)}
-            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground print:hidden"
-          >
-            {staffMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-            {staffMode ? "Athlète" : "Staff"}
-          </Button>
+          {coachPolicy && <p className="text-sm">Ordre enregistré par le coach pour le plan · {coachPolicy.limiterOrder.join(" → ")}</p>}
+          <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} defaultOpen={staffMode} />
         </div>
-      </CardHeader>
-
-      <CardContent className="pt-0 px-3 sm:px-6">
-        <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} presentation={compass.presentation} />
-        <section className="my-3 rounded-2xl border bg-card p-3"><h3 className="font-semibold">Profil physiologique du bilan</h3>{disciplineAxes ? <div data-testid="triathlon-compasses">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
-                    {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
-                      <h3 className="text-center text-sm font-semibold">{sport === 'bike' ? 'Vélo' : 'Course à pied'}</h3>
-                      <SignatureRadar axes={disciplineAxes[sport]} size={320} vmaReference={sport === 'run' ? getVmaReference(input.objectif, input.ambition) : null} />
-                      <dl className="space-y-1 text-xs px-2">{disciplineAxes[sport].map(axis => <div key={axis.key} className="flex flex-wrap justify-between gap-x-2"><dt>{axis.shortLabel}</dt><dd className="tabular-nums">{axis.value != null ? `${axis.value.toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : 'Données insuffisantes'}{axis.value != null && axis.target == null && <span className="block text-muted-foreground">{axis.key === 'vma' && getVmaReference(input.objectif, input.ambition) ? 'Fourchette indicative ci-dessous' : 'Cible non définie pour cet objectif'}</span>}</dd></div>)}</dl>
-                    </section>)}
-                  </div>
-                  <p className="mt-3 text-xs text-muted-foreground">VO₂max : même repère du bilan, pas deux tests propres à chaque sport. TTE vélo et course sont comparés séparément ; ils ne mesurent pas la robustesse après plusieurs heures.</p>
-                </div> : <SignatureRadar axes={displayAxes} size={320} vmaReference={getVmaReference(input.objectif, input.ambition)} />}
-              <div className="mt-1">
-                {getVmaReference(input.objectif, input.ambition) && <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-primary/30 border border-primary" />Profil de l’athlète</span>
-                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-border" />Repères d’ambition</span>
-                  <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-warning" />Écart VMA · repère extrapolé</span>
-                </div>}
-              </div>
-
-        </section>
-        <details><summary className="text-sm cursor-pointer mb-3">Profil historique et diagnostics — scores ≠ préparation à l’objectif</summary>
-        {/* ─── Fatigue Warning ─── */}
-        {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
-          <div className="mb-3">
-            <FatigueWarning warning={compass.fatigueWarning} />
-          </div>
-        )}
-
-        {/* ═══ LAYOUT PRINCIPAL : Flux + Readiness ═══ */}
-        <div className="flex gap-4">
-          {/* ─── COLONNE GAUCHE : Flux décisionnel complet ─── */}
-          <div className="flex-1 min-w-0">
-
-            {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
-            <div className="mb-1 print:break-inside-avoid">
-              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                Niveau 1 — Profil physiologique
-              </span>
-              <p className="text-xs text-muted-foreground mt-0.5 mb-2">Profil actuel face aux repères d’ambition · un écart n’est pas, à lui seul, un limiteur confirmé.</p>
-              <details className="mb-2 text-xs text-muted-foreground">
-                <summary className="min-h-11 flex items-center cursor-pointer font-medium">Nature des repères et limites de lecture</summary>
-                <dl className="space-y-2 pb-2">
-                  <div><dt className="font-medium text-foreground">Bilan individuel</dt><dd>Valeurs enregistrées ou estimées, à interpréter selon leur source et le protocole propre au sport.</dd></div>
-                  <div><dt className="font-medium text-foreground">Cibles internes</dt><dd>Repères de coaching existants, pas des exigences scientifiquement validées par objectif, âge ou sexe. Les couleurs situent l’écart à ces repères, pas la probabilité de réussir.</dd></div>
-                  <div><dt className="font-medium text-foreground">Scénario VMA extrapolé</dt><dd>Calcul depuis des groupes de marathoniens et une correspondance d’ambition de coaching ; pas une mesure de cohorte VMA ni une cible spécifique validée pour cette épreuve. En triathlon, il ne décrit pas la course après vélo.</dd></div>
-                  <div><dt className="font-medium text-foreground">Limiteur à confirmer</dt><dd>Le seuil, les performances récentes et la tenue de l’effort doivent étayer l’interprétation. Les priorités du plan restent celles du diagnostic existant.</dd></div>
-                </dl>
-              </details>
-              {/* Completeness bar */}
-              <div className="flex items-center gap-2 mt-2 px-2">
-                <span className="text-[9px] text-muted-foreground/50 shrink-0">
-                  Couverture des repères du sport : {coverage.score}% ({coverage.filled}/{coverage.total})
-                </span>
-                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary/40 rounded-full transition-all duration-500"
-                    style={{ width: `${coverage.score}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Légende couleurs */}
-              <div className="flex items-center gap-4 mt-2 px-2">
-                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Proche de la cible
-                </span>
-                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50–74 Écart à la cible
-                </span>
-                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 Écart important
-                </span>
-              </div>
-
-              <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
-                <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
-                <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
-                {!!presentation?.priorityMetrics.length && <p className="mt-1 text-xs text-muted-foreground">{presentation.priorityMetrics.join(" → ")}</p>}
-                {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
-                {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
-                {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}
-              </div>
-              {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
-              <div className="mt-3 space-y-1.5 px-1">
-                {explanationAxes.map((axis, index) => {
-                  const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
-                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-                  const vmaReference = axis.key === 'vma' ? getVmaReference(input.objectif, input.ambition) : null;
-                  const vmaAssessment = vmaReference ? assessVmaReference(axis.value, vmaReference) : null;
-                  const statusLabel = vmaAssessment?.status !== 'unavailable' && vmaAssessment ? vmaAssessment.label : axisAssessment(axis);
-
-                  const hasValues = axis.value != null && axis.value > 0 && axis.target != null;
-                  const isInverse = axis.key === "vlamax"; // lower is better
-                  const delta = hasValues ? (axis.value as number) - (axis.target as number) : null;
-                  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
-                  const displayDelta = isInverse && delta !== null ? -delta : delta;
-                  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
-
-                  return (
-                    <div key={`${axis.key}-${index}`} className={cn(
-                      "flex items-start gap-2.5 p-2.5 rounded-lg border",
-                      statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "bg-muted/20 border-border" :
-                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
-                      axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
-                      "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
-                    )}>
-                      <div className="shrink-0 flex flex-col items-center gap-1">
-                        <span className="text-base">{emoji}</span>
-                        <MetricMiniGauge axis={axis} reference={vmaReference} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-xs font-bold">{axis.label}</p>
-                          <Badge variant="outline" className={cn(
-                            "text-[9px] min-h-4 h-auto whitespace-normal px-1.5",
-                            vmaAssessment?.status === 'below' ? "border-warning/40 text-warning" :
-                            vmaAssessment?.status === 'inside' || vmaAssessment?.status === 'above' ? "border-success/40 text-success" :
-                            statusLabel === "Données insuffisantes" || statusLabel === 'Comparaison non définie' || vmaReference ? "border-border text-muted-foreground" :
-                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
-                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
-                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
-                          )}>
-                            {statusLabel}
-                          </Badge>
-                        </div>
-
-                        {/* Comparatif Actuel → Cible */}
-                        {vmaReference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={axis.value} paceThresholdSecPerKm={input.paceThresholdSecPerKm ?? null} />}
-                        {!vmaReference && axis.value != null && axis.target == null && <p className="mt-1 text-xs">Valeur renseignée : {formatVal(axis.value)} {axis.unit} · cible non définie, aucun déficit conclu.</p>}
-                        {!vmaReference && hasValues && (
-                          <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
-                              <span className="text-muted-foreground">Actuel</span>
-                              <span className="font-bold text-foreground">{formatVal(axis.value as number)}</span>
-                              <span className="text-muted-foreground/60">{axis.unit}</span>
-                            </div>
-                            <span className="text-muted-foreground/40 text-[10px]">→</span>
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
-                              <span className="text-muted-foreground">Cible interne</span>
-                              <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
-                              <span className="text-muted-foreground/60">{axis.unit}</span>
-                              {axis.key === "vlamax" && vlamaxRange && (
-                                <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
-                                  ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
-                                </span>
-                              )}
-                            </div>
-                            {delta !== null && displayDelta !== null && axis.value !== null && (
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[9px] px-1.5 h-4",
-                                  remainsToWork
-                                    ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
-                                    : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
-                                )}
-                              >
-                                {remainsToWork ? `Écart au repère : ${Math.abs(displayDelta).toFixed(axis.value < 10 ? 2 : 1)} ${axis.unit}` : "Cible interne atteinte"}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{vmaReference ? 'La VMA situe le moteur aérobie course. Le seuil, l’économie et l’endurance spécifique déterminent aussi la performance ; cette fourchette ne constitue pas une allure de séance.' : explanation.detail}</p>
-                        {axis.source !== 'snapshot' && <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{compassSourceLabel(axis.source ?? 'unknown')}</p>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* MODULATEUR ÉCONOMIE — facteur secondaire d'efficience */}
-              {compass.economyModifier && (() => {
-                const eco = compass.economyModifier;
-                const ecoStatus = axisAssessment(presentation?.economy ?? eco);
-                const ecoColor = eco.score >= 75 ? "success" : eco.score >= 50 ? "warning" : "destructive";
-                return (
-                  <div className="mt-3 px-1">
-                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                      Modulateur — Efficience
-                    </span>
-                    <div className={cn(
-                      "mt-1 flex items-start gap-2.5 p-2.5 rounded-lg border border-dashed",
-                      eco.score >= 75 ? "bg-[hsl(var(--success)/0.04)] border-[hsl(var(--success)/0.3)]" :
-                      eco.score >= 50 ? "bg-[hsl(var(--warning)/0.04)] border-[hsl(var(--warning)/0.3)]" :
-                      "bg-[hsl(var(--destructive)/0.04)] border-[hsl(var(--destructive)/0.3)]"
-                    )}>
-                      <span className="text-base mt-0.5">🦶</span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs font-bold">{eco.label}</p>
-                          <Badge variant="outline" className={cn(
-                            "text-[9px] h-4 px-1.5",
-                            `border-[hsl(var(--${ecoColor})/0.4)] text-[hsl(var(--${ecoColor}))]`
-                          )}>
-                            {ecoStatus}
-                          </Badge>
-                        </div>
-                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">
-                          Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-
-            <FlowConnector />
-
-            {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
-            <FlowStep
-              level="Niveau 2 — Priorité pour l’objectif"
-              icon={<AlertTriangle className="w-4 h-4" />}
-              title={`${limiter.icon} ${limiter.label}`}
-              subtitle={limiter.description}
-              accentClass="bg-[hsl(var(--destructive)/0.8)]"
-              badge={staffMode ? limiter.confidence : null}
-            >
-              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
-                💡 {FLOW_PEDAGOGY.limiter}
-              </p>
-
-              {/* Pourquoi c'est important ? — impact concret (terrain + mécanisme) */}
-              <div className="mt-2">
-                <p className="text-xs text-muted-foreground">W′ reste un repère de travail au-dessus de CP ; l’économie module l’efficience. La durabilité nécessite des efforts frais/après charge documentés.</p>
-              </div>
-
-              {staffMode && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[9px] text-muted-foreground">Impact :</span>
-                  <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-[hsl(var(--destructive)/0.3)]">
-                    {Number(limiter.impactScore.toFixed(1))} points
-                  </Badge>
-                  {limiter.metricsUsed.slice(0, 4).map(m => (
-                    <Badge key={m} variant="outline" className="text-[8px] h-3.5 px-1 border-border/40 text-muted-foreground">
-                      {m}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </FlowStep>
-
-            <FlowConnector />
-
-            {/* NIVEAU 3 — LEVIER PRIORITAIRE */}
-            <FlowStep
-              level="Niveau 3 — Levier prioritaire"
-              icon={<Zap className="w-4 h-4" />}
-              title={`${leverage.icon} ${leverage.label}`}
-              subtitle="Piste du moteur historique, à valider avec le coach selon le sport, les tests et la charge réelle."
-              accentClass="bg-primary/80"
-            >
-              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
-                💡 {FLOW_PEDAGOGY.leverage}
-              </p>
-              {/* Adaptations attendues */}
-              <div className="mt-2 flex flex-wrap gap-1">
-                {leverage.expectedAdaptations.map(a => (
-                  <span key={a} className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/15">
-                    {a}
-                  </span>
-                ))}
-              </div>
-            </FlowStep>
-
-            <FlowConnector />
-
-            {/* NIVEAU 4 — DÉCISION COACHING */}
-            <FlowStep
-              level="Niveau 4 — Décision coaching"
-              icon={<Target className="w-4 h-4" />}
-              title={decision.recommendedBlock}
-              subtitle="Orientation indicative, pas un bloc ni des séances déjà individualisés et validés."
-              accentClass="bg-[hsl(var(--success)/0.8)]"
-            >
-              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
-                💡 {FLOW_PEDAGOGY.decision}
-              </p>
-              <div className="mt-2 space-y-1.5">
-                {/* Duration & workouts */}
-                <div className="flex items-center gap-3 text-[10px]">
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="w-3 h-3" />
-                    {decision.durationWeeks} semaines
-                  </span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <Dumbbell className="w-3 h-3" />
-                    {decision.primaryWorkouts.length} séances clés
-                  </span>
-                </div>
-
-                <p className="text-xs text-muted-foreground">Séances à préciser dans le plan avec les repères du sport : domaine modéré (LT1), sous-seuil, MLSS ou VO₂max ; aucune conversion des watts vélo en allures course.</p>
-
-                {/* Targets */}
-                <div className="flex flex-wrap gap-1">
-                  {decision.physiologicalTargets.map(t => (
-                    <Badge key={t} variant="secondary" className="text-[9px] h-4 px-1.5">
-                      🎯 {t}
-                    </Badge>
-                  ))}
-                </div>
-
-                {/* Prohibitions */}
-                {decision.prohibitions.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {decision.prohibitions.map(p => (
-                      <Badge key={p} variant="destructive" className="text-[9px] h-4 px-1.5">
-                        🚫 {p}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </FlowStep>
-
-            {/* ─── Staff: Profil complet ─── */}
-            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />}
-          </div>
-        </div>
-
-        {/* ─── Disclaimer ─── */}
-        {staffMode && (
-          <p className="text-[8px] text-muted-foreground/40 text-center mt-3">
-            {compass.meta.disclaimer} — v{compass.meta.version}
-          </p>
-        )}
-        </details>
-      </CardContent>
-    </Card>
-  );
+      </details>}
+    </CardContent>
+  </Card>;
 }

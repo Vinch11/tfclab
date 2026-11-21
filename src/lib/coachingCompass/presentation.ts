@@ -1,3 +1,4 @@
+import { getVLamaxRange } from "@/lib/physiologicalTargets";
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
 import { buildDisciplineAxes } from './disciplineAxes';
@@ -54,7 +55,7 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     axes,
     disciplineAxes: disciplines,
     runningDiagnostic,
-    cyclingDiagnostic: disciplines?.cyclingDiagnostic ?? (sport === 'bike' ? computeCyclingCompassDiagnostic({ axes, ftp: input.ftp, vo2Shared: false }) : undefined),
+    cyclingDiagnostic: disciplines?.cyclingDiagnostic ?? (sport === 'bike' ? computeCyclingCompassDiagnostic({ axes, ftp: input.ftp, vo2Shared: false, vlamaxUpper: getVLamaxRange(input.objectif, input.ambition as AmbitionLevel, "bike").max }) : undefined),
     sport,
     sportReferences: buildSportReferences(input),
     priorityMetrics,

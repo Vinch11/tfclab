@@ -1,22 +1,16 @@
+import { getObjectifLabel, type ObjectifType } from "@/types/athlete";
 import { PairedBars } from "./charts/PairedBars";
 import { intensity } from "@/lib/diagnostic/durabilityDay";
 import { CompassRaceForecast } from "./CompassRaceForecast";
 import { CompassDisciplineProfile } from "./CompassDisciplineProfile";
 import { AMBITION_DEFINITIONS, type AmbitionLevel } from "@/types/ambitionLevel";
 import { FieldMetricComparison } from "./charts/FieldComparison";
-import { fieldCheckLink, nextFieldCheck } from "@/lib/diagnostic/compactFieldAssessment";
-import { describeFieldGap, fieldUnits, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
+import { CompassLimiterReading } from "./CompassLimiterReading";
+import { describeFieldGap, rankedFieldGaps } from '@/lib/coachingCompass/rankedFieldGaps';
 import { compareDisciplines, objectiveDemands, olympicCohort } from '@/lib/coachingCompass/objectiveDemands';
 import { useState } from 'react';
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from '@/lib/coachingCompass/types';
 import { comparePerformance, PERFORMANCE_SOURCES, readPerformanceGoal, type PerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
-
-const metricNames: Record<string,string> = {
-  TTE: "Tenir le seuil plus longtemps (TTE)", VMA: "Vitesse maximale aérobie (VMA)",
-  "FTP/kg": "Puissance vélo rapportée au poids (FTP/kg)", VO2max: "Capacité aérobie (VO₂max)",
-  VLamax: "Production de lactate (VLamax)", FatMax: "Utilisation des graisses (FatMax)",
-  "Durabilité (découplage)": "Maintien de l’effort après fatigue",
-};
 
 export function CompassPerformanceComparison({ input, onSave, presentation }: { input: CoachingCompassInput; presentation?: TFCLCoachingCompassResult["presentation"]; onSave?: (goal: PerformanceGoal) => Promise<boolean> }) {
   const saved = readPerformanceGoal(input.performanceGoal);
@@ -33,29 +27,8 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
   const olympic = input.objectif === 'Olympic' && input.athleteAge != null && input.athleteAge >= 18 ? olympicCohort(input.athleteSex) : null;
   const pace = result.pace == null ? null : Math.round(result.pace);
   const diagnosis = input.limiterResult;
-  const lead = diagnosis?.primaryLimiter && diagnosis.primaryLimiter !== 'none' ? diagnosis.categoryRanking?.[0] : null;
-  const leadMetrics = lead?.metrics.filter(metric => metric.prescriptionApplicable !== false && metric.weightedImpact > 0);
-  const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
-  const check = nextFieldCheck(input);
-  const checkUrl = fieldCheckLink(check);
   const fieldRanking = rankedFieldGaps(diagnosis);
-
-  const noPriority = !fieldRanking.length && (!diagnosis?.primaryLimiter || diagnosis.primaryLimiter === 'none');
-  const comparable = noPriority && diagnosis?.limiterLabel !== 'Comparaison physiologique non applicable'
-    ? (diagnosis?.gapAnalysis ?? []).filter(g => fieldUnits[g.metric] && g.value != null && g.target != null && g.target > 0 &&
-      !g.fieldEstimateNote && g.prescriptionApplicable !== false && (g.status === 'optimal' || g.status === 'acceptable')).slice(0, 2)
-    : [];
-  const priorities = (diagnosis?.categoryRanking ?? []).map(group => group.metrics.filter(m=>m.weightedImpact > 0 && m.prescriptionApplicable !== false)).filter(group=>group.length).slice(0,3);
-  const sportGaps = [
-    { sport: 'Vélo', rows: presentation?.cyclingDiagnostic?.priorities ?? [] },
-    { sport: 'Course à pied', rows: presentation?.runningDiagnostic?.priorities ?? [] },
-  ].flatMap(({sport, rows}) => rows.map(row => ({ ...row, sport })))
-    .sort((a, b) => b.gapPercent - a.gapPercent);
-  const showSportGaps = !priorities.length && sportGaps.length > 0 &&
-    diagnosis?.limiterLabel !== 'Comparaison physiologique non applicable' && demands?.kind !== 'beginner';
-  const firstMetric = priorities[0]?.[0].metric;
-  const leadEvidence = fieldRanking.find(row => row.metric.metric === firstMetric);
-  const undecided = diagnosis?.limiterLabel?.includes('à départager');
+  const toConfirm = diagnosis?.gapAnalysis.filter(metric => metric.value != null && metric.prescriptionApplicable === false && metric.prescriptionNote);
   const save = async () => {
     if (!draft || !onSave) return;
     setBusy(true);
@@ -63,50 +36,31 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
     catch { setMessage('Enregistrement impossible ; scénario non sauvegardé.'); }
     finally { setBusy(false); }
   };
-  return <section aria-label="Écart à l’objectif" className="mb-5 rounded-xl border border-primary/30 p-4 space-y-3">
-    <header className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 className="text-2xl font-semibold tracking-tight">{input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
+  return <section aria-label="Écart à l’objectif" className="mb-3 space-y-3">
+    <header className="flex flex-wrap items-baseline justify-between gap-2 px-1"><div><h3 className="text-2xl font-semibold tracking-tight">{getObjectifLabel(input.objectif as ObjectifType) ?? input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
       {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes} min</span>}</header>
-    <CompassRaceForecast input={input}/>
-    {<div aria-label="Priorité du bilan" className="min-w-0 space-y-4 rounded-2xl border bg-card p-4 text-sm sm:p-5">
-      <h3 className="text-lg font-semibold">Hiérarchie des limiteurs</h3>
-      {showSportGaps ? <p>Classement des facteurs testés selon leur écart au repère de l’épreuve et de l’ambition.</p> : priorities.length && diagnosis?.primaryLimiter === 'none' ? <p>Les écarts sont modestes. Voici leur ordre pour cet objectif.</p> : noPriority ? <div className="space-y-2"><h4 className="text-lg font-semibold">{comparable.length ? 'Repères dans la plage attendue' : 'Les données comparables ne suffisent pas encore à départager les limiteurs'}</h4>
-        {!!comparable.length && <div className="grid gap-2 sm:grid-cols-2">{comparable.map(metric=><FieldMetricComparison key={metric.metric} metric={metric}/>)}</div>}
-      </div> : <p><strong>{leadMetrics?.length ? 'Facteur à examiner en priorité' : 'Priorité du bilan'}</strong> · {diagnosis?.limiterLabel}</p>}
-      {priorities.length > 0 && <ol aria-label="Priorités d’entraînement" className="grid gap-2">{priorities.map((group,i)=><li key={group[0].metric} className="flex items-center gap-3 rounded-xl bg-muted/50 px-3 py-2 first:border first:border-primary/25 first:bg-primary/10 first:py-4">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{i+1}</span>
-        <div><p className="font-semibold">{group.map(m=>metricNames[m.metric] ?? m.metric).join(' · ')}</p><p className="text-xs text-muted-foreground">{undecided ? 'Ordre provisoire' : i===0 ? 'Premier chantier' : 'Chantier suivant'}</p></div>
-      </li>)}</ol>}
-      {leadEvidence && <FieldMetricComparison metric={leadEvidence.metric} hypothesis={leadEvidence.hypothesis} />}
-      {!priorities.length && !showSportGaps && fieldRanking.length > 0 && <ol aria-label="Pistes classées à vérifier" className="list-decimal space-y-2 pl-6">{fieldRanking.slice(0, 3).map(({metric, hypothesis}) =>
-        <li key={metric.metric}><strong>{metricNames[metric.metric] ?? metric.metric}</strong><span className="block text-xs text-muted-foreground">{hypothesis ? 'Hypothèse du modèle à vérifier' : 'Écart observé dans le bilan'}</span></li>
-      )}</ol>}
-      {showSportGaps && <ol aria-label="Classement des facteurs testés" className="grid gap-2">{sportGaps.map((row, index) =>
-        <li key={row.sport + row.key} className="flex items-center gap-3 rounded-xl bg-muted/50 px-3 py-2 first:border first:border-primary/25 first:bg-primary/10 first:py-4">
-          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold">{sportGaps.findIndex(other => other.gapPercent === row.gapPercent) + 1}</span>
-          <div><strong>{row.label}</strong><p className="text-xs text-muted-foreground">{row.sport} · {row.gapPercent.toLocaleString('fr-BE', {maximumFractionDigits: 1})} % d’écart au repère interne{row.provisional && ' · valeur à confirmer'}{index > 0 && sportGaps[index - 1].gapPercent === row.gapPercent && ' · ex æquo'}</p></div>
-        </li>
-      )}</ol>}
+    <CompassLimiterReading input={input} presentation={presentation}>
+    <details className="border-t"><summary className="cursor-pointer py-2 text-sm font-medium">Voir les écarts chiffrés</summary>
       {diagnosis?.gapAnalysis.filter(g => g.fieldEstimateNote && !fieldRanking.some(r => r.metric === g)).map(g => <div key={g.metric} className="space-y-2"><FieldMetricComparison metric={g} /><p className="text-sm leading-relaxed">{g.fieldEstimateNote}</p></div>)}
-      {!!fieldRanking.length && <details><summary className="cursor-pointer py-2 font-medium">Voir les écarts chiffrés</summary><div>
-
         <ol aria-label="Écarts classés pour le coach" className="mt-3 grid list-none gap-3 md:grid-cols-2">{fieldRanking.map(row => {
           const { metric, hypothesis } = row;
           const reading = describeFieldGap(row);
           return <li key={metric.metric} className="space-y-2 rounded-xl border p-3">
           <strong>{metric.metric}</strong>{metric.gapPercent != null && !metric.coachingRange && !metric.fieldBounds && ` · écart au repère ${metric.gapPercent > 0 ? '+' : ''}${Math.round(metric.gapPercent)} %`}
           {' · '}{hypothesis ? 'Hypothèse issue du modèle' : metric.fieldEstimateNote ? 'Priorité estimée sur le terrain' : 'Priorité du bilan'}
-          {leadEvidence?.metric !== metric && <FieldMetricComparison metric={metric} hypothesis={hypothesis} />}
+          <FieldMetricComparison metric={metric} hypothesis={hypothesis} />
           <details className="text-sm"><summary className="cursor-pointer py-2 font-medium">Comprendre cet écart</summary><p>{[reading.comparison, reading.importance && `Poids pour l’objectif ${reading.importance}`, reading.confidence].filter(Boolean).join(' · ')}</p>
           {hypothesis && <p>{metric.prescriptionNote}</p>}</details>
         </li>})}</ol>
         {fieldRanking.some(row => row.hypothesis) && <details><summary className="cursor-pointer py-2">Comment lire une estimation</summary><p>Une sortie longue ou un effort répété peut étayer une difficulté de performance. Une VLamax et un FatMax issus du même modèle comptent comme une seule source.</p></details>}
-      </div></details>}
-      {<div className="rounded-xl bg-primary/10 p-4"><h4 className="font-semibold">Prochaine vérification</h4><p className="mt-1 leading-relaxed">{check.text}</p>{checkUrl && <a className="inline-flex min-h-11 items-center font-medium underline underline-offset-4" href={checkUrl}>Voir le protocole</a>}</div>}
       <a className="inline-block py-2 text-primary underline" href="/lab#priorites">Examiner les priorités dans 100 % Lab</a>
       {!!toConfirm?.length && <details><summary className="cursor-pointer">Données à confirmer</summary>
         <ul className="list-disc pl-5">{toConfirm.map(metric => <li key={metric.metric}>{metric.metric} · {metric.prescriptionNote}</li>)}</ul>
       </details>}
-    </div>}
+    </details>
+    </CompassLimiterReading>
+    <details className="rounded-2xl border bg-card px-4"><summary className="cursor-pointer py-3 font-medium">Chrono et repères par discipline</summary>
+    <div className="space-y-3 pb-4"><CompassRaceForecast input={input}/>
     <CompassDisciplineProfile input={input} goal={draft} runPace={pace}/>
     {input.durabilityPairs?.filter(p=>input.sportFocus==="triathlon" || !input.sportFocus || p.sport===input.sportFocus).map(p=><section key={p.sport} className="rounded-2xl border bg-card p-4">
       <h4 className="font-semibold">Durabilité · {p.sport==="run"?"Course":"Vélo"} · {p.day}</h4>
@@ -114,7 +68,8 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
       <PairedBars title={p.sport === "run" ? "Allure des deux blocs" : "Puissance des deux blocs"} first={{label:"À frais", value:intensity(p.sport,p.early), display:p.early + (p.sport === "run" ? " min/km" : " W")}} second={{label:"Après endurance", value:intensity(p.sport,p.late), display:p.late + (p.sport === "run" ? " min/km" : " W")}} />
       <div className="mt-2 grid grid-cols-2 gap-2">{["Début","Fin"].map((label,i)=><div key={label} className="rounded-xl bg-muted p-3"><strong>{label}</strong><p className="text-sm">{i?p.hr2:p.hr1} bpm · ressenti {i?p.rpe2:p.rpe1}/10</p></div>)}</div>
       <p className="mt-2 text-sm">{p.context}</p></section>)}
-    <details className="rounded-2xl border bg-card p-4"><summary className="cursor-pointer py-2 font-semibold">Comparer avec un objectif personnel (facultatif)</summary>
+    </div></details>
+    <details className="rounded-2xl border bg-card px-4"><summary className="cursor-pointer py-2 font-semibold">Comparer avec un objectif personnel (facultatif)</summary>
     <div className="mt-3 space-y-3"><div className="flex flex-wrap items-end gap-3 print:hidden">
       <label className="text-sm">{demands?.kind === 'beginner' ? 'Durée continue visée (minutes)' : 'Chrono total visé (minutes)'}<input aria-label="Chrono total visé en minutes" type="number" min="1" max="10080" step="any" className="block border rounded p-2 w-40 bg-background" value={minutes} onChange={e => { setMinutes(e.target.value); setMessage(''); }} /></label>
       {result.distance?.tri && <label className="text-sm">Split course visé (minutes)<input aria-label="Split course visé en minutes" type="number" min="1" step="any" className="block border rounded p-2 w-40 bg-background" value={run} onChange={e => { setRun(e.target.value); setMessage(''); }} /></label>}

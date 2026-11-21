@@ -208,7 +208,9 @@ export interface CoachingCompassInput {
   fatmax: number | null;
   
   // Effectifs pré-calculés (provenant du Diagnostic Engine)
-  vlamaxEffectif: { value: number | null; confidence: number; source: string };
+  vlamaxEffectif: { value: number | null; confidence: number; source: string; range?: { low: number; high: number }; date?: string };
+  /** Latest same-sport observation for reading the model's uncertainty. Display only. */
+  latestVlamaxTest?: ReturnType<typeof import("../vlamaxEffectif").latestSportVlamaxTest>;
   /** Display-only running observation; never a fallback from cycling VLamax. */
   vlamaxRunReference?: { value: number | null; source: string } | null;
   tteEffectif: { tte_min: number; confidence: number; source: string };
@@ -223,7 +225,7 @@ export interface CoachingCompassInput {
     limiterEmoji?: string;
     limiterExplanation?: string;
     gapAnalysis: Array<Pick<import("../v2/unifiedLimiterDetection").UnifiedGapAnalysis, "fieldBounds" | "fieldBoundsConflict" | "coachingRange"> & { metric: string; gap: number; target?: number; weight?: number; gapPercent?: number; status?: string; fieldEstimateNote?: string; fieldHypothesisImpact?: number; weightedImpact: number; value?: number | null; prescriptionApplicable?: boolean; prescriptionNote?: string }>;
-    categoryRanking?: Array<{ category: string; metrics: Array<{ metric: string; weightedImpact: number; prescriptionApplicable?: boolean }> }>;
+    categoryRanking?: Array<{ category: string; totalImpact?: number; metrics: Array<{ metric: string; weightedImpact: number; prescriptionApplicable?: boolean }> }>;
     confidence: number;
     fatigueWarning?: { level: string; message: string } | null;
   } | null;
