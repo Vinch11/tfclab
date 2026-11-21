@@ -673,13 +673,6 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
         </CardHeader>
         <CardContent>
           <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
-          <div className="flex flex-col items-center justify-center py-8 text-center">
-            <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
-            <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
-            <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
-              Ajoutez des résultats récents et un test spécifique au sport pour enrichir le diagnostic. Les capacités non renseignées restent inconnues.
-            </p>
-          </div>
         </CardContent>
       </Card>
     );
