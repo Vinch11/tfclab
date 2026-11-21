@@ -13,6 +13,7 @@ describe('Compass goal interaction', () => {
       primaryLimiter: 'aerobic_engine', confidence: .7, categoryRanking: [{ category: 'aerobic', metrics: [observed] }],
       gapAnalysis: [observed, excluded, estimated],
     } }} />);
+    fireEvent.click(screen.getByText('Voir les écarts chiffrés'));
     const rows = screen.getByRole('list', { name: 'Écarts classés pour le coach' }).querySelectorAll('li');
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('VLamax · écart au repère +40 %');
@@ -22,6 +23,7 @@ describe('Compass goal interaction', () => {
   it('saves an explicit target, and never prefills the predicted race time', async () => {
     const save = vi.fn().mockResolvedValue(true);
     render(<CompassPerformanceComparison input={{ ...input, targetRacePrediction: { targetRaceDurationMin: 190, source: 'daniels_scenario', confidence: .8, reference: '' } }} onSave={save} />);
+    expect(screen.getByLabelText('Projection de course')).toHaveTextContent('3 h 10');
     const field = screen.getByLabelText('Chrono total visé en minutes');
     expect(field).toHaveValue(null);
     fireEvent.change(field, { target: { value: '187' } });
@@ -66,8 +68,17 @@ it('shows a triathlete’s actual markers before the detailed form even without 
   expect(screen.getByRole('figure',{name:'Vélo'})).toHaveTextContent('230');
   expect(screen.getByRole('figure',{name:'Natation'})).toHaveTextContent('1:40');
   expect(screen.queryByText(/Aucun écart prioritaire/)).toBeNull();
-  const details=screen.getByText('Objectif chrono et comparaison détaillée').closest('details');
+  const details=screen.getByText('Comparer avec un objectif personnel (facultatif)').closest('details');
   expect(details).not.toHaveAttribute('open');
-  fireEvent.click(screen.getByRole('button',{name:'Préciser l’objectif'}));
+  expect(screen.queryByRole('button',{name:'Préciser l’objectif'})).toBeNull();
+  expect(screen.getByLabelText('Projection de course')).toBeVisible();
+  fireEvent.click(screen.getByText('Comparer avec un objectif personnel (facultatif)'));
   expect(details).toHaveAttribute('open');
+});
+
+it('distinguishes a general triathlon time from an individual forecast', () => {
+  render(<CompassPerformanceComparison input={{ ...input, objectif:'IM', targetRacePrediction:{targetRaceDurationMin:660,source:'triathlon_baseline',confidence:.45} }} />);
+  expect(screen.getByLabelText('Projection de course')).toHaveTextContent('Temps indicatif du format');
+  expect(screen.getByLabelText('Projection de course')).toHaveTextContent('11 h 00');
+  expect(screen.getByLabelText('Chrono total visé en minutes')).toHaveValue(null);
 });

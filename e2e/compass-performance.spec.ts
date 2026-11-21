@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
-  const detail = page.getByText('Objectif chrono et comparaison détaillée', {exact:true});
+  const detail = page.getByText('Comparer avec un objectif personnel (facultatif)', {exact:true});
   await detail.click();
   const total = page.getByLabel('Chrono total visé en minutes');
   await total.fill('187');
@@ -25,6 +25,7 @@ test('explicit goal, cohort, save and athlete isolation', async ({ page }) => {
 test('the coach sees why estimates are provisional and which observation supports a priority', async ({ page }) => {
   await page.goto('/__e2e/compass-performance');
   const panel = page.getByLabel('Priorité du bilan');
+  await panel.getByText('Voir les écarts chiffrés').click();
   await expect(panel.getByRole('figure', { name: 'Production maximale de lactate' })).toContainText('Plage de coaching');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   await expect(panel).toContainText('hypothèse à vérifier');
@@ -35,5 +36,5 @@ test('the coach sees why estimates are provisional and which observation support
   }
   await page.getByRole('button', { name: 'Changer d’athlète fictif' }).click();
   await expect(panel).toContainText('Facteur à examiner en priorité');
-  await expect(panel).toContainText('Écart aux repères de l’objectif sur TTE');
+  await expect(panel.getByRole('list',{name:'Priorités d’entraînement'}).getByRole('listitem').first()).toContainText('TTE');
 });
