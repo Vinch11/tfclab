@@ -47,7 +47,7 @@ function buildDiagnostic(overrides: {
   const gapAnalysis = overrides.gapAnalysis ?? [
     buildGap("VO2max"),
     buildGap("VMA"),
-    buildGap("VLamax"),
+    buildGap("VLamax", { value: 0.3, target: 0.3 }),
     buildGap("TTE"),
   ];
 
@@ -101,7 +101,7 @@ describe("AnalyseSection — cohérence headline / score (pas de double scoring 
     render(<AnalyseSection diagnostic={diagnostic} />);
 
     expect(screen.queryByText("Profil équilibré — Prêt")).not.toBeInTheDocument();
-    expect(screen.getAllByText("Repères favorables")).toHaveLength(2);
+    expect(screen.getAllByText("Repères favorables")).toHaveLength(1);
     expect(screen.getByText("82")).toBeInTheDocument();
     // Catégorie "ready" → ne doit jamais afficher le libellé "À développer"
     // (le bug exact rapporté : titre "Prêt" + badge "À développer").
@@ -119,7 +119,7 @@ describe("AnalyseSection — cohérence headline / score (pas de double scoring 
 
     expect(screen.queryByText("Profil équilibré — En progression")).not.toBeInTheDocument();
     expect(screen.getByText("54")).toBeInTheDocument();
-    expect(screen.getAllByText("Profil à développer")).toHaveLength(2);
+    expect(screen.getAllByText("Profil à développer")).toHaveLength(1);
     expect(screen.queryByText("Au-dessus")).not.toBeInTheDocument();
   });
 
@@ -139,4 +139,14 @@ describe("AnalyseSection — cohérence headline / score (pas de double scoring 
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
     expect(screen.queryByText("50")).not.toBeInTheDocument();
   });
+});
+
+it('shows the signed FTP difference at its actual precision as a descriptive reference', () => {
+  render(<AnalyseSection diagnostic={buildDiagnostic({
+    headline: '', globalScore: 71, globalCategory: 'solid',
+    gapAnalysis: [buildGap('FTP/kg', { value: 3.62, target: 3.64, gap: -.02, gapPercent: -.55 })],
+  })} />);
+  expect(screen.getByRole('img', { name: /FTP.*3,62 W\/kg.*3,64 W\/kg/ })).toBeVisible();
+  expect(screen.getByText(/-0,02 W\/kg/)).toBeVisible();
+  expect(screen.queryByText('Prioritaires')).toBeNull();
 });

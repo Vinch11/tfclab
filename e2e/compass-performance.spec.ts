@@ -30,9 +30,9 @@ test('the coach sees why estimates are provisional and which observation support
   await expect(visibleFactors.getByRole('listitem').first()).toContainText('Hypothèse à vérifier');
   await expect(page.getByLabel('Projection de course')).toBeHidden();
   await panel.getByText('Voir les écarts chiffrés').click();
-  await expect(panel.getByRole('figure', { name: 'Production maximale de lactate' })).toContainText('Plage de coaching');
+  await expect(panel.locator('details[open]').getByRole('figure', { name: 'Production maximale de lactate' })).toContainText('Plage de coaching');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await expect(panel.getByRole('list', { name: 'Écarts classés pour le coach' })).toContainText('Hypothèse issue du modèle');
+  await expect(panel.getByRole('list', { name: 'Mesures qui expliquent les écarts' })).toContainText('Hypothèse issue du modèle');
   await panel.getByText('Données à confirmer').click();
   for (const metric of ['VLamax', 'FatMax', 'TTE']) {
     await expect(panel.getByRole('listitem').filter({ hasText: metric }).first()).toBeVisible();

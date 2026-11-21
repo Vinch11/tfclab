@@ -1,3 +1,5 @@
+import { referenceTolerancePercent } from "@/lib/coachingCompass/coachPriorities";
+import { ReferenceGauge } from "@/components/charts/ReferenceGauge";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * SECTION ANALYSE — Dashboard Simplifié (redesign moderne)
@@ -161,7 +163,7 @@ const TONE_STYLES: Record<StatusTone, {
   excellent:  { label: "Au-dessus",     ring: "hsl(var(--success))",     text: "text-[hsl(var(--success))]",     chip: "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]",     accent: "bg-[hsl(var(--success))]",     Icon: TrendingUp },
   on_target:  { label: "Dans la cible", ring: "hsl(var(--primary))",     text: "text-foreground",                chip: "bg-primary/10 text-primary",                                     accent: "bg-primary",                    Icon: Minus },
   developing: { label: "À développer",  ring: "hsl(var(--warning))",     text: "text-[hsl(var(--warning))]",     chip: "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]",     accent: "bg-[hsl(var(--warning))]",     Icon: TrendingDown },
-  priority:   { label: "Prioritaire",   ring: "hsl(var(--destructive))", text: "text-[hsl(var(--destructive))]", chip: "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]", accent: "bg-[hsl(var(--destructive))]", Icon: AlertOctagon },
+  priority:   { label: "Hors repère",   ring: "hsl(var(--destructive))", text: "text-[hsl(var(--destructive))]", chip: "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]", accent: "bg-[hsl(var(--destructive))]", Icon: AlertOctagon },
   unknown:    { label: "Sans donnée",   ring: "hsl(var(--muted-foreground))", text: "text-muted-foreground", chip: "bg-muted text-muted-foreground", accent: "bg-muted-foreground/40", Icon: Minus },
 };
 
@@ -182,13 +184,21 @@ function signedGapPct(gap: { metric: string; gapPercent?: number | null; gap: nu
 function toneFromGapEntry(gap: { metric: string; gapPercent?: number | null; gap: number; status?: string }): StatusTone {
   const pct = signedGapPct(gap);
   if (gap.status === "limiting") return pct <= -15 ? "priority" : "developing";
-  if (gap.status === "acceptable") return pct >= -5 ? "on_target" : "developing";
+  if (gap.status === "acceptable") return pct >= -referenceTolerancePercent ? "on_target" : "developing";
   return toneFromGap(pct);
+}
+
+function metricTone(gap: AnalysisGap): StatusTone {
+  if (gap.value == null || gap.status === "unknown") return "unknown";
+  if (gap.targetRange) {
+    return gap.value >= gap.targetRange.min && gap.value <= gap.targetRange.max ? "on_target" : "developing";
+  }
+  return toneFromGapEntry(gap);
 }
 
 function toneFromGap(gap: number): StatusTone {
   if (gap >= 5) return "excellent";
-  if (gap >= -5) return "on_target";
+  if (gap >= -referenceTolerancePercent) return "on_target";
   if (gap >= -15) return "developing";
   return "priority";
 }
@@ -247,28 +257,12 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
 }) {
   const [open, setOpen] = useState(false);
   const isUnknown = gap.status === "unknown" || gap.value == null;
-  const tone: StatusTone = isUnknown ? "unknown" : toneFromGapEntry(gap);
+  const tone: StatusTone = metricTone(gap);
   const style = TONE_STYLES[tone];
 
   const hasValues = gap.value != null && gap.target != null;
   const delta = hasValues ? (gap.value as number) - (gap.target as number) : null;
-  const isInverse = gap.metric === "VLamax";
-  const displayDelta = isInverse && delta !== null ? -delta : delta;
-  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
-
-  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
-
-  const pct = (() => {
-    if (isUnknown) return 0;
-    if (!hasValues || gap.target === 0) return Math.min(100, Math.max(5, 50 + signedGapPct(gap)));
-    const val = gap.value as number;
-    const tgt = gap.target as number;
-    if (isInverse) {
-      if (val <= tgt) return 100;
-      return Math.max(5, Math.min(100, ((2 * tgt - val) / tgt) * 100));
-    }
-    return Math.max(5, Math.min(100, (val / tgt) * 100));
-  })();
+  const formatVal = (v: number) => v.toLocaleString("fr-BE", { maximumFractionDigits: 2 });
 
   const MetricIcon = metricInfo.Icon;
   const StatusIcon = style.Icon;
@@ -319,8 +313,8 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-semibold text-foreground truncate">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-sm font-semibold text-foreground">
                     {metricInfo.label}
                   </span>
                   <span className={cn(
@@ -331,77 +325,23 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
                     {style.label}
                   </span>
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">
-                  {hasValues
-                    ? <>Cible <span className="tabular-nums font-medium text-foreground/70">{formatVal(gap.target as number)}</span> {metricInfo.unit}</>
-                    : "Données insuffisantes"}
-                </div>
+                {!hasValues && <p className="mt-1 text-xs text-muted-foreground">Données insuffisantes</p>}
               </div>
-
-              {/* Valeur + delta empilés à droite */}
-              <div className="flex flex-col items-end shrink-0 leading-none gap-1">
-                <div className="flex items-baseline gap-0.5">
-                  {isUnknown ? (
-                    <span className="text-2xl font-bold text-muted-foreground/50 tabular-nums">—</span>
-                  ) : (
-                    <>
-                      <span className={cn("text-2xl sm:text-[28px] font-bold tracking-tight tabular-nums", style.text)}>
-                        {formatVal(gap.value as number)}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-medium ml-0.5">{metricInfo.unit}</span>
-                    </>
-                  )}
-                </div>
-                {delta !== null && (
-                  <span className={cn(
-                    "text-[11px] tabular-nums font-bold px-1.5 py-0.5 rounded",
-                    remainsToWork
-                      ? "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
-                      : "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]"
-                  )}>
-                    {remainsToWork ? "−" : "+"}{Math.abs(displayDelta ?? 0).toFixed(isInverse ? 2 : 1)}
-                  </span>
-                )}
+              <div className="text-right text-sm font-semibold tabular-nums">
+                {delta != null && !gap.targetRange ? <><span className="block text-[10px] font-normal text-muted-foreground">Écart</span>
+                  {delta > 0 ? "+" : ""}{formatVal(delta)} {metricInfo.unit}</> :
+                  !hasValues && (gap.value != null ? formatVal(gap.value) + " " + metricInfo.unit : "—")}
               </div>
-
               <ChevronDown className={cn(
                 "h-4 w-4 text-muted-foreground/40 transition-transform shrink-0",
                 open && "rotate-180"
               )} />
             </div>
 
-            {/* Barre de progression horizontale — lecture instantanée */}
-            {!isUnknown && (
-              <div className="mt-2.5 ml-[52px]">
-                <div className="relative h-2 rounded-full bg-muted/60 overflow-hidden">
-                  {/* Zone cible (bande neutre) */}
-                  <div
-                    className="absolute top-0 bottom-0 bg-primary/15"
-                    style={{ left: "45%", right: "5%" }}
-                  />
-                  {/* Marqueur cible */}
-                  <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-foreground/30"
-                    style={{ left: "50%" }}
-                  />
-                  {/* Remplissage progression */}
-                  <div
-                    className="absolute top-0 bottom-0 rounded-full transition-all duration-700"
-                    style={{
-                      left: 0,
-                      width: `${pct}%`,
-                      background: style.ring,
-                      opacity: 0.85,
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1 text-[9px] text-muted-foreground/60 uppercase tracking-wider">
-                  <span>Bas</span>
-                  <span>Cible</span>
-                  <span>Haut</span>
-                </div>
-              </div>
-            )}
+            {!isUnknown && gap.value != null && gap.target != null && <div className="mt-4">
+              <ReferenceGauge name={metricInfo.label} value={gap.value} target={gap.target}
+                unit={metricInfo.unit} range={gap.targetRange} />
+            </div>}
           </div>
         </CollapsibleTrigger>
 
@@ -415,7 +355,7 @@ function MetricRow({ gap, metricInfo, showDragHandle = false, dragHandleProps = 
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-1">Impact</p>
               <p className="text-xs text-foreground/80 leading-relaxed">{metricInfo.whyItMatters}</p>
             </div>
-            {remainsToWork && (
+            {(tone === "developing" || tone === "priority") && (
               <div className="md:col-span-2 rounded-lg bg-primary/5 border border-primary/15 p-2.5">
                 <p className="text-[10px] font-semibold text-primary uppercase tracking-widest mb-1 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Levier d'amélioration
@@ -515,8 +455,7 @@ export function AnalyseSection({ diagnostic, className, coverage, profileInput, 
   const warningCount = synthesis.alerts.filter(a => a.severity === "warning").length;
   const alertsCount = criticalCount + warningCount;
   const known = orderedGaps.filter(g => g.status !== "unknown" && g.value != null);
-  const priorityCount = known.filter(g => signedGapPct(g) < -15).length;
-  const onTargetCount = known.filter(g => signedGapPct(g) >= -5).length;
+  const onTargetCount = known.filter(g => ["excellent", "on_target"].includes(metricTone(g))).length;
 
   // Score global : même score que le headline (synthesis.globalScore, dérivé
   // du readiness canonique) — pas une moyenne locale recalculée à partir des
@@ -588,22 +527,15 @@ export function AnalyseSection({ diagnostic, className, coverage, profileInput, 
               <h3 className="text-base sm:text-lg font-semibold tracking-tight leading-snug text-foreground line-clamp-2">
                 {dashboardScoreLabel(synthesis.globalCategory)}
               </h3>
-              <div className={cn(
-                "inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full",
-                scoreStyle.chip
-              )}>
-                <scoreStyle.Icon className="h-3 w-3" />
-                {dashboardScoreLabel(synthesis.globalCategory)}
-              </div>
+
             </div>
           </div>
 
-          <p className="text-xs text-muted-foreground mt-3">Score du modèle sur les données disponibles, pas une probabilité de réussite. Les écarts par sport et la durabilité non testée restent à examiner, même avec un score élevé.</p>
+          <p className="text-xs text-muted-foreground mt-3">Score physiologique calculé sur les mesures disponibles.</p>
           {/* Ligne 3 : KPI tiles — lisibles */}
-          <div className="grid grid-cols-4 gap-2 mt-4">
+          <div className="grid grid-cols-3 gap-1.5 mt-4">
             <KpiTile label="Couverture" value={`${completenessPct}%`} tone={completenessPct >= 70 ? "on_target" : "developing"} />
             <KpiTile label="Cible" value={onTargetCount} tone={onTargetCount > 0 ? "excellent" : "unknown"} />
-            <KpiTile label="Prioritaires" value={priorityCount} tone={priorityCount > 0 ? "priority" : "on_target"} />
             <KpiTile label="Alertes" value={alertsCount} tone={criticalCount > 0 ? "priority" : alertsCount > 0 ? "developing" : "on_target"} />
           </div>
 
@@ -668,7 +600,7 @@ export function AnalyseSection({ diagnostic, className, coverage, profileInput, 
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em]">
-              Priorités pour l’objectif
+              Mesures du bilan
             </p>
             <p className="text-[10px] text-muted-foreground/70">
               {orderedGaps.length} indicateurs

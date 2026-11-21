@@ -85,7 +85,6 @@ import { RaceReadinessReportDialog } from "@/components/RaceReadinessReportDialo
 
 // ✅ Dashboard Simplifié — 4 sections linéaires
 import { AnalyseSection } from "@/components/simplified/AnalyseSection";
-import { LimiteursSection } from "@/components/simplified/LimiteursSection";
 import { LeviersSection } from "@/components/simplified/LeviersSection";
 
 // ✅ Engines unifiés
@@ -948,6 +947,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
   // ✅ COMPASS INPUT mémorisé — réutilisé par CoachingCompassCard + AthleteProfile
   const compassInputMemo = useMemo(() => {
     if (!currentAthlete || !effectiveCloudSnapshot) return null;
+    const sameVlamax = alignedVlamaxEffectif.value === vlamaxEffectif.value && alignedVlamaxEffectif.source === vlamaxEffectif.source;
     return {
       durabilityPairs: latestPairs(tests, currentAthlete.id),
       ftp: effectiveRefs.ftp,
@@ -966,15 +966,16 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       paceThresholdSecPerKm: effectiveCloudSnapshot.pace_threshold_sec_per_km ?? null,
       fatmax: null as number | null,
       vlamaxEffectif: {
-        value: vlamaxEffectif.value, confidence: vlamaxEffectif.confidence, source: vlamaxEffectif.source,
-        range: vlamaxEffectif.range, date: vlamaxEffectif.details?.date,
+        value: alignedVlamaxEffectif.value, confidence: alignedVlamaxEffectif.confidence, source: alignedVlamaxEffectif.source,
+        range: alignedVlamaxEffectif.range ?? (sameVlamax ? vlamaxEffectif.range : undefined),
+        date: alignedVlamaxEffectif.details?.date ?? (sameVlamax ? vlamaxEffectif.details?.date : undefined),
       },
       latestVlamaxTest: latestSportVlamaxTest(tests, currentAthlete.id, isRunningOnly ? "run" : "bike"),
       vlamaxRunReference: isRunningOnly ? vlamaxEffectif : computeVLamaxEffectif({
         athleteId: currentAthlete.id, objectif: currentAthlete.goal || "IM", sportOverride: "cap",
         activeSnapshotId: effectiveCloudSnapshot.id, snapshots: [effectiveCloudSnapshot], tests, raceRecords: raceRecordsForVlamax,
       }),
-      tteEffectif: { tte_min: tteEffectif.tte_min, confidence: tteEffectif.confidence, source: tteEffectif.source },
+      tteEffectif: { tte_min: alignedTteEffectif.tte_min, confidence: alignedTteEffectif.confidence, source: alignedTteEffectif.source },
       tteEffectifRun: computeTTEEffectif({ sport: 'run', objectif: currentAthlete.goal || 'IM', age: currentAthlete.birth_date ? calculateAge(currentAthlete.birth_date) : null, tte_observed_min_run: effectiveCloudSnapshot.tte_observed_min_run ?? null, tte_proxy_min_run: runDurabilityProxy?.tteMin ?? null, tte_proxy_confidence: runDurabilityProxy?.confidence ?? null, tte_proxy_label: runDurabilityProxy?.label ?? null }),
       fatigueEffectif: fatigueEffectifForCompass ? {
         score: fatigueEffectifForCompass.score,
@@ -1029,7 +1030,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       performanceGoal: readPerformanceGoal(comparisonGoals(currentAthlete.refs)[`${currentAthlete.goal || "IM"}:${currentAmbition}`]),
       targetRacePrediction,
     };
-  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, vlamaxEffectif, tteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction, tests, raceRecordsForVlamax]);
+  }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, alignedVlamaxEffectif, vlamaxEffectif, alignedTteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction, tests, raceRecordsForVlamax]);
 
   const dashboardPresentation = useMemo(() => compassInputMemo ? computeCoachingCompass(compassInputMemo).presentation : null, [compassInputMemo]);
   const dashboardAxes = dashboardPresentation?.disciplineAxes
@@ -1771,40 +1772,9 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             render: () => {
               // Construit l'input Compass depuis le Diagnostic Engine pour garantir la cohérence
               if (!dashDiagnostic || !compassInputMemo) return null;
-              // Override les données clés depuis le diagnostic unifié
-              const alignedInput = {
-                ...compassInputMemo,
-                vlamaxEffectif: { 
-                  value: dashDiagnostic.effectifs.vlamax.value, 
-                  confidence: dashDiagnostic.effectifs.vlamax.confidence, 
-                  source: dashDiagnostic.effectifs.vlamax.source 
-                },
-                tteEffectif: { 
-                  tte_min: dashDiagnostic.effectifs.tte.tte_min, 
-                  confidence: dashDiagnostic.effectifs.tte.confidence, 
-                  source: dashDiagnostic.effectifs.tte.source 
-                },
-                fatigueEffectif: dashDiagnostic.effectifs.fatigue ? {
-                  score: dashDiagnostic.effectifs.fatigue.score,
-                  level: String(dashDiagnostic.effectifs.fatigue.level),
-                  confidence: dashDiagnostic.effectifs.fatigue.confidence,
-                } : null,
-                limiterResult: {
-                  primaryLimiter: dashDiagnostic.limiter.primaryLimiter,
-                  limiterLabel: dashDiagnostic.limiter.limiterLabel,
-                  limiterEmoji: dashDiagnostic.limiter.limiterEmoji,
-                  limiterExplanation: dashDiagnostic.limiter.limiterExplanation,
-                  gapAnalysis: dashDiagnostic.limiter.gapAnalysis,
-                  categoryRanking: dashDiagnostic.limiter.categoryRanking,
-                  confidence: dashDiagnostic.limiter.confidence,
-                  fatigueWarning: (dashDiagnostic.limiter as any).fatigueWarning ?? null,
-                },
-                // Supprimer le potentiel physiologique (Disponibilité supprimée)
-                potentielPhysiologique: null,
-              };
               return (
                 <CoachingCompassCard
-                  input={alignedInput}
+                  input={{ ...compassInputMemo, potentielPhysiologique: null }}
                   onSavePerformanceGoal={async (goal) => {
                     if (!currentAthlete) return false;
                     const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
@@ -1820,13 +1790,6 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             id: "analyse-section",
             render: () => dashDiagnostic ? (
               <AnalyseSection diagnostic={dashDiagnostic} coverage={dashboardCompleteness} profileInput={compassInputMemo} snapshot={effectiveCloudSnapshot ?? null} tests={tests} />
-            ) : null,
-          },
-          // ✅ 3. LIMITEURS — Facteurs limitants avec explications pédagogiques
-          {
-            id: "limiteurs-section",
-            render: () => dashDiagnostic ? (
-              <LimiteursSection diagnostic={dashDiagnostic} />
             ) : null,
           },
           // ✅ 4. LEVIERS — Actions concrètes avec explications + CTA Plan IA

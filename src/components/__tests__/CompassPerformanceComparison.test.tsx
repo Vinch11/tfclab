@@ -18,7 +18,7 @@ describe('Compass goal interaction', () => {
     expect(first).toHaveTextContent('Profil glycolytique (VLamax)');
     expect(first).toHaveTextContent('Hypothèse à vérifier');
     fireEvent.click(screen.getByText('Voir les écarts chiffrés'));
-    const rows = screen.getByRole('list', { name: 'Écarts classés pour le coach' }).querySelectorAll('li');
+    const rows = screen.getByRole('list', { name: 'Mesures qui expliquent les écarts' }).querySelectorAll('li');
     expect(rows).toHaveLength(2);
     expect(rows[0]).toHaveTextContent('VLamax · écart au repère +40 %');
     expect(rows[0]).toHaveTextContent('Hypothèse');
@@ -150,4 +150,19 @@ it('keeps a strong measured glycolytic priority first with an isolated VMA gap b
   expect(rows[0]).toHaveTextContent('0,78 mmol/L/s');
   expect(rows[1]).toHaveTextContent('VMA');
   expect(screen.queryByText('Deux facteurs à départager')).toBeNull();
+});
+
+it('keeps a near-target FTP out of the Ironman hierarchy and links the running TTE to its own protocol', () => {
+  render(<CoachingCompassCard input={{ ...input, objectif: 'IM', ambition: 'competitor', sportFocus: 'triathlon',
+    athleteAge: 52, performanceGoal: { minutes: 750 }, ftp: 290, poids: 80, vo2max: 52,
+    limiterResult: null, tteEffectifRun: { tte_min: 40, source: 'observed', confidence: .9 },
+    tteEffectif: { tte_min: 0, source: 'unknown', confidence: 0 },
+    vlamaxEffectif: { value: null, source: 'unknown', confidence: 0 },
+  }} />);
+  const ranking = screen.getByRole('list', { name: 'Facteurs pour l’objectif' });
+  expect(within(ranking).getAllByRole('listitem')).toHaveLength(1);
+  expect(within(ranking).getByRole('img', { name: /TTE.*40 min.*52 min/ })).toBeVisible();
+  expect(ranking).toHaveTextContent('12 min sous le repère');
+  expect(screen.getByText('Objectif · 12 h 30')).toBeVisible();
+  expect(screen.getByRole('link', {name: 'Voir le protocole'})).toHaveAttribute('href', '/diagnostic/tests?module=hold-run');
 });
