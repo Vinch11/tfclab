@@ -666,7 +666,7 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
           </div>
         </CardHeader>
         <CardContent>
-          <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
+          <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} presentation={compass.presentation} />
         </CardContent>
       </Card>
     );
@@ -717,7 +717,7 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
       </CardHeader>
 
       <CardContent className="pt-0 px-3 sm:px-6">
-        <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} />
+        <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} onSave={onSavePerformanceGoal} presentation={compass.presentation} />
         <section className="my-3 rounded-2xl border bg-card p-3"><h3 className="font-semibold">Profil physiologique du bilan</h3>{disciplineAxes ? <div data-testid="triathlon-compasses">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 print:grid-cols-2">
                     {(['bike', 'run'] as const).map(sport => <section key={sport} className="min-w-0" data-testid={`compass-${sport}`}>
@@ -794,7 +794,7 @@ export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode: i
               <div className="mt-4 border-t border-border pt-3" data-testid="compass-priorities">
                 <h3 className="text-sm font-semibold">{disciplineAxes ? 'Priorités du diagnostic utilisé pour le plan — inchangées' : 'Priorités du diagnostic'}</h3>
                 <p className="mt-1 text-xs">{limiter.icon} {limiter.label}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{presentation?.priorityMetrics.join(" → ") || "Aucune priorité étayée disponible"}</p>
+                {!!presentation?.priorityMetrics.length && <p className="mt-1 text-xs text-muted-foreground">{presentation.priorityMetrics.join(" → ")}</p>}
                 {coachPolicy && <p className="mt-2 text-xs" data-testid="compass-coach-order">Ordre coach enregistré pour le plan : {coachPolicy.limiterOrder.join(" → ")}</p>}
                 {presentation?.priorityMetrics.includes("Durabilité") && <p className="mt-2 text-xs text-muted-foreground">Durabilité : priorité du moteur conservée ; sa preuve après effort prolongé reste à confirmer.</p>}
                 {presentation?.wprimeReview && <p className="mt-2 text-xs text-warning">W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>}

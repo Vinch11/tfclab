@@ -25,7 +25,7 @@ export function CompassCoachReading({ input, compass, coachOrder }: {
     <div>
       <h3 className="flex items-center gap-2 text-base font-semibold"><Target className="h-4 w-4 text-primary" />Priorités de travail</h3>
       <p className="mt-2 text-sm">{compass.limiter.icon} {compass.limiter.label}</p>
-      <p className="mt-1 text-sm text-muted-foreground">{presentation?.priorityMetrics.join(' → ') || 'Aucune priorité étayée disponible'}</p>
+      {!!presentation?.priorityMetrics.length && <p className="mt-1 text-sm text-muted-foreground">{presentation.priorityMetrics.join(' → ')}</p>}
       {coachOrder && <p className="mt-2 text-sm">Ordre coach enregistré pour le plan : {coachOrder.join(' → ')}</p>}
       <p className="mt-2 text-sm text-muted-foreground">Ces priorités sont celles du diagnostic utilisé pour le plan. Un écart sur le graphique n’est pas automatiquement une priorité de séance. VO₂max et VMA partagent un stimulus aérobie, sans addition automatique des séances.</p>
     </div>
