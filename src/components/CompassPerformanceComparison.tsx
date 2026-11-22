@@ -77,7 +77,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation, goal
       {onSave && <button type="button" disabled={!draft || busy} onClick={save} className="border rounded px-3 py-2 text-sm disabled:opacity-50">{busy ? 'Enregistrement…' : 'Enregistrer l’objectif'}</button>}
     </div>
     {message && <p role="status" className="text-sm">{message}</p>}
-    {!draft ? <p className="text-sm">Préciser un chrono valide pour quantifier l’écart. En triathlon, la somme des splits ne peut pas dépasser le temps total. « Compétiteur » seul ne définit pas une exigence mesurable.</p> : <p className="text-sm">Scénario : {draft.minutes} min au total{draft.runMinutes ? `, dont ${draft.runMinutes} min en course à pied` : ''}.</p>}
+    {!draft ? <p className="text-sm">{minutes || run || Object.values(extras).some(Boolean) ? 'Vérifiez le temps total et les valeurs saisies. En triathlon, la somme des splits doit tenir dans le temps total.' : 'Le Compass compare déjà le bilan aux repères disponibles pour l’épreuve. Un chrono personnel ajoute une comparaison à l’allure visée.'}</p> : <p className="text-sm">Scénario : {draft.minutes} min au total{draft.runMinutes ? `, dont ${draft.runMinutes} min en course à pied` : ''}.</p>}
     {draft && !result.distance && !demands && <p className="text-sm">Distance non couverte : aucune référence d’une autre épreuve n’est appliquée.</p>}
     {draft && result.distance?.tri && !result.speed && <p className="text-sm">Renseigner le split course pour comparer l’allure. Le temps total ne suffit pas à déduire une FTP, une VMA ou une CSS requise.</p>}
     {pace != null && <div className="text-sm space-y-1">
@@ -103,7 +103,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation, goal
       <p>{result.vo2Difference == null ? 'VO₂max de l’athlète non renseigné.' : `VO₂max renseigné : ${input.vo2max} ; écart à la moyenne : ${result.vo2Difference > 0 ? '+' : ''}${result.vo2Difference.toFixed(1)} ml/kg/min. Comparabilité du sport et du protocole à vérifier.`}</p>
       {result.oxygenDemand && <p>Modèle de sensibilité : à cette allure, avec le coût de course moyen ± un écart-type de cette cohorte, la demande en oxygène serait de {result.oxygenDemand[0].toFixed(1)} à {result.oxygenDemand[1].toFixed(1)} ml/kg/min. Ce n’est ni un VO₂max requis ni un intervalle prédictif individuel.</p>}
       <p className="text-xs text-muted-foreground">Référence {result.distance?.km === 42.195 ? 'mixte, sexes regroupés' : 'masculine'}, non ajustée à la catégorie d’âge. Ces dispersions ne sont ni des normes ni des percentiles. Un écart à la moyenne ne désigne pas à lui seul un limiteur.</p>
-    </div> : <p className="text-sm">Aucune cohorte chiffrée applicable à ce chrono et à cette épreuve dans le référentiel vérifié. Aucun profil idéal ni percentile n’est inventé.</p>}
+    </div> : draft && <p className="text-sm">Aucune cohorte chiffrée applicable à ce chrono et à cette épreuve dans le référentiel vérifié. Aucun profil idéal ni percentile n’est inventé.</p>}
     <div className="text-sm space-y-1">
       <p><strong>Éléments nécessaires pour conclure</strong></p>
       <p>Durabilité : comparer une capacité à frais et après fatigue avec un protocole documenté. Une bonne VMA ou FTP fraîche ne suffit pas.</p>

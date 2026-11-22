@@ -9,7 +9,9 @@ import { compassEvidence, COMPASS_REFERENCE_VERSION } from '@/lib/coachingCompas
 import { cn } from '@/lib/utils';
 import { CompassProfileRadar } from './CompassProfileRadar';
 import { CompassDurability } from './CompassDurability';
-import { comparePerformance, PERFORMANCE_SOURCES, readPerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
+import { comparePerformance, goalDistance, PERFORMANCE_SOURCES, readPerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
+import { publishedRaceStatistics } from '@/lib/coachingCompass/raceStatistics';
+import { formatTime } from '@/lib/raceAnalysis';
 import { fieldIntensity } from '@/lib/diagnostic/fieldHold';
 import { getObjectifLabel, type ObjectifType } from '@/types/athlete';
 
@@ -29,6 +31,25 @@ const valueLabel = (m: ProfileComparison) => m.observationLabel ?? (m.value == n
 const sourceLabel = (s: string) => s === 'test_labo' ? 'Labo' : s === 'observed' ? 'Terrain déclaré' : s === 'records' ? 'Estimation par chronos' : s === 'shared' ? 'Bilan commun' : s === 'snapshot' || s === 'unknown' ? 'Origine non documentée' : s === 'test' || s === 'test_terrain' ? 'Terrain à confirmer' : 'Estimation';
 const statusLabel = (m: ProfileComparison) => ({ below: 'Sous la cible', inside: 'Dans la cible', above: m.reference?.low === m.reference?.high ? 'Au-dessus de la cible' : 'Au-dessus de la plage', unavailable: 'Référence non établie', missing: 'Données insuffisantes' })[m.status];
 
+function RaceStatisticsSummary({ input }: { input: CoachingCompassInput }) {
+  const stats = publishedRaceStatistics(input);
+  if (!stats) return null;
+  const observation = goalDistance(input.objectif)?.tri ? null : input.performanceObservation;
+  const observed = observation && Number.isFinite(observation.seconds) && observation.seconds > 0 ? observation : null;
+  return <details className="rounded-lg border px-3 text-sm">
+    <summary className="cursor-pointer py-3 font-medium">Résultats publiés · {stats.category}{stats.scenario && <> · {stats.scenario.label} {formatTime(Math.round(stats.scenario.minutes * 60))}</>}</summary>
+    <div className="space-y-2 pb-3">
+      <p>{stats.population} <a className="underline" href={stats.url}>Voir le tableau publié</a></p>
+      {stats.rows.map(row => {
+        const seconds = Math.round(row.minutes * 60);
+        const delta = observed ? observed.seconds - seconds : null;
+        return <p key={row.label}>{row.label} · <strong>{formatTime(seconds)}</strong>{delta != null && <> · {delta === 0 ? 'Même temps' : formatTime(Math.abs(delta)) + (delta > 0 ? ' de plus' : ' de moins')} sur le résultat enregistré{observed?.date ? ' du ' + observed.date : ''}</>}</p>;
+      })}
+      <p className="text-xs text-muted-foreground">{stats.scenario ? 'TFCL propose ce rang comme point de comparaison pour l’ambition choisie.' : 'Ces résultats situent le niveau du peloton pour cette catégorie.'} Un podium ou une qualification dépend du classement de l’épreuve visée.</p>
+    </div>
+  </details>;
+}
+
 export function CompassProfileComparison({ input, compass, athleteName, detailsOnly = false }: { input: CoachingCompassInput; compass: TFCLCoachingCompassResult; athleteName?: string; detailsOnly?: boolean }) {
   const groups = buildProfileComparisons(input, compass);
   const [selectedSport, setSelectedSport] = useState<'run' | 'bike'>(groups[0]?.sport ?? 'run');
@@ -47,6 +68,7 @@ export function CompassProfileComparison({ input, compass, athleteName, detailsO
       <div><h3 className="text-lg font-semibold">{athleteName ? `${athleteName} · Profil physiologique` : 'Profil physiologique'}</h3><p className="text-sm text-muted-foreground">{getObjectifLabel(input.objectif as ObjectifType) || input.objectif} · {ambition}{goal && ' · ' + goalTime}</p></div>
       {input.snapshotDate && <p className="text-xs text-muted-foreground">Bilan · {input.snapshotDate.slice(0, 10).split('-').reverse().join('/')}</p>}
     </div>
+    <RaceStatisticsSummary input={input} />
     {groups.length > 1 && <div className="flex gap-2 md:hidden" aria-label="Discipline">{groups.map(g => <Button key={g.sport} variant={selectedSport === g.sport ? 'secondary' : 'ghost'} className="min-h-11 flex-1" onClick={() => setSelectedSport(g.sport)} aria-pressed={selectedSport === g.sport}>{g.sport === 'bike' ? <Bike className="mr-2 h-4 w-4" /> : <Footprints className="mr-2 h-4 w-4" />}{g.sport === 'bike' ? 'Vélo' : 'Course'}</Button>)}</div>}
     <div className={cn('grid gap-8', groups.length > 1 && 'md:grid-cols-2')}>
       {groups.map(g => <section key={g.sport} aria-label={`Profil ${g.sport === 'bike' ? 'vélo' : 'course'}`} className={cn('min-w-0', selectedSport !== g.sport && 'hidden md:block')}>

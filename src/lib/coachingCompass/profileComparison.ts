@@ -2,7 +2,8 @@ import { AMBITION_DEFINITIONS } from "@/types/ambitionLevel";
 import { getVLamaxRange, isKnownPhysiologicalObjective, normalizeObjective } from '@/lib/physiologicalTargets';
 import type { AmbitionLevel } from '@/types/ambitionLevel';
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from './types';
-import { comparePerformance, readPerformanceGoal } from './performanceComparison';
+import { comparePerformance, goalDistance, publishedRunningGroup, readPerformanceGoal } from './performanceComparison';
+import { publishedRaceStatistics } from './raceStatistics';
 import { getVmaReference } from './vmaReference';
 import { compassDisplaySport } from './sportPresentation';
 import { contextualTriathlonCohort } from './referenceRegistry';
@@ -60,16 +61,32 @@ export function buildProfileComparisons(input: CoachingCompassInput, compass: TF
   const view = compass.presentation;
   if (!view) return [];
   const sports: Array<'run' | 'bike'> = view.sport === 'triathlon' ? ['bike', 'run'] : [view.sport];
+  const goal = readPerformanceGoal(input.performanceGoal);
+  const performance = comparePerformance(input, goal);
+  const stats = publishedRaceStatistics(input);
+  const scenario = goal ? null : stats?.scenario;
+  const { cohort, cohortSource } = scenario ? publishedRunningGroup(input, scenario.minutes) : performance;
   return sports.map(sport => {
     const axes = view.disciplineAxes?.[sport] ?? (sport === 'run' ? view.runningDiagnostic?.axes : undefined) ?? view.axes;
-    const goal = readPerformanceGoal(input.performanceGoal);
-    const performance = comparePerformance(input, goal);
-    const cohort = sport === 'run' ? performance.cohort : null;
     const metrics = axes.map(axis => {
-      const reference = axis.key === 'vo2max' && cohort ? {
-        kind: 'cohort' as const, evidence: 'observed_mean' as const, low: cohort.vo2, high: cohort.vo2,
-        note: performance.cohortSource + ' · ' + cohort.label + ' · moyenne ± écart-type ' + cohort.vo2 + ' ± ' + cohort.vo2Sd + ' ml/kg/min',
-      } : undefined;
+      if (sport === 'run' && axis.key === 'vo2max' && cohort) {
+        const population = performance.distance?.km === 42.195 ? 'Groupe mixte, sans ajustement par âge.' : 'Hommes ayant déjà terminé un marathon, sans ajustement par âge.';
+        const origin = scenario ? `Comparaison indirecte. TFCL retient « ${scenario.label} » pour cette ambition (${stats?.category}). Les deux études suivent des athlètes différents.` : 'Groupe correspondant au chrono personnel.';
+        return compareProfileAxis(axis, sport, input, {
+          kind: 'cohort', evidence: 'observed_mean', low: cohort.vo2, high: cohort.vo2,
+          note: `${origin} ${cohortSource} · ${cohort.label} · VO₂max sur tapis (moyenne ± écart-type) ${cohort.vo2} ± ${cohort.vo2Sd} ml/kg/min. ${population} Comparer les protocoles. Cette moyenne ne définit pas un seuil de réussite.`,
+        });
+      }
+      if (axis.key === 'vma' && input.ambition === 'competitor' && input.athleteAge != null && input.athleteAge >= 26 && input.athleteAge <= 60) {
+        const triathletes = contextualCohortFor(sport, input.objectif);
+        if (triathletes) {
+          const { mean, sd } = triathletes.metrics.vma;
+          return compareProfileAxis(axis, sport, input, {
+            kind: 'cohort', evidence: 'observed_mean', low: mean, high: mean,
+            note: `Assis et al., 2024 · 13 amateurs compétitifs préparant un Ironman ou un 70.3. Vitesse maximale aérobie sur tapis à frais, ${mean} ± ${sd} km/h. Comparaison indicative selon le protocole VMA. Classements inconnus.`,
+          });
+        }
+      }
       if (axis.key === 'vma' && axis.target == null && sport === 'run') {
         const scenario = getVmaReference(input.objectif, input.ambition);
         if (scenario) return compareProfileAxis(axis, sport, input, {
@@ -77,7 +94,7 @@ export function buildProfileComparisons(input: CoachingCompassInput, compass: TF
           note: scenario.context + ' · estimation à partir de la cohorte de Gordon et al. (2017). Le graphique utilise le bas du scénario.',
         });
       }
-      return compareProfileAxis(axis, sport, input, reference);
+      return compareProfileAxis(axis, sport, input);
     });
     if (sport === 'run' && performance.speed && performance.distance && !performance.distance.tri) {
       const observed = positive(input.performanceObservation?.seconds);
@@ -95,5 +112,6 @@ export function buildProfileComparisons(input: CoachingCompassInput, compass: TF
 
 export function contextualCohortFor(sport: 'run' | 'bike', objective: string) {
   // Explicitly limited to triathlon contexts; not matched to an ambition or a field protocol.
-  return sport === 'run' && /ironman|\bim\b|70[.,]3|half/i.test(objective) ? contextualTriathlonCohort : null;
+  const distance = goalDistance(objective);
+  return sport === 'run' && distance?.tri && distance.km >= 21 ? contextualTriathlonCohort : null;
 }
