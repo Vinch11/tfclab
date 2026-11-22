@@ -137,7 +137,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
         {alert}
         {profileFirst ? <>
           {fatigueWarning && <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">{fatigueWarning}</p>}
-          <div className="min-w-0 rounded-3xl border bg-card p-4 sm:p-6">{profile}</div>
+          <div className="ui-card min-w-0 rounded-3xl border bg-card p-4 sm:p-7">{profile}</div>
           {factors}
           <DashboardLimiters flow={flow} objective={getObjectifLabel((athlete.goal ?? "IM") as ObjectifType)} ambition={getAmbitionDefinition(ambition).label} />
           <div className="flex flex-wrap gap-2">

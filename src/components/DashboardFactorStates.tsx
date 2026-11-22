@@ -48,15 +48,15 @@ function demandRow(metrics: ProfileComparison[], objective: string): Row | null 
 }
 
 const TIER = {
-  measured: { label: "Mesuré", hint: "Cohorte publiée du même niveau" },
-  derived: { label: "Dérivé", hint: "Calculé à partir de cohortes publiées" },
-  cohort: { label: "Cohorte", hint: "Moyenne publiée, sans seuil de réussite" },
-  coaching: { label: "Repère de coaching", hint: "Valeur TFCL sans cohorte publiée" },
+  measured: { label: "Mesuré", hint: "Cohorte publiée du même niveau", cls: "bg-[var(--mint)] text-accent" },
+  derived: { label: "Dérivé", hint: "Calculé à partir de cohortes publiées", cls: "bg-[var(--lavender)] text-primary" },
+  cohort: { label: "Cohorte", hint: "Moyenne publiée, sans seuil de réussite", cls: "bg-[var(--mint)] text-accent" },
+  coaching: { label: "Repère de coaching", hint: "Valeur TFCL sans cohorte publiée", cls: "bg-muted text-muted-foreground" },
 } as const;
 const STATE = {
-  below: { text: "Sous la zone", cls: "bg-warning/15 text-warning" },
-  inside: { text: "Dans la zone", cls: "bg-primary/15 text-primary" },
-  above: { text: "Au-dessus de la zone", cls: "bg-muted text-foreground" },
+  below: { text: "Sous la zone", cls: "bg-[#fff0ce] text-[#3d2e13]" },
+  inside: { text: "Dans la zone", cls: "bg-[var(--mint)] text-accent" },
+  above: { text: "Au-dessus de la zone", cls: "bg-[var(--lavender)] text-primary" },
   missing: { text: "À mesurer", cls: "bg-muted text-muted-foreground" },
   none: { text: "Sans repère", cls: "bg-muted text-muted-foreground" },
 } as const;
@@ -82,25 +82,27 @@ function FactorRow({ r }: { r: Row }) {
   const state = { ...STATE[r.state], text: override ?? STATE[r.state].text };
   const links = r.evidence.map(id => compassEvidence.find(e => e.id === id)).filter((e): e is NonNullable<typeof e> => !!e);
   const range = r.zone && r.zone.low !== r.zone.high ? { min: r.zone.low, max: r.zone.high } : undefined;
+  const missing = r.observation == null && r.value == null;
+  const zoneText = r.zone ? (r.zone.low === r.zone.high ? fmt(r.zone.low) : fmt(r.zone.low) + "–" + fmt(r.zone.high)) : null;
   return (
-    <li className="space-y-2 border-b py-3 last:border-b-0">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold">{r.label}</h4>
-        <span className={"rounded-full px-2.5 py-1 text-xs font-medium " + state.cls}>{state.text}</span>
+    <li className="compass-step space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <h4 className="text-sm font-semibold leading-snug">{r.label}</h4>
+        <span className={"ui-badge shrink-0 px-2.5 py-1 text-xs " + state.cls}>{state.text}</span>
       </div>
-      <p className="text-sm tabular-nums">
-        <span className="text-muted-foreground">Athlète </span>
-        <strong>{r.observation ?? (r.value != null ? fmt(r.value) + " " + r.unit : "non renseigné")}</strong>
-        {r.zone && <>
-          <span className="text-muted-foreground"> · Idéal </span>
-          <strong>{r.zone.low === r.zone.high ? fmt(r.zone.low) : fmt(r.zone.low) + "–" + fmt(r.zone.high)} {r.unit}</strong>
-        </>}
-      </p>
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <p className={missing ? "text-base font-medium text-muted-foreground" : "text-3xl font-semibold leading-none tracking-[-0.05em] tabular-nums"}>
+          {r.observation ?? (r.value != null ? fmt(r.value) : "non renseigné")}
+          {!missing && <span className="ml-1 text-sm font-medium tracking-normal text-muted-foreground">{r.unit}</span>}
+        </p>
+        {zoneText && <p className="text-sm tabular-nums text-muted-foreground">Idéal <strong className="font-semibold text-foreground">{zoneText} {r.unit}</strong></p>}
+      </div>
       {r.value != null && r.zone && r.zone.low > 0 && (
-        <ReferenceGauge value={r.value} target={r.zone.point ?? (r.zone.low + r.zone.high) / 2} range={range} unit={r.unit} name={r.label} />
+        <ReferenceGauge value={r.value} target={r.zone.point ?? (r.zone.low + r.zone.high) / 2} range={range} unit={r.unit} name={r.label} showLabels={false} />
       )}
-      <p className="text-xs text-muted-foreground">
-        <span className="font-medium text-foreground" title={tier.hint}>{tier.label}</span> · {tier.hint}
+      <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className={"ui-badge px-2 py-0.5 " + tier.cls}>{tier.label}</span>
+        <span>{tier.hint}</span>
       </p>
       {(r.basis || r.engineNote || links.length > 0) && (
         <details className="text-xs text-muted-foreground">
@@ -130,27 +132,29 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
   }).filter(s => s.rows.length > 0);
   if (!sections.length) return null;
   return (
-    <section aria-labelledby="dashboard-factors" className="min-w-0 space-y-4 rounded-3xl border bg-card p-5 sm:p-6">
+    <section aria-labelledby="dashboard-factors" className="ui-card min-w-0 space-y-5 rounded-3xl border bg-card p-5 sm:p-7">
       <div>
-        <h2 id="dashboard-factors" className="text-lg font-semibold tracking-tight">État des facteurs face à l’idéal</h2>
+        <h2 id="dashboard-factors" className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">État des facteurs face à l’idéal</h2>
         <p className="text-sm text-muted-foreground">Objectif {objective} · ambition {ambition}</p>
       </div>
       <div className={"grid gap-6 " + (sections.length > 1 ? "md:grid-cols-2" : "")}>
         {sections.map(s => (
           <div key={s.sport} className="min-w-0">
-            <h3 className="mb-1 flex items-center gap-2 text-base font-semibold">
+            <h3 className="mb-3 flex items-center gap-2 text-base font-semibold">
               {s.sport === "bike" ? <Bike aria-hidden className="size-5 text-primary" /> : <Footprints aria-hidden className="size-5 text-primary" />}
               {s.sport === "bike" ? "Vélo" : "Course à pied"}
             </h3>
-            <ul>{s.rows.map(r => <FactorRow key={r.key} r={r} />)}</ul>
+            <ul className="space-y-3">{s.rows.map(r => <FactorRow key={r.key} r={r} />)}</ul>
           </div>
         ))}
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">
+      <details className="text-xs leading-relaxed text-muted-foreground">
+        <summary className="cursor-pointer py-1 font-medium text-foreground">Comment lire ces repères</summary>
         « Mesuré » : moyenne d’une cohorte publiée du niveau correspondant. « Dérivé » : calculé à partir de cohortes publiées par une règle écrite, faute de cohorte directe.
-        « Repère de coaching » : valeur TFCL sans cohorte publiée. Natation : aucune cohorte lue, aucun idéal affiché. La zone est la moyenne ± ½ écart-type : une largeur de lecture, pas un seuil de réussite.
+        « Repère de coaching » : valeur TFCL sans cohorte publiée. Natation : aucune cohorte lue, aucun idéal affiché.
+        La zone est la moyenne ± ½ écart-type : une largeur de lecture, pas un seuil de réussite.
         Ces repères ne modifient ni le classement des limiteurs ni les plans.
-      </p>
+      </details>
     </section>
   );
 }
