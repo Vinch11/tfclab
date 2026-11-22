@@ -1,0 +1,99 @@
+/* Section art direction shares the editorial landscape and keeps native
+   sport colours for measurements, alerts and training zones. */
+@media screen {
+  .bevel [data-bevel-section] {
+    --section-wash: #f1edf8;
+    --section-ink: #3c324d;
+    --section-photo: url('../assets/report-running-path.jpg');
+    --section-cover: linear-gradient(100deg, var(--section-wash) 16%, color-mix(in srgb, var(--section-wash) 96%, transparent) 57%, color-mix(in srgb, var(--section-wash) 78%, transparent)), var(--section-photo);
+  }
+
+  .bevel :is([data-bevel-section="diagnostic"], [data-bevel-section="lab"], [data-bevel-section="critical-metrics"], [data-bevel-section="nolio-v2"]) {
+    --section-wash: #e9f2ed;
+    --section-ink: #243f37;
+    --section-photo: url('../assets/report-cycling-road.jpg');
+  }
+
+  .bevel :is([data-bevel-section="race"], [data-bevel-section="simulation"], [data-bevel-section="training-load"], [data-bevel-section="evolution"]) {
+    --section-wash: #f6eee6;
+    --section-ink: #503b2d;
+    --section-photo: url('../assets/report-running-endurance.jpg');
+  }
+
+  /* Independent pages, SidebarLayout and AppLayout all keep their original
+     content width. Only the heading group gets the photograph. */
+  .bevel [data-bevel-section] :is(
+    .hub-heading,
+    .mx-auto > header:first-child:has(> h1),
+    .mx-auto > div:first-child:where(.flex, .text-center):not(header *):has(> h1, > div > h1, > div > div > h1, > div > div > div > h1),
+    .container > div:first-child:has(> h1),
+    header.sticky:has(h1),
+    .workspace-page-toolbar,
+    .auth-canvas .ui-card > .ui-card-header:first-child
+  ),
+  .bevel :is([data-bevel-section="nolio-v2"], [data-bevel-section="onboarding"]) .ui-card:first-child > .ui-card-header:first-child,
+  .bevel [data-bevel-section="mini-rapport"] .mx-auto > div:first-child:has(h1) {
+    background-color: var(--section-wash);
+    background-image: var(--section-cover);
+    background-position: center, center 48%;
+    background-size: cover;
+    color: var(--section-ink);
+    border-color: color-mix(in srgb, var(--section-ink) 14%, white);
+  }
+
+  .bevel [data-bevel-section] .mx-auto > :where(div.flex, header, div):first-child:has(> h1, > div > h1, > div > div > h1, > div > div > div > h1):not(.dashboard-masthead, .workspace-toolbar, .sticky, .ui-card, header *) {
+    border-radius: var(--panel-radius);
+    padding: clamp(.9rem, 2.6vw, 1.8rem);
+    min-width: 0;
+  }
+
+  .bevel [data-bevel-section] :where(.hub-heading, .container > :first-child, .mx-auto > div.flex:first-child) h1 {
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+    letter-spacing: -.045em;
+    line-height: 1.14;
+  }
+
+  .bevel [data-bevel-section] .ui-card-header:first-child {
+    border-start-start-radius: inherit;
+    border-start-end-radius: inherit;
+  }
+
+  .bevel [data-bevel-section] .ui-table thead th {
+    background: color-mix(in srgb, var(--section-wash) 72%, white);
+    color: var(--section-ink);
+    letter-spacing: .015em;
+  }
+  .bevel [data-bevel-section] .ui-table tbody tr:nth-child(even):not(:hover, [data-state="selected"]) {
+    background-color: color-mix(in srgb, var(--section-wash) 22%, transparent);
+  }
+
+  .bevel [data-bevel-section] [role="tablist"] {
+    max-width: 100%;
+    background-color: color-mix(in srgb, var(--section-wash) 72%, white);
+  }
+  .bevel [data-bevel-section] [role="tab"][data-state="active"] {
+    background-color: var(--section-ink);
+    color: white;
+  }
+  .bevel [data-bevel-section] [role="tab"][data-state="active"] svg {
+    color: inherit;
+  }
+  .bevel :is([data-bevel-section="auth"], [data-bevel-section="onboarding"]) .min-h-screen {
+    background-image: linear-gradient(135deg, rgb(249 248 251 / .98) 24%, rgb(242 239 247 / .94) 58%, rgb(230 236 230 / .74)), var(--section-photo);
+    background-size: cover;
+    background-position: center;
+  }
+  .bevel [data-bevel-section="dashboard"] .animate-fade-in > .ui-card:first-child > .ui-card-header:first-child {
+    background: var(--section-cover) center / cover;
+  }
+  .bevel [data-bevel-section] .workspace-tabs button[aria-current="page"] {
+    background: var(--section-ink);
+    color: white;
+  }
+  @media (max-width: 640px) {
+    .bevel [data-bevel-section] .hub-heading { flex-wrap: wrap; }
+    .bevel [data-bevel-section] .hub-heading > div { min-width: 0; max-width: 100%; }
+    .bevel [data-bevel-section] header.sticky:has(h1) { background-position: center, 65% center; }
+  }
+}
