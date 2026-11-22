@@ -2,8 +2,8 @@
    sport colours for measurements, alerts and training zones. */
 @media screen {
   .bevel [data-bevel-section] {
-    --section-wash: #f1edf8;
-    --section-ink: #3c324d;
+    --section-wash: #ebf3fa;
+    --section-ink: #2a4055;
     --section-photo: url('../assets/report-running-path.jpg');
     --section-cover: linear-gradient(100deg, var(--section-wash) 15%, color-mix(in srgb, var(--section-wash) 98%, transparent) 48%, color-mix(in srgb, var(--section-wash) 62%, transparent)), var(--section-photo);
   }
@@ -102,15 +102,15 @@
    and an explicit reading order for the coaching decision and its evidence. */
 @media screen {
   :root.bevel {
-    --background: 42 21% 95%;
+    --background: 207 45% 98%;
     --border: 42 10% 84%;
     --shadow-card: 0 2px 5px -3px #24201c24;
   }
   .bevel .coach-dashboard > header {
     border-radius: 1.5rem;
     overflow: hidden;
-    background-color: #232735;
-    background-image: linear-gradient(90deg,#1b2030eb 5%,#242938b8 52%,#17213250), url('../assets/report-running-path.jpg');
+    background-color: #1e2c3a;
+    background-image: linear-gradient(90deg,#162635eb 5%,#1e2f3eb8 52%,#17213250), url('../assets/report-running-path.jpg');
     background-size: cover;
     background-position: center;
   }
@@ -124,13 +124,13 @@
   .bevel .lab-intro h2 { font-size: clamp(2.35rem, 4.6vw, 4.6rem); letter-spacing: -.065em; line-height: .98; }
   .bevel .coach-dashboard .athlete-context {
     margin: 0; border: 0; border-top: 1px solid #ffffff36;
-    border-radius: 0; background: #181b2ee8; color: white;
+    border-radius: 0; background: #132433e8; color: white;
     padding: .8rem clamp(1rem, 3vw, 2.4rem) 1rem;
   }
-  .bevel .athlete-context .text-muted-foreground {color:#d4d5e0;}
-  .bevel .athlete-context :is(.ui-field,.ui-button) {color:#252335; background:#f4f3f9; border-color:transparent;}
+  .bevel .athlete-context .text-muted-foreground {color:#d0dae4;}
+  .bevel .athlete-context :is(.ui-field,.ui-button) {color:#1e2c3a; background:#f2f6fa; border-color:transparent;}
   .bevel .coach-dashboard .compass-priority {
-    background: linear-gradient(120deg, #302446 2%, #443258 58%, #564765);
+    background: linear-gradient(120deg, #1c364e 2%, #284662 58%, #3d576f);
     border: 0;
     border-radius: 1.5rem;
     padding: clamp(1.2rem, 3vw, 2.25rem);
@@ -143,7 +143,7 @@
   .bevel .dashboard-reference > p {font-size:clamp(1.65rem,2.7vw,2.45rem);line-height:1.1;}
   .bevel .coverage-summary {display:grid; grid-template-columns:3.4rem 1fr; gap:0 .8rem; align-items:center;}
   .bevel .coverage-summary .coverage-wheel {display:block; width:100%; fill:none; stroke:#e3e1d6; stroke-width:5;}
-  .bevel .coverage-wheel circle + circle {stroke:#72588d;}
+  .bevel .coverage-wheel circle + circle {stroke:#49749c;}
   .bevel .coverage-summary > p {margin:0;}
   .bevel .coverage-summary progress {position:absolute; width:1px;height:1px;clip-path:inset(50%);}
   .bevel .dashboard-links {background:transparent; border:0; padding:0; gap:.55rem;}
@@ -154,21 +154,21 @@
     --foreground: 0 0% 100%; --muted-foreground: 40 14% 89%;
     color:white; border:0; border-radius:1.4rem;
     padding:clamp(1.2rem,3.4vw,2.8rem);
-    background:linear-gradient(96deg,#1b202df5 5%,#272b38dd 45%,#20283755), var(--section-photo) center 53% / cover;
+    background:linear-gradient(96deg,#162432f5 5%,#22303ddd 45%,#20283755), var(--section-photo) center 53% / cover;
   }
   .bevel [data-bevel-section] .hub-heading h1 {font-size:clamp(2rem,4.1vw,4.2rem); line-height:1.04;}
-  .bevel .hub-heading :is(.ui-field,.ui-button) {--foreground:248 22% 15%;color:hsl(var(--foreground));background:#f9f8fc;}
+  .bevel .hub-heading :is(.ui-field,.ui-button) {--foreground:209 22% 15%;color:hsl(var(--foreground));background:#f7fafd;}
   .bevel .hub-heading svg.text-primary {color:#c8f2d5;}
   .bevel [data-bevel-section] .diagnostic-tier > div:first-child {padding:.7rem 0;border-top:2px solid #37483e;}
   .bevel .diagnostic-tier h2 {font-size:clamp(1.2rem,2vw,1.65rem);letter-spacing:-.04em;}
   .bevel .diagnostic-tier .hub-card {border-radius:1rem;border:0;border-bottom:1px solid hsl(var(--border));box-shadow:none;}
   .bevel .planning-destinations [data-destination="ai-plan"] {
-    color:#fff; --muted-foreground:252 25% 90%;
-    background:linear-gradient(20deg,#252236fa 6%,#30283bd4 45%,#25253840),url('../assets/report-cycling-endurance.jpg') center / cover;
+    color:#fff; --muted-foreground:209 25% 90%;
+    background:linear-gradient(20deg,#1c2d3cfa 6%,#223241d4 45%,#1f2f3e40),url('../assets/report-cycling-endurance.jpg') center / cover;
     display:flex;flex-direction:column;justify-content:end; min-height:12rem;
   }
   .bevel .planning-destinations [data-destination="ai-plan"] .ui-card-title {color:white;font-size:clamp(1.5rem,2.6vw,2.3rem);}
-  .bevel .planning-destinations [data-destination="ai-plan"] .hub-card-icon {background:#e9e3f4;}
+  .bevel .planning-destinations [data-destination="ai-plan"] .hub-card-icon {background:#e0ecf7;}
   @media (min-width:1100px) {
     .bevel .diagnostic-tier {display:grid;grid-template-columns:minmax(9rem, .7fr) minmax(0,2.4fr);gap:1.5rem;}
     .bevel .diagnostic-tier > .grid {margin:0;grid-template-columns:repeat(2,minmax(0,1fr));}
@@ -178,12 +178,12 @@
   @media (max-width:767px) {
     .bevel .workspace-dock {
       bottom:calc(.35rem + env(safe-area-inset-bottom,0px)); left:.5rem;right:.5rem;
-      max-width:29rem;margin:auto;padding:.25rem;border:1px solid #474453;
-      background:#262533;box-shadow:0 5px 24px #2219293b;border-radius:1.25rem;
+      max-width:29rem;margin:auto;padding:.25rem;border:1px solid #3d4c5a;
+      background:#202c38;box-shadow:0 5px 24px #15212d3b;border-radius:1.25rem;
     }
     .bevel .workspace-dock > .grid {grid-template-columns:repeat(5,minmax(0,1fr));height:3.25rem;padding:0;gap:2px;}
     .bevel .workspace-dock button[data-secondary] {display:none;}
-    .bevel .workspace-dock button {color:#eeecf4;border-radius:1rem;gap:2px;}
+    .bevel .workspace-dock button {color:#eaf0f6;border-radius:1rem;gap:2px;}
     .bevel .workspace-dock button > span:not(.absolute) {font-size:.64rem;color:inherit;}
     .bevel .workspace-dock button:is([aria-current="page"],[data-secondary-current],[aria-expanded="true"]) {
       color:#243328;background:#d7f5c9;
@@ -192,7 +192,7 @@
     .bevel .workspace-more {left:.5rem;right:.5rem;bottom:calc(4.35rem + env(safe-area-inset-bottom,0px));max-width:29rem;margin:auto;}
     .bevel .workspace-more > div {border-radius:1.25rem;padding:.4rem;}
     .bevel .dock-destinations {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.25rem;margin-bottom:.4rem;}
-    .bevel .dock-destinations button {display:grid;place-items:center;align-content:center;gap:.25rem;min-height:3.8rem;background:#f0edf5;border-radius:.85rem;font-size:.75rem;}
+    .bevel .dock-destinations button {display:grid;place-items:center;align-content:center;gap:.25rem;min-height:3.8rem;background:#ebf1f7;border-radius:.85rem;font-size:.75rem;}
     .bevel .dock-destinations button[aria-current] {background:#d9edda;}
     .bevel .dock-destinations svg {width:1.2rem;height:1.2rem;}
     .bevel .coach-dashboard .dashboard-masthead {align-items:start;flex-direction:column;justify-content:end;gap:.5rem;}
@@ -203,17 +203,17 @@
 @media screen {
   .bevel [data-sidebar="menu-button"][data-active="true"] {background:#d7f5c9;color:#26352c;}
   .bevel [data-sidebar="menu-button"][data-active="true"] svg {color:inherit;}
-  .bevel .directory-list .directory-avatar {background:#333042;color:#e2f3d7;border-radius:50%;}
+  .bevel .directory-list .directory-avatar {background:#2a3a48;color:#e2f3d7;border-radius:50%;}
   .bevel .directory-list .directory-row:has([data-state="checked"]) {background:#eff5e9;border-color:#94af86;}
   .bevel .lab-reading figure {background:transparent; padding:.25rem 0;}
   .bevel .lab-reading figure .h-2 {height:.65rem;}
   .bevel .lab-reading figure .bg-primary {background:#3a715e;}
   .bevel .compass-sheet .compass-radar-stage {
     border-radius:1.25rem;
-    background:radial-gradient(ellipse at 50% 38%,#47405a,#272536 72%);
+    background:radial-gradient(ellipse at 50% 38%,#374e63,#202e3b 72%);
   }
-  .bevel .compass-decisions .compass-step {border-inline-start:3px solid #aaa1c4;border-start-start-radius:0;}
-  .bevel .compass-decisions .compass-step:focus-within {border-inline-start-color:#574b89;}
+  .bevel .compass-decisions .compass-step {border-inline-start:3px solid #97b3ce;border-start-start-radius:0;}
+  .bevel .compass-decisions .compass-step:focus-within {border-inline-start-color:#3c6c98;}
   .bevel .ui-modal > :first-child:has(> h2) {
     padding-block-end:1rem;border-bottom:1px solid hsl(var(--border));
   }
@@ -226,7 +226,7 @@
 @media screen {
   .bevel [data-bevel-section] .coach-dashboard.mx-auto > header:first-child {
     padding:0;
-    background-image:linear-gradient(90deg,#191f30d9,#191f3080 58%,#191f3033),url('../assets/report-running-path.jpg');
+    background-image:linear-gradient(90deg,#142535d9,#14253580 58%,#14253533),url('../assets/report-running-path.jpg');
     background-position:center 58%;
   }
   @container dashboard (min-width: 52rem) {
@@ -243,5 +243,38 @@
     .bevel .coach-dashboard:not(:has(.compass-sheet)) .dashboard-masthead {min-height:6.2rem;flex-flow:row wrap;align-items:center;justify-content:space-between;padding:1rem;}
     .bevel .coach-dashboard .dashboard-masthead h1 {max-width:10ch;font-size:clamp(1.95rem,8vw,2.7rem);}
     .bevel .coach-dashboard .athlete-context {padding:.65rem .9rem .8rem;gap:.35rem .6rem;}
+  }
+}
+
+@media screen {
+  :root.bevel {
+    --primary: 210 77% 37%;
+    --sidebar-background: 207 42% 97%;
+    --sidebar-foreground: 212 43% 23%;
+    --sidebar-accent: 208 52% 91%;
+    --sidebar-accent-foreground: 212 49% 22%;
+    --sidebar-border: 207 28% 84%;
+    --sidebar-primary: 210 77% 37%;
+  }
+  .bevel [data-sidebar="sidebar"] { background: linear-gradient(155deg,#fff,#edf5fb); }
+  .bevel [data-sidebar="menu-button"][data-active="true"],
+  .bevel .workspace-dock button:is([aria-current="page"],[data-secondary-current],[aria-expanded="true"]) {
+    color:#104778; background:#d4eaff;
+  }
+  .bevel .coach-dashboard .athlete-context {background:#edf6fcf5;color:#153854;}
+  .bevel .athlete-context .text-muted-foreground {color:#435e73;}
+  .bevel .athlete-context :is(.ui-field,.ui-button) {color:#183750;background:white;border-color:#bccfdf;}
+  .bevel .coach-dashboard .compass-priority {
+    background:linear-gradient(120deg,#e0efff,#f3f9fe);
+    color:#113659;border:1px solid #bbd7eb;
+  }
+  .bevel .compass-priority .priority-label,.bevel .priority-detail {color:#315674;}
+  .bevel .compass-priority .priority-label svg {background:#c1dff8;color:#154f80;}
+  .bevel .compass-priority .ui-button.bg-primary {background:#1760a2;color:white;}
+  .bevel .compass-priority .ui-button.border {background:white;color:#194d78;border-color:#abc8df;}
+  .bevel .coverage-wheel circle + circle {stroke:#2475b8;}
+  @media (max-width:767px) {
+    .bevel .workspace-dock {background:#f9fcff;border-color:#bfd0df;box-shadow:0 4px 18px #203e5b26;}
+    .bevel .workspace-dock button {color:#36536c;}
   }
 }
