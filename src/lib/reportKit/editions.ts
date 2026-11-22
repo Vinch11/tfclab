@@ -12,6 +12,15 @@ export function editionCover(o: {
   label: string; name: string; title: string; intro: string; sport?: 'bike' | 'run';
   meta: [string, string][]; logo?: string | null;
 }): string {
+  if (o.label === 'Rapport coach' || o.label === 'Rapport athlète') {
+    const coach = o.label === 'Rapport coach';
+    const details = o.meta.filter(([,v]) => v && v !== '—');
+    return `<header class="folio-cover ${coach ? 'staff-cover' : 'athlete-cover'}">
+      <div class="folio-image">${o.sport ? sportPhoto(o.sport, coach) : ''}<div class="folio-brand">
+        ${o.logo ? `<img src="${esc(o.logo)}" alt="">` : ''}<b>Two For Coaching Lab</b><span>${esc(o.label)}</span></div></div>
+      <div class="folio-copy"><p class="folio-name">${esc(o.name)}</p><h1>${esc(o.title)}</h1><p class="folio-intro">${esc(o.intro)}</p>
+      <dl class="folio-facts">${details.map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></div></header>`;
+  }
   return `<header class="edition-cover${o.sport ? ' illustrated' : ''}">
     <div class="edition-mast">${o.logo ? `<img src="${esc(o.logo)}" alt="Two For Coaching Lab">` : '<b>Two For Coaching Lab</b>'}<span>${esc(o.label)}</span></div>
     <div class="edition-headline"><div><p class="edition-name">${esc(o.name)}</p><h1>${esc(o.title)}</h1><p class="edition-deck">${esc(o.intro)}</p></div>
@@ -62,16 +71,63 @@ export function coachDecision(brief: ReportBrief): string {
 }
 
 const phasePurposes: [RegExp, string][] = [
-  [/seuil/i, 'Dans ce bloc, on observe combien de temps tu peux maintenir un effort soutenu et régulier.'],
-  [/allure|spécifi|specifi|race.pace/i, 'Ces séances rapprochent tes efforts de ce que tu retrouveras le jour de la course.'],
+  [/vlamax/i, 'Le travail régulier en endurance prépare à maintenir le rythme sans multiplier les accélérations coûteuses.'],
+  [/vo2/i, 'Les efforts soutenus visent à développer la quantité d’oxygène que le corps peut utiliser à haute intensité.'],
+  [/fat adaptation/i, 'Les sorties en endurance travaillent la capacité à utiliser les graisses quand l’effort se prolonge.'],
+  [/vélocité|neuro/i, 'Les efforts courts et vifs servent à retrouver de la vitesse avant de chercher à la tenir plus longtemps.'],
+  [/force/i, 'Le travail de force aide à répéter un geste efficace quand la résistance augmente.'],
+  [/fraîcheur/i, 'À l’approche de l’épreuve, la priorité est de retrouver des jambes fraîches tout en gardant des repères d’allure.'],
+  [/seuil/i, 'Ce bloc travaille la capacité à tenir un effort soutenu et régulier. Le repère à suivre est la durée pendant laquelle l’allure ou la puissance reste stable.'],
+  [/allure|spécifi|specifi|race.pace|peak/i, 'Les répétitions à l’intensité de course permettent de reconnaître le bon rythme et de vérifier qu’il reste maîtrisé quand la fatigue arrive.'],
   [/affût|affut|taper/i, 'Cette période laisse davantage de place à la récupération à l’approche de la course.'],
   [/base|fonci|endurance/i, 'Cette période installe la régularité et l’aisance dont tu auras besoin dans les efforts plus longs.'],
+  [/build|développement|construction/i, 'Ce bloc développe la qualité ciblée par le plan. Reprendre une séance comparable en fin de bloc aide à voir si le même effort devient plus facile.'],
+  [/durabilité|tenue|tte/i, 'L’enjeu est de conserver un effort régulier quand la fatigue monte. Comparer le début et la fin des efforts longs permet de suivre cette capacité.'],
   [/récup|recup/i, 'Cette période laisse le temps de retrouver de la fraîcheur avant la suite.'],
 ];
+
+const phaseActions: Record<string, string> = {
+  'TTE Builder': 'Tenir plus longtemps au seuil',
+  'Fat Adaptation': 'Mieux utiliser les graisses à l’effort',
+  'Chantier VLamax ↓': 'Rendre les efforts longs plus économiques',
+  'Chantier VO2max': 'Développer la capacité aérobie maximale',
+  "Développement W'": 'Mieux soutenir les efforts courts et intenses',
+  'Force & Économie': 'Gagner en force et en efficacité',
+  'Train Low & Race Pace': 'Travailler l’endurance et le rythme de course',
+  'Endurance Spécifique +': 'Prolonger l’effort au rythme de course',
+  'Régénération post-pic': 'Récupérer après la course',
+  'Neuro & Vélocité': 'Gagner en vitesse',
+  'Force Endurance': 'Garder de la force dans la durée',
+  'Force Endurance K3': 'Garder de la force dans la durée',
+  'Spécifique Race Pace': 'Tenir le rythme de course',
+  'Spécifique Marathon': 'Tenir son allure marathon',
+  'Spécifique Semi': 'Tenir son allure semi-marathon',
+  'Spécifique & Big Week': 'Répéter les efforts de la course',
+  'Base Aérobie': 'Construire son endurance',
+  'Affûtage': 'Arriver avec des jambes fraîches',
+  'Fraîcheur & Densité': 'Arriver avec des jambes fraîches',
+};
+
+export function preparationTimeline(roadmap: import('../athleteProfileReport/types').ReportRoadmap | null | undefined, goal: string, athlete: boolean) {
+  if (!roadmap?.phases.length) return '';
+  const phases = roadmap.phases;
+  return `<section class="journey-map${athlete ? ' athlete-journey' : ''}"><p class="journey-kicker">Trajectoire proposée</p>
+    <h3>${roadmap.totalWeeks} semaines jusqu’à l’objectif</h3>
+    <ol>${phases.map((phase,index) => {
+      const action = phaseActions[phase.name] || phase.name;
+      const explanation = phasePurposes.find(([re]) => re.test(phase.name))?.[1] || phase.focus;
+      const span = phase.startWeek === phase.endWeek ? 'Semaine ' + phase.startWeek : 'Semaines ' + phase.startWeek + ' à ' + phase.endWeek;
+      return `<li><span class="journey-pin" aria-hidden="true">${athlete ? '' : index+1}</span><div><small>${athlete ? `Bloc ${index + 1}` : span}</small><h4>${esc(action)}</h4>
+        <p>${esc(explanation)}</p>${!athlete && phase.focus !== explanation ? `<p class="journey-detail"><b>Travail prévu</b> · ${esc(phase.focus)}</p>` : ''}
+        ${phase.targets.length ? `<p class="journey-detail"><b>${athlete ? 'Repère à observer' : 'Repère de fin de bloc'}</b> · ${phase.targets.map(rich).join(' · ')}</p>` : ''}</div></li>`;
+    }).join('')}</ol>
+    <div class="journey-goal"><small>Objectif</small><strong>${esc(goal)}</strong></div></section>`;
+}
 
 export function calendarPreview(rows: CalendarEntry[] | null | undefined, athlete = false): string {
   if (rows === undefined) return '';
   if (!rows?.length) return `<p class="edition-caption">${rows === null ? 'Le calendrier enregistré n’a pas pu être lu.' : 'Aucune séance à venir dans le calendrier TFCLab.'}</p>`;
+  rows = [...rows].sort((a,b) => a.date.localeCompare(b.date));
   const phases: {label: string; start: string; end: string; count: number}[] = [];
   for (const row of rows) {
     const label = row.phase?.trim() || 'Séances planifiées';
@@ -83,16 +139,8 @@ export function calendarPreview(rows: CalendarEntry[] | null | undefined, athlet
       phases.push({label, start: row.date, end: row.date, count: 1});
     }
   }
-  const phaseCounts=new Map<string,number>();
-  for (const phase of phases) phaseCounts.set(phase.label,(phaseCounts.get(phase.label) ?? 0)+phase.count);
-  const planSummary=phaseCounts.size>1?`<figure class="lab-figure"><figcaption><h3>Les chantiers de la préparation</h3><small>${rows.length} séances à venir</small></figcaption>
-    ${[...phaseCounts].map(([label,count])=>`<div class="landmark"><div><b>${esc(label)}</b><strong>${count} / ${rows.length}</strong></div><div class="landmark-rail"><i style="width:${count/rows.length*100}%"></i></div></div>`).join('')}
-    <p class="figure-reading">La largeur de chaque barre donne la part des séances programmées dans ce chantier. Les dates figurent ci-dessous.</p></figure>`:'';
-  return `<section class="calendar-panel"><h3>Le fil du calendrier enregistré</h3>${planSummary}
-    <ol class="route">${phases.map(p => {
-      const purpose = athlete && phasePurposes.find(([pattern]) => pattern.test(p.label))?.[1];
-      return `<li><small>${esc(dateLabel(p.start))}${p.end !== p.start ? ' – ' + esc(dateLabel(p.end)) : ''}</small>
-      <h3>${esc(p.label)}</h3>${purpose ? '<p>' + purpose + '</p>' : ''}<p>${p.count} séance${p.count > 1 ? 's' : ''} au calendrier</p></li>`; }).join('')}</ol>
+  return `<section class="calendar-panel"><h3>${athlete ? 'Ce qui est déjà dans ton calendrier' : 'Chantiers inscrits au calendrier'}</h3>
+    <ul class="scheduled-blocks">${phases.map(p => `<li><span>${esc(dateLabel(p.start))}${p.end !== p.start ? ' – ' + esc(dateLabel(p.end)) : ''}</span><b>${esc(p.label)}</b><small>${p.count} séance${p.count > 1 ? 's' : ''}</small></li>`).join('')}</ul>
     <h3>Les prochaines séances du calendrier</h3><ol class="calendar-list">${rows.slice(0, 3).map(row =>
       `<li><time datetime="${esc(row.date)}">${esc(dateLabel(row.date))}</time><span><b>${esc(row.title)}</b></span></li>`).join('')}</ol></section>`;
 }

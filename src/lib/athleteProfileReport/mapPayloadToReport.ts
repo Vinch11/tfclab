@@ -17,6 +17,15 @@ import type {
   AthleteProfileReportInput,
 } from "./types";
 
+export function reportRoadmap(payload: Parameters<typeof computeStrategicRoadmap>[0]) {
+  if (!payload.objectif) return null;
+  try {
+    return computeStrategicRoadmap(payload);
+  } catch {
+    return null;
+  }
+}
+
 export function mapExportPayloadToProfileReport(
   payload: any,
   opts: { ambitionLabel: string; generatedAt: string; logoBase64?: string | null },
@@ -58,21 +67,6 @@ export function mapExportPayloadToProfileReport(
   const zoneSets = reportSportZoneSets(payload);
   const durabilityDataBySport = reportSportDurability(payload);
   const sports = reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run');
-
-  // ── Roadmap ───────────────────────────────────────────────────────────────
-  let roadmap = null;
-  try {
-    const r = computeStrategicRoadmap({ objectif: goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
-    roadmap = {
-      title: r.title,
-      totalWeeks: r.totalWeeks,
-      phases: r.phases,
-      limiterSummary: r.limiterSummary,
-      personalized: r.personalized,
-    };
-  } catch {
-    roadmap = null;
-  }
 
   // ── Narratif profil ───────────────────────────────────────────────────────
   const narrative = [
@@ -164,7 +158,7 @@ export function mapExportPayloadToProfileReport(
         }
       : null,
     zoneSets,
-    roadmap: goal && payload.effectiveSnapshot?.source !== "finisher-express" ? roadmap : null,
+    roadmap: goal && payload.effectiveSnapshot?.source !== "finisher-express" ? reportRoadmap({ objectif: goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate }) : null,
     nextSteps,
     glossary: [
       { term: "VO₂max", definition: "Quantité maximale d'oxygène utilisable par minute : la cylindrée de ton moteur." },

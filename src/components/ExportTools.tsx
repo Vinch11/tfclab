@@ -25,7 +25,7 @@ import { swimFigure } from "@/lib/reportKit/swimFigure";
 import { coachingLevers, recoveryDetails, modelScenarios } from "@/lib/reportKit/coachDetails";
 import type { PerformanceReportInput } from "@/lib/performanceReport/types";
 import { buildExpressEdition } from "@/lib/reportKit/expressEdition";
-import { calendarPreview, coachDecision, dateLabel, editionCover, editionNav } from "@/lib/reportKit/editions";
+import { preparationTimeline, calendarPreview, coachDecision, dateLabel, editionCover, editionNav } from "@/lib/reportKit/editions";
 import editionCSS from "@/lib/reportKit/editions.css?raw";
 import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
@@ -115,7 +115,7 @@ import { computeLongDistanceEnvelope, LONG_DISTANCE_THRESHOLD_HOURS, type LongDi
 
 // ✅ Rapport Profil Athlète (design Bevel, pédagogique)
 import { buildAthleteProfileReportHTML } from "@/lib/athleteProfileReport/buildAthleteProfileReportHTML";
-import { mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
+import { reportRoadmap, mapExportPayloadToProfileReport } from "@/lib/athleteProfileReport/mapPayloadToReport";
 import { computePerformanceReport } from "@/lib/performanceReport/computePerformanceReport";
 import { buildPerformanceReportHTML } from "@/lib/performanceReport/buildPerformanceReportHTML";
 import { REPORT_KIT_FONT_LINK, REPORT_KIT_SKIN_CSS } from "@/lib/reportKit";
@@ -8279,8 +8279,10 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     ['metabolisme','Métabolisme selon l’intensité','Lecture des courbes calculées à partir du profil vélo. Les mesures nécessaires pour une confrontation directe sont les puissances et les prélèvements par palier.',visuals.metabolism],
     ['evolution','Évolution individuelle','Même indicateur, même discipline. Les dates, les résultats et leur provenance permettent de discuter la comparabilité de deux bilans.',visuals.evolution],
   ].filter(([, , , content])=>content);
+  const strategy = reportRoadmap({ objectif: athlete.goal, limiterResult: payload.unifiedLimiter, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
   const nav: [string, string][] = [];
   if (payload.reportBrief) nav.push(['lecture-coach', 'Décision']);
+  if (strategy || payload.calendar !== undefined) nav.push(['planification', 'Ligne du temps']);
   nav.push(...plates.map(([id,title]):[string,string]=>[id,title]));
   nav.push(['executive-overview', 'Repères'], ['report-reading', 'Interprétation'], ['staff-evidence', 'Tests et sources']);
   if (included.length) nav.push(['analyses', 'Analyses complémentaires']);
@@ -8289,8 +8291,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     ${css}${REPORT_KIT_FONT_LINK}${REPORT_KIT_SKIN_CSS}<style>${editionCSS}</style></head><body>
     <main class="edition coach-edition">${coverHTML}${editionNav(nav)}
     ${payload.reportBrief ? coachDecision(payload.reportBrief) : ''}
+    ${strategy || payload.calendar !== undefined ? `<section class="edition-section" id="planification"><h2>Planification vers l’objectif</h2>${preparationTimeline(strategy, [getObjectifLabel(athlete.goal), payload.nextRace].filter(Boolean).join(' · '), false)}${calendarPreview(payload.calendar)}</section>` : ''}
     ${plates.map(([id,title,deck,content])=>visualChapter(id,title,deck,content)).join('')}
-    ${calendarPreview(payload.calendar)}
+
     ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture des repères par discipline', true)}
     ${buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}
     ${buildStaffEvidenceHTML(athlete.id, effectiveSnapshot, tests, calibrationEvidences)}

@@ -1,7 +1,7 @@
 import { esc, num, reportDocument, rich } from '../reportKit';
 import { ATHLETE_VISUAL_CSS, sportPhoto } from '../reportKit/story';
 import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
-import { calendarPreview, dateLabel, editionCover, editionNav, gapFigure, referenceRange, sportName } from '../reportKit/editions';
+import { preparationTimeline, calendarPreview, dateLabel, editionCover, editionNav, gapFigure, referenceRange, sportName } from '../reportKit/editions';
 import editionCSS from '../reportKit/editions.css?raw';
 import { visualChapter } from '../reportKit/visualProfile';
 import { swimFigure } from '../reportKit/swimFigure';
@@ -37,14 +37,12 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${support ? `<p class="edition-deck">En ${sportName[support.sport].toLowerCase()}, tu peux déjà t’appuyer sur ton résultat de ${esc(support.r.label)}. Ton bilan indique <b>${fmt(support.r.value!)} ${esc(support.r.unit)}</b>, dans la plage de comparaison de ton objectif (${esc(referenceRange(support.r))}).</p>` : `<p class="edition-deck">${brief ? 'On part des efforts que tu as déjà réalisés. Ton prochain test permettra de situer les qualités sur lesquelles tu peux t’appuyer.' : rich(d.profileNarrative)}</p>`}
     ${first ? `<h3>Ce qui mérite ton attention en ${sportName[first.sport].toLowerCase()}</h3><p><b>${esc(first.r.label)}.</b> ${esc(guide[first.r.key] ?? 'Ce repère aide à préciser la qualité à travailler pour ton épreuve.')}</p>${gapFigure(brief.ranked.slice(0, 3), false, brief)}` : ''}
     ${flow ? `<div class="note"><b>La priorité retenue pour ton entraînement</b><p>${esc(flow.title)}</p>${flow.lead?.status ? `<small>${esc(flow.lead.status)}</small>` : ''}</div>` : ''}`);
-  const route = d.calendar?.length ? [] : d.roadmap?.phases ?? [];
   const journey = chapter('preparation', 'Comment on prépare ton objectif', `
+    ${preparationTimeline(d.roadmap, [d.objectifLabel, d.nextRace].filter(Boolean).join(' · '), true)}
     ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
       ${decision.athleteMessage ? `<p>${rich(decision.athleteMessage)}</p>` : ''}
       ${decision.workouts.length ? `<h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul>` : ''}` :
       `<p class="edition-deck">${esc(flow?.decision ?? 'Ton coach précisera le premier chantier avec toi.')}</p>`}
-    ${route.length ? `<h3>Le fil de ta préparation</h3><p>Cette trame proposée pour ton objectif donne un rôle à chaque période. Ton coach en ajuste les dates et le contenu dans ton calendrier.</p>
-      <ol class="route">${route.map(p => `<li><small>Semaines ${p.startWeek}–${p.endWeek}</small><h3>${esc(p.name)}</h3><p>${rich(p.focus)}</p>${p.targets.length ? `<p class="chapter-detail">Repère de fin de bloc · ${p.targets.map(rich).join(' · ')}</p>` : ''}</li>`).join('')}</ol>` : ''}
     ${calendarPreview(d.calendar, true)}`);
   const disciplines = sports.map(sp => {
     const tte = (d.sportTte ?? []).filter(r => sp === 'run' ? /course/i.test(r.label) : /vélo/i.test(r.label));
