@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import ScrollToTop from "./components/ScrollToTop";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -93,6 +93,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   );
 }
 
+// Expose only the section name to the visual theme, never an athlete identifier.
+function SectionSurface({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  const section = pathname.split("/")[1] || "dashboard";
+  if (section === "print-preview" || section.startsWith("__")) return <>{children}</>;
+  return <div className="contents" data-bevel-section={section}>{children}</div>;
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -105,6 +113,7 @@ export default function App() {
             <AuthProvider>
               <AppErrorBoundary>
               <Suspense fallback={<RouteFallback />}>
+                <SectionSurface>
                 <Routes>
                   {/* Auth */}
                   <Route path="/auth" element={<AuthPage />} />
@@ -207,6 +216,7 @@ export default function App() {
                   {/* 404 */}
                   <Route path="*" element={<ProtectedRoute><NotFound /></ProtectedRoute>} />
                 </Routes>
+                </SectionSurface>
               </Suspense>
               </AppErrorBoundary>
             </AuthProvider>

@@ -35,6 +35,9 @@ const tabs = [
   { id: "lab", label: "100%lab", icon: FlaskConical, route: "/lab" },
 ];
 
+const dockTabIds = new Set(["dashboard", "athletes", "diagnostic", "planning"]);
+const secondaryTabs = tabs.filter(tab => !dockTabIds.has(tab.id));
+
 interface MobileBottomNavProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
@@ -119,6 +122,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             return (
               <button
                 key={tab.id}
+                data-secondary={dockTabIds.has(tab.id) ? undefined : true}
                 aria-current={active ? "page" : undefined}
                 onClick={() => handleClick(tab)}
                 className={cn(
@@ -155,6 +159,12 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               atteindre "Exporter un rapport" en dessous. Fix : `preventDefault()`
               sur `touchend` supprime la séquence souris de compatibilité. */}
           <button
+            aria-expanded={showMoreMenu}
+            aria-controls={showMoreMenu ? "mobile-more-actions" : undefined}
+            data-secondary-current={secondaryTabs.some(isActive) || undefined}
+            onKeyDown={e => {
+              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSettingsTap(); }
+            }}
             onTouchStart={handlePressStart}
             onTouchEnd={(e) => { e.preventDefault(); handlePressEnd(); handleSettingsTap(); }}
             onTouchCancel={handlePressEnd}
@@ -210,8 +220,17 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               `preventDefault()` déclenche l'action immédiatement au doigt levé
               et supprime la séquence souris différée (onClick reste pour un vrai
               clic souris sur desktop, jamais déclenché deux fois pour un tap). */}
-          <div className="workspace-more md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
+          <div id="mobile-more-actions" className="workspace-more md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
+              <div className="dock-destinations hidden">
+                {secondaryTabs.map(tab => {
+                  const Icon = tab.icon;
+                  return <button key={tab.id} aria-current={isActive(tab) ? "page" : undefined}
+                    onClick={() => { handleClick(tab); setShowMoreMenu(false); }}>
+                    <Icon aria-hidden />{tab.label}
+                  </button>;
+                })}
+              </div>
               {isRunningOnly && (
                 <>
                   <button

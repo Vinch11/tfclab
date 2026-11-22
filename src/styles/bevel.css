@@ -422,3 +422,134 @@
     .bevel .animate-fade-in { animation: none; }
   }
 }
+
+/* Editorial spreads use the existing TFCL photographs as background artwork. */
+@media screen {
+  :root.bevel {
+    --sidebar-background: 245 24% 15%;
+    --sidebar-foreground: 248 18% 95%;
+    --sidebar-accent: 247 21% 24%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-primary: 254 100% 85%;
+    --sidebar-border: 248 15% 28%;
+  }
+  .bevel [data-sidebar="sidebar"] { background: linear-gradient(160deg,#29263d,#211f30 75%); }
+  .bevel [data-sidebar="header"], .bevel [data-sidebar="footer"] { background: transparent; }
+  .bevel [data-sidebar="footer"] button { color: hsl(var(--sidebar-foreground)); }
+  .bevel [data-sidebar="footer"] button:hover { color: hsl(var(--foreground)); background: var(--lavender); }
+  .bevel .workspace-staff { background: hsl(var(--sidebar-accent)); border-color: hsl(var(--sidebar-border)); }
+  .bevel [data-sidebar="menu-button"][data-active="true"] { background: #45405c; color: #f2edff; }
+  .bevel .dashboard-masthead, .bevel .lab-intro {
+    isolation: isolate;
+    position: relative;
+    overflow: hidden;
+    padding: clamp(1.1rem, 3vw, 2.4rem);
+    border: 0;
+    border-radius: var(--panel-radius);
+    color: white;
+    background-color: #252337;
+    background-image: linear-gradient(90deg, rgb(23 22 39 / .94), rgb(35 31 53 / .8) 38%, rgb(30 26 40 / .20) 75%), url('../assets/report-running-path.jpg');
+    background-position: center, center 53%;
+    background-size: cover;
+    min-height: clamp(7rem, 13vw, 11rem);
+  }
+  .bevel .dashboard-masthead .workspace-title, .bevel .lab-intro h2 {
+    font-size: clamp(1.9rem, 3.6vw, 3rem);
+    color: white;
+    text-wrap: balance;
+  }
+  .bevel .dashboard-masthead a {
+    background: #fcfbff;
+    color: #322d43;
+    border-radius: 2rem;
+    padding-inline: .9rem;
+    text-align: center;
+  }
+  .bevel .lab-intro {
+    background-image: linear-gradient(90deg, #173a34, rgb(26 55 48 / .92) 40%, rgb(27 50 43 / .18) 85%), url('../assets/report-cycling-road.jpg');
+  }
+  .bevel .lab-intro > p, .bevel .lab-intro > p:first-child { color: #e0f4e8; }
+  .bevel .compass-sheet { container: compass / inline-size; }
+  .bevel .compass-radar-stage {
+    --compass-grid: 247 19% 41%;
+    --compass-ink: 254 98% 83%;
+    --compass-reference: 159 60% 69%;
+    --foreground: 248 30% 95%;
+    --muted-foreground: 246 16% 82%;
+    --background: 245 23% 18%;
+    --primary: 254 98% 83%;
+    --secondary: 247 19% 32%;
+    --secondary-foreground: 0 0% 100%;
+    color: hsl(var(--foreground));
+    background: radial-gradient(ellipse at 50% 36%, #39354d, #252336 78%);
+    border: 0;
+  }
+  .bevel .compass-radar-stage [aria-pressed="true"] { color: #322747; }
+  .bevel .compass-radar-stage button:hover { color: white; background: #49435b; }
+  .bevel .compass-decisions .compass-step {
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-card);
+    padding-block: 1.15rem;
+  }
+  @container compass (min-width: 54rem) {
+    .bevel .compass-spread { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 1rem 1.4rem; align-items: start; }
+    .bevel .compass-spread > :not(.compass-profile, .compass-decisions) { grid-column: 1 / -1; }
+    .bevel .compass-decisions { display: block; padding: 1rem; background: #f4f2f8; border-radius: 1.1rem; }
+    .bevel .compass-decisions > :first-child { display: none; }
+    .bevel .compass-profile .grid:has(> section > .compass-radar-stage) { grid-template-columns: minmax(0,1fr); }
+  }
+  .bevel .lab-reading { display: flex; flex-direction: column; }
+  .bevel .lab-reading > details { margin-top: auto; }
+  .bevel .lab-reading > p:last-of-type { padding-bottom: .75rem; }
+  .bevel .planning-destinations [data-destination="ai-plan"] {
+    background: linear-gradient(90deg,#edeaf8 20%,rgb(239 236 249 / .96) 48%,rgb(239 236 249 / .5)), url('../assets/report-cycling-road.jpg') right center / cover;
+  }
+  @media (max-width: 600px) {
+    .bevel .dashboard-masthead { gap: .4rem; }
+    .bevel .dashboard-masthead a { font-size: .75rem; gap: .3rem; padding-inline: .65rem; }
+  }
+}
+
+@media screen {
+  .bevel .coach-dashboard:has(.compass-sheet) .dashboard-masthead {
+    min-height: 0;
+    padding-block: .8rem;
+  }
+  .bevel .directory-list .directory-row .text-xs.truncate {
+    flex-wrap: wrap;
+    white-space: normal;
+    gap: .25rem .6rem;
+  }
+  @media (min-width: 700px) {
+    .bevel .directory-list {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .bevel .directory-list > div {
+      display: grid;
+      gap: .9rem;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    }
+    .bevel .directory-list .directory-row {
+      flex-wrap: wrap;
+      align-content: start;
+      padding: 1.2rem;
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--panel-radius);
+      background-color: hsl(var(--card));
+      box-shadow: var(--shadow-card);
+    }
+    .bevel .directory-row:has([data-state="checked"]) { border-color: hsl(var(--primary)); background: #f5f2fc; }
+    .bevel .directory-row .directory-avatar { width: 3rem; height: 3rem; font-size: 1rem; }
+    .bevel .directory-row .font-medium.truncate { font-size: 1.1rem; }
+    .bevel .directory-row > .transition-opacity {
+      justify-content: flex-end;
+      flex-basis: 100%;
+      border-top: 1px solid hsl(var(--border));
+      padding-top: .5rem;
+      opacity: 1;
+    }
+  }
+}

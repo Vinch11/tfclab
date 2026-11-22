@@ -437,7 +437,7 @@ export default function DiagnosticPage() {
           if (tierSections.length === 0) return null;
           const { title: tierTitle, subtitle: tierSubtitle } = TIER_LABELS[tier];
           return (
-            <div key={tier} className="space-y-2.5 sm:space-y-3">
+            <div key={tier} className="diagnostic-tier space-y-2.5 sm:space-y-3">
               <div>
                 <h2 className="text-sm sm:text-base font-semibold text-foreground">{tierTitle}</h2>
                 <p className="text-xs text-muted-foreground">{tierSubtitle}</p>
