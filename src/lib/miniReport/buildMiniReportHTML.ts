@@ -1,3 +1,5 @@
+import { editionCover, editionNav } from '../reportKit/editions';
+import editionCSS from '../reportKit/editions.css?raw';
 /**
  * Builder HTML imprimable pour le Mini Rapport Athlète.
  * Utilise `openPrintableHTML` pour ouvrir dans un nouvel onglet (Ctrl+P → PDF).
@@ -49,13 +51,13 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
     sectionProfile: "1. Ton profil de coureur",
     profileLabel: "Type de coureur",
     metricVlamax: "Indice de vitesse-puissance",
-    metricVlamaxSub: "(VLamax — capacité à fabriquer de l'énergie rapide)",
+    metricVlamaxSub: "mmol/L/s · estimation du profil glycolytique",
     metricCE: "Énergie consommée par km",
     metricCESub: "(coût énergétique — plus c'est bas, mieux c'est)",
     metricMlss: "Allure de seuil",
-    metricMlssSub: "% de ta VMA — l'allure que tu peux tenir ~1h",
+    metricMlssSub: "% de ta VMA — estimation du modèle",
     metricVmaPace: "Allure VMA (vitesse max aérobie)",
-    metricThresholdPace: "Allure de seuil (≈ 1h d'effort)",
+    metricThresholdPace: "Allure de seuil estimée",
     sectionAdvice: "2. Tes pistes de travail (vulgarisées)",
     sectionZones: "3. Tes zones d'entraînement (Z1–Z7)",
     zoneTableObjective: "À quoi ça sert",
@@ -199,18 +201,14 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
     h2 { page-break-after: avoid; }
     .profile-card, .metric, table.zones { page-break-inside: avoid; }
   }
-</style>
+</style><style>${editionCSS}</style>
 </head>
-<body>
+<body><main class="edition specialty">
 
-<div class="header">
-  <div>
-    <div class="brand">TFC LAB</div>
-    <h1>${titleAthlete}</h1>
-    <p class="subtitle">Profil physiologique simplifié — Potentiel Physiologique TFCL™</p>
-  </div>
-  <div class="date">${dateStr}</div>
-</div>
+${editionCover({ label: "Mini rapport course", name: input.athleteName || "Bilan individuel", title: "Ton profil de coureur",
+  intro: "Tes résultats de vitesse et de sprint servent de point de départ. Voici ce que le modèle en déduit pour tes allures et les séances à discuter avec ton coach.",
+  meta: [["Édition du", dateStr]], sport: "run" })}
+${editionNav([['profil','Ton profil'],['travail','Pistes de travail'],['zones','Allures']])}
 
 <div class="grid">
   <div class="cell"><div class="k">Âge</div><div class="v">${input.age} ans</div></div>
@@ -219,15 +217,15 @@ export function buildMiniReportHTML(result: MiniReportResult): string {
   <div class="cell"><div class="k">Sprint 15s</div><div class="v">${input.sprint15sM} m</div></div>
 </div>
 
-<h2>${L.sectionProfile}</h2>
+<h2 id="profil">${L.sectionProfile}</h2>
 
 ${L.glossary ? `
 <div style="background:#EBF5FB;border-left:4px solid #2980B9;padding:12px 14px;border-radius:6px;margin:8px 0 14px 0;font-size:12px;color:#1B4F72;">
   <p style="margin:0 0 6px 0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;font-size:11px;">📘 Mini-lexique pour comprendre ton rapport</p>
   <ul style="margin:0;padding-left:18px;line-height:1.55;">
     <li><strong>VMA</strong> : ta vitesse maximale aérobie — la vitesse à laquelle tu utilises le maximum d'oxygène (≈ vitesse soutenable ~6 min à fond).</li>
-    <li><strong>Seuil</strong> : l'allure que tu peux tenir environ 1h sans exploser (≈ allure semi-marathon rapide).</li>
-    <li><strong>Acide lactique</strong> : ce qui fait "brûler" les jambes en effort intense — ton corps en produit, et il sait aussi le recycler.</li>
+    <li><strong>Seuil</strong> : une intensité de référence pour comparer tes efforts soutenus.</li>
+    <li><strong>Lactate</strong> : ton corps en produit et en réutilise pendant l’effort.</li>
     <li><strong>Endurance fondamentale (Z2)</strong> : allure facile où tu peux discuter — c'est la base qui construit ton "moteur".</li>
     <li><strong>Profil métabolique</strong> : la "personnalité physiologique" de ton corps (plutôt explosif, équilibré ou endurant).</li>
   </ul>
@@ -246,7 +244,7 @@ ${L.glossary ? `
     <div class="v">${vlamax.toFixed(2)}</div>
     <div class="sub">${L.metricVlamaxSub}</div>
     <div style="margin-top:6px;display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;color:#0e7c4a;background:#e7f7ee;border:1px solid #b6e5c8;border-radius:4px;padding:2px 6px;">
-      Source : VLamax CAP (run) — sprint 15 s
+      Estimation course · sprint de 15 s
     </div>
   </div>
   <div class="metric">
@@ -270,7 +268,7 @@ ${L.glossary ? `
   <div class="metric">
     <div class="k">${L.metricThresholdPace}</div>
     <div class="v">${formatPace(paceThresholdSecPerKm)}</div>
-    <div class="sub">/km — soutenable ~1h</div>
+    <div class="sub">min/km · estimation</div>
   </div>
   ${input.referenceTimeSec && paceObservedSecPerKm ? `
   <div class="metric">
@@ -287,12 +285,12 @@ ${L.glossary ? `
   `}
 </div>
 
-<h2>${L.sectionAdvice}</h2>
+<h2 id="travail">${L.sectionAdvice}</h2>
 <ul class="advice">
   ${adviceHtml}
 </ul>
 
-<h2>${L.sectionZones}</h2>
+<h2 id="zones">${L.sectionZones}</h2>
 <table class="zones">
   <thead>
     <tr>
@@ -332,6 +330,6 @@ ${L.glossary ? `
   Document indicatif à valider par un coach diplômé. Ce rapport ne se substitue pas à un test de laboratoire.
 </div>
 
-</body>
+</main></body>
 </html>`;
 }

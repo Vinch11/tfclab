@@ -23,7 +23,7 @@ export function buildReportReadingHTML(compass: TFCLCoachingCompassResult, optio
     <p>« Bilan » désigne une valeur enregistrée, pas une preuve de laboratoire. « Estimation » désigne un résultat de modèle. Un test déclaré demande encore une vérification de son protocole et de ses conditions.</p>
     <h3>Ce qui reste à documenter</h3>
     ${missing.length ? list(missing.map(r => `${r.label} : donnée absente ; aucune valeur neutre n’est supposée.`)) : '<p>Les repères de cette synthèse sont renseignés ; leur présence ne garantit pas leur validation expérimentale.</p>'}
-    <p>La robustesse après un effort prolongé reste à évaluer. En triathlon, les tests course et vélo sont distincts ; une VO₂max commune ne prouve pas les capacités de chaque discipline. La natation nécessite ses propres observations et tests : elle n’est pas déduite des deux compass.</p>
+    <p>Les comparaisons de sorties longues disponibles figurent dans les repères de chaque sport. En triathlon, les tests course et vélo sont distincts ; une VO₂max commune ne prouve pas les capacités de chaque discipline. La natation nécessite ses propres observations et tests : elle n’est pas déduite des deux compass.</p>
     <h3>Ce que le coach peut décider</h3>
     <p>Relier les priorités ci-dessous aux sensations, à l’historique de charge et aux tests récents. Les pistes de travail ne sont pas des séances prescrites : le calendrier, la récupération et les choix du coach restent déterminants. Le diagnostic course indépendant ne remplace pas automatiquement les priorités utilisées par le plan.</p>
     <h3>Au prochain point de contrôle</h3>

@@ -62,7 +62,7 @@ export function sportControls(o: { sports: Sport[]; tteKnown: boolean; vlamaxPri
 /** Sports racontés par le rapport, dérivés de l’objectif (présentation uniquement). */
 export function reportSports(goal: string | null | undefined, isRunning: boolean): Sport[] {
   const g = String(goal ?? '');
-  if (/tri|ironman|\bIM\b|70[.,]3|duathlon/i.test(g)) return ['bike', 'run'];
+  if (/tri|ironman|\bIM\b|70[.,]?3|duathlon|olymp|^sprint$|^half$|^lcw$/i.test(g)) return ['bike', 'run'];
   if (isRunning || /km|marathon|semi|trail|course|run|5k|10k|ultra/i.test(g)) return ['run'];
   return ['bike'];
 }

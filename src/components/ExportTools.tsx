@@ -15,7 +15,14 @@ import { FileText, AlertCircle, Settings2, Eye, ChevronRight, Loader2 } from "lu
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { PDFPreviewPanel } from "./PDFPreviewPanel";
+import { useQuery } from "@tanstack/react-query";
+import { readReportCalendar } from "@/lib/reportKit/readReportCalendar";
+import { format } from "date-fns";
+import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
+import { buildReportBrief, type ReportBrief, type CalendarEntry } from "@/lib/reportKit/reportBrief";
+import { buildExpressEdition } from "@/lib/reportKit/expressEdition";
+import { calendarPreview, coachDecision, dateLabel, editionCover, editionNav } from "@/lib/reportKit/editions";
+import editionCSS from "@/lib/reportKit/editions.css?raw";
 import { openPrintableHTML, EMBEDDED_PRINT_ONCLICK } from "@/lib/openPrintableHTML";
 import type { DbAthlete, DbSnapshot, DbTest, DbCheckin } from "@/hooks/useCloudData";
 import { isRunningFocusModeActive } from "@/lib/runningFocusMode";
@@ -114,6 +121,7 @@ import { REPORT_KIT_FONT_LINK, REPORT_KIT_SKIN_CSS } from "@/lib/reportKit";
 // =============================================
 
 interface ExportToolsProps {
+  dashboardInput?: CoachingCompassInput | null;
   athlete: DbAthlete;
   snapshots: DbSnapshot[];
   tests: DbTest[];
@@ -177,6 +185,9 @@ interface ExportOptions {
 
 // Payload normalisé pour toutes les sections du rapport
 interface ExportPayload {
+  reportBrief?: ReportBrief;
+  nextRace?: string;
+  calendar?: CalendarEntry[] | null;
   athlete: {
     id: string;
     name: string;
@@ -1480,7 +1491,8 @@ function buildExportPayload(
   tests: DbTest[],
   checkins: DbCheckin[] = [],
   ambition: AmbitionLevel = DEFAULT_AMBITION,
-  raceContext: { daysToRace: number | null; isRaceWeek: boolean } = { daysToRace: null, isRaceWeek: false }
+  raceContext: { daysToRace: number | null; isRaceWeek: boolean } = { daysToRace: null, isRaceWeek: false },
+  dashboardInput?: CoachingCompassInput | null,
 ): ExportPayload {
   const effectiveSnapshot = getEffectiveSnapshot(athlete, snapshots);
   const effectiveRefs = getEffectiveRefs(athlete, snapshots);
@@ -1938,6 +1950,53 @@ function buildExportPayload(
   };
   const fatigueScore = fatigueStateToScore[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
 
+  const compassInput: CoachingCompassInput = dashboardInput ?? {
+    ftp: effectiveRefs.ftp ?? null,
+    poids: effectiveRefs.weightKg ?? null,
+    vo2max: effectiveRefs.vo2max ?? null,
+    tss7d: effectiveSnapshot?.tss_7d ?? null,
+    snapshotDate: effectiveSnapshot?.date ?? null,
+    snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null,
+    pmax5s: effectiveSnapshot?.pmax_5s ?? null,
+    p30sW: effectiveSnapshot?.p30s_w ?? null,
+    p60sW: effectiveSnapshot?.p60s_w ?? null,
+    map5minW: effectiveSnapshot?.map5min_w ?? null,
+    runEconomyScore: effectiveSnapshot?.run_economy_score ?? null,
+    hrDriftPct: effectiveSnapshot?.run_hr_drift_pct ?? null,
+    vma: effectiveSnapshot?.vma ?? null,
+    paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
+    fatmax: null,
+    vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
+    vlamaxRunReference: sportFocusForLimiter === 'run' ? vlamax : computeVLamaxEffectif({
+      athleteId: athlete.id, objectif: objectifForLimiter, sportOverride: 'cap',
+      activeSnapshotId: effectiveSnapshot?.id, snapshots: athleteSnapshots, tests: athleteTests,
+    }),
+    tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
+    tteEffectifRun: computeTTEEffectif({
+      objectif: athlete.goal || "IM", sport: "run", age: athleteAge,
+      tte_observed_min_run: effectiveSnapshot?.tte_observed_min_run ?? null,
+    }),
+    fatigueEffectif: null,
+    limiterResult: unifiedLimiter as any,
+    potentielPhysiologique: {
+      score: potentielPhysiologique.score,
+      potential: potentielPhysiologique.potential,
+      availability: potentielPhysiologique.availability,
+      governingFactor: potentielPhysiologique.governingFactor,
+      label: potentielPhysiologique.label,
+      color: potentielPhysiologique.color,
+    },
+    strategyResult: lorangResult,
+    lactateThresholds: null,
+    wprimeKj: cpResultForPayload && !cpResultForPayload.cpBounded ? cpResultForPayload.wprimeKJ : null,
+    criticalMetrics: (effectiveSnapshot as { critical_metrics?: unknown } | null)?.critical_metrics,
+    objectif: athlete.goal || "IM",
+    ambition: ambition,
+    sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
+    athleteAge: athleteAge,
+  };
+  const reportCompass = computeCoachingCompass(compassInput);
+
   return {
     athlete: {
       id: athlete.id,
@@ -2111,56 +2170,8 @@ function buildExportPayload(
         allTargets,
       };
     })(),
-    // ✅ NEW: Coaching Compass (5 axes unifiés)
-    coachingCompass: (() => {
-      const compassInput: CoachingCompassInput = {
-        ftp: effectiveRefs.ftp ?? null,
-        poids: effectiveRefs.weightKg ?? null,
-        vo2max: effectiveRefs.vo2max ?? null,
-        tss7d: effectiveSnapshot?.tss_7d ?? null,
-        snapshotDate: effectiveSnapshot?.date ?? null,
-        snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null,
-        pmax5s: effectiveSnapshot?.pmax_5s ?? null,
-        p30sW: effectiveSnapshot?.p30s_w ?? null,
-        p60sW: effectiveSnapshot?.p60s_w ?? null,
-        map5minW: effectiveSnapshot?.map5min_w ?? null,
-        runEconomyScore: effectiveSnapshot?.run_economy_score ?? null,
-        hrDriftPct: effectiveSnapshot?.run_hr_drift_pct ?? null,
-        vma: effectiveSnapshot?.vma ?? null,
-        paceThresholdSecPerKm: effectiveSnapshot?.pace_threshold_sec_per_km ?? null,
-        fatmax: null,
-        vlamaxEffectif: { value: vlamax.value, confidence: vlamax.confidence, source: vlamax.source },
-        vlamaxRunReference: sportFocusForLimiter === 'run' ? vlamax : computeVLamaxEffectif({
-          athleteId: athlete.id, objectif: objectifForLimiter, sportOverride: 'cap',
-          activeSnapshotId: effectiveSnapshot?.id, snapshots: athleteSnapshots, tests: athleteTests,
-        }),
-        tteEffectif: { tte_min: tte.tte_min, confidence: tte.confidence, source: tte.source },
-        tteEffectifRun: computeTTEEffectif({
-          objectif: athlete.goal || "IM", sport: "run", age: athleteAge,
-          tte_observed_min_run: effectiveSnapshot?.tte_observed_min_run ?? null,
-        }),
-        fatigueEffectif: null,
-        limiterResult: unifiedLimiter as any,
-        potentielPhysiologique: {
-          score: potentielPhysiologique.score,
-          potential: potentielPhysiologique.potential,
-          availability: potentielPhysiologique.availability,
-          governingFactor: potentielPhysiologique.governingFactor,
-          label: potentielPhysiologique.label,
-          color: potentielPhysiologique.color,
-        },
-        strategyResult: lorangResult,
-        lactateThresholds: null,
-        wprimeKj: cpResultForPayload && !cpResultForPayload.cpBounded ? cpResultForPayload.wprimeKJ : null,
-        criticalMetrics: (effectiveSnapshot as { critical_metrics?: unknown } | null)?.critical_metrics,
-        objectif: athlete.goal || "IM",
-        ambition: ambition,
-        sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
-        athleteAge: athleteAge,
-      };
-      const result = computeCoachingCompass(compassInput);
-      return { ...result, completeProfileHTML: completeProfileHTML(compassInput, effectiveSnapshot?.css ?? null) };
-    })(),
+    coachingCompass: { ...reportCompass, completeProfileHTML: completeProfileHTML(compassInput, effectiveSnapshot?.css ?? null) },
+    reportBrief: effectiveSnapshot?.source === 'finisher-express' ? undefined : buildReportBrief(compassInput, reportCompass),
     // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
     lorangResult,
     // ✅ NEW: Run MLSS (Modèle C) — directement depuis le diagnostic engine
@@ -2175,7 +2186,7 @@ function buildExportPayload(
 function canExport(payload: ExportPayload): { ok: boolean; reason?: string } {
   const hasSnapshot = payload.effectiveSnapshot != null;
   const hasTest = payload.tests.length > 0;
-  const hasMinimalData = payload.effectiveRefs.ftp != null || payload.effectiveRefs.weightKg != null;
+  const hasMinimalData = [payload.effectiveRefs.ftp, payload.effectiveRefs.vma, payload.effectiveRefs.css, payload.effectiveRefs.vo2max, payload.effectiveRefs.weightKg].some(v => v != null && v > 0);
   
   if (!hasSnapshot && !hasTest && !hasMinimalData) {
     return {
@@ -4238,7 +4249,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const brandMain = "Two For Coaching Lab";
   const brandSub = "Rapport de Modélisation Physiologique & Aide à la Décision";
   const createdAt = new Date(reportDate);
-  const title = `${brandMain} — Modélisation Physiologique — ${athlete.name || "Athlète"}`;
+  const title = `Rapport coach — ${athlete.name || "Athlète"}`;
 
   const coverObjective = htmlEscape(getObjectifLabel(athlete.goal));
   const coverAthlete = htmlEscape(athlete.name || "Athlète");
@@ -4493,250 +4504,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const vlamaxStatus = getSourceStatus(vlamax.source, vlamax.confidence);
   const tteStatus = getSourceStatus(tte.source, tte.confidence);
 
-  const coverHTML = `
-    <section class="cover">
-      <!-- BANNIÈRE PROFESSIONNELLE REPOSITIONNÉE -->
-      <div class="coverBanner">
-        <div class="coverBannerContent">
-          <div class="coverBrandBlock">
-            ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" class="coverLogo" />` : ''}
-            <div class="coverBrandText">
-              <div class="coverBrandName">${htmlEscape(brandMain)}</div>
-              <div class="coverBrandTagline">${htmlEscape(brandSub)}</div>
-            </div>
-          </div>
-          <div class="coverBannerBadges">
-            <div class="coverBannerBadge">📊 Modélisation Physiologique</div>
-            <div class="coverBannerBadge">📅 ${coverDate}</div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- ENCADRÉ OBLIGATOIRE DE POSITIONNEMENT -->
-      <div class="alert alertWarning" style="margin:0 8px 20px 8px; border:2px solid var(--warning); background:rgba(217,119,6,0.08);">
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚠️ Ce rapport n'est pas un test physiologique</div>
-        <p style="margin:4px 0;font-size:12px;">Il ne remplace ni un test lactate, ni un avis médical, ni l'expertise du coach.</p>
-        <p style="margin:4px 0;font-size:12px;">Il propose une <b>modélisation cohérente</b> basée sur des données mesurées, estimées et modélisées — destinée à <b>guider les choix d'entraînement</b>.</p>
-        <p style="margin:4px 0;font-size:12px;font-style:italic;color:var(--muted);">À interpréter avec esprit critique et dans le contexte global de la préparation.</p>
-      </div>
-      
-      <!-- CORPS DE LA COUVERTURE -->
-      <div class="coverBody">
-        <div class="coverMid">
-          <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;">Analyse basée sur données mesurées, estimées et modélisées</div>
-          <div class="coverTitle">${coverAthlete}</div>
-          <div class="coverMeta">
-            <div class="tag tagPrimary"><b>Objectif:</b> ${coverObjective}</div>
-            <div class="tag"><b>Snapshot:</b> ${snapshotDate}</div>
-            <div class="tag"><b>Cycle:</b> ${htmlEscape(cycleTag)}</div>
-          </div>
-        </div>
-
-        <div class="coverBottom">
-          <div class="card cardHighlight">
-            <h3>🎯 Indicateurs clés — Vue rapide</h3>
-            <div class="grid2 mt">
-              <div>
-                <span class="muted">VLamax</span><br>
-                <span class="medium" style="color:${vlamaxProfilColor};">${vlamax.value !== null ? fmt(vlamax.value, 2) : "—"}</span>
-                <br><span class="badge" style="font-size:9px;background:${vlamaxProfilBgColor};color:${vlamaxProfilColor};">${vlamaxProfilAgeAdjusted.label}</span>
-                <br><span class="muted" style="font-size:10px;">Confiance: ${vlamax.confidence >= 0.7 ? "élevée" : vlamax.confidence >= 0.4 ? "modérée" : "faible"}</span>
-                ${ageAdjustment.age !== null && ageAdjustment.age >= 40 ? '<br><span class="muted" style="font-size:9px;font-style:italic;">Seuils ajustés pour ' + ageAdjustment.aai.label + '</span>' : ''}
-              </div>
-              <div>
-                ${payload.coachingCompass.presentation?.tteBike ? `<p>TTE vélo : ${payload.coachingCompass.presentation.tteBike.tte_min > 0 ? `${payload.coachingCompass.presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(payload.coachingCompass.presentation.tteBike.source)}</p>` : ''}
-                ${payload.coachingCompass.presentation?.tteRun ? `<p>TTE course : ${payload.coachingCompass.presentation.tteRun.tte_min > 0 ? `${payload.coachingCompass.presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(payload.coachingCompass.presentation.tteRun.source)}</p>` : ''}
-                <p class="muted">Durabilité après effort prolongé non évaluée.</p>
-              </div>
-            </div>
-          </div>
-          <div class="card">
-            <h3>📐 Références effectives</h3>
-            <div class="kv">
-              <div class="k">FCmax</div><div class="v">${effectiveRefs.fcMax ?? "—"} bpm</div>
-              <div class="k">VMA</div><div class="v">${effectiveRefs.vma ?? "—"} km/h</div>
-              ${payload.coachingCompass.presentation?.sport !== 'run' ? `<div class="k">FTP vélo</div><div class="v">${effectiveRefs.ftp ?? "—"} W</div>` : ''}
-              <div class="k">Poids</div><div class="v">${effectiveRefs.weightKg ? fmt(effectiveRefs.weightKg, 1) : "—"} kg</div>
-              ${payload.coachingCompass.presentation?.sport !== 'run' ? `<div class="k">FTP/kg vélo</div><div class="v">${ftpKg ? fmt(ftpKg, 2) : "—"} W/kg</div>` : ''}
-            </div>
-            ${ageAdjustment.age !== null ? `
-            <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border);">
-              <h4 style="margin: 0 0 8px 0; font-size: 12px;">🎂 Ajustement par l'âge (AAI)</h4>
-              <div class="kv" style="font-size: 11px;">
-                <div class="k">Âge</div><div class="v">${ageAdjustment.age} ans</div>
-                <div class="k">Catégorie</div><div class="v">${ageAdjustment.aai.label}</div>
-                <div class="k">AAI</div><div class="v">${Math.round(ageAdjustment.aai.aai * 100)}%</div>
-                <div class="k">Risque ×</div><div class="v">${ageAdjustment.aai.riskMultiplier.toFixed(2)}</div>
-              </div>
-              <p class="muted" style="margin-top: 6px; font-size: 10px;">
-                ${ageAdjustment.aai.category === "master1" || ageAdjustment.aai.category === "master2" 
-                  ? "⚠️ Profil Master : cibles TTE ajustées, nutrition plus conservative recommandée." 
-                  : "Profil " + (ageAdjustment.aai.category === "young" ? "jeune" : "prime") + " : pas d'ajustement majeur."}
-              </p>
-            </div>
-            ` : ''}
-          </div>
-        </div>
-      </div>
-
-      <div class="watermark">2FC</div>
-    </section>
-  `;
-
-  // =============================================
-  // SOMMAIRE REPOSITIONNÉ
-  // =============================================
-  const tocHTML = (() => {
-    const sectionOrder = getSectionOrder();
-    const sectionVisibility = options.sections;
-    const visibleSections = sectionOrder.filter(key => sectionVisibility[key]);
-    
-    const sectionAnchors: Record<keyof ReportSections, string> = {
-      synthese: "executif",
-      compass: "compass",
-      profilMetabolique: "profil-metabolique",
-      vlamaxZoneConfidence: "vlamax-zone-confidence",
-      runMLSSCoherence: "run-mlss-coherence",
-      indicateurs: "indicateurs",
-      pacingEnvelope: "pacing-envelope",
-      potentielPhysiologiqueRunning: "potentiel-running",
-      injuryRisk: "injury-risk",
-      nutritionV2: "nutrition-v2",
-      fatmaxTFCL: "fatmax-tfcl",
-      ambitionTargets: "ambition-targets",
-      ambitionPredictions: "ambition-predictions",
-      evolutionCharts: "evolution-charts",
-      ageAdjustment: "aai",
-      ambitionLegend: "ambition-legend",
-      zones: "zones",
-      historique: "historique",
-      tests: "tests",
-      testsCalibration: "tests-calibration",
-      calibrationEvidence: "calibration-evidence",
-      fitImports: "fit-imports",
-      checkins: "checkins",
-      comprendre: "comprendre",
-      qualite: "qualite",
-      roadmap: "roadmap",
-      lactateCurve: "lactate-curve",
-      substrateCurve: "substrat-curve",
-      performancePrediction: "performance-prediction",
-      facteursLimitants: "facteurs-limitants",
-      leviersAction: "leviers-action",
-      cpWprimeWbal: "cp-wprime-wbal",
-      lactateCorrespondence: "lactate-correspondence",
-      cycleIntelligence: "cycle-intelligence",
-    };
-    
-    const tocRows = visibleSections.map((key, i) => {
-      const label = SECTION_LABELS[key] || key;
-      const anchor = sectionAnchors[key] || key;
-      return `<div class="tocRow"><a href="#${anchor}">${i + 1}. ${htmlEscape(label)}</a></div>`;
-    }).join('\n      ');
-    
-    return `
-    <div class="toc mb">
-      <div class="tocTitle">📑 SOMMAIRE — Rapport de Modélisation Physiologique</div>
-      <div class="tocRow"><a href="#positionnement">0. Positionnement & Comment lire ce rapport</a></div>
-      ${isAthlete ? '' : '<div class="tocRow"><a href="#staff-evidence">Mesures, tests et capteurs — données enregistrées</a></div>'}
-      ${isAthlete ? '' : '<div class="tocRow"><a href="#report-reading">Du constat au suivi</a></div>'}
-      ${tocRows}
-    </div>
-  `;
-  })();
-
-  // =============================================
-  // 1. POSITIONNEMENT UNIFIÉ (FUSIONNÉ AVEC CHARTE)
-  // =============================================
-  const positionnementHTML = `
-    <section id="positionnement" class="section" style="page-break-before: always;">
-      <h2>1. Positionnement & Comment lire ce rapport</h2>
-      
-      <!-- ALERTE CRITIQUE -->
-      <div class="alert alertWarning" style="margin-bottom:20px; border:2px solid var(--warning);">
-        <div style="font-size:14px;font-weight:700;margin-bottom:8px;">⚠️ Ce rapport n'est pas un test physiologique</div>
-        <p style="margin:4px 0;font-size:12px;">Il ne remplace ni un test lactate, ni un avis médical, ni l'expertise du coach.</p>
-        <p style="margin:4px 0;font-size:12px;">Il propose une <b>modélisation cohérente</b> basée sur des données mesurées, estimées et modélisées — destinée à <b>guider les choix d'entraînement</b>.</p>
-      </div>
-      
-      <!-- CE QUE C'EST / CE QUE CE N'EST PAS -->
-      <div class="grid2" style="gap:16px; margin-bottom:20px;">
-        <div class="card cardSuccess">
-          <h3>✅ Ce que ce rapport permet</h3>
-          <ul>
-            <li><b>Identifier</b> les leviers physiologiques prioritaires</li>
-            <li><b>Hiérarchiser</b> les axes de travail pour l'objectif</li>
-            <li><b>Anticiper</b> certains risques (nutrition, endurance)</li>
-            <li><b>Suivre</b> l'évolution longitudinale du profil</li>
-            <li><b>Orienter</b> les décisions d'entraînement</li>
-          </ul>
-        </div>
-        <div class="card cardError">
-          <h3>❌ Ce que ce rapport ne fait pas</h3>
-          <ul>
-            <li><b>Mesurer</b> directement (lactate, VO₂, etc.)</li>
-            <li><b>Prescrire</b> un plan d'entraînement automatique</li>
-            <li><b>Garantir</b> une performance ou un résultat</li>
-            <li><b>Remplacer</b> l'expertise et le jugement du coach</li>
-            <li><b>Diagnostiquer</b> médicalement</li>
-          </ul>
-        </div>
-      </div>
-      
-      <!-- SOURCES DE DONNÉES -->
-      <div class="card mt">
-        <h3>📐 Comprendre les sources de données</h3>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-top:12px;">
-          <thead>
-            <tr style="background:var(--muted-bg);">
-              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Type</th>
-              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Signification</th>
-              <th style="padding:8px; text-align:left; border:1px solid var(--border);">Confiance typique</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="padding:8px; border:1px solid var(--border);">🔬 <b>Mesurée</b></td>
-              <td style="padding:8px; border:1px solid var(--border);">Test direct (labo, lactate)</td>
-              <td style="padding:8px; border:1px solid var(--border);">Élevée (&gt; 85%)</td>
-            </tr>
-            <tr style="background:var(--muted-bg);">
-              <td style="padding:8px; border:1px solid var(--border);">🧠 <b>Estimée</b></td>
-              <td style="padding:8px; border:1px solid var(--border);">Test terrain standardisé</td>
-              <td style="padding:8px; border:1px solid var(--border);">Modérée (65 – 85%)</td>
-            </tr>
-            <tr>
-              <td style="padding:8px; border:1px solid var(--border);">🔁 <b>Modélisée</b></td>
-              <td style="padding:8px; border:1px solid var(--border);">Calcul croisé (formules)</td>
-              <td style="padding:8px; border:1px solid var(--border);">Faible (&lt; 65%)</td>
-            </tr>
-          </tbody>
-        </table>
-        <p class="muted mt" style="font-size:11px;">
-          Chaque métrique affiche une <b>valeur centrale</b> et une <b>plage de plausibilité</b>. Plus la confiance est basse, plus la plage est large.
-        </p>
-      </div>
-      
-      <!-- FONDEMENTS MÉTHODOLOGIQUES -->
-      <div class="card mt">
-        <h3>📖 Fondements méthodologiques</h3>
-        <p class="muted">Les modèles Two For Coaching Lab™ s'appuient sur des relations physiologiques issues de la littérature scientifique :</p>
-        <ul class="muted">
-          <li><b>École allemande</b> : Mader, Heck, Olbrecht — modèles énergétiques bi-compartimental</li>
-          <li><b>Concepts INSCYD-like</b> : VLamax, ratio FatMax, contribution énergétique</li>
-          <li><b>Approche structurée</b> : hiérarchisation des priorités physiologiques par objectif</li>
-        </ul>
-      </div>
-      
-      <!-- MESSAGE FINAL -->
-      <div class="alert alertSuccess mt">
-        <b>💡 En résumé :</b> Ce rapport est un outil de <b>lecture physiologique avancée</b> pour éclairer vos décisions. 
-        <b>Les décisions finales d'entraînement appartiennent toujours au coach et à l'athlète.</b>
-      </div>
-    </section>
-  `;
-
-  // =============================================
+  const coverHTML = editionCover({
+    label: "Rapport coach", name: athlete.name, title: "Bilan de performance",
+    intro: "Les écarts qui comptent pour cet objectif, les faits qui les étayent et les décisions à prendre au prochain bloc.",
+    meta: [["Objectif", getObjectifLabel(athlete.goal)], ["Ambition", ambition.label],
+      ["Prochaine course", payload.nextRace ?? ""], ["Bilan de référence", snapshotDate], ["Édition du", coverDate]], logo: logoBase64,
+  });
   // 2. SYNTHÈSE EXÉCUTIVE — LECTURE NUANCÉE (max 1 page)
   // =============================================
   const pointsForts: string[] = [];
@@ -4920,6 +4693,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   }).join("\n");
   
   // Polygone des scores
+  const comparableAxis = (a: typeof axes[number]) => a.value != null && a.value > 0 && a.target != null && a.target > 0;
   const scorePts = axes.map((a, i) => getXY(i, (a.score / 100) * maxR).join(",")).join(" ");
   
   // Points et labels
@@ -4928,7 +4702,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     const [lx, ly] = getXY(i, maxR + 30);
     const anchor = lx < cx - 10 ? "end" : lx > cx + 10 ? "start" : "middle";
     return `
-      <circle cx="${px}" cy="${py}" r="6" fill="#5555E0" stroke="#fff" stroke-width="2"/>
+      ${comparableAxis(a) ? `<circle cx="${px}" cy="${py}" r="6" fill="#2269AD" stroke="#fff" stroke-width="2"/>` : ""}
       <text x="${lx}" y="${ly - 5}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="#3C3CB8">${a.icon} ${a.shortLabel}</text>
       <text x="${lx}" y="${ly + 10}" text-anchor="${anchor}" font-size="13" font-weight="800" fill="#5555E0">${a.value != null && a.value > 0 ? `${a.score}/100` : "—"}</text>
     `;
@@ -4973,7 +4747,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
             <rect x="0" y="0" width="340" height="340" fill="#ffffff"/>
             ${grids}
             ${axisLines}
-            <polygon points="${scorePts}" fill="rgba(37,99,235,0.2)" stroke="#5555E0" stroke-width="2.5"/>
+            ${axes.length >= 3 && axes.every(comparableAxis) ? `<polygon points="${scorePts}" fill="#2269AD22" stroke="#2269AD" stroke-width="2.5"/>` : ""}
             ${axisElements}
           </svg>
         </div>
@@ -5000,10 +4774,9 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
       
       <!-- 4 PILIERS DÉTAILLÉS -->
       <div class="card mt">
-        <h3>Priorités du diagnostic</h3>
-        <p>${htmlEscape(cc.limiter.label)} · ${htmlEscape(cc.presentation?.priorityMetrics.join(" → ") ?? "")}</p>
+        <h3>Repères complémentaires du bilan</h3>
         ${cc.presentation?.wprimeReview ? '<p>W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>' : ''}
-        <p><b>Robustesse à l’effort prolongé : durabilité non évaluée.</b></p>
+        <p>La comparaison entre début et fin de sortie figure dans la lecture par discipline lorsque des sorties longues sont documentées.</p>
         ${cc.presentation?.decouplingRun != null ? `<p>Découplage course : ${cc.presentation.decouplingRun}% — indice de séance, protocole et durée à confirmer.</p>` : ''}
         ${cc.presentation?.tteBike ? `<p>TTE vélo : ${cc.presentation.tteBike.tte_min > 0 ? `${cc.presentation.tteBike.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteBike.source)}</p>` : ''}
         ${cc.presentation?.tteRun ? `<p>TTE course : ${cc.presentation.tteRun.tte_min > 0 ? `${cc.presentation.tteRun.tte_min} min` : 'Données insuffisantes'} · ${metricSourceLabel(cc.presentation.tteRun.source)}</p>` : ''}
@@ -5043,35 +4816,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </table>
       </div>
 
-      <!-- DÉCISION COACHING -->
-      <div class="card mt" style="border-left: 4px solid #5555E0;">
-        <h3>🧭 Flux Décisionnel TFCL</h3>
-        <div class="grid3 mt">
-          <div class="alert alertWarning">
-            <b>${cc.limiter.icon} Limiteur</b><br>
-            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.limiter.label)}</span><br>
-            <span class="muted" style="font-size:11px;">${htmlEscape(cc.limiter.description)}</span>
-          </div>
-          <div class="alert alertInfo">
-            <b>${cc.leverage.icon} Levier</b><br>
-            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.leverage.label)}</span><br>
-            <span class="muted" style="font-size:11px;">${htmlEscape(cc.leverage.description)}</span>
-          </div>
-          <div class="alert alertSuccess">
-            <b>📋 Décision</b><br>
-            <span style="font-size:14px;font-weight:700;">${htmlEscape(cc.decision.recommendedBlock)}</span><br>
-            <span class="muted" style="font-size:11px;">${cc.decision.durationWeeks} semaines</span>
-          </div>
-        </div>
-        <div class="muted mt" style="font-size:11px;">
-          <b>Justification coach :</b> ${htmlEscape(cc.decision.coachRationale)}
-        </div>
-        ${cc.decision.prohibitions.length > 0 ? `
-          <div class="alert alertError mt" style="font-size:11px;">
-            <b>🚫 Interdictions :</b> ${cc.decision.prohibitions.map(p => htmlEscape(p)).join(" • ")}
-          </div>
-        ` : ""}
-      </div>
+      ${payload.reportBrief ? '<p><a href="#lecture-coach">Relire la décision et le contrôle terrain</a></p>' : ''}
     </section>
   `;
 
@@ -7511,7 +7256,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <h3>Aucun fichier FIT importé</h3>
         <p class="muted">L'import de fichiers FIT permet d'observer les métriques terrain (best efforts, FTP, TTE, drift) et d'améliorer la calibration du profil.</p>
         <div class="alert alertInfo mt">
-          💡 <b>Conseil</b> : Importez des séances tests (FTP 20min, sprints, Z2 long) pour valider les estimations du modèle.
+          💡 <b>Conseil</b> : Importer un effort de référence dans la discipline de l’objectif pour confronter les estimations au terrain.
         </div>
       </div>
     </section>
@@ -8426,39 +8171,27 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     `;
   }
 
-  const footerHTML = `
-    <div class="footer">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          ${logoBase64 ? `<img src="${logoBase64}" alt="Logo" style="height:70px; width:auto;" />` : ''}
-          <div>
-            <b>${htmlEscape(brandMain)}</b> — ${htmlEscape(brandSub)}<br>
-            <span class="muted">Rapport généré le ${coverDate} à ${createdAt.toLocaleTimeString("fr-FR")}</span>
-          </div>
-        </div>
-        <div style="text-align:right;">
-          <div class="muted">VLamax: ${htmlEscape(vlamax.label)} • TTE: ${tte.source === "observed" ? "mesuré" : "estimé"}</div>
-          <div class="muted" style="margin-top:6px;">⚠️ Ce rapport guide la décision mais ne remplace pas un avis médical.</div>
-        </div>
-      </div>
-    </div>
-  `;
-
   // =============================================
   // ASSEMBLE HTML — RESPECT DE L'ORDRE PERSONNALISÉ
   // =============================================
   
   // Map des sections vers leur contenu HTML
   const summaryLink = (id: string, heading: string, detail: string) => `<section id="${id}" class="section pagebreakAvoid"><h2>${heading}</h2><p>${detail}</p><p><a href="#executive-overview">Valeurs, sources et cibles : lecture d’ensemble</a> · <a href="#report-reading">Limites et suivi</a> · <a href="#staff-evidence">Tests et capteurs enregistrés</a></p></section>`;
+  const runReport = payload.coachingCompass.presentation?.sport === 'run';
   const sectionHTMLMap: Record<keyof ReportSections, string> = {
     synthese: summaryLink('executif', 'Synthèse', 'La lecture d’ensemble au début du rapport regroupe les valeurs et leurs cibles, sans multiplier les mêmes tableaux.'),
     compass: compassHTML,
     profilMetabolique: summaryLink('profil-metabolique', 'Profil physiologique', 'Plafond aérobie, débit glycolytique et seuil décrivent des dimensions différentes. Leur lecture dépend du sport et de la provenance, pas du score seul.'),
-    vlamaxZoneConfidence: buildVLamaxZoneConfidenceHTML(payload),
+    vlamaxZoneConfidence: runReport ? "" : buildVLamaxZoneConfidenceHTML(payload),
     runMLSSCoherence: buildRunMLSSCoherenceHTML(payload),
     indicateurs: summaryLink('indicateurs', 'Indicateurs et provenance', 'Une valeur enregistrée, un record et un résultat modélisé n’ont pas la même portée. Les entrées factuelles sont regroupées dans Mesures, tests et capteurs.'),
     pacingEnvelope: (() => {
-      if (payload.coachingCompass.presentation?.sport === 'run') return buildCompassReportSummaryHTML(payload.coachingCompass, 'pacing-envelope', 'Repères course — sans transfert des watts vélo');
+      if (payload.coachingCompass.presentation?.sport === 'run') {
+        const seconds = effectiveSnapshot?.pace_threshold_sec_per_km;
+        if (!seconds || seconds <= 0) return '';
+        const pace = Math.round(seconds);
+        return '<section class="section"><h2>Allure de référence en course</h2><p>Le seuil renseigné dans le bilan correspond à <b>' + Math.floor(pace / 60) + ':' + String(pace % 60).padStart(2,'0') + ' min/km</b>. Pour fixer l’allure de compétition, confronter cette valeur à la durée tenue et aux conditions du parcours.</p></section>';
+      }
       const goal = payload.athlete.goal || "";
       const isRun = goal.includes("km") || goal.includes("Marathon") || goal.includes("Semi") || goal.includes("Trail") || goal.includes("Ultra");
       const hours = RACE_DURATION_HOURS_E[goal] ?? 0;
@@ -8484,32 +8217,39 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         </section>`;
       return main + ld + (isAthlete ? "" : refs);
     })(),
-    potentielPhysiologiqueRunning: buildCompassReportSummaryHTML(payload.coachingCompass, 'potentiel-running', 'Repères course — cibles internes'),
+    potentielPhysiologiqueRunning: payload.coachingCompass.presentation?.runningDiagnostic?.observations.length
+      ? '<section class="section"><h2>Observations en course à pied</h2>' + payload.coachingCompass.presentation.runningDiagnostic.observations.map(note => '<p>' + htmlEscape(note) + '</p>').join('') + '</section>' : '',
     injuryRisk: injuryRiskHTML,
     nutritionV2: buildNutritionV2HTML(payload),
-    fatmaxTFCL: buildFatMaxTFCLHTML(payload),
+    fatmaxTFCL: runReport ? "" : buildFatMaxTFCLHTML(payload),
     ambitionTargets: summaryLink('ambition-targets', 'Ambition et cibles internes', 'L’ambition oriente le diagnostic ; elle ne classe pas l’athlète dans une compétition. Les cibles internes atteintes ne démontrent pas un temps de course ni la robustesse après plusieurs heures.'),
-    ambitionPredictions: ambitionPredictionsHTML,
-    evolutionCharts: evolutionChartsHTML,
+    ambitionPredictions: runReport ? "" : ambitionPredictionsHTML,
+    evolutionCharts: snapshotHistory.length > 1 ? evolutionChartsHTML : "",
     ageAdjustment: aaiHTML,
     ambitionLegend: ambitionLegendHTML,
-    zones: zonesHTML,
+    zones: '<section class="section"><h2>Zones de travail par discipline</h2>' + reportSportZoneSets(payload)
+      .filter(set => !runReport || /course/i.test(set.sportLabel)).map(set =>
+        '<h3>' + htmlEscape(set.sportLabel) + '</h3><p>' + (set.source === 'derived' ? 'Zones calculées à partir des repères du bilan.' : 'Grille provisoire, à confirmer sur le terrain.') +
+        '</p><table><thead><tr><th>Zone</th><th>Intention</th><th>Plage de travail</th></tr></thead><tbody>' + set.zones.map(zone =>
+          '<tr><td>' + htmlEscape(zone.id) + '</td><td>' + htmlEscape(zone.label) + '</td><td>' + htmlEscape(zone.absolute || zone.pctRef || 'À renseigner') + '</td></tr>').join('') + '</tbody></table>').join('') + '</section>',
     historique: snapshotsHTML,
-    tests: testsHTML,
+    tests: tests.length ? testsHTML : "",
     testsCalibration: testsCalibrationHTML,
-    calibrationEvidence: calibrationEvidenceHTML,
-    fitImports: fitImportsHTML,
-    checkins: checkinsHTML,
-    comprendre: comprendreHTML,
+    calibrationEvidence: calibrationEvidences.length ? calibrationEvidenceHTML : "",
+    fitImports: fitImportTests.length ? fitImportsHTML : "",
+    checkins: checkins.length ? checkinsHTML : "",
+    comprendre: summaryLink('vocabulaire', 'Comprendre les tests', 'La VMA situe la vitesse aérobie en course, la FTP la puissance soutenue à vélo. Le TTE indique combien de temps l’athlète tient son seuil. Pour suivre la durabilité, comparer le même effort avant et après une charge longue.'),
     qualite: qualiteHTML,
-    roadmap: buildRoadmapHTML(payload),
+    roadmap: payload.calendar?.length ? "" : buildRoadmapHTML(payload),
     lactateCurve: payload.coachingCompass.presentation?.sport === 'run' ? '<section id="lactate-curve" class="section"><h2>Courbe lactate course</h2><p>Données insuffisantes : le modèle vélo en watts ne définit pas une courbe lactate course.</p></section>' : buildLactateCurveHTML(payload),
     substrateCurve: summaryLink('substrate-curve', 'Oxydation lipidique — repères du modèle', 'FatMax est une intensité, pas une réserve ni une preuve d’endurance. Seul un protocole métabolique documenté peut la présenter comme mesurée.'),
     performancePrediction: summaryLink('performance-prediction', 'Performance — ce qui peut être conclu', 'Aucun chrono n’est certifié par ces cibles. Parcours, météo, natation, transitions, ravitaillement et robustesse demandent des observations complémentaires.'),
     facteursLimitants: summaryLink('facteurs-limitants', 'Priorités du diagnostic', 'La lecture d’ensemble conserve la hiérarchie utilisée par les plans et distingue le diagnostic course indépendant. Les leviers ci-dessous doivent être confrontés aux faits et au contexte de charge.'),
-    leviersAction: buildLeviersActionHTML(payload),
-    cpWprimeWbal: buildCpWprimeWbalHTML(payload),
-    lactateCorrespondence: buildLactateCorrespondenceHTML(payload),
+    leviersAction: payload.reportBrief
+      ? '<section class="section"><h2>Du limiteur au prochain bloc</h2><p>' + htmlEscape(payload.reportBrief.flow.decision) + '</p><p>' + htmlEscape(payload.reportBrief.flow.instruction) + '</p></section>'
+      : buildLeviersActionHTML(payload),
+    cpWprimeWbal: runReport ? summaryLink('reserves-course', 'Vitesse critique et réserve de distance', 'Ces paramètres demandent plusieurs efforts de durées différentes en course à pied. Les tests bruts disponibles figurent dans la section Mesures, tests et capteurs.') : buildCpWprimeWbalHTML(payload),
+    lactateCorrespondence: runReport ? "" : buildLactateCorrespondenceHTML(payload),
     cycleIntelligence: buildCycleIntelligenceHTML(payload),
   };
   
@@ -8517,44 +8257,25 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const sectionOrder = getSectionOrder();
   
   // Assembler les sections dans l'ordre personnalisé
-  const orderedSectionsHTML = sectionOrder
-    .filter((key) => options.sections[key]) // Seulement les sections visibles
-    .map((key) => sectionHTMLMap[key])
-    .join('\n');
+  const included = sectionOrder.filter(key => options.sections[key] && sectionHTMLMap[key]?.trim());
+  const appendices = included.map(key => `<div class="technical-chapter" id="annexe-${key}">${sectionHTMLMap[key]}</div>`).join('');
+  const toc = included.length ? `<section id="analyses" class="edition-section"><h2>Analyses complémentaires</h2>
+    ${editionNav(included.map(key => [`annexe-${key}`, SECTION_LABELS[key]]))}</section>` : '';
+  const nav: [string, string][] = [];
+  if (payload.reportBrief) nav.push(['lecture-coach', 'Décision']);
+  nav.push(['executive-overview', 'Repères'], ['report-reading', 'Interprétation'], ['staff-evidence', 'Tests et sources']);
+  if (included.length) nav.push(['analyses', 'Analyses complémentaires']);
+  return `<!doctype html><html lang="fr"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1"><title>${htmlEscape(title)}</title>
+    ${css}${REPORT_KIT_FONT_LINK}${REPORT_KIT_SKIN_CSS}<style>${editionCSS}</style></head><body>
+    <main class="edition coach-edition">${coverHTML}${editionNav(nav)}
+    ${payload.reportBrief ? coachDecision(payload.reportBrief) : ''}
+    ${calendarPreview(payload.calendar)}
+    ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture des repères par discipline', true)}
+    ${buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}
+    ${buildStaffEvidenceHTML(athlete.id, effectiveSnapshot, tests, calibrationEvidences)}
+    ${toc}${appendices}<footer>Two For Coaching Lab · ${coverAthlete} · ${coverDate}</footer></main></body></html>`;
 
-  return `
-    <!doctype html>
-    <html lang="fr">
-      <head>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>${htmlEscape(title)}</title>
-        ${css}
-        ${REPORT_KIT_FONT_LINK}
-        ${REPORT_KIT_SKIN_CSS}
-      </head>
-      <body>
-        ${coverHTML}
-        ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture d’ensemble — compass')}
-        ${isAthlete ? '' : buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}
-        
-        <div class="noPrint" style="padding:16px;background:#EDEDFC;border-radius:12px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-          <button onclick="${EMBEDDED_PRINT_ONCLICK}" style="padding:12px 24px;font-size:15px;cursor:pointer;background:#5555E0;color:white;border:none;border-radius:8px;font-weight:600;box-shadow:0 2px 8px rgba(37,99,235,0.3);">
-            🖨️ Imprimer / Enregistrer en PDF
-          </button>
-          <span class="muted" style="font-size:13px;">💡 <b>Conseil :</b> Dans le dialogue d'impression, sélectionnez <b>"Enregistrer en PDF"</b> comme destination pour créer un fichier PDF.</span>
-        </div>
-
-        ${tocHTML}
-        
-        ${positionnementHTML}
-        ${isAthlete ? '' : buildStaffEvidenceHTML(athlete.id, effectiveSnapshot, tests, calibrationEvidences)}
-        ${orderedSectionsHTML}
-        
-        ${footerHTML}
-      </body>
-    </html>
-  `;
 }
 
 // =============================================
@@ -9905,8 +9626,12 @@ function buildBeginnerReportHTML(payload: ExportPayload, logoBase64: string): st
 // COMPONENT
 // =============================================
 
-export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences = [], open: controlledOpen, onOpenChange }: ExportToolsProps) {
+export function ExportTools({ dashboardInput, athlete, snapshots, tests, checkins = [], staffMode = false, ambition = DEFAULT_AMBITION, calibrationEvidences, open: controlledOpen, onOpenChange }: ExportToolsProps) {
   const { logoUrl } = useAppLogo();
+  const calibration = useCalibrationEvidence(athlete.id);
+  const calendar = useQuery({queryKey: ['report-calendar', athlete.id, format(new Date(), "yyyy-MM-dd")],
+    queryFn: () => readReportCalendar(athlete.id), staleTime: 0, gcTime: 0, retry: false});
+  const logo = useQuery({queryKey: ['report-logo', logoUrl], queryFn: () => imageToBase64(logoUrl), staleTime: Infinity});
   // Charger les sections depuis le localStorage via la fonction utilitaire
   const [sections, setSections] = useState<ReportSections>(getSectionVisibility);
   
@@ -9928,10 +9653,10 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   // déjà chargée ailleurs dans l'app (Index.tsx, "Bilan pré-objectif"), n'a
   // jamais été transmise jusqu'ici, désactivant de fait le garde-fou
   // "Train Low interdit <14j avant course" du moteur Lorang.
-  const { raceGoals: exportRaceGoals } = useAthleteRaceGoals(athlete?.id ?? null);
+  const { raceGoals: exportRaceGoals, loading: goalsLoading } = useAthleteRaceGoals(athlete?.id ?? null);
   const raceContext = computeExportRaceContext(exportRaceGoals);
 
-  const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition, raceContext);
+  const payload = buildExportPayload(athlete, snapshots, tests, checkins, ambition, raceContext, dashboardInput);
   payload.raceRecords = raceRecords;
   // Fix "amélioration des plans" (suite #219) : mêmes données déjà chargées
   // ci-dessus (exportRaceGoals) que RoadmapStrategique.tsx/Index.tsx pour le
@@ -9939,226 +9664,43 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
   // cycle unique pour un athlète multi-objectifs.
   const roadmapRaceGoals = mapDbRaceGoalsForRoadmap(exportRaceGoals);
   payload.raceGoals = roadmapRaceGoals.raceGoals;
+  const today = format(new Date(), "yyyy-MM-dd");
+  const nextRace = exportRaceGoals.filter(race => race.race_date >= today)
+    .sort((a, b) => a.race_date.localeCompare(b.race_date))[0];
+  if (nextRace) payload.nextRace = (nextRace.race_name || getObjectifLabel(nextRace.race_type)) + " · " + dateLabel(nextRace.race_date);
   payload.planStartDate = roadmapRaceGoals.planStartDate;
   const exportCheck = canExport(payload);
 
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportPDF = async () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    
-    if (isExporting) return;
+  const preparing = logo.isLoading || goalsLoading;
+  function exportReport(kind: "coach" | "athlete" | "performance") {
+    if (!exportCheck.ok || isExporting) return;
     setIsExporting(true);
-    
-    const toastId = toast.loading("Ouverture de la version imprimable...", {
-      description: "Un nouvel onglet va s’ouvrir."
-    });
-    
+    const toastId = toast.loading("Préparation du rapport…");
     try {
-      // Convert logo to base64 for embedding in the PDF
-      const logoBase64 = await imageToBase64(logoUrl);
-      
-      // Détecter le preset actif pour dériver l'audience
-      const currentPresetKey: ReportPreset | null = (() => {
-        const keys = Object.keys(sections) as (keyof ReportSections)[];
-        for (const p of Object.keys(REPORT_PRESETS) as ReportPreset[]) {
-          const ref = REPORT_PRESETS[p].sections;
-          if (keys.every(k => !!sections[k] === !!ref[k])) return p;
-        }
-        return null;
-      })();
-      
-      const exportOptions: ExportOptions = {
-        sections,
-        audience: currentPresetKey === "athlete" ? "athlete" : "staff",
-      };
-      
-      const html = buildStaffGradeReportHTML(payload, logoBase64, exportOptions, calibrationEvidences);
-      const fileName = `rapport-staff-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-
-      openPrintableHTML(html, {
-        filenameHint: fileName,
-        includeInstructions: true,
-        autoPrint: false,
-      });
-
-      toast.success("Version imprimable ouverte", {
-        id: toastId,
-        description: "Utilisez Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
-        duration: 6000,
-      });
+      const logoBase64 = logo.data ?? "";
+      const opts = { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString("fr-BE"), logoBase64 };
+      payload.calendar = calendar.data ?? null;
+      const snapshot = payload.effectiveSnapshot;
+      const html = snapshot?.source === "finisher-express"
+        ? buildExpressEdition({ coach: kind === "coach", name: athlete.name, goal: getObjectifLabel(athlete.goal), ambition: opts.ambitionLabel,
+            date: snapshot.date, logo: logoBase64, snapshot, calendar: payload.calendar,
+            sport: payload.coachingCompass.presentation?.sport === "run" ? "run" : "bike",
+            evidence: kind === "coach" ? buildStaffEvidenceHTML(athlete.id, snapshot, tests, calibrationEvidences ?? calibration.evidences) : "" })
+        : kind === "coach"
+        ? buildStaffGradeReportHTML(payload, logoBase64, { sections, audience: "staff" }, calibrationEvidences ?? calibration.evidences)
+        : kind === "athlete" ? buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, opts))
+        : buildPerformanceReportHTML(computePerformanceReport(payload, opts));
+      openPrintableHTML(html, { filenameHint: `rapport-${kind}-${athlete.name.replace(/\s+/g, "-")}-${format(new Date(), "yyyy-MM-dd")}.pdf`,
+        includeInstructions: true, responsive: true });
+      toast.success("Rapport ouvert", { id: toastId });
     } catch (error) {
-      console.error("Erreur lors de l'export PDF:", error);
-      toast.error("Erreur d'export", { 
-        id: toastId,
-        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
-      });
+      toast.error("Impossible d’ouvrir le rapport", {id: toastId, description: error instanceof Error ? error.message : undefined});
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const handleExportProfileReportPDF = async () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    if (isExporting) return;
-    setIsExporting(true);
-    const toastId = toast.loading("Préparation du rapport profil...", {
-      description: "Un nouvel onglet va s'ouvrir.",
-    });
-    try {
-      const logoBase64 = await imageToBase64(logoUrl);
-      const input = mapExportPayloadToProfileReport(payload, {
-        ambitionLabel: payload.ambition?.label ?? "—",
-        generatedAt: new Date().toLocaleDateString("fr-FR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        }),
-        logoBase64,
-      });
-      input.evidenceHTML = buildStaffEvidenceHTML(athlete.id, payload.effectiveSnapshot, payload.tests, calibrationEvidences);
-      const html = buildAthleteProfileReportHTML(input);
-      const fileName = `mon-profil-physiologique-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
-      toast.success("Rapport profil ouvert", {
-        id: toastId,
-        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
-        duration: 6000,
-      });
-    } catch (error) {
-      console.error("Erreur export Profil Athlète:", error);
-      toast.error("Erreur d'export", {
-        id: toastId,
-        description: error instanceof Error ? error.message : "Une erreur est survenue.",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportPerformanceReportPDF = async () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    if (isExporting) return;
-    setIsExporting(true);
-    const toastId = toast.loading("Préparation du rapport de performance...", {
-      description: "Un nouvel onglet va s'ouvrir.",
-    });
-    try {
-      const logoBase64 = await imageToBase64(logoUrl);
-      const input = computePerformanceReport(payload, {
-        ambitionLabel: payload.ambition?.label ?? "—",
-        generatedAt: new Date().toLocaleDateString("fr-FR", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        }),
-        logoBase64,
-      });
-      input.evidenceHTML = buildStaffEvidenceHTML(athlete.id, payload.effectiveSnapshot, payload.tests, calibrationEvidences);
-      const html = buildPerformanceReportHTML(input);
-      const fileName = `rapport-performance-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      openPrintableHTML(html, { filenameHint: fileName, includeInstructions: true, autoPrint: false });
-      toast.success("Rapport de performance ouvert", {
-        id: toastId,
-        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
-        duration: 6000,
-      });
-    } catch (error) {
-      console.error("Erreur export Rapport de Performance:", error);
-      toast.error("Erreur d'export", {
-        id: toastId,
-        description: error instanceof Error ? error.message : "Une erreur est survenue.",
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-
-
-  const handleExportBeginnerPDF = async () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    if (isExporting) return;
-    setIsExporting(true);
-    const toastId = toast.loading("Préparation de ton rapport...", {
-      description: "Un nouvel onglet va s'ouvrir."
-    });
-    try {
-      const logoBase64 = await imageToBase64(logoUrl);
-      const html = buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString('fr-FR'), logoBase64 }));
-      const fileName = `mon-rapport-simple-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-      openPrintableHTML(html, {
-        filenameHint: fileName,
-        includeInstructions: true,
-        autoPrint: false,
-      });
-      toast.success("Rapport ouvert", {
-        id: toastId,
-        description: "Utilise Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
-        duration: 6000,
-      });
-    } catch (error) {
-      console.error("Erreur export Débutant:", error);
-      toast.error("Erreur d'export", {
-        id: toastId,
-        description: error instanceof Error ? error.message : "Une erreur est survenue."
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const handleExportAthletePDF = async () => {
-    if (!exportCheck.ok) {
-      toast.error("Export impossible", { description: exportCheck.reason });
-      return;
-    }
-    
-    if (isExporting) return;
-    setIsExporting(true);
-    
-    const toastId = toast.loading("Ouverture du rapport imprimable...", {
-      description: "Un nouvel onglet va s’ouvrir."
-    });
-    
-    try {
-      const logoBase64 = await imageToBase64(logoUrl);
-      const html = buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString('fr-FR'), logoBase64 }));
-      const fileName = `mon-etat-de-forme-${athlete.name.replace(/\s+/g, "-")}-${new Date().toISOString().slice(0, 10)}.pdf`;
-
-      openPrintableHTML(html, {
-        filenameHint: fileName,
-        includeInstructions: true,
-        autoPrint: false,
-      });
-
-      toast.success("Rapport ouvert", {
-        id: toastId,
-        description: "Utilisez Imprimer → Enregistrer en PDF (ou Ctrl/Cmd+P).",
-        duration: 6000,
-      });
-    } catch (error) {
-      console.error("Erreur lors de l'export Athlète:", error);
-      toast.error("Erreur d'export", { 
-        id: toastId,
-        description: error instanceof Error ? error.message : "Une erreur est survenue lors de la génération du rapport." 
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  }
 
   const toggleSection = (key: keyof ReportSections) => {
     setSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -10166,7 +9708,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
 
   const applyPreset = (preset: ReportPreset) => {
     setSections({ ...REPORT_PRESETS[preset].sections });
-    toast.success(`Preset appliqué : ${REPORT_PRESETS[preset].label}`, {
+    toast.success(`Sélection appliquée : ${REPORT_PRESETS[preset].label}`, {
       description: "Tu peux ajuster manuellement les sections ci-dessous.",
     });
   };
@@ -10247,141 +9789,53 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
 
   return (
     <Dialog open={controlledOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[440px] p-0">
+      <DialogContent className="max-h-[90dvh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto p-0">
         <DialogHeader className="sr-only">
-          <DialogTitle>Exporter le rapport</DialogTitle>
+          <DialogTitle>Rapports de {athlete.name}</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="preview" className="w-full">
-          <div className="border-b px-3 pt-3 pb-2">
-            <p className="text-sm font-medium mb-2">Exporter le rapport</p>
+          <div className="border-b bg-gradient-to-br from-sky-50 to-background px-5 pb-4 pt-6 dark:from-sky-950">
+            <p className="mb-1 text-sm text-muted-foreground">{athlete.name}</p>
+            <h2 className="mb-4 text-2xl font-semibold tracking-tight">Rapports de performance</h2>
             <TabsList className="grid w-full grid-cols-2 h-8">
               <TabsTrigger value="preview" className="text-xs gap-1.5">
                 <Eye className="h-3 w-3" />
-                Aperçu
+                Rapports
               </TabsTrigger>
               <TabsTrigger value="sections" className="text-xs gap-1.5">
                 <Settings2 className="h-3 w-3" />
-                Sections ({selectedCount})
+                Annexes coach ({selectedCount})
               </TabsTrigger>
             </TabsList>
           </div>
           
-          {/* Onglet Aperçu */}
-          <TabsContent value="preview" className="mt-0 p-3 space-y-3">
-            {/* Preview Panel */}
-            <PDFPreviewPanel 
-              sections={sections} 
-              athleteName={athlete?.name}
-            />
-            
-            {/* Boutons d'export */}
-            <div className="space-y-2 pt-2 border-t">
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleExportPDF}
-                disabled={isExporting}
-                className="w-full justify-start gap-3 h-auto py-2.5"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Shield className="h-4 w-4" />
-                )}
-                <div className="text-left flex-1">
-                  <div className="font-medium text-sm">Rapport Staff</div>
-                  <div className="text-[10px] opacity-80">Complet, technique, pour le coach</div>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </Button>
-              
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleExportProfileReportPDF}
-                disabled={isExporting}
-                className="w-full justify-start gap-3 h-auto py-2.5"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                <div className="text-left flex-1">
-                  <div className="font-medium text-sm">Rapport Profil Athlète</div>
-                  <div className="text-[10px] opacity-80">Ton profil, tes priorités et tes repères par sport</div>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleExportPerformanceReportPDF}
-                disabled={isExporting}
-                className="w-full justify-start gap-3 h-auto py-2.5"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Activity className="h-4 w-4" />
-                )}
-                <div className="text-left flex-1">
-                  <div className="font-medium text-sm">Rapport de Performance</div>
-                  <div className="text-[10px] opacity-80">Ton moteur, tes efforts et ton énergie par sport</div>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </Button>
-
-
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportAthletePDF}
-                disabled={isExporting}
-                className="w-full justify-start gap-3 h-auto py-2.5"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <User className="h-4 w-4 text-primary" />
-                )}
-                <div className="text-left flex-1">
-                  <div className="font-medium text-sm">Rapport Athlète</div>
-                  <div className="text-[10px] text-muted-foreground">Simple, encourageant</div>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportBeginnerPDF}
-                disabled={isExporting}
-                className="w-full justify-start gap-3 h-auto py-2.5"
-              >
-                {isExporting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                )}
-                <div className="text-left flex-1">
-                  <div className="font-medium text-sm">Rapport Découverte</div>
-                  <div className="text-[10px] text-muted-foreground">Ultra-pédagogique, pour débutant</div>
-                </div>
-                <ChevronRight className="h-4 w-4 opacity-50" />
-              </Button>
-            </div>
+          <TabsContent value="preview" className="m-0 space-y-3 p-4 sm:p-5">
+            {([
+              { kind: "coach", title: "Rapport coach", description: "La décision du Compass, les écarts par sport, les tests et les annexes techniques.", Icon: Shield },
+              { kind: "athlete", title: "Rapport athlète", description: "Un récit illustré de son profil, des étapes de sa préparation et du prochain bilan.", Icon: User },
+            ] as const).map(({kind, title, description, Icon}) => (
+              <button key={kind} type="button" onClick={() => exportReport(kind)}
+                disabled={isExporting || preparing || calendar.isLoading || (kind === "coach" && calibration.loading)}
+                className="group flex w-full items-start gap-3 rounded-2xl border bg-card p-4 text-left shadow-sm transition hover:border-primary focus-visible:outline-primary disabled:opacity-60">
+                <span className="rounded-xl bg-primary/10 p-2.5 text-primary"><Icon aria-hidden className="size-5" /></span>
+                <span className="min-w-0 flex-1"><strong className="block text-lg">{title}</strong>
+                  <span className="mt-1 block text-sm leading-relaxed text-muted-foreground">{description}</span></span>
+                <ChevronRight aria-hidden className="my-auto size-4 shrink-0 text-primary" />
+              </button>
+            ))}
+            {(preparing || calendar.isLoading || calibration.loading) && <p role="status" className="text-sm text-muted-foreground">Lecture du bilan et du calendrier…</p>}
+            {payload.effectiveSnapshot?.source !== "finisher-express" && <Button variant="ghost" className="h-auto min-h-11 w-full justify-start gap-2 whitespace-normal" disabled={isExporting || preparing} onClick={() => exportReport("performance")}>
+              <Activity aria-hidden className="size-4" /> Ouvrir l’analyse de performance détaillée
+            </Button>}
           </TabsContent>
-          
+
           {/* Onglet Sections */}
           <TabsContent value="sections" className="mt-0 p-3 space-y-3">
             {/* ── Sélecteur de preset ── */}
             <div className="rounded-lg border bg-muted/30 p-2.5 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Preset
+                  Sélection des annexes
                 </p>
                 {activePreset && (
                   <span className="text-[10px] text-primary font-medium">
@@ -10418,7 +9872,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
                 })}
               </div>
               <p className="text-[10px] text-muted-foreground/80 leading-snug pt-0.5">
-                Un preset est un point de départ — tu peux ajuster manuellement ci-dessous.
+                Ces réglages personnalisent les annexes du rapport coach.
               </p>
             </div>
 
@@ -10460,8 +9914,8 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
             <Button
               variant="default"
               size="sm"
-              onClick={handleExportPDF}
-              disabled={isExporting}
+              onClick={() => exportReport("coach")}
+              disabled={isExporting || preparing || calendar.isLoading || calibration.loading}
               className="w-full gap-2"
             >
               {isExporting ? (
@@ -10469,7 +9923,7 @@ export function ExportTools({ athlete, snapshots, tests, checkins = [], staffMod
               ) : (
                 <FileText className="h-4 w-4" />
               )}
-              {isExporting ? "Génération en cours..." : "Générer le rapport Staff"}
+              {isExporting ? "Génération en cours..." : "Ouvrir le rapport coach"}
             </Button>
           </TabsContent>
         </Tabs>

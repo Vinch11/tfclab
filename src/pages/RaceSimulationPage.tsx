@@ -734,6 +734,7 @@ export default function RaceSimulationPage() {
       scenarios: scenarios ?? null,
     });
     openPrintableHTML(html, {
+      responsive: true,
       filenameHint: `Simulation_${(selectedAthlete?.nom ?? 'athlete').replace(/\s+/g, '_')}_${raceObjective}`,
       autoPrint: false,
     });

@@ -1,3 +1,5 @@
+import { editionCover, editionNav } from '../reportKit/editions';
+import editionCSS from '../reportKit/editions.css?raw';
 // Rapport imprimable — Race Simulation TFCL™
 // Page HTML autonome (sans navigation, sans boutons), pensée impression A4.
 
@@ -137,7 +139,7 @@ function envelopeBlock(label: string, env: PacingEnvelopeResult | null): string 
 function vlamaxTraceSection(trace: RaceSimulationReportInput["vlamaxTrace"]): string {
   if (!trace || (trace.final == null && (!trace.methods || trace.methods.length === 0))) {
     return `
-      <section>
+      <section class="edition-section">
         <h2>2. Traçabilité VLamax</h2>
         <div class="muted">Aucune trace disponible — valeur VLamax non documentée.</div>
       </section>
@@ -174,7 +176,7 @@ function vlamaxTraceSection(trace: RaceSimulationReportInput["vlamaxTrace"]): st
   }
 
   return `
-    <section>
+    <section class="edition-section">
       <h2>2. Traçabilité VLamax — d'où vient ${trace.final != null ? `<b>${trace.final.toFixed(2)} mmol/L/s</b>` : "cette valeur"} ?</h2>
       <table class="nutrition-table">
         <thead>
@@ -281,26 +283,17 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   .callout { margin-top: 18px; padding: 12px 14px; border-radius: 8px; background: #FBF0DA; border: 1px solid #F0D79A; color: #8A5A08; font-size: 11.5px; }
   .zones { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
   .zone { padding: 6px 10px; border-radius: 6px; background: #F2F0E9; font-size: 11.5px; }
-</style>
+</style><style>${editionCSS}</style>
 </head>
-<body>
-  <div class="header">
-    <h1>Rapport Express — TFCL™</h1>
-    <div class="subtitle">Profil estimé · FC + poids · 3 sections essentielles</div>
-    <div class="meta-grid">
-      <div class="cell"><div class="k">Athlète</div><div class="v">${esc(b.athleteName)}</div></div>
-      <div class="cell"><div class="k">Course</div><div class="v">${esc(b.raceObjective)}</div></div>
-      <div class="cell"><div class="k">Durée cible</div><div class="v">${esc(fmtDuration(b.raceDurationMin))}</div></div>
-      <div class="cell"><div class="k">Date</div><div class="v">${esc(b.generatedAt)}</div></div>
-    </div>
-  </div>
-
+<body><main class="edition specialty">
+  ${editionCover({label:"Simulation de course", name:b.athleteName,title:"Simulation express",
+    intro:"Les premiers repères de course utilisent les informations disponibles dans ton bilan express. Lis-les avec ton ressenti et les consignes de ton coach.",meta:[["Objectif",b.raceObjective],["Durée cible",fmtDuration(b.raceDurationMin)],["Édition du",b.generatedAt]]})}
   <div class="banner">
     🚀 <strong>Mode Express</strong> — ce rapport repose sur un profil estimé à partir de la FC et du poids.
     Les valeurs détaillées (VLamax, TTE, FatMax) ne sont pas disponibles.
   </div>
 
-  <section>
+  <section class="edition-section">
     <h2>1. Profil de base</h2>
     <table>
       <tr><th style="width:40%">Poids</th><td>${fmtNum(ph.weightKg, 1, "kg")}</td></tr>
@@ -316,7 +309,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
     ` : `<p style="font-style:italic;color:#6E6B78;margin-top:10px">Renseigne ta FC max pour générer les zones cardio.</p>`}
   </section>
 
-  <section>
+  <section class="edition-section">
     <h2>2. Plan nutrition simplifié</h2>
     <table>
       <tr><th style="width:40%">Glucides / heure</th><td>${esc(choPerHour)}${dur != null ? ` <span style="color:#6E6B78">(durée estimée ${fmtDuration(dur)})</span>` : ""}</td></tr>
@@ -330,7 +323,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
     </p>
   </section>
 
-  <section>
+  <section class="edition-section">
     <h2>3. Recommandations Finisher (RPE uniquement)</h2>
     <table>
       <thead><tr><th>Discipline</th><th>Effort cible</th><th>Consigne</th></tr></thead>
@@ -346,7 +339,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   </section>
 
   <div class="callout">
-    Ce rapport est basé sur un profil estimé <strong>(confiance 60%)</strong>. Pour un rapport complet avec
+    Ce rapport est basé sur les données du bilan Express. Pour un rapport complet avec
     <strong>VLamax</strong>, <strong>TTE</strong>, <strong>FatMax</strong> et des prédictions de performance précises,
     réaliser les protocoles <strong>TFCL Track Day™</strong>, <strong>Bike Day™</strong> et <strong>Pool Day™</strong>.
   </div>
@@ -354,7 +347,7 @@ function buildExpressReportHTML(b: RaceSimulationReportInput): string {
   <div class="footer">
     Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™ · Profil Express
   </div>
-</body>
+</main></body>
 </html>`;
 }
 
@@ -473,30 +466,21 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
   .disclaimer { margin-top:10px; font-size:10px; color:#97949F; font-style: italic; }
   .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #E7E4DC; font-size: 10px; color: #97949F; text-align: center; }
   section { page-break-inside: avoid; }
-</style>
+</style><style>${editionCSS}</style>
 </head>
-<body>
-  <div class="header">
-    <div class="brand">
-      <div class="logo">TFC</div>
-      <div>
-        <h1>Simulation course — TFCL™</h1>
-        <div class="subtitle">Rapport de pacing, nutrition, scénarios &amp; règles d'or</div>
-      </div>
-    </div>
-    ${headerMeta}
-  </div>
-
-  <section>
+<body><main class="edition specialty">
+  ${editionCover({label:"Simulation de course", name:b.athleteName,title:"Ta stratégie de course",
+    intro:"Les scénarios montrent comment l’intensité choisie change les exigences de la course. Le point de départ est ton bilan, puis viennent les choix de rythme et de ravitaillement.",meta:[["Objectif",b.raceObjective],["Durée cible",fmtDuration(b.raceDurationMin)],["Édition du",b.generatedAt]]})}
+  <section class="edition-section">
     <h2>1. Profil physiologique</h2>
     ${physioGrid}
     ${cpWarningHTML}
-    ${why("Ces valeurs résument ton moteur : FTP/VMA fixent ton seuil aérobie, VLamax mesure ta vitesse glycolytique (consommation de sucre), TTE indique combien de temps tu tiens au seuil. Tout le reste du rapport est calculé à partir de ces chiffres.")}
+    ${why("La FTP décrit la puissance de référence à vélo, la VMA la vitesse aérobie en course. Le TTE indique la durée tenue au seuil selon la provenance du bilan. Ces entrées donnent son contexte à la simulation.")}
   </section>
 
   ${vlamaxTraceSection(b.vlamaxTrace ?? null)}
 
-  <section>
+  <section class="edition-section">
     <h2>3. Couloir de pacing par segment</h2>
     <div class="env-grid">
       ${envelopeBlock("Vélo", b.envelopeBike ?? (b.envelope && b.envelope.sport === "bike" ? b.envelope : null))}
@@ -505,7 +489,7 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
     ${why("Le couloir vert est l'intensité optimale soutenable, calculée depuis le ratio FTP/VLamax : plus ta VLamax est élevée, plus tu brûles vite ton glycogène et plus le plafond est resserré. Le couloir s'élargit ou se resserre aussi en fonction de ta TTE et de ton potentiel physiologique du jour.")}
   </section>
 
-  <section>
+  <section class="edition-section">
     <h2>4. Plan nutrition (Mader-Heck + Jeukendrup)</h2>
     <p class="muted" style="margin-top:0">Les grammes de glucides détaillés (CHO/h, sodium, caféine) sont rendus dans l'application via le moteur Nutrition unifié V3, calé sur ta VLamax, ton poids et la durée de course. Les valeurs clés à retenir :</p>
     <table class="nutrition-table">
@@ -514,19 +498,19 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
         <tr><td>Poids athlète</td><td>${fmtNum(ph.weightKg, 1, "kg")}</td></tr>
         <tr><td>Durée cible course</td><td>${fmtDuration(b.raceDurationMin)}</td></tr>
         <tr><td>VLamax (dépendance glycolytique)</td><td>${fmtNum(ph.vlamaxRun ?? ph.vlamax, 2, "mmol/L/s")}</td></tr>
-        <tr><td>Bande CHO recommandée</td><td>${b.raceDurationMin && b.raceDurationMin >= 240 ? "100–120 g/h" : b.raceDurationMin && b.raceDurationMin >= 150 ? "80–100 g/h" : "60–80 g/h"}</td></tr>
+        <tr><td>Repère glucidique selon la durée</td><td>${b.raceDurationMin == null ? "Durée à renseigner" : b.raceDurationMin >= 240 ? "100–120 g/h" : b.raceDurationMin && b.raceDurationMin >= 150 ? "80–100 g/h" : "60–80 g/h"}</td></tr>
       </tbody>
     </table>
-    ${why("Les grammes de glucides par heure ne sont pas génériques : ils sont calculés depuis ta dépendance glycolytique mesurée par la VLamax. Plus la VLamax est haute, plus tu vides ton glycogène vite et plus la cible CHO/h monte. La durée de course module ensuite la bande recommandée.")}
+    ${why("La plage du tableau dépend de la durée saisie. Pour fixer une quantité à emporter, reprends les apports réellement testés et tolérés lors de tes sorties.")}
   </section>
 
-  <section>
+  <section class="edition-section">
     <h2>5. Scénarios de pacing — robuste, ambitieux, agressif</h2>
     ${scenariosHTML}
     ${why("Robuste = on reste dans la moitié basse du couloir, risque physiologique minimal, marge pour finir fort. Ambitieux = on vise le centre, marge réduite mais perf optimisée si ta TTE est bonne. Agressif = on flirte avec le plafond toléré, gain marginal mais risque réel d'effondrement glycogénique ou cardiaque dans le dernier tiers.")}
   </section>
 
-  <section>
+  <section class="edition-section">
     <h2>6. Règles d'or du jour J</h2>
     <ul class="golden">
       ${goldenRules.map(r => `<li>${esc(r)}</li>`).join("")}
@@ -538,6 +522,6 @@ export function buildRaceSimulationHTML(b: RaceSimulationReportInput): string {
     Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™<br/>
     Modèles : Pacing Envelope TFCL™ · Mader-Heck (N=44) · Jeukendrup · Simulator V4 Refined.
   </div>
-</body>
+</main></body>
 </html>`;
 }

@@ -1,3 +1,5 @@
+import { editionCover, editionNav } from '../reportKit/editions';
+import editionCSS from '../reportKit/editions.css?raw';
 /**
  * Race Readiness — HTML printable (PDF via Ctrl+P)
  * Aligné avec la charte du mini-rapport TFCL.
@@ -116,32 +118,19 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   .chip.gap { background: #FAE6E4; color: #8F2E27; }
   .chip.lever { background: #E2F1F9; color: #075985; }
   .footer { margin-top: 32pt; padding-top: 12pt; border-top: 1pt solid #E7E4DC; font-size: 8pt; color: #97949F; text-align: center; }
-</style></head>
-<body>
-  <div style="display:flex; align-items:center; gap:14pt; margin-bottom:6pt;">
-    <img src="${logoSrc}" alt="TFC Lab" style="height:48pt; width:auto;" />
-    <h1 style="margin:0;">Bilan pré-objectif TFCL</h1>
-  </div>
-  <div class="meta">
-    <strong>${esc(athleteName)}</strong> — ${esc(raceName ?? raceType)} (${esc(raceType)}) le ${dateFR}<br/>
-    Objectif: ${esc(objectif)} · Ambition: ${esc(ambition)}
-  </div>
+</style><style>${editionCSS}</style></head>
+<body><main class="edition specialty">
+  ${editionCover({ label:"Bilan pré-objectif",name:athleteName,title:raceName || raceType,
+    intro:"À l’approche de la course, voici les repères à retenir, les points à revoir avec ton coach et les décisions à emporter sur la ligne de départ.",
+    meta:[["Épreuve",dateFR],["Objectif",objectif],["Ambition",ambition],["Échéance",daysRemaining >= 0 ? "J−" + daysRemaining : "Épreuve passée"]],logo:logoSrc})}
+  ${editionNav([['message','Message du coach'],['reperes','Profil'],['course','Jour de course']])}
+  <h2 id="message">Message du coach</h2>
+  <div class="ai-message"><p>${mdToHtml(aiMessage || "Le coach peut compléter ce bilan avec ses consignes de course.")}</p></div>
 
-  <div class="hero">
-    <div class="verdict-emoji">${verdict.emoji}</div>
-    <div class="verdict-label">Alignement aux cibles internes</div>
-    <div class="verdict-tagline">À confirmer avec le coach — pas une probabilité de réussite.</div>
-    <div class="level-tag">Durabilité après effort prolongé non évaluée</div>
-    <div class="countdown">J-${daysRemaining} avant la course</div>
-  </div>
-
-  <h2>Message du coach</h2>
-  <div class="ai-message"><p>${mdToHtml(aiMessage)}</p></div>
-
-  <h2>Cartographie de ta forme</h2>
+  <h2 id="reperes">Ton profil face aux cibles de l’objectif</h2>
   <div style="display:flex; gap:16pt; align-items:center; flex-wrap:wrap;">
-    <div style="flex:1 1 320pt; min-width:280pt;">
-      ${buildReadinessRadarSVG({ axes: displayAxes, size: 320, peerRef: null })}
+    <div style="flex:1 1 320pt; min-width:0;">
+      ${buildReadinessRadarSVG({ axes: displayAxes, size: 320, peerRef })}
     </div>
     <div style="flex:1 1 220pt; font-size:10pt; color:#5C5966;">
       <p style="margin:0 0 6pt;"><strong>Chaque axe = un repère interne, pas un classement des limiteurs.</strong></p>
@@ -171,28 +160,16 @@ export function buildRaceReadinessHTML(opts: BuildOpts): string {
   <div class="gaps">${displayAxes.filter(a => a.score < 60 && a.value != null && a.value > 0).map(g => `<span class="chip lever">${esc(g.label)} (${g.score}/100)</span>`).join("")}</div>` : ""}
 
 
-  <h2>Le jour J — pacing &amp; gestion mentale</h2>
-  <div style="background:#E4F5EE; border-left:4pt solid #1F9D6B; border-radius:6pt; padding:14pt 18pt; margin:8pt 0 16pt; font-size:10.5pt; color:#14131A; line-height:1.6;">
-    <p style="margin:0 0 10pt;"><strong style="color:#157A52;">🧭 Les 4 règles d'or à te répéter sur la ligne de départ</strong></p>
-    <ol style="margin:0 0 10pt 18pt; padding:0;">
-      <li><strong>Premier tiers : sois ennuyeux.</strong> Reste 5–10 W (ou 10–15 s/km) <em>sous</em> ta cible. Les watts économisés tôt valent triple en fin de course.</li>
-      <li><strong>Mange avant d'avoir faim, bois avant d'avoir soif.</strong> Une gorgée toutes les 10–15 min, un apport glucidique toutes les 20–25 min, dès la première heure — pas après.</li>
-      <li><strong>Pilote sur une seule donnée à la fois.</strong> Cardio en montée, puissance/allure sur le plat, sensations en descente. Trop d'écrans = décisions floues.</li>
-      <li><strong>Découpe la course en blocs de 20 min.</strong> Tu ne cours pas un marathon, tu enchaînes des « petits efforts » que tu sais déjà gérer à l'entraînement.</li>
-    </ol>
-    <p style="margin:0 0 6pt;"><strong style="color:#157A52;">🧠 Quand le doute s'installe (et il s'installera)</strong></p>
-    <ul style="margin:0 0 0 18pt; padding:0;">
-      <li><strong>Reviens au présent :</strong> 3 respirations profondes, relâche les épaules et la mâchoire, vérifie ta cadence.</li>
-      <li><strong>Une phrase d'ancrage</strong> préparée à l'avance (ex : <em>« je suis prêt, j'ai fait le travail »</em>) — répète-la à chaque ravito.</li>
-      <li><strong>Pense process, pas résultat :</strong> la prochaine gorgée, le prochain kilomètre, la prochaine bosse. Le chrono se construit, il ne se décide pas.</li>
-    </ul>
-  </div>
+  <section class="edition-section" id="course"><h2>Les décisions du jour de course</h2>
+    <div class="decision-pair"><div><h3>Au départ</h3><p>Retrouve le repère d’intensité convenu avec ton coach et les sensations de tes répétitions à l’entraînement.</p></div>
+    <div><h3>Si les conditions changent</h3><p>Compare ton ressenti à l’effort prévu. Repars de la consigne de repli convenue avec ton coach.</p></div></div>
+  </section>
 
   ${strategyHTML}
 
   <div class="footer">
     Rapport généré par Potentiel Physiologique TFCL™ — ${new Date().toLocaleDateString("fr-FR")}<br/>
-    Score basé sur le Coaching Compass (5 axes) et les cibles d'ambition.
+    Comparaison aux cibles internes du Compass disponibles pour cet objectif.
   </div>
-</body></html>`;
+</main></body></html>`;
 }

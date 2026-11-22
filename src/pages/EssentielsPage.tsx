@@ -240,6 +240,7 @@ export default function EssentielsPage() {
     if (!bundle) return;
     const html = buildEssentielsHTML(bundle);
     openPrintableHTML(html, {
+      responsive: true,
       filenameHint: `Essentiels TFCL — ${bundle.athleteName}`,
     });
   };

@@ -1,3 +1,5 @@
+import { editionCover, editionNav } from '../reportKit/editions';
+import editionCSS from '../reportKit/editions.css?raw';
 /**
  * buildEssentielsHTML — Export PDF imprimable des 8 piliers essentiels.
  */
@@ -39,7 +41,7 @@ function formatMetric(m: PillarMetric): string {
 
 /** SVG horizontal gauge: scale [min,max], target band [tmin,tmax], value pointer */
 function renderGauge(m: PillarMetric): string {
-  if (m.value == null || !m.scale) return "";
+  if (m.value == null || !Number.isFinite(m.value) || m.value === 0 || !m.scale) return "";
   const [sMin, sMax] = m.scale;
   const pct = (v: number) => Math.max(0, Math.min(100, ((v - sMin) / (sMax - sMin)) * 100));
   const valuePct = pct(m.value);
@@ -79,7 +81,7 @@ function renderPillar(p: PillarData): string {
     .join("");
 
   return `
-  <section class="pillar" style="page-break-inside:avoid;border:1px solid #E7E4DC;border-radius:12px;padding:16px;margin-bottom:14px;background:#ffffff">
+  <section id="pilier-${p.number}" class="pillar" style="page-break-inside:avoid;border:1px solid #E7E4DC;border-radius:12px;padding:16px;margin-bottom:14px;background:#ffffff">
     <header style="display:flex;align-items:center;gap:10px;margin-bottom:10px;border-bottom:1px solid #F2F0E9;padding-bottom:8px">
       <div style="width:32px;height:32px;border-radius:8px;background:${color}1a;color:${color};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px">${p.number}</div>
       <div style="flex:1">
@@ -139,25 +141,18 @@ export function buildEssentielsHTML(b: EssentielsBundle): string {
   .meta-grid .k { font-size: 10px; color: #97949F; text-transform: uppercase; letter-spacing: 0.5px; }
   .meta-grid .v { font-size: 14px; font-weight: 600; color: white; margin-top: 2px; }
   .footer { margin-top: 20px; padding-top: 12px; border-top: 1px solid #E7E4DC; font-size: 10px; color: #97949F; text-align: center; }
-</style>
+</style><style>${editionCSS}</style>
 </head>
-<body>
-  <div class="header">
-    <h1>Les 8 Essentiels TFCL™</h1>
-    <div class="subtitle">Potentiel Physiologique TFCL™ — vue pédagogique consolidée</div>
-    <div class="meta-grid">
-      <div class="cell"><div class="k">Athlète</div><div class="v">${esc(b.athleteName)}</div></div>
-      <div class="cell"><div class="k">Objectif</div><div class="v">${esc(b.athleteObjectif)}</div></div>
-      <div class="cell"><div class="k">Âge</div><div class="v">${b.age ?? "—"}</div></div>
-      <div class="cell"><div class="k">Snapshot</div><div class="v">${b.snapshotDate ?? "—"}</div></div>
-    </div>
-  </div>
-
+<body><main class="edition specialty">
+  ${editionCover({label:"Essentiels",name:b.athleteName,title:"Les huit piliers du bilan",
+    intro:"Chaque pilier relie un chiffre du bilan à une question d’entraînement. Retrouve son origine, sa signification et son application sur le terrain.",
+    meta:[["Objectif", b.athleteObjectif],["Bilan", b.snapshotDate ?? "À compléter"],["Édition du",b.generatedAt]]})}
+  ${editionNav(b.pillars.map(p => [`pilier-${p.number}`,p.shortTitle]))}
   ${b.pillars.map(renderPillar).join("")}
 
   <div class="footer">
     Généré le ${esc(b.generatedAt)} — TFC Lab • Potentiel Physiologique TFCL™
   </div>
-</body>
+</main></body>
 </html>`;
 }

@@ -96,6 +96,7 @@ export default function MiniReportPage() {
     const result = computeMiniReport(input);
     const html = buildMiniReportHTML(result);
     openPrintableHTML(html, {
+      responsive: true,
       filenameHint: athleteName ? `Mini Rapport - ${athleteName}` : "Mini Rapport Athlète",
       autoPrint: false,
     });
