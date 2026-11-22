@@ -54,7 +54,7 @@ export function LabPriorities({
   const longSessions = parseStoredDurability(snapshot.critical_metrics);
   const demands = objectiveDemands(input.objectif);
   return (
-    <section id="priorites" className="rounded-lg border bg-card p-5 space-y-3">
+    <section id="priorites" className="lab-priorities rounded-lg border bg-card p-5 space-y-3">
       <h3 className="text-xl font-semibold">
         {input.objectif}{input.ambition && ` · ${AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition}`}
       </h3>

@@ -1,0 +1,416 @@
+/* Bevel is a coach-selected theme. Portalled controls share the document palette. */
+:root.bevel {
+  color-scheme: light;
+  --background: 247 17% 97%;
+  --foreground: 248 22% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: 249 50% 46%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 246 20% 94%;
+  --secondary-foreground: 249 31% 28%;
+  --muted: 247 14% 94%;
+  --muted-foreground: 245 8% 39%;
+  --accent: 163 48% 29%;
+  --accent-foreground: 0 0% 100%;
+  --success: 157 54% 30%;
+  --success-foreground: 0 0% 100%;
+  --warning: 33 80% 31%;
+  --warning-foreground: 0 0% 100%;
+  --destructive: 3 59% 43%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 247 13% 88%;
+  --input: 246 12% 77%;
+  --ring: var(--primary);
+  --radius: .875rem;
+
+  --chart-1: 159 46% 36%;
+  --chart-2: 249 53% 53%;
+  --chart-3: 32 76% 40%;
+  --chart-4: 198 59% 40%;
+  --chart-5: 347 50% 45%;
+  --chart-6: 281 40% 47%;
+
+  --font-heading: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --gradient-primary: linear-gradient(125deg, #6653b6, #50428d);
+  --gradient-card: linear-gradient(150deg, #fff, #faf9fc);
+  --gradient-accent: linear-gradient(125deg, #347d68, #2a685b);
+  --gradient-hero: linear-gradient(130deg, #eeebfa, #f9f8fc);
+  --gradient-mesh: none;
+  --shadow-glow: none;
+  --shadow-inner: inset 0 1px 0 rgb(255 255 255 / .65);
+  --shadow-card: 0 1px 3px rgb(40 33 58 / .045), 0 7px 24px -16px rgb(40 33 58 / .17);
+  --shadow-elevated: 0 16px 46px -16px rgb(40 33 58 / .25), 0 2px 8px rgb(40 33 58 / .06);
+  --sidebar-background: 255 20% 99%;
+  --sidebar-foreground: 250 15% 23%;
+  --sidebar-accent: 247 24% 94%;
+  --sidebar-accent-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --panel-radius: clamp(1.125rem, 2vw, 1.55rem);
+  --lavender: #eae5fa;
+  --mint: #e0f1e9;
+}
+
+@media screen {
+  .bevel body { background-image: none; }
+  .bevel :is(h1, h2, .ui-card-title) { letter-spacing: -.035em; }
+  .bevel :is(.metric-value, .tabular-nums, .ui-table) { font-variant-numeric: tabular-nums; }
+  .bevel :is(a, button, summary, [tabindex="0"]):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Application chrome, independent of the heading level used by each screen. */
+  .bevel .workspace-toolbar {
+    background: hsl(var(--card) / .94);
+    border-bottom: 1px solid hsl(var(--border));
+    backdrop-filter: blur(12px);
+  }
+  .bevel .workspace-page-toolbar h1 {
+    font-size: clamp(1.2rem, 2.4vw, 1.8rem);
+    line-height: 1.2;
+    letter-spacing: -.045em;
+  }
+  .bevel .workspace-page-content { padding-top: clamp(1rem, 2.5vw, 2.25rem); }
+  .bevel [data-sidebar="sidebar"] { background: hsl(var(--sidebar-background)); }
+  .bevel [data-sidebar="header"] { background: hsl(var(--card)); }
+  .bevel .tfcl-sidebar-logo {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: .2rem;
+    border-radius: .85rem;
+    border: 1px solid hsl(var(--border));
+    background: white;
+  }
+  .bevel .tfcl-sidebar-logo--collapsed { width: 2rem; height: 2rem; }
+  .bevel .workspace-staff {
+    background: hsl(var(--secondary));
+    border: 1px solid hsl(var(--border) / .7);
+  }
+  .bevel [data-sidebar="menu-button"] {
+    gap: .75rem;
+    border-radius: .8rem;
+    padding-inline: .75rem;
+    color: hsl(var(--sidebar-foreground));
+  }
+  .bevel [data-sidebar="menu-button"]:hover { background: hsl(var(--sidebar-accent)); }
+  .bevel [data-sidebar="menu-button"][data-active="true"] {
+    color: hsl(var(--primary));
+    background: var(--lavender);
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / .09);
+  }
+  .bevel .workspace-active-mark { height: .95rem; width: 2px; }
+  .bevel [data-sidebar="footer"] { background: hsl(var(--card)); }
+  .bevel .workspace-tabs {
+    max-width: 64rem;
+    margin: 0 auto clamp(.9rem, 2vw, 1.6rem);
+  }
+  .bevel :is(.workspace-tabs, [role="tablist"]) {
+    border: 1px solid hsl(var(--border));
+    border-radius: .95rem;
+    background: hsl(var(--secondary));
+  }
+  .bevel :is(.workspace-tabs > button, [role="tab"]) { border-radius: .7rem; }
+  .bevel :is(.workspace-tabs > [aria-current="page"], [role="tab"][data-state="active"]) {
+    background: hsl(var(--card));
+    color: hsl(var(--primary));
+    box-shadow: 0 1px 4px rgb(38 30 68 / .13);
+  }
+
+  /* Shared surfaces keep the background and border colors supplied by the caller
+     (e.g. fatigue, destructive and selection states). */
+  .bevel :is(.ui-card, .lab-reading, .dashboard-reference, .athlete-context) {
+    border-radius: var(--panel-radius);
+    box-shadow: var(--shadow-card);
+  }
+  .bevel .ui-card .ui-card { box-shadow: none; border-radius: 1rem; }
+  .bevel .ui-card-header[role="button"] { border-radius: inherit; }
+  .bevel .ui-card-header[aria-expanded="false"] { padding-block: 1rem; }
+  .bevel .ui-card-title { text-wrap: pretty; }
+  .bevel .ui-badge { border-radius: 999px; font-weight: 600; line-height: 1.4; }
+  .bevel .ui-button { border-radius: .8rem; font-weight: 600; }
+  .bevel .ui-button.rounded-full { border-radius: 999px; }
+  .bevel .ui-button.bg-primary {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / .13), 0 2px 5px rgb(61 43 104 / .13);
+  }
+  .bevel .ui-field { border-radius: .75rem; }
+  .bevel .ui-field.bg-background { background-color: hsl(var(--card)); }
+  .bevel .ui-field:not(:disabled):focus-visible {
+    border-color: hsl(var(--ring));
+    outline: 2px solid hsl(var(--ring) / .35);
+    outline-offset: 1px;
+  }
+  .bevel .ui-table thead { background: hsl(var(--muted)); }
+  .bevel .ui-table th { font-size: .8rem; font-weight: 600; }
+  .bevel .ui-table tr { border-color: hsl(var(--border) / .78); }
+  .bevel .ui-modal-overlay { background: rgb(29 24 44 / .43); }
+  .bevel .ui-modal {
+    background: hsl(var(--popover));
+    border-radius: 1.35rem;
+    box-shadow: var(--shadow-elevated);
+    max-height: calc(100dvh - 1rem);
+    overflow-y: auto;
+  }
+  .bevel :is([role="listbox"], [role="menu"]).bg-popover {
+    border-radius: .9rem;
+    box-shadow: var(--shadow-elevated);
+  }
+  .bevel [role="option"][data-highlighted] { background: var(--lavender); color: hsl(var(--foreground)); }
+
+  /* Headings and navigation tiles on the coaching, diagnostic and planning hubs. */
+  .bevel :is(.workspace-title, .hub-heading h1, .lab-intro h2) {
+    font-size: clamp(1.65rem, 3vw, 2.4rem);
+    line-height: 1.12;
+    font-weight: 650;
+    letter-spacing: -.05em;
+    overflow-wrap: anywhere;
+  }
+  .bevel .hub-heading {
+    padding: clamp(1.05rem, 2.5vw, 1.75rem);
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--panel-radius);
+    background: linear-gradient(110deg, #f1edf9, #faf9fc 66%, #f0f4f2);
+  }
+  .bevel .hub-heading p { margin-top: .25rem; line-height: 1.5; }
+  .bevel .hub-card { padding: .25rem; }
+  .bevel .hub-card-icon {
+    display: inline-grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    flex-shrink: 0;
+    border-radius: .95rem;
+  }
+  .bevel .hub-card .ui-card-title { font-size: 1.05rem; line-height: 1.25; }
+  .bevel .hub-card:hover { box-shadow: var(--shadow-elevated); }
+  .bevel .planning-destinations [data-destination="ai-plan"] {
+    background: radial-gradient(ellipse at 15% 100%, #e8e1f8, transparent 82%),
+      repeating-radial-gradient(ellipse at 118% -60%, transparent 0 24px, hsl(var(--primary) / .08) 25px 26px, transparent 27px 45px),
+      #f0edf8;
+    border-color: hsl(var(--primary) / .2);
+  }
+  @media (min-width: 768px) {
+    .bevel .planning-destinations { grid-template-columns: 1fr 1fr; }
+    .bevel .planning-destinations .hub-card { padding: .65rem; }
+    .bevel .planning-destinations .ui-card-title { font-size: 1.25rem; }
+  }
+  .bevel .plan-engine-panel {
+    padding: clamp(1rem, 2vw, 1.4rem);
+    border-radius: var(--panel-radius);
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-card);
+  }
+  .bevel .plan-engine-panel > button { color: hsl(var(--primary)); }
+  .bevel .plan-engine-panel :is(input, select, textarea).border { border-radius: .65rem; border-color: hsl(var(--input)); }
+  .bevel .plan-engine-panel button.border {
+    color: hsl(var(--primary));
+    background: hsl(var(--secondary));
+    border-radius: .7rem;
+  }
+  .bevel .plan-engine-panel button:disabled { opacity: .55; }
+  .bevel .athlete-directory { max-width: 72rem; margin-inline: auto; }
+  .bevel .directory-row { padding: .9rem clamp(.8rem, 2vw, 1.35rem); }
+  .bevel .directory-avatar {
+    background: var(--lavender);
+    color: hsl(var(--primary));
+    width: 2.65rem;
+    height: 2.65rem;
+    border-radius: .95rem;
+  }
+
+  /* Dashboard. Only the current coaching priority uses the ink surface. */
+  .bevel .athlete-context { background: hsl(var(--card)); padding: 1rem; }
+  .bevel .athlete-context :is(.ui-field, .ui-button) {
+    background: hsl(var(--background));
+    border-color: hsl(var(--border));
+    box-shadow: none;
+  }
+  .bevel .compass-priority {
+    border: 1px solid #474063;
+    border-radius: var(--panel-radius);
+    color: #fff;
+    background:
+      radial-gradient(ellipse at 3% 70%, #28243f 22%, transparent 78%),
+      repeating-radial-gradient(ellipse at 110% -42%, transparent 0 22px, rgb(226 222 255 / .11) 23px 24px, transparent 25px 42px),
+      linear-gradient(125deg, #302a46 22%, #4a4073 72%, #7564a0);
+    box-shadow: 0 10px 28px -18px #43365d;
+  }
+  .bevel .priority-label {
+    width: fit-content;
+    color: #ebe6ff;
+    font-weight: 600;
+    letter-spacing: .015em;
+  }
+  .bevel .priority-label > svg {
+    width: 2.15rem;
+    height: 2.15rem;
+    padding: .46rem;
+    border: 1px solid rgb(238 230 255 / .24);
+    border-radius: 50%;
+    background: rgb(239 232 255 / .09);
+  }
+  .bevel .compass-priority > h2 {
+    max-width: 23ch;
+    font-size: clamp(1.8rem, 3.2vw, 2.8rem);
+    line-height: 1.05;
+    letter-spacing: -.048em;
+    overflow-wrap: anywhere;
+  }
+  .bevel .priority-detail { color: #e1ddef; }
+  .bevel .priority-warning { color: #3d2e13; background: #fff0ce; }
+  .bevel .compass-priority .ui-button.bg-primary {
+    background: #e6defd;
+    color: #312451;
+  }
+  .bevel .compass-priority .ui-button.border {
+    color: #fff;
+    border-color: #898197;
+    background: rgb(47 40 65 / .82);
+  }
+  .bevel .compass-priority .ui-button:hover { filter: brightness(.94); }
+  .bevel .compass-priority .ui-button:focus-visible { outline-color: white; }
+  .bevel .compass-priority figure,
+  .bevel .compass-priority > [role="img"] {
+    border-radius: 1rem;
+    background: #fcfbff;
+    color: hsl(var(--foreground));
+    padding: 1rem;
+  }
+  .bevel .dashboard-reference { background: hsl(var(--card)); }
+  .bevel .dashboard-reference > h2 { color: hsl(var(--accent)); }
+  .bevel .dashboard-reference > h2 svg {
+    color: inherit;
+    width: 1.95rem;
+    height: 1.95rem;
+    padding: .42rem;
+    border-radius: .65rem;
+    background: var(--mint);
+  }
+  .bevel .dashboard-reference > p {
+    font-size: clamp(1.4rem, 2.3vw, 1.95rem);
+    line-height: 1.15;
+    letter-spacing: -.045em;
+  }
+  .bevel .dashboard-reference progress::-webkit-progress-value { background: hsl(var(--accent)); }
+  .bevel .dashboard-reference progress::-moz-progress-bar { background: hsl(var(--accent)); }
+  .bevel .dashboard-links { background: transparent; border: 0; padding: 0; gap: .6rem; }
+  .bevel .dashboard-links .dashboard-action {
+    padding: .85rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 1rem;
+    background: hsl(var(--card));
+    box-shadow: var(--shadow-card);
+  }
+  .bevel .dashboard-action > svg:first-child {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: .5rem;
+    border-radius: .75rem;
+    background: var(--lavender);
+  }
+  .bevel .dashboard-action:hover { background: hsl(var(--secondary)); }
+  .bevel .dashboard-reference .dashboard-action > svg:first-child {
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Scientific figures keep their own geometry, color keys, uncertainty and labels. */
+  .bevel .compass-sheet > .ui-card-header {
+    padding-block: 1rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(100deg, #efeafa, #faf9fd);
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  .bevel .compass-step { background: hsl(var(--background)); border-radius: 1rem; padding: 1rem; }
+  .bevel .compass-radar-stage {
+    --compass-grid: 246 14% 81%;
+    background: radial-gradient(ellipse at 50% 36%, #eeebf8, #faf9fc 73%);
+    border: 1px solid hsl(var(--border));
+    border-radius: 1.25rem;
+    padding: .75rem;
+  }
+  .bevel .compass-radar-stage [aria-pressed="true"] {
+    color: hsl(var(--primary));
+    background: var(--lavender);
+  }
+  .bevel .recharts-cartesian-grid line { stroke: hsl(var(--border)); }
+  .bevel .recharts-cartesian-axis-tick text {
+    fill: hsl(var(--muted-foreground));
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .bevel .recharts-line-curve { stroke-linecap: round; stroke-linejoin: round; }
+  .bevel .lab-intro {
+    padding: clamp(1.25rem, 4vw, 2.5rem);
+    border-radius: var(--panel-radius);
+    border: 1px solid #ccded7;
+    background: linear-gradient(115deg, #e0efe8, #edf5f1 62%, #e5edf0);
+  }
+  .bevel .lab-intro > p:first-child { color: hsl(var(--accent)); letter-spacing: .09em; }
+  .bevel .lab-priorities {
+    border-radius: var(--panel-radius);
+    box-shadow: var(--shadow-card);
+    padding: clamp(1.1rem, 3vw, 2rem);
+  }
+  .bevel .lab-priorities > h4 { color: hsl(var(--accent)); }
+  @media (min-width: 900px) {
+    .bevel .lab-priorities > ol {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .875rem;
+      align-items: start;
+    }
+    .bevel .lab-priorities > ol > li { margin: 0; }
+  }
+  .bevel .lab-reading { padding: 1.15rem; }
+  .bevel .lab-reading details { border-top: 1px solid hsl(var(--border)); margin-top: .75rem; }
+  .bevel .lab-reading summary { color: hsl(var(--primary)); }
+  .bevel .auth-canvas {
+    background: radial-gradient(ellipse at 25% 10%, #e8e3f6, transparent 52%),
+      radial-gradient(ellipse at 85% 70%, #dfeee8, transparent 45%), hsl(var(--background));
+  }
+
+  @media (max-width: 767px) {
+    .bevel .workspace-dock {
+      background: hsl(var(--card) / .97);
+      border-color: hsl(var(--border));
+      box-shadow: 0 -4px 18px rgb(47 39 70 / .07);
+    }
+    .bevel .workspace-dock > .grid {
+      grid-template-columns: repeat(9, minmax(max-content, 1fr));
+      padding-inline: .125rem;
+    }
+    .bevel .workspace-dock button { min-width: 0; }
+    .bevel .workspace-dock button[aria-current="page"] {
+      background: linear-gradient(180deg, var(--lavender), transparent);
+    }
+    .bevel .workspace-dock svg { filter: none; }
+    .bevel .workspace-more { bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px)); }
+    .bevel .workspace-more > div {
+      max-height: calc(100dvh - 5rem - env(safe-area-inset-bottom, 0px));
+      overflow-y: auto;
+      box-shadow: var(--shadow-elevated);
+    }
+    .bevel .workspace-content,
+    .bevel .workspace-page-content {
+      padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+    }
+    .bevel .records-actions, .bevel .records-actions > * { min-width: 0; max-width: 100%; }
+    .bevel .records-actions .ui-button { height: auto; min-height: 2.25rem; white-space: normal; }
+    .bevel .athlete-context { gap: .65rem; }
+    .bevel .hub-heading { row-gap: .8rem; }
+    .bevel .coach-dashboard .dashboard-action { flex-wrap: nowrap; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .bevel { scroll-behavior: auto; }
+    .bevel :is(.ui-button, [data-sidebar="menu-button"], .hub-card) { transition: none; }
+    .bevel .animate-fade-in { animation: none; }
+  }
+}

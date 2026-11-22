@@ -202,7 +202,7 @@ export default function EvolutionPage() {
     <AppLayout title="Évolution" showBack>
       <div className="space-y-6">
         {/* ─── HEADER ────────────────────────────────────────────────── */}
-        <div className="flex items-center justify-between">
+        <div className="hub-heading flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Évolution & Performance Management</h1>
             <p className="text-sm text-muted-foreground">

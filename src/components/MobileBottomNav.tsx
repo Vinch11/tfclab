@@ -107,7 +107,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
         </div>
       )}
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-2xl border-t border-border/40 safe-area-inset-bottom">
+      <nav className="workspace-dock md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-2xl border-t border-border/40 safe-area-inset-bottom">
         {/* Staff mode active indicator bar */}
         {staffMode && (
           <div className="absolute top-0 left-0 right-0 h-px bg-primary/40" />
@@ -119,6 +119,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
             return (
               <button
                 key={tab.id}
+                aria-current={active ? "page" : undefined}
                 onClick={() => handleClick(tab)}
                 className={cn(
                   "flex flex-col items-center justify-center gap-0.5 transition-colors no-select touch-target relative",
@@ -209,7 +210,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
               `preventDefault()` déclenche l'action immédiatement au doigt levé
               et supprime la séquence souris différée (onClick reste pour un vrai
               clic souris sur desktop, jamais déclenché deux fois pour un tap). */}
-          <div className="md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
+          <div className="workspace-more md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
               {isRunningOnly && (
                 <>

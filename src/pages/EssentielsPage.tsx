@@ -256,7 +256,7 @@ export default function EssentielsPage() {
     >
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex items-start sm:items-center justify-between gap-3 flex-wrap">
+        <div className="hub-heading flex items-start sm:items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10 shrink-0">
               <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />

@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
+@import "./styles/bevel.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -257,25 +259,25 @@
 
 
   /* ═══════════════════════════════════════════════════════════════════════════
-     SHARED STYLING LAYER — applied to :root, .dark and .emerald
+     SHARED STYLING LAYER — legacy themes; Bevel owns its own component surfaces
      Color tokens differ per theme; visual language (glass tiles, gradient
      hairlines, hero numerics, segmented tabs, sidebar accents…) is unified.
      ═══════════════════════════════════════════════════════════════════════════ */
-  :where(:root, .dark, .emerald) body {
+  :where(:root:not(.bevel), .dark, .emerald) body {
     font-feature-settings: "ss01", "cv11";
   }
-  :where(:root, .dark, .emerald) h1,
-  :where(:root, .dark, .emerald) h2,
-  :where(:root, .dark, .emerald) h3,
-  :where(:root, .dark, .emerald) h4 {
+  :where(:root:not(.bevel), .dark, .emerald) h1,
+  :where(:root:not(.bevel), .dark, .emerald) h2,
+  :where(:root:not(.bevel), .dark, .emerald) h3,
+  :where(:root:not(.bevel), .dark, .emerald) h4 {
     font-family: var(--font-heading);
     letter-spacing: -0.022em;
     font-weight: 600;
   }
-  :where(:root, .dark, .emerald) h1 { font-weight: 700; letter-spacing: -0.03em; }
+  :where(:root:not(.bevel), .dark, .emerald) h1 { font-weight: 700; letter-spacing: -0.03em; }
 
   /* Subtle aurora backdrop, same hues as primary */
-  :where(:root, .dark, .emerald) main {
+  :where(:root:not(.bevel), .dark, .emerald) main {
     background:
       radial-gradient(ellipse 60% 40% at 20% 0%,  hsl(var(--primary) / 0.08) 0%, transparent 55%),
       radial-gradient(ellipse 70% 50% at 90% 10%, hsl(var(--accent) / 0.06) 0%, transparent 60%),
@@ -283,19 +285,19 @@
   }
 
   /* Editorial header */
-  :where(:root, .dark, .emerald) header {
+  :where(:root:not(.bevel), .dark, .emerald) header {
     background: linear-gradient(180deg, hsl(var(--background) / 0.9) 0%, hsl(var(--background) / 0.55) 100%) !important;
     backdrop-filter: blur(20px) saturate(140%);
     border-bottom: 1px solid hsl(var(--border)) !important;
   }
-  :where(:root, .dark, .emerald) header h1 {
+  :where(:root:not(.bevel), .dark, .emerald) header h1 {
     text-transform: uppercase;
     font-size: 0.78rem !important;
     letter-spacing: 0.18em;
     font-weight: 600;
     color: hsl(var(--foreground) / 0.85);
   }
-  :where(:root, .dark, .emerald) header p {
+  :where(:root:not(.bevel), .dark, .emerald) header p {
     font-size: 0.68rem !important;
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -303,7 +305,7 @@
   }
 
   /* Sidebar — refined vertical rail with layered depth and glowing active item */
-  :where(:root, .dark, .emerald) [data-sidebar="sidebar"] {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="sidebar"] {
     background:
       radial-gradient(ellipse 150% 42% at 45% 0%, hsl(var(--primary) / 0.16) 0%, transparent 58%),
       radial-gradient(ellipse 110% 50% at 100% 82%, hsl(var(--accent) / 0.08) 0%, transparent 60%),
@@ -319,14 +321,14 @@
     backdrop-filter: blur(20px) saturate(140%);
     position: relative;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"] {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"] {
     border-radius: 0.75rem;
     font-weight: 500;
     color: hsl(var(--sidebar-foreground) / 0.72);
     transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
   }
-  :where(:root, .dark, .emerald) .tfcl-sidebar-logo {
+  :where(:root:not(.bevel), .dark, .emerald) .tfcl-sidebar-logo {
     width: 2.75rem;
     height: 2.75rem;
     padding: 0.25rem;
@@ -335,32 +337,32 @@
     border: 1px solid hsl(var(--border) / 0.6);
     box-shadow: 0 2px 8px -2px hsl(0 0% 0% / 0.25);
   }
-  :where(:root, .dark, .emerald) .tfcl-sidebar-logo--collapsed {
+  :where(:root:not(.bevel), .dark, .emerald) .tfcl-sidebar-logo--collapsed {
     width: 2.15rem;
     height: 2.15rem;
     padding: 0.2rem;
     border-radius: 0.6rem;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"] svg {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"] svg {
     transition: color 0.2s ease, transform 0.2s ease;
     opacity: 0.9;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"]:hover:not([data-active="true"]) {
     background: hsl(var(--sidebar-accent) / 0.55);
     color: hsl(var(--sidebar-foreground));
     box-shadow: none;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"]:hover svg {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"]:hover svg {
     color: hsl(var(--primary));
     opacity: 1;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] {
     color: hsl(var(--sidebar-primary)) !important;
     background: hsl(var(--primary) / 0.10) !important;
     box-shadow: none;
     transform: none;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"]::before {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"][data-active="true"]::before {
     content: "";
     position: absolute;
     left: 0;
@@ -371,12 +373,12 @@
     border-radius: 0 999px 999px 0;
     box-shadow: none;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] svg {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] svg {
     color: hsl(var(--primary));
     filter: none;
     opacity: 1;
   }
-  :where(:root, .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] span {
+  :where(:root:not(.bevel), .dark, .emerald) [data-sidebar="menu-button"][data-active="true"] span {
     color: hsl(var(--sidebar-primary));
     font-weight: 600;
   }
@@ -384,8 +386,8 @@
 
 
   /* Cards → glass bento tiles */
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]),
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]) {
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]),
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]) {
     background: linear-gradient(135deg, hsl(var(--card) / 0.92) 0%, hsl(var(--background) / 0.96) 100%) !important;
     border: 1px solid hsl(var(--border)) !important;
     border-radius: 1rem !important;
@@ -398,16 +400,16 @@
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"])::before,
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"])::before {
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"])::before,
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"])::before {
     content: "";
     position: absolute; top: 0; left: 0; right: 0; height: 1px;
     background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 30%, hsl(var(--accent) / 0.3) 70%, transparent 100%);
     pointer-events: none;
     z-index: 1;
   }
-  :where(:root, .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover,
-  :where(:root, .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover {
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover,
+  :where(:root:not(.bevel), .dark, .emerald) [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]):hover {
     border-color: hsl(var(--primary) / 0.3) !important;
     box-shadow:
       inset 0 1px 0 hsl(var(--foreground) / 0.06),
@@ -416,43 +418,43 @@
   }
 
   /* Hero numeric typography */
-  :where(:root, .dark, .emerald) .text-3xl,
-  :where(:root, .dark, .emerald) .text-4xl,
-  :where(:root, .dark, .emerald) .text-5xl,
-  :where(:root, .dark, .emerald) .text-6xl {
+  :where(:root:not(.bevel), .dark, .emerald) .text-3xl,
+  :where(:root:not(.bevel), .dark, .emerald) .text-4xl,
+  :where(:root:not(.bevel), .dark, .emerald) .text-5xl,
+  :where(:root:not(.bevel), .dark, .emerald) .text-6xl {
     font-family: var(--font-heading);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum", "ss01";
     letter-spacing: -0.04em;
     font-weight: 600;
   }
-  :where(:root, .dark, .emerald) .text-2xl {
+  :where(:root:not(.bevel), .dark, .emerald) .text-2xl {
     font-family: var(--font-heading);
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.025em;
     font-weight: 600;
   }
-  :where(:root, .dark, .emerald) .font-mono,
-  :where(:root, .dark, .emerald) [class*="tabular"] {
+  :where(:root:not(.bevel), .dark, .emerald) .font-mono,
+  :where(:root:not(.bevel), .dark, .emerald) [class*="tabular"] {
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
   }
 
   /* Progress bars */
-  :where(:root, .dark, .emerald) [role="progressbar"] {
+  :where(:root:not(.bevel), .dark, .emerald) [role="progressbar"] {
     height: 6px !important;
     background: hsl(var(--muted)) !important;
     border-radius: 999px;
     overflow: hidden;
   }
-  :where(:root, .dark, .emerald) [role="progressbar"] > * {
+  :where(:root:not(.bevel), .dark, .emerald) [role="progressbar"] > * {
     background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--success)) 100%) !important;
     box-shadow: 0 0 12px hsl(var(--primary) / 0.5);
   }
 
   /* Primary buttons with depth — targets buttons AND anchors with exact `bg-primary` */
-  :where(:root, .dark, .emerald) button[class~="bg-primary"],
-  :where(:root, .dark, .emerald) a[class~="bg-primary"] {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="bg-primary"],
+  :where(:root:not(.bevel), .dark, .emerald) a[class~="bg-primary"] {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.82) 100%) !important;
     color: hsl(var(--primary-foreground)) !important;
     box-shadow:
@@ -461,12 +463,12 @@
     font-weight: 600;
     letter-spacing: 0.01em;
   }
-  :where(:root, .dark, .emerald) button[class~="bg-primary"] *,
-  :where(:root, .dark, .emerald) a[class~="bg-primary"] * {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="bg-primary"] *,
+  :where(:root:not(.bevel), .dark, .emerald) a[class~="bg-primary"] * {
     color: inherit !important;
   }
-  :where(:root, .dark, .emerald) button[class~="bg-primary"]:hover,
-  :where(:root, .dark, .emerald) a[class~="bg-primary"]:hover {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="bg-primary"]:hover,
+  :where(:root:not(.bevel), .dark, .emerald) a[class~="bg-primary"]:hover {
     box-shadow:
       0 1px 0 hsl(var(--primary-foreground) / 0.3) inset,
       0 12px 32px -10px hsl(var(--primary) / 0.6);
@@ -474,28 +476,28 @@
   }
 
   /* Outline / ghost / secondary buttons — refined glass finish, always readable */
-  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
     background: hsl(var(--secondary) / 0.5);
     border-color: hsl(var(--border)) !important;
     color: hsl(var(--foreground));
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
   }
-  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
     background: hsl(var(--secondary));
     border-color: hsl(var(--primary) / 0.4) !important;
     color: hsl(var(--primary));
   }
 
   /* Outline / ghost / secondary buttons — refined glass finish, always readable */
-  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
     background: hsl(var(--secondary) / 0.5);
     border-color: hsl(var(--border)) !important;
     color: hsl(var(--foreground));
     backdrop-filter: blur(8px);
     transition: all 0.2s ease;
   }
-  :where(:root, .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
+  :where(:root:not(.bevel), .dark, .emerald) button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
     background: hsl(var(--secondary));
     border-color: hsl(var(--primary) / 0.4) !important;
     color: hsl(var(--primary));
@@ -504,22 +506,22 @@
   /* Subtle tinted backgrounds (bg-primary/10, bg-primary/5) — force readable text.
      Exclude solid `bg-primary` (matched by [class~="bg-primary"]) and any element
      that already declares `text-primary-foreground` (solid primary buttons). */
-  :where(:root, .dark, .emerald) [class*="bg-primary/"]:not([class~="bg-primary"]):not([class*="text-primary-foreground"]) {
+  :where(:root:not(.bevel), .dark, .emerald) [class*="bg-primary/"]:not([class~="bg-primary"]):not([class*="text-primary-foreground"]) {
     color: hsl(var(--foreground));
   }
-  :where(:root, .dark, .emerald) [class*="bg-primary/"][class~="text-primary"]:not([class*="text-primary-foreground"]) {
+  :where(:root:not(.bevel), .dark, .emerald) [class*="bg-primary/"][class~="text-primary"]:not([class*="text-primary-foreground"]) {
     color: hsl(var(--primary)) !important;
   }
 
   /* Segmented control tabs */
-  :where(:root, .dark, .emerald) [role="tablist"] {
+  :where(:root:not(.bevel), .dark, .emerald) [role="tablist"] {
     background: hsl(var(--muted) / 0.7) !important;
     border: 1px solid hsl(var(--border));
     border-radius: 0.75rem;
     padding: 4px;
     backdrop-filter: blur(12px);
   }
-  :where(:root, .dark, .emerald) [role="tab"][data-state="active"] {
+  :where(:root:not(.bevel), .dark, .emerald) [role="tab"][data-state="active"] {
     background: linear-gradient(135deg, hsl(var(--primary) / 0.22) 0%, hsl(var(--primary) / 0.1) 100%) !important;
     color: hsl(var(--primary)) !important;
     box-shadow: 0 1px 0 hsl(var(--primary) / 0.2) inset, 0 4px 12px -4px hsl(0 0% 0% / 0.4);
@@ -527,40 +529,40 @@
   }
 
   /* Inputs */
-  :where(:root, .dark, .emerald) input,
-  :where(:root, .dark, .emerald) textarea,
-  :where(:root, .dark, .emerald) [role="combobox"] {
+  :where(:root:not(.bevel), .dark, .emerald) input,
+  :where(:root:not(.bevel), .dark, .emerald) textarea,
+  :where(:root:not(.bevel), .dark, .emerald) [role="combobox"] {
     border-radius: 0.625rem !important;
     transition: all 0.2s ease;
   }
-  :where(:root, .dark, .emerald) input:focus,
-  :where(:root, .dark, .emerald) textarea:focus {
+  :where(:root:not(.bevel), .dark, .emerald) input:focus,
+  :where(:root:not(.bevel), .dark, .emerald) textarea:focus {
     border-color: hsl(var(--primary) / 0.5) !important;
     box-shadow: 0 0 0 4px hsl(var(--primary) / 0.12) !important;
     outline: none;
   }
 
   /* Scrollbar */
-  :where(:root, .dark, .emerald) *::-webkit-scrollbar { width: 10px; height: 10px; }
-  :where(:root, .dark, .emerald) *::-webkit-scrollbar-track { background: transparent; }
-  :where(:root, .dark, .emerald) *::-webkit-scrollbar-thumb {
+  :where(:root:not(.bevel), .dark, .emerald) *::-webkit-scrollbar { width: 10px; height: 10px; }
+  :where(:root:not(.bevel), .dark, .emerald) *::-webkit-scrollbar-track { background: transparent; }
+  :where(:root:not(.bevel), .dark, .emerald) *::-webkit-scrollbar-thumb {
     background: hsl(var(--primary) / 0.25);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
-  :where(:root, .dark, .emerald) *::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); background-clip: padding-box; }
+  :where(:root:not(.bevel), .dark, .emerald) *::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.5); background-clip: padding-box; }
 
   /* Hairline gradient separators */
-  :where(:root, .dark, .emerald) [role="separator"],
-  :where(:root, .dark, .emerald) hr {
+  :where(:root:not(.bevel), .dark, .emerald) [role="separator"],
+  :where(:root:not(.bevel), .dark, .emerald) hr {
     background: linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.25) 50%, transparent 100%) !important;
     border: none !important;
     height: 1px !important;
   }
 
   /* Dialogs */
-  :where(:root, .dark, .emerald) [role="dialog"] {
+  :where(:root:not(.bevel), .dark, .emerald) [role="dialog"] {
     background: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
     border: 1px solid hsl(var(--border)) !important;
     box-shadow: 0 0 0 1px hsl(var(--primary) / 0.06), 0 32px 64px -16px hsl(0 0% 0% / 0.7);
@@ -568,7 +570,7 @@
 
   /* Bento rhythm: first tile spans 2 columns on wide dashboards */
   @media (min-width: 1024px) {
-    :where(:root, .dark, .emerald) main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
+    :where(:root:not(.bevel), .dark, .emerald) main .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 > *:nth-child(6n+1) {
       grid-column: span 2;
     }
   }
@@ -1347,457 +1349,14 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   THEME: BEVEL — Soft daylight health OS.
-   Warm off-white canvas, pure white floating cards, generous radii,
-   pastel spectrum accents (mint / amber / periwinkle), no glass, no glow.
-   ═══════════════════════════════════════════════════════════════════════════ */
 @layer base {
-  .bevel {
-    /* Canvas: warm paper #F8F7F2 */
-    --background: 45 24% 96%;
-    --foreground: 0 0% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-
-    /* Periwinkle — Bevel primary action */
-    --primary: 239 84% 67%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 45 18% 93%;
-    --secondary-foreground: 0 0% 16%;
-
-    --muted: 40 14% 94%;
-    --muted-foreground: 240 4% 46%;
-
-    /* Mint — positive / recovery */
-    --accent: 152 62% 42%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 4 72% 56%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 152 62% 42%;
-    --success-foreground: 0 0% 100%;
-
-    /* Warm amber — strain */
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 12%;
-
-    --border: 40 10% 93%;
-    --input: 40 10% 93%;
-    --ring: 239 84% 67%;
-
-    --radius: 1.5rem;
-
-    --chart-1: 152 62% 45%;
-    --chart-2: 239 84% 67%;
-    --chart-3: 38 92% 55%;
-    --chart-4: 199 78% 52%;
-    --chart-5: 340 62% 62%;
-    --chart-6: 268 45% 62%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(239 84% 70%) 0%, hsl(252 72% 68%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 100%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(152 62% 46%) 0%, hsl(168 55% 46%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(45 24% 97%) 0%, hsl(45 24% 96%) 100%);
-    --gradient-mesh: none;
-
-    --shadow-glow: 0 0 0 transparent;
-    --shadow-card: 0 8px 30px hsl(0 0% 0% / 0.04);
-    --shadow-elevated: 0 12px 40px hsl(0 0% 0% / 0.07);
-    --shadow-inner: none;
-
-    --font-heading: 'Outfit', -apple-system, sans-serif;
-    --font-body: 'Outfit', -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5% 34%;
-    --sidebar-primary: 239 84% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 45 18% 95%;
-    --sidebar-accent-foreground: 0 0% 12%;
-    --sidebar-border: 40 10% 93%;
-    --sidebar-ring: 239 84% 67%;
-  }
-
-  /* ── Typography: Outfit, tight headings, tabular data ──────────────────── */
-  .bevel, .bevel body {
-    font-family: var(--font-body);
-    -webkit-font-smoothing: antialiased;
-  }
-  .bevel h1, .bevel h2, .bevel h3, .bevel h4 {
-    font-family: var(--font-heading);
-    letter-spacing: -0.02em;
-    font-weight: 700;
-  }
-  .bevel h1 { letter-spacing: -0.03em; }
-  .bevel .text-2xl, .bevel .text-3xl, .bevel .text-4xl,
-  .bevel .text-5xl, .bevel .text-6xl {
-    font-family: var(--font-heading);
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.035em;
-    font-weight: 700;
-  }
-  /* Micro-labels: uppercase, widely tracked, muted — Bevel section captions */
-  .bevel [class*="uppercase"][class*="text-xs"],
-  .bevel [class*="uppercase"][class*="text-\[1"] {
-    letter-spacing: 0.14em !important;
-    font-weight: 700;
-  }
-  .bevel [class*="tracking-wider"], .bevel [class*="tracking-widest"] {
-    letter-spacing: 0.16em !important;
-  }
-
-  /* ── Canvas: flat warm paper, no aurora, no mesh ───────────────────────── */
-  .bevel main,
-  .bevel [class*="bg-gradient"][class*="hero"] {
-    background: hsl(var(--background)) !important;
-  }
-  .bevel main { padding-bottom: 3rem; }
-
-  /* ── Header: quiet, hairline ───────────────────────────────────────────── */
-  .bevel header {
-    background: hsl(var(--background) / 0.86) !important;
-    backdrop-filter: blur(20px) saturate(120%);
-    border-bottom: 1px solid hsl(var(--border)) !important;
-    box-shadow: none !important;
-  }
-  .bevel header h1 {
-    text-transform: none;
-    font-size: 1rem !important;
-    letter-spacing: -0.02em;
-    font-weight: 700;
-    color: hsl(var(--foreground));
-  }
-  .bevel header p {
-    font-size: 0.75rem !important;
-    text-transform: none;
-    letter-spacing: 0;
-    color: hsl(var(--muted-foreground)) !important;
-  }
-
-  /* ── Cards: floating white, 28px radius, corner gradient wash ──────────── */
-  .bevel [class*="rounded-lg"][class*="border"][class*="bg-card"]:not([role="dialog"]),
-  .bevel [class*="rounded-xl"][class*="border"][class*="bg-card"]:not([role="dialog"]),
-  .bevel [class*="rounded-2xl"][class*="border"][class*="bg-card"]:not([role="dialog"]) {
-    background:
-      radial-gradient(ellipse 78% 62% at 100% 0%, hsl(var(--primary) / 0.16) 0%, transparent 62%),
-      radial-gradient(ellipse 70% 55% at 0% 0%, hsl(var(--accent) / 0.09) 0%, transparent 60%),
-      hsl(var(--card)) !important;
-    border: 1px solid hsl(var(--border)) !important;
-    border-radius: 28px !important;
-    box-shadow: var(--shadow-card) !important;
-    backdrop-filter: none !important;
-  }
-  .bevel [class*="border"][class*="bg-card"]::before { display: none !important; }
-  .bevel [class*="border"][class*="bg-card"]:not([role="dialog"]):hover {
-    border-color: hsl(var(--border)) !important;
-    box-shadow: var(--shadow-elevated) !important;
-    transform: none !important;
-  }
-  /* Nested cards inside a card become flat tinted panels, not stacked shadows */
-  .bevel [class*="bg-card"] [class*="border"][class*="bg-card"] {
-    box-shadow: none !important;
-    background:
-      radial-gradient(ellipse 80% 70% at 100% 0%, hsl(var(--primary) / 0.07) 0%, transparent 65%),
-      hsl(var(--secondary) / 0.6) !important;
-    border-color: transparent !important;
-    border-radius: 20px !important;
-  }
-
-  /* Card headers: generous breathing room */
-  .bevel [class*="bg-card"] > [class*="flex-col"][class*="space-y-1.5"] {
-    padding: 1.5rem 1.5rem 0.75rem !important;
-  }
-
-  /* ── Badges: mêmes lavis d'angle que les cartes, teinte sémantique ─────── */
-  /* `:not(button)` — sinon les boutons shadcn (rounded-md + text-xs + px-2) sont captés */
-  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not(button):not(a),
-  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not(button):not(a) {
-    border-radius: 999px !important;
-    border: 1px solid color-mix(in srgb, currentColor 16%, transparent) !important;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    padding: 0.2rem 0.7rem;
-    box-shadow: none !important;
-  }
-  /* Badges "outline"/teintés : lavis d'angle basé sur leur propre couleur */
-  .bevel [class*="rounded-full"][class*="border"][class*="text-xs"]:not(button):not(a):not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]),
-  .bevel [class*="rounded-md"][class*="border"][class*="text-xs"][class*="px-2"]:not(button):not(a):not([class*="bg-primary"]):not([class*="bg-destructive"]):not([class*="bg-foreground"]) {
-    background:
-      radial-gradient(ellipse 90% 140% at 100% 0%, color-mix(in srgb, currentColor 22%, transparent) 0%, transparent 70%),
-      color-mix(in srgb, currentColor 9%, hsl(var(--card))) !important;
-  }
-  /* Badges pleins : même dégradé que les cartes, en version saturée */
-  .bevel [class*="rounded-full"][class*="text-xs"][class*="bg-primary"]:not(button):not(a),
-  .bevel [class*="rounded-md"][class*="text-xs"][class*="bg-primary"]:not(button):not(a) {
-    background:
-      radial-gradient(ellipse 90% 140% at 100% 0%, hsl(0 0% 100% / 0.22) 0%, transparent 70%),
-      hsl(var(--primary)) !important;
-    border-color: transparent !important;
-  }
-
-  /* Staff Expert indicator — solid filled, visible on light Bevel canvas */
   .staff-expert-badge {
     background: hsl(var(--primary)) !important;
     color: hsl(var(--primary-foreground)) !important;
     border-color: transparent !important;
     box-shadow: 0 1px 2px hsl(var(--primary) / 0.3) !important;
   }
-
-
-
-
-
-  /* ── Sidebar: white rail, pill active ──────────────────────────────────── */
-  .bevel [data-sidebar="sidebar"] {
-    background: hsl(var(--sidebar-background)) !important;
-    border-right: 1px solid hsl(var(--sidebar-border)) !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-  }
-  .bevel [data-sidebar="menu-button"] { border-radius: 999px; }
-  .bevel [data-sidebar="menu-button"][data-active="true"] {
-    background: hsl(var(--primary) / 0.10) !important;
-    color: hsl(var(--sidebar-primary)) !important;
-  }
-  .bevel [data-sidebar="menu-button"][data-active="true"]::before { display: none; }
-  .bevel .tfcl-sidebar-logo {
-    background: hsl(var(--secondary));
-    border: 1px solid hsl(var(--border));
-    box-shadow: none;
-  }
-
-  /* ── Jauges & barres : rails fins, remplissage dégradé ─────────────────── */
-  .bevel [role="progressbar"] {
-    height: 6px !important;
-    border-radius: 999px !important;
-    background: hsl(220 14% 96%) !important;
-    overflow: hidden;
-  }
-  .bevel [role="progressbar"] > * {
-    background: linear-gradient(90deg, hsl(var(--primary) / 0.75) 0%, hsl(var(--primary)) 100%) !important;
-    box-shadow: none !important;
-    border-radius: 999px !important;
-  }
-  /* Jauges sémantiques : conservent leur teinte, même traitement dégradé */
-  .bevel [role="progressbar"] > [class*="bg-success"],
-  .bevel [role="progressbar"] > [class*="bg-accent"] {
-    background: linear-gradient(90deg, hsl(var(--accent) / 0.75) 0%, hsl(var(--accent)) 100%) !important;
-  }
-  .bevel [role="progressbar"] > [class*="bg-warning"] {
-    background: linear-gradient(90deg, hsl(var(--warning) / 0.75) 0%, hsl(var(--warning)) 100%) !important;
-  }
-  .bevel [role="progressbar"] > [class*="bg-destructive"] {
-    background: linear-gradient(90deg, hsl(var(--destructive) / 0.75) 0%, hsl(var(--destructive)) 100%) !important;
-  }
-
-  /* Barres/jauges custom (div rails sans role=progressbar) */
-  .bevel [class*="h-1"][class*="rounded-full"] > [class*="rounded-full"],
-  .bevel [class*="h-2"][class*="rounded-full"] > [class*="rounded-full"],
-  .bevel [class*="h-3"][class*="rounded-full"] > [class*="rounded-full"] {
-    background-image: linear-gradient(90deg, color-mix(in srgb, currentColor 0%, transparent) 0%, hsl(0 0% 100% / 0.18) 100%);
-    border-radius: 999px !important;
-  }
-
-  /* Indicateurs de statut (pastilles) : halo doux comme les cartes */
-  .bevel [class*="rounded-full"][class*="w-2"][class*="h-2"],
-  .bevel [class*="rounded-full"][class*="w-2.5"][class*="h-2.5"],
-  .bevel [class*="rounded-full"][class*="w-3"][class*="h-3"]:not([class*="border"]) {
-    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 14%, transparent) !important;
-  }
-
-  /* Anneaux/jauges SVG : extrémités arrondies et piste neutre */
-  .bevel svg circle[stroke-linecap="round"] { stroke-linecap: round; }
-  .bevel svg circle[class*="text-muted"],
-  .bevel svg circle[class*="stroke-muted"] {
-    stroke: hsl(220 14% 94%) !important;
-  }
-
-
-  /* ── Buttons: soft-tinted, flat, pill ──────────────────────────────────── */
-  .bevel button[class~="bg-primary"]:not([class*="rounded-full"]),
-  .bevel a[class~="bg-primary"]:not([class*="rounded-full"]) {
-    border-radius: 16px !important;
-  }
-  .bevel button[class~="bg-primary"],
-  .bevel a[class~="bg-primary"] {
-    background: hsl(var(--primary)) !important;
-    color: hsl(var(--primary-foreground)) !important;
-    box-shadow: none !important;
-    font-weight: 600;
-  }
-  .bevel button[class~="bg-primary"]:hover,
-  .bevel a[class~="bg-primary"]:hover {
-    background: hsl(239 78% 61%) !important;
-    transform: none;
-  }
-  .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]) {
-    background: hsl(0 0% 100%);
-    border-color: hsl(var(--border)) !important;
-    color: hsl(var(--foreground));
-    border-radius: 16px;
-    box-shadow: 0 1px 2px hsl(0 0% 0% / 0.03);
-    backdrop-filter: none;
-  }
-  .bevel button[class~="border"]:not([class~="bg-primary"]):not([class*="bg-destructive"]):hover {
-    background: hsl(var(--secondary));
-    border-color: hsl(var(--border)) !important;
-    color: hsl(var(--foreground));
-  }
-  .bevel button:active { transform: scale(0.97); }
-
-  /* ── Tabs: iOS segmented control ───────────────────────────────────────── */
-  .bevel [role="tablist"] {
-    background: hsl(220 14% 96%) !important;
-    border: none !important;
-    border-radius: 999px !important;
-    padding: 4px;
-    gap: 2px;
-  }
-  .bevel [role="tab"] {
-    border-radius: 999px !important;
-    font-weight: 600;
-    color: hsl(var(--muted-foreground));
-  }
-  .bevel [role="tab"][data-state="active"] {
-    background: hsl(0 0% 100%) !important;
-    color: hsl(var(--foreground)) !important;
-    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.1) !important;
-  }
-
-  /* ── Inputs ────────────────────────────────────────────────────────────── */
-  .bevel input, .bevel textarea, .bevel [role="combobox"] {
-    background: hsl(var(--card)) !important;
-    border-color: hsl(var(--border)) !important;
-    border-radius: 16px !important;
-  }
-  .bevel input:focus, .bevel textarea:focus {
-    border-color: hsl(var(--primary) / 0.55) !important;
-    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12) !important;
-  }
-
-  /* ── Bottom mobile nav: floating white bar ─────────────────────────────── */
-  .bevel nav[class*="fixed"][class*="bottom-0"] {
-    background: hsl(0 0% 100% / 0.9) !important;
-    backdrop-filter: blur(20px) saturate(130%);
-    border-top: 1px solid hsl(var(--border)) !important;
-    box-shadow: 0 -6px 24px hsl(0 0% 0% / 0.04) !important;
-  }
-
-  /* ── Dialogs, separators, scrollbar ────────────────────────────────────── */
-  .bevel [role="dialog"] {
-    background: hsl(var(--card)) !important;
-    border-radius: 28px !important;
-    box-shadow: var(--shadow-elevated) !important;
-    backdrop-filter: none !important;
-  }
-  .bevel [role="separator"], .bevel hr {
-    background: hsl(var(--border)) !important;
-    border-color: hsl(var(--border)) !important;
-  }
-  .bevel *::-webkit-scrollbar-thumb {
-    background: hsl(240 5% 85%) !important;
-    background-clip: padding-box;
-  }
-
-  /* ── Charts (Recharts): Bevel graphic language ─────────────────────────── */
-  /* Grids: hairline, dotted, barely there */
-  .bevel .recharts-cartesian-grid line,
-  .bevel .recharts-polar-grid line,
-  .bevel .recharts-polar-grid path {
-    stroke: hsl(240 6% 88%) !important;
-    stroke-width: 1 !important;
-    stroke-dasharray: 2 6 !important;
-    opacity: 1 !important;
-  }
-  /* Axes: no hard rules, soft ticks */
-  .bevel .recharts-cartesian-axis-line,
-  .bevel .recharts-cartesian-axis-tick-line {
-    stroke: transparent !important;
-  }
-  .bevel .recharts-cartesian-axis-tick text,
-  .bevel .recharts-polar-angle-axis-tick text,
-  .bevel .recharts-polar-radius-axis-tick text,
-  .bevel .recharts-label,
-  .bevel .recharts-legend-item-text {
-    fill: hsl(var(--muted-foreground)) !important;
-    font-family: var(--font-body) !important;
-    font-size: 11px;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.01em;
-  }
-  .bevel .recharts-legend-wrapper { padding-top: 2px; }
-
-  /* Curves: rounded, slightly thicker strokes */
-  .bevel .recharts-line-curve,
-  .bevel .recharts-curve.recharts-line-curve {
-    stroke-width: 2.5 !important;
-    stroke-linecap: round !important;
-    stroke-linejoin: round !important;
-  }
-  .bevel .recharts-area-area { opacity: 0.16; }
-  .bevel .recharts-area-curve {
-    stroke-width: 2.5 !important;
-    stroke-linecap: round;
-  }
-  .bevel .recharts-dot { stroke-width: 2 !important; }
-  .bevel .recharts-radar-polygon { stroke-width: 2.5 !important; }
-
-  /* Bars: soft top radius + gentle hover */
-  .bevel .recharts-bar-rectangle path { rx: 6; }
-  .bevel .recharts-rectangle.recharts-tooltip-cursor,
-  .bevel .recharts-curve.recharts-tooltip-cursor {
-    fill: hsl(var(--primary) / 0.06) !important;
-    stroke: hsl(var(--primary) / 0.35) !important;
-    stroke-dasharray: 3 4 !important;
-  }
-
-  /* Reference lines: periwinkle / amber accents */
-  .bevel .recharts-reference-line line {
-    stroke-dasharray: 4 5 !important;
-    stroke-width: 1.5 !important;
-  }
-  .bevel .recharts-reference-area rect { opacity: 0.1 !important; }
-
-  /* Tooltips: floating white pill card */
-  .bevel .recharts-tooltip-wrapper { outline: none !important; }
-  .bevel .recharts-default-tooltip,
-  .bevel .recharts-tooltip-wrapper > div {
-    background: hsl(0 0% 100% / 0.92) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
-    backdrop-filter: blur(14px) saturate(140%);
-    border: 1px solid hsl(var(--border)) !important;
-    border-radius: 18px !important;
-    box-shadow: 0 10px 30px hsl(0 0% 0% / 0.10) !important;
-    padding: 10px 12px !important;
-    font-family: var(--font-body) !important;
-    font-size: 12px !important;
-    color: hsl(var(--foreground)) !important;
-    font-variant-numeric: tabular-nums;
-  }
-  .bevel .recharts-tooltip-label {
-    font-weight: 600 !important;
-    color: hsl(var(--foreground)) !important;
-    margin-bottom: 4px !important;
-  }
-  .bevel .recharts-tooltip-item { color: hsl(var(--foreground)) !important; }
-  .bevel .recharts-tooltip-item-separator { opacity: 0.5; }
-
-  /* Active state */
-  .bevel .recharts-active-dot circle {
-    stroke: hsl(0 0% 100%) !important;
-    stroke-width: 3 !important;
-  }
 }
-
 
 @layer components {
   .field-review label:not(.field-checkbox) {

@@ -55,7 +55,7 @@ function FlowStep({ level, icon, title, subtitle, accentClass, children }: FlowS
       
       {/* Content */}
       <div className={cn(
-        "relative p-3 rounded-xl border",
+        "compass-step relative p-3 rounded-xl border",
         "bg-gradient-to-r from-muted/40 to-muted/20",
         "border-border/40"
       )}>
@@ -105,7 +105,7 @@ export function CoachingCompassCard({ input, athleteName, onSavePerformanceGoal,
   const flow = compassFlow(input, compass);
   const scope = [input.athleteId, input.objectif, input.ambition].join(':');
   return (
-    <Card className={cn("border-border/50 overflow-hidden print:shadow-none", className)}>
+    <Card className={cn("compass-sheet border-border/50 overflow-hidden print:shadow-none", className)}>
       {/* ─── Header ─── */}
       <CardHeader className="pb-2 px-3 sm:px-6">
         <div className="flex items-center justify-between">

@@ -566,7 +566,7 @@ export function RecordsTransparencyView({
         <div className="text-xs text-muted-foreground">
           Vue transparente — statut calculé en comparant chaque record brut au snapshot actif.
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="records-actions flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1 rounded-md border border-border px-2 py-1">
             <span className="text-[11px] text-muted-foreground">Période</span>
             <input

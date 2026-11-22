@@ -3458,7 +3458,7 @@ export default function AITrainingPlanPage() {
     <AppLayout title="Plan IA TFCL™" showBack>
       <div className="max-w-3xl mx-auto space-y-4 p-3 sm:p-4">
         {/* Header */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="hub-heading flex flex-wrap items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-5 w-5" />
           </Button>

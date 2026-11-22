@@ -749,7 +749,7 @@ export default function RaceSimulationPage() {
     >
       <div className="max-w-5xl mx-auto space-y-3 sm:space-y-6 animate-fade-in">
         {/* Sub-header with athlete name and briefing action */}
-        <div className="flex items-center justify-between">
+        <div className="hub-heading flex items-center justify-between">
           <div>
             <h1 className="text-lg sm:text-2xl font-bold text-foreground">Simulation</h1>
             <p className="text-xs sm:text-sm text-muted-foreground truncate">
