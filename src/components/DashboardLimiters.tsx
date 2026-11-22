@@ -25,6 +25,7 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
   const hypothesis = glycolyticHypothesis(flow.overlap);
   const ranked = states ? rankWithHypothesis(states, hypothesis) : [];
   const unmeasured = states?.unmeasured ?? [];
+  const observed = states?.observed ?? [];
   const offList = engine.filter(f => !ranked.some(x => norm(f.metric) === norm(x.r.key) && (!f.sport || f.sport === x.sport)));
   return (
     <section aria-labelledby="dashboard-limiters" className="compass-priority min-w-0 space-y-6 rounded-3xl border p-5 sm:p-7">
@@ -73,6 +74,11 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
           {offList.length > 0 && (
             <p className="priority-detail text-xs leading-relaxed">
               Retenu par le moteur de plans sans écart face à l’idéal : {offList.map(f => f.title + (f.facts ? " (" + f.facts + ")" : "")).join(" ; ")}.
+            </p>
+          )}
+          {observed.length > 0 && (
+            <p className="priority-detail text-xs leading-relaxed">
+              Mesurés, sans cible sourcée donc non classés : {observed.map(x => x.r.label + " " + fmt(x.r.value as number) + " " + x.r.unit + " (" + SPORT[x.sport].toLowerCase() + ")").join(" ; ")}.
             </p>
           )}
           {unmeasured.length > 0 && <p className="priority-detail text-xs">Non mesurés, donc non classés : {unmeasured.map(x => x.r.label + " (" + SPORT[x.sport].toLowerCase() + ")").join(", ")}.</p>}

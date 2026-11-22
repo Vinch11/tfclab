@@ -20,6 +20,7 @@ const states: FactorStates = {
     { r: row("vma", "VMA", 16.7, 16.8, 18.5, "km/h"), sport: "run", gap: 0.6 },
   ],
   unmeasured: [{ r: { ...row("tte", "TTE", 0, 0, 0, "min"), value: null, state: "missing" }, sport: "bike" }],
+  observed: [],
 };
 const region = () => screen.getByRole("region", { name: "Limiteurs hiérarchisés" });
 
@@ -75,13 +76,20 @@ describe("Limiteurs hiérarchisés", () => {
     expect(items()[2]).toHaveTextContent("Bloc d’entraînement ciblé par le moteur");
   });
 
+  it("liste à part les mesures sans cible sourcée, sans les classer", () => {
+    const observed = [{ r: { ...row("cs", "Vitesse critique (CS)", 16.2, 0, 0, "km/h"), tier: "observed" as const, state: "none" as const, zone: null }, sport: "run" as const }];
+    render(<DashboardLimiters flow={flow} states={{ ...states, observed }} objective="10 km" ambition="Compétiteur" />);
+    expect(region()).toHaveTextContent("Mesurés, sans cible sourcée donc non classés : Vitesse critique (CS) 16,2 km/h (course à pied)");
+    expect(items()).toHaveLength(2);
+  });
+
   it("sans états (mode express), garde la seule priorité du moteur", () => {
     render(<DashboardLimiters flow={flow} objective="10 km" ambition="Compétiteur" />);
     expect(region()).toHaveTextContent("Priorité 1 : Vitesse maximale aérobie (VMA)");
   });
 
   it("aucun écart mesuré : le dit au lieu d'afficher une liste vide", () => {
-    render(<DashboardLimiters flow={flow} states={{ sections: [], ranked: [], unmeasured: [] }} objective="10 km" ambition="Compétiteur" />);
+    render(<DashboardLimiters flow={flow} states={{ sections: [], ranked: [], unmeasured: [], observed: [] }} objective="10 km" ambition="Compétiteur" />);
     expect(region()).toHaveTextContent("Aucun écart mesuré");
   });
 });

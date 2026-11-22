@@ -10,10 +10,15 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   // Fiche fictive : femme de 51 ans, donc idéaux ajustés (Dérivé) ; VLamax et TTE restent des repères de coaching.
   await expect(factors.getByText('Repère de coaching', { exact: true }).first()).toBeVisible();
   await expect(factors.getByText('Dérivé', { exact: true }).first()).toBeVisible();
+  await expect(factors.getByText('Puissance critique (CP)')).toBeVisible();
+  await expect(factors.getByText('Vitesse critique (CS)')).toBeVisible();
+  await expect(factors.getByText('Durabilité (sorties longues)')).toBeVisible();
+  await expect(factors.getByText('Observé', { exact: true }).first()).toBeVisible();
   const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
   await expect(limiters).toBeVisible();
   await expect(limiters.getByRole('listitem').first()).toContainText('Limiteur 1');
   await expect(limiters).toContainText('Bloc d’entraînement ciblé par le moteur');
+  await expect(limiters).toContainText('Mesurés, sans cible sourcée donc non classés');
   await expect(limiters.getByRole('heading', { name: 'Priorité du moteur de plans' })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
