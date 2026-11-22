@@ -10,6 +10,7 @@ export interface DurabilitySession { id: string; date: string; name: string; dur
 export interface StoredDurabilitySport {
   status: 'estimate';
   method: 'best20_early_vs_last_third';
+  windowVersion?: 2;
   unit: 'W' | 'vitesse';
   meanChangePct: number;
   sessions: DurabilitySession[];
@@ -23,20 +24,49 @@ const WINDOW_S = 20 * 60;
 
 /** Meilleure moyenne glissante sur WINDOW_S entre [startS, endS], échantillons datés. */
 function bestWindow(time: number[], value: Array<number | null>, startS: number, endS: number): number | null {
-  let best: number | null = null; let sum = 0; let n = 0; let j = 0;
-  const idx: number[] = [];
-  for (let i = 0; i < time.length; i++) { if (time[i] >= startS && time[i] <= endS && value[i] != null && Number.isFinite(value[i] as number)) idx.push(i); }
-  for (let k = 0; k < idx.length; k++) {
-    sum += value[idx[k]] as number; n++;
-    while (time[idx[k]] - time[idx[j]] > WINDOW_S) { sum -= value[idx[j]] as number; n--; j++; }
-    if (time[idx[k]] - time[idx[j]] >= WINDOW_S * 0.95 && n > 0) { const m = sum / n; if (best == null || m > best) best = m; }
+  // Integrate elapsed time. A missing sample or a gap longer than the supported
+  // one-minute aggregation breaks the continuous window.
+  let best: number | null = null;
+  let knots: number[] = [], area: number[] = [], rates: number[] = [];
+  function considerSegment() {
+    if (knots.length < 2 || knots.at(-1)! - knots[0] < WINDOW_S) return;
+    const integral = (t: number) => {
+      let lo = 0, hi = knots.length - 1;
+      while (lo < hi) {
+        const mid = Math.ceil((lo + hi) / 2);
+        if (knots[mid] <= t) lo = mid;
+        else hi = mid - 1;
+      }
+      return area[lo] + (t - knots[lo]) * (rates[lo] ?? 0);
+    };
+    // A moving integral over a step function can peak at either window edge.
+    for (const knot of knots) for (const end of [knot, knot + WINDOW_S]) {
+      if (end > knots.at(-1)! || end - WINDOW_S < knots[0]) continue;
+      const mean = (integral(end) - integral(end - WINDOW_S)) / WINDOW_S;
+      if (best == null || mean > best) best = mean;
+    }
   }
+  for (let i = 0; i + 1 < time.length; i++) {
+    const left = Math.max(startS, time[i]), right = Math.min(endS, time[i + 1]);
+    if (right <= left) continue;
+    const rate = value[i];
+    if (rate == null || !Number.isFinite(rate) || rate < 0 || time[i + 1] - time[i] > 60) {
+      considerSegment();
+      knots = []; area = []; rates = [];
+      continue;
+    }
+    if (!knots.length) { knots.push(left); area.push(0); }
+    rates.push(rate);
+    knots.push(right);
+    area.push(area[area.length - 1] + rate * (right - left));
+  }
+  considerSegment();
   return best;
 }
 
 /** Retourne null si la séance ne convient pas (trop courte, flux absent ou incohérent). */
 export function sessionDurability(sport: DurabilitySport, s: { id: string; date: string; name: string }, time: number[] | undefined, value: Array<number | null> | undefined): DurabilitySession | null {
-  if (!time?.length || !value || value.length !== time.length) return null;
+  if (!time?.length || !value || value.length !== time.length || !time.every(Number.isFinite)) return null;
   for (let i = 1; i < time.length; i++) if (!(time[i] > time[i - 1])) return null;
   const total = time[time.length - 1] - time[0];
   const durationMin = total / 60;
@@ -50,9 +80,10 @@ export function sessionDurability(sport: DurabilitySport, s: { id: string; date:
 }
 
 export function summarizeDurability(sport: DurabilitySport, sessions: DurabilitySession[], from: string, to: string, savedAt: string): StoredDurabilitySport | null {
+  sessions = [...new Map(sessions.map(session => [session.id, session])).values()];
   if (sessions.length < MIN_SESSIONS) return null;
   const mean = sessions.reduce((a, s) => a + s.changePct, 0) / sessions.length;
-  return { status: 'estimate', method: 'best20_early_vs_last_third', unit: sport === 'bike' ? 'W' : 'vitesse', meanChangePct: Math.round(mean * 10) / 10, sessions, from, to, savedAt };
+  return { status: 'estimate', method: 'best20_early_vs_last_third', windowVersion: 2, unit: sport === 'bike' ? 'W' : 'vitesse', meanChangePct: Math.round(mean * 10) / 10, sessions, from, to, savedAt };
 }
 
 export function parseStoredDurability(raw: unknown): StoredDurability {
@@ -62,7 +93,8 @@ export function parseStoredDurability(raw: unknown): StoredDurability {
   const out: StoredDurability = {};
   for (const sp of ['bike', 'run'] as const) {
     const s = d?.[sp];
-    if (s && s.status === 'estimate' && Number.isFinite(s.meanChangePct) && Array.isArray(s.sessions) && s.sessions.length >= MIN_SESSIONS) out[sp] = s;
+    if (s && s.method === 'best20_early_vs_last_third' && s.status === 'estimate' && Number.isFinite(s.meanChangePct) && Array.isArray(s.sessions) && s.sessions.every(row => row && typeof row.id === 'string' && typeof row.date === 'string' && Number.isFinite(row.changePct))
+      && new Set(s.sessions.map(row => row.id)).size >= MIN_SESSIONS) out[sp] = s;
   }
   return out;
 }
@@ -73,7 +105,8 @@ export function durabilityReading(sport: DurabilitySport, d: StoredDurabilitySpo
   const end = sport === 'bike' ? 'en fin de longue sortie vélo' : 'en fin de sortie longue en course';
   const pct = Math.abs(d.meanChangePct).toLocaleString('fr-FR');
   const trend = d.meanChangePct <= -0.5 ? `baisse en moyenne de ${pct} %` : d.meanChangePct >= 0.5 ? `monte en moyenne de ${pct} %` : 'reste stable';
-  return `Sur ${d.sessions.length} séances, ${what} ${trend} ${end}, par rapport au début de séance. Ce chiffre dépend de ce que tu as réellement poussé en fin de séance : il reste à vérifier avec ton coach.`;
+  const method = d.windowVersion === 2 ? '' : ' Calcul historique, à actualiser depuis les sorties enregistrées.';
+  return `Sur ${d.sessions.length} séances, ${what} ${trend} ${end}, par rapport au début de séance. Ce chiffre dépend de ce que tu as réellement poussé en fin de séance : il reste à vérifier avec ton coach.` + method;
 }
 
 /** Ajoute la durabilité au JSON des métriques critiques sans toucher aux autres clés. */

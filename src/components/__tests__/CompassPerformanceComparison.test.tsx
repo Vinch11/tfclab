@@ -181,3 +181,42 @@ it('opens the September Compass on its radar and four coaching levels', () => {
   }
   expect(screen.queryByRole('tablist')).toBeNull();
 });
+
+it('shows the running TTE in the September flow when the unified label is inconclusive', () => {
+  const tri: CoachingCompassInput = { ...input, objectif: 'IM', sportFocus: 'triathlon', vma: null, vo2max: null,
+    vlamaxEffectif: { value: null, confidence: 0, source: 'unknown' },
+    tteEffectif: { tte_min: 80, confidence: .5, source: 'estimated' },
+    tteEffectifRun: { tte_min: 30, confidence: .9, source: 'observed' },
+    limiterResult: { primaryLimiter: 'none', limiterLabel: 'Priorité à préciser sur le terrain', gapAnalysis: [], confidence: .5 },
+  };
+  render(<CoachingCompassCard input={tri} />);
+  const run = screen.getByRole('region', { name: 'Profil course', hidden: true });
+  expect(within(run).getByText('30 min')).toBeInTheDocument();
+  expect(screen.queryByText('80 min')).toBeNull();
+  expect(screen.queryByText('Priorité à préciser sur le terrain')).toBeNull();
+  expect(screen.getByRole('link', {name: 'Voir le protocole'})).toHaveAttribute('href', '/diagnostic/tests?module=hold-run');
+  expect(screen.getAllByText(/Endurance au seuil course/).length).toBeGreaterThan(0);
+  expect(screen.getAllByRole('img', { hidden:true })[0].textContent).not.toContain('W′');
+});
+
+it('changes the published marathon comparison with the saved time and the coaching TTE with ambition', () => {
+  const runner = { ...input, sportFocus: 'run' as const, performanceGoal: {minutes:187},
+    vlamaxEffectif: { value: .4, confidence: .7, source: 'estimated' }, tteEffectif: { tte_min: 40, source:'observed', confidence:.9 } };
+  const view = render(<CoachingCompassCard input={runner} />);
+  expect(screen.getByText(/Groupe 3 h–3 h 30/)).toBeVisible();
+  const first = screen.getByRole('img', {name:/Profil physiologique/}).textContent;
+  view.rerender(<CoachingCompassCard input={{ ...runner, ambition:'finisher', performanceGoal: {minutes:250} }} />);
+  expect(screen.getByText(/Groupe 4 h–4 h 30/)).toBeVisible();
+  expect(screen.getByRole('img', {name:/Profil physiologique/}).textContent).not.toEqual(first);
+});
+
+it('compares the observed run TTE with a small bike gap using the objective weight', () => {
+  const power = {metric:'FTP/kg', value:3.7, target:3.75, weightedImpact:.4, gap:-.05};
+  const result = {primaryLimiter:'none', confidence:.7, categoryRanking:[{category:'aerobic_power', metrics:[power]}],
+    gapAnalysis:[power, { metric:'TTE', value:null, gap:0, weightedImpact:0, weight:.3 }]};
+  render(<CoachingCompassCard input={{ ...input, objectif:'IM', sportFocus:'triathlon',
+    vlamaxEffectif:{value:null,source:'unknown',confidence:0}, tteEffectif:{tte_min:0,source:'unknown',confidence:0},
+    tteEffectifRun:{tte_min:30,confidence:.9,source:'observed'}, limiterResult:result }} />);
+  expect(screen.getByRole('link',{name:'Voir le protocole'})).toHaveAttribute('href','/diagnostic/tests?module=hold-run');
+  expect(screen.getByText('Autres facteurs classés')).toBeVisible();
+});

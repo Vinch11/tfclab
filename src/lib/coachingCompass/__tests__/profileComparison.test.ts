@@ -43,3 +43,31 @@ describe('Display-only compass references', () => {
     expect(result[0].metrics.some(m => m.key === 'threshold')).toBe(sport === 'run');
   });
 });
+import { computeCoachingCompass } from '../computeCoachingCompass';
+import { OBJECTIVE_DEMANDS } from '../objectiveDemands';
+import { AMBITION_DEFINITIONS } from '@/types/ambitionLevel';
+import { getTTETargetByAmbition } from '@/lib/physiologicalTargets';
+it.each(Object.entries(OBJECTIVE_DEMANDS))('resolves %s for all five ambition levels', (objectif, demands) => {
+  for (const ambition of Object.values(AMBITION_DEFINITIONS)) {
+    const athlete: CoachingCompassInput = { ...input, objectif, ambition: ambition.id, athleteAge: 42,
+      sportFocus: demands.kind === 'tri' ? 'triathlon' : 'run',
+      vlamaxEffectif: {value:null, source:'unknown', confidence:0},
+      tteEffectif: {tte_min:40, source:'observed', confidence:.95},
+      tteEffectifRun: {tte_min:35, source:'observed', confidence:.95} };
+    const groups = buildProfileComparisons(athlete, computeCoachingCompass(athlete));
+    expect(groups.map(g => g.sport)).toEqual(demands.kind === 'tri' ? ['bike','run'] : ['run']);
+    for (const group of groups) {
+      const tte = group.metrics.find(m => m.key === 'tte');
+      expect(tte?.value).toBe(demands.kind === 'tri' && group.sport === 'run' ? 35 : 40);
+      expect(tte?.reference?.low ?? null).toBe(demands.kind === 'beginner' ? null : getTTETargetByAmbition(objectif, ambition.id, 42));
+      expect(group.metrics.some(m => m.key === 'wprime' || m.key === 'durability')).toBe(false);
+    }
+  }
+});
+it('retains bounds and conflicting field efforts without plotting an exact TTE', () => {
+  const gap = {metric:'TTE', fieldBounds:{low:30,high:null}, gap:0, weightedImpact:0};
+  const bike = {...input, sportFocus:'triathlon' as const, limiterResult:{primaryLimiter:'none',confidence:.4,gapAnalysis:[gap]}};
+  expect(compareProfileAxis(axis('tte', 45, 55),'bike',bike)).toMatchObject({value:null, observationLabel:'≥ 30 min'});
+  expect(compareProfileAxis(axis('tte', 45, 55),'run',bike).observationLabel).toBeUndefined();
+  expect(compareProfileAxis(axis('tte', 45, 55),'bike',{...bike,limiterResult:{...bike.limiterResult,gapAnalysis:[{...gap,fieldBoundsConflict:true}]}})).toMatchObject({value:null, observationLabel:'Essais contradictoires'});
+});
