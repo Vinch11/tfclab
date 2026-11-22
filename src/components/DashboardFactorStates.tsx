@@ -11,12 +11,41 @@ const SHOWN = new Set(["vo2max", "vma", "ftpkg", "vlamax", "tte", "fatmax"]);
 const IDEAL_FACTORS = new Set<string>(["vo2max", "vma", "ftpkg"]);
 const fmt = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: n < 10 ? 2 : 1 });
 
+/**
+ * Intensité de course soutenue par des coureurs de classe mondiale, en % de la
+ * VO₂max (Casado et al., Sports Med Open 2022, échelle d'intensité) : seule
+ * donnée lue qui dépend de la distance. Approximation : en course, la VO₂ varie
+ * presque linéairement avec la vitesse, donc % VO₂max ≈ % vVO₂max (VMA).
+ */
+const RACE_INTENSITY: Record<string, { low: number; high: number }> = {
+  "5K": { low: 90, high: 99 }, "10K": { low: 85, high: 89 }, "10km": { low: 85, high: 89 },
+  Semi: { low: 80, high: 84 }, Marathon: { low: 80, high: 84 },
+};
+
 type Row = {
   key: string; label: string; unit: string; value: number | null; observation?: string;
   zone: { low: number; high: number; point: number | null } | null;
   tier: "measured" | "derived" | "coaching" | "cohort"; state: "below" | "inside" | "above" | "missing" | "none";
   basis: string | null; evidence: readonly string[]; engineNote: string | null;
+  stateText?: Partial<Record<"below" | "inside" | "above", string>>;
 };
+
+/** Ce que l'objectif chronométré exige de la VMA, face à ce que soutiennent les élites sur cette distance. */
+function demandRow(metrics: ProfileComparison[], objective: string): Row | null {
+  const band = RACE_INTENSITY[objective];
+  const speed = metrics.find(m => m.key === "raceSpeed")?.reference;
+  const vma = metrics.find(m => m.key === "vma")?.value;
+  if (!band || !speed || speed.kind !== "goal" || !vma || vma <= 0) return null;
+  const demand = Math.round(speed.low / vma * 1000) / 10;
+  return {
+    key: "demand", label: "Exigence du chrono visé (% de la VMA)", unit: "%", value: demand,
+    zone: { low: band.low, high: band.high, point: null }, tier: "measured",
+    state: demand < band.low ? "below" : demand > band.high ? "above" : "inside",
+    stateText: { below: "Marge", inside: "Comme les élites", above: "Plus que les élites" },
+    basis: `Le chrono visé demande ${demand} % de la VMA enregistrée. Sur cette distance, des coureurs de classe mondiale courent à ${band.low}–${band.high} % de leur VO₂max. Au-dessus de cette fourchette, la VMA est probablement le facteur limitant (ou le chrono est trop ambitieux). Approximation : % VO₂max ≈ % de la VMA.`,
+    evidence: ["casado-2022"], engineNote: null,
+  };
+}
 
 const TIER = {
   measured: { label: "Mesuré", hint: "Cohorte publiée du même niveau" },
@@ -49,7 +78,8 @@ function row(metric: ProfileComparison, ideal: IdealReference | null): Row {
 
 function FactorRow({ r }: { r: Row }) {
   const tier = TIER[r.tier];
-  const state = STATE[r.state];
+  const override = r.state === "below" || r.state === "inside" || r.state === "above" ? r.stateText?.[r.state] : undefined;
+  const state = { ...STATE[r.state], text: override ?? STATE[r.state].text };
   const links = r.evidence.map(id => compassEvidence.find(e => e.id === id)).filter((e): e is NonNullable<typeof e> => !!e);
   const range = r.zone && r.zone.low !== r.zone.high ? { min: r.zone.low, max: r.zone.high } : undefined;
   return (
@@ -92,11 +122,12 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
   const groups = buildProfileComparisons(input, compass);
   const objective = getObjectifLabel(input.objectif as ObjectifType);
   const ambition = getAmbitionDefinition(input.ambition as AmbitionLevel).label;
-  const sections = groups.map(g => ({
-    sport: g.sport,
-    rows: g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
-      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport }) : null)),
-  })).filter(s => s.rows.length > 0);
+  const sections = groups.map(g => {
+    const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
+      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport }) : null));
+    const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
+    return { sport: g.sport, rows: demand ? [...rows, demand] : rows };
+  }).filter(s => s.rows.length > 0);
   if (!sections.length) return null;
   return (
     <section aria-labelledby="dashboard-factors" className="min-w-0 space-y-4 rounded-3xl border bg-card p-5 sm:p-6">
@@ -117,7 +148,7 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground">
         « Mesuré » : moyenne d’une cohorte publiée du niveau correspondant. « Dérivé » : calculé à partir de cohortes publiées par une règle écrite, faute de cohorte directe.
-        « Repère de coaching » : valeur TFCL sans cohorte publiée. La zone est la moyenne ± ½ écart-type : une largeur de lecture, pas un seuil de réussite.
+        « Repère de coaching » : valeur TFCL sans cohorte publiée. Natation : aucune cohorte lue, aucun idéal affiché. La zone est la moyenne ± ½ écart-type : une largeur de lecture, pas un seuil de réussite.
         Ces repères ne modifient ni le classement des limiteurs ni les plans.
       </p>
     </section>

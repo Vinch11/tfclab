@@ -75,6 +75,34 @@ describe("État des facteurs face à l'idéal", () => {
     expect(vo2).toHaveTextContent("Idéal");
   });
 
+  it("compare l'exigence du chrono visé à ce que soutiennent les élites sur la distance", () => {
+    const compass = { presentation: { sport: "run", axes: [axis("vma", 16, null, "km/h")] } };
+    const input = { objectif: "Marathon", ambition: "competitor", performanceGoal: { minutes: 180 } } as unknown as CoachingCompassInput;
+    render(<DashboardFactorStates input={input} compass={compass as unknown as TFCLCoachingCompassResult} />);
+    const demand = Array.from(document.querySelectorAll("li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
+    // 42,195 km en 3 h = 14,06 km/h, soit 87,9 % d'une VMA de 16 : au-dessus des 80–84 % des élites.
+    expect(demand).toBeDefined();
+    expect(demand).toHaveTextContent("87,9");
+    expect(demand).toHaveTextContent("Plus que les élites");
+    expect(demand).toHaveTextContent("80–84");
+  });
+
+  it("l'exigence suit la distance : le même chrono relatif est lu contre 85–89 % sur 10 km", () => {
+    const compass = { presentation: { sport: "run", axes: [axis("vma", 20, null, "km/h")] } };
+    const input = { objectif: "10K", ambition: "competitor", performanceGoal: { minutes: 40 } } as unknown as CoachingCompassInput;
+    render(<DashboardFactorStates input={input} compass={compass as unknown as TFCLCoachingCompassResult} />);
+    const demand = Array.from(document.querySelectorAll("li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
+    // 10 km en 40 min = 15 km/h, soit 75 % d'une VMA de 20 : sous la fourchette 85–89 %.
+    expect(demand).toHaveTextContent("75");
+    expect(demand).toHaveTextContent("Marge");
+    expect(demand).toHaveTextContent("85–89");
+  });
+
+  it("sans chrono visé ou sans VMA, pas d'exigence affichée", () => {
+    show("Marathon", "competitor", { presentation: { sport: "run", axes: [axis("vma", 16, null, "km/h")] } });
+    expect(document.body.textContent).not.toContain("Exigence du chrono visé");
+  });
+
   it("n'affiche rien sans profil (pas de bloc vide)", () => {
     const input = { objectif: "Marathon", ambition: "competitor" } as CoachingCompassInput;
     const { container } = render(<DashboardFactorStates input={input} compass={{ presentation: undefined } as unknown as TFCLCoachingCompassResult} />);
