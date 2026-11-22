@@ -91,6 +91,16 @@ Cadre déjà utilisé : **Mesuré**, **Dérivé**, **Repère de coaching**.
 **Phase 3 — Moteur de plans (seulement après validation)**
 - Remplacer le TTE par CS/CP et durabilité dans la détection des limiteurs. Avant cela : jeu de données réelles, tests d'or (golden) sur les plans, et empreinte de release. Le coach conserve la main sur l'ordre des limiteurs.
 
+### État de la phase 1 (mise en œuvre)
+
+Fait, en affichage seul (moteur et plans inchangés) :
+- **Dashboard, tuile des facteurs :** CP et W′ (vélo), CS et D′ (course), durabilité des sorties longues Nolio, avec le niveau de preuve « Observé », le statut (confirmé par le coach ou estimation) et les sources. La durabilité manquante apparaît comme « À mesurer » pour les objectifs longs (marathon, ultra, 70.3, Ironman).
+- **Carte « Limiteurs hiérarchisés » :** une ligne « Mesurés, sans cible sourcée donc non classés ».
+- **100%lab :** section « Seuil critique et durabilité » par sport.
+- **Registre des références :** poole-2016, cp-mlss-2025, cs-mlss-2021, cs-marathon-2020, durability-running-2025.
+
+Reste à faire : ligne « exigence du chrono en % de CS » (marathon), rapports PDF, Compass (profil détaillé).
+
 ## 5. Lacunes et points à vérifier
 
 1. Aucun idéal sourcé pour CS/vVO₂max ni CP/PMA par niveau ou par âge.
