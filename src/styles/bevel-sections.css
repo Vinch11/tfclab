@@ -28,8 +28,7 @@
     .mx-auto > div:first-child:where(.flex, .text-center):not(header *):has(> h1, > div > h1, > div > div > h1, > div > div > div > h1),
     .container > div:first-child:has(> h1),
     header.sticky:has(h1),
-    .workspace-page-toolbar,
-    .auth-canvas .ui-card > .ui-card-header:first-child
+    .workspace-page-toolbar
   ),
   .bevel :is([data-bevel-section="nolio-v2"], [data-bevel-section="onboarding"]) .ui-card:first-child > .ui-card-header:first-child,
   .bevel [data-bevel-section="mini-rapport"] .mx-auto > div:first-child:has(h1) {
@@ -79,7 +78,7 @@
   .bevel [data-bevel-section] [role="tab"][data-state="active"] svg {
     color: inherit;
   }
-  .bevel :is([data-bevel-section="auth"], [data-bevel-section="onboarding"]) .min-h-screen {
+  .bevel [data-bevel-section="onboarding"] .min-h-screen {
     background-image: linear-gradient(135deg, rgb(249 248 251 / .98) 24%, rgb(242 239 247 / .94) 58%, rgb(230 236 230 / .74)), var(--section-photo);
     background-size: cover;
     background-position: center;
