@@ -10,6 +10,8 @@ import { useCloudDataContext } from '@/contexts/CloudDataContext';
 import { earlierBilans } from '@/lib/lab/coachReview';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 import { labProfile } from '@/lib/lab/labProfile';
+import { labReference } from '@/lib/lab/labReference';
+import { calculateAge } from '@/lib/ageAdjustment';
 import { completeProfile } from '@/lib/coachingCompass/completeProfile';
 import { AthleteEvidenceCharts } from '@/components/charts/AthleteEvidenceCharts';
 import { MobileBottomNav } from '@/components/MobileBottomNav';
@@ -28,7 +30,9 @@ export default function LabPage({ compass }: { compass?: CoachingCompassInput | 
   const baseline = earlier.find(s=>s.id===baselineId) ?? earlier[0];
   const goal = compass?.athleteId === currentAthlete?.id ? compass?.objectif : currentAthlete?.objectif;
   const ambition = compass?.athleteId === currentAthlete?.id ? compass?.ambition : currentAthlete?.ambition;
-  const input = useMemo(() => snapshot ? labProfile(snapshot, tests, goal ?? '', ambition ?? '') : null, [snapshot, tests, goal, ambition]);
+  const age = currentAthlete?.dateNaissance ? calculateAge(currentAthlete.dateNaissance) : null;
+  const sex = currentAthlete?.sexe ?? null;
+  const input = useMemo(() => snapshot ? labProfile(snapshot, tests, goal ?? '', ambition ?? '', { age, sex }) : null, [snapshot, tests, goal, ambition, age, sex]);
   const sport = input?.sportFocus === 'triathlon' ? selection : input?.sportFocus === 'run' ? 'run' : 'bike';
   const disciplines = useMemo(() => input ? completeProfile(input, snapshot?.css ?? null) : [], [input, snapshot]);
   const indicators = disciplines.find(d => d.sport === (sport === 'run' ? 'Course à pied' : 'Vélo'))?.indicators ?? [];
@@ -46,11 +50,12 @@ export default function LabPage({ compass }: { compass?: CoachingCompassInput | 
             const formatValue = (value: number) => i.unit === 's/km'
               ? Math.floor(Math.round(value)/60) + ':' + String(Math.round(value)%60).padStart(2,'0') + ' min/km'
               : value.toLocaleString('fr-BE', {maximumFractionDigits:2}) + ' ' + i.unit;
+            const reference = input ? labReference(i, input, sport, formatValue) : null;
             return <article key={i.key} className="lab-reading min-w-0 rounded-2xl border bg-card p-4 shadow-sm">
-              {i.value != null && i.target != null ? <PairedBars title={i.label} first={{label:'Athlète',value:i.value,display:formatValue(i.value)}} second={{label:'Repère interne',value:i.target,display:formatValue(i.target)}} />
+              {i.value != null && reference ? <PairedBars title={i.label} first={{label:'Athlète',value:i.value,display:formatValue(i.value)}} second={{label:reference.label,value:reference.value,display:reference.display}} />
                 : <><h4 className="text-sm font-medium text-muted-foreground">{i.label}</h4><p className="my-2 text-2xl font-semibold tabular-nums">{i.value == null ? '—' : formatValue(i.value)}</p></>}
               <p className="mt-3 text-sm text-muted-foreground">{i.value == null ? 'Données insuffisantes' : /estimat|model|calcul/i.test(i.source) ? 'Estimation TFCL' : 'Valeur du bilan'}</p>
-              <details><summary className="cursor-pointer py-2 text-sm font-medium">Interpréter ce repère</summary><p className="text-sm leading-relaxed">{i.explanation}</p></details>
+              <details><summary className="cursor-pointer py-2 text-sm font-medium">Interpréter ce repère</summary><p className="text-sm leading-relaxed">{i.explanation}</p>{reference?.basis && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{reference.basis}</p>}{reference?.adjustment && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{reference.adjustment}</p>}{reference?.kind === 'coaching' && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Repère TFCL : cible interne du moteur de plans, valeur de coaching non issue d’études.</p>}</details>
             </article>;
           })}</div>
         </section>

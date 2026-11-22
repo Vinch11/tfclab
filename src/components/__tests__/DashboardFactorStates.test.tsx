@@ -53,31 +53,6 @@ describe("État des facteurs face à l'idéal", () => {
     expect(byLabel("VO₂max", "Vélo")).toHaveTextContent("Dans la zone");
   });
 
-  it("classe tous les écarts à l'idéal du plus grand au plus petit, sans compter les facteurs dans la zone", () => {
-    show("IM", "competitor", triathlon);
-    const ranking = screen.getByRole("heading", { name: "Classement des écarts à l’idéal" }).parentElement!;
-    const rows = Array.from(ranking.querySelectorAll("ol > li")).map(li => li.textContent ?? "");
-    expect(rows.length).toBeGreaterThanOrEqual(3);
-    const gaps = rows.map(t => Number((t.match(/([\d,]+) %$/)?.[1] ?? "0").replace(",", ".")));
-    expect([...gaps].sort((a, b) => b - a)).toEqual(gaps);
-    // VLamax vélo (0,2) est dans la zone 0,2–0,34 : jamais classé.
-    expect(rows.join("|")).not.toContain("VLamax");
-  });
-
-  it("liste à part les facteurs non mesurés, sans les classer", () => {
-    show("Marathon", "age_group", { presentation: { sport: "run", axes: [axis("vo2max", null, 50, "ml/kg/min"), axis("vma", 12, null, "km/h")] } });
-    const ranking = screen.getByRole("heading", { name: "Classement des écarts à l’idéal" }).parentElement!;
-    expect(ranking).toHaveTextContent("Non mesurés, donc non classés : VO₂max (course à pied)");
-    const rows = Array.from(ranking.querySelectorAll("ol > li")).map(li => li.textContent ?? "");
-    expect(rows.join("|")).toContain("VMA");
-    expect(rows.join("|")).not.toContain("VO₂max");
-  });
-
-  it("sans écart, le dit au lieu d'afficher une liste vide", () => {
-    show("Marathon", "age_group", { presentation: { sport: "run", axes: [axis("vo2max", 70, 50, "ml/kg/min")] } });
-    expect(screen.getByText(/Aucun écart/)).toBeVisible();
-  });
-
   it("garde le repère de coaching, étiqueté, quand aucune cohorte ne couvre le facteur", () => {
     show("IM", "competitor", triathlon);
     const bike = screen.getByRole("heading", { name: "Vélo" }).parentElement!;

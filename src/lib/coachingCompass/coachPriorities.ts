@@ -110,7 +110,9 @@ export function coachPriorities(input: CoachingCompassInput, presentation?: TFCL
     range && valid(range.low) && valid(range.high) && range.low <= current.value &&
     vla.value >= vla.coachingRange.min && vla.value <= ceiling && ceiling < range.high;
   const overlap = crosses ? {
-    range, reference: vla.coachingRange,
+    range, reference: vla.coachingRange, sport: sport as "run" | "bike", current: current.value as number, ceiling: ceiling as number,
+    previousValue: previous?.sport === sport && previous.date !== current.date ? previous.value : null,
+    previousDate: previous?.sport === sport && previous.date !== current.date ? previous.date : null,
     facts: "Estimation " + (sport === "run" ? "course" : "vélo") + (current.date ? " du " + day(current.date) : "") +
       " · " + number(vla.value) + " mmol/L/s. Plage du modèle " + number(range.low) + "–" + number(range.high) +
       " mmol/L/s, pour un repère haut de " + number(ceiling) + ".",

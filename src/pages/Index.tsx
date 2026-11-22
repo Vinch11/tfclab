@@ -4,6 +4,7 @@ import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/c
 import { CoachDashboard } from "@/components/CoachDashboard";
 import { CompassProfileComparison } from "@/components/CompassProfileComparison";
 import { DashboardFactorStates } from "@/components/DashboardFactorStates";
+import { buildFactorStates } from "@/lib/coachingCompass/factorStates";
 import { compassFlow } from "@/lib/coachingCompass/compassFlow";
 import { format } from "date-fns";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
@@ -1845,6 +1846,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
           profile={!isExpress && dashboardInput && dashboardCompass ? <CompassProfileComparison
             key={[dashboardInput.athleteId, dashboardInput.objectif, dashboardInput.ambition].join(":")}
             input={dashboardInput} compass={dashboardCompass} athleteName={currentAthlete.name} /> : null}
+          states={!isExpress && dashboardInput && dashboardCompass ? buildFactorStates(dashboardInput, dashboardCompass) : null}
           factors={!isExpress && dashboardInput && dashboardCompass ? <DashboardFactorStates input={dashboardInput} compass={dashboardCompass} /> : null}
           compass={fullCompass}
           bilans={<SnapshotManager athleteId={currentAthlete.id} athleteName={currentAthlete.name}

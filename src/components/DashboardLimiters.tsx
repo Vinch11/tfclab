@@ -2,57 +2,113 @@ import { Compass } from "lucide-react";
 import { FieldMetricComparison } from "@/components/charts/FieldComparison";
 import { ReferenceGauge } from "@/components/charts/ReferenceGauge";
 import type { compassFlow } from "@/lib/coachingCompass/compassFlow";
+import { fmt, glycolyticHypothesis, type FactorStates } from "@/lib/coachingCompass/factorStates";
 
 type Flow = ReturnType<typeof compassFlow>;
+const SPORT = { run: "Course à pied", bike: "Vélo" } as const;
+const day = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
 /**
- * Every ranked limiter, visible at once, in the order the Compass computed for
- * this objective and ambition. Display only: it reads `compassFlow` and adds no
- * ranking, target or threshold of its own. Bevel reserves the ink surface for the
- * current coaching priority, which is exactly this ranking.
+ * Hiérarchie des limiteurs, en trois niveaux de certitude, étiquetés :
+ *  1. les écarts MESURÉS face à l'idéal sourcé, classés du plus grand au plus petit ;
+ *  2. les hypothèses à vérifier (ex. VLamax dont l'incertitude dépasse la plage) ;
+ *  3. la priorité du moteur de plans, qui suit le repère interne TFCL.
+ * Affichage seul : rien ici ne modifie le classement du moteur ni les plans. Bevel réserve la
+ * surface sombre à la priorité de coaching, qui est exactement cette hiérarchie.
  */
-export function DashboardLimiters({ flow, objective, ambition }: { flow: Flow; objective: string; ambition: string }) {
-  const ranked = flow.lead ? [flow.lead, ...flow.others] : [];
-  const cautious = ranked.length > 0 && flow.title !== ranked[0].title;
+export function DashboardLimiters({ flow, states, objective, ambition }: {
+  flow: Flow; states?: FactorStates | null; objective: string; ambition: string;
+}) {
+  const engine = flow.lead ? [flow.lead, ...flow.others] : [];
+  const cautious = engine.length > 0 && flow.title !== engine[0].title;
+  const hypothesis = glycolyticHypothesis(flow.overlap);
+  const ranked = states?.ranked ?? [];
+  const unmeasured = states?.unmeasured ?? [];
   return (
-    <section aria-labelledby="dashboard-limiters" className="compass-priority min-w-0 space-y-5 rounded-3xl border p-5 sm:p-7">
+    <section aria-labelledby="dashboard-limiters" className="compass-priority min-w-0 space-y-6 rounded-3xl border p-5 sm:p-7">
       <div className="priority-label flex items-center gap-2 text-sm font-semibold"><Compass aria-hidden className="size-5" /> Priorité du Compass</div>
       <div className="space-y-1">
         <h2 id="dashboard-limiters" className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Limiteurs hiérarchisés</h2>
         <p className="priority-detail text-sm">Pour l’objectif {objective} · ambition {ambition}</p>
-        <p className="priority-detail text-xs leading-relaxed">Le Compass ne classe comme limiteurs que les facteurs situés sous le repère TFCL du moteur de plans. Tous les écarts à l’idéal sourcé sont classés plus haut.</p>
       </div>
-      {cautious && <p className="priority-warning rounded-lg p-3 text-sm">Lecture prudente : {flow.title}. {flow.detail}</p>}
-      {ranked.length ? (
-        <ol className="space-y-5">
-          {ranked.map((factor, index) => (
-            <li key={factor.metric + factor.title} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2">
-              <span aria-hidden className={"flex size-9 items-center justify-center rounded-full text-sm font-semibold " +
-                (index === 0 ? "bg-[#d7f5c9] text-[#263828]" : "border border-white/25 bg-white/10 text-white")}>{index + 1}</span>
-              <div className="min-w-0 space-y-2">
-                <div>
-                  <h3 className="text-lg font-semibold leading-snug tracking-tight">
-                    <span className="sr-only">Priorité {index + 1} : </span>{factor.title}
-                  </h3>
-                  <p className="priority-detail text-xs font-medium">{factor.status}</p>
-                </div>
-                {factor.facts && <p className="priority-detail text-sm leading-relaxed">{factor.facts}</p>}
-                {(factor.observation || factor.comparison) && (
-                  <div className="space-y-3 rounded-2xl bg-[#fcfbff] p-4 text-foreground">
-                    {factor.observation && <FieldMetricComparison metric={factor.observation} hypothesis={factor.hypothesis} />}
-                    {factor.comparison && <ReferenceGauge {...factor.comparison} name={factor.title} />}
+
+      {states && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold tracking-tight">Écarts mesurés face à l’idéal sourcé</h3>
+          {ranked.length ? (
+            <ol className="space-y-3">
+              {ranked.map((x, i) => (
+                <li key={x.sport + x.r.key} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1">
+                  <span aria-hidden className={"flex size-8 items-center justify-center rounded-full text-sm font-semibold " +
+                    (i === 0 ? "bg-[#d7f5c9] text-[#263828]" : "border border-white/25 bg-white/10 text-white")}>{i + 1}</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold leading-snug"><span className="sr-only">Écart {i + 1} : </span>{x.r.label}<span className="priority-detail font-normal"> · {SPORT[x.sport]}</span></p>
+                    <p className="priority-detail text-sm tabular-nums">
+                      {x.r.value != null ? fmt(x.r.value) : "—"} {x.r.unit} · {x.r.tier === "coaching" ? "repère de coaching" : "idéal"} {x.r.zone ? (x.r.zone.low === x.r.zone.high ? fmt(x.r.zone.low) : fmt(x.r.zone.low) + "–" + fmt(x.r.zone.high)) : "—"} {x.r.unit}
+                    </p>
                   </div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <div className="space-y-1">
-          <p className="text-lg font-semibold">{flow.title}</p>
-          <p className="priority-detail text-sm leading-relaxed">{flow.detail}</p>
+                  <span className="text-lg font-semibold tabular-nums">{x.r.state === "below" && x.r.key !== "demand" ? "−" : "+"}{fmt(Math.round(x.gap * 10) / 10)} %</span>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="priority-detail text-sm">Aucun écart mesuré : tous les facteurs mesurés sont dans la zone idéale ou au-dessus.</p>}
+          {unmeasured.length > 0 && <p className="priority-detail text-xs">Non mesurés, donc non classés : {unmeasured.map(x => x.r.label + " (" + SPORT[x.sport].toLowerCase() + ")").join(", ")}.</p>}
+          <p className="priority-detail text-xs leading-relaxed">Écart = distance à la zone idéale, en % de sa borne, pour l’âge et le sexe de l’athlète quand ils sont connus. Un « repère de coaching » est une valeur interne non issue d’études : son écart est indicatif.</p>
         </div>
       )}
+
+      {hypothesis && (
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold tracking-tight">À vérifier</h3>
+          <div className="rounded-2xl bg-[#fcfbff] p-4 text-foreground">
+            <p className="font-semibold">Profil glycolytique (VLamax) · {SPORT[hypothesis.sport]}</p>
+            <p className="mt-1 text-sm leading-relaxed text-foreground/80">
+              Valeur retenue {fmt(hypothesis.current)} mmol/L/s, dans la plage de référence (haut : {fmt(hypothesis.ceiling)}).
+              Mais la plage d’incertitude du modèle monte à {fmt(hypothesis.modelHigh)}
+              {hypothesis.observed != null && <>, et une estimation de terrain{hypothesis.observedDate ? " du " + day(hypothesis.observedDate) : ""} donne {fmt(hypothesis.observed)}</>}
+              {" "}: jusqu’à {fmt(Math.round(hypothesis.excess * 10) / 10)} % au-dessus de la plage. Hypothèse, pas un écart mesuré : à confirmer par un test avant de choisir un bloc.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        <h3 className="text-lg font-semibold tracking-tight">Priorité du moteur de plans</h3>
+        <p className="priority-detail text-xs leading-relaxed">
+          Le moteur ne classe comme limiteurs que les facteurs situés sous son repère interne TFCL (valeur de coaching, non issue d’études). C’est lui qui choisit le bloc d’entraînement.
+        </p>
+        {cautious && <p className="priority-warning rounded-lg p-3 text-sm">Lecture prudente : {flow.title}. {flow.detail}</p>}
+        {engine.length ? (
+          <ol className="space-y-5">
+            {engine.map((factor, index) => (
+              <li key={factor.metric + factor.title} className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2">
+                <span aria-hidden className={"flex size-9 items-center justify-center rounded-full text-sm font-semibold " +
+                  (index === 0 ? "bg-[#d7f5c9] text-[#263828]" : "border border-white/25 bg-white/10 text-white")}>{index + 1}</span>
+                <div className="min-w-0 space-y-2">
+                  <div>
+                    <h4 className="text-base font-semibold leading-snug tracking-tight">
+                      <span className="sr-only">Priorité {index + 1} : </span>{factor.title}
+                    </h4>
+                    <p className="priority-detail text-xs font-medium">{factor.status}</p>
+                  </div>
+                  {factor.facts && <p className="priority-detail text-sm leading-relaxed">{factor.facts}</p>}
+                  {(factor.observation || factor.comparison) && (
+                    <div className="space-y-3 rounded-2xl bg-[#fcfbff] p-4 text-foreground">
+                      {factor.observation && <FieldMetricComparison metric={factor.observation} hypothesis={factor.hypothesis} />}
+                      {factor.comparison && <ReferenceGauge {...factor.comparison} name={factor.title} />}
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="space-y-1">
+            <p className="text-base font-semibold">{flow.title}</p>
+            <p className="priority-detail text-sm leading-relaxed">{flow.detail}</p>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
