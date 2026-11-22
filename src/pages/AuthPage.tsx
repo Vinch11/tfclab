@@ -103,7 +103,7 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 safe-area-inset-top safe-area-inset-bottom">
+    <div className="auth-canvas min-h-screen bg-background flex flex-col items-center justify-center p-3 sm:p-4 md:p-6 safe-area-inset-top safe-area-inset-bottom">
       {/* Background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 left-1/4 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-primary/5 rounded-full blur-3xl" />

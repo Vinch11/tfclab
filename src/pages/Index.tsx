@@ -2436,7 +2436,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       <div className="max-w-7xl mx-auto">
         {/* Tab navigation bar */}
         {visibleTab !== "configuration" && !isExpress && legacyAthlete && athletes.length > 0 && (
-          <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
+          <div className="workspace-tabs flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
             {[
               { id: "dashboard", label: "Dashboard", icon: "📊" },
               { id: "profil", label: "Profil", icon: "👤" },

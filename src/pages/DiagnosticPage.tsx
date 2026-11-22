@@ -412,7 +412,7 @@ export default function DiagnosticPage() {
     >
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header - compact on mobile */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="hub-heading flex items-center gap-2.5 sm:gap-3">
           <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10">
             <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
           </div>
@@ -437,7 +437,7 @@ export default function DiagnosticPage() {
           if (tierSections.length === 0) return null;
           const { title: tierTitle, subtitle: tierSubtitle } = TIER_LABELS[tier];
           return (
-            <div key={tier} className="space-y-2.5 sm:space-y-3">
+            <div key={tier} className="diagnostic-tier space-y-2.5 sm:space-y-3">
               <div>
                 <h2 className="text-sm sm:text-base font-semibold text-foreground">{tierTitle}</h2>
                 <p className="text-xs text-muted-foreground">{tierSubtitle}</p>
@@ -448,7 +448,7 @@ export default function DiagnosticPage() {
                   return (
                     <Card
                       key={section.id}
-                      className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                      className="hub-card group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
                       onClick={() => {
                         if (section.id === "profil-rapide") {
                           if (!currentAthlete) {
@@ -464,7 +464,7 @@ export default function DiagnosticPage() {
                       <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
                         <div className="flex items-center sm:items-start justify-between">
                           <div className="flex items-center gap-2.5 sm:block">
-                            <div className={`p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
+                            <div className={`hub-card-icon p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
                               <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${section.color}`} />
                             </div>
                             <CardTitle className="text-sm sm:text-base sm:mt-3">{section.title}</CardTitle>

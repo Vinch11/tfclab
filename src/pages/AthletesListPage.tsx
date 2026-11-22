@@ -384,7 +384,7 @@ export default function AthletesListPage() {
 
   return (
     <AppLayout title="Mes Athlètes">
-      <div className="space-y-3 animate-fade-in">
+      <div className="athlete-directory space-y-3 animate-fade-in">
         {/* Barre d'actions compacte */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1 min-w-0">
@@ -451,7 +451,7 @@ export default function AthletesListPage() {
         )}
 
         {/* Liste dense */}
-        <Card className="overflow-hidden">
+        <Card className="directory-list overflow-hidden">
           <div className="divide-y divide-border">
             {filteredAthletes.map((athlete) => {
               const athleteSnapshots = snapshots.filter((s) => s.athlete_id === athlete.id);
@@ -464,7 +464,7 @@ export default function AthletesListPage() {
               return (
                 <div
                   key={athlete.id}
-                  className={`group flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/50 ${
+                  className={`directory-row group flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/50 ${
                     isSelected ? "bg-primary/5" : ""
                   } ${athlete.is_hidden ? "opacity-60" : ""}`}
                   onClick={() => handleSelectAthlete(athlete.id)}
@@ -477,7 +477,7 @@ export default function AthletesListPage() {
                       className="shrink-0"
                     />
                   )}
-                  <div className="w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
+                  <div className="directory-avatar w-9 h-9 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
                     {initials(athlete.nom)}
                   </div>
 

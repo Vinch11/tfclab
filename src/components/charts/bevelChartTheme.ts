@@ -4,7 +4,7 @@
  * ciel (secondaire), rose (alerte douce), violet (tertiaire).
  *
  * Le style visuel global (axes, grilles, tooltips, épaisseurs de courbes)
- * est appliqué via CSS dans `src/index.css` (bloc « Charts (Recharts) »).
+ * est appliqué via CSS dans `src/styles/bevel.css`.
  * Ce module sert uniquement à choisir des couleurs de séries cohérentes.
  */
 
