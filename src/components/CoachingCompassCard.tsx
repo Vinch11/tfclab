@@ -1,40 +1,78 @@
-import { CompassPerformanceComparison } from "./CompassPerformanceComparison";
-import type { PerformanceGoal } from "@/lib/coachingCompass/performanceComparison";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * TFCL COACHING COMPASS™ — Graphique Signature
- *
+ * 
  * Visualisation unifiée du processus décisionnel :
  * PROFIL → LIMITEUR → LEVIER → DÉCISION
- *
+ * 
  * Lisible en < 10 secondes par un coach.
  * Deux modes : Athlète (simplifié) / Coach (détaillé)
  * ═══════════════════════════════════════════════════════════════════════════════
  */
 
-import { useId, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Compass, AlertTriangle, ChevronDown } from "lucide-react";
+import { 
+  Compass, Target, AlertTriangle, 
+  Eye, EyeOff, Zap, Info, Clock, Dumbbell,
+  ChevronDown
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import { computeCoachingCompass, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
-import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
-import { metricSourceLabel } from "@/lib/coachingCompass/presentation";
-import { readCommittedLimiterPolicy } from "@/lib/plan/coachLimiterPolicyStorage";
-import { getVLamaxRange } from "@/lib/physiologicalTargets";
+import { computeCoachingCompass, getDurabilityTargetMinutes, type CoachingCompassInput, type TFCLCoachingCompassResult, type RadarAxis } from "@/lib/coachingCompass";
+import { LimiterImpactCard } from "@/components/LimiterImpactCard";
+import { getTargetsForAmbition, getVLamaxRange, getVmaTargetByAmbition } from "@/lib/physiologicalTargets";
+import { getVo2maxTarget } from "@/lib/v2/unifiedLimiterDetection";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
-import { CompassVmaReference } from '@/components/CompassVmaReference';
-import { assessVmaReference, getVmaReference, vmaReferencePosition, type VmaReference } from '@/lib/coachingCompass/vmaReference';
 
-// Local wording only: detailed provenance remains unchanged in reports and stored data.
-const compassSourceLabel = (source: string) => source === 'snapshot'
-  ? 'Repère enregistré : son interprétation dépend du test réalisé et des conditions de mesure.'
-  : metricSourceLabel(source);
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Axes du radar
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const AXIS_PEDAGOGY: Record<string, { short: string; detail: string }> = {
+  aerobic: {
+    short: "Capacité Aérobie (FTP/kg ou VMA)",
+    detail: "Mesure la puissance de ton « moteur » aérobie. Plus le score est élevé, plus tu peux soutenir une intensité forte sur longue durée.",
+  },
+  vlamax: {
+    short: "VLamax (Glycolyse)",
+    detail: "Vitesse de production de lactate. Un score élevé signifie une VLamax basse et bien maîtrisée — tu brûles plus de graisses et moins de glycogène.",
+  },
+  fatmax: {
+    short: "FatMax (Oxydation des graisses)",
+    detail: "Intensité à laquelle tu brûles le plus de graisses. Plus ce score est haut, mieux tu épargnes tes réserves de glycogène en course.",
+  },
+  durability: {
+    short: "Robustesse (Durabilité)",
+    detail: "Résistance à la dégradation de la performance dans le temps. Combine TTE, dérive cardiaque et stabilité de la puissance/allure.",
+  },
+  wprime: {
+    short: "W′ (Capacité Anaérobie)",
+    detail: "Réserve d'énergie mobilisable au-dessus de la puissance critique (sprints, relances, côtes). La cible dépend de ton objectif : élevée pour un format court (Sprint), plus basse pour un format long (IM, Marathon).",
+  },
+  economy: {
+    short: "Économie de mouvement",
+    detail: "Efficience du geste sportif : moins d'énergie gaspillée pour une même vitesse ou puissance. Inclut la cadence, la technique et le rendement musculaire.",
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// EXPLICATIONS PÉDAGOGIQUES — Niveaux du flux
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const FLOW_PEDAGOGY = {
+  limiter: "Le limiteur est le maillon faible qui freine le plus ta progression. C'est le premier facteur à corriger pour progresser efficacement.",
+  leverage: "Le levier est la stratégie d'entraînement la plus efficace pour corriger ton limiteur. Il cible le mécanisme physiologique en cause.",
+  decision: "La décision coaching traduit l'analyse en plan d'action concret : type de bloc, durée, séances clés et interdictions.",
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PROPS
+// ═══════════════════════════════════════════════════════════════════════════════
 
 interface CoachingCompassCardProps {
-  onSavePerformanceGoal?: (goal: PerformanceGoal) => Promise<boolean>;
   input: CoachingCompassInput;
-  athleteName?: string;
   staffMode?: boolean;
   className?: string;
 }
@@ -43,8 +81,7 @@ interface CoachingCompassCardProps {
 // RADAR CHART — SVG avec zone optimale
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: RadarAxis[]; size?: number; vmaReference?: VmaReference | null }) {
-  const glowId = useId();
+function SignatureRadar({ axes, size = 320 }: { axes: RadarAxis[]; size?: number }) {
   const cx = size / 2;
   const cy = size / 2;
   const r = size * 0.32;
@@ -68,25 +105,23 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
   const optimalPath = `M ${optimalOuter.map(p => `${p.x},${p.y}`).join(" L ")} Z M ${optimalInner.map(p => `${p.x},${p.y}`).join(" L ")} Z`;
 
   // Data polygon
-  const dataPoints = axes.map((a, i) => getPoint(i, a.key === 'vma' && vmaReference ? vmaReferencePosition(a.value, vmaReference) ?? 0 : a.score));
+  const dataPoints = axes.map((a, i) => getPoint(i, a.score));
   const polygonStr = dataPoints.map(p => `${p.x},${p.y}`).join(" ");
-  const hasProfile = axes.every(axis => axis.value != null && Number.isFinite(axis.value) && axis.value > 0 &&
-    (axis.key === 'vma' && vmaReference ? vmaReferencePosition(axis.value, vmaReference) != null : axis.target != null && Number.isFinite(axis.score)));
 
   const scoreColor = (s: number) =>
     s >= 75 ? "hsl(var(--success))" : s >= 50 ? "hsl(var(--warning))" : "hsl(var(--destructive))";
 
   return (
-    <svg viewBox={`-28 -20 ${size + 56} ${size + 48}`} className="w-full max-w-[380px] mx-auto select-none" role="img" aria-label={vmaReference ? 'Compass course : profil athlète et écart VMA au repère ambition' : 'Compass physiologique'}>
+    <svg viewBox={`0 0 ${size} ${size}`} className="w-full max-w-[280px] sm:max-w-[320px] mx-auto select-none">
       <defs>
-        <radialGradient id={glowId} cx="50%" cy="50%" r="50%">
+        <radialGradient id="radar-glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.08" />
           <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
         </radialGradient>
       </defs>
 
       {/* Background glow */}
-      <circle cx={cx} cy={cy} r={r * 1.15} fill={`url(#${glowId})`} />
+      <circle cx={cx} cy={cy} r={r * 1.15} fill="url(#radar-glow)" />
 
       {/* Grid levels with labels */}
       {levels.map(level => {
@@ -100,9 +135,9 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
               points={points}
               fill="none"
               stroke="hsl(var(--border))"
-              strokeWidth={level === 100 ? 1.5 : 0.7}
-              opacity={level === 100 ? 0.8 : 0.45}
-              strokeDasharray={level === 100 ? "4,3" : "none"}
+              strokeWidth={level === 100 ? 1 : level === 75 ? 0.7 : 0.3}
+              opacity={level === 75 ? 0.5 : 0.3}
+              strokeDasharray={level === 75 ? "3,2" : "none"}
             />
             {/* Level label on first axis */}
             <text
@@ -121,9 +156,9 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
       {/* Optimal zone (green) */}
       <path
         d={optimalPath}
-        fill="hsl(var(--muted) / 0.15)"
+        fill="hsl(var(--success) / 0.08)"
         fillRule="evenodd"
-        stroke="hsl(var(--border))"
+        stroke="hsl(var(--success) / 0.2)"
         strokeWidth={0.7}
       />
 
@@ -142,35 +177,28 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
       })}
 
       {/* Data polygon — filled with gradient effect */}
-      {hasProfile && <polygon
-        data-testid={vmaReference ? 'running-athlete-profile' : 'athlete-radar-profile'}
+      <polygon
         points={polygonStr}
-        fill="hsl(var(--primary) / 0.28)"
+        fill="hsl(var(--primary) / 0.15)"
         stroke="hsl(var(--primary))"
-        strokeWidth={3}
+        strokeWidth={2.5}
         strokeLinejoin="round"
-      />}
+      />
 
       {/* Data points with colored halos */}
-      {dataPoints.map((p, i) => axes[i].value != null && (axes[i].key === 'vma' && vmaReference ? vmaReferencePosition(axes[i].value, vmaReference) != null : axes[i].target != null) ? (
+      {dataPoints.map((p, i) => (
         <g key={`dot-${i}`}>
-          {axes[i].key === 'vma' && vmaReference ? <g data-testid="radar-vma-gap">
-            <title>{assessVmaReference(axes[i].value, vmaReference).label} · écart {assessVmaReference(axes[i].value, vmaReference).gapKmh ?? '—'} km/h au repère extrapolé</title>
-            <line x1={p.x} y1={p.y} x2={getPoint(i, 100).x} y2={getPoint(i, 100).y} className="stroke-warning" strokeWidth="3" strokeDasharray="3 2" />
-            <circle cx={getPoint(i, 100).x} cy={getPoint(i, 100).y} r="5" className="fill-background stroke-primary" strokeWidth="2" />
-            <circle cx={p.x} cy={p.y} r="4.5" className={assessVmaReference(axes[i].value, vmaReference).status === 'below' ? 'fill-warning stroke-background' : 'fill-success stroke-background'} strokeWidth="2" />
-          </g> : <>
-            <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
-            <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
-          </>}
+          <circle cx={p.x} cy={p.y} r={8} fill={`${scoreColor(axes[i].score)}`.replace(")", " / 0.12)")} />
+          <circle cx={p.x} cy={p.y} r={4.5} fill={scoreColor(axes[i].score)} stroke="hsl(var(--background))" strokeWidth={2} />
         </g>
-      ) : null)}
+      ))}
 
       {/* Labels with emoji, name, score and value */}
       {axes.map((axis, i) => {
         const labelP = getPoint(i, 135);
+        const pedagogy = AXIS_PEDAGOGY[axis.key];
         const emoji = axis.key === "aerobic" ? "⚡" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
-
+        
         return (
           <g key={`label-${i}`}>
             {/* Emoji */}
@@ -190,7 +218,7 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
               textAnchor="middle"
               dominantBaseline="middle"
               className="fill-foreground"
-              fontSize={12}
+              fontSize={10}
               fontWeight={700}
             >
               {axis.shortLabel}
@@ -201,11 +229,11 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
               y={labelP.y + 13}
               textAnchor="middle"
               dominantBaseline="middle"
-              fill={axis.value != null && axis.target != null ? scoreColor(axis.score) : "hsl(var(--muted-foreground))"}
-              fontSize={axis.key === 'vma' && vmaReference ? 10 : 12}
+              fill={scoreColor(axis.score)}
+              fontSize={12}
               fontWeight={800}
             >
-              {axis.key === 'vma' && vmaReference && vmaReferencePosition(axis.value, vmaReference) != null ? `Écart ${assessVmaReference(axis.value, vmaReference).gapKmh?.toFixed(1)} km/h` : axis.value != null && axis.value > 0 && axis.target != null ? `${axis.score}/100` : axis.value != null && axis.value > 0 ? `${axis.value.toFixed(1)} ${axis.unit}` : "—"}
+              {axis.score}/100
             </text>
           </g>
         );
@@ -214,9 +242,90 @@ function SignatureRadar({ axes, size = 320, vmaReference = null }: { axes: Radar
   );
 }
 
-function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
-  if (!warning.level || warning.level === "none" || !warning.message) return null;
+// ═══════════════════════════════════════════════════════════════════════════════
+// FLOW CONNECTOR — Flèche verticale animée
+// ═══════════════════════════════════════════════════════════════════════════════
 
+function FlowConnector() {
+  return (
+    <div className="flex flex-col items-center py-1">
+      <div className="w-0.5 h-3 bg-gradient-to-b from-primary/40 to-primary/15 rounded-full" />
+      <ChevronDown className="w-3.5 h-3.5 text-primary/40 -mt-0.5" />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FLOW STEP — Bloc du flux décisionnel
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface FlowStepProps {
+  level: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  accentClass: string;
+  badge?: string | null;
+  children?: React.ReactNode;
+}
+
+function FlowStep({ level, icon, title, subtitle, accentClass, badge, children }: FlowStepProps) {
+  return (
+    <div className="relative print:break-inside-avoid">
+      {/* Level indicator */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+          {level}
+        </span>
+        {badge && (
+          <Badge variant="outline" className="text-[8px] h-3.5 px-1.5 border-border/50">
+            {badge}
+          </Badge>
+        )}
+      </div>
+      
+      {/* Content */}
+      <div className={cn(
+        "relative p-3 rounded-xl border",
+        "bg-gradient-to-r from-muted/40 to-muted/20",
+        "border-border/40"
+      )}>
+        {/* Left accent bar */}
+        <div className={cn("absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full", accentClass)} />
+        
+        <div className="pl-3 flex items-start gap-3">
+          <div className={cn(
+            "shrink-0 p-2 rounded-lg border",
+            "bg-background/80 border-border/50",
+            accentClass.replace("bg-", "text-").replace("/80", "")
+          )}>
+            {icon}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold tracking-tight">{title}</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{subtitle}</p>
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// RACE READINESS PANEL — Sidebar
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ReadinessPanel supprimé — la "Disponibilité" ne peut pas être établie précisément.
+// Seul le Fatigue Warning (issu du snapshot) est conservé.
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FATIGUE WARNING
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function FatigueWarning({ warning }: { warning: NonNullable<TFCLCoachingCompassResult["fatigueWarning"]> }) {
+  if (warning.level === "none") return null;
+  
   const colors = {
     moderate: "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))] border-[hsl(var(--warning)/0.2)]",
     high: "bg-[hsl(var(--accent)/0.1)] text-[hsl(var(--accent))] border-[hsl(var(--accent)/0.2)]",
@@ -274,34 +383,61 @@ const METRIC_EXPLANATIONS: Record<string, { desc: string; why: string }> = {
     why: "Intensité maximale soutenable en état d'équilibre. Au-dessus, le lactate s'accumule rapidement.",
   },
   "W'": {
-    desc: "Travail disponible au-dessus de la puissance critique",
-    why: "Paramètre d'un modèle CP/W′, spécifique au sport et aux efforts retenus ; ni VLamax, ni mesure globale de capacité anaérobie.",
+    desc: "Réserve anaérobie — énergie au-dessus du seuil",
+    why: "Quantité d'énergie disponible pour les efforts supra-seuil (attaques, bosses). Se reconstitue partiellement au repos.",
   },
   "Éco.": {
     desc: "Économie de course — coût énergétique du mouvement",
     why: "À VO₂max et VLamax égaux, l'athlète le plus économique ira plus vite. Améliorable par la technique et le renforcement.",
   },
   "Durabilité": {
-    desc: "Résistance à la dégradation des capacités après effort prolongé",
-    why: "Le TTE au seuil et la dérive cardiaque ne suffisent pas à mesurer la durabilité. Un protocole prolongé documenté est nécessaire.",
+    desc: "Robustesse aérobie — dérivée directement du TTE (Time to Exhaustion)",
+    why: "Mesure combien de temps vous pouvez tenir au seuil. Un TTE élevé = meilleure résistance en course longue. Purement physiologique, sans influence de la fatigue.",
   },
 };
 
-function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { defaultOpen: boolean; compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
+function StaffMetricsGrid({ compass, sportFocus, input }: { compass: TFCLCoachingCompassResult; sportFocus?: string | null; input: CoachingCompassInput }) {
   const profile = compass.profile;
-  const isRunning = compass.presentation?.sport === 'run' || sportFocus === "run";
+  const isRunning = sportFocus === "run";
 
+  // Compute targets from ambition/objectif
   const ambition = (input.ambition || "age_group") as AmbitionLevel;
   const objectif = input.objectif || "IM";
-  const vlamaxRange = getVLamaxRange(objectif, ambition, isRunning ? "cap" : "bike");
-  const displayAxes = compass.presentation?.axes ?? compass.radarAxes;
-  const targetFor = (key: string) => displayAxes.find(a => a.key === key)?.target ?? null;
+  const targets = getTargetsForAmbition(objectif, ambition);
+  const sportForTargets =
+    input.sportFocus === "run" ? "cap" :
+    input.sportFocus === "bike" ? "bike" :
+    input.sportFocus === "triathlon" ? "tri" :
+    undefined;
+  const vlamaxRange = getVLamaxRange(objectif, ambition, sportForTargets);
+  const vmaTarget = getVmaTargetByAmbition(objectif, ambition);
+  // Bug réel corrigé (audit "estimations physiologiques", Cluster 2) : cette
+  // grille avait sa propre table VO2max (sans ajustement par âge) et sa
+  // propre table TTE (indexée par ambition, ignorant l'objectif) —
+  // divergentes du radar principal juste au-dessus, qui utilise
+  // getVo2maxTarget (age-adjusted) et le diviseur objectif-dépendant de
+  // deriveDurabilityFromTTE. Pour un même athlète, le radar pouvait dire
+  // "cible atteinte" pendant que cette grille disait "X points manquants"
+  // sur la même carte. Les deux utilisent désormais la même source.
+  const vo2Target = getVo2maxTarget(objectif, ambition, input.athleteAge ?? null);
+  const durabilityTargets: Record<string, number> = { finisher: 60, age_group: 70, competitor: 80, elite: 90 };
+  const economyTargets: Record<string, number> = { finisher: 55, age_group: 65, competitor: 75, elite: 85 };
+  const fatmaxTargets: Record<string, number> = { finisher: 120, age_group: 160, competitor: 200, elite: 240 };
+  const wprimeTargets: Record<string, number> = { finisher: 15, age_group: 20, competitor: 25, elite: 30 };
+
   const metricTargets: Record<string, { target: number | null; inverse?: boolean }> = {
-    "VO₂max": { target: targetFor("vo2max") }, "VLamax": { target: targetFor("vlamax"), inverse: true },
-    "FTP": { target: input.poids && targetFor("ftpkg") ? Math.round((targetFor("ftpkg") ?? 0) * input.poids) : null },
-    "FTP/kg": { target: targetFor("ftpkg") }, "VMA": { target: targetFor("vma") },
-    "TTE": { target: targetFor("tte") }, "FatMax": { target: targetFor("fatmax") },
-    "W'": { target: targetFor("wprime") }, "Éco.": { target: compass.economyModifier.target },
+    "VO₂max": { target: vo2Target },
+    "VLamax": { target: vlamaxRange.optimal, inverse: true },
+    "FTP": { target: input.poids && targets.ftp_kg_min ? Math.round(targets.ftp_kg_min * input.poids) : null },
+    "FTP/kg": { target: targets.ftp_kg_min },
+    "VMA": { target: vmaTarget },
+    "TTE": { target: getDurabilityTargetMinutes(objectif) },
+    "FatMax": { target: fatmaxTargets[ambition] || 160 },
+    "LT1": { target: null },
+    "LT2": { target: null },
+    "W'": { target: wprimeTargets[ambition] || 20 },
+    "Éco.": { target: economyTargets[ambition] || 65 },
+    "Durabilité": { target: durabilityTargets[ambition] || 70 },
   };
 
   // Running mode: convert LT1/LT2 from watts to % VMA
@@ -323,17 +459,16 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
   const lt2PctVma = lt2Ratio ? Math.round(lt2Ratio * ftpPctVma * 100) : null;
 
   // Build running-aware LT metrics
-  const lt1Running = isRunning ? {
+  const lt1Running = isRunning && lt1PctVma ? {
     ...profile.lt1,
-    value: null,
+    value: lt1PctVma,
     unit: "% VMA",
   } : profile.lt1;
 
-  const lt2Running = isRunning ? {
+  const lt2Running = isRunning && lt2PctVma ? {
     ...profile.lt2,
-    value: input.paceThresholdSecPerKm && input.paceThresholdSecPerKm > 0 ? 3600 / input.paceThresholdSecPerKm : null,
-    unit: "km/h",
-    source: input.paceThresholdSecPerKm ? 'snapshot' : 'unknown',
+    value: lt2PctVma,
+    unit: "% VMA",
   } : profile.lt2;
 
   const metrics = [
@@ -345,28 +480,28 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
     ] : []),
     { key: "VMA", m: profile.vma ?? { value: null, confidence: 0, source: "unknown", lastUpdated: null, unit: "km/h" }, secondaryInfo: null as string | null },
     { key: "TTE", m: profile.tte, secondaryInfo: null as string | null },
-    ...(!isRunning ? [{ key: "FatMax", m: profile.fatmax, secondaryInfo: null as string | null }] : []),
-    { key: "LT1", m: lt1Running, secondaryInfo: null as string | null },
-    { key: "LT2", m: lt2Running, secondaryInfo: null as string | null },
+    { key: "FatMax", m: isRunning ? { ...profile.fatmax, unit: profile.fatmax.value ? "W (estimé)" : "W" } : profile.fatmax, secondaryInfo: null as string | null },
+    { key: "LT1", m: lt1Running, secondaryInfo: isRunning && profile.lt1.value ? `(${Math.round(profile.lt1.value)} W)` : null },
+    { key: "LT2", m: lt2Running, secondaryInfo: isRunning && profile.lt2.value ? `(${Math.round(profile.lt2.value)} W)` : null },
+    ...(!isRunning ? [{ key: "W'", m: profile.wPrime, secondaryInfo: null as string | null }] : []),
     { key: "Éco.", m: profile.runningEconomy, secondaryInfo: null as string | null },
-
+    { key: "Durabilité", m: profile.durability, secondaryInfo: null as string | null },
   ].filter(r => r.m?.value !== null);
 
-  const [isOpen, setIsOpen] = useState(defaultOpen);
   if (metrics.length === 0) return null;
 
   const confidenceLabel = (c: number) =>
     c >= 0.8 ? "Fiable" : c >= 0.5 ? "Modérée" : "Faible";
-  const sourceLabel = compassSourceLabel;
+  const sourceLabel = (s: string) =>
+    s === "snapshot" ? "📋 Mesuré" : s === "estimation" ? "📐 Estimé" : "❓ Inconnu";
 
   const formatVal = (v: number, isSmall: boolean) => isSmall ? v.toFixed(2) : String(Math.round(v));
 
-
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="mt-3 rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
-      <Button
-        variant="ghost"
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between px-3 py-2 hover:bg-muted/30 transition-colors"
       >
@@ -377,7 +512,7 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
           "h-3.5 w-3.5 text-muted-foreground/60 transition-transform",
           isOpen && "rotate-180"
         )} />
-      </Button>
+      </button>
       {isOpen && (
         <div className="px-3 pb-3 space-y-1.5">
           {metrics.map(({ key, m, secondaryInfo }) => {
@@ -391,7 +526,7 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
             let delta: number | null = null;
             let deltaLabel = "";
             let deltaPositive = false;
-            if (key !== "VLamax" && typeof m.value === "number" && target != null) {
+            if (typeof m.value === "number" && target != null) {
               if (inverse) {
                 delta = target - m.value;
                 deltaPositive = delta >= 0;
@@ -423,8 +558,8 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
                     </span>
                     <div className={cn(
                       "px-1.5 py-0.5 rounded text-[8px] font-medium",
-                      m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" :
-                      m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" :
+                      m.confidence >= 0.8 ? "bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]" : 
+                      m.confidence >= 0.5 ? "bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]" : 
                       "bg-[hsl(var(--destructive)/0.1)] text-[hsl(var(--destructive))]"
                     )}>
                       {confidenceLabel(m.confidence)}
@@ -479,51 +614,368 @@ function StaffMetricsGrid({ compass, sportFocus, input, defaultOpen }: { default
 // COMPOSANT PRINCIPAL — GRAPHIQUE SIGNATURE TFCL
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export function CoachingCompassCard({ input, onSavePerformanceGoal, staffMode = false, className }: CoachingCompassCardProps) {
-  const compass = useMemo(() => computeCoachingCompass(input), [input]);
-  const coverage = dashboardCoverage(input);
-  const coachPolicy = input.athleteId ? readCommittedLimiterPolicy(localStorage, input.athleteId, input.objectif) : null;
-  const presentation = compass.presentation;
-  const disciplines = presentation?.disciplineAxes;
-  const profiles = disciplines
-    ? [{ sport: "bike", axes: disciplines.bike }, { sport: "run", axes: disciplines.run }]
-    : [{ sport: presentation?.sport ?? input.sportFocus, axes: presentation?.axes ?? compass.radarAxes }];
+export function CoachingCompassCard({ input, staffMode: initialStaffMode = false, className }: CoachingCompassCardProps) {
+  const [staffMode, setStaffMode] = useState(initialStaffMode);
 
-  return <Card className={cn("min-w-0 border-border/50 print:shadow-none", className)}>
-    <CardHeader className="flex-row items-center gap-2 space-y-0 px-4 pb-3 sm:px-6">
-      <Compass aria-hidden="true" className="size-5 text-primary" />
-      <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
-    </CardHeader>
-    <CardContent className="px-3 sm:px-6">
-      {compass.fatigueWarning && <FatigueWarning warning={compass.fatigueWarning} />}
-      <CompassPerformanceComparison key={`${input.athleteId}:${input.objectif}:${input.ambition}`} input={input} presentation={presentation} onSave={onSavePerformanceGoal} />
-      {compass.meta.dataCompleteness >= 10 && <details className="rounded-2xl border px-4">
-        <summary className="cursor-pointer py-3 font-medium">Radar et détails physiologiques</summary>
-        <div className="space-y-4 pb-4">
-          <p className="text-sm text-muted-foreground">{coverage.filled} repères sur {coverage.total} renseignés pour ce sport.</p>
-          <div className={disciplines ? "grid gap-4 sm:grid-cols-2" : ""}>
-            {profiles.map(({ sport, axes }) => {
-              const reference = sport === "run" ? getVmaReference(input.objectif, input.ambition) : null;
-              const range = getVLamaxRange(input.objectif, input.ambition as AmbitionLevel, sport ?? undefined);
-              return <section key={sport} className="min-w-0">
-                {disciplines && <h4 className="text-center font-semibold">{sport === "run" ? "Course à pied" : "Vélo"}</h4>}
-                <SignatureRadar axes={axes} vmaReference={reference} />
-                <p className="mb-2 text-xs text-muted-foreground">Profil individuel et repères internes{reference && " · repère VMA extrapolé"}.</p>
-                <dl className="divide-y text-sm">{axes.map(axis => <div key={axis.key} className="flex flex-wrap items-baseline justify-between gap-x-3 py-2">
-                  <dt>{axis.label}</dt>
-                  <dd className="font-medium tabular-nums">{axis.value == null ? "Non renseigné" : axis.value.toLocaleString("fr-BE", { maximumFractionDigits: 2 }) + " " + axis.unit}</dd>
-                  {axis.value != null && <dd className="w-full text-xs text-muted-foreground">{compassSourceLabel(axis.source ?? "unknown")}
-                    {axis.key === "vlamax" && " · plage de coaching " + range.min.toLocaleString("fr-BE") + "–" + range.max.toLocaleString("fr-BE") + " mmol/L/s"}
-                  </dd>}
-                </div>)}</dl>
-                {reference && <CompassVmaReference objective={input.objectif} ambition={input.ambition} value={input.vma} paceThresholdSecPerKm={input.paceThresholdSecPerKm} />}
-              </section>;
-            })}
+  const compass = useMemo(() => computeCoachingCompass(input), [input]);
+
+  // ─── Données insuffisantes ───
+  if (compass.meta.dataCompleteness < 10) {
+    return (
+      <Card className={cn("border-border/50 print:break-inside-avoid print:shadow-none", className)}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center gap-2">
+            <Compass className="w-5 h-5 text-muted-foreground" />
+            <CardTitle className="text-base">TFCL Coaching Compass™</CardTitle>
           </div>
-          {coachPolicy && <p className="text-sm">Ordre enregistré par le coach pour le plan · {coachPolicy.limiterOrder.join(" → ")}</p>}
-          <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} defaultOpen={staffMode} />
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <Compass className="w-10 h-10 text-muted-foreground/30 mb-3" />
+            <p className="text-sm font-medium text-muted-foreground">Données insuffisantes</p>
+            <p className="text-xs text-muted-foreground/70 mt-1 max-w-xs">
+              Renseignez au moins VMA (ou FTP), poids et VLamax dans un snapshot pour activer le Compass.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const { limiter, leverage, decision } = compass;
+  const _ambition = (input.ambition || "age_group") as AmbitionLevel;
+  const _objectif = input.objectif || "IM";
+  const _sportForTargets =
+    input.sportFocus === "run" ? "cap" :
+    input.sportFocus === "bike" ? "bike" :
+    input.sportFocus === "triathlon" ? "tri" :
+    undefined;
+  const vlamaxRange = getVLamaxRange(_objectif, _ambition, _sportForTargets);
+
+  return (
+    <Card className={cn("border-border/50 overflow-hidden print:break-inside-avoid print:shadow-none print:border-0", className)}>
+      {/* ─── Header ─── */}
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
+              <Compass className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-sm sm:text-base font-black tracking-tight">
+                TFCL Coaching Compass™
+              </CardTitle>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium tracking-wide hidden sm:block">
+                PROFIL → LIMITEUR → LEVIER → DÉCISION
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setStaffMode(!staffMode)}
+            className="h-7 px-2 text-[10px] gap-1 text-muted-foreground hover:text-foreground print:hidden"
+          >
+            {staffMode ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+            {staffMode ? "Athlète" : "Staff"}
+          </Button>
         </div>
-      </details>}
-    </CardContent>
-  </Card>;
+      </CardHeader>
+
+      <CardContent className="pt-0 px-3 sm:px-6">
+        {/* ─── Fatigue Warning ─── */}
+        {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
+          <div className="mb-3">
+            <FatigueWarning warning={compass.fatigueWarning} />
+          </div>
+        )}
+
+        {/* ═══ LAYOUT PRINCIPAL : Flux + Readiness ═══ */}
+        <div className="flex gap-4">
+          {/* ─── COLONNE GAUCHE : Flux décisionnel complet ─── */}
+          <div className="flex-1 min-w-0">
+            
+            {/* NIVEAU 1 — PROFIL PHYSIOLOGIQUE (Radar) */}
+            <div className="mb-1 print:break-inside-avoid">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                Niveau 1 — Profil physiologique
+              </span>
+              <p className="text-[10px] text-muted-foreground mt-0.5 mb-2 italic">
+                Le radar visualise tes 6 piliers physiologiques (VO₂max, VLamax, Aérobie, Durabilité, FatMax, W′). Plus ta surface est grande, plus tu es prêt. L'<strong>économie</strong> est affichée à part comme modulateur secondaire d'efficience.
+              </p>
+              <div className="mt-1">
+                <SignatureRadar axes={compass.radarAxes} size={320} />
+              </div>
+              
+              {/* Completeness bar */}
+              <div className="flex items-center gap-2 mt-2 px-2">
+                <span className="text-[9px] text-muted-foreground/50 shrink-0">
+                  Données : {compass.meta.dataCompleteness}%
+                </span>
+                <div className="flex-1 h-1 bg-muted/30 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary/40 rounded-full transition-all duration-500"
+                    style={{ width: `${compass.meta.dataCompleteness}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Légende couleurs */}
+              <div className="flex items-center gap-4 mt-2 px-2">
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--success))]" /> &ge; 75 Optimal
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--warning))]" /> 50-74 Correct
+                </span>
+                <span className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-full bg-[hsl(var(--destructive))]" /> &lt; 50 À travailler
+                </span>
+              </div>
+
+              {/* Légende pédagogique des axes avec comparatif Actuel vs Cible */}
+              <div className="mt-3 space-y-1.5 px-1">
+                {compass.radarAxes.map((axis) => {
+                  const explanation = AXIS_PEDAGOGY[axis.key] || { short: axis.shortLabel, detail: "" };
+                  const emoji = axis.key === "aerobic" || axis.key === "ftpkg" ? "⚡" : axis.key === "vma" ? "🏃" : axis.key === "vo2max" ? "🫁" : axis.key === "vlamax" ? "🔬" : axis.key === "fatmax" ? "🔥" : axis.key === "durability" ? "🛡️" : axis.key === "wprime" ? "💥" : "🎯";
+                  const statusLabel = axis.score >= 75 ? "Optimal" : axis.score >= 50 ? "Correct" : "Prioritaire";
+
+                  const hasValues = axis.value != null && axis.target != null;
+                  const isInverse = axis.key === "vlamax"; // lower is better
+                  const delta = hasValues ? (axis.value as number) - (axis.target as number) : null;
+                  const remainsToWork = delta !== null && ((isInverse && delta > 0) || (!isInverse && delta < 0));
+                  const displayDelta = isInverse && delta !== null ? -delta : delta;
+                  const formatVal = (v: number) => v < 10 ? v.toFixed(2) : v.toFixed(1);
+
+                  return (
+                    <div key={axis.key} className={cn(
+                      "flex items-start gap-2.5 p-2.5 rounded-lg border",
+                      axis.score >= 75 ? "bg-[hsl(var(--success)/0.05)] border-[hsl(var(--success)/0.2)]" :
+                      axis.score >= 50 ? "bg-[hsl(var(--warning)/0.05)] border-[hsl(var(--warning)/0.2)]" :
+                      "bg-[hsl(var(--destructive)/0.05)] border-[hsl(var(--destructive)/0.2)]"
+                    )}>
+                      <span className="text-base mt-0.5">{emoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold">{explanation.short}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            axis.score >= 75 ? "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]" :
+                            axis.score >= 50 ? "border-[hsl(var(--warning)/0.4)] text-[hsl(var(--warning))]" :
+                            "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                          )}>
+                            {axis.score}/100 — {statusLabel}
+                          </Badge>
+                        </div>
+
+                        {/* Comparatif Actuel → Cible */}
+                        {hasValues && (
+                          <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Actuel</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.value as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                            </div>
+                            <span className="text-muted-foreground/40 text-[10px]">→</span>
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-background/60 border border-border/30 text-[10px]">
+                              <span className="text-muted-foreground">Cible</span>
+                              <span className="font-bold text-foreground">{formatVal(axis.target as number)}</span>
+                              <span className="text-muted-foreground/60">{axis.unit}</span>
+                              {axis.key === "vlamax" && vlamaxRange && (
+                                <span className="ml-1 text-[9px] text-muted-foreground/60 font-normal">
+                                  ({vlamaxRange.min.toFixed(2)}–{vlamaxRange.max.toFixed(2)})
+                                </span>
+                              )}
+                            </div>
+                            {delta !== null && (
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[9px] px-1.5 h-4",
+                                  remainsToWork
+                                    ? "border-[hsl(var(--destructive)/0.4)] text-[hsl(var(--destructive))]"
+                                    : "border-[hsl(var(--success)/0.4)] text-[hsl(var(--success))]"
+                                )}
+                              >
+                                {remainsToWork ? `Δ ${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} à combler` : `✓ +${Math.abs(displayDelta!).toFixed(axis.value! < 10 ? 2 : 1)} d'avance`}
+                              </Badge>
+                            )}
+                          </div>
+                        )}
+
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">{explanation.detail}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MODULATEUR ÉCONOMIE — facteur secondaire d'efficience */}
+              {compass.economyModifier && (() => {
+                const eco = compass.economyModifier;
+                const ecoStatus = eco.score >= 75 ? "Bonus" : eco.score >= 50 ? "Neutre" : "Pénalité";
+                const ecoColor = eco.score >= 75 ? "success" : eco.score >= 50 ? "warning" : "destructive";
+                return (
+                  <div className="mt-3 px-1">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      Modulateur — Efficience
+                    </span>
+                    <div className={cn(
+                      "mt-1 flex items-start gap-2.5 p-2.5 rounded-lg border border-dashed",
+                      eco.score >= 75 ? "bg-[hsl(var(--success)/0.04)] border-[hsl(var(--success)/0.3)]" :
+                      eco.score >= 50 ? "bg-[hsl(var(--warning)/0.04)] border-[hsl(var(--warning)/0.3)]" :
+                      "bg-[hsl(var(--destructive)/0.04)] border-[hsl(var(--destructive)/0.3)]"
+                    )}>
+                      <span className="text-base mt-0.5">🦶</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs font-bold">{eco.label}</p>
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] h-4 px-1.5",
+                            `border-[hsl(var(--${ecoColor})/0.4)] text-[hsl(var(--${ecoColor}))]`
+                          )}>
+                            {eco.score}/100 — {ecoStatus}
+                          </Badge>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-1">
+                          Coût énergétique du mouvement. Multiplicateur des 4 piliers : améliore le rendement sans changer le plafond physiologique.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <FlowConnector />
+
+            {/* NIVEAU 2 — LIMITEUR PRINCIPAL */}
+            <FlowStep
+              level="Niveau 2 — Limiteur principal"
+              icon={<AlertTriangle className="w-4 h-4" />}
+              title={`${limiter.icon} ${limiter.label}`}
+              subtitle={limiter.description}
+              accentClass="bg-[hsl(var(--destructive)/0.8)]"
+              badge={staffMode ? limiter.confidence : null}
+            >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.limiter}
+              </p>
+
+              {/* Pourquoi c'est important ? — impact concret (terrain + mécanisme) */}
+              <div className="mt-2">
+                <LimiterImpactCard limiter={limiter.type} />
+              </div>
+
+              {staffMode && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[9px] text-muted-foreground">Impact :</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1.5 font-bold border-[hsl(var(--destructive)/0.3)]">
+                    {Math.round(limiter.impactScore * 100)}%
+                  </Badge>
+                  {limiter.metricsUsed.slice(0, 4).map(m => (
+                    <Badge key={m} variant="outline" className="text-[8px] h-3.5 px-1 border-border/40 text-muted-foreground">
+                      {m}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </FlowStep>
+
+            <FlowConnector />
+
+            {/* NIVEAU 3 — LEVIER PRIORITAIRE */}
+            <FlowStep
+              level="Niveau 3 — Levier prioritaire"
+              icon={<Zap className="w-4 h-4" />}
+              title={`${leverage.icon} ${leverage.label}`}
+              subtitle={leverage.description}
+              accentClass="bg-primary/80"
+            >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.leverage}
+              </p>
+              {/* Adaptations attendues */}
+              <div className="mt-2 flex flex-wrap gap-1">
+                {leverage.expectedAdaptations.map(a => (
+                  <span key={a} className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/15">
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </FlowStep>
+
+            <FlowConnector />
+
+            {/* NIVEAU 4 — DÉCISION COACHING */}
+            <FlowStep
+              level="Niveau 4 — Décision coaching"
+              icon={<Target className="w-4 h-4" />}
+              title={decision.recommendedBlock}
+              subtitle={staffMode ? decision.coachRationale : decision.athleteMessage}
+              accentClass="bg-[hsl(var(--success)/0.8)]"
+            >
+              <p className="text-[10px] text-muted-foreground mt-1.5 italic leading-relaxed">
+                💡 {FLOW_PEDAGOGY.decision}
+              </p>
+              <div className="mt-2 space-y-1.5">
+                {/* Duration & workouts */}
+                <div className="flex items-center gap-3 text-[10px]">
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    {decision.durationWeeks} semaines
+                  </span>
+                  <span className="flex items-center gap-1 text-muted-foreground">
+                    <Dumbbell className="w-3 h-3" />
+                    {decision.primaryWorkouts.length} séances clés
+                  </span>
+                </div>
+
+                {/* Workout examples */}
+                {staffMode && decision.primaryWorkouts.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {decision.primaryWorkouts.map(w => (
+                      <span key={w} className="text-[9px] px-1.5 py-0.5 rounded bg-[hsl(var(--success)/0.08)] text-[hsl(var(--success))] border border-[hsl(var(--success)/0.12)]">
+                        {w}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Targets */}
+                <div className="flex flex-wrap gap-1">
+                  {decision.physiologicalTargets.map(t => (
+                    <Badge key={t} variant="secondary" className="text-[9px] h-4 px-1.5">
+                      🎯 {t}
+                    </Badge>
+                  ))}
+                </div>
+
+                {/* Prohibitions */}
+                {decision.prohibitions.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {decision.prohibitions.map(p => (
+                      <Badge key={p} variant="destructive" className="text-[9px] h-4 px-1.5">
+                        🚫 {p}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FlowStep>
+
+            {/* ─── Staff: Profil complet ─── */}
+            {staffMode && <StaffMetricsGrid compass={compass} sportFocus={input.sportFocus} input={input} />}
+          </div>
+        </div>
+
+        {/* ─── Disclaimer ─── */}
+        {staffMode && (
+          <p className="text-[8px] text-muted-foreground/40 text-center mt-3">
+            {compass.meta.disclaimer} — v{compass.meta.version}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
