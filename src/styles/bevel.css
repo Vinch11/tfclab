@@ -1,18 +1,18 @@
 /* Bevel is a coach-selected theme. Portalled controls share the document palette. */
 :root.bevel {
   color-scheme: light;
-  --background: 247 17% 97%;
-  --foreground: 248 22% 15%;
+  --background: 209 17% 97%;
+  --foreground: 209 22% 15%;
   --card: 0 0% 100%;
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: 249 50% 46%;
+  --primary: 209 50% 46%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 246 20% 94%;
-  --secondary-foreground: 249 31% 28%;
-  --muted: 247 14% 94%;
-  --muted-foreground: 245 8% 39%;
+  --secondary: 209 20% 94%;
+  --secondary-foreground: 209 31% 28%;
+  --muted: 209 14% 94%;
+  --muted-foreground: 209 8% 39%;
   --accent: 163 48% 29%;
   --accent-foreground: 0 0% 100%;
   --success: 157 54% 30%;
@@ -21,13 +21,13 @@
   --warning-foreground: 0 0% 100%;
   --destructive: 3 59% 43%;
   --destructive-foreground: 0 0% 100%;
-  --border: 247 13% 88%;
-  --input: 246 12% 77%;
+  --border: 209 13% 88%;
+  --input: 209 12% 77%;
   --ring: var(--primary);
   --radius: .875rem;
 
   --chart-1: 159 46% 36%;
-  --chart-2: 249 53% 53%;
+  --chart-2: 209 53% 53%;
   --chart-3: 32 76% 40%;
   --chart-4: 198 59% 40%;
   --chart-5: 347 50% 45%;
@@ -36,25 +36,25 @@
   --font-heading: 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --gradient-primary: linear-gradient(125deg, #6653b6, #50428d);
-  --gradient-card: linear-gradient(150deg, #fff, #faf9fc);
+  --gradient-primary: linear-gradient(125deg, #3e87cb, #31699e);
+  --gradient-card: linear-gradient(150deg, #fff, #f8fbfd);
   --gradient-accent: linear-gradient(125deg, #347d68, #2a685b);
-  --gradient-hero: linear-gradient(130deg, #eeebfa, #f9f8fc);
+  --gradient-hero: linear-gradient(130deg, #e8f3fd, #f7fafd);
   --gradient-mesh: none;
   --shadow-glow: none;
   --shadow-inner: inset 0 1px 0 rgb(255 255 255 / .65);
   --shadow-card: 0 1px 3px rgb(40 33 58 / .045), 0 7px 24px -16px rgb(40 33 58 / .17);
   --shadow-elevated: 0 16px 46px -16px rgb(40 33 58 / .25), 0 2px 8px rgb(40 33 58 / .06);
-  --sidebar-background: 255 20% 99%;
-  --sidebar-foreground: 250 15% 23%;
-  --sidebar-accent: 247 24% 94%;
+  --sidebar-background: 209 20% 99%;
+  --sidebar-foreground: 209 15% 23%;
+  --sidebar-accent: 209 24% 94%;
   --sidebar-accent-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--ring);
   --panel-radius: clamp(1.125rem, 2vw, 1.55rem);
-  --lavender: #eae5fa;
+  --lavender: #e3f0fc;
   --mint: #e0f1e9;
 }
 
@@ -176,7 +176,7 @@
     padding: clamp(1.05rem, 2.5vw, 1.75rem);
     border: 1px solid hsl(var(--border));
     border-radius: var(--panel-radius);
-    background: linear-gradient(110deg, #f1edf9, #faf9fc 66%, #f0f4f2);
+    background: linear-gradient(110deg, #ebf3fb, #f8fbfd 66%, #f0f4f2);
   }
   .bevel .hub-heading p { margin-top: .25rem; line-height: 1.5; }
   .bevel .hub-card { padding: .25rem; }
@@ -191,9 +191,9 @@
   .bevel .hub-card .ui-card-title { font-size: 1.05rem; line-height: 1.25; }
   .bevel .hub-card:hover { box-shadow: var(--shadow-elevated); }
   .bevel .planning-destinations [data-destination="ai-plan"] {
-    background: radial-gradient(ellipse at 15% 100%, #e8e1f8, transparent 82%),
+    background: radial-gradient(ellipse at 15% 100%, #ddedfc, transparent 82%),
       repeating-radial-gradient(ellipse at 118% -60%, transparent 0 24px, hsl(var(--primary) / .08) 25px 26px, transparent 27px 45px),
-      #f0edf8;
+      #ebf3fa;
     border-color: hsl(var(--primary) / .2);
   }
   @media (min-width: 768px) {
@@ -241,18 +241,18 @@
     box-shadow: none;
   }
   .bevel .compass-priority {
-    border: 1px solid #474063;
+    border: 1px solid #36526d;
     border-radius: var(--panel-radius);
     color: #fff;
     background:
-      radial-gradient(ellipse at 3% 70%, #28243f 22%, transparent 78%),
+      radial-gradient(ellipse at 3% 70%, #1d3246 22%, transparent 78%),
       repeating-radial-gradient(ellipse at 110% -42%, transparent 0 22px, rgb(226 222 255 / .11) 23px 24px, transparent 25px 42px),
-      linear-gradient(125deg, #302a46 22%, #4a4073 72%, #7564a0);
-    box-shadow: 0 10px 28px -18px #43365d;
+      linear-gradient(125deg, #23394d 22%, #335b80 72%, #5484b0);
+    box-shadow: 0 10px 28px -18px #2c4a67;
   }
   .bevel .priority-label {
     width: fit-content;
-    color: #ebe6ff;
+    color: #e8f3fd;
     font-weight: 600;
     letter-spacing: .015em;
   }
@@ -271,15 +271,15 @@
     letter-spacing: -.048em;
     overflow-wrap: anywhere;
   }
-  .bevel .priority-detail { color: #e1ddef; }
+  .bevel .priority-detail { color: #d9e6f3; }
   .bevel .priority-warning { color: #3d2e13; background: #fff0ce; }
   .bevel .compass-priority .ui-button.bg-primary {
-    background: #e6defd;
-    color: #312451;
+    background: #dfeefc;
+    color: #1a3c5b;
   }
   .bevel .compass-priority .ui-button.border {
     color: #fff;
-    border-color: #898197;
+    border-color: #768da2;
     background: rgb(47 40 65 / .82);
   }
   .bevel .compass-priority .ui-button:hover { filter: brightness(.94); }
@@ -287,7 +287,7 @@
   .bevel .compass-priority figure,
   .bevel .compass-priority > [role="img"] {
     border-radius: 1rem;
-    background: #fcfbff;
+    background: #fbfdff;
     color: hsl(var(--foreground));
     padding: 1rem;
   }
@@ -333,13 +333,13 @@
   .bevel .compass-sheet > .ui-card-header {
     padding-block: 1rem;
     margin-bottom: 1rem;
-    background: linear-gradient(100deg, #efeafa, #faf9fd);
+    background: linear-gradient(100deg, #e7f2fd, #f8fbfe);
     border-bottom: 1px solid hsl(var(--border));
   }
   .bevel .compass-step { background: hsl(var(--background)); border-radius: 1rem; padding: 1rem; }
   .bevel .compass-radar-stage {
-    --compass-grid: 246 14% 81%;
-    background: radial-gradient(ellipse at 50% 36%, #eeebf8, #faf9fc 73%);
+    --compass-grid: 209 14% 81%;
+    background: radial-gradient(ellipse at 50% 36%, #e8f2fb, #f8fbfd 73%);
     border: 1px solid hsl(var(--border));
     border-radius: 1.25rem;
     padding: .75rem;
@@ -381,7 +381,7 @@
   .bevel .lab-reading details { border-top: 1px solid hsl(var(--border)); margin-top: .75rem; }
   .bevel .lab-reading summary { color: hsl(var(--primary)); }
   .bevel .auth-canvas {
-    background: radial-gradient(ellipse at 25% 10%, #e8e3f6, transparent 52%),
+    background: radial-gradient(ellipse at 25% 10%, #dfedfa, transparent 52%),
       radial-gradient(ellipse at 85% 70%, #dfeee8, transparent 45%), hsl(var(--background));
   }
 
@@ -426,19 +426,19 @@
 /* Editorial spreads use the existing TFCL photographs as background artwork. */
 @media screen {
   :root.bevel {
-    --sidebar-background: 245 24% 15%;
-    --sidebar-foreground: 248 18% 95%;
-    --sidebar-accent: 247 21% 24%;
+    --sidebar-background: 209 24% 15%;
+    --sidebar-foreground: 209 18% 95%;
+    --sidebar-accent: 209 21% 24%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-primary: 254 100% 85%;
-    --sidebar-border: 248 15% 28%;
+    --sidebar-primary: 209 100% 85%;
+    --sidebar-border: 209 15% 28%;
   }
-  .bevel [data-sidebar="sidebar"] { background: linear-gradient(160deg,#29263d,#211f30 75%); }
+  .bevel [data-sidebar="sidebar"] { background: linear-gradient(160deg,#203243,#1a2835 75%); }
   .bevel [data-sidebar="header"], .bevel [data-sidebar="footer"] { background: transparent; }
   .bevel [data-sidebar="footer"] button { color: hsl(var(--sidebar-foreground)); }
   .bevel [data-sidebar="footer"] button:hover { color: hsl(var(--foreground)); background: var(--lavender); }
   .bevel .workspace-staff { background: hsl(var(--sidebar-accent)); border-color: hsl(var(--sidebar-border)); }
-  .bevel [data-sidebar="menu-button"][data-active="true"] { background: #45405c; color: #f2edff; }
+  .bevel [data-sidebar="menu-button"][data-active="true"] { background: #374f65; color: #eff6fd; }
   .bevel .dashboard-masthead, .bevel .lab-intro {
     isolation: isolate;
     position: relative;
@@ -447,7 +447,7 @@
     border: 0;
     border-radius: var(--panel-radius);
     color: white;
-    background-color: #252337;
+    background-color: #1d2e3d;
     background-image: linear-gradient(90deg, rgb(23 22 39 / .94), rgb(35 31 53 / .8) 38%, rgb(30 26 40 / .20) 75%), url('../assets/report-running-path.jpg');
     background-position: center, center 53%;
     background-size: cover;
@@ -459,8 +459,8 @@
     text-wrap: balance;
   }
   .bevel .dashboard-masthead a {
-    background: #fcfbff;
-    color: #322d43;
+    background: #fbfdff;
+    color: #26394a;
     border-radius: 2rem;
     padding-inline: .9rem;
     text-align: center;
@@ -471,21 +471,21 @@
   .bevel .lab-intro > p, .bevel .lab-intro > p:first-child { color: #e0f4e8; }
   .bevel .compass-sheet { container: compass / inline-size; }
   .bevel .compass-radar-stage {
-    --compass-grid: 247 19% 41%;
-    --compass-ink: 254 98% 83%;
+    --compass-grid: 209 19% 41%;
+    --compass-ink: 209 98% 83%;
     --compass-reference: 159 60% 69%;
-    --foreground: 248 30% 95%;
-    --muted-foreground: 246 16% 82%;
-    --background: 245 23% 18%;
-    --primary: 254 98% 83%;
-    --secondary: 247 19% 32%;
+    --foreground: 209 30% 95%;
+    --muted-foreground: 209 16% 82%;
+    --background: 209 23% 18%;
+    --primary: 209 98% 83%;
+    --secondary: 209 19% 32%;
     --secondary-foreground: 0 0% 100%;
     color: hsl(var(--foreground));
-    background: radial-gradient(ellipse at 50% 36%, #39354d, #252336 78%);
+    background: radial-gradient(ellipse at 50% 36%, #2d4255, #1e2d3b 78%);
     border: 0;
   }
-  .bevel .compass-radar-stage [aria-pressed="true"] { color: #322747; }
-  .bevel .compass-radar-stage button:hover { color: white; background: #49435b; }
+  .bevel .compass-radar-stage [aria-pressed="true"] { color: #1f384f; }
+  .bevel .compass-radar-stage button:hover { color: white; background: #3a5064; }
   .bevel .compass-decisions .compass-step {
     background: hsl(var(--card));
     box-shadow: var(--shadow-card);
@@ -494,7 +494,7 @@
   @container compass (min-width: 54rem) {
     .bevel .compass-spread { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(0,1fr); gap: 1rem 1.4rem; align-items: start; }
     .bevel .compass-spread > :not(.compass-profile, .compass-decisions) { grid-column: 1 / -1; }
-    .bevel .compass-decisions { display: block; padding: 1rem; background: #f4f2f8; border-radius: 1.1rem; }
+    .bevel .compass-decisions { display: block; padding: 1rem; background: #f1f5f9; border-radius: 1.1rem; }
     .bevel .compass-decisions > :first-child { display: none; }
     .bevel .compass-profile .grid:has(> section > .compass-radar-stage) { grid-template-columns: minmax(0,1fr); }
   }
@@ -502,7 +502,7 @@
   .bevel .lab-reading > details { margin-top: auto; }
   .bevel .lab-reading > p:last-of-type { padding-bottom: .75rem; }
   .bevel .planning-destinations [data-destination="ai-plan"] {
-    background: linear-gradient(90deg,#edeaf8 20%,rgb(239 236 249 / .96) 48%,rgb(239 236 249 / .5)), url('../assets/report-cycling-road.jpg') right center / cover;
+    background: linear-gradient(90deg,#e7f1fb 20%,rgb(239 236 249 / .96) 48%,rgb(239 236 249 / .5)), url('../assets/report-cycling-road.jpg') right center / cover;
   }
   @media (max-width: 600px) {
     .bevel .dashboard-masthead { gap: .4rem; }
@@ -541,7 +541,7 @@
       background-color: hsl(var(--card));
       box-shadow: var(--shadow-card);
     }
-    .bevel .directory-row:has([data-state="checked"]) { border-color: hsl(var(--primary)); background: #f5f2fc; }
+    .bevel .directory-row:has([data-state="checked"]) { border-color: hsl(var(--primary)); background: #f0f7fe; }
     .bevel .directory-row .directory-avatar { width: 3rem; height: 3rem; font-size: 1rem; }
     .bevel .directory-row .font-medium.truncate { font-size: 1.1rem; }
     .bevel .directory-row > .transition-opacity {
