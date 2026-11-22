@@ -23,54 +23,60 @@ const states: FactorStates = {
 };
 const region = () => screen.getByRole("region", { name: "Limiteurs hiérarchisés" });
 
+const overlap = { sport: "run", current: 0.57, ceiling: 0.6, range: { low: 0.51, high: 0.63 }, previousValue: 0.67, previousDate: "2026-05-05" };
+const items = () => Array.from(region().querySelectorAll("ol")[0].querySelectorAll("li"));
+
 describe("Limiteurs hiérarchisés", () => {
-  it("réunit les écarts face à l'idéal et la priorité du moteur de plans, sans section à part pour les hypothèses", () => {
-    render(<DashboardLimiters flow={{ ...flow, overlap: { sport: "run", current: 0.57, ceiling: 0.6, range: { low: 0.51, high: 0.63 }, previousValue: 0.67, previousDate: "2026-05-05" } } as unknown as Flow}
-      states={states} objective="10 km" ambition="Compétiteur" />);
-    const r = region();
-    expect(r).toHaveTextContent("Pour l’objectif 10 km · ambition Compétiteur");
-    expect(within(r).getByRole("heading", { name: "Écarts face à l’idéal sourcé" })).toBeVisible();
-    expect(within(r).queryByRole("heading", { name: "À vérifier" })).toBeNull();
-    expect(within(r).getByRole("heading", { name: "Priorité du moteur de plans" })).toBeVisible();
+  it("affiche UNE seule hiérarchie, sans section séparée pour le moteur ni pour les hypothèses", () => {
+    render(<DashboardLimiters flow={flow} states={states} objective="10 km" ambition="Compétiteur" />);
+    expect(region()).toHaveTextContent("Pour l’objectif 10 km · ambition Compétiteur");
+    expect(region().querySelectorAll("ol")).toHaveLength(1);
+    expect(within(region()).queryByRole("heading", { name: "Priorité du moteur de plans" })).toBeNull();
+    expect(within(region()).queryByRole("heading", { name: "À vérifier" })).toBeNull();
   });
 
   it("classe les écarts dans l'ordre reçu, avec valeur, idéal et écart en %", () => {
     render(<DashboardLimiters flow={flow} states={states} objective="10 km" ambition="Compétiteur" />);
-    const items = Array.from(region().querySelectorAll("ol")[0].querySelectorAll("li"));
-    expect(items).toHaveLength(2);
-    expect(items[0]).toHaveTextContent("Écart 1 : VO₂max");
-    expect(items[0]).toHaveTextContent("50 ml/kg/min · idéal 57,3–63,7 ml/kg/min");
-    expect(items[0]).toHaveTextContent("−12,7 %");
-    expect(items[1]).toHaveTextContent("VMA");
+    expect(items()).toHaveLength(2);
+    expect(items()[0]).toHaveTextContent("Limiteur 1 : VO₂max");
+    expect(items()[0]).toHaveTextContent("50 ml/kg/min · idéal 57,3–63,7 ml/kg/min");
+    expect(items()[0]).toHaveTextContent("−12,7 %");
+    expect(items()[1]).toHaveTextContent("Limiteur 2 : VMA");
     expect(region()).toHaveTextContent("Non mesurés, donc non classés : TTE (vélo)");
+  });
+
+  it("indique sur la ligne du facteur ce que le moteur de plans en fait, sans changer l'ordre", () => {
+    render(<DashboardLimiters flow={flow} states={states} objective="10 km" ambition="Compétiteur" />);
+    expect(items()[0]).not.toHaveTextContent("moteur");
+    expect(items()[1]).toHaveTextContent("Bloc d’entraînement ciblé par le moteur");
+    expect(items()[1]).toHaveTextContent("16,7 km/h · repère 17,58 km/h (-5 %)");
+  });
+
+  it("un facteur retenu par le moteur mais sans écart face à l'idéal est listé à part", () => {
+    const other = { ...factor("FatMax", "FatMax", "Écart modeste", "55 % · repère 60 %"), sport: undefined };
+    render(<DashboardLimiters flow={{ ...flow, others: [other] } as unknown as Flow} states={states} objective="10 km" ambition="Compétiteur" />);
+    expect(region()).toHaveTextContent("Retenu par le moteur de plans sans écart face à l’idéal : FatMax (55 % · repère 60 %)");
   });
 
   it("la VLamax à vérifier garde son rang dans la hiérarchie, avec un petit message au coach", () => {
     const vla = row("vlamax", "VLamax", 0.57, 0.4, 0.5, "mmol/L/s", "above");
     const withVla: FactorStates = { ...states, sections: [{ sport: "run", rows: [vla] }],
-      ranked: [states.ranked[0], { r: vla, sport: "run", gap: 14 }, states.ranked[1]] };
-    render(<DashboardLimiters flow={{ ...flow, overlap: { sport: "run", current: 0.57, ceiling: 0.6, range: { low: 0.51, high: 0.63 }, previousValue: 0.67, previousDate: "2026-05-05" } } as unknown as Flow}
-      states={withVla} objective="10 km" ambition="Compétiteur" />);
-    const items = Array.from(region().querySelectorAll("ol")[0].querySelectorAll("li"));
-    expect(items).toHaveLength(3);
-    expect(items[0]).not.toHaveTextContent("Peut-être à vérifier");
-    expect(items[1]).toHaveTextContent("Écart 2 : VLamax");
-    expect(items[1]).toHaveTextContent("Peut-être à vérifier pour être sûr");
-    expect(items[1]).toHaveTextContent("jusqu’à 0,63");
-    expect(items[1]).toHaveTextContent("05/05/2026 : 0,67");
-    expect(items[1]).toHaveTextContent("test de lactate");
+      ranked: [{ r: vla, sport: "run", gap: 14 }, ...states.ranked] };
+    render(<DashboardLimiters flow={{ ...flow, overlap } as unknown as Flow} states={withVla} objective="10 km" ambition="Compétiteur" />);
+    expect(items()).toHaveLength(3);
+    expect(items()[0]).toHaveTextContent("Limiteur 1 : VLamax");
+    expect(items()[0]).toHaveTextContent("Peut-être à vérifier pour être sûr");
+    expect(items()[0]).toHaveTextContent("jusqu’à 0,63");
+    expect(items()[0]).toHaveTextContent("05/05/2026 : 0,67");
+    expect(items()[0]).toHaveTextContent("test de lactate");
+    expect(items()[1]).not.toHaveTextContent("Peut-être à vérifier");
+    // la VMA, 3e, reste le bloc ciblé par le moteur : l'écart d'ordre est dit, pas caché
+    expect(items()[2]).toHaveTextContent("Limiteur 3 : VMA");
+    expect(items()[2]).toHaveTextContent("Bloc d’entraînement ciblé par le moteur");
   });
 
-  it("explique que la priorité du moteur suit un repère interne non sourcé", () => {
-    render(<DashboardLimiters flow={flow} states={states} objective="10 km" ambition="Compétiteur" />);
-    expect(region()).toHaveTextContent("repère interne TFCL (valeur de coaching, non issue d’études)");
-    expect(region()).toHaveTextContent("Priorité 1 : Vitesse maximale aérobie (VMA)");
-  });
-
-  it("sans états ni hypothèse, garde la seule priorité du moteur", () => {
+  it("sans états (mode express), garde la seule priorité du moteur", () => {
     render(<DashboardLimiters flow={flow} objective="10 km" ambition="Compétiteur" />);
-    expect(screen.queryByRole("heading", { name: "Écarts face à l’idéal sourcé" })).toBeNull();
-    expect(screen.queryByRole("heading", { name: "À vérifier" })).toBeNull();
     expect(region()).toHaveTextContent("Priorité 1 : Vitesse maximale aérobie (VMA)");
   });
 

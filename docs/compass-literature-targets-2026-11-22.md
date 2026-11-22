@@ -229,3 +229,7 @@ Décisions :
 
 - **Zone VLamax affichée = repère optimal ± 0,05 mmol/L/s** (borné par la plage du moteur), soit environ l'incertitude d'une estimation. La plage tolérée par le moteur (ex. 0,35–0,60 en 10 km course) couvrait presque tous les profils d'endurance et ne distinguait rien. Valeur de coaching, non issue d'études ; la plage tolérée reste citée dans le détail. Affichage seul : le moteur de plans garde sa plage.
 - **Une valeur « à vérifier » garde sa place dans la hiérarchie** (`rankWithHypothesis`) : elle est classée par son écart, avec un message au coach (« Peut-être à vérifier pour être sûr », incertitude du modèle, estimation de terrain datée, test de lactate). Il n'y a plus de section séparée.
+
+### 12 ter. Une seule hiérarchie (retour du coach : « la priorité devrait être les limiteurs dans leur ordre »)
+
+La carte « Limiteurs hiérarchisés » n'affiche plus deux listes (écarts face à l'idéal, puis « priorité du moteur ») qui pouvaient se contredire. Il n'y a qu'un classement, par écart face à l'idéal sourcé ; chaque ligne indique si le moteur de plans la cible (« Bloc d'entraînement ciblé par le moteur », « Aussi retenu par le moteur »), et les facteurs retenus par le moteur sans écart face à l'idéal sont listés à part. Affichage seul : le moteur choisit toujours le bloc selon son repère interne TFCL ; l'aligner sur ce classement modifierait les plans et reste une décision distincte.
