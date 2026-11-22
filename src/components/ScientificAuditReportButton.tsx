@@ -40,6 +40,7 @@ export function ScientificAuditReportButton() {
       ]);
       const html = buildScientificAuditHTML({ ...data, logoBase64 });
       openPrintableHTML(html, {
+      responsive: true,
         filenameHint: `Audit scientifique — ${data.athlete.name}`,
         autoPrint: false,
       });

@@ -1843,6 +1843,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
           fatigueWarning={!isExpress && dashboardCompass?.fatigueWarning && dashboardCompass.fatigueWarning.level !== "none" ? dashboardCompass.fatigueWarning.message : undefined}
           nextRace={nextRace && { name: nextRace.race_name || getObjectifLabel(nextRace.race_type as ObjectifType), date: nextRace.race_date }}
           onOpenReport={() => setReadinessOpen(true)}
+          onOpenEditions={() => setExportOpen(true)}
           profile={!isExpress && dashboardInput && dashboardCompass ? <CompassProfileComparison
             key={[dashboardInput.athleteId, dashboardInput.objectif, dashboardInput.ambition].join(":")}
             input={dashboardInput} compass={dashboardCompass} athleteName={currentAthlete.name} /> : null}
@@ -2487,7 +2488,9 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       
       {/* Export Tools - triggered from sidebar */}
       {exportOpen && currentAthlete && (
-        <ExportTools 
+        <ExportTools key={currentAthlete.id}
+          dashboardInput={dashboardInput}
+          checkins={checkins}
           athlete={currentAthlete}
           snapshots={snapshots}
           tests={tests}
@@ -2498,15 +2501,9 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
         />
       )}
       {exportOpen && !currentAthlete && (
-        <ExportTools 
-          athlete={null as any}
-          snapshots={[]}
-          tests={[]}
-          staffMode={staffMode}
-          ambition={"loisir" as any}
-          open={exportOpen}
-          onOpenChange={setExportOpen}
-        />
+        <Dialog open onOpenChange={setExportOpen}><DialogContent><DialogHeader>
+          <DialogTitle>Choisis un athlète pour ouvrir ses rapports</DialogTitle>
+        </DialogHeader></DialogContent></Dialog>
       )}
 
       {/* Bilan pré-objectif TFCL */}

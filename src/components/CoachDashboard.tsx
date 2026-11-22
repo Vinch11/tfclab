@@ -37,6 +37,7 @@ type Props = {
   analyses: ReactNode;
   bilans: ReactNode;
   onOpenReport: () => void;
+  onOpenEditions?: () => void;
 };
 
 const dateLabel = new Intl.DateTimeFormat("fr-BE", { day: "numeric", month: "long", year: "numeric" });
@@ -50,7 +51,7 @@ const actionClass = "dashboard-action group flex min-h-14 min-w-0 items-center g
 const arrow = <ArrowRight aria-hidden className="ml-auto size-4 shrink-0 text-muted-foreground group-hover:text-primary" />;
 
 export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, onAmbitionChange, onGoalChange,
-  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, factors, states, compass, analyses, bilans, onOpenReport }: Props) {
+  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, factors, states, compass, analyses, bilans, onOpenReport, onOpenEditions }: Props) {
   const [search, setSearch] = useSearchParams();
   const express = snapshot?.source === "finisher-express";
   const panel = search.get("vue");
@@ -91,6 +92,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
       {snapshot && <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary" to={linkTo("bilans")}>Gérer les bilans <ArrowRight className="size-4" /></Link>}
       <div className="mt-auto w-full border-t pt-1">
         {nextRace && <p className="my-2 text-sm leading-relaxed"><span className="block text-xs text-muted-foreground">Prochaine course · {displayDate(nextRace.date)}</span><strong>{nextRace.name}</strong></p>}
+        {onOpenEditions && <button type="button" onClick={onOpenEditions} className={actionClass + " w-full"}><FolderOpen aria-hidden className="size-5 shrink-0 text-primary" /> Rapports coach et athlète {arrow}</button>}
         <button type="button" onClick={onOpenReport} className={actionClass + " w-full"}><Flag className="size-5 shrink-0 text-primary" /> Bilan pré-objectif {arrow}</button>
         <Link to="/diagnostic/tests" className={actionClass}><FlaskConical className="size-5 shrink-0 text-primary" /> Tests de terrain {arrow}</Link>
       </div>

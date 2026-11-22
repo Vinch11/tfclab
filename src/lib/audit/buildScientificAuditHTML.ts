@@ -1,3 +1,5 @@
+import { editionCover, editionNav } from '../reportKit/editions';
+import editionCSS from '../reportKit/editions.css?raw';
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * Scientific Audit Report — Rapport consolidé signé
@@ -219,27 +221,14 @@ export function buildScientificAuditHTML(data: ScientificAuditData): string {
   .empty{font-style:italic;color:#97949F;padding:8px 0}
   .legend{font-size:10.5px;color:#5C5966;margin-top:6px}
   @media print{body{margin:0;padding:0 14mm;font-size:11px}h2{page-break-after:avoid}table{page-break-inside:auto}tr{page-break-inside:avoid}}
-</style>
+</style><style>${editionCSS}</style>
 </head>
-<body>
+<body><main class="edition specialty">
 
-<div class="header">
-  <div style="display:flex;align-items:center;gap:14px;">
-    <img src="${logoSrc}" alt="TFC Lab" style="height:56px;width:auto;" crossorigin="anonymous" />
-    <div>
-      <h1>Audit scientifique consolidé</h1>
-      <div class="small">Potentiel Physiologique TFCL™ — Rapport signé</div>
-    </div>
-  </div>
-  <div class="meta">
-    <div><b>Athlète :</b> ${esc(athlete.name)}</div>
-    <div><b>Sport :</b> ${esc(athlete.sport ?? "—")}</div>
-    <div><b>Objectif :</b> ${esc(athlete.objectif ?? "—")}</div>
-    <div><b>Généré le :</b> ${fmtDate(data.generatedAt)}</div>
-    <div><b>Par :</b> ${esc(data.generatedBy)}</div>
-  </div>
-</div>
-
+${editionCover({label:"Audit scientifique signé",name:athlete.name,title:"Origine et fiabilité des résultats",
+  intro:"Pars d’un résultat calculé, retrouve les observations qui l’alimentent, puis les calibrations et les décisions du coach qui ont modifié sa lecture.",
+  meta:[["Sport",athlete.sport ?? ""],["Objectif",athlete.objectif ?? ""],["Édition du",fmtDate(data.generatedAt)],["Auteur",data.generatedBy]],logo:logoSrc})}
+${editionNav([['traces','Traces de calcul'],['preuves','Preuves de terrain'],['overrides','Décisions coach'],['modeles','Modèles']])}
 <div class="grid4">
   <div class="kpi"><div class="v">${vlamaxTraces.length}</div><div class="l">Traces VLamax</div></div>
   <div class="kpi"><div class="v">${runMLSSTraces.length}</div><div class="l">Traces Run MLSS</div></div>
@@ -247,7 +236,7 @@ export function buildScientificAuditHTML(data: ScientificAuditData): string {
   <div class="kpi"><div class="v">${fieldEvidences.length}</div><div class="l">Preuves terrain</div></div>
 </div>
 
-<h2>1. Moteur VLamax — Traces (V2 Enhanced)</h2>
+<h2 id="traces">1. Moteur VLamax — Traces (V2 Enhanced)</h2>
 <div class="legend">Source : <span class="mono">VLAMAX_MODEL_TRACE</span> — fusion 4 méthodes (Mader MLSS, Mader TTE, Score G, W' implied). RMSE bike calibré N=44 (α=1.98).</div>
 ${vlamaxTraces.length ? `<table>
   <thead><tr><th>Date</th><th>VLamax</th><th>Range</th><th>Conf.</th><th>Formule</th><th>Tier</th><th>Version</th></tr></thead>
@@ -268,14 +257,14 @@ ${calibrationSnapshots.length ? `<table>
   <tbody>${snapshotRows}</tbody>
 </table>` : '<div class="empty">Aucun snapshot calibration enregistré.</div>'}
 
-<h2>4. Preuves terrain (calibration evidence)</h2>
+<h2 id="preuves">4. Preuves terrain (calibration evidence)</h2>
 <div class="legend">Preuves utilisées par le moteur de calibration (hors traces machine).</div>
 ${fieldEvidences.length ? `<table>
   <thead><tr><th>Date</th><th>Type</th><th>Source</th><th>Qualité</th><th>Validité</th><th>Conf.</th><th>Utilisée</th><th>Notes</th></tr></thead>
   <tbody>${evidenceRows}</tbody>
 </table>` : '<div class="empty">Aucune preuve terrain enregistrée.</div>'}
 
-<h2>5. Overrides coach</h2>
+<h2 id="overrides">5. Overrides coach</h2>
 <div class="legend">Décisions manuelles du coach surchargeant le moteur automatique. Audit complet pour traçabilité.</div>
 ${coachOverrides.length ? `<table>
   <thead><tr><th>Date</th><th>Module</th><th>Action</th><th>Avant</th><th>Après</th><th>Raison</th></tr></thead>
@@ -290,7 +279,7 @@ ${literatureVersion ? `<table>
   <tr><th>Profils référentiels</th><td>${literatureVersion.total_profiles}</td></tr>
 </table>` : '<div class="empty">Aucune version de cohorte littérature publiée.</div>'}
 
-<h2>7. Modèles scientifiques en usage</h2>
+<h2 id="modeles">7. Modèles scientifiques en usage</h2>
 <table>
   <tr><th style="width:30%">Domaine</th><th>Modèle / Référence</th><th>Calibration</th></tr>
   <tr><td>VLamax bike</td><td>Mader-Heck (1991, 1985) — α=1.98</td><td>N=44 labo, forward+inverse alignés</td></tr>
@@ -310,6 +299,6 @@ ${literatureVersion ? `<table>
   <div class="small" style="margin-top:6px">Toute modification ultérieure d'une trace, snapshot ou override modifie cette empreinte. Conservez-la pour vérification.</div>
 </div>
 
-</body>
+</main></body>
 </html>`;
 }

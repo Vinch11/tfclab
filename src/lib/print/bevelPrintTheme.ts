@@ -17,17 +17,17 @@
 
 /** Palette Bevel adaptée impression (hex, déjà assombrie pour le papier). */
 export const BEVEL_PRINT_COLORS = {
-  ink: "#14131A",
+  ink: "#152E47",
   inkSoft: "#2B2933",
   muted: "#5C5966",
-  faint: "#97949F",
-  line: "#E7E4DC",
-  surface: "#FAF9F5",
-  surfaceAlt: "#F2F0E9",
+  faint: "#5E7388",
+  line: "#D1DEE9",
+  surface: "#F5F9FC",
+  surfaceAlt: "#EAF1F7",
   paper: "#FFFFFF",
 
-  primary: "#5555E0", // périwinkle
-  primarySoft: "#EDEDFC",
+  primary: "#2269AD", // périwinkle
+  primarySoft: "#E8F2FC",
   mint: "#1F9D6B",
   mintSoft: "#E4F5EE",
   amber: "#C8860D",
@@ -136,7 +136,7 @@ export const BEVEL_PRINT_CSS = `
     padding: 22px 24px;
     margin-bottom: 18px;
     color: #FFFFFF;
-    background: linear-gradient(135deg, #5555E0 0%, #6C55D8 55%, #7A56C2 100%);
+    background: linear-gradient(135deg, #2269AD 0%, #2575AA 55%, #26859F 100%);
   }
   .bp-header h1 { color: #FFFFFF; margin: 0 0 4px 0; font-size: 24px; }
   .bp-header img { max-height: 84px; width: auto; }
@@ -172,7 +172,7 @@ export const BEVEL_PRINT_CSS = `
     border-bottom: 1px solid var(--bp-line);
   }
   table td { border-color: var(--bp-line) !important; }
-  tbody tr:nth-child(even) td { background: rgba(242,240,233,0.45); }
+  tbody tr:nth-child(even) td { background: rgba(226,238,246,0.45); }
 
   /* ── Graphiques SVG : grilles pointillées, courbes arrondies ────────── */
   svg .grid line, svg line.grid, svg .bp-grid {

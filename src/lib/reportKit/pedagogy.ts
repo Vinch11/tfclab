@@ -141,7 +141,7 @@ function tteHTML(rows: PersonalComparison[]): string {
 }
 
 function durabilityHTML(sport: DurabilitySport, d?: StoredDurabilitySport | null): string {
-  if (!d) return '';
+  if (!d || d.sessions.length < 2) return '';
   const signed = (v: number) => `${v > 0 ? '+' : ''}${num(v, 1)} %`;
   return `<div class="durability-summary"><strong>${signed(d.meanChangePct)}</strong><span>variation moyenne entre le début et la fin de ${d.sessions.length} sorties longues</span></div><p class="diagram-intro">Pour chaque sortie, le meilleur effort de 20 minutes du début est comparé à celui du dernier tiers. Les barres montrent les valeurs réellement enregistrées ; elles ne représentent pas une évolution entre les dates.</p>${d.sessions.map(s => {
     const max = Math.max(s.early, s.late, 1);
@@ -155,6 +155,9 @@ function durabilityHTML(sport: DurabilitySport, d?: StoredDurabilitySport | null
 export function sportDiagramHTML(input: SportDiagramInput): string {
   const durability = durabilityHTML(input.sport, input.durability);
   const tte = tteHTML(input.tte);
+  const energy = energyHTML(input);
+  const zones = zonesHTML(input);
+  if (!energy && !zones && !tte && !durability) return '<p class="edition-caption">Un test dans cette discipline permettra de préciser les repères.</p>';
   const title = input.sport === 'bike' ? 'Vélo · énergie, zones et durabilité' : 'Course · énergie, zones et durabilité';
-  return `<figure class="sport-diagram" data-sport="${input.sport}"><div class="diagram-heading"><div class="diagram-kicker">Ton profil en chiffres</div><h3>${title}</h3></div>${energyHTML(input)}${zonesHTML(input)}${tte || durability ? `<div class="diagram-block durability-block"><h4>Durabilité · seuil et fin de sortie longue</h4><p class="diagram-intro">Le TTE indique le temps tenu au seuil. Les sorties longues montrent, séparément, ce que tu conserves après une charge prolongée.</p>${tte}${durability}</div>` : ''}</figure>`;
+  return `<figure class="sport-diagram" data-sport="${input.sport}"><div class="diagram-heading"><div class="diagram-kicker">Ton profil en chiffres</div><h3>${title}</h3></div>${energy}${zones}${tte || durability ? `<div class="diagram-block durability-block"><h4>Durabilité · seuil et fin de sortie longue</h4><p class="diagram-intro">Le TTE indique le temps tenu au seuil. Les sorties longues montrent, séparément, ce que tu conserves après une charge prolongée.</p>${tte}${durability}</div>` : ''}</figure>`;
 }

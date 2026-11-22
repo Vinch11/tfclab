@@ -5,13 +5,13 @@
 
 import type { PerfCurvePoint, PerfGaugeRow, PerfScenario } from "./types";
 
-export const INK = "#14131A";
-export const MUT = "#6E6B78";
-export const FAINT = "#97949F";
-export const LINE = "#E7E4DC";
-export const PAPER = "#FAF9F5";
+export const INK = "#152E47";
+export const MUT = "#50677D";
+export const FAINT = "#5E7388";
+export const LINE = "#D1DEE9";
+export const PAPER = "#F5F9FC";
 export const CARD = "#FFFFFF";
-export const PERI = "#5555E0";
+export const PERI = "#2269AD";
 export const MINT = "#1F9D6B";
 export const AMBER = "#C8860D";
 export const SKY = "#2E8FD1";

@@ -20,6 +20,8 @@ export const EMBEDDED_PRINT_ONCLICK = "window.print()";
 export interface OpenPrintableHTMLOptions {
   /** Shown in the helper banner (not used for downloads). */
   filenameHint?: string;
+  /** Document designed for phone-width reading with its own A4 print layout. */
+  responsive?: boolean;
   /** Automatically open the print dialog after opening (desktop only recommended). */
   autoPrint?: boolean;
   /** Add the helper banner inside the HTML (recommended). */
@@ -73,7 +75,7 @@ function injectBefore(html: string, needle: string, insertion: string): string {
  * laquelle le document est réellement mis en page, indépendamment de la
  * largeur d'écran réelle.
  */
-function ensureFixedViewport(html: string, width: number): string {
+function ensureFixedViewport(html: string, width: number | string): string {
   const meta = `<meta name="viewport" content="width=${width}">`;
   const existingMatch = html.match(/<meta[^>]+name=["']viewport["'][^>]*>/i);
   if (existingMatch) {
@@ -108,7 +110,7 @@ function escapeJsString(s: string): string {
  * d'accueil", où `window.print()` ne produit aucune UI (limitation de
  * plateforme, pas un bug de ce code).
  */
-function withPrintHelper(html: string, filenameHint?: string): string {
+function withPrintHelper(html: string, filenameHint?: string, compact = false): string {
   const isIOS = isIOSDevice();
   const name = filenameHint ? `« ${escapeHtml(filenameHint)} »` : "ce document";
   const shareTitle = escapeJsString(filenameHint ?? "Rapport");
@@ -125,21 +127,23 @@ function withPrintHelper(html: string, filenameHint?: string): string {
       .tfc-print-helper code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:11px;}
       .tfc-print-helper button{flex:0 0 auto;min-height:36px;padding:8px 14px;border-radius:10px;border:1px solid rgba(0,0,0,.15);background:#111;color:#fff;font-size:13px;font-weight:600;cursor:pointer;}
       .tfc-print-helper button.tfc-print-helper-share{background:#fff;color:#111;}
+      .tfc-print-helper.compact{max-width:940px;position:relative;z-index:2;margin:0 auto 12px;padding:6px 0;background:transparent;border:0;color:#234666;justify-content:flex-end}
+      .tfc-print-helper.compact details{margin-right:auto;max-width:55%}.tfc-print-helper.compact summary{cursor:pointer;font-size:13px;font-weight:600}.tfc-print-helper.compact details p{margin-top:5px}
+      .tfc-print-helper.compact button{background:#175894;border-color:#175894;color:white}.tfc-print-helper.compact button.tfc-print-helper-share{background:white;color:#175894}
       @media print { .tfc-print-helper{display:none !important;} }
     </style>
   `;
 
   const helper = `
-    <div class="tfc-print-helper">
-      <div class="tfc-print-helper-text">
-        <h3>Impression / Enregistrement PDF</h3>
+    <div class="tfc-print-helper${compact ? ' compact' : ''}">
+      ${compact ? '<details><summary>Aide à l’impression</summary>' : '<div class="tfc-print-helper-text"><h3>Impression / Enregistrement PDF</h3>'}
         <p>
           ${isIOS
             ? `Appuyez sur <b>Imprimer / PDF</b>, puis pincez l'aperçu et choisissez <b>Enregistrer dans Fichiers</b> (PDF).`
             : `Cliquez sur <b>Imprimer / PDF</b>, ou <code>Ctrl+P</code> (Windows) / <code>Cmd+P</code> (Mac), puis choisissez "Enregistrer en PDF".`}
           <br/>Document : ${name}
         </p>
-      </div>
+      ${compact ? '</details>' : '</div>'}
       <button type="button" onclick="window.print()">Imprimer / PDF</button>
       <button type="button" class="tfc-print-helper-share" id="tfc-print-helper-share" style="display:none;">Partager</button>
     </div>
@@ -317,10 +321,12 @@ export function printCurrentDocument(filenameHint?: string): void {
 export function openPrintableHTML(html: string, options: OpenPrintableHTMLOptions = {}): void {
   // Socle de design Bevel commun à tous les rapports exportés.
   const themed = applyBevelPrintTheme(html);
-  const withViewport = ensureFixedViewport(themed, DOC_WIDTH);
+  const withViewport = options.responsive
+    ? ensureFixedViewport(themed, "device-width, initial-scale=1")
+    : ensureFixedViewport(themed, DOC_WIDTH);
   const finalHtml = options.includeInstructions === false
     ? withViewport
-    : withPrintHelper(withViewport, options.filenameHint);
+    : withPrintHelper(withViewport, options.filenameHint, options.responsive);
 
   openPrintPreviewDocument(finalHtml, options.filenameHint, options.autoPrint);
 }
