@@ -67,7 +67,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
   return (
     <div className="coach-dashboard mx-auto max-w-5xl space-y-4 pb-3 sm:space-y-6">
       <header className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="dashboard-masthead flex items-center justify-between gap-2">
           <h1 ref={activePanel ? undefined : heading} tabIndex={-1} className="workspace-title outline-none text-xl font-semibold tracking-tight sm:text-2xl">Tableau de bord</h1>
           <Link to="/athletes" className="flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <Users aria-hidden className="size-4" /> Tous les athlètes

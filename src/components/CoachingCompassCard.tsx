@@ -134,7 +134,7 @@ export function CoachingCompassCard({ input, athleteName, onSavePerformanceGoal,
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 px-3 sm:px-6">
+      <CardContent className="compass-spread pt-0 px-3 sm:px-6">
         {/* ─── Fatigue Warning ─── */}
         {compass.fatigueWarning && compass.fatigueWarning.level !== "none" && (
           <div className="mb-3">
@@ -142,7 +142,7 @@ export function CoachingCompassCard({ input, athleteName, onSavePerformanceGoal,
           </div>
         )}
 
-        <section className="min-w-0 space-y-2">
+        <section className="compass-profile min-w-0 space-y-2">
           <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Niveau 1 — Profil physiologique</h3>
           <CompassProfileComparison key={scope} input={input} compass={compass} athleteName={athleteName} />
           {onSavePerformanceGoal && <CompassPerformanceComparison key={'goal:' + scope} goalOnly input={input} onSave={onSavePerformanceGoal} />}
@@ -150,28 +150,30 @@ export function CoachingCompassCard({ input, athleteName, onSavePerformanceGoal,
             <CompassProfileComparison key={'details:' + scope} input={input} compass={compass} detailsOnly />
           </details>}
         </section>
-        <FlowConnector />
-        <FlowStep level="Niveau 2 — Limiteur principal" icon={<AlertTriangle size={16} />}
-          title={flow.title} subtitle={flow.detail} accentClass="bg-amber-500">
-          {flow.gap && <FieldMetricComparison metric={flow.gap} hypothesis={flow.lead?.hypothesis} />}
-          {flow.lead?.comparison && <ReferenceGauge {...flow.lead.comparison} name={flow.lead.title} label="Bilan" />}
-          {!!flow.others.length && <details><summary className="cursor-pointer py-2 text-xs">Autres facteurs classés</summary>
-            <ol className="space-y-1 text-xs">{flow.others.map(f => <li key={f.title}>{f.title} · {f.status} · {f.facts}</li>)}</ol>
-          </details>}
-          {staffMode && flow.useBlock && <LimiterImpactCard limiter={compass.limiter.type} />}
-        </FlowStep>
-        <FlowConnector />
-        <FlowStep level="Niveau 3 — Levier prioritaire" icon={<Zap size={16} />} title={flow.lever}
-          subtitle={flow.useBlock ? compass.leverage.description : flow.lead?.title ?? 'Observation spécifique à l’objectif'} accentClass="bg-primary/80" />
-        <FlowConnector />
-        <FlowStep level="Niveau 4 — Décision coaching" icon={<Target size={16} />} title={flow.decision}
-          subtitle={flow.useBlock ? (staffMode ? compass.decision.coachRationale : compass.decision.athleteMessage) : flow.instruction} accentClass="bg-emerald-500">
-          {flow.useBlock && <div className="mt-2 space-y-1 text-xs">
-            <p>{compass.decision.durationWeeks} semaines · {compass.decision.primaryWorkouts.join(' · ')}</p>
-            {compass.decision.prohibitions.map(p => <p key={p}>{p}</p>)}
-          </div>}
-          {!flow.useBlock && flow.link && <a className="inline-block py-2 text-xs underline" href={flow.link}>Voir le protocole</a>}
-        </FlowStep>
+        <div className="compass-decisions contents">
+          <FlowConnector />
+          <FlowStep level="Niveau 2 — Limiteur principal" icon={<AlertTriangle size={16} />}
+            title={flow.title} subtitle={flow.detail} accentClass="bg-amber-500">
+            {flow.gap && <FieldMetricComparison metric={flow.gap} hypothesis={flow.lead?.hypothesis} />}
+            {flow.lead?.comparison && <ReferenceGauge {...flow.lead.comparison} name={flow.lead.title} label="Bilan" />}
+            {!!flow.others.length && <details><summary className="cursor-pointer py-2 text-xs">Autres facteurs classés</summary>
+              <ol className="space-y-1 text-xs">{flow.others.map(f => <li key={f.title}>{f.title} · {f.status} · {f.facts}</li>)}</ol>
+            </details>}
+            {staffMode && flow.useBlock && <LimiterImpactCard limiter={compass.limiter.type} />}
+          </FlowStep>
+          <FlowConnector />
+          <FlowStep level="Niveau 3 — Levier prioritaire" icon={<Zap size={16} />} title={flow.lever}
+            subtitle={flow.useBlock ? compass.leverage.description : flow.lead?.title ?? 'Observation spécifique à l’objectif'} accentClass="bg-primary/80" />
+          <FlowConnector />
+          <FlowStep level="Niveau 4 — Décision coaching" icon={<Target size={16} />} title={flow.decision}
+            subtitle={flow.useBlock ? (staffMode ? compass.decision.coachRationale : compass.decision.athleteMessage) : flow.instruction} accentClass="bg-emerald-500">
+            {flow.useBlock && <div className="mt-2 space-y-1 text-xs">
+              <p>{compass.decision.durationWeeks} semaines · {compass.decision.primaryWorkouts.join(' · ')}</p>
+              {compass.decision.prohibitions.map(p => <p key={p}>{p}</p>)}
+            </div>}
+            {!flow.useBlock && flow.link && <a className="inline-block py-2 text-xs underline" href={flow.link}>Voir le protocole</a>}
+          </FlowStep>
+        </div>
       </CardContent>
     </Card>
   );

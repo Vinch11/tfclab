@@ -451,7 +451,7 @@ export default function AthletesListPage() {
         )}
 
         {/* Liste dense */}
-        <Card className="overflow-hidden">
+        <Card className="directory-list overflow-hidden">
           <div className="divide-y divide-border">
             {filteredAthletes.map((athlete) => {
               const athleteSnapshots = snapshots.filter((s) => s.athlete_id === athlete.id);
