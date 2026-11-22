@@ -12,7 +12,8 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   await expect(factors.getByText('Dérivé', { exact: true }).first()).toBeVisible();
   await expect(factors.getByText('Puissance critique (CP)')).toBeVisible();
   await expect(factors.getByText('Vitesse critique (CS)')).toBeVisible();
-  await expect(factors.getByText('Durabilité (sorties longues)')).toBeVisible();
+  // Triathlon : mesurée en vélo, « À mesurer » en course, donc deux tuiles.
+  await expect(factors.getByRole('heading', { name: 'Durabilité (sorties longues)' })).toHaveCount(2);
   await expect(factors.getByText('Observé', { exact: true }).first()).toBeVisible();
   const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
   await expect(limiters).toBeVisible();
