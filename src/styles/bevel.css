@@ -380,10 +380,6 @@
   .bevel .lab-reading { padding: 1.15rem; }
   .bevel .lab-reading details { border-top: 1px solid hsl(var(--border)); margin-top: .75rem; }
   .bevel .lab-reading summary { color: hsl(var(--primary)); }
-  .bevel .auth-canvas {
-    background: radial-gradient(ellipse at 25% 10%, #dfedfa, transparent 52%),
-      radial-gradient(ellipse at 85% 70%, #dfeee8, transparent 45%), hsl(var(--background));
-  }
 
   @media (max-width: 767px) {
     .bevel .workspace-dock {
