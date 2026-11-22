@@ -32,10 +32,10 @@ describe("État des facteurs face à l'idéal", () => {
 
   it("compare chaque facteur à un idéal chiffré, avec son état et son niveau de preuve", () => {
     show("IM", "competitor", triathlon);
-    const items = Array.from(document.querySelectorAll("li"));
+    const items = Array.from(document.querySelectorAll("ul > li"));
     const byLabel = (label: string, sport: "Vélo" | "Course") => {
       const group = screen.getByRole("heading", { name: sport === "Vélo" ? "Vélo" : "Course à pied" }).parentElement!;
-      return Array.from(group.querySelectorAll("li")).find(li => li.textContent?.includes(label))!;
+      return Array.from(group.querySelectorAll("ul > li")).find(li => li.textContent?.includes(label))!;
     };
     expect(items.length).toBeGreaterThanOrEqual(5);
     // Course : cohorte mesurée (triathlètes compétitifs) → sous la zone.
@@ -53,10 +53,35 @@ describe("État des facteurs face à l'idéal", () => {
     expect(byLabel("VO₂max", "Vélo")).toHaveTextContent("Dans la zone");
   });
 
+  it("classe tous les écarts à l'idéal du plus grand au plus petit, sans compter les facteurs dans la zone", () => {
+    show("IM", "competitor", triathlon);
+    const ranking = screen.getByRole("heading", { name: "Classement des écarts à l’idéal" }).parentElement!;
+    const rows = Array.from(ranking.querySelectorAll("ol > li")).map(li => li.textContent ?? "");
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    const gaps = rows.map(t => Number((t.match(/([\d,]+) %$/)?.[1] ?? "0").replace(",", ".")));
+    expect([...gaps].sort((a, b) => b - a)).toEqual(gaps);
+    // VLamax vélo (0,2) est dans la zone 0,2–0,34 : jamais classé.
+    expect(rows.join("|")).not.toContain("VLamax");
+  });
+
+  it("liste à part les facteurs non mesurés, sans les classer", () => {
+    show("Marathon", "age_group", { presentation: { sport: "run", axes: [axis("vo2max", null, 50, "ml/kg/min"), axis("vma", 12, null, "km/h")] } });
+    const ranking = screen.getByRole("heading", { name: "Classement des écarts à l’idéal" }).parentElement!;
+    expect(ranking).toHaveTextContent("Non mesurés, donc non classés : VO₂max (course à pied)");
+    const rows = Array.from(ranking.querySelectorAll("ol > li")).map(li => li.textContent ?? "");
+    expect(rows.join("|")).toContain("VMA");
+    expect(rows.join("|")).not.toContain("VO₂max");
+  });
+
+  it("sans écart, le dit au lieu d'afficher une liste vide", () => {
+    show("Marathon", "age_group", { presentation: { sport: "run", axes: [axis("vo2max", 70, 50, "ml/kg/min")] } });
+    expect(screen.getByText(/Aucun écart/)).toBeVisible();
+  });
+
   it("garde le repère de coaching, étiqueté, quand aucune cohorte ne couvre le facteur", () => {
     show("IM", "competitor", triathlon);
     const bike = screen.getByRole("heading", { name: "Vélo" }).parentElement!;
-    const tte = Array.from(bike.querySelectorAll("li")).find(li => li.textContent?.includes("TTE"))!;
+    const tte = Array.from(bike.querySelectorAll("ul > li")).find(li => li.textContent?.includes("TTE"))!;
     expect(tte).toHaveTextContent("Repère de coaching");
   });
 
@@ -69,7 +94,7 @@ describe("État des facteurs face à l'idéal", () => {
 
   it("n'invente rien pour un facteur sans valeur : « À mesurer », idéal tout de même affiché", () => {
     show("Marathon", "age_group", { presentation: { sport: "run", axes: [axis("vo2max", null, 50, "ml/kg/min"), axis("vma", 15, null, "km/h")] } });
-    const vo2 = Array.from(document.querySelectorAll("li")).find(li => li.textContent?.includes("VO₂max"))!;
+    const vo2 = Array.from(document.querySelectorAll("ul > li")).find(li => li.textContent?.includes("VO₂max"))!;
     expect(vo2).toHaveTextContent("À mesurer");
     expect(vo2).toHaveTextContent("non renseigné");
     expect(vo2).toHaveTextContent("Idéal");
@@ -79,7 +104,7 @@ describe("État des facteurs face à l'idéal", () => {
     const compass = { presentation: { sport: "run", axes: [axis("vma", 16, null, "km/h")] } };
     const input = { objectif: "Marathon", ambition: "competitor", performanceGoal: { minutes: 180 } } as unknown as CoachingCompassInput;
     render(<DashboardFactorStates input={input} compass={compass as unknown as TFCLCoachingCompassResult} />);
-    const demand = Array.from(document.querySelectorAll("li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
+    const demand = Array.from(document.querySelectorAll("ul > li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
     // 42,195 km en 3 h = 14,06 km/h, soit 87,9 % d'une VMA de 16 : au-dessus des 80–84 % des élites.
     expect(demand).toBeDefined();
     expect(demand).toHaveTextContent("87,9");
@@ -91,7 +116,7 @@ describe("État des facteurs face à l'idéal", () => {
     const compass = { presentation: { sport: "run", axes: [axis("vma", 20, null, "km/h")] } };
     const input = { objectif: "10K", ambition: "competitor", performanceGoal: { minutes: 40 } } as unknown as CoachingCompassInput;
     render(<DashboardFactorStates input={input} compass={compass as unknown as TFCLCoachingCompassResult} />);
-    const demand = Array.from(document.querySelectorAll("li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
+    const demand = Array.from(document.querySelectorAll("ul > li")).find(li => li.textContent?.includes("Exigence du chrono visé"));
     // 10 km en 40 min = 15 km/h, soit 75 % d'une VMA de 20 : sous la fourchette 85–89 %.
     expect(demand).toHaveTextContent("75");
     expect(demand).toHaveTextContent("Marge");

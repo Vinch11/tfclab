@@ -20,6 +20,7 @@ export function DashboardLimiters({ flow, objective, ambition }: { flow: Flow; o
       <div className="space-y-1">
         <h2 id="dashboard-limiters" className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">Limiteurs hiérarchisés</h2>
         <p className="priority-detail text-sm">Pour l’objectif {objective} · ambition {ambition}</p>
+        <p className="priority-detail text-xs leading-relaxed">Le Compass ne classe comme limiteurs que les facteurs situés sous le repère TFCL du moteur de plans. Tous les écarts à l’idéal sourcé sont classés plus haut.</p>
       </div>
       {cautious && <p className="priority-warning rounded-lg p-3 text-sm">Lecture prudente : {flow.title}. {flow.detail}</p>}
       {ranked.length ? (
