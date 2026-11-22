@@ -214,3 +214,18 @@ Rien de cette table n'est utilisé par les plans.
 **Limites.** La pente d'âge vient de cyclistes ; son application à la course est une extrapolation. Les cohortes de Gordon mélangent les sexes : le retrait de l'effet de sexe est approximatif (quelques pour cent). L'âge de référence des valeurs dérivées de niveau Qualifiable et Elite est fixé à 30 ans (hypothèse).
 
 **Cohérence avec le radar.** Le radar et les limiteurs continuent d'utiliser le repère TFCL du moteur (déjà ajusté à l'âge, non sourcé). Chaque tuile affiche ce repère sous l'idéal quand il existe, avec la mention « repère du moteur du plan, distinct de l'idéal sourcé ».
+
+## 12. Cohérence Dashboard ↔ 100%lab et hiérarchie des limiteurs (retour du coach)
+
+Constat : le même athlète voyait trois « VMA cible » différentes (idéal du Dashboard, repère interne TFCL, repère de la page 100%lab, non ajusté à l'âge ni au sexe), et la carte « Limiteurs hiérarchisés » n'affichait que le seul candidat du moteur de plans.
+
+Décisions :
+- **Une seule source d'idéal pour l'affichage.** `src/lib/lab/labReference.ts` renvoie, pour VO₂max, VMA et FTP/kg, le même idéal que le Dashboard (mêmes ambition, objectif, âge et sexe) ; `labProfile` reçoit désormais l'âge et le sexe de l'athlète. Les autres indicateurs gardent la cible interne, libellée « Repère TFCL (cible interne) ».
+- **Trois niveaux, étiquetés, dans la carte « Limiteurs hiérarchisés »** (`DashboardLimiters`) : (1) écarts mesurés face à l'idéal sourcé, classés par écart relatif ; (2) « À vérifier » : hypothèse VLamax, quand le moteur détecte un chevauchement (valeur modélisée ou observée datée au-dessus du plafond de référence alors que la valeur retenue est dedans) — c'est une hypothèse, pas un écart mesuré ; (3) priorité du moteur de plans, inchangée.
+- **Le moteur n'est pas modifié** : le choix du bloc d'entraînement reste celui du repère interne TFCL (valeur de coaching non sourcée). Seule l'information affichée s'élargit.
+- Un écart calculé sur un « repère de coaching » est signalé comme indicatif, jamais comme écart à un idéal sourcé.
+
+### 12 bis. Zone VLamax resserrée et hypothèse intégrée au classement
+
+- **Zone VLamax affichée = repère optimal ± 0,05 mmol/L/s** (borné par la plage du moteur), soit environ l'incertitude d'une estimation. La plage tolérée par le moteur (ex. 0,35–0,60 en 10 km course) couvrait presque tous les profils d'endurance et ne distinguait rien. Valeur de coaching, non issue d'études ; la plage tolérée reste citée dans le détail. Affichage seul : le moteur de plans garde sa plage.
+- **Une valeur « à vérifier » garde sa place dans la hiérarchie** (`rankWithHypothesis`) : elle est classée par son écart, avec un message au coach (« Peut-être à vérifier pour être sûr », incertitude du modèle, estimation de terrain datée, test de lactate). Il n'y a plus de section séparée.

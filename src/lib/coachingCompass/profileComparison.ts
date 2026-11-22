@@ -8,6 +8,9 @@ import { getVmaReference } from './vmaReference';
 import { compassDisplaySport } from './sportPresentation';
 import { contextualTriathlonCohort } from './referenceRegistry';
 
+/** Demi-largeur de la zone VLamax affichée (mmol/L/s) : marge de base d'une estimation (±0,06 → 0,05 arrondi bas). */
+const VLAMAX_ZONE_HALF_WIDTH = 0.05;
+
 export interface ProfileComparison {
   key: string; label: string; value: number | null; unit: string; source: string;
   observationLabel?: string;
@@ -38,8 +41,15 @@ export function compareProfileAxis(axis: RadarAxis, sport: 'run' | 'bike', input
   // The current matrices are coaching constructions; a bibliography does not validate each cell.
   const range = axis.key === 'vlamax' && target != null
     ? getVLamaxRange(input.objectif, (input.ambition || 'age_group') as AmbitionLevel, sport === 'run' ? 'run' : 'bike') : null;
+  // La plage tolérée par le moteur (ex. 0,35–0,60 en 10 km) couvre presque tous les profils d'endurance :
+  // pour l'affichage, la zone est resserrée autour du repère optimal, de ± l'incertitude d'une estimation.
+  const vlamaxZone = range ? {
+    low: Math.max(range.min, Number((range.optimal - VLAMAX_ZONE_HALF_WIDTH).toFixed(2))),
+    high: Math.min(range.max, Number((range.optimal + VLAMAX_ZONE_HALF_WIDTH).toFixed(2))),
+    note: `Zone = repère optimal ${range.optimal.toLocaleString('fr-BE')} ± ${VLAMAX_ZONE_HALF_WIDTH.toLocaleString('fr-BE')} mmol/L/s (≈ l’incertitude d’une estimation de VLamax). Valeur de coaching, non issue d’études. Plage tolérée par le moteur de plans : ${range.min.toLocaleString('fr-BE')}–${range.max.toLocaleString('fr-BE')}.`,
+  } : null;
   const reference: ProfileComparison['reference'] = (applicable ? contextualReference : undefined) ?? (target == null ? null : {
-    low: range?.min ?? target, high: range?.max ?? target, kind: 'coaching', evidence: 'extrapolation',
+    low: vlamaxZone?.low ?? target, high: vlamaxZone?.high ?? target, kind: 'coaching', evidence: 'extrapolation', note: vlamaxZone?.note,
   });
   const numbers = [value, reference?.low, reference?.high].filter((n): n is number => n != null);
   const min = numbers.length ? Math.min(...numbers) : 0;

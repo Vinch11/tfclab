@@ -72,7 +72,7 @@ export function AthleteEvidenceCharts({ input, snapshot, snapshots, tests, selec
   const bike = useMemo(() => sport === 'bike' ? fitBikeOnNolio(input, env) : null, [input, env, sport]);
   const run = useMemo(() => sport === 'run' ? fitRunOnNolio(env) : null, [env, sport]);
   const curve = labCurveSource(input, sport, bike, snapshot.date >= from && snapshot.date <= to);
-  const compare = useMemo(() => baseline ? { input: labProfile(baseline,tests,input.objectif,input.ambition), date: baseline.date } : undefined, [baseline, tests, input.objectif, input.ambition]);
+  const compare = useMemo(() => baseline ? { input: labProfile(baseline,tests,input.objectif,input.ambition,{ age: input.athleteAge, sex: input.athleteSex }), date: baseline.date } : undefined, [baseline, tests, input.objectif, input.ambition]);
   const loading = read.loading || read.athlete !== scope;
   const recordLabel = (v:number) => sport === 'bike' ? Math.round(v)+' W' : labReview ? clock(3600 / v)+'/km' : v.toFixed(1)+' km/h';
   const points = env.map(p => ({ seconds: p.durationSec, observed: p.value * (sport === 'run' ? 3.6 : 1), date: p.date, fitted: sport === 'run' && run && p.durationSec >= 180 && p.durationSec <= 1200 ? run.csKmh + run.dPrimeM / p.durationSec * 3.6 : bike?.points.find(v => v.durationSec === p.durationSec)?.fitted ?? null }));

@@ -9,6 +9,7 @@ import { FieldMetricComparison } from "@/components/charts/FieldComparison";
 import { DashboardLimiters } from "@/components/DashboardLimiters";
 import { getObjectifLabel, type ObjectifType } from "@/types/athlete";
 import type { compassFlow } from "@/lib/coachingCompass/compassFlow";
+import type { FactorStates } from "@/lib/coachingCompass/factorStates";
 import { AMBITION_LEVELS_ORDERED, getAmbitionDefinition, type AmbitionLevel } from "@/types/ambitionLevel";
 import type { DbSnapshot } from "@/hooks/useCloudData";
 
@@ -30,6 +31,8 @@ type Props = {
   profile?: ReactNode;
   /** State of each factor against the objective × ambition ideal. */
   factors?: ReactNode;
+  /** Factor states against the ideal, used by the ranked hierarchy. */
+  states?: FactorStates | null;
   compass: ReactNode;
   analyses: ReactNode;
   bilans: ReactNode;
@@ -47,7 +50,7 @@ const actionClass = "dashboard-action group flex min-h-14 min-w-0 items-center g
 const arrow = <ArrowRight aria-hidden className="ml-auto size-4 shrink-0 text-muted-foreground group-hover:text-primary" />;
 
 export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, onAmbitionChange, onGoalChange,
-  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, factors, compass, analyses, bilans, onOpenReport }: Props) {
+  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, factors, states, compass, analyses, bilans, onOpenReport }: Props) {
   const [search, setSearch] = useSearchParams();
   const express = snapshot?.source === "finisher-express";
   const panel = search.get("vue");
@@ -139,7 +142,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
           {fatigueWarning && <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">{fatigueWarning}</p>}
           <div className="ui-card min-w-0 rounded-3xl border bg-card p-4 sm:p-7">{profile}</div>
           {factors}
-          <DashboardLimiters flow={flow} objective={getObjectifLabel((athlete.goal ?? "IM") as ObjectifType)} ambition={getAmbitionDefinition(ambition).label} />
+          <DashboardLimiters flow={flow} states={states} objective={getObjectifLabel((athlete.goal ?? "IM") as ObjectifType)} ambition={getAmbitionDefinition(ambition).label} />
           <div className="flex flex-wrap gap-2">
             <Button asChild className="min-h-11"><Link to={linkTo("compass")}><Compass /> Levier et décision du Compass <ArrowRight /></Link></Button>
             <Button asChild variant="outline" className="min-h-11"><Link to="/planning/ai-plan"><CalendarDays /> Plan d’entraînement</Link></Button>

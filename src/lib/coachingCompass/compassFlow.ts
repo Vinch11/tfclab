@@ -53,7 +53,7 @@ export function compassFlow(input: CoachingCompassInput, compass: TFCLCoachingCo
   const action = selected ? actions[selected] : undefined;
   const caution = tied || shared || lead?.hypothesis || (!lead && !!overlap);
   return {
-    title, detail, lead, gap, others: factors.slice(1), useBlock: useBlock && !unsupported,
+    title, detail, lead, gap, others: factors.slice(1), overlap, useBlock: useBlock && !unsupported,
     lever: useBlock && !unsupported ? compass.leverage.label : caution ? 'Départager les observations' : action?.[0] ?? 'Tenue de l’effort spécifique',
     decision: useBlock && !unsupported ? compass.decision.recommendedBlock : caution ? 'Vérifier le facteur prioritaire' : lead ? 'Contrôler le progrès sur le terrain' : 'Compléter la comparaison',
     instruction: caution ? check.text : action?.[1] ?? check.text, link,

@@ -14,7 +14,7 @@ export function labCurveSource(input: CoachingCompassInput, sport: 'bike' | 'run
 }
 
 /** Projection only; the reference is selected upstream by pickReferenceSnapshot. */
-export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, ambition: string): CoachingCompassInput {
+export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, ambition: string, who: { age?: number | null; sex?: string | null } = {}): CoachingCompassInput {
   const inputs = { athleteId: snapshot.athlete_id, objectif: goal, activeSnapshotId: snapshot.id,
     snapshots: [snapshot], tests: tests.filter(t => t.date.slice(0, 10) <= snapshot.date) };
   const bike = computeVLamaxEffectif({ ...inputs, sportOverride: 'velo' });
@@ -22,7 +22,7 @@ export function labProfile(snapshot: DbSnapshot, tests: DbTest[], goal: string, 
   const thresholds = positive(snapshot.vo2max) && positive(snapshot.weight_kg) && positive(bike.value) ? findLactateThresholds({ vo2max: snapshot.vo2max, weight: snapshot.weight_kg, vlamax: bike.value }) : null;
   return {
     athleteId: snapshot.athlete_id, objectif: goal, ambition,
-    sportFocus: resolveCompassSportFocus(snapshot, { goal }, 'bike'), athleteAge: null,
+    sportFocus: resolveCompassSportFocus(snapshot, { goal }, 'bike'), athleteAge: who.age ?? null, athleteSex: who.sex ?? null,
     snapshotDate: snapshot.date, snapshotUpdatedAt: snapshot.updated_at,
     ftp: positive(snapshot.ftp) ? snapshot.ftp : null, poids: positive(snapshot.weight_kg) ? snapshot.weight_kg : null,
     vo2max: positive(snapshot.vo2max) ? snapshot.vo2max : null, tss7d: snapshot.tss_7d,

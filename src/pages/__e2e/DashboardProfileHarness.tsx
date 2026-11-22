@@ -2,6 +2,7 @@
 import { CoachDashboard } from "@/components/CoachDashboard";
 import { CompassProfileComparison } from "@/components/CompassProfileComparison";
 import { DashboardFactorStates } from "@/components/DashboardFactorStates";
+import { buildFactorStates } from "@/lib/coachingCompass/factorStates";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { compassFlow } from "@/lib/coachingCompass/compassFlow";
 import { dashboardCoverage } from "@/lib/coachingCompass/dashboardConsistency";
@@ -32,6 +33,7 @@ export default function DashboardProfileHarness() {
           snapshot={snapshot} coverage={coverage} flow={flow} alert={null}
           nextRace={{ name: "Ironman 70.3 fictif", date: "2027-06-13" }} onOpenReport={() => {}}
           profile={<CompassProfileComparison input={input} compass={compass} athleteName="Athlète fictif" />}
+          states={buildFactorStates(input, compass)}
           factors={<DashboardFactorStates input={input} compass={compass} />}
           compass={<p>Compass complet</p>} bilans={<p>Bilans</p>} analyses={<p>Analyses</p>}
         />
