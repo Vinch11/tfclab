@@ -1,6 +1,9 @@
 import { latestPairs } from "@/lib/diagnostic/durabilityDay";
 import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
+import { CoachDashboard } from "@/components/CoachDashboard";
+import { compassFlow } from "@/lib/coachingCompass/compassFlow";
+import { format } from "date-fns";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
 import { computeCoachingCompass } from '@/lib/coachingCompass';
 import { getVo2maxTarget } from '@/lib/v2/unifiedLimiterDetection';
@@ -104,9 +107,6 @@ import { computeDecision, type DecisionInput } from "@/engines/decision";
 // ✅ Profil & Ambition — Carte unifiée (Phase 1f UX)
 import { ProfilAmbitionUnifiedCard } from "@/components/ProfilAmbitionUnifiedCard";
 
-// ✅ Quick Actions Panel
-import { QuickActionsPanel } from "@/components/QuickActionsPanel";
-
 // ✅ W'bal Recovery Card — Repos optimaux individualisés
 import { WbalRecoveryCard } from "@/components/WbalRecoveryCard";
 // ✅ CP/W' Courbe Puissance-Durée
@@ -209,7 +209,7 @@ import { PlanSyncAlert } from "@/components/PlanSyncAlert";
 import { ProfileChoiceDialog } from "@/components/ProfileChoiceDialog";
 
 // ✅ Legacy types/helpers (utilisés par tes composants actuels)
-import { getDernierSnapshot } from "@/types/athlete";
+import { getDernierSnapshot, getObjectifLabel, type ObjectifType } from "@/types/athlete";
 import { computeVLamaxEffectif, type VLamaxEffectif, computeTTEEffectif, type TTEEffectif, getSourceLabel } from "@/engines/diagnostic";
 import { latestSportVlamaxTest } from "@/lib/vlamaxEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
@@ -343,7 +343,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     // Sinon, restaurer l'onglet depuis localStorage
     const saved = localStorage.getItem("vlab-active-tab");
     // Valider que le tab existe, sinon fallback sur dashboard
-    return saved && validTabs.includes(saved) ? saved : "dashboard";
+    return new URLSearchParams(location.search).has("vue") ? "dashboard" : saved && validTabs.includes(saved) ? saved : "dashboard";
   });
   
   // Écouter les changements de navigation pour mettre à jour le tab si nécessaire
@@ -1032,7 +1032,12 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     };
   }, [currentAthlete, effectiveCloudSnapshot, effectiveRefs, alignedVlamaxEffectif, vlamaxEffectif, alignedTteEffectif, runDurabilityProxy, fatigueEffectifForCompass, unifiedLimiterResult, potentielPhysiologiqueEffectif, lorangStrategyForCompass, lactateThresholdsForCompass, wprimeKjForLimiter, currentAmbition, isRunningOnly, targetRacePrediction, tests, raceRecordsForVlamax]);
 
-  const dashboardPresentation = useMemo(() => compassInputMemo ? computeCoachingCompass(compassInputMemo).presentation : null, [compassInputMemo]);
+  const dashboardInput = useMemo(() => compassInputMemo && { ...compassInputMemo, potentielPhysiologique: null }, [compassInputMemo]);
+  const dashboardCompass = useMemo(() => dashboardInput && computeCoachingCompass(dashboardInput), [dashboardInput]);
+  const dashboardPresentation = dashboardCompass?.presentation;
+  const dashboardFlow = useMemo(() => dashboardInput && dashboardCompass && compassFlow(dashboardInput, dashboardCompass), [dashboardInput, dashboardCompass]);
+  const today = format(new Date(), "yyyy-MM-dd");
+  const nextRace = raceGoals.filter(race => race.race_date >= today).sort((a, b) => a.race_date.localeCompare(b.race_date))[0];
   const dashboardAxes = dashboardPresentation?.disciplineAxes
     ? [...dashboardPresentation.disciplineAxes.bike, ...dashboardPresentation.disciplineAxes.run]
     : dashboardPresentation?.runningDiagnostic?.axes ?? dashboardPresentation?.axes ?? [];
@@ -1093,6 +1098,8 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       </div>
     );
   }
+
+  const openDashboardCompass = () => navigate("/?vue=compass", { state: { activeTab: "dashboard" } });
 
   const renderAthleteSelector = () => (
     <Card className="border-border/50">
@@ -1347,14 +1354,8 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
                     objectif={currentAthlete.goal || "IM"}
                     ambition={currentAmbition}
                     weightKg={effectiveRefs.weightKg}
-                    onClick={() => {
-                      const el = document.getElementById("section-ambition-progress");
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    onMetricClick={(sectionId) => {
-                      const el = document.getElementById(`section-${sectionId}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
+                    onClick={openDashboardCompass}
+                    onMetricClick={openDashboardCompass}
                   />
                 </div>
               )}
@@ -1623,14 +1624,8 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
                         objectif={currentAthlete.goal || "IM"}
                         ambition={currentAmbition}
                         weightKg={effectiveRefs.weightKg}
-                        onClick={() => {
-                          const el = document.getElementById("section-ambition-progress");
-                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }}
-                        onMetricClick={(sectionId) => {
-                          const el = document.getElementById(`section-${sectionId}`);
-                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                        }}
+                        onClick={openDashboardCompass}
+                    onMetricClick={openDashboardCompass}
                       />
                     </div>
                   </div>
@@ -1645,6 +1640,10 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     </Card>
   );
 
+  // Express profiles have a dedicated reading of estimates until they have a full reference assessment.
+  const isExpress = effectiveCloudSnapshot?.source === "finisher-express";
+  const visibleTab = isExpress && activeTab !== "configuration" ? "dashboard" : activeTab;
+
   const renderContent = () => {
     if (!legacyAthlete || athletes.length === 0) {
       return (
@@ -1657,7 +1656,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
               <div className="space-y-2">
                 <h2 className="text-2xl font-semibold">Aucun athlète</h2>
                 <p className="text-muted-foreground max-w-md mx-auto">
-                  Crée un athlète pour commencer à utiliser Vince’s Lab.
+                  Crée la fiche de ton premier athlète pour suivre son objectif et ses bilans.
                 </p>
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -1723,30 +1722,10 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       );
     }
 
-    switch (activeTab) {
+    switch (visibleTab) {
       case "dashboard": {
-        // ═══════════════════════════════════════════════════════════
-        // DASHBOARD SIMPLIFIÉ — 4 sections linéaires
-        // Flux: Snapshot → Analyse → Limiteurs → Leviers
-        // dashDiagnostic & dashPrescription sont calculés en useMemo au niveau composant
-        // ═══════════════════════════════════════════════════════════
-
+        if (!currentAthlete) return null;
         const dashboardSections = [
-          // ✅ 1. SNAPSHOT — Quick Actions + Données actuelles
-          {
-            id: "quick-actions",
-            render: () => (
-              <QuickActionsPanel
-              onCreateSnapshot={() => {
-                  setShowSnapshots(true);
-                  setTimeout(() => {
-                    const el = document.getElementById("snapshot-manager-section");
-                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                  }, 100);
-                }}
-              />
-            ),
-          },
           // ✅ Getting Started (conditionally shown)
           {
             id: "getting-started",
@@ -1765,26 +1744,6 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
                 onDismiss={gettingStartedVisibility.hide}
               />
             ),
-          },
-          // ✅ 2. ANALYSE — Radar Compass + Métriques avec explications
-          {
-            id: "coaching-compass",
-            render: () => {
-              // Construit l'input Compass depuis le Diagnostic Engine pour garantir la cohérence
-              if (!dashDiagnostic || !compassInputMemo) return null;
-              return (
-                <CoachingCompassCard
-                  input={{ ...compassInputMemo, potentielPhysiologique: null }}
-                  onSavePerformanceGoal={async (goal) => {
-                    if (!currentAthlete) return false;
-                    const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
-                    return updateAthlete(currentAthlete.id, { refs: { ...refs, compassPerformance: { ...comparisonGoals(refs), [`${currentAthlete.goal || "IM"}:${currentAmbition}`]: goal } } as Parameters<typeof updateAthlete>[1]["refs"] });
-                  }}
-                  athleteName={contextCurrentAthlete?.nom}
-                  staffMode={staffMode}
-                />
-              );
-            },
           },
           {
             id: "analyse-section",
@@ -1857,26 +1816,38 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
           },
         ];
 
-        return (
-          <div className="space-y-3 sm:space-y-4 md:space-y-6 animate-fade-in">
-            {renderAthleteSelector()}
-            
-            {isAlertVisible && pendingSync && (
-              <PlanSyncAlert
-                athleteName={pendingSync.athleteName}
-                athleteId={pendingSync.athleteId}
-                changes={pendingSync.changes}
-                onDismiss={() => dismissSync(pendingSync.athleteId)}
-              />
-            )}
-            
-            <SortableSectionsContainer
-              tabId="dashboard"
-              tabLabel="Dashboard"
-              sections={dashboardSections}
-            />
-          </div>
-        );
+        const fullCompass = isExpress && effectiveCloudSnapshot ? <ExpressDashboard snapshot={effectiveCloudSnapshot} /> :
+          dashboardInput && <CoachingCompassCard input={dashboardInput} athleteName={currentAthlete.name} staffMode={staffMode}
+            onSavePerformanceGoal={async goal => {
+              const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
+              return updateAthlete(currentAthlete.id, { refs: { ...refs, compassPerformance: { ...comparisonGoals(refs), [`${currentAthlete.goal || "IM"}:${currentAmbition}`]: goal } } as Parameters<typeof updateAthlete>[1]["refs"] });
+            }}
+          />;
+        return <CoachDashboard
+          key={currentAthlete.id}
+          athlete={currentAthlete}
+          athletes={athletes.filter(a => !a.is_hidden || a.id === currentAthlete.id)}
+          onSelectAthlete={setSelectedAthleteId}
+          ambition={currentAmbition}
+          onAmbitionChange={updateCurrentAthleteAmbition}
+          onGoalChange={async (goal, options) => {
+            await updateAthleteGoal(goal, { ...options, raceFormat: options?.raceFormat ?? null });
+            await loadData();
+          }}
+          snapshot={effectiveCloudSnapshot}
+          coverage={!isExpress && "filled" in dashboardCompleteness ? dashboardCompleteness : null}
+          flow={isExpress ? null : dashboardFlow}
+          fatigueWarning={!isExpress && dashboardCompass?.fatigueWarning && dashboardCompass.fatigueWarning.level !== "none" ? dashboardCompass.fatigueWarning.message : undefined}
+          nextRace={nextRace && { name: nextRace.race_name || getObjectifLabel(nextRace.race_type as ObjectifType), date: nextRace.race_date }}
+          onOpenReport={() => setReadinessOpen(true)}
+          compass={fullCompass}
+          bilans={<SnapshotManager athleteId={currentAthlete.id} athleteName={currentAthlete.name}
+            athleteGoal={currentAthlete.goal || "IM"} activeSnapshotId={currentAthlete.active_snapshot_id} staffMode={staffMode} />}
+          analyses={<SortableSectionsContainer tabId="dashboard" tabLabel="Analyses complémentaires" sections={dashboardSections} />}
+          alert={isAlertVisible && pendingSync?.athleteId === currentAthlete.id && <PlanSyncAlert
+            athleteName={pendingSync.athleteName} athleteId={pendingSync.athleteId} changes={pendingSync.changes}
+            onDismiss={() => dismissSync(pendingSync.athleteId)} />}
+        />;
       }
 
       case "profil": {
@@ -2432,10 +2403,19 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
     }
   };
 
+  const changeTab = (tab: string) => {
+    const query = new URLSearchParams(location.search);
+    if (query.has("vue")) {
+      query.delete("vue");
+      navigate({ search: query.toString() }, { replace: true, state: { activeTab: tab } });
+    }
+    setActiveTab(tab);
+  };
+
   return (
     <SidebarLayout
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
+      activeTab={visibleTab}
+      onTabChange={changeTab}
       staffMode={staffMode}
       onStaffModeChange={setStaffMode}
       onExportClick={() => setExportOpen(true)}
@@ -2449,7 +2429,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       {/* Main content */}
       <div className="max-w-7xl mx-auto">
         {/* Tab navigation bar */}
-        {activeTab !== "configuration" && legacyAthlete && athletes.length > 0 && (
+        {visibleTab !== "configuration" && !isExpress && legacyAthlete && athletes.length > 0 && (
           <div className="flex gap-1 p-1 rounded-lg bg-muted/50 mb-3">
             {[
               { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -2459,39 +2439,26 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             ].map(tab => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                aria-current={activeTab === tab.id ? "page" : undefined}
+                onClick={() => changeTab(tab.id)}
                 className={cn(
-                  "flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all",
+                  "min-h-11 min-w-0 flex-1 rounded-md px-1 text-xs font-medium transition-all sm:px-3 sm:text-sm",
                   activeTab === tab.id
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <span className="mr-1.5">{tab.icon}</span>
+                <span aria-hidden className="mr-1.5 hidden sm:inline">{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
           </div>
         )}
-        {(effectiveCloudSnapshot as any)?.source === "finisher-express" ? (
-          <ExpressDashboard
-            athleteName={currentAthlete?.name}
-            objectif={currentAthlete?.goal}
-            snapshot={{
-              fc_max: (effectiveCloudSnapshot as any)?.fc_max ?? null,
-              weight_kg: (effectiveCloudSnapshot as any)?.weight_kg ?? null,
-              vo2max: (effectiveCloudSnapshot as any)?.vo2max ?? null,
-              ftp: (effectiveCloudSnapshot as any)?.ftp ?? null,
-              vma: (effectiveCloudSnapshot as any)?.vma ?? null,
-            }}
-          />
-        ) : (
-          renderContent()
-        )}
+        {renderContent()}
       </div>
 
-      {/* Snapshot Manager (triggered by Quick Actions) */}
-      {showSnapshots && currentAthlete && (
+      {/* Profile shortcuts also open the snapshot manager. */}
+      {visibleTab !== "dashboard" && showSnapshots && currentAthlete && (
         <div className="max-w-7xl mx-auto mt-4" id="snapshot-manager-section">
           <SnapshotManager
             athleteId={currentAthlete.id}
@@ -2505,16 +2472,11 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
 
       <footer className="border-t border-border mt-8 sm:mt-12 py-4 sm:py-6 safe-area-inset-bottom">
         <div className="container mx-auto px-4 text-center text-xs sm:text-sm text-muted-foreground">
+          <AssistantDrawer selectedAthleteId={selectedAthleteId} currentPage={visibleTab} inlineTrigger={visibleTab === "dashboard"} />
           <p>Two For Coaching Lab • Analyse physiologique & décision coaching</p>
         </div>
       </footer>
       
-      {/* Assistant Chatbot */}
-      <AssistantDrawer 
-        selectedAthleteId={selectedAthleteId} 
-        currentPage={activeTab} 
-      />
-
       {/* Export Tools - triggered from sidebar */}
       {exportOpen && currentAthlete && (
         <ExportTools 
@@ -2540,19 +2502,14 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       )}
 
       {/* Bilan pré-objectif TFCL */}
-      {currentAthlete && (() => {
-        const future = raceGoals
-          .filter(g => new Date(g.race_date) >= new Date())
-          .sort((a, b) => new Date(a.race_date).getTime() - new Date(b.race_date).getTime());
-        const next = future[0];
-        return (
+      {currentAthlete && (
           <RaceReadinessReportDialog
             open={readinessOpen}
             onOpenChange={setReadinessOpen}
             athleteName={currentAthlete.name}
             objectif={currentAthlete.goal || "IM"}
             ambition={currentAmbition}
-            nextRace={next ? { race_name: next.race_name, race_type: next.race_type, race_date: next.race_date } : null}
+            nextRace={nextRace ?? null}
             compassInput={compassInputMemo}
             raceChronos={{
               time_5k_sec: (effectiveCloudSnapshot as any)?.time_5k_sec ?? null,
@@ -2563,9 +2520,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             }}
             vmaKmh={(effectiveCloudSnapshot as any)?.vma ?? null}
           />
-
-        );
-      })()}
+      )}
 
       <ProfileChoiceDialog
         open={profileChoiceOpen}

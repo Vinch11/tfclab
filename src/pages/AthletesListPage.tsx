@@ -37,7 +37,7 @@ export default function AthletesListPage() {
       return;
     }
     setSelectedAthleteId(athleteId);
-    navigate("/");
+    navigate("/", { state: { activeTab: "dashboard" } });
   };
 
   const handleNewAthlete = () => {

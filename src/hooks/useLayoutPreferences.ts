@@ -75,9 +75,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
 ];
 
 export const DASHBOARD_SECTIONS: SectionDefinition[] = [
-  { id: "quick-actions", label: "Actions rapides", icon: "Zap", category: "onboarding", defaultVisible: true },
   { id: "getting-started", label: "Guide de démarrage", icon: "Rocket", category: "onboarding", defaultVisible: true },
-  { id: "coaching-compass", label: "Coaching Compass™", icon: "Compass", category: "analyse", defaultVisible: true },
   { id: "analyse-section", label: "Analyse & Métriques", icon: "BarChart", category: "analyse", defaultVisible: true },
   { id: "leviers-section", label: "Leviers & Actions", icon: "Target", category: "analyse", defaultVisible: true },
   { id: "synthese-executive-dashboard", label: "Synthèse Exécutive", icon: "FileText", category: "analyse", defaultVisible: true },
@@ -174,9 +172,7 @@ export const RUNNING_ONLY_SECTIONS: string[] = [
 
 // Sections universelles (toujours visibles) — liste simplifiée
 export const UNIVERSAL_SECTIONS: string[] = [
-  "quick-actions",
   "getting-started",
-  "coaching-compass",
   "analyse-section",
   "leviers-section",
   "synthese-executive-dashboard",
@@ -366,12 +362,10 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
         .filter(s => !savedIds.has(s.id))
         .map(s => ({ id: s.id, visible: s.defaultVisible }));
 
-      const validConfigs = savedConfigs.filter(c =>
+      const merged = savedConfigs.filter(c =>
         defaultSections.some(s => s.id === c.id)
       );
 
-      const showCompass = tabId === "dashboard" && savedConfigs.some(c => c.id === "limiteurs-section" && c.visible);
-      const merged = validConfigs.map(c => showCompass && c.id === "coaching-compass" ? { ...c, visible: true } : c);
 
       const insertMissing = (sectionId: string, anchorIds: string[]) => {
         const def = defaultSections.find(s => s.id === sectionId);
@@ -392,15 +386,13 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
       };
 
       // Insérer les sections manquantes à des positions stratégiques
-      insertMissing("quick-actions", ["getting-started"]);
-      insertMissing("coaching-compass", ["quick-actions", "getting-started"]);
-      insertMissing("analyse-section", ["coaching-compass", "quick-actions"]);
-      insertMissing("leviers-section", ["analyse-section", "coaching-compass"]);
+      insertMissing("analyse-section", ["getting-started"]);
+      insertMissing("leviers-section", ["analyse-section"]);
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
       insertMissing("wbal-recovery", ["cpw-prime-curve", "metabolic-power-curve", "fatmax-tfcl"]);
-      insertMissing("vlamax-profile-scale", ["vlamax-targets", "fatmax-tfcl", "coaching-compass"]);
-      insertMissing("tte-glycogen-insights", ["vlamax-profile-scale", "coaching-compass", "analyse-section"]);
+      insertMissing("vlamax-profile-scale", ["synthese-executive-dashboard"]);
+      insertMissing("tte-glycogen-insights", ["vlamax-profile-scale", "analyse-section"]);
       insertMissing("vlamax-profile-scale-profil", ["vlamax-v2-calibration-profil", "fatmax-tfcl-profil", "lactate-thresholds-profil"]);
       insertMissing("nolio-analysis", ["two-for-coaching", "athlete-profile", "athlete-refs"]);
       insertMissing("fat-carb-combustion-profil", ["fatmax-tfcl-profil", "vo2max-age-profil"]);
