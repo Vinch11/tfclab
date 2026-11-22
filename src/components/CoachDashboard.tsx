@@ -126,7 +126,12 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
           <section className="dashboard-reference flex min-w-0 flex-col items-start gap-3 rounded-3xl border bg-card p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold"><ClipboardList aria-hidden className="size-5 text-muted-foreground" /> Bilan de référence</h2>
             <p className="text-xl font-semibold tracking-tight">{snapshot ? displayDate(snapshot.date) ?? "Date inconnue" : "Aucun bilan"}</p>
-            {coverage && <div className="w-full space-y-2">
+            {coverage && <div className="coverage-summary w-full space-y-2">
+              <svg aria-hidden="true" viewBox="0 0 48 48" className="coverage-wheel hidden">
+                <circle cx="24" cy="24" r="19" />
+                {coverage.total > 0 && <circle cx="24" cy="24" r="19" pathLength={coverage.total}
+                  strokeDasharray={`${coverage.filled} ${coverage.total}`} transform="rotate(-90 24 24)" />}
+              </svg>
               <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">{coverage.filled} sur {coverage.total}</span> repères renseignés</p>
               <progress aria-label="Repères physiologiques renseignés" value={coverage.filled} max={coverage.total}
                 className="block h-2 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-primary" />
