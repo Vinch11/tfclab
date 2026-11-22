@@ -73,6 +73,15 @@ describe("Accueil coach", () => {
     expect(screen.getByRole("region", { name: "Limiteurs hiérarchisés" })).toHaveTextContent("Lecture prudente : Tenue au seuil (TTE) ou Profil glycolytique (VLamax)");
   });
 
+  it("place l'état des facteurs entre le profil et les limiteurs", () => {
+    openDashboard({ snapshot, flow, profile: <p>Radar du profil physiologique</p>, factors: <p>État des facteurs face à l’idéal</p> });
+    const text = document.body.textContent ?? "";
+    const at = (s: string) => text.indexOf(s);
+    expect(at("Radar du profil physiologique")).toBeGreaterThanOrEqual(0);
+    expect(at("Radar du profil physiologique")).toBeLessThan(at("État des facteurs face à l’idéal"));
+    expect(at("État des facteurs face à l’idéal")).toBeLessThan(at("Limiteurs hiérarchisés"));
+  });
+
   it("sans bilan ni profil, garde l'orientation vers la saisie plutôt qu'un profil vide", () => {
     openDashboard({ snapshot: null, flow: null, profile: null });
     expect(screen.queryByRole("region", { name: "Limiteurs hiérarchisés" })).toBeNull();

@@ -28,6 +28,8 @@ type Props = {
   alert: ReactNode;
   /** Profile radar and comparisons, shown on the dashboard itself. */
   profile?: ReactNode;
+  /** State of each factor against the objective × ambition ideal. */
+  factors?: ReactNode;
   compass: ReactNode;
   analyses: ReactNode;
   bilans: ReactNode;
@@ -45,7 +47,7 @@ const actionClass = "group flex min-h-14 min-w-0 items-center gap-3 rounded-xl p
 const arrow = <ArrowRight aria-hidden className="ml-auto size-4 shrink-0 text-muted-foreground group-hover:text-primary" />;
 
 export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, onAmbitionChange, onGoalChange,
-  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, compass, analyses, bilans, onOpenReport }: Props) {
+  snapshot, coverage, flow, fatigueWarning, nextRace, alert, profile, factors, compass, analyses, bilans, onOpenReport }: Props) {
   const [search, setSearch] = useSearchParams();
   const express = snapshot?.source === "finisher-express";
   const panel = search.get("vue");
@@ -131,6 +133,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
         {profileFirst ? <>
           {fatigueWarning && <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">{fatigueWarning}</p>}
           <div className="min-w-0 rounded-3xl border bg-card p-4 sm:p-6">{profile}</div>
+          {factors}
           <DashboardLimiters flow={flow} objective={getObjectifLabel((athlete.goal ?? "IM") as ObjectifType)} ambition={getAmbitionDefinition(ambition).label} />
           <div className="flex flex-wrap gap-2">
             <Button asChild className="min-h-11"><Link to={linkTo("compass")}><Compass /> Levier et décision du Compass <ArrowRight /></Link></Button>

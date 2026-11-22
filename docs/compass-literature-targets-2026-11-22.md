@@ -1,6 +1,8 @@
-# Cibles du Compass et littérature — première table à valider (22 novembre 2026)
+# Cibles du Compass et littérature — table des idéaux par objectif et ambition (22 novembre 2026)
 
-**Statut : partiel, à valider par le coach. Rien de ce document n'est branché dans l'application.** Aucune cible, aucun classement ni aucun plan n'est modifié. Chaque ligne ci-dessous est lue dans le texte complet d'un article ; ce que je n'ai pas pu lire est listé en fin de document, sans valeur de remplacement.
+**Statut : deuxième version, à valider par le coach.** Les sections 1 à 4 reprennent la première lecture. Les sections 6 à 9 ajoutent sept articles lus en texte complet et une table d'idéaux complète, branchée sur le Dashboard en **affichage seul** : le classement des limiteurs, les cibles du moteur et les plans ne sont pas modifiés.
+
+Chaque valeur porte un niveau de preuve : **Mesuré** (moyenne d'une cohorte publiée du niveau correspondant), **Dérivé** (calcul par une règle écrite, faute de cohorte directe) ou **Repère de coaching** (valeur TFCL existante, sans cohorte). Aucune valeur dérivée n'est présentée comme publiée.
 
 ## Principe : ambition = niveau de performance visé
 
@@ -90,4 +92,99 @@ Conclusion : la cible « durabilité sur 100 par ambition » (60/70/80/90) du co
 3. **Plage VLamax course 5 km** : à rediscuter ; la seule mesure lue la contredit pour les coureurs rapides.
 4. **Qualifiable et Elite** : aucune source lue ; à étiqueter « repère de coaching » tant qu'une cohorte élite n'est pas lue.
 
-Rien ne sera branché dans le Compass avant ta validation ligne par ligne.
+L'affichage des idéaux sur le Dashboard est actif en lecture seule (sections 6 à 9). Le moteur de limiteurs et les plans ne sont pas modifiés : ta validation ligne par ligne reste nécessaire avant tout alignement du moteur sur ces valeurs.
+
+## 6. Sources supplémentaires lues (texte complet, PMC)
+
+| Source | Cohorte | Valeurs retenues |
+|---|---|---|
+| *Comparative analysis of endurance, strength and body composition indicators in professional, under-23 and junior cyclists*, Front Physiol 2022, [PMC9388719](https://pmc.ncbi.nlm.nih.gov/articles/PMC9388719/) | 14 professionnels, 24 U23, 13 juniors (hommes, route) | VO₂max 82,6 ± 3,5 / 79,8 ± 4,9 / 74,5 ± 3,6 ml/kg/min ; puissance au point de compensation respiratoire 6,34 / 6,10 / 5,59 W/kg ; contre-la-montre 8 min 6,06 / 5,68 / 5,30 W/kg ; puissance maximale 7,31 / 6,94 / 6,64 W/kg |
+| *Age-associated changes in VO2 and power output… endurance-trained New Zealand cyclists*, 2007, [PMC3794488](https://pmc.ncbi.nlm.nih.gov/articles/PMC3794488/) | 36 hommes, 20 femmes, 16–64 ans | hommes : VO₂max 56,2 ± 9,6, puissance au VO₂max 4,4 ± 0,7 W/kg ; femmes : 51,3 ± 8,6 et 4,2 ± 0,6 ; baisse de 0,65 (hommes) et 0,39 (femmes) ml/kg/min par an |
+| *Physiological profile of adult male long-distance trail runners*, Einstein 2020, [PMC7108817](https://pmc.ncbi.nlm.nih.gov/articles/PMC7108817/) | 25 régionaux, 19 nationaux, ultra-trail, hommes | VO₂peak 57,3 ± 7,7 / 63,4 ± 4,3 ml/kg/min ; seuil ventilatoire 2 : 50,8 ± 6,2 / 57,9 ± 4,6 |
+| *The Training Characteristics of World-Class Distance Runners*, Sports Med Open 2022, [PMC8975965](https://pmc.ncbi.nlm.nih.gov/articles/PMC8975965/) | coureurs de classe mondiale | fraction de VO₂max en course : 1 500–5 000 m 90–99 %, 10 000 m 85–89 %, semi et marathon 80–84 % ; marathonienne au record du monde ≈ 70 ml/kg/min |
+| *Contextualising maximal fat oxidation during exercise: determinants and normative values*, Front Physiol 2018, [PMC5974542](https://pmc.ncbi.nlm.nih.gov/articles/PMC5974542/) | hommes entraînés en endurance, maigres (n = 201), ergocycle, à jeun | FatMax 56 ± 8 % VO₂max (percentiles 20/40/60/80 : 49/54/58/63) ; débit maximal 0,53 ± 0,16 g/min (0,40/0,49/0,58/0,67) ; récréatifs actifs : 51 ± 8 % et 0,46 ± 0,14 |
+| *Reliability of power output, maximal rate of capillary blood lactate accumulation… 15-s sprint cycling*, Physiol Rep 2024, [PMC11116165](https://pmc.ncbi.nlm.nih.gov/articles/PMC11116165/) | 50 cyclistes (VO₂max 55,4 ± 7,6) | νLamax 0,54–0,55 ± 0,13–0,14 mmol/L/s (temps phosphagène 3,5 s) ; 0,49–0,56 selon le temps retenu |
+| *Durability as an independent parameter of endurance performance in cycling*, BMC Sports Sci Med Rehabil 2025, [PMC12243304](https://pmc.ncbi.nlm.nih.gov/articles/PMC12243304/) | 20 cyclistes amateurs bien entraînés | après 1 000 kJ à 80 % de la puissance de 20 min : −10,1 ± 6,5 % (20 min) et −10,8 ± 7,8 % (5 min) ; aucune corrélation avec VO₂max ni FTP relative |
+
+## 7. Comment les idéaux sont construits
+
+**Ambition = niveau de performance.** L'ambition est lue comme un niveau de chrono : Découverte = plus de 4 h 30 au marathon, Confirmé = 3 h 30–4 h 30, Compétiteur = 2 h 30–3 h 30. Qualifiable et Elite n'ont pas de cohorte lue en course : leurs valeurs sont **dérivées**. En vélo : Confirmé = cyclistes d'endurance entraînés, Qualifiable = juniors de compétition, Elite = professionnels. **Ces correspondances sont à valider.**
+
+**Zone idéale** = moyenne ± ½ écart-type de la cohorte. C'est une largeur de lecture, pas une plage optimale ni un percentile.
+
+**Règles de dérivation (écrites dans `src/lib/coachingCompass/idealReferences.ts`) :**
+
+1. *VO₂max course sur route et trail court* : échelle de niveau commune à toutes les distances. Contrôle croisé : les hommes à moins de 20 min au 5 000 m (63,2 ± 4,5, Quittmann) retombent sur la tranche 2 h 30–3 h du marathon (63,3 ± 7,7, Gordon).
+2. *Triathlon, course* : cohorte Assis 2024 (56,3 ± 5,56) pour Compétiteur ; les autres ambitions reprennent l'échelle course réduite de 5,4 % (56,3 / 59,5), dérivées.
+3. *Ultra-trail* : cohortes régionale (57,3) et nationale (63,4) mesurées pour Confirmé et Compétiteur.
+4. *VMA* = VO₂max × 60 / coût énergétique (214,3 ml/kg/km pour Découverte, 206 Confirmé, 204,7 Compétiteur : mesurés au seuil chez Gordon ; 196,5 Qualifiable : Quittmann ; 190 Elite : extrapolé). Triathlon Compétiteur : valeur mesurée Assis (16,69 ± 1,65).
+5. *Vélo, VO₂max* : cohortes mesurées (entraînés, juniors, professionnels) ; Découverte et Compétiteur dérivés (milieu entre deux cohortes).
+6. *Seuil vélo (FTP/kg)* = 0,84 × (VO₂max − 7) / 10,8. L'équation de la puissance au VO₂max est recoupée avec les quatre cohortes lues (calculé 7,00 / 6,74 / 6,25 / 4,56 W/kg contre 7,31 / 6,94 / 6,64 / 4,4 mesurés : écart de 0 à 6 %). La fraction 0,84 est celle du seuil LT2 chez les coureurs récréatifs (Gordon, 84 % de la VO₂max) et se situe dans la plage 0,84–0,88 de RCP/puissance maximale des cyclistes juniors, U23 et professionnels.
+
+## 8. Grille complète (valeur, zone, M = mesuré, D = dérivé)
+
+Générée depuis le code. Elle couvre les 12 objectifs de l'application (StartToRun exclu : objectif débutant, hors référentiel) et les 5 ambitions.
+
+### VO₂max course (ml/kg/min)
+
+| Objectif | finisher | age_group | competitor | elite | world_class |
+|---|---|---|---|---|---|
+| 5K | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| 10K | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| Semi | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| Marathon | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| Trail | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| TrailShort | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| TrailMountain | 46.5 (43.9–49.1) M | 53.1 (49.8–56.4) M | 59.5 (56.35–62.65) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| TrailUltra | 46.5 (43.9–49.1) M | 57.33 (53.5–61.16) M | 63.39 (61.26–65.52) M | 67 (64.75–69.25) D | 75 (72.5–77.5) D |
+| Sprint | 44 (41.4–46.6) D | 50.2 (46.9–53.5) D | 56.3 (53.52–59.08) M | 63.4 (61.15–65.65) D | 71 (68.5–73.5) D |
+| Olympic | 44 (41.4–46.6) D | 50.2 (46.9–53.5) D | 56.3 (53.52–59.08) M | 63.4 (61.15–65.65) D | 71 (68.5–73.5) D |
+| 703 | 44 (41.4–46.6) D | 50.2 (46.9–53.5) D | 56.3 (53.52–59.08) M | 63.4 (61.15–65.65) D | 71 (68.5–73.5) D |
+| IM | 44 (41.4–46.6) D | 50.2 (46.9–53.5) D | 56.3 (53.52–59.08) M | 63.4 (61.15–65.65) D | 71 (68.5–73.5) D |
+
+### VMA course (km/h)
+
+| Objectif | finisher | age_group | competitor | elite | world_class |
+|---|---|---|---|---|---|
+| 5K | 13 (12.27–13.73) D | 15.5 (14.54–16.46) D | 17.4 (16.48–18.32) D | 20.5 (19.81–21.19) D | 23.7 (22.91–24.49) D |
+| 10K | 13 (12.27–13.73) D | 15.5 (14.54–16.46) D | 17.4 (16.48–18.32) D | 20.5 (19.81–21.19) D | 23.7 (22.91–24.49) D |
+| Semi | 13 (12.27–13.73) D | 15.5 (14.54–16.46) D | 17.4 (16.48–18.32) D | 20.5 (19.81–21.19) D | 23.7 (22.91–24.49) D |
+| Marathon | 13 (12.27–13.73) D | 15.5 (14.54–16.46) D | 17.4 (16.48–18.32) D | 20.5 (19.81–21.19) D | 23.7 (22.91–24.49) D |
+| TrailUltra | 13 (12.27–13.73) D | 16.7 (15.58–17.82) D | 18.6 (17.98–19.22) D | 20.5 (19.81–21.19) D | 23.7 (22.91–24.49) D |
+| Sprint | 12.3 (11.57–13.03) D | 14.6 (13.64–15.56) D | 16.69 (15.87–17.52) M | 19.4 (18.71–20.09) D | 22.4 (21.61–23.19) D |
+| Olympic | 12.3 (11.57–13.03) D | 14.6 (13.64–15.56) D | 16.69 (15.87–17.52) M | 19.4 (18.71–20.09) D | 22.4 (21.61–23.19) D |
+| 703 | 12.3 (11.57–13.03) D | 14.6 (13.64–15.56) D | 16.69 (15.87–17.52) M | 19.4 (18.71–20.09) D | 22.4 (21.61–23.19) D |
+| IM | 12.3 (11.57–13.03) D | 14.6 (13.64–15.56) D | 16.69 (15.87–17.52) M | 19.4 (18.71–20.09) D | 22.4 (21.61–23.19) D |
+
+### VO₂max vélo (ml/kg/min)
+
+| Objectif | finisher | age_group | competitor | elite | world_class |
+|---|---|---|---|---|---|
+| Sprint | 46.5 (43.9–49.1) D | 56.2 (51.4–61) M | 65.35 (62.05–68.65) D | 74.54 (72.77–76.32) M | 82.64 (80.87–84.41) M |
+| Olympic | 46.5 (43.9–49.1) D | 56.2 (51.4–61) M | 65.35 (62.05–68.65) D | 74.54 (72.77–76.32) M | 82.64 (80.87–84.41) M |
+| 703 | 46.5 (43.9–49.1) D | 56.2 (51.4–61) M | 65.35 (62.05–68.65) D | 74.54 (72.77–76.32) M | 82.64 (80.87–84.41) M |
+| IM | 46.5 (43.9–49.1) D | 56.2 (51.4–61) M | 65.35 (62.05–68.65) D | 74.54 (72.77–76.32) M | 82.64 (80.87–84.41) M |
+
+### Seuil vélo FTP/kg (W/kg)
+
+| Objectif | finisher | age_group | competitor | elite | world_class |
+|---|---|---|---|---|---|
+| Sprint | 3.07 (2.87–3.27) D | 3.83 (3.46–4.2) D | 4.54 (4.28–4.8) D | 5.25 (5.11–5.39) D | 5.88 (5.74–6.02) D |
+| Olympic | 3.07 (2.87–3.27) D | 3.83 (3.46–4.2) D | 4.54 (4.28–4.8) D | 5.25 (5.11–5.39) D | 5.88 (5.74–6.02) D |
+| 703 | 3.07 (2.87–3.27) D | 3.83 (3.46–4.2) D | 4.54 (4.28–4.8) D | 5.25 (5.11–5.39) D | 5.88 (5.74–6.02) D |
+| IM | 3.07 (2.87–3.27) D | 3.83 (3.46–4.2) D | 4.54 (4.28–4.8) D | 5.25 (5.11–5.39) D | 5.88 (5.74–6.02) D |
+
+## 9. Limites, écarts avec le moteur, et ce qui reste en repère de coaching
+
+* **Les idéaux de VO₂max, VMA et seuil vélo ne varient pas avec la distance de l'épreuve.** Les études lues ne montrent pas d'écart de VO₂max entre distances à niveau de chrono équivalent. L'objectif intervient par les disciplines (vélo seulement en triathlon), le triathlon (course réduite de 5,4 %), l'ultra-trail (cohortes propres) et, hors de cette grille, par les repères VLamax et TTE du moteur, qui varient bien avec l'objectif mais restent des repères de coaching. La seule donnée lue qui dépend de la distance est la fraction de VO₂max soutenue en course (90–99 % sur 5 km, 80–84 % au marathon) ; elle n'est pas encore branchée, faute d'axe correspondant dans le Compass.
+* **Les idéaux affichés diffèrent des cibles du moteur.** Exemple, marathon Compétiteur : idéal 59,5 ml/kg/min (zone 56,4–62,7) contre 59,5 dans le moteur, mais VMA idéale 17,4 km/h contre 18 au moteur ; seuil vélo Ironman Compétiteur : idéal 4,54 W/kg contre 4,0. L'écran affiche le repère du moteur sous « D'où vient cette valeur » quand il diffère. L'aligner demande une décision sur le classement des limiteurs et donc sur les plans : **non fait**.
+* **Dérivé ne veut pas dire validé.** Qualifiable et Elite en course, Découverte et Compétiteur en vélo, tout le seuil vélo et toute la VMA course sont dérivés.
+* **Reste en repère de coaching, sans cohorte directe** : TTE par ambition, VLamax par objectif (les mesures lues sont rappelées plus bas), W′, économie de course, facteur d'âge.
+* **VLamax** : course 0,74 ± 0,14 mmol/L/s chez les hommes à moins de 20 min au 5 000 m (sprint de 100 m), au-dessus du maximum de 0,70 du moteur pour le 5 km ; vélo 0,54–0,55 ± 0,13–0,14 (sprint de 15 s), dans la plage du moteur. Protocoles différents : non comparables sans précaution.
+* **FatMax** : 56 ± 8 % de la VO₂max chez des hommes entraînés, à jeun, sur ergocycle. Le Compass l'exprime en % de la FTP : pas de conversion sans hypothèse supplémentaire, donc pas d'idéal affiché.
+* **Durabilité** : aucune cible par niveau. Valeur observée chez des amateurs bien entraînés : −10 % de puissance sur 5 et 20 min après 1 000 kJ, sans lien avec la VO₂max ni la FTP.
+* **Âge** : pente transversale de −0,65 ml/kg/min par an (hommes) et −0,39 (femmes) chez des cyclistes d'endurance. Aucun ajustement d'âge n'est appliqué aux idéaux.
+* **Natation et force** : aucune cohorte lue ; aucun idéal affiché.
+* **Non vérifié** : aucun essai dans un navigateur ; sources lues à partir de PMC seulement (autres éditeurs inaccessibles depuis cet environnement) ; quelques articles n'ont pas pu être téléchargés (protection anti-robot) et n'ont pas été utilisés.
+
+Rien de cette table n'est utilisé par les plans.

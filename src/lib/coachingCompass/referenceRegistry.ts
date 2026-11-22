@@ -46,6 +46,60 @@ export const compassEvidence = [
     protocol: 'W′ décrit la quantité de travail réalisable au-dessus de la puissance critique.',
     limitation: 'Les données disponibles ne définissent pas une réserve cible pour chaque ambition en endurance.',
   },
+  {
+    id: 'gordon-2017', title: 'Gordon et al. · 2017', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5703178/',
+    population: '97 marathoniens récréatifs testés (63 hommes, 34 femmes), 82 avec chrono ; 5 tranches de 2 h 30 à plus de 4 h 30.',
+    protocol: 'Test incrémental sur tapis (seuils lactiques LT1 et LT2, économie) puis test à l’épuisement pour la VO₂max ; tableaux 1 et 2.',
+    limitation: 'Groupes mixtes, 40 à 44 ans, effectifs de 7 à 17 par tranche. Aucun coureur élite : ne couvre pas les niveaux Qualifiable et Elite.',
+  },
+  {
+    id: 'quittmann-2022', title: 'Quittmann et al. · Int J Sports Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10072929/',
+    population: '44 coureurs et triathlètes compétitifs (29 hommes, 15 femmes) ; 5 000 m en 20 min ou moins (hommes), 22 min ou moins (femmes).',
+    protocol: 'Test incrémental, sprint de 100 m pour le ċLamax, ramp test, 5 000 m chronométré.',
+    limitation: 'Un seul niveau de performance. ċLamax en course : 0,74 ± 0,14 (hommes), 0,55 ± 0,13 mmol/L/s ; il n’ajoute que 4,4 % de variance au modèle du 5 000 m et n’est pas retenu chez les hommes.',
+  },
+  {
+    id: 'casado-2022', title: 'The Training Characteristics of World-Class Distance Runners · Sports Med Open · 2022', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8975965/',
+    population: 'Coureurs de classe mondiale (5 000 m au marathon), intégration de la littérature et de pratiques éprouvées.',
+    protocol: 'Échelle d’intensité : 1 500–5 000 m à 90–99 % de la VO₂max, 10 000 m à 85–89 %, semi et marathon à 80–84 % ; marathonienne détentrice du record du monde, VO₂max ≈ 70 ml/kg/min.',
+    limitation: 'Pas de table de VO₂max par niveau de chrono ; les chiffres sont des repères de pratique.',
+  },
+  {
+    id: 'trail-2020', title: 'Physiological profile of adult male long-distance trail runners · Einstein · 2020', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7108817/',
+    population: '44 ultra-traileurs hommes (36,5 ± 7,2 ans) : 25 de niveau régional, 19 de niveau national.',
+    protocol: 'Test incrémental sur tapis (seuils ventilatoires, VO₂peak) et test de Wingate.',
+    limitation: 'Hommes seulement, un pays. VO₂peak régionaux 57,3 ± 7,7, nationaux 63,4 ± 4,3 ml/kg/min.',
+  },
+  {
+    id: 'pro-u23-junior-2022', title: 'Comparative analysis of endurance, strength and body composition indicators in professional, under-23 and junior cyclists · Front Physiol · 2022', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC9388719/',
+    population: '51 cyclistes sur route : 14 professionnels (26,1 ans), 24 U23, 13 juniors.',
+    protocol: 'Test incrémental maximal et contre-la-montre de 8 min ; tableau 1 : VO₂max 82,6 / 79,8 / 74,5, puissance au point de compensation respiratoire 6,34 / 6,10 / 5,59 W/kg.',
+    limitation: 'Hommes d’une équipe espagnole. Aucune valeur pour des amateurs adultes.',
+  },
+  {
+    id: 'cyclists-age-2007', title: 'Age-associated changes in VO2 and power output, endurance-trained New Zealand cyclists · 2007', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3794488/',
+    population: '56 cyclistes d’endurance entraînés : 36 hommes, 20 femmes, 16 à 64 ans.',
+    protocol: 'Test incrémental avec lactate. VO₂max hommes 56,2 ± 9,6 ml/kg/min, puissance au VO₂max 4,4 ± 0,7 W/kg ; baisse de 0,65 ml/kg/min par an chez les hommes (0,39 chez les femmes).',
+    limitation: 'Étude transversale : la pente d’âge décrit des groupes, pas l’évolution d’un athlète.',
+  },
+  {
+    id: 'fat-normative-2018', title: 'Contextualising maximal fat oxidation during exercise: determinants and normative values · Front Physiol · 2018', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5974542/',
+    population: 'Synthèse de cohortes homogènes testées à jeun sur ergocycle.',
+    protocol: 'Percentiles du débit maximal d’oxydation des graisses et du FatMax (% VO₂max) ; hommes entraînés en endurance, maigres (n = 201) : FatMax 56 ± 8 %, débit 0,53 ± 0,16 g/min.',
+    limitation: 'Ergocycle, à jeun, aucune donnée sur des femmes entraînées en endurance ; non convertible tel quel en % de FTP.',
+  },
+  {
+    id: 'vlamax-cycling-2024', title: 'Reliability of power output, maximal rate of capillary blood lactate accumulation and phosphagen contribution time after 15-s sprint cycling · Physiol Rep · 2024', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11116165/',
+    population: '50 cyclistes (31,2 ± 7,8 ans, VO₂max 55,4 ± 7,6 ml/kg/min).',
+    protocol: 'Sprint de 15 s, prélèvements capillaires pendant 8 min ; νLamax 0,54–0,55 ± 0,13–0,14 mmol/L/s avec un temps phosphagène de 3,5 s.',
+    limitation: 'La valeur dépend du temps phosphagène retenu (0,49–0,56) ; étude de fiabilité, pas une norme.',
+  },
+  {
+    id: 'durability-cycling-2025', title: 'Durability as an independent parameter of endurance performance in cycling · BMC Sports Sci Med Rehabil · 2025', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12243304/',
+    population: '20 cyclistes amateurs sur route bien entraînés.',
+    protocol: '1 000 kJ à 80 % de la puissance de 20 min, puis 5 min et 20 min à fond : baisse de 10,8 ± 7,8 % et 10,1 ± 6,5 %.',
+    limitation: 'Aucune corrélation avec la VO₂max ni la FTP relative : la durabilité se mesure à part. Valeur observée, pas une cible par ambition.',
+  },
 ] as const;
 
 /** Published mean and SD, not an optimal interval, percentile or readiness threshold. */
