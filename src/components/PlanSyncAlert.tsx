@@ -21,7 +21,7 @@ export function PlanSyncAlert({ athleteName, athleteId, changes, onDismiss }: Pl
   const navigate = useNavigate();
 
   const handleGoToPlan = () => {
-    navigate("/plan-ia", { state: { athleteId, autoRegenerate: true } });
+    navigate("/planning/ai-plan", { state: { athleteId, autoRegenerate: true } });
   };
 
   return (
@@ -61,7 +61,7 @@ export function PlanSyncAlert({ athleteName, athleteId, changes, onDismiss }: Pl
           className="mt-1 h-7 text-xs gap-1 border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300"
           onClick={handleGoToPlan}
         >
-          Mettre à jour le plan <ArrowRight className="h-3 w-3" />
+          Ouvrir le plan <ArrowRight className="h-3 w-3" />
         </Button>
       </AlertDescription>
     </Alert>

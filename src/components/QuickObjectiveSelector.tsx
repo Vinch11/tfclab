@@ -177,13 +177,12 @@ export function QuickObjectiveSelector({
             variant="outline"
             size="sm"
             className={cn("h-9 gap-1.5 text-sm border-primary/30 bg-primary/5 hover:bg-primary/10", className)}
+            aria-label={`Modifier l’objectif · ${label}`}
             disabled={disabled || saving}
           >
             {saving ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <span aria-hidden>🎯</span>
-            )}
+            ) : !sportIcon && <Target aria-hidden className="size-4" />}
             <span className="truncate flex-1 min-w-0 flex items-center gap-1">
               {sportIcon && <span aria-hidden className="shrink-0">{sportIcon}</span>}
               <span className="truncate">{label}</span>

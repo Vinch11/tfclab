@@ -194,7 +194,7 @@ export default function App() {
                   {/* ═══════════════════════════════════════════ */}
                   {/* LEGACY REDIRECTS                            */}
                   {/* ═══════════════════════════════════════════ */}
-                  <Route path="/dashboard" element={<Navigate to="/" replace />} />
+                  <Route path="/dashboard" element={<Navigate to="/" state={{ activeTab: "dashboard" }} replace />} />
                   <Route path="/AthleteEditPage" element={<Navigate to="/athleteEditPage" replace />} />
                   <Route path="/tests" element={<Navigate to="/diagnostic/tests" replace />} />
                   <Route path="/tfcl-testing-week" element={<Navigate to="/diagnostic/testing-week-tfcl" replace />} />

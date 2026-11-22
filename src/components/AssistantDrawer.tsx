@@ -59,6 +59,7 @@ interface Message {
 interface AssistantDrawerProps {
   selectedAthleteId: string | null;
   currentPage?: string;
+  inlineTrigger?: boolean;
   prefilledQuestion?: string;
   focusWahooWorkoutId?: string | null;
   focusWahooWorkoutName?: string | null;
@@ -267,6 +268,7 @@ function MessageBubble({ msg }: { msg: Message }) {
 export function AssistantDrawer({ 
   selectedAthleteId, 
   currentPage = "dashboard",
+  inlineTrigger = false,
   prefilledQuestion,
   focusWahooWorkoutId,
   focusWahooWorkoutName
@@ -413,11 +415,13 @@ export function AssistantDrawer({
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
-            size="lg"
-            className="fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6 touch-target"
+            size={inlineTrigger ? "sm" : "lg"}
+            variant={inlineTrigger ? "ghost" : "default"}
+            className={inlineTrigger ? "min-h-11 gap-2" : "fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg md:bottom-6 touch-target"}
             aria-label="Ouvrir l'assistant"
           >
-            <MessageCircle className="h-6 w-6" />
+            <MessageCircle className={inlineTrigger ? "size-4" : "h-6 w-6"} />
+            {inlineTrigger && "Assistant du coach"}
           </Button>
         </SheetTrigger>
         
