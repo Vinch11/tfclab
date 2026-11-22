@@ -21,7 +21,11 @@ test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et 
     await expect(report).toHaveURL(/\/print-preview\?d=/);
     await expect(report.locator('main')).toContainText('Camille');
     await expect(report.locator('main')).toContainText('Enchaînement spécifique');
+    await expect(report.locator('#empreinte .lab-gauge').first()).toBeVisible();
+    await expect(report.locator('#terrain')).toContainText('Puissance pendant le test');
+    await expect(report.locator('#evolution')).toContainText('171 W');
     if (audience === 'coach') {
+      await expect(report.locator('#terrain')).toContainText('Capteur témoin');
       await expect(report.locator('#staff-evidence')).toContainText('Note réservée au coach');
       await expect(report.locator('#lecture-coach')).toBeVisible();
     } else {
@@ -29,6 +33,8 @@ test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et 
       await expect(report.locator('#preparation')).toContainText('Le fil du calendrier enregistré');
       await expect(report.locator('#reperes-swim')).toContainText('1:40 min/100 m');
       await expect(report.locator('#suivi')).toBeVisible();
+      await expect(report.locator('#terrain')).not.toContainText('Capteur témoin');
+      await expect(report.locator('#reperes-swim img')).toBeVisible();
     }
     expect(await report.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await report.close();

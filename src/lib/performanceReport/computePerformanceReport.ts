@@ -174,7 +174,8 @@ export function computePerformanceReport(
   // "hors cible" par rapport à la bande générique.
   const vlamaxTarget = getVlamaxTarget(payload?.athlete?.goal ?? null, "run");
 
-  const hasModel = !isRunning && vo2max != null && vlamax != null && weightKg != null;
+  const hasModel = !isRunning && payload.vlamax?.source !== 'unknown' &&
+    vo2max != null && vo2max > 0 && vlamax != null && vlamax > 0 && weightKg != null && weightKg > 0;
   const profile: MaderProfile | null = hasModel
     ? { vo2max, vlamax, weight: weightKg, efficiency: 0.23 }
     : null;

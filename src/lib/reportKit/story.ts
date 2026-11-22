@@ -1,3 +1,4 @@
+import swimPhoto from '@/assets/report-swimming-pool.jpg';
 import bikePhoto from '@/assets/report-cycling-road.jpg';
 import runPhoto from '@/assets/report-running-path.jpg';
 import bikeEndurance from '@/assets/report-cycling-endurance.jpg';
@@ -76,7 +77,8 @@ const TURN: Record<Sport, { title: string; question: string; steps: string[] }> 
 /** Page de transition entre deux parcours sportifs. */
 const abs = (u: string) => (typeof window !== 'undefined' ? new URL(u, window.location.origin).href : u);
 
-export function sportPhoto(sport: Sport, endurance = false): string {
+export function sportPhoto(sport: Sport | 'swim', endurance = false): string {
+  if (sport === 'swim') return `<figure class="sport-figure"><img src="${abs(swimPhoto)}" width="1400" height="933" alt="Nageur de crawl dans un bassin à lignes d’eau bleues" /><figcaption>Illustration · natation en bassin</figcaption></figure>`;
   const photo = endurance ? (sport === 'bike' ? bikeEndurance : runEndurance) : (sport === 'bike' ? bikePhoto : runPhoto);
   return `<figure class="sport-figure"><img src="${abs(photo)}" width="1536" height="1024" alt="${sport === 'bike' ? 'Cyclisme sur route' : 'Course à pied en plein air'}" /><figcaption>Illustration sportive</figcaption></figure>`;
 }

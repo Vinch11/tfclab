@@ -101,7 +101,7 @@ export function mapExportPayloadToProfileReport(
     durabilityDataBySport,
     brief: payload.reportBrief,
     calendar: payload.calendar,
-    swimming: compass?.presentation?.sport === 'triathlon' || /^(IM|703|Olympic|Sprint|Ironman)$/i.test(goal ?? '')
+    swimming: !/duathlon/i.test(goal ?? '') && (compass?.presentation?.sport === 'triathlon' || /^(IM|703|Olympic|Sprint|Ironman)$/i.test(goal ?? ''))
       ? { css: refs?.css > 0 ? Math.round(refs.css) : null } : undefined,
     nextRace: payload.nextRace,
     objectifLabel: goal ? getObjectifLabel(goal) : "ton prochain objectif",

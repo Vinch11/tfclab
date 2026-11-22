@@ -20,6 +20,10 @@ import { readReportCalendar } from "@/lib/reportKit/readReportCalendar";
 import { format } from "date-fns";
 import { useCalibrationEvidence } from "@/hooks/useCalibrationEvidence";
 import { buildReportBrief, type ReportBrief, type CalendarEntry } from "@/lib/reportKit/reportBrief";
+import { buildVisualProfile, visualChapter } from "@/lib/reportKit/visualProfile";
+import { swimFigure } from "@/lib/reportKit/swimFigure";
+import { coachingLevers, recoveryDetails, modelScenarios } from "@/lib/reportKit/coachDetails";
+import type { PerformanceReportInput } from "@/lib/performanceReport/types";
 import { buildExpressEdition } from "@/lib/reportKit/expressEdition";
 import { calendarPreview, coachDecision, dateLabel, editionCover, editionNav } from "@/lib/reportKit/editions";
 import editionCSS from "@/lib/reportKit/editions.css?raw";
@@ -186,6 +190,7 @@ interface ExportOptions {
 // Payload normalisé pour toutes les sections du rapport
 interface ExportPayload {
   reportBrief?: ReportBrief;
+  raceProjection?: CoachingCompassInput['targetRacePrediction'];
   nextRace?: string;
   calendar?: CalendarEntry[] | null;
   athlete: {
@@ -2171,6 +2176,7 @@ function buildExportPayload(
       };
     })(),
     coachingCompass: { ...reportCompass, completeProfileHTML: completeProfileHTML(compassInput, effectiveSnapshot?.css ?? null) },
+    raceProjection: compassInput.targetRacePrediction,
     reportBrief: effectiveSnapshot?.source === 'finisher-express' ? undefined : buildReportBrief(compassInput, reportCompass),
     // ✅ NEW: Lorang Strategy Result (cohérence dashboard)
     lorangResult,
@@ -4210,7 +4216,7 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
   `;
 }
 
-function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, options: ExportOptions = { sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
+function buildStaffGradeReportHTML(payload: ExportPayload, performance: PerformanceReportInput, logoBase64: string, options: ExportOptions = { sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
     vlamax, tte, potentielPhysiologique,
@@ -4505,7 +4511,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const tteStatus = getSourceStatus(tte.source, tte.confidence);
 
   const coverHTML = editionCover({
-    label: "Rapport coach", name: athlete.name, title: "Bilan de performance",
+    label: "Rapport coach", name: athlete.name, title: "Bilan de performance", sport: performance.sports?.[0],
     intro: "Les écarts qui comptent pour cet objectif, les faits qui les étayent et les décisions à prendre au prochain bloc.",
     meta: [["Objectif", getObjectifLabel(athlete.goal)], ["Ambition", ambition.label],
       ["Prochaine course", payload.nextRace ?? ""], ["Bilan de référence", snapshotDate], ["Édition du", coverDate]], logo: logoBase64,
@@ -5529,7 +5535,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
         <div class="grid3 mt">
           <div>
             <div class="muted">Progression VLamax</div>
-            <div class="medium ${currentAmbitionTarget?.progress.vlamax && currentAmbitionTarget.progress.vlamax >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.vlamax !== null ? Math.round(currentAmbitionTarget.progress.vlamax) + '%' : '—'}</div>
+            <div class="medium ${currentAmbitionTarget?.progress.vlamax && currentAmbitionTarget.progress.vlamax >= 90 ? 'success' : 'warning'}">${currentAmbitionTarget?.progress.vlamax != null ? Math.round(currentAmbitionTarget.progress.vlamax) + '%' : '—'}</div>
           </div>
           <div>
             <div class="muted">Progression TTE</div>
@@ -5565,32 +5571,32 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   // =============================================
   
   // Préparer les données pour les graphiques
-  const chartSnapshotsSorted = [...snapshotHistory]
+  const chartSnapshotsSorted = snapshotHistory.filter(s => s.athlete_id === athlete.id && (!effectiveSnapshot || s.date <= effectiveSnapshot.date))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(-12);
   
   // Données additionnelles
-  const vo2maxData = chartSnapshotsSorted.filter(s => s.vo2max !== null);
-  const runEconomyData = chartSnapshotsSorted.filter(s => s.run_economy_score !== null);
-  const metabolicScoreData = chartSnapshotsSorted.filter(s => s.metabolic_score !== null);
+  const vo2maxData = chartSnapshotsSorted.filter(s => s.vo2max != null && Number.isFinite(s.vo2max));
+  const runEconomyData = chartSnapshotsSorted.filter(s => s.run_economy_score != null && Number.isFinite(s.run_economy_score));
+  const metabolicScoreData = chartSnapshotsSorted.filter(s => s.metabolic_score != null && Number.isFinite(s.metabolic_score));
   
   // Helper functions pour générer le HTML des graphiques
   const buildVlamaxTteChart = (): string => {
-    const vlamaxDataChart = chartSnapshotsSorted.filter(s => s.vlamax !== null);
-    const tteDataChart = chartSnapshotsSorted.filter(s => s.tte_observed_min !== null);
+    const vlamaxDataChart = chartSnapshotsSorted.filter(s => s.vlamax != null && Number.isFinite(s.vlamax));
+    const tteDataChart = chartSnapshotsSorted.filter(s => s.tte_observed_min != null && Number.isFinite(s.tte_observed_min));
     const vlamaxTrend = vlamaxDataChart.length >= 2 ? (vlamaxDataChart[vlamaxDataChart.length - 1].vlamax! - vlamaxDataChart[0].vlamax!) : null;
     const tteTrend = tteDataChart.length >= 2 ? (tteDataChart[tteDataChart.length - 1].tte_observed_min! - tteDataChart[0].tte_observed_min!) : null;
     
     // Generate SVG path for VLamax
     const vlamaxPoints = chartSnapshotsSorted
-      .map((s, i) => s.vlamax !== null ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((0.60 - s.vlamax) / 0.40) * 160 } : null)
+      .map((s, i) => s.vlamax != null && Number.isFinite(s.vlamax) ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((0.60 - s.vlamax) / 0.40) * 160 } : null)
       .filter(p => p !== null) as { x: number; y: number }[];
     const vlamaxPathD = vlamaxPoints.length >= 2 ? vlamaxPoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ') : '';
     const vlamaxAreaD = vlamaxPathD ? vlamaxPathD + ' L ' + vlamaxPoints[vlamaxPoints.length - 1].x + ' 180 L ' + vlamaxPoints[0].x + ' 180 Z' : '';
     
     // Generate SVG path for TTE
     const ttePoints = chartSnapshotsSorted
-      .map((s, i) => s.tte_observed_min !== null ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((80 - s.tte_observed_min) / 60) * 160 } : null)
+      .map((s, i) => s.tte_observed_min != null && Number.isFinite(s.tte_observed_min) ? { x: 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420, y: 20 + ((80 - s.tte_observed_min) / 60) * 160 } : null)
       .filter(p => p !== null) as { x: number; y: number }[];
     const ttePathD = ttePoints.length >= 2 ? ttePoints.map((p, i) => (i === 0 ? 'M' : 'L') + ' ' + p.x + ' ' + p.y).join(' ') : '';
     const tteAreaD = ttePathD ? ttePathD + ' L ' + ttePoints[ttePoints.length - 1].x + ' 180 L ' + ttePoints[0].x + ' 180 Z' : '';
@@ -5598,14 +5604,14 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     // Generate data points circles for VLamax
     const vlamaxCircles = chartSnapshotsSorted.map((s, i) => {
       const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
-      const y = s.vlamax !== null ? 20 + ((0.60 - s.vlamax) / 0.40) * 160 : null;
+      const y = s.vlamax != null && Number.isFinite(s.vlamax) ? 20 + ((0.60 - s.vlamax) / 0.40) * 160 : null;
       return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#1C8FC4" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
     }).join('');
     
     // Generate data points circles for TTE
     const tteCircles = chartSnapshotsSorted.map((s, i) => {
       const x = 70 + (i / Math.max(1, chartSnapshotsSorted.length - 1)) * 420;
-      const y = s.tte_observed_min !== null ? 20 + ((80 - s.tte_observed_min) / 60) * 160 : null;
+      const y = s.tte_observed_min != null && Number.isFinite(s.tte_observed_min) ? 20 + ((80 - s.tte_observed_min) / 60) * 160 : null;
       return y !== null ? '<circle cx="' + x + '" cy="' + y + '" r="6" fill="#D4711C" stroke="#fff" stroke-width="2" filter="url(#dropShadow)"/>' : '';
     }).join('');
     
@@ -5903,15 +5909,15 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   };
   
   const buildAmbitionProgressChart = (): string => {
-    const progressVlamax = currentAmbitionTarget?.progress.vlamax !== null ? Math.round(currentAmbitionTarget.progress.vlamax) : null;
-    const progressTte = currentAmbitionTarget?.progress.tte !== null ? Math.round(currentAmbitionTarget.progress.tte) : null;
-    const progressFtpKg = currentAmbitionTarget?.progress.ftpKg !== null ? Math.round(currentAmbitionTarget.progress.ftpKg) : null;
-    const progressGlobal = currentAmbitionTarget?.progress.global !== null ? Math.round(currentAmbitionTarget.progress.global) : 0;
+    const progressVlamax = currentAmbitionTarget?.progress.vlamax != null ? Math.round(currentAmbitionTarget.progress.vlamax) : null;
+    const progressTte = currentAmbitionTarget?.progress.tte != null ? Math.round(currentAmbitionTarget.progress.tte) : null;
+    const progressFtpKg = currentAmbitionTarget?.progress.ftpKg != null ? Math.round(currentAmbitionTarget.progress.ftpKg) : null;
+    const progressGlobal = currentAmbitionTarget?.progress.global != null ? Math.round(currentAmbitionTarget.progress.global) : 0;
     const progressArc = (progressGlobal / 100) * 440;
     
     const statusMessage = currentAmbitionTarget?.isReached 
       ? '<div class="alert alertSuccess" style="text-align:center;"><b>🏆 Félicitations !</b> Vous avez atteint les cibles pour le niveau ' + ambitionData.label + '.</div>'
-      : currentAmbitionTarget?.weeksToReach !== null 
+      : currentAmbitionTarget?.weeksToReach != null 
         ? '<div class="alert alertInfo" style="text-align:center;"><b>⏱️ Délai estimé :</b> ~' + currentAmbitionTarget.weeksToReach + ' semaines (basé sur une progression de 1.5%/sem)</div>'
         : '';
     
@@ -8177,6 +8183,11 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   
   // Map des sections vers leur contenu HTML
   const summaryLink = (id: string, heading: string, detail: string) => `<section id="${id}" class="section pagebreakAvoid"><h2>${heading}</h2><p>${detail}</p><p><a href="#executive-overview">Valeurs, sources et cibles : lecture d’ensemble</a> · <a href="#report-reading">Limites et suivi</a> · <a href="#staff-evidence">Tests et capteurs enregistrés</a></p></section>`;
+  const visuals = buildVisualProfile(payload, performance, true);
+  const race = payload.raceProjection;
+  const raceSources = {riegel_chrono:"Projection à partir de chronos enregistrés", daniels_scenario:"Scénario à partir de la VMA et de l’ambition", triathlon_baseline:"Modèle de référence triathlon", triathlon_physio_split:"Modèle physiologique par discipline"};
+  const raceEstimate = race && race.targetRaceDurationMin > 0 ? `<section class="section"><h2>Projection pour l’objectif</h2><p><b>${Math.floor(Math.round(race.targetRaceDurationMin) / 60)} h ${String(Math.round(race.targetRaceDurationMin)%60).padStart(2,'0')} min</b> · ${raceSources[race.source]}</p>
+    ${race.reference ? '<p>'+htmlEscape(race.reference)+'</p>' : ''}<p>Hypothèse de durée utilisée pour lire l’exigence de la course. La confronter aux derniers résultats, au parcours et à la tenue de l’effort.</p></section>` : '';
   const runReport = payload.coachingCompass.presentation?.sport === 'run';
   const sectionHTMLMap: Record<keyof ReportSections, string> = {
     synthese: summaryLink('executif', 'Synthèse', 'La lecture d’ensemble au début du rapport regroupe les valeurs et leurs cibles, sans multiplier les mêmes tableaux.'),
@@ -8237,18 +8248,18 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     testsCalibration: testsCalibrationHTML,
     calibrationEvidence: calibrationEvidences.length ? calibrationEvidenceHTML : "",
     fitImports: fitImportTests.length ? fitImportsHTML : "",
-    checkins: checkins.length ? checkinsHTML : "",
+    checkins: recoveryDetails(checkins, athlete.id),
     comprendre: summaryLink('vocabulaire', 'Comprendre les tests', 'La VMA situe la vitesse aérobie en course, la FTP la puissance soutenue à vélo. Le TTE indique combien de temps l’athlète tient son seuil. Pour suivre la durabilité, comparer le même effort avant et après une charge longue.'),
     qualite: qualiteHTML,
-    roadmap: payload.calendar?.length ? "" : buildRoadmapHTML(payload),
+    roadmap: athlete.goal ? '<p class="edition-caption">Trame stratégique proposée pour l’objectif. Les séances et dates confirmées figurent dans le calendrier de préparation.</p>'+buildRoadmapHTML(payload) : "",
     lactateCurve: payload.coachingCompass.presentation?.sport === 'run' ? '<section id="lactate-curve" class="section"><h2>Courbe lactate course</h2><p>Données insuffisantes : le modèle vélo en watts ne définit pas une courbe lactate course.</p></section>' : buildLactateCurveHTML(payload),
     substrateCurve: summaryLink('substrate-curve', 'Oxydation lipidique — repères du modèle', 'FatMax est une intensité, pas une réserve ni une preuve d’endurance. Seul un protocole métabolique documenté peut la présenter comme mesurée.'),
-    performancePrediction: summaryLink('performance-prediction', 'Performance — ce qui peut être conclu', 'Aucun chrono n’est certifié par ces cibles. Parcours, météo, natation, transitions, ravitaillement et robustesse demandent des observations complémentaires.'),
+    performancePrediction: (raceEstimate + modelScenarios(performance)) || summaryLink('performance-prediction', 'Performance — ce qui peut être conclu', 'Aucun chrono n’est certifié par ces cibles. Parcours, météo, natation, transitions, ravitaillement et robustesse demandent des observations complémentaires.'),
     facteursLimitants: summaryLink('facteurs-limitants', 'Priorités du diagnostic', 'La lecture d’ensemble conserve la hiérarchie utilisée par les plans et distingue le diagnostic course indépendant. Les leviers ci-dessous doivent être confrontés aux faits et au contexte de charge.'),
     leviersAction: payload.reportBrief
-      ? '<section class="section"><h2>Du limiteur au prochain bloc</h2><p>' + htmlEscape(payload.reportBrief.flow.decision) + '</p><p>' + htmlEscape(payload.reportBrief.flow.instruction) + '</p></section>'
+      ? coachingLevers(payload.coachingCompass,payload.reportBrief)
       : buildLeviersActionHTML(payload),
-    cpWprimeWbal: runReport ? summaryLink('reserves-course', 'Vitesse critique et réserve de distance', 'Ces paramètres demandent plusieurs efforts de durées différentes en course à pied. Les tests bruts disponibles figurent dans la section Mesures, tests et capteurs.') : buildCpWprimeWbalHTML(payload),
+    cpWprimeWbal: buildCpWprimeWbalHTML(payload),
     lactateCorrespondence: runReport ? "" : buildLactateCorrespondenceHTML(payload),
     cycleIntelligence: buildCycleIntelligenceHTML(payload),
   };
@@ -8261,8 +8272,16 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
   const appendices = included.map(key => `<div class="technical-chapter" id="annexe-${key}">${sectionHTMLMap[key]}</div>`).join('');
   const toc = included.length ? `<section id="analyses" class="edition-section"><h2>Analyses complémentaires</h2>
     ${editionNav(included.map(key => [`annexe-${key}`, SECTION_LABELS[key]]))}</section>` : '';
+  const plates = [
+    ['empreinte','Empreinte physiologique','L’aiguille bleue situe la valeur du bilan. La bande ou le trait vert indique la référence de comparaison propre à ce facteur et à l’objectif.',visuals.portrait],
+    ['terrain','Résultats de terrain','Les repères, efforts et signaux enregistrés sont présentés dans leur discipline et leur unité.',visuals.terrain],
+    ['natation','Repères en natation','La vitesse critique en bassin complète les repères du vélo et de la course.',payload.coachingCompass.presentation?.sport === 'triathlon' && !/duathlon/i.test(athlete.goal ?? '') ? swimFigure(effectiveRefs.css ?? null) : ''],
+    ['metabolisme','Métabolisme selon l’intensité','Lecture des courbes calculées à partir du profil vélo. Les mesures nécessaires pour une confrontation directe sont les puissances et les prélèvements par palier.',visuals.metabolism],
+    ['evolution','Évolution individuelle','Même indicateur, même discipline. Les dates, les résultats et leur provenance permettent de discuter la comparabilité de deux bilans.',visuals.evolution],
+  ].filter(([, , , content])=>content);
   const nav: [string, string][] = [];
   if (payload.reportBrief) nav.push(['lecture-coach', 'Décision']);
+  nav.push(...plates.map(([id,title]):[string,string]=>[id,title]));
   nav.push(['executive-overview', 'Repères'], ['report-reading', 'Interprétation'], ['staff-evidence', 'Tests et sources']);
   if (included.length) nav.push(['analyses', 'Analyses complémentaires']);
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8">
@@ -8270,6 +8289,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, logoBase64: string, o
     ${css}${REPORT_KIT_FONT_LINK}${REPORT_KIT_SKIN_CSS}<style>${editionCSS}</style></head><body>
     <main class="edition coach-edition">${coverHTML}${editionNav(nav)}
     ${payload.reportBrief ? coachDecision(payload.reportBrief) : ''}
+    ${plates.map(([id,title,deck,content])=>visualChapter(id,title,deck,content)).join('')}
     ${calendarPreview(payload.calendar)}
     ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture des repères par discipline', true)}
     ${buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}
@@ -9683,15 +9703,23 @@ export function ExportTools({ dashboardInput, athlete, snapshots, tests, checkin
       const opts = { ambitionLabel: payload.ambition.label, generatedAt: new Date().toLocaleDateString("fr-BE"), logoBase64 };
       payload.calendar = calendar.data ?? null;
       const snapshot = payload.effectiveSnapshot;
-      const html = snapshot?.source === "finisher-express"
-        ? buildExpressEdition({ coach: kind === "coach", name: athlete.name, goal: getObjectifLabel(athlete.goal), ambition: opts.ambitionLabel,
+      let html: string;
+      if (snapshot?.source === "finisher-express") {
+        html = buildExpressEdition({ coach: kind === "coach", name: athlete.name, goal: getObjectifLabel(athlete.goal), ambition: opts.ambitionLabel,
             date: snapshot.date, logo: logoBase64, snapshot, calendar: payload.calendar,
             sport: payload.coachingCompass.presentation?.sport === "run" ? "run" : "bike",
-            evidence: kind === "coach" ? buildStaffEvidenceHTML(athlete.id, snapshot, tests, calibrationEvidences ?? calibration.evidences) : "" })
-        : kind === "coach"
-        ? buildStaffGradeReportHTML(payload, logoBase64, { sections, audience: "staff" }, calibrationEvidences ?? calibration.evidences)
-        : kind === "athlete" ? buildAthleteProfileReportHTML(mapExportPayloadToProfileReport(payload, opts))
-        : buildPerformanceReportHTML(computePerformanceReport(payload, opts));
+            evidence: kind === "coach" ? buildStaffEvidenceHTML(athlete.id, snapshot, tests, calibrationEvidences ?? calibration.evidences) : "" });
+      } else {
+        const performance = computePerformanceReport(payload, opts);
+        if (kind === "coach") {
+          html = buildStaffGradeReportHTML(payload, performance, logoBase64, { sections, audience: "staff" }, calibrationEvidences ?? calibration.evidences);
+        } else if (kind === "athlete") {
+          const profile = mapExportPayloadToProfileReport(payload, opts);
+          html = buildAthleteProfileReportHTML({ ...profile, visuals: buildVisualProfile(payload, performance, false) });
+        } else {
+          html = buildPerformanceReportHTML(performance,buildVisualProfile(payload,performance,false));
+        }
+      }
       openPrintableHTML(html, { filenameHint: `rapport-${kind}-${athlete.name.replace(/\s+/g, "-")}-${format(new Date(), "yyyy-MM-dd")}.pdf`,
         includeInstructions: true, responsive: true });
       toast.success("Rapport ouvert", { id: toastId });

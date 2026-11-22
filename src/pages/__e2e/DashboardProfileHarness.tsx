@@ -9,7 +9,7 @@ import { buildFactorStates } from "@/lib/coachingCompass/factorStates";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { compassFlow } from "@/lib/coachingCompass/compassFlow";
 import { dashboardCoverage } from "@/lib/coachingCompass/dashboardConsistency";
-import type { DbAthlete, DbSnapshot } from "@/hooks/useCloudData";
+import type { DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
 
 const input: CoachingCompassInput = {
   ftp: 188, poids: 52, vo2max: 50, tss7d: null, snapshotDate: "2026-11-12", snapshotUpdatedAt: null,
@@ -23,6 +23,10 @@ const input: CoachingCompassInput = {
   lactateThresholds: null, wprimeKj: null, objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
 };
 const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", weight_kg:52, vma:14.2, ftp:188, vo2max:50, css:100, pace_threshold_sec_per_km:315, tte_observed_min_run:40, coach_notes:"Note réservée au coach", created_at: "", updated_at: "" } as unknown as DbSnapshot;
+
+const prior: DbSnapshot = {...snapshot, id:"s0", date:"2026-09-14", ftp:171, pace_threshold_sec_per_km:330, coach_notes:null};
+const testRide = {id:"t1", athlete_id:"a1", coach_id:"c1", date:"2026-11-10", name:"Effort en paliers", sport:"bike", vlamax:null,
+  raw:{protocol:"Paliers vélo", sensor:"Capteur témoin", streams:{time:[0,30,60,90], watts:[120,141,155,179], heartrate:[105,114,121,132]}}} as unknown as DbTest;
 
 export default function DashboardProfileHarness() {
   const [reports, setReports] = useState(false);
@@ -42,7 +46,7 @@ export default function DashboardProfileHarness() {
           factors={<DashboardFactorStates input={input} compass={compass} />}
           compass={<p>Compass complet</p>} bilans={<p>Bilans</p>} analyses={<p>Analyses</p>}
         />
-        {reports && <CloudDataProvider><ExportTools athlete={athlete} dashboardInput={input} snapshots={[snapshot]} tests={[]} ambition="competitor" open onOpenChange={setReports}/></CloudDataProvider>}
+        {reports && <CloudDataProvider><ExportTools athlete={athlete} dashboardInput={input} snapshots={[snapshot,prior]} tests={[testRide]} ambition="competitor" open onOpenChange={setReports}/></CloudDataProvider>}
     </main>
   );
 }

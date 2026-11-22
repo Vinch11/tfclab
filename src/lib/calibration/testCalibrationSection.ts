@@ -39,7 +39,7 @@ export function generateTestCalibrationSection(
     const raw = t.raw as Record<string, any> | null;
     let resultBrut = "—";
     
-    if (t.vlamax !== null) {
+    if (typeof t.vlamax === "number" && Number.isFinite(t.vlamax) && t.vlamax > 0) {
       resultBrut = `VLamax: ${t.vlamax.toFixed(2)}`;
     } else if (raw?.tte_minutes) {
       resultBrut = `TTE: ${raw.tte_minutes} min`;

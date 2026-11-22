@@ -126,6 +126,7 @@ export interface AthleteProfileReportInput {
   /** Ancien contenu éditorial conservé pour compatibilité des entrées existantes. */
   durabilityBySport?: Partial<Record<'bike' | 'run', string>>;
   athleteName: string;
+  visuals?: import('../reportKit/visualProfile').VisualProfile;
   nextRace?: string;
   objectifLabel: string;
   ambitionLabel: string;

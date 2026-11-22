@@ -83,7 +83,12 @@ export function calendarPreview(rows: CalendarEntry[] | null | undefined, athlet
       phases.push({label, start: row.date, end: row.date, count: 1});
     }
   }
-  return `<section class="calendar-panel"><h3>Le fil du calendrier enregistré</h3>
+  const phaseCounts=new Map<string,number>();
+  for (const phase of phases) phaseCounts.set(phase.label,(phaseCounts.get(phase.label) ?? 0)+phase.count);
+  const planSummary=phaseCounts.size>1?`<figure class="lab-figure"><figcaption><h3>Les chantiers de la préparation</h3><small>${rows.length} séances à venir</small></figcaption>
+    ${[...phaseCounts].map(([label,count])=>`<div class="landmark"><div><b>${esc(label)}</b><strong>${count} / ${rows.length}</strong></div><div class="landmark-rail"><i style="width:${count/rows.length*100}%"></i></div></div>`).join('')}
+    <p class="figure-reading">La largeur de chaque barre donne la part des séances programmées dans ce chantier. Les dates figurent ci-dessous.</p></figure>`:'';
+  return `<section class="calendar-panel"><h3>Le fil du calendrier enregistré</h3>${planSummary}
     <ol class="route">${phases.map(p => {
       const purpose = athlete && phasePurposes.find(([pattern]) => pattern.test(p.label))?.[1];
       return `<li><small>${esc(dateLabel(p.start))}${p.end !== p.start ? ' – ' + esc(dateLabel(p.end)) : ''}</small>

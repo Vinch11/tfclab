@@ -10,7 +10,7 @@ export function buildReportBrief(input: CoachingCompassInput, compass: TFCLCoach
   const supports = states.sections.flatMap(({ sport, rows }) =>
     rows.filter(row => row.value != null && row.state === 'inside' && row.key !== 'demand'
       && !ranked.some(gap => gap.sport === sport && gap.r.key === row.key)).map(r => ({ sport, r })));
-  return { flow, ranked, supports, unmeasured: states.unmeasured };
+  return { flow, sections: states.sections, ranked, supports, unmeasured: states.unmeasured };
 }
 
 export type ReportBrief = ReturnType<typeof buildReportBrief>;

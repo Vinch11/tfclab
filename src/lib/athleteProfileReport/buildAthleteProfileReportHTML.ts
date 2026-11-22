@@ -3,6 +3,8 @@ import { ATHLETE_VISUAL_CSS, sportPhoto } from '../reportKit/story';
 import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
 import { calendarPreview, dateLabel, editionCover, editionNav, gapFigure, referenceRange, sportName } from '../reportKit/editions';
 import editionCSS from '../reportKit/editions.css?raw';
+import { visualChapter } from '../reportKit/visualProfile';
+import { swimFigure } from '../reportKit/swimFigure';
 import { fmt } from '../coachingCompass/factorStates';
 import { metricSourceLabel } from '../coachingCompass/presentation';
 import type { AthleteProfileReportInput } from './types';
@@ -58,16 +60,27 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       ${sportDiagramHTML({sport: sp, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);
   }).join('');
-  const swim = d.swimming ? chapter('reperes-swim', 'Tes repères en natation', d.swimming.css ? `<p>En bassin, ton allure critique de référence est de <b>${Math.floor(d.swimming.css / 60)}:${String(d.swimming.css % 60).padStart(2, '0')} min/100 m</b>. C’est le repère de ton bilan pour lire tes séries.</p>` : '<p>Ton prochain test en bassin permettra de situer ton allure critique sur 100 mètres.</p>') : '';
+  const swim = d.swimming ? chapter('reperes-swim', 'Tes repères en natation', swimFigure(d.swimming.css)) : '';
   const targets = d.targetProgress.filter(t => t.current != null && t.current > 0 && t.target != null && t.target > 0 && t.progress != null);
   const review = chapter('suivi', 'Ce que tu observeras avec ton coach', `
     <p class="edition-deck">${esc(flow?.instruction ?? 'Reprends un effort de référence dans des conditions comparables et note ton ressenti.')} </p>
     <p>Garde ensemble le résultat, la durée, le terrain et ton ressenti sur 10. Au prochain bilan, ton coach pourra voir si le même effort te coûte moins ou si tu tiens plus longtemps.</p>
     ${!flow && d.nextSteps.length ? `<ul>${d.nextSteps.map(s => `<li>${rich(s)}</li>`).join('')}</ul>` : ''}
     ${!brief && targets.length ? `<h3>Écart à ta cible « ${esc(d.ambitionLabel)} »</h3>${targets.map(t => `<p>${esc(t.label)} · ${num(t.current, t.decimals)} / ${num(t.target, t.decimals)} ${esc(t.unit)} · écart restant ${Math.max(0, Math.round(100 - t.progress!))} %</p>`).join('')}` : ''}`);
-  const nav: [string, string][] = [['portrait', 'Ton profil'], ['preparation', 'Ta préparation'], ...sports.map((sp): [string,string] => ['reperes-' + sp, sportName[sp]])];
+  const illustrations = d.visuals;
+  const portrait = visualChapter('empreinte','Ton profil en un regard','L’aiguille bleue représente ton bilan. Le vert situe le repère utilisé pour ton objectif. Chaque cadran se lit dans sa propre unité.', illustrations?.portrait ?? '');
+  const terrain = visualChapter('terrain','De tes tests à tes séances','Ces repères viennent de tes efforts enregistrés. Ils donnent un sens concret aux sensations et aux chiffres de ta montre.', illustrations?.terrain ?? '');
+  const fuels = visualChapter('carburants','Ce qui alimente ton effort à vélo','Voici comment ton profil influence le recours aux graisses et aux glucides selon les watts que tu développes.', illustrations?.metabolism ?? '');
+  const evolution = visualChapter('evolution','Ce qui a changé depuis tes derniers bilans','Les points datés permettent de retrouver ton parcours et de choisir ce que tu voudras vérifier la prochaine fois.', illustrations?.evolution ?? '');
+  const nav:[string,string][]=[['portrait','Ton profil']];
+  if (portrait) nav.push(['empreinte','Tes jauges']);
+  if (terrain) nav.push(['terrain','Tes tests']);
+  if (fuels) nav.push(['carburants','Tes carburants']);
+  nav.push(['preparation','Ta préparation']);
   if (swim) nav.push(['reperes-swim','Natation']);
-  nav.push(['suivi', 'Ton prochain bilan']);
+  nav.push(...sports.map((sp):[string,string]=>['reperes-'+sp,sportName[sp]]));
+  if (evolution) nav.push(['evolution','Tes progrès']);
+  nav.push(['suivi','Ton prochain bilan']);
   return reportDocument({title: `Rapport athlète — ${d.athleteName}`, extraCSS: ATHLETE_VISUAL_CSS + PEDAGOGY_CSS + editionCSS,
-    body: `<main class="edition">${cover}${editionNav(nav)}${opening}${journey}${swim}${disciplines}${review}<footer>Two For Coaching Lab · ${esc(d.athleteName)} · ${esc(d.generatedAt)}</footer></main>`});
+    body: `<main class="edition">${cover}${editionNav(nav)}${opening}${portrait}${terrain}${fuels}${journey}${swim}${disciplines}${evolution}<div class="edition-ending">${review}<footer>Two For Coaching Lab · ${esc(d.athleteName)} · ${esc(d.generatedAt)}</footer></div></main>`});
 }

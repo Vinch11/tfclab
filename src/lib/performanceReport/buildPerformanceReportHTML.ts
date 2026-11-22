@@ -3,21 +3,23 @@ import { editionCover, editionNav, dateLabel, sportName } from '../reportKit/edi
 import { ATHLETE_VISUAL_CSS, personalMarkers } from '../reportKit/story';
 import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
 import editionCSS from '../reportKit/editions.css?raw';
+import type { VisualProfile } from '../reportKit/visualProfile';
 import { energyAreaSVG, lactateCurveSVG, substratesSVG } from './charts';
 import type { PerformanceReportInput } from './types';
 
 /** Detailed companion to the two profile editions. Curves are labelled as model outputs. */
-export function buildPerformanceReportHTML(input: PerformanceReportInput): string {
+export function buildPerformanceReportHTML(input: PerformanceReportInput, visuals?:VisualProfile): string {
   const p = input.physio;
   const sports = input.sports ?? ['bike'];
   const hasCurves = sports.includes('bike') && input.curve.length > 2;
   const meta = input.identity.filter(x => ['Objectif','Ambition'].includes(x.label)).map((x): [string,string] => [x.label,x.value]);
   const cover = editionCover({label:'Analyse de performance', name:input.athleteName, title:'Lire les courbes de ton bilan',
     intro:'Les valeurs de référence donnent le point de départ. Les courbes illustrent ensuite comment le modèle décrit l’effort quand l’intensité augmente.',
-    meta:[...meta, ['Bilan', input.snapshotDate ? dateLabel(input.snapshotDate) : 'À compléter']], logo: input.logoBase64});
+    meta:[...meta, ['Bilan', input.snapshotDate ? dateLabel(input.snapshotDate) : 'À compléter']], logo: input.logoBase64, sport:sports[0]});
   const chapters: [string,string,string][] = [];
   const gauges = input.gauges.filter(g => g.value != null && g.value > 0);
-  if (gauges.length) chapters.push(['references','Les repères du bilan',personalMarkers(gauges)]);
+  if (visuals?.portrait) chapters.push(['empreinte','Empreinte physiologique',visuals.portrait]);
+  else if (gauges.length) chapters.push(['references','Les repères du bilan',personalMarkers(gauges)]);
   for (const sport of sports) {
     const sets = input.zoneSets?.filter(z => sport === 'bike' ? /vélo/i.test(z.sportLabel) : /course/i.test(z.sportLabel)) ?? [];
     chapters.push([sport, sportName[sport], sportDiagramHTML({
@@ -26,6 +28,8 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput): strin
       zones: sets.flatMap(s => s.zones), durability: input.durabilityDataBySport?.[sport],
     })]);
   }
+  if (visuals?.terrain) chapters.push(['terrain','Traces et repères de terrain',visuals.terrain]);
+  if (visuals?.evolution) chapters.push(['evolution','Évolution des bilans',visuals.evolution]);
   if (hasCurves) {
     chapters.push(['seuil','À quelle puissance se situe le seuil estimé ?',`
       <p>Chaque point représente une estimation à une puissance donnée. Pour comparer cette courbe à un test, relève les watts et le lactate à chaque palier.</p>

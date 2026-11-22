@@ -79,3 +79,62 @@
   .coach-edition #analyses .edition-nav {display:flex;border:0;padding:0;gap:3px 14px}
   .coach-edition #analyses .edition-nav a {font-size:9pt}
 }
+
+/* Editorial figures: numeric marks retain their native units on screen and on paper. */
+.edition .edition-cover.illustrated {background:linear-gradient(135deg,#f8fcff 10%,#e7f3ff 68%,#e2f1f3);overflow:hidden}
+.illustrated .edition-headline {grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+.edition .edition-headline .sport-figure img {height:clamp(180px,22vw,265px);border-radius:14px 55px 14px 14px}
+.edition .gauge-sport {margin:20px 0}
+.edition .gauge-sport>h3 {color:#205171;font-size:15px;font-weight:650}
+.lab-gauges {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(155px,100%),1fr));gap:10px;align-items:stretch}
+.edition .lab-gauge {background:linear-gradient(155deg,#fff,#eff7fc);border:1px solid #cadde9;border-radius:17px;padding:13px 10px 15px;text-align:center;margin:0;break-inside:avoid}
+.lab-gauge figcaption {font-weight:650;font-size:14px;min-height:2.5em;color:#173c58;line-height:1.25}
+.edition .lab-gauge svg {width:100%;max-width:180px;height:auto;margin:auto;display:block}
+.lab-gauge svg text,.lab-plot text {font-family:inherit;font-size:11px;fill:#425e74;font-variant-numeric:tabular-nums}
+.lab-gauge strong {display:block;font-size:23px;line-height:1.16;color:#174c73}
+.lab-gauge strong small {display:inline;font-size:11px;color:#456278}
+.lab-gauge small,.lab-gauge span {display:block;font-size:11px;color:#456278;line-height:1.5}
+.lab-gauge span {color:#11665e;margin-top:8px;font-weight:650}
+.lab-gauge span i,.plot-key i {display:inline-block;background:#147e76;width:.85em;height:.3em;vertical-align:middle;border-radius:2px}
+.edition .lab-figure {border:1px solid #cbdce9;border-radius:18px;margin:18px 0;padding:clamp(14px,2.5vw,24px);background:linear-gradient(150deg,#fff 16%,#f4f9fd);break-inside:avoid;overflow:visible}
+.edition .lab-figure figcaption {display:flex;flex-wrap:wrap;gap:4px 20px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.edition .lab-figure h3 {margin:0;font-size:20px;letter-spacing:-.02em;color:#173e61}
+.edition .lab-figure figcaption small,.edition .landmark>small {font-size:12px;color:#49677e}
+.edition .lab-plot {display:block;width:100%;height:auto;max-width:630px;margin:0 auto}
+.edition .plot-key {display:flex;flex-wrap:wrap;justify-content:center;gap:6px 16px;font-size:12px;color:#294b61}
+.edition .plot-key i {margin-right:5px}
+.edition .figure-reading {margin:13px 0 0;padding-top:10px;border-top:1px solid #d8e6f0;color:#334f68;font-size:14px}
+.edition .landmark {padding:8px 0}
+.landmark>div:first-child {display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.landmark strong {color:#174c73;font-variant-numeric:tabular-nums}
+.landmark-rail {height:8px;background:#e0ebf3;border-radius:6px;margin:6px 0}
+.landmark-rail i {height:100%;display:block;background:linear-gradient(90deg,#83b9dc,#1769a6);border-radius:inherit}
+.edition .lab-data caption {padding:12px 0;font-weight:650;text-align:left;color:#173e61}
+@media screen and (max-width:640px) {
+  .illustrated .edition-headline {grid-template-columns:minmax(0,1fr)}
+  .edition .edition-headline .sport-figure img {height:165px}
+  .lab-gauges {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .edition .lab-gauge {padding:9px 6px}.lab-gauge figcaption {font-size:12px}
+  .edition .lab-figure {padding:12px 8px}.edition .lab-figure h3 {font-size:17px}
+}
+@media print {
+  .edition .edition-headline .sport-figure img {height:34mm}
+  .edition .lab-figure {border-radius:8px;background:white;padding:3mm;margin:4mm 0}
+  .edition .lab-plot {max-width:138mm}.edition .lab-figure h3 {font-size:13pt}
+  .edition .figure-reading {font-size:9pt}.edition .lab-figure figcaption small {font-size:8pt}
+  .lab-gauges {grid-template-columns:repeat(3,minmax(0,1fr));gap:2mm}.edition .lab-gauge {padding:2mm}
+  .edition .lab-gauge svg {max-width:30mm}.lab-gauge figcaption {min-height:auto}
+}
+.body-rail {height:20px;margin:15px 0;border-radius:10px;overflow:hidden;background:#1669a8}
+.body-rail i {display:block;height:100%;background:#147e76}
+@media print {
+  .edition-ending {break-inside:avoid}
+  .edition .gauge-sport {break-inside:avoid}
+}
+@media print {
+  .edition>.edition-nav {display:flex;border:0;border-bottom:1px solid #cadae5;border-radius:0;gap:0 12px;padding:1mm 0 3mm;margin:0 0 3mm;break-inside:avoid}
+  .edition>.edition-nav a {font-size:8.5pt}
+  @page {
+    @bottom-right {content:counter(page) " / " counter(pages);font:8pt sans-serif;color:#49647a}
+  }
+}
