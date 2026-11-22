@@ -4,7 +4,7 @@
  * Two For Coaching Lab Method™
  * 
  * Rapport technique complet pour le coach avec:
- * - Profil de tolérance au pacing
+ * - Comment l’athlète tolère les variations d’effort
  * - Envelope technique
  * - Scénarios d'erreur
  * - Stratégie de communication
@@ -95,26 +95,25 @@ export function StaffPacingReportV2({
   }, [athleteName, envelope, rules, scenarios, vlamaxEffectif, tteEffectif, potentielPhysiologiqueScore, raceObjective]);
 
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn("space-y-4 [&>div.rounded-lg]:rounded-2xl [&>div.rounded-lg]:border-primary/15", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary" />
-            {report.title}
-          </h2>
-          <p className="text-sm text-muted-foreground">{report.subtitle}</p>
-        </div>
-        <Badge variant="secondary">STAFF</Badge>
-      </div>
+      <header className="rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-card p-5 sm:p-7">
+        <p className="mb-2 flex items-center gap-2 text-sm font-medium text-primary"><Activity aria-hidden className="size-4" />Rapport coach · {athleteName}</p>
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Stratégie d’allure en course</h2>
+        <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">{report.subtitle}</p>
+        <nav aria-label="Sections du rapport de pacing" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-primary/15 pt-3 text-sm text-primary">
+          <a href="#pacing-profil">Profil</a><a href="#pacing-enveloppe">Plage d’effort</a>
+          <a href="#pacing-scenarios">Scénarios</a><a href="#pacing-consignes">Consignes athlète</a>
+        </nav>
+      </header>
 
       {/* SECTION A: Profil de tolérance */}
-      <Card>
+      <Card id="pacing-profil" className="scroll-mt-20 rounded-2xl">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Profil de tolérance au pacing
+              Comment l’athlète tolère les variations d’effort
             </CardTitle>
             {report.toleranceProfile.badge && (
               <Badge 
@@ -132,7 +131,7 @@ export function StaffPacingReportV2({
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Métriques */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {report.toleranceProfile.metrics.map((metric) => (
               <div 
                 key={metric.label}
@@ -141,8 +140,8 @@ export function StaffPacingReportV2({
                 <div className={cn("text-lg font-bold font-mono", getMetricStatusColor(metric.status))}>
                   {metric.value}
                 </div>
-                <div className="text-[10px] text-muted-foreground">{metric.label}</div>
-                <div className="text-[9px] text-muted-foreground/70">Conf: {metric.confidence}</div>
+                <div className="text-xs text-muted-foreground">{metric.label}</div>
+                <div className="text-xs text-muted-foreground">Confiance · {metric.confidence}</div>
               </div>
             ))}
           </div>
@@ -163,11 +162,11 @@ export function StaffPacingReportV2({
       </Card>
 
       {/* SECTION B: Pacing Envelope technique */}
-      <Card>
+      <Card id="pacing-enveloppe" className="scroll-mt-20 rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Pacing Envelope™ (Technique)
+            Plage d’effort prévue en course
           </CardTitle>
           <CardDescription className="text-xs">
             {report.envelopeTechnical.justification}
@@ -209,7 +208,7 @@ export function StaffPacingReportV2({
       <PersonalizedRulesSection rules={rules} variant="full" />
 
       {/* SECTION C: Scénarios d'erreur */}
-      <Card>
+      <Card id="pacing-scenarios" className="scroll-mt-20 rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
@@ -238,12 +237,12 @@ export function StaffPacingReportV2({
                   <ChevronRight className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
                   <span className={getSeverityColor(scenario.severity)}>{scenario.consequence}</span>
                 </div>
-                <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                <div className="text-xs text-muted-foreground font-mono mt-1">
                   {scenario.impact}
                 </div>
               </div>
               
-              <div className="mt-2 pt-2 border-t text-[10px] text-muted-foreground">
+              <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
                 <span className="font-medium">Action coach:</span> {scenario.coachAction}
               </div>
             </div>
@@ -252,11 +251,11 @@ export function StaffPacingReportV2({
       </Card>
 
       {/* SECTION D: Stratégie de communication */}
-      <Card>
+      <Card id="pacing-consignes" className="scroll-mt-20 rounded-2xl">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-blue-500" />
-            Stratégie de communication coach
+            Quelles consignes transmettre à l’athlète
           </CardTitle>
           <CardDescription className="text-xs">
             {report.coachCommunication.approach}
@@ -279,7 +278,7 @@ export function StaffPacingReportV2({
           <Separator />
 
           {/* Warnings et encouragements en 2 colonnes */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <h4 className="text-xs font-semibold text-orange-600 dark:text-orange-400">⚠️ Points d'attention</h4>
               {report.coachCommunication.warnings.map((warning, i) => (
@@ -316,7 +315,7 @@ export function StaffPacingReportV2({
       </Card>
 
       {/* Disclaimer */}
-      <div className="text-center text-[10px] text-muted-foreground italic">
+      <div className="text-center text-xs text-muted-foreground italic">
         {report.disclaimer}
       </div>
     </div>

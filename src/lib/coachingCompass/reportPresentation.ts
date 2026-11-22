@@ -45,17 +45,17 @@ export function buildCompassReportReferencesHTML(compass: TFCLCoachingCompassRes
     <p>W′/D′ : travail au-dessus de CP/vitesse critique ; pas une note générale de capacité anaérobie. Watts course spécifiques au capteur.</p>
     ${tte('TTE vélo', view.tteBike)}${tte('TTE course', view.tteRun)}
     <p>Un effort arrêté volontairement ne fournit qu’un minimum de TTE ; les records restent des estimations.</p>
-    <p><b>Robustesse à l’effort prolongé : durabilité non évaluée.</b> Le TTE et la dérive seuls ne la mesurent pas.</p>
+    <p><b>Robustesse à l’effort prolongé : comparer les efforts en début et en fin de sortie longue.</b> Le TTE et la dérive seuls ne la mesurent pas.</p>
     ${view.decouplingRun != null ? `<p>Découplage course : ${view.decouplingRun}% — indice de séance, durée et protocole à confirmer.</p>` : ''}
     <p>FatMax : ${view.sport === 'run' ? 'course non mesurée ; aucune conversion des %FTP vélo en allure course' : 'zone lipidique vélo modélisée, non mesurée ; pas une note de préparation à la course'}.</p>${cyclingHTML}${runningHTML}</div>`;
 }
 
-export function buildCompassReportSummaryHTML(compass: TFCLCoachingCompassResult, id: string, title: string): string {
+export function buildCompassReportSummaryHTML(compass: TFCLCoachingCompassResult, id: string, title: string, hasDecision = false): string {
   const rows = compassReportRows(compass);
   return `<section id="${esc(id)}" class="section pagebreakAvoid"><h2>${esc(title)}</h2><p>Cibles internes — pas une probabilité de réussite en course. Valeurs et sources identiques au compass.</p>
     <table><thead><tr><th>Repère</th><th>Valeur</th><th>Cible interne</th><th>Source</th><th>Lecture</th></tr></thead><tbody>${rows.map(r => `<tr><td>${esc(r.label)}</td><td>${r.value != null && r.value > 0 ? `${r.value.toFixed(r.unit === 'mmol/L/s' ? 2 : 1)} ${esc(r.unit)}` : 'Données insuffisantes'}</td><td>${r.target != null ? `${r.target} ${esc(r.unit)}` : '—'}</td><td>${esc(metricSourceLabel(r.source))}</td><td>${esc(r.assessment)}</td></tr>`).join('')}</tbody></table>
-    <h3>Priorités du diagnostic — classement conservé</h3><p>${esc(compass.limiter?.label ?? 'Données insuffisantes')} · ${esc(compass.presentation?.priorityMetrics.join(' → ') ?? '')}</p>
+    ${hasDecision ? '' : `<h3>Lecture du moteur selon son repère interne</h3><p>${esc(compass.limiter?.label ?? 'Données insuffisantes')} · ${esc(compass.presentation?.priorityMetrics.join(' → ') ?? '')}</p>`}
     ${(compass.presentation?.fieldNotes ?? []).map(note => '<p>' + esc(note) + '</p>').join('')}
     ${compass.presentation?.wprimeReview ? '<p>W′ : interprétation à revoir — priorité actuelle conservée pour les plans.</p>' : ''}
-    ${buildCompassReportReferencesHTML(compass)}</section>`;
+    ${hasDecision ? '' : buildCompassReportReferencesHTML(compass)}</section>`;
 }

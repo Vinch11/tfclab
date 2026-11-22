@@ -10,18 +10,18 @@
  */
 
 export const RK = {
-  ink: "#14131A",
+  ink: "#152E47",
   inkSoft: "#2A2833",
   body: "#3A3844",
-  muted: "#6E6B78",
-  faint: "#97949F",
-  line: "#E7E4DC",
-  lineSoft: "#F0EEE8",
-  paper: "#FAF9F5",
+  muted: "#50677D",
+  faint: "#5E7388",
+  line: "#D1DEE9",
+  lineSoft: "#E5EEF6",
+  paper: "#F5F9FC",
   surface: "#FFFFFF",
-  surfaceAlt: "#EFEDE7",
-  primary: "#5555E0",
-  primarySoft: "#F3F2FB",
+  surfaceAlt: "#E3EDF5",
+  primary: "#2269AD",
+  primarySoft: "#EAF4FD",
   mint: "#177A53",
   mintSoft: "#E4F5EE",
   amber: "#9A6708",
@@ -104,7 +104,7 @@ export const REPORT_KIT_CSS = `
   .bar { height:6px; background:${RK.surfaceAlt}; border-radius:3px; overflow:hidden; margin-top:5px; }
   .bar > span { display:block; height:100%; background:${RK.primary}; border-radius:3px; }
   /* Page de garde */
-  .cover { background:linear-gradient(150deg,#14131A 0%,#232049 52%,#3B349B 100%); color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
+  .cover { background:linear-gradient(150deg,#152E47 0%,#232049 52%,#3B349B 100%); color:#fff; display:flex; flex-direction:column; justify-content:space-between; }
   .cover h1 { font-size:40px; color:#fff; letter-spacing:-.03em; }
   .cover .eyebrow { color:#A9A4E6; }
   .cover p { color:#D7D4E8; }
@@ -273,7 +273,7 @@ export const REPORT_KIT_SKIN_CSS = `
 
   /* Page de garde : bandeau dégradé Bevel */
   .coverBanner {
-    background:linear-gradient(150deg,#14131A 0%,#232049 52%,#3B349B 100%) !important;
+    background:linear-gradient(150deg,#152E47 0%,#232049 52%,#3B349B 100%) !important;
     border-radius:16px !important; padding:30px 28px !important;
   }
   .coverBanner::before { display:none !important; }

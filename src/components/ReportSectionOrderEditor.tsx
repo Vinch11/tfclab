@@ -271,8 +271,8 @@ export const REPORT_PRESETS: Record<ReportPreset, {
   description: string;
   sections: Record<keyof ReportSections, boolean>;
 }> = {
-  staff:   { label: "Rapport Staff",   description: "Toutes les sections, jargon inclus.",         sections: PRESET_STAFF },
-  athlete: { label: "Rapport Athlète", description: "Lisible sans bagage physiologique.",          sections: PRESET_ATHLETE },
+  staff:   { label: "Dossier complet", description: "Toutes les annexes techniques.",         sections: PRESET_STAFF },
+  athlete: { label: "Sélection courte", description: "Les annexes essentielles du bilan.",          sections: PRESET_ATHLETE },
 };
 
 

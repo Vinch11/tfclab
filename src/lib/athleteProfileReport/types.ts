@@ -114,6 +114,9 @@ export interface ReportTargetProgress {
 }
 
 export interface AthleteProfileReportInput {
+  brief?: import('../reportKit/reportBrief').ReportBrief;
+  calendar?: import('../reportKit/reportBrief').CalendarEntry[] | null;
+  swimming?: { css: number | null };
   reportReadingHTML?: string;
   compassSummaryHTML?: string;
   evidenceHTML?: string;
@@ -123,6 +126,8 @@ export interface AthleteProfileReportInput {
   /** Ancien contenu éditorial conservé pour compatibilité des entrées existantes. */
   durabilityBySport?: Partial<Record<'bike' | 'run', string>>;
   athleteName: string;
+  visuals?: import('../reportKit/visualProfile').VisualProfile;
+  nextRace?: string;
   objectifLabel: string;
   ambitionLabel: string;
   age: number | null;

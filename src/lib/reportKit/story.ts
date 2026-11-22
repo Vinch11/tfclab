@@ -1,3 +1,4 @@
+import swimPhoto from '@/assets/report-swimming-pool.jpg';
 import bikePhoto from '@/assets/report-cycling-road.jpg';
 import runPhoto from '@/assets/report-running-path.jpg';
 import bikeEndurance from '@/assets/report-cycling-endurance.jpg';
@@ -62,7 +63,7 @@ export function sportControls(o: { sports: Sport[]; tteKnown: boolean; vlamaxPri
 /** Sports racontés par le rapport, dérivés de l’objectif (présentation uniquement). */
 export function reportSports(goal: string | null | undefined, isRunning: boolean): Sport[] {
   const g = String(goal ?? '');
-  if (/tri|ironman|\bIM\b|70[.,]3|duathlon/i.test(g)) return ['bike', 'run'];
+  if (/tri|ironman|\bIM\b|70[.,]?3|duathlon|olymp|^sprint$|^half$|^lcw$/i.test(g)) return ['bike', 'run'];
   if (isRunning || /km|marathon|semi|trail|course|run|5k|10k|ultra/i.test(g)) return ['run'];
   return ['bike'];
 }
@@ -76,7 +77,8 @@ const TURN: Record<Sport, { title: string; question: string; steps: string[] }> 
 /** Page de transition entre deux parcours sportifs. */
 const abs = (u: string) => (typeof window !== 'undefined' ? new URL(u, window.location.origin).href : u);
 
-export function sportPhoto(sport: Sport, endurance = false): string {
+export function sportPhoto(sport: Sport | 'swim', endurance = false): string {
+  if (sport === 'swim') return `<figure class="sport-figure"><img src="${abs(swimPhoto)}" width="1400" height="933" alt="Nageur de crawl dans un bassin à lignes d’eau bleues" /><figcaption>Illustration · natation en bassin</figcaption></figure>`;
   const photo = endurance ? (sport === 'bike' ? bikeEndurance : runEndurance) : (sport === 'bike' ? bikePhoto : runPhoto);
   return `<figure class="sport-figure"><img src="${abs(photo)}" width="1536" height="1024" alt="${sport === 'bike' ? 'Cyclisme sur route' : 'Course à pied en plein air'}" /><figcaption>Illustration sportive</figcaption></figure>`;
 }

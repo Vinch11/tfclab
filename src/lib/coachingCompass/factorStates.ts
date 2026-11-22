@@ -201,3 +201,9 @@ export function rankWithHypothesis(states: FactorStates, hypothesis: GlycolyticH
   if (!(gap > 0.05)) return states.ranked;
   return [...states.ranked, { r: section, sport: hypothesis.sport, gap, verify: hypothesis }].sort((a, b) => b.gap - a.gap);
 }
+
+/** Join a displayed gap to the plan engine's factor using the dashboard's metric and discipline keys. */
+export function planFactorIndex(factors: readonly { metric: string; sport?: FactorSport }[], gap: RankedGap): number {
+  const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return factors.findIndex(f => norm(f.metric) === norm(gap.r.key) && (!f.sport || f.sport === gap.sport));
+}

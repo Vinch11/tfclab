@@ -1,4 +1,7 @@
 /** Synthetic data only. Route guarded by import.meta.env.DEV. */
+import { useState } from "react";
+import { ExportTools } from "@/components/ExportTools";
+import { CloudDataProvider } from "@/contexts/CloudDataContext";
 import { CoachDashboard } from "@/components/CoachDashboard";
 import { CompassProfileComparison } from "@/components/CompassProfileComparison";
 import { DashboardFactorStates } from "@/components/DashboardFactorStates";
@@ -6,7 +9,7 @@ import { buildFactorStates } from "@/lib/coachingCompass/factorStates";
 import { computeCoachingCompass, type CoachingCompassInput } from "@/lib/coachingCompass";
 import { compassFlow } from "@/lib/coachingCompass/compassFlow";
 import { dashboardCoverage } from "@/lib/coachingCompass/dashboardConsistency";
-import type { DbSnapshot } from "@/hooks/useCloudData";
+import type { DbAthlete, DbSnapshot, DbTest } from "@/hooks/useCloudData";
 
 const input: CoachingCompassInput = {
   ftp: 188, poids: 52, vo2max: 50, tss7d: null, snapshotDate: "2026-11-12", snapshotUpdatedAt: null,
@@ -26,9 +29,15 @@ const input: CoachingCompassInput = {
   },
   objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
 };
-const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", created_at: "", updated_at: "" } as unknown as DbSnapshot;
+const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", weight_kg:52, vma:14.2, ftp:188, vo2max:50, css:100, pace_threshold_sec_per_km:315, tte_observed_min_run:40, coach_notes:"Note réservée au coach", created_at: "", updated_at: "" } as unknown as DbSnapshot;
+
+const prior: DbSnapshot = {...snapshot, id:"s0", date:"2026-09-14", ftp:171, pace_threshold_sec_per_km:330, coach_notes:null};
+const testRide = {id:"t1", athlete_id:"a1", coach_id:"c1", date:"2026-11-10", name:"Effort en paliers", sport:"bike", vlamax:null,
+  raw:{protocol:"Paliers vélo", sensor:"Capteur témoin", streams:{time:[0,30,60,90], watts:[120,141,155,179], heartrate:[105,114,121,132]}}} as unknown as DbTest;
 
 export default function DashboardProfileHarness() {
+  const [reports, setReports] = useState(false);
+  const athlete = {id:"a1", name:"Camille · profil fictif", goal:"IM", birth_date:"1975-02-01", sex:"F", refs:{}, active_snapshot_id:"s1"} as DbAthlete;
   const compass = computeCoachingCompass(input);
   const flow = compassFlow(input, compass);
   const coverage = dashboardCoverage(input);
@@ -38,12 +47,13 @@ export default function DashboardProfileHarness() {
           athlete={{ id: "a1", name: "Athlète fictif", goal: "IM" }} athletes={[{ id: "a1", nom: "Athlète fictif" }]}
           onSelectAthlete={() => {}} ambition="competitor" onAmbitionChange={() => {}} onGoalChange={async () => {}}
           snapshot={snapshot} coverage={coverage} flow={flow} alert={null}
-          nextRace={{ name: "Ironman 70.3 fictif", date: "2027-06-13" }} onOpenReport={() => {}}
+          nextRace={{ name: "Ironman 70.3 fictif", date: "2027-06-13" }} onOpenReport={() => {}} onOpenEditions={() => setReports(true)}
           profile={<CompassProfileComparison input={input} compass={compass} athleteName="Athlète fictif" />}
           states={buildFactorStates(input, compass)}
           factors={<DashboardFactorStates input={input} compass={compass} />}
           compass={<p>Compass complet</p>} bilans={<p>Bilans</p>} analyses={<p>Analyses</p>}
         />
+        {reports && <CloudDataProvider><ExportTools athlete={athlete} dashboardInput={input} snapshots={[snapshot,prior]} tests={[testRide]} ambition="competitor" open onOpenChange={setReports}/></CloudDataProvider>}
     </main>
   );
 }

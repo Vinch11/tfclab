@@ -9,50 +9,21 @@ import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/spor
  */
 
 import { reportSports } from '@/lib/reportKit/story';
-import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
-import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
-import { describePeerPosition } from "@/lib/v2/peerDistributionReference";
-import { compassReportRows, compassSportReportRows, compassTteReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
-import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
-import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
+import { getObjectifLabel } from '@/types/athlete';
+import { compassReportRows, compassSportReportRows, compassTteReportRows } from '@/lib/coachingCompass/reportPresentation';
 
 import { computeStrategicRoadmap } from "@/engines/decision";
 import type {
   AthleteProfileReportInput,
-  MetricStatus,
-  ReportLimiter,
-  ReportMetric,
 } from "./types";
 
-const CATEGORY_TO_LIMITER: Record<string, string> = {
-  aerobic_power: "aerobic_engine",
-  glycolytic: "glycolytic",
-  metabolic_endurance: "specific_endurance",
-  durability: "specific_endurance",
-  neuromuscular: "neuromuscular",
-  unknown: "none",
-};
-
-const SEVERITY_LABEL: Record<string, string> = {
-  none: "faible",
-  mild: "légère",
-  moderate: "modérée",
-  severe: "élevée",
-};
-
-function statusFromRange(
-  v: number | null,
-  target?: [number, number],
-  lowerIsBetter = false,
-): MetricStatus {
-  if (v == null || !Number.isFinite(v) || v === 0) return "missing";
-  if (!target) return "ok";
-  const [lo, hi] = target;
-  if (v >= lo && v <= hi) return "ok";
-  const distance = v < lo ? (lo - v) / Math.max(1e-6, lo) : (v - hi) / Math.max(1e-6, hi);
-  const wrongSide = lowerIsBetter ? v > hi : v < lo;
-  if (!wrongSide) return "ok";
-  return distance > 0.15 ? "bad" : "warn";
+export function reportRoadmap(payload: Parameters<typeof computeStrategicRoadmap>[0]) {
+  if (!payload.objectif) return null;
+  try {
+    return computeStrategicRoadmap(payload);
+  } catch {
+    return null;
+  }
 }
 
 export function mapExportPayloadToProfileReport(
@@ -62,162 +33,7 @@ export function mapExportPayloadToProfileReport(
   const compass = payload.coachingCompass;
   const limiterResult = payload.unifiedLimiter;
   const refs = payload.effectiveRefs;
-  const snap = payload.effectiveSnapshot;
   const goal = payload.athlete?.goal ?? null;
-
-  // ── Métriques clés ────────────────────────────────────────────────────────
-  const ftpKg =
-    refs?.ftp && refs?.weightKg ? Number((refs.ftp / refs.weightKg).toFixed(2)) : null;
-  const ambitionTargets = payload.ambition?.targets;
-
-  const peerVo2 = describePeerPosition(
-    "vo2max",
-    refs?.vo2max ?? null,
-    payload.athlete?.sportMain ?? goal,
-    payload.ambition?.level ?? opts.ambitionLabel,
-  );
-  const peerVla = describePeerPosition(
-    "vlamax",
-    payload.vlamax?.value ?? null,
-    payload.athlete?.sportMain ?? goal,
-    payload.ambition?.level ?? opts.ambitionLabel,
-  );
-
-  const metrics: ReportMetric[] = [
-    {
-      key: "vo2max",
-      label: "VO₂max — cylindrée du moteur",
-      value: refs?.vo2max ?? null,
-      unit: "ml/kg/min",
-      decimals: 1,
-      scale: [30, 80],
-      target: [50, 70],
-      status: statusFromRange(refs?.vo2max ?? null, [50, 70]),
-      meaning:
-        "La quantité maximale d'oxygène que ton corps peut utiliser. Plus elle est haute, plus ton plafond de performance est élevé." +
-        (peerVo2 ? ` ${peerVo2}` : ""),
-      source: refs?.sources?.vo2max ?? null,
-    },
-    {
-      key: "vlamax",
-      label: "VLamax — vitesse de production de lactate",
-      value: payload.vlamax?.value ?? null,
-      unit: "mmol/L/s",
-      decimals: 2,
-      scale: [0.2, 1.0],
-      target: ambitionTargets?.vlamax
-        ? [ambitionTargets.vlamax.min, ambitionTargets.vlamax.max]
-        : [0.3, 0.5],
-      status: statusFromRange(
-        payload.vlamax?.value ?? null,
-        ambitionTargets?.vlamax
-          ? [ambitionTargets.vlamax.min, ambitionTargets.vlamax.max]
-          : [0.3, 0.5],
-        true,
-      ),
-      meaning:
-        "À quelle vitesse tu produis du lactate. Trop haute, tu brûles tes sucres trop vite en endurance ; trop basse, tu manques d'explosivité." +
-        (peerVla ? ` ${peerVla}` : ""),
-      source: payload.vlamax?.source ?? null,
-      confidence: payload.vlamax?.confidence ?? null,
-    },
-
-    {
-      key: "tte",
-      label: "TTE — endurance au seuil",
-      value: payload.tte?.tte_min ?? null,
-      unit: "min",
-      decimals: 0,
-      scale: [10, 90],
-      target: ambitionTargets?.tte_min
-        ? [ambitionTargets.tte_min, ambitionTargets.tte_min + 20]
-        : undefined,
-      status: statusFromRange(
-        payload.tte?.tte_min ?? null,
-        ambitionTargets?.tte_min
-          ? [ambitionTargets.tte_min, ambitionTargets.tte_min + 20]
-          : undefined,
-      ),
-      meaning:
-        "Temps tenu au seuil, mesuré ou estimé selon la source. Distinct de la robustesse après plusieurs heures d'effort.",
-      source: payload.tte?.source ?? null,
-      confidence: payload.tte?.confidence ?? null,
-    },
-    {
-      key: "ftpkg",
-      label: "FTP / kg — puissance relative",
-      value: ftpKg,
-      unit: "W/kg",
-      decimals: 2,
-      scale: [1.5, 6],
-      target: ambitionTargets?.ftp_kg_min
-        ? [ambitionTargets.ftp_kg_min, ambitionTargets.ftp_kg_min + 0.8]
-        : undefined,
-      status: statusFromRange(
-        ftpKg,
-        ambitionTargets?.ftp_kg_min
-          ? [ambitionTargets.ftp_kg_min, ambitionTargets.ftp_kg_min + 0.8]
-          : undefined,
-      ),
-      meaning:
-        "La puissance que tu peux tenir environ une heure, rapportée à ton poids. C'est le meilleur repère de niveau à vélo.",
-      source: refs?.sources?.ftp ?? null,
-    },
-    {
-      key: "fatmax",
-      label: "FatMax — intensité de meilleure combustion des graisses",
-      value: compass?.profile?.fatmax?.value ?? payload.fatmaxTFCL?.fatmaxPctFTP ?? null,
-      unit: "% FTP",
-      decimals: 0,
-      scale: [40, 90],
-      target: [60, 78],
-      status: statusFromRange(
-        compass?.profile?.fatmax?.value ?? payload.fatmaxTFCL?.fatmaxPctFTP ?? null,
-        [60, 78],
-      ),
-      meaning:
-        "L'intensité où tu utilises le plus de graisses. Plus elle est haute, moins tu dépends du ravitaillement en course longue.",
-      source: compass?.profile?.fatmax?.source ?? null,
-    },
-    {
-      key: "vma",
-      label: "VMA — vitesse maximale aérobie",
-      value: refs?.vma ?? null,
-      unit: "km/h",
-      decimals: 1,
-      scale: [10, 24],
-      target: [16, 21],
-      status: statusFromRange(refs?.vma ?? null, [16, 21]),
-      meaning:
-        "La vitesse à laquelle tu atteins ton VO₂max en course. Elle sert de base à toutes tes allures d'entraînement.",
-      source: refs?.sources?.vma ?? null,
-    },
-  ];
-
-  // ── Limiteurs ─────────────────────────────────────────────────────────────
-  const ranking: any[] = Array.isArray(limiterResult?.categoryRanking)
-    ? limiterResult.categoryRanking.slice(0, 3)
-    : [];
-  const maxImpact = Math.max(1, ...ranking.map((r) => r.totalImpact ?? 0));
-
-  const limiters: ReportLimiter[] = ranking.map((entry, i) => {
-    const limiterKey = CATEGORY_TO_LIMITER[entry.category] ?? "none";
-    const info = (LIMITER_INFO as any)[limiterKey] ?? { label: entry.category, emoji: "•" };
-    const copy = getLimiterImpactCopy(limiterKey as any);
-    return {
-      rank: i + 1,
-      title: info.label,
-      emoji: info.emoji,
-      severityLabel:
-        i === 0 ? (SEVERITY_LABEL[limiterResult?.severity ?? "moderate"] ?? "modérée") : "secondaire",
-      impact: Math.round(((entry.totalImpact ?? 0) / maxImpact) * 100),
-      fieldFeeling: copy.sentence1,
-      mechanism: copy.sentence2,
-      evidence: (entry.metrics ?? [])
-        .slice(0, 4)
-        .map((m: any) => `${m.metric} : écart ${m.gap > 0 ? "+" : ""}${Math.round(m.gap)} %`),
-    };
-  });
 
   // ── Leviers ───────────────────────────────────────────────────────────────
   const levers = compass?.leverage
@@ -252,57 +68,6 @@ export function mapExportPayloadToProfileReport(
   const durabilityDataBySport = reportSportDurability(payload);
   const sports = reportSports(payload.athlete?.goal, compass?.presentation?.sport === 'run');
 
-  // ── Roadmap ───────────────────────────────────────────────────────────────
-  let roadmap = null;
-  try {
-    const r = computeStrategicRoadmap({ objectif: goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate });
-    roadmap = {
-      title: r.title,
-      totalWeeks: r.totalWeeks,
-      phases: r.phases,
-      limiterSummary: r.limiterSummary,
-      personalized: r.personalized,
-    };
-  } catch {
-    roadmap = null;
-  }
-
-  // ── Écart à la cible d'ambition ───────────────────────────────────────────
-  const currentAmbition = (payload.ambition?.allTargets ?? []).find(
-    (t: any) => t.ambition === payload.ambition?.current,
-  );
-  const targetProgress = currentAmbition
-    ? [
-        {
-          label: "VLamax",
-          current: payload.vlamax?.value ?? null,
-          target: currentAmbition.targets.vlamax.optimal,
-          unit: "mmol/L/s",
-          decimals: 2,
-          progress: currentAmbition.progress.vlamax,
-          reached: (currentAmbition.progress.vlamax ?? 0) >= 100,
-        },
-        {
-          label: "TTE (endurance au seuil)",
-          current: payload.tte?.tte_min ?? null,
-          target: currentAmbition.targets.tte_min,
-          unit: "min",
-          decimals: 0,
-          progress: currentAmbition.progress.tte,
-          reached: (currentAmbition.progress.tte ?? 0) >= 100,
-        },
-        {
-          label: "FTP / kg",
-          current: ftpKg,
-          target: currentAmbition.targets.ftp_kg_min,
-          unit: "W/kg",
-          decimals: 2,
-          progress: currentAmbition.progress.ftpKg,
-          reached: (currentAmbition.progress.ftpKg ?? 0) >= 100,
-        },
-      ]
-    : [];
-
   // ── Narratif profil ───────────────────────────────────────────────────────
   const narrative = [
     limiterResult?.limiterExplanation ?? compass?.limiter?.description ?? "",
@@ -326,16 +91,18 @@ export function mapExportPayloadToProfileReport(
 
   return {
     athleteName: payload.athlete?.name ?? "Athlète",
-    reportReadingHTML: compass ? buildReportReadingHTML(compass, { zoneSets, durability: durabilityDataBySport }) : undefined,
-    compassSummaryHTML: compass ? buildCompassReportSummaryHTML(compass, 'profile-compass', 'Repères et diagnostic par sport') : undefined,
-    evidenceHTML: buildStaffEvidenceHTML(payload.athlete?.id ?? '', snap ?? null, payload.tests ?? []),
     sports,
     durabilityDataBySport,
-    objectifLabel: goal ?? "Objectif non défini",
+    brief: payload.reportBrief,
+    calendar: payload.calendar,
+    swimming: !/duathlon/i.test(goal ?? '') && (compass?.presentation?.sport === 'triathlon' || /^(IM|703|Olympic|Sprint|Ironman)$/i.test(goal ?? ''))
+      ? { css: refs?.css > 0 ? Math.round(refs.css) : null } : undefined,
+    nextRace: payload.nextRace,
+    objectifLabel: goal ? getObjectifLabel(goal) : "ton prochain objectif",
     ambitionLabel: opts.ambitionLabel,
     age: payload.ageAdjustment?.age ?? null,
     generatedAt: opts.generatedAt,
-    snapshotDate: snap?.date ?? null,
+    snapshotDate: payload.effectiveSnapshot?.date ?? null,
     dataCompleteness: payload.completude?.score ?? compass?.profile?.dataCompleteness ?? 0,
     readiness: {
       score: payload.potentielPhysiologique?.score ?? 0,
@@ -378,7 +145,7 @@ export function mapExportPayloadToProfileReport(
         }
       : null,
     targetProgress: compass ? compassReportRows(compass).filter(r => !['fatmax', 'tte'].includes(r.key)).map(r => ({ label: r.label, current: r.value, target: r.target, unit: r.unit, decimals: r.unit === 'mmol/L/s' ? 2 : 1, progress: r.score, reached: r.value != null && r.value > 0 && r.score >= 100 })) : [],
-    limiters,
+    limiters: [],
     levers,
     decision: compass?.decision
       ? {
@@ -391,7 +158,7 @@ export function mapExportPayloadToProfileReport(
         }
       : null,
     zoneSets,
-    roadmap,
+    roadmap: goal && payload.effectiveSnapshot?.source !== "finisher-express" ? reportRoadmap({ objectif: goal, limiterResult, raceGoals: payload.raceGoals, planStartDate: payload.planStartDate }) : null,
     nextSteps,
     glossary: [
       { term: "VO₂max", definition: "Quantité maximale d'oxygène utilisable par minute : la cylindrée de ton moteur." },

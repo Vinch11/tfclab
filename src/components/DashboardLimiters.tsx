@@ -2,12 +2,11 @@ import { Compass } from "lucide-react";
 import { FieldMetricComparison } from "@/components/charts/FieldComparison";
 import { ReferenceGauge } from "@/components/charts/ReferenceGauge";
 import type { compassFlow } from "@/lib/coachingCompass/compassFlow";
-import { fmt, glycolyticHypothesis, rankWithHypothesis, type FactorStates } from "@/lib/coachingCompass/factorStates";
+import { fmt, planFactorIndex, glycolyticHypothesis, rankWithHypothesis, type FactorStates } from "@/lib/coachingCompass/factorStates";
 
 type Flow = ReturnType<typeof compassFlow>;
 const SPORT = { run: "Course à pied", bike: "Vélo" } as const;
 const day = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
-const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]/g, "");
 type EngineFactor = Flow["lead"];
 
 /**
@@ -26,7 +25,7 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
   const ranked = states ? rankWithHypothesis(states, hypothesis) : [];
   const unmeasured = states?.unmeasured ?? [];
   const observed = states?.observed ?? [];
-  const offList = engine.filter(f => !ranked.some(x => norm(f.metric) === norm(x.r.key) && (!f.sport || f.sport === x.sport)));
+  const offList = engine.filter(f => !ranked.some(x => planFactorIndex([f], x) === 0));
   return (
     <section aria-labelledby="dashboard-limiters" className="compass-priority min-w-0 space-y-6 rounded-3xl border p-5 sm:p-7">
       <div className="priority-label flex items-center gap-2 text-sm font-semibold"><Compass aria-hidden className="size-5" /> Priorité du Compass</div>
@@ -40,7 +39,7 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
           {ranked.length ? (
             <ol className="space-y-4">
               {ranked.map((x, i) => {
-                const idx = engine.findIndex(f => norm(f.metric) === norm(x.r.key) && (!f.sport || f.sport === x.sport));
+                const idx = planFactorIndex(engine, x);
                 const target = idx >= 0 ? engine[idx] : null;
                 return (
                   <li key={x.sport + x.r.key} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">

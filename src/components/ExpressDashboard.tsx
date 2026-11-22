@@ -12,6 +12,7 @@
  * "Données non disponibles en mode Express".
  */
 
+import { EXPRESS_HR_ZONES } from "@/lib/expressHeartRateZones";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Activity, Zap, Gauge, Scale, FlaskConical } from "lucide-react";
@@ -31,14 +32,7 @@ interface ExpressDashboardProps {
 }
 
 // Zones FC standardisées (% FCmax) — Karvonen simplifié.
-const HR_ZONES: Array<{ id: string; label: string; min: number; max: number; color: string }> = [
-  { id: "Z1", label: "Récupération", min: 0.50, max: 0.60, color: "bg-blue-500/10 text-blue-700 dark:text-blue-300" },
-  { id: "Z2", label: "Endurance fondamentale", min: 0.60, max: 0.70, color: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
-  { id: "Z3", label: "Tempo", min: 0.70, max: 0.80, color: "bg-amber-500/10 text-amber-700 dark:text-amber-300" },
-  { id: "Z4", label: "Seuil", min: 0.80, max: 0.88, color: "bg-orange-500/10 text-orange-700 dark:text-orange-300" },
-  { id: "Z5", label: "VO2max", min: 0.88, max: 0.95, color: "bg-red-500/10 text-red-700 dark:text-red-300" },
-  { id: "Z6", label: "Anaérobie", min: 0.95, max: 1.00, color: "bg-purple-500/10 text-purple-700 dark:text-purple-300" },
-];
+
 
 export function ExpressDashboard({ athleteName, objectif, snapshot }: ExpressDashboardProps) {
   const fcMax = snapshot.fc_max ?? null;
@@ -81,7 +75,7 @@ export function ExpressDashboard({ athleteName, objectif, snapshot }: ExpressDas
         <CardContent>
           {fcMax ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {HR_ZONES.map((z) => {
+              {EXPRESS_HR_ZONES.map((z) => {
                 const lo = Math.round(z.min * fcMax);
                 const hi = Math.round(z.max * fcMax);
                 return (

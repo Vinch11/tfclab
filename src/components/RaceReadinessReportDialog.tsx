@@ -291,6 +291,7 @@ export function RaceReadinessReportDialog({
       logoBase64,
     });
     openPrintableHTML(html, {
+      responsive: true,
       filenameHint: `Bilan pré-objectif - ${athleteName}`,
       autoPrint: false,
     });
