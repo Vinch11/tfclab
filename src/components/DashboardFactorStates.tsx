@@ -10,6 +10,7 @@ const TIER = {
   measured: { label: "Mesuré", hint: "Cohorte publiée du même niveau", cls: "bg-[var(--mint)] text-accent" },
   derived: { label: "Dérivé", hint: "Calculé à partir de cohortes publiées", cls: "bg-[var(--lavender)] text-primary" },
   cohort: { label: "Cohorte", hint: "Moyenne publiée, sans seuil de réussite", cls: "bg-[var(--mint)] text-accent" },
+  observed: { label: "Observé", hint: "Mesure de l’athlète, sans cible publiée", cls: "bg-[var(--lavender)] text-primary" },
   coaching: { label: "Repère de coaching", hint: "Valeur TFCL sans cohorte publiée", cls: "bg-muted text-muted-foreground" },
 } as const;
 const STATE = {
@@ -48,6 +49,7 @@ function FactorTile({ r }: { r: FactorRow }) {
         <span className={"ui-badge px-2 py-0.5 " + tier.cls}>{tier.label}</span>
         <span>{tier.hint}</span>
       </p>
+      {r.caption && <p className="text-xs text-muted-foreground">{r.caption}</p>}
       {r.engineNote && <p className="text-xs leading-relaxed text-muted-foreground">{r.engineNote} C’est une valeur de coaching, non issue d’études ; elle sert au classement du Compass et aux plans, pas à l’idéal sourcé ci-dessus.</p>}
       {(r.basis || r.adjustment || links.length > 0) && (
         <details className="text-xs text-muted-foreground">
@@ -91,7 +93,7 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
       <details className="text-xs leading-relaxed text-muted-foreground">
         <summary className="cursor-pointer py-1 font-medium text-foreground">Comment lire ces repères</summary>
         « Mesuré » : moyenne d’une cohorte publiée du niveau correspondant. « Dérivé » : calculé à partir de cohortes publiées par une règle écrite, faute de cohorte directe.
-        « Repère de coaching » : valeur TFCL sans cohorte publiée. Natation : aucune cohorte lue, aucun idéal affiché.
+        « Observé » : mesure propre à l’athlète (seuil critique, réserve anaérobie, durabilité), affichée sans cible ni classement faute de norme publiée. « Repère de coaching » : valeur TFCL sans cohorte publiée. Natation : aucune cohorte lue, aucun idéal affiché.
         La zone est la moyenne ± ½ écart-type : une largeur de lecture, pas un seuil de réussite.
         Ces repères ne modifient ni le classement des limiteurs ni les plans.
       </details>

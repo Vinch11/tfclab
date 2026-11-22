@@ -1,6 +1,9 @@
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from "./types";
 import { buildProfileComparisons, type ProfileComparison } from "./profileComparison";
 import { idealReference, idealState, type IdealFactor, type IdealReference } from "./idealReferences";
+import { parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
+import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
+import { normalizeObjective } from "@/lib/physiologicalTargets";
 
 /**
  * État de chaque facteur face à l'idéal, et classement des écarts. Affichage seul :
@@ -24,9 +27,11 @@ const RACE_INTENSITY: Record<string, { low: number; high: number }> = {
 export type FactorRow = {
   key: string; label: string; unit: string; value: number | null; observation?: string;
   zone: { low: number; high: number; point: number | null } | null;
-  tier: "measured" | "derived" | "coaching" | "cohort"; state: "below" | "inside" | "above" | "missing" | "none";
+  tier: "measured" | "derived" | "coaching" | "cohort" | "observed"; state: "below" | "inside" | "above" | "missing" | "none";
   basis: string | null; evidence: readonly string[]; engineNote: string | null; adjustment?: string | null;
   stateText?: Partial<Record<"below" | "inside" | "above", string>>;
+  /** Ligne de statut sous le niveau de preuve (ex. « Estimation non confirmée »). */
+  caption?: string;
 };
 
 /** Ce que l'objectif chronométré exige de la VMA, face à ce que soutiennent les élites sur cette distance. */
@@ -77,6 +82,54 @@ export function gapPercent(r: FactorRow): number {
 }
 
 
+/**
+ * Facteurs propres à l'athlète, sans cible publiée : allure ou puissance critique, réserve
+ * anaérobie, durabilité des sorties longues. Ils sont affichés avec leur niveau de preuve mais
+ * jamais classés : aucun idéal sourcé par objectif ou ambition n'existe (voir
+ * docs/etude-cp-cs-durabilite-tte-2026-11-22.md). Affichage seul.
+ */
+const LONG_OBJECTIVES = new Set(["Marathon", "IM", "703", "Ultra"]);
+const isLongObjective = (objective: string) => LONG_OBJECTIVES.has(normalizeObjective(objective)) || /ultra|trail/i.test(objective);
+
+const CP_BASIS = "Ajustement de 3 efforts maximaux de 2 à 15 min (Nolio ou saisie). La CP n'est pas une allure ou une puissance tenable une heure : elle se situe en moyenne ≈ 12 W au-dessus du MLSS, avec un écart individuel de −19 à +44 W (méta-analyse 2025). Ne sert pas à classer les limiteurs.";
+const CS_BASIS = "Ajustement d'efforts maximaux de 2 à 15 min (Nolio ou saisie). Chez des coureurs bien entraînés, la CS dépasse l'allure du MLSS (16,4 contre 15,2 km/h, 10 coureurs) : à lire comme la frontière du seuil sévère, pas comme une allure tenable une heure. Ne sert pas à classer les limiteurs.";
+const RESERVE_BASIS = "Travail réalisable au-dessus du seuil critique. Utile pour doser les intervalles. Les preuves ne permettent pas d'en faire une mesure de la VLamax : facteur distinct, jamais classé.";
+
+export function observedRows(input: CoachingCompassInput, sport: FactorSport): FactorRow[] {
+  const rows: FactorRow[] = [];
+  const critical = parseStoredCriticalMetrics(input.criticalMetrics)[sport === "bike" ? "cycling" : "running"];
+  const status = (c: NonNullable<typeof critical>) => (c.coachReview?.verdict === "reject" ? "Écarté par l'avis du coach : n'ajuste aucune séance"
+    : c.status === "confirmed" ? "Confirmé par le coach" : "Estimation non confirmée : affichée, n'ajuste aucune séance")
+    + (c.latestEffortDate ? " · efforts jusqu'au " + c.latestEffortDate.split("-").reverse().join("/") : "");
+  const make = (key: string, label: string, unit: string, value: number, basis: string, evidence: string[], caption: string): FactorRow =>
+    ({ key, label, unit, value, zone: null, tier: "observed", state: "none", basis, evidence, engineNote: null, caption });
+  if (critical) {
+    if (sport === "bike") {
+      rows.push(make("cp", "Puissance critique (CP)", "W", Math.round(critical.critical), CP_BASIS, ["poole-2016", "cp-mlss-2025"], status(critical)));
+      rows.push(make("wprime", "Réserve anaérobie (W′)", "kJ", Math.round(critical.reserve / 100) / 10, RESERVE_BASIS, ["poole-2016"], status(critical)));
+    } else {
+      rows.push(make("cs", "Vitesse critique (CS)", "km/h", Math.round(critical.critical * 36) / 10, CS_BASIS, ["cs-mlss-2021", "cs-marathon-2020"], status(critical)));
+      rows.push(make("dprime", "Réserve anaérobie (D′)", "m", Math.round(critical.reserve), RESERVE_BASIS, ["cs-mlss-2021"], status(critical)));
+    }
+  }
+  const durability = parseStoredDurability(input.criticalMetrics)[sport];
+  const longObjective = isLongObjective(input.objectif);
+  if (durability) {
+    const d = durability;
+    rows.push({ key: "durability", label: "Durabilité (sorties longues)", unit: "%", value: d.meanChangePct, zone: null, tier: "observed", state: "none",
+      basis: `Meilleur effort de 20 min au début contre le dernier tiers de ${d.sessions.length} sorties longues Nolio (${sport === "bike" ? "≥ 2 h" : "≥ 1 h 30"}), moyenne ${d.meanChangePct.toLocaleString("fr-BE")} %. `
+        + (sport === "bike" ? "Repère d'observation, pas une cible : −10,8 ± 7,8 % (5 min) et −10,1 ± 6,5 % (20 min) après 1 000 kJ chez 20 cyclistes amateurs. " : "Repère d'observation, pas une cible : −5,5 % de vitesse au seuil après 90 min chez 18 marathoniens. ")
+        + "Dépend de ce que l'athlète a réellement poussé en fin de séance : à confirmer avec le coach.",
+      evidence: sport === "bike" ? ["durability-cycling-2025", "durability-hunter-2025"] : ["durability-running-2025", "durability-hunter-2025"], engineNote: null,
+      caption: "Estimation depuis les sorties enregistrées · du " + d.from.split("-").reverse().join("/") + " au " + d.to.split("-").reverse().join("/") });
+  } else if (longObjective) {
+    rows.push({ key: "durability", label: "Durabilité (sorties longues)", unit: "%", value: null, zone: null, tier: "observed", state: "missing",
+      basis: "Pertinente pour les objectifs longs. Se mesure à partir d'au moins 2 sorties longues Nolio (vélo ≥ 2 h, course ≥ 1 h 30) ou d'un test avant/après charge.",
+      evidence: ["durability-hunter-2025"], engineNote: null });
+  }
+  return rows;
+}
+
 export type FactorSport = "run" | "bike";
 export interface FactorStates {
   sections: { sport: FactorSport; rows: FactorRow[] }[];
@@ -84,6 +137,8 @@ export interface FactorStates {
   ranked: { r: FactorRow; sport: FactorSport; gap: number }[];
   /** Facteurs sans valeur : listés à part, jamais classés. */
   unmeasured: { r: FactorRow; sport: FactorSport }[];
+  /** Mesures propres à l'athlète, sans cible publiée : affichées, jamais classées. */
+  observed: { r: FactorRow; sport: FactorSport }[];
 }
 
 export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoachingCompassResult): FactorStates {
@@ -91,13 +146,15 @@ export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoac
     const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
       ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport, age: input.athleteAge, sex: input.athleteSex }) : null));
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
-    return { sport: g.sport as FactorSport, rows: demand ? [...rows, demand] : rows };
+    const sport = g.sport as FactorSport;
+    return { sport, rows: [...rows, ...(demand ? [demand] : []), ...observedRows(input, sport)] };
   }).filter(s => s.rows.length > 0);
   const all = sections.flatMap(s => s.rows.map(r => ({ r, sport: s.sport })));
   return {
     sections,
     ranked: all.map(x => ({ ...x, gap: gapPercent(x.r) })).filter(x => x.gap > 0.05).sort((a, b) => b.gap - a.gap),
     unmeasured: all.filter(x => x.r.state === "missing"),
+    observed: all.filter(x => x.r.tier === "observed" && x.r.value != null),
   };
 }
 

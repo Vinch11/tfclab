@@ -100,6 +100,41 @@ export const compassEvidence = [
     protocol: '1 000 kJ à 80 % de la puissance de 20 min, puis 5 min et 20 min à fond : baisse de 10,8 ± 7,8 % et 10,1 ± 6,5 %.',
     limitation: 'Aucune corrélation avec la VO₂max ni la FTP relative : la durabilité se mesure à part. Valeur observée, pas une cible par ambition.',
   },
+  {
+    id: 'poole-2016', title: 'Poole et al. · 2016',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC5070974/',
+    population: 'Revue : relation puissance-durée hyperbolique, puissance critique (CP) et W′.',
+    protocol: 'CP sépare les intensités où les réponses physiologiques peuvent se stabiliser de celles où elles ne le peuvent pas ; W′ est le travail réalisable au-dessus.',
+    limitation: 'Revue conceptuelle, pas de norme par niveau ni par objectif. CP n’est pas une puissance tenable une heure.',
+  },
+  {
+    id: 'cp-mlss-2025', title: 'CP et MLSS · revue systématique et méta-analyses · 2025',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC11927562/',
+    population: '10 études incluses sur 782 repérées ; vélo et autres exercices dynamiques.',
+    protocol: 'Puissance à CP supérieure de 12,4 W à celle du MLSS en moyenne (limites d’accord −19 à +44 W) ; pas d’écart sur VO₂, FC ni lactate.',
+    limitation: 'Grande variabilité individuelle : prescrire un seuil à partir de CP seule peut comporter une erreur notable.',
+  },
+  {
+    id: 'cs-mlss-2021', title: 'Vitesse critique et MLSS chez des coureurs bien entraînés · 2021',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8505327/',
+    population: '10 coureurs bien entraînés.',
+    protocol: 'CS 16,4 ± 1,3 km/h contre MLSS 15,2 ± 0,9 km/h ; D′ 216 ± 79 m ; variabilité de CS 0,8 %, de D′ 7 %.',
+    limitation: 'Petit échantillon. La définition du MLSS est contestée : la CS n’est pas une allure tenable une heure.',
+  },
+  {
+    id: 'cs-marathon-2020', title: 'Smyth & Muniz-Pumares · 2020',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7664951/',
+    population: 'Marathoniens récréatifs ; CS calculée à partir de données d’entraînement brutes.',
+    protocol: 'Marathon couru à 84,8 ± 13,6 % de la CS ; les élites auraient couru à environ 96 % de leur CS.',
+    limitation: 'Marathon seulement ; erreur de prédiction d’environ 7,7 %. Aucune valeur équivalente vérifiée pour 5 km, 10 km et semi.',
+  },
+  {
+    id: 'durability-running-2025', title: 'Hunter et al. · Durabilité chez des marathoniens · 2025',
+    url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC12547624/',
+    population: '18 marathoniens du London Marathon 2024 (3 h 17 ± 0 h 32).',
+    protocol: 'Après 90 min de course au seuil : VO₂pic −5,8 % et vitesse au seuil −5,5 % ; la baisse de vitesse au seuil est liée à la performance (r = 0,68).',
+    limitation: 'Petit échantillon, étude transversale. Valeur observée, pas une cible par ambition.',
+  },
 ] as const;
 
 /** Published mean and SD, not an optimal interval, percentile or readiness threshold. */

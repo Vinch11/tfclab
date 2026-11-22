@@ -20,7 +20,14 @@ const input: CoachingCompassInput = {
   tteEffectif: { tte_min: 35, confidence: 0.4, source: "estimated" },
   tteEffectifRun: { tte_min: 40, confidence: 0.9, source: "observed" },
   fatigueEffectif: null, limiterResult: null, potentielPhysiologique: null, strategyResult: null,
-  lactateThresholds: null, wprimeKj: null, objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
+  lactateThresholds: null, wprimeKj: null,
+  criticalMetrics: {
+    cycling: { critical: 232, reserve: 17400, status: "confirmed", latestEffortDate: "2026-11-02", efforts: [], warnings: [] },
+    running: { critical: 3.9, reserve: 190, status: "estimate", latestEffortDate: "2026-10-20", efforts: [], warnings: [] },
+    durability: { bike: { status: "estimate", method: "best20_early_vs_last_third", windowVersion: 2, unit: "W", meanChangePct: -8.2, from: "2026-09-01", to: "2026-11-01", savedAt: "2026-11-02",
+      sessions: [{ id: "a", date: "2026-09-10", name: "Sortie longue", durationMin: 180, early: 250, late: 230, changePct: -8 }, { id: "b", date: "2026-10-10", name: "Sortie longue", durationMin: 200, early: 255, late: 234, changePct: -8.4 }] } },
+  },
+  objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
 };
 const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", weight_kg:52, vma:14.2, ftp:188, vo2max:50, css:100, pace_threshold_sec_per_km:315, tte_observed_min_run:40, coach_notes:"Note réservée au coach", created_at: "", updated_at: "" } as unknown as DbSnapshot;
 

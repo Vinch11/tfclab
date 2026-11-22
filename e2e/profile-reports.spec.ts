@@ -30,7 +30,7 @@ test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et 
       await expect(report.locator('#lecture-coach')).toBeVisible();
     } else {
       await expect(report.locator('main')).not.toContainText('Note réservée au coach');
-      await expect(report.locator('#preparation')).toContainText('Le fil du calendrier enregistré');
+      await expect(report.locator('#preparation')).toContainText('Ce qui est déjà dans ton calendrier');
       await expect(report.locator('#reperes-swim')).toContainText('1:40 min/100 m');
       await expect(report.locator('#suivi')).toBeVisible();
       await expect(report.locator('#terrain')).not.toContainText('Capteur témoin');

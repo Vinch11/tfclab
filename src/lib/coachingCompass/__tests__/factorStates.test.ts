@@ -86,3 +86,51 @@ describe("hypothèse glycolytique dans la hiérarchie", () => {
     expect(rankWithHypothesis(s, null)).toBe(s.ranked);
   });
 });
+
+describe("facteurs observés : seuil critique, réserve anaérobie, durabilité", () => {
+  const critical = { cycling: { critical: 262.4, reserve: 18300, status: "confirmed", latestEffortDate: "2026-11-02", efforts: [], warnings: [] },
+    running: { critical: 4.51, reserve: 212, status: "estimate", latestEffortDate: "2026-10-20", efforts: [], warnings: [] } };
+  const durability = { bike: { status: "estimate", method: "best20_early_vs_last_third", windowVersion: 2, unit: "W", meanChangePct: -8.2, from: "2026-09-01", to: "2026-11-01", savedAt: "2026-11-02",
+    sessions: [{ id: "a", date: "2026-09-10", name: "Sortie longue", durationMin: 180, early: 250, late: 230, changePct: -8 }, { id: "b", date: "2026-10-10", name: "Sortie longue", durationMin: 200, early: 255, late: 234, changePct: -8.2 }] } };
+  const rows = (s: ReturnType<typeof states>, sport: string) => s.sections.find(x => x.sport === sport)!.rows;
+
+  it("affiche CP et W′ en vélo, CS et D′ en course, sans zone ni classement", () => {
+    const s = states("IM", "competitor", triathlon, { criticalMetrics: critical } as never);
+    const bike = rows(s, "bike"), run = rows(s, "run");
+    expect(bike.find(r => r.key === "cp")).toMatchObject({ value: 262, unit: "W", tier: "observed", state: "none", zone: null, caption: expect.stringContaining("Confirmé par le coach") });
+    expect(bike.find(r => r.key === "wprime")).toMatchObject({ value: 18.3, unit: "kJ" });
+    expect(run.find(r => r.key === "cs")).toMatchObject({ value: 16.2, unit: "km/h", caption: expect.stringContaining("Estimation non confirmée") });
+    expect(run.find(r => r.key === "dprime")).toMatchObject({ value: 212, unit: "m" });
+    expect(s.ranked.map(x => x.r.key)).not.toEqual(expect.arrayContaining(["cp"]));
+    expect(s.ranked.every(x => x.r.tier !== "observed")).toBe(true);
+    expect(s.observed.map(x => x.r.key)).toEqual(expect.arrayContaining(["cp", "wprime", "cs", "dprime"]));
+  });
+
+  it("un avis « écarter » du coach est affiché tel quel", () => {
+    const rejected = { cycling: { ...critical.cycling, coachReview: { verdict: "reject", text: "x", date: "2026-11-03" } } };
+    const s = states("IM", "competitor", triathlon, { criticalMetrics: rejected } as never);
+    expect(rows(s, "bike").find(r => r.key === "cp")!.caption).toContain("Écarté par l'avis du coach");
+  });
+
+  it("durabilité mesurée : valeur en % et repère d'observation, jamais une cible", () => {
+    const s = states("IM", "competitor", triathlon, { criticalMetrics: { durability } } as never);
+    const row = rows(s, "bike").find(r => r.key === "durability")!;
+    expect(row).toMatchObject({ value: -8.2, unit: "%", tier: "observed", state: "none", zone: null });
+    expect(row.basis).toContain("pas une cible");
+    expect(s.ranked.some(x => x.r.key === "durability")).toBe(false);
+  });
+
+  it("durabilité absente : « à mesurer » pour un objectif long, rien pour un objectif court", () => {
+    const long = states("Marathon", "competitor", { presentation: { sport: "run", axes: [axis("vo2max", 52, 50, "ml/kg/min")] } });
+    expect(long.sections[0].rows.find(r => r.key === "durability")).toMatchObject({ state: "missing", value: null });
+    expect(long.unmeasured.map(x => x.r.key)).toContain("durability");
+    const short = states("10K", "competitor", { presentation: { sport: "run", axes: [axis("vo2max", 52, 50, "ml/kg/min")] } });
+    expect(short.sections[0].rows.find(r => r.key === "durability")).toBeUndefined();
+  });
+
+  it("sans métriques critiques, rien n'est inventé", () => {
+    const s = states("IM", "competitor", triathlon);
+    for (const key of ["cp", "wprime", "cs", "dprime"]) expect(s.sections.flatMap(x => x.rows).some(r => r.key === key)).toBe(false);
+    expect(s.observed).toEqual([]);
+  });
+});

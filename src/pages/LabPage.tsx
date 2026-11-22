@@ -11,6 +11,8 @@ import { earlierBilans } from '@/lib/lab/coachReview';
 import { pickReferenceSnapshot } from '@/lib/referenceSnapshot';
 import { labProfile } from '@/lib/lab/labProfile';
 import { labReference } from '@/lib/lab/labReference';
+import { observedRows } from '@/lib/coachingCompass/factorStates';
+import { ObservedFactors } from '@/components/ObservedFactors';
 import { calculateAge } from '@/lib/ageAdjustment';
 import { completeProfile } from '@/lib/coachingCompass/completeProfile';
 import { AthleteEvidenceCharts } from '@/components/charts/AthleteEvidenceCharts';
@@ -59,6 +61,7 @@ export default function LabPage({ compass }: { compass?: CoachingCompassInput | 
             </article>;
           })}</div>
         </section>
+        <ObservedFactors rows={observedRows(input, sport)} title={'Seuil critique et durabilité · ' + (sport === 'run' ? 'Course à pied' : 'Vélo')} />
         <SnapshotReview baseline={baseline} onBaseline={setBaselineId} key={snapshot.id + sport} snapshots={snapshots} reference={snapshot} sport={sport} input={input} />
         <AthleteEvidenceCharts baseline={baseline} labReview key={currentAthlete?.id} input={input} snapshot={snapshot} snapshots={snapshots} tests={tests} selectedSport={sport} athleteName={currentAthlete?.nom} />
         {input.sportFocus === 'triathlon' && <section className="border-t border-border pt-6"><h3 className="text-xl font-semibold">Natation</h3><p className="text-2xl font-semibold mt-3">{snapshot.css ?? '—'} <span className="text-sm font-normal">{snapshot.css ? 's/100 m · CSS enregistrée' : 'Données insuffisantes'}</span></p><p className="text-sm text-muted-foreground mt-2">La CSS est un repère de nage, pas un profil métabolique mesuré ; aucune courbe course ou vélo n’est transposée.</p></section>}
