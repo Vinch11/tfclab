@@ -104,7 +104,7 @@ export default function TrainingLoadPage() {
   return (
     <AppLayout title="Charge d'entraînement" showBack>
       <div className="p-4 md:p-6 space-y-4 max-w-7xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="hub-heading flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold">Charge d'entraînement — {currentAthlete.name}</h1>
             <p className="text-sm text-muted-foreground">

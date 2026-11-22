@@ -140,7 +140,7 @@ export default function WorkoutLibraryBrowserPage() {
     <SidebarLayout activeTab={activeTab} onTabChange={setActiveTab} staffMode={staffMode} onStaffModeChange={setStaffMode}>
       <div className="p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="hub-heading flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <Library className="h-6 w-6 text-primary" />

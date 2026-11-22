@@ -37,7 +37,7 @@ function displayDate(value?: string) {
   return Number.isFinite(date.getTime()) ? dateLabel.format(date) : null;
 }
 
-const actionClass = "group flex min-h-14 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-primary";
+const actionClass = "dashboard-action group flex min-h-14 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-semibold transition-colors hover:bg-muted focus-visible:outline focus-visible:outline-primary";
 const arrow = <ArrowRight aria-hidden className="ml-auto size-4 shrink-0 text-muted-foreground group-hover:text-primary" />;
 
 export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, onAmbitionChange, onGoalChange,
@@ -65,15 +65,15 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
   const detail = express ? "Le bilan Express présente les zones de fréquence cardiaque et les estimations disponibles." :
     flow?.detail ?? "Ajoute les résultats de terrain pour comparer le profil de cet athlète à son objectif.";
   return (
-    <div className="mx-auto max-w-5xl space-y-4 pb-3 sm:space-y-6">
+    <div className="coach-dashboard mx-auto max-w-5xl space-y-4 pb-3 sm:space-y-6">
       <header className="space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <h1 ref={activePanel ? undefined : heading} tabIndex={-1} className="outline-none text-xl font-semibold tracking-tight sm:text-2xl">Tableau de bord</h1>
+          <h1 ref={activePanel ? undefined : heading} tabIndex={-1} className="workspace-title outline-none text-xl font-semibold tracking-tight sm:text-2xl">Tableau de bord</h1>
           <Link to="/athletes" className="flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <Users aria-hidden className="size-4" /> Tous les athlètes
           </Link>
         </div>
-        <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl border bg-card px-4 py-3 sm:px-5">
+        <div className="athlete-context flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl border bg-card px-4 py-3 sm:px-5">
           <label className="min-w-0 basis-full sm:flex-1">
             <span className="text-xs font-medium text-muted-foreground">Athlète</span>
             <Select value={athlete.id} onValueChange={id => {
@@ -107,11 +107,11 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
       </section> : <>
         {alert}
         <div className="grid gap-3 md:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] sm:gap-4">
-          <section className="min-w-0 space-y-3 rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/[0.1] via-card to-card p-5 sm:space-y-4 sm:p-7">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Compass aria-hidden className="size-5" /> {express ? "Profil Express" : "Priorité du Compass"}</div>
+          <section className="compass-priority min-w-0 space-y-3 rounded-3xl border border-primary/25 bg-gradient-to-br from-primary/[0.1] via-card to-card p-5 sm:space-y-4 sm:p-7">
+            <div className="priority-label flex items-center gap-2 text-sm font-semibold text-primary"><Compass aria-hidden className="size-5" /> {express ? "Profil Express" : "Priorité du Compass"}</div>
             <h2 className="text-balance text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{title}</h2>
-            <p className="text-sm leading-relaxed text-foreground/80">{detail}</p>
-            {fatigueWarning && <p className="rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">{fatigueWarning}</p>}
+            <p className="priority-detail text-sm leading-relaxed text-foreground/80">{detail}</p>
+            {fatigueWarning && <p className="priority-warning rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm">{fatigueWarning}</p>}
             <div className="flex flex-wrap gap-2">
               <Button asChild className="min-h-11">
                 <Link to={linkTo(snapshot ? "compass" : "bilans")}>{express ? "Voir les estimations" : snapshot ? "Ouvrir le Compass" : "Créer le bilan"} <ArrowRight /></Link>
@@ -123,7 +123,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
             {flow?.gap && <FieldMetricComparison metric={flow.gap} hypothesis={flow.lead?.hypothesis} />}
             {flow?.lead?.comparison && <ReferenceGauge {...flow.lead.comparison} name={flow.lead.title} />}
           </section>
-          <section className="flex min-w-0 flex-col items-start gap-3 rounded-3xl border bg-card p-5 sm:p-6">
+          <section className="dashboard-reference flex min-w-0 flex-col items-start gap-3 rounded-3xl border bg-card p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-sm font-semibold"><ClipboardList aria-hidden className="size-5 text-muted-foreground" /> Bilan de référence</h2>
             <p className="text-xl font-semibold tracking-tight">{snapshot ? displayDate(snapshot.date) ?? "Date inconnue" : "Aucun bilan"}</p>
             {coverage && <div className="w-full space-y-2">
@@ -141,7 +141,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
         </div>
         <nav aria-label="Suivi de l’athlète" className="space-y-2">
           <h2 className="text-lg font-semibold tracking-tight">Suivi de l’athlète</h2>
-          <div className={"grid rounded-2xl border bg-card p-1 " + (snapshot && !express ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+          <div className={"dashboard-links grid rounded-2xl border bg-card p-1 " + (snapshot && !express ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
             <Link to={'/athlete/' + athlete.id} className={actionClass}><FolderOpen className="size-5 shrink-0 text-primary" /> Fiche athlète {arrow}</Link>
             {snapshot && !express && <Link to={linkTo("analyses")} className={actionClass}><ChartNoAxesColumnIncreasing className="size-5 shrink-0 text-primary" /> Analyses complémentaires {arrow}</Link>}
             <Link to="/race?step=3" className={actionClass}><Flag className="size-5 shrink-0 text-primary" /> Stratégie de course {arrow}</Link>

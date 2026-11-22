@@ -47,7 +47,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
         <div className="absolute bottom-0 right-1/4 w-48 sm:w-72 md:w-96 h-48 sm:h-72 md:h-96 bg-accent/5 rounded-full blur-3xl" />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl safe-area-inset-top">
+      <header className="workspace-toolbar workspace-page-toolbar sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl safe-area-inset-top">
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -76,7 +76,7 @@ export function AppLayout({ children, title, subtitle, showBack = false }: AppLa
         </div>
       </header>
 
-      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-24 relative">{children}</main>
+      <main className="workspace-page-content container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 pb-20 sm:pb-24 relative">{children}</main>
 
       {/* Mobile: full MobileBottomNav with all tabs */}
       <MobileBottomNav

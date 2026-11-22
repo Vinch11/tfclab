@@ -47,7 +47,7 @@ export function SidebarLayout({
         />
         <SidebarInset className="flex flex-col flex-1">
           {/* Header with trigger - mobile optimized */}
-          <header className="sticky top-0 z-40 flex h-11 sm:h-12 items-center gap-2 sm:gap-3 border-b border-border/50 bg-background/90 backdrop-blur-lg px-3 sm:px-4 safe-area-inset-top">
+          <header className="workspace-toolbar sticky top-0 z-40 flex h-11 sm:h-12 items-center gap-2 sm:gap-3 border-b border-border/50 bg-background/90 backdrop-blur-lg px-3 sm:px-4 safe-area-inset-top">
             {/* Hide sidebar trigger on mobile — bottom nav replaces it */}
             <SidebarTrigger className="-ml-1 touch-target hidden md:flex" />
 
@@ -74,7 +74,7 @@ export function SidebarLayout({
 
           {/* Main content - mobile optimized padding with bottom nav space */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto ios-scroll w-full max-w-full">
-            <div className="container mx-auto py-3 sm:py-6 pb-20 md:pb-6 w-full max-w-full">
+            <div className="workspace-content container mx-auto py-3 sm:py-6 pb-20 md:pb-6 w-full max-w-full">
               {children}
             </div>
           </main>

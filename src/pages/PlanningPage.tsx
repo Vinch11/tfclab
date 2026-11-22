@@ -76,7 +76,7 @@ export default function PlanningPage() {
     >
       <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header - compact on mobile */}
-        <div className="flex items-center justify-between">
+        <div className="hub-heading flex items-center justify-between">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/10">
               <CalendarDays className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
@@ -99,19 +99,20 @@ export default function PlanningPage() {
         </div>
 
         {/* Section Cards - single column on mobile */}
-        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="planning-destinations grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {sections.map((section) => {
             const Icon = section.icon;
             return (
               <Card
                 key={section.id}
-                className="group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
+                data-destination={section.id}
+                className="hub-card group cursor-pointer hover:border-primary/30 hover:shadow-md transition-all duration-200 active:scale-[0.98]"
                 onClick={() => navigate(section.route)}
               >
                 <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
                   <div className="flex items-center sm:items-start justify-between">
                     <div className="flex items-center gap-2.5 sm:block">
-                      <div className={`p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
+                      <div className={`hub-card-icon p-1.5 sm:p-2 rounded-lg ${section.bgColor}`}>
                         <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${section.color}`} />
                       </div>
                       <CardTitle className="text-sm sm:text-base sm:mt-3">{section.title}</CardTitle>

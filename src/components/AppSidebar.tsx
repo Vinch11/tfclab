@@ -114,7 +114,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
       <SidebarContent className="px-2 sm:px-3 py-2 ios-scroll">
         {/* Staff Mode Toggle */}
         {!collapsed && (
-          <div className="px-2 py-2.5 mb-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
+          <div className="workspace-staff px-2 py-2.5 mb-3 rounded-xl bg-sidebar-accent/40 border border-sidebar-border/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className={cn(
@@ -162,7 +162,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
                         <span className="text-sm truncate">{item.label}</span>
                       )}
                       {active && !collapsed && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
+                        <span className="workspace-active-mark absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-sidebar-primary" />
                       )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>

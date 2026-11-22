@@ -148,7 +148,7 @@ export function DetCoachPanel({readInput,disabled,revision,clm,defaultOpen=false
     [...new Map(proposal.weeks.flatMap(w=>w.days.flatMap(d=>d.sessions.flatMap(s=>s.components)))
       .filter(c=>c.sport==='run').map(c=>[c.sourceId,c])).values()] : [];
   const pendingTerrain=trailSources.filter(source=>source.targets?.status==='unresolved').length;
-  return <section className="space-y-3 rounded-lg border p-3" aria-label="Génération déterministe">
+  return <section className="plan-engine-panel space-y-3 rounded-lg border p-3" aria-label="Génération déterministe">
     <button className="font-semibold" type="button" aria-expanded={open} onClick={()=>setOpen(!open)}>DET-ENGINE</button>
     {open && <div className="space-y-3">
       {history.key && <fieldset className="grid gap-2">
