@@ -226,6 +226,14 @@
   }
 
   /* Dashboard. Only the current coaching priority uses the ink surface. */
+  .bevel .coach-dashboard { container: dashboard / inline-size; }
+  @container dashboard (min-width: 30rem) and (max-width: 43rem) {
+    /* The open sidebar can leave a tablet with a phone-sized content area. */
+    .bevel .coach-dashboard > .grid { grid-template-columns: minmax(0, 1fr); }
+    .bevel .athlete-context > label:first-child { flex-basis: 100%; }
+    .bevel .athlete-context > :not(:first-child) { max-width: none; }
+    .bevel .dashboard-links { grid-template-columns: minmax(0, 1fr); }
+  }
   .bevel .athlete-context { background: hsl(var(--card)); padding: 1rem; }
   .bevel .athlete-context :is(.ui-field, .ui-button) {
     background: hsl(var(--background));
