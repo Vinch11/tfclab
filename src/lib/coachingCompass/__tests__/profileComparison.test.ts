@@ -1,3 +1,4 @@
+import { getVLamaxRange } from '@/lib/physiologicalTargets';
 import { describe, expect, it } from 'vitest';
 import { compareProfileAxis, contextualCohortFor, buildProfileComparisons } from '../profileComparison';
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from '../types';
@@ -19,8 +20,18 @@ describe('Display-only compass references', () => {
     expect(compareProfileAxis(axis('vlamax', .2, .32), 'run', input).status).toBe('below');
     expect(compareProfileAxis(axis('vlamax', .32, .32), 'run', input).status).toBe('inside');
     expect(compareProfileAxis(axis('vlamax', .5, .32), 'run', input).status).toBe('above');
-    expect(compareProfileAxis(axis('vlamax', .32, .32), 'run', input).reference?.low).toBe(.25);
-    expect(compareProfileAxis(axis('vlamax', .32, .26), 'bike', input).reference?.low).toBe(.2);
+    expect(compareProfileAxis(axis('vlamax', .32, .32), 'run', input).reference?.low).toBe(.27);
+    expect(compareProfileAxis(axis('vlamax', .32, .26), 'bike', input).reference?.low).toBe(.21);
+  });
+  it('shows a narrow VLamax zone around the optimal, not the engine tolerance that covers almost every profile', () => {
+    const tenK = { ...input, objectif: '10K', ambition: 'competitor' } as typeof input;
+    const run = compareProfileAxis(axis('vlamax', .57, .45), 'run', tenK);
+    const range = getVLamaxRange('10K', 'competitor' as never, 'run'); // 0,35–0,60
+    expect(run.reference!.high - run.reference!.low).toBeLessThanOrEqual(0.1 + 1e-9);
+    expect(run.reference!.high - run.reference!.low).toBeLessThan((range.max - range.min) / 2);
+    expect(run.reference!.low).toBeGreaterThanOrEqual(range.min);
+    expect(run.reference!.high).toBeLessThanOrEqual(range.max);
+    expect(run.reference!.note).toContain('Plage tolérée par le moteur');
   });
   it('limits the published treadmill cohort to contextual running comparisons', () => {
     expect(contextualCohortFor('bike', 'IM')).toBeNull(); expect(contextualCohortFor('run', 'Marathon')).toBeNull();

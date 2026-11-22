@@ -2,7 +2,7 @@ import { Compass } from "lucide-react";
 import { FieldMetricComparison } from "@/components/charts/FieldComparison";
 import { ReferenceGauge } from "@/components/charts/ReferenceGauge";
 import type { compassFlow } from "@/lib/coachingCompass/compassFlow";
-import { fmt, glycolyticHypothesis, type FactorStates } from "@/lib/coachingCompass/factorStates";
+import { fmt, glycolyticHypothesis, rankWithHypothesis, type FactorStates } from "@/lib/coachingCompass/factorStates";
 
 type Flow = ReturnType<typeof compassFlow>;
 const SPORT = { run: "Course à pied", bike: "Vélo" } as const;
@@ -10,8 +10,8 @@ const day = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 
 /**
  * Hiérarchie des limiteurs, en trois niveaux de certitude, étiquetés :
- *  1. les écarts MESURÉS face à l'idéal sourcé, classés du plus grand au plus petit ;
- *  2. les hypothèses à vérifier (ex. VLamax dont l'incertitude dépasse la plage) ;
+ *  1. les écarts face à l'idéal sourcé, classés du plus grand au plus petit ;
+ *  2. parmi eux, les valeurs à confirmer (ex. VLamax estimée) gardent leur rang, avec un message au coach ;
  *  3. la priorité du moteur de plans, qui suit le repère interne TFCL.
  * Affichage seul : rien ici ne modifie le classement du moteur ni les plans. Bevel réserve la
  * surface sombre à la priorité de coaching, qui est exactement cette hiérarchie.
@@ -22,7 +22,7 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
   const engine = flow.lead ? [flow.lead, ...flow.others] : [];
   const cautious = engine.length > 0 && flow.title !== engine[0].title;
   const hypothesis = glycolyticHypothesis(flow.overlap);
-  const ranked = states?.ranked ?? [];
+  const ranked = states ? rankWithHypothesis(states, hypothesis) : [];
   const unmeasured = states?.unmeasured ?? [];
   return (
     <section aria-labelledby="dashboard-limiters" className="compass-priority min-w-0 space-y-6 rounded-3xl border p-5 sm:p-7">
@@ -34,7 +34,7 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
 
       {states && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold tracking-tight">Écarts mesurés face à l’idéal sourcé</h3>
+          <h3 className="text-lg font-semibold tracking-tight">Écarts face à l’idéal sourcé</h3>
           {ranked.length ? (
             <ol className="space-y-3">
               {ranked.map((x, i) => (
@@ -46,6 +46,13 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
                     <p className="priority-detail text-sm tabular-nums">
                       {x.r.value != null ? fmt(x.r.value) : "—"} {x.r.unit} · {x.r.tier === "coaching" ? "repère de coaching" : "idéal"} {x.r.zone ? (x.r.zone.low === x.r.zone.high ? fmt(x.r.zone.low) : fmt(x.r.zone.low) + "–" + fmt(x.r.zone.high)) : "—"} {x.r.unit}
                     </p>
+                    {x.verify && (
+                      <p className="mt-1 rounded-lg bg-white/10 px-3 py-2 text-xs leading-relaxed">
+                        <span className="font-semibold">Peut-être à vérifier pour être sûr.</span> Valeur retenue {fmt(x.verify.current)} mmol/L/s
+                        {x.verify.modelHigh > x.verify.current && <> (incertitude du modèle jusqu’à {fmt(x.verify.modelHigh)})</>}
+                        {x.verify.observed != null && <>, estimation de terrain{x.verify.observedDate ? " du " + day(x.verify.observedDate) : ""} : {fmt(x.verify.observed)}</>}. Un test de lactate lèverait le doute.
+                      </p>
+                    )}
                   </div>
                   <span className="text-lg font-semibold tabular-nums">{x.r.state === "below" && x.r.key !== "demand" ? "−" : "+"}{fmt(Math.round(x.gap * 10) / 10)} %</span>
                 </li>
@@ -54,21 +61,6 @@ export function DashboardLimiters({ flow, states, objective, ambition }: {
           ) : <p className="priority-detail text-sm">Aucun écart mesuré : tous les facteurs mesurés sont dans la zone idéale ou au-dessus.</p>}
           {unmeasured.length > 0 && <p className="priority-detail text-xs">Non mesurés, donc non classés : {unmeasured.map(x => x.r.label + " (" + SPORT[x.sport].toLowerCase() + ")").join(", ")}.</p>}
           <p className="priority-detail text-xs leading-relaxed">Écart = distance à la zone idéale, en % de sa borne, pour l’âge et le sexe de l’athlète quand ils sont connus. Un « repère de coaching » est une valeur interne non issue d’études : son écart est indicatif.</p>
-        </div>
-      )}
-
-      {hypothesis && (
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold tracking-tight">À vérifier</h3>
-          <div className="rounded-2xl bg-[#fcfbff] p-4 text-foreground">
-            <p className="font-semibold">Profil glycolytique (VLamax) · {SPORT[hypothesis.sport]}</p>
-            <p className="mt-1 text-sm leading-relaxed text-foreground/80">
-              Valeur retenue {fmt(hypothesis.current)} mmol/L/s, dans la plage de référence (haut : {fmt(hypothesis.ceiling)}).
-              Mais la plage d’incertitude du modèle monte à {fmt(hypothesis.modelHigh)}
-              {hypothesis.observed != null && <>, et une estimation de terrain{hypothesis.observedDate ? " du " + day(hypothesis.observedDate) : ""} donne {fmt(hypothesis.observed)}</>}
-              {" "}: jusqu’à {fmt(Math.round(hypothesis.excess * 10) / 10)} % au-dessus de la plage. Hypothèse, pas un écart mesuré : à confirmer par un test avant de choisir un bloc.
-            </p>
-          </div>
         </div>
       )}
 

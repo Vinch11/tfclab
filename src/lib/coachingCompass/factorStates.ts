@@ -122,3 +122,25 @@ export function glycolyticHypothesis(overlap: {
   return { sport: overlap.sport, current: overlap.current, ceiling: overlap.ceiling, modelHigh: overlap.range.high,
     observed: overlap.previousValue, observedDate: overlap.previousDate, excess: (top - overlap.ceiling) / overlap.ceiling * 100 };
 }
+
+
+/** Un écart classé ; `verify` signale une valeur que le Compass juge à confirmer par un test. */
+export interface RankedGap { r: FactorRow; sport: FactorSport; gap: number; verify?: GlycolyticHypothesis }
+
+/**
+ * Place l'hypothèse glycolytique dans la hiérarchie, au rang que lui donne son écart, avec
+ * un message « à vérifier ». Si la VLamax est déjà classée, elle est simplement annotée ;
+ * sinon (valeur retenue dans la zone, mais incertitude ou observation au-dessus) elle entre
+ * avec l'écart de la plus haute observation connue.
+ */
+export function rankWithHypothesis(states: FactorStates, hypothesis: GlycolyticHypothesis | null): RankedGap[] {
+  if (!hypothesis) return states.ranked;
+  const own = states.ranked.some(x => x.r.key === "vlamax" && x.sport === hypothesis.sport);
+  if (own) return states.ranked.map(x => x.r.key === "vlamax" && x.sport === hypothesis.sport ? { ...x, verify: hypothesis } : x);
+  const section = states.sections.find(s => s.sport === hypothesis.sport)?.rows.find(r => r.key === "vlamax");
+  if (!section?.zone || section.zone.high <= 0) return states.ranked;
+  const top = Math.max(hypothesis.modelHigh, hypothesis.observed ?? 0);
+  const gap = (top - section.zone.high) / section.zone.high * 100;
+  if (!(gap > 0.05)) return states.ranked;
+  return [...states.ranked, { r: section, sport: hypothesis.sport, gap, verify: hypothesis }].sort((a, b) => b.gap - a.gap);
+}

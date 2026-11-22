@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildFactorStates, glycolyticHypothesis } from "../factorStates";
+import { buildFactorStates, glycolyticHypothesis, rankWithHypothesis, type FactorStates } from "../factorStates";
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "../types";
 
 const axis = (key: string, value: number | null, target: number | null, unit: string, source = "snapshot"): RadarAxis =>
@@ -58,5 +58,31 @@ describe("hypothèse glycolytique", () => {
     expect(glycolyticHypothesis(null)).toBeNull();
     expect(glycolyticHypothesis(undefined)).toBeNull();
     expect(glycolyticHypothesis(overlap({ ceiling: 0 }))).toBeNull();
+  });
+});
+
+describe("hypothèse glycolytique dans la hiérarchie", () => {
+  const vla = (value: number, state: "above" | "inside") => ({ key: "vlamax", label: "VLamax", unit: "mmol/L/s", value, observation: undefined,
+    zone: { low: 0.4, high: 0.5, point: null }, tier: "coaching" as const, state, basis: null, evidence: [], engineNote: null });
+  const hyp = { sport: "run" as const, current: 0.57, ceiling: 0.6, modelHigh: 0.63, observed: 0.67, observedDate: "2026-05-05", excess: 11.7 };
+  const base = (rows: unknown[], ranked: unknown[]) => ({ sections: [{ sport: "run", rows }], ranked, unmeasured: [] }) as unknown as FactorStates;
+
+  it("annote la VLamax déjà classée sans changer son rang", () => {
+    const r = vla(0.57, "above");
+    const out = rankWithHypothesis(base([r], [{ r, sport: "run", gap: 14 }]), hyp);
+    expect(out).toHaveLength(1);
+    expect(out[0].verify).toBe(hyp);
+    expect(out[0].gap).toBe(14);
+  });
+  it("insère la VLamax retenue dans la zone mais dont l'incertitude la dépasse, à sa place", () => {
+    const r = vla(0.48, "inside");
+    const other = { r: { ...vla(1, "above"), key: "vo2max" }, sport: "run" as const, gap: 3 };
+    const out = rankWithHypothesis(base([r], [other]), { ...hyp, current: 0.48 });
+    expect(out.map(x => x.r.key)).toEqual(["vlamax", "vo2max"]); // (0,67−0,5)/0,5 = 34 % > 3 %
+    expect(out[0].verify).toBeTruthy();
+  });
+  it("sans hypothèse, rend le classement tel quel", () => {
+    const s = base([], []);
+    expect(rankWithHypothesis(s, null)).toBe(s.ranked);
   });
 });

@@ -12,7 +12,7 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   await expect(factors.getByText('Dérivé', { exact: true }).first()).toBeVisible();
   const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
   await expect(limiters).toBeVisible();
-  await expect(limiters.getByRole('heading', { name: 'Écarts mesurés face à l’idéal sourcé' })).toBeVisible();
+  await expect(limiters.getByRole('heading', { name: 'Écarts face à l’idéal sourcé' })).toBeVisible();
   await expect(limiters.getByRole('heading', { name: 'Priorité du moteur de plans' })).toBeVisible();
   await expect(limiters).toContainText('Écart 1');
   await expect(limiters).toContainText('Priorité 1');
