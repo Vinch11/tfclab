@@ -26,7 +26,7 @@ type Row = {
   key: string; label: string; unit: string; value: number | null; observation?: string;
   zone: { low: number; high: number; point: number | null } | null;
   tier: "measured" | "derived" | "coaching" | "cohort"; state: "below" | "inside" | "above" | "missing" | "none";
-  basis: string | null; evidence: readonly string[]; engineNote: string | null;
+  basis: string | null; evidence: readonly string[]; engineNote: string | null; adjustment?: string | null;
   stateText?: Partial<Record<"below" | "inside" | "above", string>>;
 };
 
@@ -65,9 +65,10 @@ function row(metric: ProfileComparison, ideal: IdealReference | null): Row {
   const base = { key: metric.key, label: metric.label, unit: ideal?.unit ?? metric.unit, value: metric.value, observation: metric.observationLabel };
   if (ideal) {
     const engine = metric.reference && metric.reference.kind === "coaching"
-      ? `Repère moteur du plan : ${fmt(metric.reference.low)}${metric.reference.high !== metric.reference.low ? "–" + fmt(metric.reference.high) : ""} ${metric.unit}.` : null;
+      ? `Le radar utilise le repère TFCL : ${fmt(metric.reference.low)}${metric.reference.high !== metric.reference.low ? "–" + fmt(metric.reference.high) : ""} ${metric.unit}.` : null;
     return { ...base, zone: { low: ideal.low, high: ideal.high, point: ideal.point }, tier: ideal.tier,
-      state: metric.value == null ? "missing" : idealState(metric.value, ideal), basis: ideal.basis, evidence: ideal.evidenceIds, engineNote: engine };
+      state: metric.value == null ? "missing" : idealState(metric.value, ideal), basis: ideal.basis, evidence: ideal.evidenceIds, engineNote: engine,
+      adjustment: ideal.adjustment };
   }
   const ref = metric.reference;
   return { ...base, zone: ref ? { low: ref.low, high: ref.high, point: ref.low === ref.high ? ref.low : null } : null,
@@ -104,11 +105,12 @@ function FactorRow({ r }: { r: Row }) {
         <span className={"ui-badge px-2 py-0.5 " + tier.cls}>{tier.label}</span>
         <span>{tier.hint}</span>
       </p>
-      {(r.basis || r.engineNote || links.length > 0) && (
+      {r.engineNote && <p className="text-xs leading-relaxed text-muted-foreground">{r.engineNote} Repère du moteur du plan, distinct de l’idéal sourcé ci-dessus.</p>}
+      {(r.basis || r.adjustment || links.length > 0) && (
         <details className="text-xs text-muted-foreground">
           <summary className="cursor-pointer py-1 font-medium text-foreground">D’où vient cette valeur</summary>
           {r.basis && <p className="pb-1 leading-relaxed">{r.basis}</p>}
-          {r.engineNote && <p className="pb-1 leading-relaxed">{r.engineNote}</p>}
+          {r.adjustment && <p className="pb-1 leading-relaxed">{r.adjustment}</p>}
           {links.map(e => <p key={e.id}><a className="underline" href={e.url} target="_blank" rel="noreferrer">{e.title}</a></p>)}
         </details>
       )}
@@ -126,7 +128,7 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
   const ambition = getAmbitionDefinition(input.ambition as AmbitionLevel).label;
   const sections = groups.map(g => {
     const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
-      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport }) : null));
+      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport, age: input.athleteAge, sex: input.athleteSex }) : null));
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
     return { sport: g.sport, rows: demand ? [...rows, demand] : rows };
   }).filter(s => s.rows.length > 0);

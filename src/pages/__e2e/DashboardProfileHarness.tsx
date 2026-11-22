@@ -16,7 +16,7 @@ const input: CoachingCompassInput = {
   tteEffectif: { tte_min: 35, confidence: 0.4, source: "estimated" },
   tteEffectifRun: { tte_min: 40, confidence: 0.9, source: "observed" },
   fatigueEffectif: null, limiterResult: null, potentielPhysiologique: null, strategyResult: null,
-  lactateThresholds: null, wprimeKj: null, objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51,
+  lactateThresholds: null, wprimeKj: null, objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
 };
 const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", created_at: "", updated_at: "" } as unknown as DbSnapshot;
 

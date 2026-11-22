@@ -105,6 +105,67 @@ describe("ancrage : les valeurs mesurées reprennent les cohortes lues", () => {
   });
 });
 
+describe("ajustement à l'athlète : sexe et âge", () => {
+  const at = (factor: IdealFactor, objective: string, ambition: string, sport: IdealSport, age: number | null, sex: string | null) =>
+    idealReference(factor, { objective, ambition, sport, age, sex });
+
+  it("sans âge ou sans sexe : valeur du groupe de référence, signalée comme non ajustée", () => {
+    const base = ref("vo2max", "IM", "competitor", "bike")!;
+    for (const [age, sex] of [[51, null], [null, "F"], [null, null], [12, "F"], [140, "M"]] as const) {
+      const r = at("vo2max", "IM", "competitor", "bike", age, sex)!;
+      expect(r.point, `${age}/${sex}`).toBe(base.point);
+      expect(r.adjustment).toMatch(/non ajusté/);
+      expect(r.tier).toBe(base.tier);
+    }
+  });
+
+  it("une femme de 51 ans : idéal plus bas que celui du groupe masculin de référence (vélo, Compétiteur)", () => {
+    // 65,35 × 0,913 = 59,66 ; −0,39 × (51 − 35) = −6,24 → 53,42
+    const r = at("vo2max", "IM", "competitor", "bike", 51, "F")!;
+    expect(r.point).toBeCloseTo(53.42, 1);
+    expect(r.point).toBeLessThan(ref("vo2max", "IM", "competitor", "bike")!.point);
+    expect(r.tier).toBe("derived");
+    expect(r.adjustment).toMatch(/femme, 51 ans/);
+  });
+
+  it("un homme de 51 ans : seule la baisse liée à l'âge s'applique à une cohorte masculine", () => {
+    // Cyclistes entraînés (42,1 ans) : 56,2 − 0,65 × (51 − 42,1) = 50,4
+    expect(at("vo2max", "IM", "age_group", "bike", 51, "M")!.point).toBeCloseTo(50.4, 1);
+  });
+
+  it("une cohorte mixte est ramenée à un sexe avant d'ajuster : l'idéal d'un homme y est plus haut que la moyenne du groupe", () => {
+    const group = ref("vo2max", "Marathon", "finisher", "run")!.point; // 46,5 : 29 % d'hommes
+    expect(at("vo2max", "Marathon", "finisher", "run", 42, "M")!.point).toBeGreaterThan(group);
+    expect(at("vo2max", "Marathon", "finisher", "run", 42, "F")!.point).toBeLessThan(at("vo2max", "Marathon", "finisher", "run", 42, "M")!.point);
+  });
+
+  it("avant 35 ans, pas de baisse liée à l'âge ; plus jeune que la cohorte, l'idéal monte", () => {
+    const y = at("vo2max", "Marathon", "competitor", "run", 25, "M")!.point;
+    const o = at("vo2max", "Marathon", "competitor", "run", 35, "M")!.point;
+    expect(y).toBe(o);
+    expect(at("vo2max", "Marathon", "competitor", "run", 60, "M")!.point).toBeLessThan(o);
+  });
+
+  it("l'idéal décroît avec l'âge, sexe et ambition fixés ; la VMA et le seuil vélo suivent la VO₂max ajustée", () => {
+    for (const sex of ["M", "F"]) {
+      const ages = [30, 40, 50, 60];
+      for (const [factor, objective, sport] of [["vo2max", "Marathon", "run"], ["vma", "Marathon", "run"], ["ftpkg", "703", "bike"]] as const) {
+        const points = ages.map(a => at(factor, objective, "competitor", sport, a, sex)!.point);
+        for (let i = 1; i < points.length; i++) expect(points[i], `${factor} ${sex}`).toBeLessThanOrEqual(points[i - 1]);
+        expect(points[3]).toBeLessThan(points[0]);
+      }
+    }
+  });
+
+  it("la zone reste centrée sur le point ajusté et l'ordre des ambitions est conservé pour une femme de 45 ans", () => {
+    for (const [factor, objective, sport] of [["vo2max", "IM", "run"], ["vma", "IM", "run"], ["vo2max", "IM", "bike"], ["ftpkg", "IM", "bike"]] as const) {
+      const rows = IDEAL_AMBITIONS.map(a => at(factor, objective, a, sport, 45, "F")!);
+      for (const r of rows) { expect(r.low).toBeLessThan(r.point); expect(r.high).toBeGreaterThan(r.point); }
+      for (let i = 1; i < rows.length; i++) expect(rows[i].point, `${factor} ${i}`).toBeGreaterThan(rows[i - 1].point);
+    }
+  });
+});
+
 describe("registre des sources et état", () => {
   it("chaque source citée existe dans le registre avec une adresse PMC", () => {
     const ids = new Set<string>(compassEvidence.map(e => e.id));
