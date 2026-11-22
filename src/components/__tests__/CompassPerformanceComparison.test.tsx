@@ -1,8 +1,12 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { computeCoachingCompass } from '@/lib/coachingCompass';
 import { CoachingCompassCard } from '../CoachingCompassCard';
 import { CompassPerformanceComparison } from '../CompassPerformanceComparison';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
+function DetailedComparison({ input }: { input: CoachingCompassInput }) {
+  return <CompassPerformanceComparison input={input} presentation={computeCoachingCompass(input).presentation} />;
+}
 const input = { athleteId: 'A', objectif: 'Marathon', ambition: 'competitor', athleteAge: 42, athleteSex: 'F', vma: 14, vo2max: 47, paceThresholdSecPerKm: 290 } as CoachingCompassInput;
 afterEach(cleanup);
 describe('Compass goal interaction', () => {
@@ -91,7 +95,7 @@ it('distinguishes a general triathlon time from an individual forecast', () => {
 });
 
 it('shows sport-specific rankings without a global limiter or goal time', () => {
-  render(<CoachingCompassCard input={{ ...input, objectif: 'IM', sportFocus: 'triathlon',
+  render(<DetailedComparison input={{ ...input, objectif: 'IM', sportFocus: 'triathlon',
     ftp: 180, poids: 78, vma: 11, limiterResult: null, vlamaxEffectif: {value: 0.35, source: "test", confidence: 0.8},
     tteEffectif: {tte_min: 15, source: 'test', confidence: 0.8},
     tteEffectifRun: {tte_min: 20, source: "test", confidence: 0.8},
@@ -125,14 +129,14 @@ it('puts a borderline sprint profile and a modest aerobic gap side by side befor
     latestVlamaxTest: { sport: 'run', date: '2025-06-10', value: .69, lactate: false },
     limiterResult: { primaryLimiter: 'none', categoryRanking: [{ category: 'aerobic_power', metrics: [vma] }], gapAnalysis: [vma, vla], confidence: .5 },
   };
-  const view = render(<CoachingCompassCard input={runner} />);
+  const view = render(<DetailedComparison input={runner} />);
   expect(screen.getByRole('heading', { name: 'Deux facteurs à départager' })).toBeVisible();
   expect(screen.getByText('Profil glycolytique (VLamax)')).toBeVisible();
   expect(screen.getByText(/0,54–0,64/)).toBeVisible();
   expect(screen.getByText(/Estimation de terrain enregistrée le 10.06.2025/)).toBeVisible();
   expect(screen.getByText('Vitesse maximale aérobie (VMA)')).toBeVisible();
   expect(screen.getByRole('link', { name: 'Voir le protocole' })).toHaveAttribute('href', expect.stringContaining('run_vlamax'));
-  view.rerender(<CoachingCompassCard input={{ ...runner, latestVlamaxTest: { ...runner.latestVlamaxTest!, sport: 'bike' } }} />);
+  view.rerender(<DetailedComparison input={{ ...runner, latestVlamaxTest: { ...runner.latestVlamaxTest!, sport: 'bike' } }} />);
   expect(screen.queryByText('Deux facteurs à départager')).toBeNull();
   expect(screen.queryByText(/Estimation de terrain enregistrée le 10.06.2025/)).toBeNull();
 });
@@ -153,7 +157,7 @@ it('keeps a strong measured glycolytic priority first with an isolated VMA gap b
 });
 
 it('keeps a near-target FTP out of the Ironman hierarchy and links the running TTE to its own protocol', () => {
-  render(<CoachingCompassCard input={{ ...input, objectif: 'IM', ambition: 'competitor', sportFocus: 'triathlon',
+  render(<DetailedComparison input={{ ...input, objectif: 'IM', ambition: 'competitor', sportFocus: 'triathlon',
     athleteAge: 52, performanceGoal: { minutes: 750 }, ftp: 290, poids: 80, vo2max: 52,
     limiterResult: null, tteEffectifRun: { tte_min: 40, source: 'observed', confidence: .9 },
     tteEffectif: { tte_min: 0, source: 'unknown', confidence: 0 },
@@ -165,4 +169,15 @@ it('keeps a near-target FTP out of the Ironman hierarchy and links the running T
   expect(ranking).toHaveTextContent('12 min sous le repère');
   expect(screen.getByText('Objectif · 12 h 30')).toBeVisible();
   expect(screen.getByRole('link', {name: 'Voir le protocole'})).toHaveAttribute('href', '/diagnostic/tests?module=hold-run');
+});
+
+it('opens the September Compass on its radar and four coaching levels', () => {
+  render(<CoachingCompassCard input={{ ...input, sportFocus: 'run',
+    vlamaxEffectif: { value: .5, confidence: .8, source: 'test' },
+    tteEffectif: { tte_min: 45, confidence: .8, source: 'observed' },
+  }} />);
+  for (const level of ['Profil physiologique', 'Limiteur principal', 'Levier prioritaire', 'Décision coaching']) {
+    expect(screen.getByText(new RegExp('Niveau [1-4] — ' + level))).toBeVisible();
+  }
+  expect(screen.queryByRole('tablist')).toBeNull();
 });
