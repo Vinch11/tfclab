@@ -1,3 +1,4 @@
+import { computeDecouplingPct } from "../durabilityDecoupling";
 import { validTestDate } from "../testMeasurementReview";
 import type { TestingWeekNolioSession, NolioStepLike } from "./testingWeekNolioSessions";
 
@@ -39,6 +40,13 @@ export function validPair(value: unknown): value is SavedPair {
     && num(p.between,1,300) && [p.target,p.early,p.late].every(v=>typeof v==="string" && intensity(p.sport,v)>0)
     && [p.hr1,p.hr2].every(v=>num(v,1,260)) && [p.rpe1,p.rpe2].every(v=>num(v,0,10))
     && typeof p.context === "string" && !!p.context.trim();
+}
+
+/** Positive = less output per heartbeat after the intervening load. Pace must first become speed. */
+export function pairedDecoupling(pair: SavedPair): number | null {
+  if (!validPair(pair)) return null;
+  const output = (value: string) => pair.sport === 'bike' ? intensity('bike', value) : 1000 / intensity('run', value);
+  return computeDecouplingPct({ output1: output(pair.early), output2: output(pair.late), hr1: pair.hr1, hr2: pair.hr2 });
 }
 
 export function latestPairs(tests: readonly { athlete_id:string; type:string; raw:unknown }[], athleteId:string) {

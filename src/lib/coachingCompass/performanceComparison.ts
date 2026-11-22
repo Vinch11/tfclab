@@ -61,11 +61,8 @@ export interface ComparisonInput {
   performanceObservation?: { seconds: number; date: string | null } | null;
   vo2max: number | null; athleteAge?: number | null; athleteSex?: string | null;
 }
-export function comparePerformance(input: ComparisonInput, goal: PerformanceGoal | null) {
+export function publishedRunningGroup(input: ComparisonInput, minutes: number | undefined) {
   const distance = goalDistance(input.objectif);
-  const validGoal = readPerformanceGoal(goal);
-  const minutes = distance?.tri ? validGoal?.runMinutes : validGoal?.minutes;
-  const speed = distance && positive(minutes) ? distance.km * 60 / minutes : null;
   // No transfer from fresh marathon groups to an Ironman split or another distance.
   const adult = positive(input.athleteAge) && input.athleteAge >= 18;
   const cohort = adult && distance && !distance.tri && positive(minutes)
@@ -73,6 +70,15 @@ export function comparePerformance(input: ComparisonInput, goal: PerformanceGoal
       : distance.km === 21.0975 && input.athleteSex === 'M' ? HALF_GROUPS.find(g => minutes >= g.from && minutes <= g.to) ?? null : null
     : null;
   const cohortSource = cohort ? (distance?.km === 42.195 ? 'Gordon et al., 2017' : 'Nikolaidis & Knechtle, 2023') : null;
+  return { cohort, cohortSource };
+}
+
+export function comparePerformance(input: ComparisonInput, goal: PerformanceGoal | null) {
+  const distance = goalDistance(input.objectif);
+  const validGoal = readPerformanceGoal(goal);
+  const minutes = distance?.tri ? validGoal?.runMinutes : validGoal?.minutes;
+  const speed = distance && positive(minutes) ? distance.km * 60 / minutes : null;
+  const { cohort, cohortSource } = publishedRunningGroup(input, minutes);
   const threshold = positive(input.paceThresholdSecPerKm) ? 3600 / input.paceThresholdSecPerKm : null;
   const vma = positive(input.vma) ? input.vma : null;
   const warnings: string[] = [];

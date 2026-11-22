@@ -55,6 +55,7 @@ export const DECOUPLING_THRESHOLDS = {
 export function computeDecouplingPct(input: DecouplingInput): number | null {
   const { output1, hr1, output2, hr2 } = input;
   if (!output1 || !hr1 || !output2 || !hr2) return null;
+  if (![output1, output2, hr1, hr2].every(Number.isFinite)) return null;
   if (output1 <= 0 || hr1 <= 0 || output2 <= 0 || hr2 <= 0) return null;
 
   const ratio1 = output1 / hr1;

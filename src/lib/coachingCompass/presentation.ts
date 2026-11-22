@@ -1,4 +1,4 @@
-import { getVLamaxRange } from "@/lib/physiologicalTargets";
+import { getVLamaxRange, getTTETargetByAmbition } from "@/lib/physiologicalTargets";
 import type { CoachingCompassInput, RadarAxis, TFCLCoachingCompassResult } from "./types";
 import { buildSportReferences, compassDisplaySport } from './sportPresentation';
 import { buildDisciplineAxes } from './disciplineAxes';
@@ -31,11 +31,11 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
   const axes = compass.radarAxes.filter(axis => axis.key !== 'wprime' && !(sport === 'triathlon' && axis.key === 'durability') && !(sport === 'run' && ['ftpkg', 'fatmax'].includes(axis.key)) && !(sport === 'bike' && axis.key === 'vma')).map(axis => {
     if (axis.key === "durability") {
       const tte = sport === 'run' && input.sportFocus !== 'run' ? input.tteEffectifRun : input.tteEffectif;
-      if (!tte) return { ...axis, key: 'tte', label: 'TTE course', shortLabel: 'TTE course', value: null, target: null, score: 0, unit: 'min', source: 'unknown' };
-      return { ...axis, key: "tte", label: "Endurance au seuil (indice TTE)", shortLabel: "TTE", value: tte.tte_min > 0 ? tte.tte_min : null,
-        // Same internal benchmark as the historical axis, expressed in minutes.
-        target: axis.value && axis.target && tte.tte_min > 0 ? Math.round(tte.tte_min / axis.value * axis.target) : null,
-        unit: "min", source: tte.source };
+      const value = tte && Number.isFinite(tte.tte_min) && tte.tte_min > 0 ? tte.tte_min : null;
+      const target = getTTETargetByAmbition(input.objectif, (input.ambition || 'age_group') as AmbitionLevel, input.athleteAge);
+      return { ...axis, key: 'tte', label: 'Tenue au seuil · TTE', shortLabel: 'TTE', value, target,
+        score: value != null && target > 0 ? Math.min(100, Math.round(100 * value / target)) : 0,
+        unit: 'min', source: value != null ? tte?.source : 'unknown' };
     }
     const key = metricKeys[axis.key];
     const metric = key ? compass.profile[key] : null;

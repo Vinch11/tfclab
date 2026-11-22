@@ -9,7 +9,7 @@ export function buildDisciplineAxes(input: CoachingCompassInput, axes: RadarAxis
   const runningDiagnostic = computeRunningCompassDiagnostic({
     objectif: input.objectif, ambition, age: input.athleteAge, vma: input.vma,
     vo2max: input.vo2max, vo2Source: 'shared', paceThresholdSecPerKm: input.paceThresholdSecPerKm,
-    vlamax: input.vlamaxRunReference ?? null, tte: input.tteEffectifRun ?? null,
+    vlamax: input.vlamaxRunReference ?? null, tte: input.sportFocus === 'run' ? input.tteEffectif : input.tteEffectifRun ?? null,
     economy: input.runEconomyScore, drift: input.hrDriftPct,
   });
   const run = runningDiagnostic.axes;

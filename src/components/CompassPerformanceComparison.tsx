@@ -12,7 +12,7 @@ import { useState } from 'react';
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from '@/lib/coachingCompass/types';
 import { comparePerformance, PERFORMANCE_SOURCES, readPerformanceGoal, type PerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
 
-export function CompassPerformanceComparison({ input, onSave, presentation }: { input: CoachingCompassInput; presentation?: TFCLCoachingCompassResult["presentation"]; onSave?: (goal: PerformanceGoal) => Promise<boolean> }) {
+export function CompassPerformanceComparison({ input, onSave, presentation, goalOnly = false }: { goalOnly?: boolean; input: CoachingCompassInput; presentation?: TFCLCoachingCompassResult["presentation"]; onSave?: (goal: PerformanceGoal) => Promise<boolean> }) {
   const saved = readPerformanceGoal(input.performanceGoal);
   const [minutes, setMinutes] = useState(saved ? String(saved.minutes) : '');
   const [run, setRun] = useState(saved?.runMinutes ? String(saved.runMinutes) : '');
@@ -37,7 +37,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
     finally { setBusy(false); }
   };
   return <section aria-label="Écart à l’objectif" className="mb-3 space-y-3">
-    <header className="flex flex-wrap items-baseline justify-between gap-2 px-1"><div><h3 className="text-2xl font-semibold tracking-tight">{getObjectifLabel(input.objectif as ObjectifType) ?? input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
+    {!goalOnly && <><header className="flex flex-wrap items-baseline justify-between gap-2 px-1"><div><h3 className="text-2xl font-semibold tracking-tight">{getObjectifLabel(input.objectif as ObjectifType) ?? input.objectif}</h3><p className="text-sm text-muted-foreground">{AMBITION_DEFINITIONS[input.ambition as AmbitionLevel]?.label ?? input.ambition} · {result.category}</p></div>
       {saved && <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold">Objectif · {saved.minutes >= 60 ? Math.floor(saved.minutes / 60) + " h " + String(Math.floor(saved.minutes % 60)).padStart(2, "0") : saved.minutes + " min"}</span>}</header>
     <CompassLimiterReading input={input} presentation={presentation}>
     <details className="border-t"><summary className="cursor-pointer py-2 text-sm font-medium">Voir les écarts chiffrés</summary>
@@ -68,7 +68,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
       <PairedBars title={p.sport === "run" ? "Allure des deux blocs" : "Puissance des deux blocs"} first={{label:"À frais", value:intensity(p.sport,p.early), display:p.early + (p.sport === "run" ? " min/km" : " W")}} second={{label:"Après endurance", value:intensity(p.sport,p.late), display:p.late + (p.sport === "run" ? " min/km" : " W")}} />
       <div className="mt-2 grid grid-cols-2 gap-2">{["Début","Fin"].map((label,i)=><div key={label} className="rounded-xl bg-muted p-3"><strong>{label}</strong><p className="text-sm">{i?p.hr2:p.hr1} bpm · ressenti {i?p.rpe2:p.rpe1}/10</p></div>)}</div>
       <p className="mt-2 text-sm">{p.context}</p></section>)}
-    </div></details>
+    </div></details></>}
     <details className="rounded-2xl border bg-card px-4"><summary className="cursor-pointer py-2 font-semibold">Comparer avec un objectif personnel (facultatif)</summary>
     <div className="mt-3 space-y-3"><div className="flex flex-wrap items-end gap-3 print:hidden">
       <label className="text-sm">{demands?.kind === 'beginner' ? 'Durée continue visée (minutes)' : 'Chrono total visé (minutes)'}<input aria-label="Chrono total visé en minutes" type="number" min="1" max="10080" step="any" className="block border rounded p-2 w-40 bg-background" value={minutes} onChange={e => { setMinutes(e.target.value); setMessage(''); }} /></label>
@@ -77,7 +77,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
       {onSave && <button type="button" disabled={!draft || busy} onClick={save} className="border rounded px-3 py-2 text-sm disabled:opacity-50">{busy ? 'Enregistrement…' : 'Enregistrer l’objectif'}</button>}
     </div>
     {message && <p role="status" className="text-sm">{message}</p>}
-    {!draft ? <p className="text-sm">Préciser un chrono valide pour quantifier l’écart. En triathlon, la somme des splits ne peut pas dépasser le temps total. « Compétiteur » seul ne définit pas une exigence mesurable.</p> : <p className="text-sm">Scénario : {draft.minutes} min au total{draft.runMinutes ? `, dont ${draft.runMinutes} min en course à pied` : ''}.</p>}
+    {!draft ? <p className="text-sm">{minutes || run || Object.values(extras).some(Boolean) ? 'Vérifiez le temps total et les valeurs saisies. En triathlon, la somme des splits doit tenir dans le temps total.' : 'Le Compass compare déjà le bilan aux repères disponibles pour l’épreuve. Un chrono personnel ajoute une comparaison à l’allure visée.'}</p> : <p className="text-sm">Scénario : {draft.minutes} min au total{draft.runMinutes ? `, dont ${draft.runMinutes} min en course à pied` : ''}.</p>}
     {draft && !result.distance && !demands && <p className="text-sm">Distance non couverte : aucune référence d’une autre épreuve n’est appliquée.</p>}
     {draft && result.distance?.tri && !result.speed && <p className="text-sm">Renseigner le split course pour comparer l’allure. Le temps total ne suffit pas à déduire une FTP, une VMA ou une CSS requise.</p>}
     {pace != null && <div className="text-sm space-y-1">
@@ -103,7 +103,7 @@ export function CompassPerformanceComparison({ input, onSave, presentation }: { 
       <p>{result.vo2Difference == null ? 'VO₂max de l’athlète non renseigné.' : `VO₂max renseigné : ${input.vo2max} ; écart à la moyenne : ${result.vo2Difference > 0 ? '+' : ''}${result.vo2Difference.toFixed(1)} ml/kg/min. Comparabilité du sport et du protocole à vérifier.`}</p>
       {result.oxygenDemand && <p>Modèle de sensibilité : à cette allure, avec le coût de course moyen ± un écart-type de cette cohorte, la demande en oxygène serait de {result.oxygenDemand[0].toFixed(1)} à {result.oxygenDemand[1].toFixed(1)} ml/kg/min. Ce n’est ni un VO₂max requis ni un intervalle prédictif individuel.</p>}
       <p className="text-xs text-muted-foreground">Référence {result.distance?.km === 42.195 ? 'mixte, sexes regroupés' : 'masculine'}, non ajustée à la catégorie d’âge. Ces dispersions ne sont ni des normes ni des percentiles. Un écart à la moyenne ne désigne pas à lui seul un limiteur.</p>
-    </div> : <p className="text-sm">Aucune cohorte chiffrée applicable à ce chrono et à cette épreuve dans le référentiel vérifié. Aucun profil idéal ni percentile n’est inventé.</p>}
+    </div> : draft && <p className="text-sm">Aucune cohorte chiffrée applicable à ce chrono et à cette épreuve dans le référentiel vérifié. Aucun profil idéal ni percentile n’est inventé.</p>}
     <div className="text-sm space-y-1">
       <p><strong>Éléments nécessaires pour conclure</strong></p>
       <p>Durabilité : comparer une capacité à frais et après fatigue avec un protocole documenté. Une bonne VMA ou FTP fraîche ne suffit pas.</p>

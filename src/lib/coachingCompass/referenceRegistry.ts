@@ -1,5 +1,5 @@
 /** Display-only evidence inventory. Never import this registry into prescription. */
-export const COMPASS_REFERENCE_VERSION = '2026-11-15.1';
+export const COMPASS_REFERENCE_VERSION = '2026-11-22.1';
 export const compassEvidence = [
   {
     id: 'joyner-coyle-2008', title: 'Joyner & Coyle · 2008',
@@ -21,6 +21,30 @@ export const compassEvidence = [
     population: 'Revue systématique : 30 études, 18 formats courts et 12 formats de moyenne distance.',
     protocol: 'PRISMA 2020 ; efforts continus simulant des segments ou des courses.',
     limitation: 'Ne valide pas une grille physiologique Ironman finisher → élite ; hétérogénéité des formats et protocoles.',
+  },
+  {
+    id: 'vlamax-wackerhage-2025', title: 'Wackerhage et al. · 2025', url: 'https://pubmed.ncbi.nlm.nih.gov/40676393/',
+    population: 'Revue des modèles et tests d’accumulation du lactate.',
+    protocol: 'L’interprétation dépend du sport, du sprint et de la méthode de prélèvement.',
+    limitation: 'Une estimation de terrain et un antécédent de sprinteur ne déterminent pas une valeur cible par classement.',
+  },
+  {
+    id: 'tte-fontana-2009', title: 'Fontana et al. · 2009', url: 'https://pubmed.ncbi.nlm.nih.gov/19551404/',
+    population: '15 hommes modérément entraînés, course et vélo.',
+    protocol: 'Tests continus jusqu’à épuisement au MLSS déterminé séparément pour chaque discipline.',
+    limitation: 'Le TTE dépend du seuil et du protocole. Les minutes par ambition TFCL sont des repères de coaching.',
+  },
+  {
+    id: 'durability-hunter-2025', title: 'Hunter et al. · 2025', url: 'https://doi.org/10.1113/EP092120',
+    population: 'Revue des méthodes de mesure de la durabilité en endurance.',
+    protocol: 'Comparer une même caractéristique à frais et après une charge documentée.',
+    limitation: 'La durée, l’intensité et les conditions de la charge modifient le résultat. Le découplage renseigne sur cette séance.',
+  },
+  {
+    id: 'critical-power-jones-2017', title: 'Jones & Vanhatalo · 2017', url: 'https://doi.org/10.1007/s40279-017-0688-0',
+    population: 'Revue du modèle de puissance critique et de ses applications.',
+    protocol: 'W′ décrit la quantité de travail réalisable au-dessus de la puissance critique.',
+    limitation: 'Les données disponibles ne définissent pas une réserve cible pour chaque ambition en endurance.',
   },
 ] as const;
 

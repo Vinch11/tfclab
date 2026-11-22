@@ -11,8 +11,8 @@ describe('durabilité sorties longues', () => {
     expect(sessionDurability('bike', { id: 'minute', date: 'd', name: 'n' }, t, w)?.changePct).toBe(-10);
   });
   it('exige au moins deux séances et fait la moyenne', () => {
-    const s = (c: number) => ({ id: 'x', date: 'd', name: 'n', durationMin: 180, early: 200, late: 0, changePct: c });
-    expect(summarizeDurability('bike', [s(-10)], 'a', 'b', 'c')).toBeNull();
+    const s = (c: number) => ({ id: String(c), date: 'd', name: 'n', durationMin: 180, early: 200, late: 0, changePct: c });
+    expect(summarizeDurability('bike', [s(-10), s(-10)], 'a', 'b', 'c')).toBeNull();
     expect(summarizeDurability('bike', [s(-10), s(-4)], 'a', 'b', 'c')?.meanChangePct).toBe(-7);
   });
   it('relit sans mélanger les sports', () => {
@@ -24,4 +24,17 @@ describe('durabilité sorties longues', () => {
 import { durabilityReportHTML } from './longSessionDurability';
 describe('rapport durabilité', () => {
   it('annonce une durabilité non mesurée sans valeur inventée', () => { expect(durabilityReportHTML(null, ['run'])).toContain('Pas encore mesurée'); });
+});
+
+it('requires continuous full 20-minute windows and weights uneven samples by elapsed time', () => {
+  const session = { id: 's', date: '2026-01-01', name: 'Sortie' };
+  expect(sessionDurability('run', session, [0, 600, 1800, 3600, 5400], [10, 10, 10, 10, 10])).toBeNull();
+  const time = Array.from({ length: 91 }, (_, i) => i * 60);
+  // The only eligible early window lasts exactly 20 min. Extra samples in its
+  // second half must not give that portion extra weight.
+  const extra = Array.from({ length: 600 }, (_, i) => 1200 + i);
+  const irregular = [...new Set([...time, ...extra])].sort((a, b) => a - b);
+  const values = irregular.map(t => t >= 600 && t < 1200 ? 8 : t < 1800 ? 12 : 9);
+  expect(sessionDurability('run', session, irregular, values)).toMatchObject({ early: 10, late: 9, changePct: -10 });
+  expect(sessionDurability('run', session, irregular, values.map((v, i) => irregular[i] === 900 ? null : v))).toBeNull();
 });

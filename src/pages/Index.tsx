@@ -1775,6 +1775,12 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
               return (
                 <CoachingCompassCard
                   input={{ ...compassInputMemo, potentielPhysiologique: null }}
+                  onSavePerformanceGoal={async (goal) => {
+                    if (!currentAthlete) return false;
+                    const refs = currentAthlete.refs && typeof currentAthlete.refs === "object" && !Array.isArray(currentAthlete.refs) ? currentAthlete.refs as Record<string, unknown> : {};
+                    return updateAthlete(currentAthlete.id, { refs: { ...refs, compassPerformance: { ...comparisonGoals(refs), [`${currentAthlete.goal || "IM"}:${currentAmbition}`]: goal } } as Parameters<typeof updateAthlete>[1]["refs"] });
+                  }}
+                  athleteName={contextCurrentAthlete?.nom}
                   staffMode={staffMode}
                 />
               );

@@ -64,11 +64,28 @@ export function coachPriorities(input: CoachingCompassInput, presentation?: TFCL
     factors.push({ metric: metric.metric, title: names[metric.metric] ?? metric.metric,
       observation: metric, status: "Hypothèse à vérifier", facts: evidence(metric), impact, hypothesis: true });
   }
+  // A triathlon diagnosis can rank the primary discipline while a threshold test
+  // from the other discipline shows a larger gap. Compare on the engine's TTE weight.
+  if (factors.length && presentation?.sport === 'triathlon') {
+    const sport = input.sportFocus === 'run' ? 'bike' : 'run';
+    const diagnostic = sport === 'run' ? presentation.runningDiagnostic : presentation.cyclingDiagnostic;
+    const row = diagnostic?.priorities.find(p => p.key === 'tte');
+    const axis = diagnostic?.axes.find(a => a.key === 'tte');
+    const weight = diagnosis?.gapAnalysis.find(g => g.metric === 'TTE')?.weight;
+    if (row && !row.provisional && row.gapPercent > referenceTolerancePercent && valid(weight) && valid(axis?.value) && valid(axis?.target)) {
+      factors.push({ sport, metric: 'tte', title: row.label, status: 'Écart du bilan', hypothesis: false,
+        facts: number(axis.value) + ' min · repère ' + number(axis.target) + ' min',
+        comparison: { value: axis.value, target: axis.target, unit: axis.unit }, impact: row.gapPercent * weight });
+    }
+  }
   factors.sort((a, b) => b.impact - a.impact);
   if (!factors.length) {
     const sports = [{ key: "bike", name: "Vélo", diagnostic: presentation?.cyclingDiagnostic }, { key: "run", name: "Course à pied", diagnostic: presentation?.runningDiagnostic }] as const;
+    const primarySport = compassDisplaySport(input) === 'run' || input.sportFocus === 'run' ? 'run' : 'bike';
     for (const sport of sports) {
       for (const row of sport.diagnostic?.priorities ?? []) {
+        const sameSportHold = row.key === 'tte' && sport.key === primarySport && diagnosis?.gapAnalysis.find(g => g.metric === 'TTE');
+        if (sameSportHold && (sameSportHold.fieldBoundsConflict || sameSportHold.fieldEstimateNote)) continue;
         // Apply the existing 3% descriptive tolerance when only sport references are available.
         if (row.gapPercent <= referenceTolerancePercent) continue;
         const axis = sport.diagnostic?.axes.find(axis => axis.key === row.key);
