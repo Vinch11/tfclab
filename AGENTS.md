@@ -35,6 +35,7 @@
 
 - Intensity domains (LT1 → MLSS → VO₂max) are defined only in `src/lib/zones/tfclDoctrine.ts`; zones, workouts and AI prompts must reference a doctrine domain, never hardcoded % VMA. Why: author-named methods were redefining intensities inconsistently.
 - Audited sub-threshold cards use the canonical `sub_threshold` intent; safety prerequisites are shared by catalogue and replacements, and unrepresented qualitative exclusions stay automatically blocked. Why: method names, external power and coach approval cannot prove lactate control or missing safety conditions.
+- Dashboard factor ideals live only in `src/lib/coachingCompass/idealReferences.ts`: display-only, every value tagged measured or derived with its sources, never imported by limiter ranking, plans or prescription. Why: derived references must be visible as derived and must not silently change training contracts.
 
 ## Pourquoi cette section existe
 

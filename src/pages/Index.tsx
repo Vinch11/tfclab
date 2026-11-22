@@ -2,6 +2,8 @@ import { latestPairs } from "@/lib/diagnostic/durabilityDay";
 import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
 import { CoachDashboard } from "@/components/CoachDashboard";
+import { CompassProfileComparison } from "@/components/CompassProfileComparison";
+import { DashboardFactorStates } from "@/components/DashboardFactorStates";
 import { compassFlow } from "@/lib/coachingCompass/compassFlow";
 import { format } from "date-fns";
 import { dashboardCoverage } from '@/lib/coachingCompass/dashboardConsistency';
@@ -1840,6 +1842,10 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
           fatigueWarning={!isExpress && dashboardCompass?.fatigueWarning && dashboardCompass.fatigueWarning.level !== "none" ? dashboardCompass.fatigueWarning.message : undefined}
           nextRace={nextRace && { name: nextRace.race_name || getObjectifLabel(nextRace.race_type as ObjectifType), date: nextRace.race_date }}
           onOpenReport={() => setReadinessOpen(true)}
+          profile={!isExpress && dashboardInput && dashboardCompass ? <CompassProfileComparison
+            key={[dashboardInput.athleteId, dashboardInput.objectif, dashboardInput.ambition].join(":")}
+            input={dashboardInput} compass={dashboardCompass} athleteName={currentAthlete.name} /> : null}
+          factors={!isExpress && dashboardInput && dashboardCompass ? <DashboardFactorStates input={dashboardInput} compass={dashboardCompass} /> : null}
           compass={fullCompass}
           bilans={<SnapshotManager athleteId={currentAthlete.id} athleteName={currentAthlete.name}
             athleteGoal={currentAthlete.goal || "IM"} activeSnapshotId={currentAthlete.active_snapshot_id} staffMode={staffMode} />}

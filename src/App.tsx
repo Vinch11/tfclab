@@ -68,6 +68,7 @@ const PrintExportHarness = lazy(() => import("./pages/__e2e/PrintExportHarness")
 const LabCoachHarness = lazy(() => import("./pages/__e2e/LabCoachHarness"));
 const CompassPerformanceHarness = lazy(() => import("./pages/__e2e/CompassPerformanceHarness"));
 const PlanContractHarness = lazy(() => import("./pages/__e2e/PlanContractHarness"));
+const DashboardProfileHarness = lazy(() => import("./pages/__e2e/DashboardProfileHarness"));
 
 const queryClient = new QueryClient();
 
@@ -133,6 +134,7 @@ export default function App() {
                   {import.meta.env.DEV && <Route path="/__e2e/lab-coach" element={<LabCoachHarness />} />}
                   {import.meta.env.DEV && <Route path="/__e2e/compass-performance" element={<CompassPerformanceHarness />} />}
                   {import.meta.env.DEV && <Route path="/__e2e/plan-contract" element={<PlanContractHarness />} />}
+                  {import.meta.env.DEV && <Route path="/__e2e/dashboard-profile" element={<DashboardProfileHarness />} />}
 
                   {/* ═══════════════════════════════════════════ */}
 

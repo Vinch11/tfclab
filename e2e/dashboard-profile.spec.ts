@@ -1,0 +1,16 @@
+import { test, expect } from '@playwright/test';
+
+test('the dashboard shows the profile, every factor against its ideal and the ranked limiters without a click', async ({ page }) => {
+  await page.goto('/__e2e/dashboard-profile');
+  const factors = page.getByRole('region', { name: 'État des facteurs face à l’idéal' });
+  await expect(factors).toBeVisible();
+  await expect(factors).toContainText('Objectif Ironman · ambition Compétiteur');
+  await expect(factors.getByRole('heading', { name: 'Vélo' })).toBeVisible();
+  await expect(factors.getByRole('heading', { name: 'Course à pied' })).toBeVisible();
+  await expect(factors.getByText('Mesuré', { exact: true }).first()).toBeVisible();
+  await expect(factors.getByText('Dérivé', { exact: true }).first()).toBeVisible();
+  const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
+  await expect(limiters).toBeVisible();
+  await expect(limiters.getByRole('listitem').first()).toContainText('Priorité 1');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
