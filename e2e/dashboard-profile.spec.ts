@@ -7,7 +7,9 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   await expect(factors).toContainText('Objectif Ironman · ambition Compétiteur');
   await expect(factors.getByRole('heading', { name: 'Vélo' })).toBeVisible();
   await expect(factors.getByRole('heading', { name: 'Course à pied' })).toBeVisible();
-  await expect(factors.getByText('Mesuré', { exact: true }).first()).toBeVisible();
+  // Fiche fictive : femme de 51 ans, donc idéaux ajustés (Dérivé) ; VLamax et TTE restent des repères de coaching.
+  await expect(factors.getByText('Repère de coaching', { exact: true }).first()).toBeVisible();
+  await expect(factors.getByText('Classement des écarts à l’idéal')).toBeVisible();
   await expect(factors.getByText('Dérivé', { exact: true }).first()).toBeVisible();
   const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
   await expect(limiters).toBeVisible();

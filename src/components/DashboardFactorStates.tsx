@@ -26,7 +26,7 @@ type Row = {
   key: string; label: string; unit: string; value: number | null; observation?: string;
   zone: { low: number; high: number; point: number | null } | null;
   tier: "measured" | "derived" | "coaching" | "cohort"; state: "below" | "inside" | "above" | "missing" | "none";
-  basis: string | null; evidence: readonly string[]; engineNote: string | null;
+  basis: string | null; evidence: readonly string[]; engineNote: string | null; adjustment?: string | null;
   stateText?: Partial<Record<"below" | "inside" | "above", string>>;
 };
 
@@ -65,15 +65,28 @@ function row(metric: ProfileComparison, ideal: IdealReference | null): Row {
   const base = { key: metric.key, label: metric.label, unit: ideal?.unit ?? metric.unit, value: metric.value, observation: metric.observationLabel };
   if (ideal) {
     const engine = metric.reference && metric.reference.kind === "coaching"
-      ? `Repère moteur du plan : ${fmt(metric.reference.low)}${metric.reference.high !== metric.reference.low ? "–" + fmt(metric.reference.high) : ""} ${metric.unit}.` : null;
+      ? `Le radar utilise le repère TFCL : ${fmt(metric.reference.low)}${metric.reference.high !== metric.reference.low ? "–" + fmt(metric.reference.high) : ""} ${metric.unit}, la cible interne du moteur de plans.` : null;
     return { ...base, zone: { low: ideal.low, high: ideal.high, point: ideal.point }, tier: ideal.tier,
-      state: metric.value == null ? "missing" : idealState(metric.value, ideal), basis: ideal.basis, evidence: ideal.evidenceIds, engineNote: engine };
+      state: metric.value == null ? "missing" : idealState(metric.value, ideal), basis: ideal.basis, evidence: ideal.evidenceIds, engineNote: engine,
+      adjustment: ideal.adjustment };
   }
   const ref = metric.reference;
   return { ...base, zone: ref ? { low: ref.low, high: ref.high, point: ref.low === ref.high ? ref.low : null } : null,
     tier: ref?.kind === "cohort" ? "cohort" : "coaching",
     state: metric.value == null && !metric.observationLabel ? "missing" : !ref ? "none" : metric.status === "unavailable" || metric.status === "missing" ? "missing" : metric.status,
     basis: ref?.note ?? null, evidence: [], engineNote: null };
+}
+
+/**
+ * Écart à la zone idéale, en % de la borne franchie. Un facteur n'est « en écart » que dans
+ * le sens qui pénalise : sous la zone pour une capacité, des deux côtés pour le VLamax
+ * (plus bas n'est pas toujours mieux), au-dessus pour l'exigence du chrono visé.
+ */
+function gapPercent(r: Row): number {
+  if (r.value == null || !r.zone || r.zone.low <= 0) return 0;
+  if (r.key !== "demand" && r.state === "below") return (r.zone.low - r.value) / r.zone.low * 100;
+  if ((r.key === "vlamax" || r.key === "demand") && r.state === "above") return (r.value - r.zone.high) / r.zone.high * 100;
+  return 0;
 }
 
 function FactorRow({ r }: { r: Row }) {
@@ -104,11 +117,12 @@ function FactorRow({ r }: { r: Row }) {
         <span className={"ui-badge px-2 py-0.5 " + tier.cls}>{tier.label}</span>
         <span>{tier.hint}</span>
       </p>
-      {(r.basis || r.engineNote || links.length > 0) && (
+      {r.engineNote && <p className="text-xs leading-relaxed text-muted-foreground">{r.engineNote} C’est une valeur de coaching, non issue d’études ; elle sert au classement du Compass et aux plans, pas à l’idéal sourcé ci-dessus.</p>}
+      {(r.basis || r.adjustment || links.length > 0) && (
         <details className="text-xs text-muted-foreground">
           <summary className="cursor-pointer py-1 font-medium text-foreground">D’où vient cette valeur</summary>
           {r.basis && <p className="pb-1 leading-relaxed">{r.basis}</p>}
-          {r.engineNote && <p className="pb-1 leading-relaxed">{r.engineNote}</p>}
+          {r.adjustment && <p className="pb-1 leading-relaxed">{r.adjustment}</p>}
           {links.map(e => <p key={e.id}><a className="underline" href={e.url} target="_blank" rel="noreferrer">{e.title}</a></p>)}
         </details>
       )}
@@ -126,16 +140,37 @@ export function DashboardFactorStates({ input, compass }: { input: CoachingCompa
   const ambition = getAmbitionDefinition(input.ambition as AmbitionLevel).label;
   const sections = groups.map(g => {
     const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
-      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport }) : null));
+      ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport, age: input.athleteAge, sex: input.athleteSex }) : null));
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
     return { sport: g.sport, rows: demand ? [...rows, demand] : rows };
   }).filter(s => s.rows.length > 0);
   if (!sections.length) return null;
+  const sportName = { run: "Course à pied", bike: "Vélo" } as const;
+  const all = sections.flatMap(s => s.rows.map(r => ({ r, sport: s.sport })));
+  const ranked = all.map(x => ({ ...x, gap: gapPercent(x.r) })).filter(x => x.gap > 0.05).sort((a, b) => b.gap - a.gap);
+  const unmeasured = all.filter(x => x.r.state === "missing");
   return (
     <section aria-labelledby="dashboard-factors" className="ui-card min-w-0 space-y-5 rounded-3xl border bg-card p-5 sm:p-7">
       <div>
         <h2 id="dashboard-factors" className="text-xl font-semibold tracking-[-0.04em] sm:text-2xl">État des facteurs face à l’idéal</h2>
         <p className="text-sm text-muted-foreground">Objectif {objective} · ambition {ambition}</p>
+      </div>
+      <div className="compass-step space-y-3">
+        <h3 className="text-base font-semibold">Classement des écarts à l’idéal</h3>
+        {ranked.length ? (
+          <ol className="space-y-2">
+            {ranked.map((x, i) => (
+              <li key={x.sport + x.r.key} className="flex items-center gap-3 text-sm">
+                <span aria-hidden className={"flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold " +
+                  (i === 0 ? "bg-[#d7f5c9] text-[#263828]" : "bg-[var(--lavender)] text-primary")}>{i + 1}</span>
+                <span className="min-w-0 flex-1"><strong className="font-semibold">{x.r.label}</strong><span className="text-muted-foreground"> · {sportName[x.sport]}</span></span>
+                <span className="font-semibold tabular-nums">{x.r.state === "below" && x.r.key !== "demand" ? "−" : "+"}{fmt(Math.round(x.gap * 10) / 10)} %</span>
+              </li>
+            ))}
+          </ol>
+        ) : <p className="text-sm text-muted-foreground">Aucun écart : tous les facteurs mesurés sont dans la zone idéale ou au-dessus.</p>}
+        {unmeasured.length > 0 && <p className="text-xs text-muted-foreground">Non mesurés, donc non classés : {unmeasured.map(x => x.r.label + " (" + sportName[x.sport].toLowerCase() + ")").join(", ")}.</p>}
+        <p className="text-xs leading-relaxed text-muted-foreground">Écart = distance à la zone idéale, en % de sa borne. Ce classement lit les idéaux sourcés ; le classement du Compass, plus bas, suit les repères TFCL du moteur de plans.</p>
       </div>
       <div className={"grid gap-6 " + (sections.length > 1 ? "md:grid-cols-2" : "")}>
         {sections.map(s => (

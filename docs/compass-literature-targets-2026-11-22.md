@@ -183,7 +183,7 @@ Générée depuis le code. Elle couvre les 12 objectifs de l'application (StartT
 * **VLamax** : course 0,74 ± 0,14 mmol/L/s chez les hommes à moins de 20 min au 5 000 m (sprint de 100 m), au-dessus du maximum de 0,70 du moteur pour le 5 km ; vélo 0,54–0,55 ± 0,13–0,14 (sprint de 15 s), dans la plage du moteur. Protocoles différents : non comparables sans précaution.
 * **FatMax** : 56 ± 8 % de la VO₂max chez des hommes entraînés, à jeun, sur ergocycle. Le Compass l'exprime en % de la FTP : pas de conversion sans hypothèse supplémentaire, donc pas d'idéal affiché.
 * **Durabilité** : aucune cible par niveau. Valeur observée chez des amateurs bien entraînés : −10 % de puissance sur 5 et 20 min après 1 000 kJ, sans lien avec la VO₂max ni la FTP.
-* **Âge** : pente transversale de −0,65 ml/kg/min par an (hommes) et −0,39 (femmes) chez des cyclistes d'endurance. Aucun ajustement d'âge n'est appliqué aux idéaux.
+* **Âge et sexe** : voir la section 11. Les idéaux sont ajustés à l'athlète quand son âge et son sexe sont connus.
 * **Natation et force** : aucune cohorte lue ; aucun idéal affiché.
 * **Non vérifié** : aucun essai dans un navigateur ; sources lues à partir de PMC seulement (autres éditeurs inaccessibles depuis cet environnement) ; quelques articles n'ont pas pu être téléchargés (protection anti-robot) et n'ont pas été utilisés.
 
@@ -195,5 +195,22 @@ Rien de cette table n'est utilisé par les plans.
 2. **Idéaux face aux cibles du moteur** : les deux sont affichés, l'idéal sourcé en premier, le repère du moteur en dessous quand il diffère. **Le classement des limiteurs et les plans ne sont pas alignés** sur les idéaux : une valeur dérivée n'est pas validée, et la faire piloter des prescriptions d'entraînement serait moins juste scientifiquement que de la montrer avec son niveau de preuve. À ré-examiner quand les cellules dérivées auront une cohorte mesurée.
 3. **Natation** : aucun idéal. La recherche n'a donné aucune cohorte de vitesse critique ou de seuil par niveau de nage. Un chiffre inventé serait pire qu'une absence.
 4. **Dépendance à la distance** : seulement là où une étude la montre (fraction de VO₂max par épreuve). VO₂max, VMA et seuil vélo restent communs aux distances.
-5. **Âge** : aucun ajustement automatique. La seule pente lue (cyclistes d'endurance, transversale) décrit des groupes ; l'appliquer à un athlète donné serait une extrapolation.
+5. **Âge** : ~~aucun ajustement automatique~~ — **décision révisée le 22 novembre après un retour du coach** (section 11). Un idéal non ajusté contredisait le radar sur un athlète de 51 ans.
 6. **Qualifiable et Elite** : affichés comme dérivés, jamais comme mesurés.
+
+## 11. Ajustement à l'athlète : sexe et âge (ajouté après un retour du coach)
+
+**Le problème.** Sur un athlète réel, le radar plaçait la VO₂max au-dessus de son repère (52 contre « TFCL 49,3 ») alors que la tuile du Dashboard la déclarait « Sous la zone » (idéal 62,1–68,7). Cause : mes idéaux reprenaient des cohortes masculines ou mixtes de 16 à 44 ans, sans tenir compte du sexe ni de l'âge de l'athlète. Pour une femme ou un athlète plus âgé, c'était scientifiquement faux.
+
+**La correction**, appliquée à la VO₂max, à la VMA et au seuil vélo quand l'âge (18–100 ans) et le sexe sont connus :
+
+1. *Sexe.* Rapport femmes / hommes à niveau de performance comparable : course 0,877 (Quittmann : VO₂max 55,4 contre 63,2 pour un 5 000 m en 22 contre 20 min) ; vélo 0,913 (cyclistes entraînés : 51,3 contre 56,2) ; VMA 0,896 (4,80 contre 5,36 m/s). Pour une cohorte mixte, on retire d'abord l'effet de sa part d'hommes (Gordon : 29 % à 85 % selon la tranche ; Assis : 54 %).
+2. *Âge.* Baisse de 0,65 ml/kg/min par an chez l'homme et 0,39 chez la femme (cyclistes d'endurance de 17 à 64 ans, étude transversale), appliquée par extension à la course. Elle ne joue qu'au-delà de 35 ans, de part et d'autre de l'âge moyen de la cohorte de référence (plancher 35 ans) : un athlète plus jeune que la cohorte voit son idéal monter, un athlète plus âgé le voit baisser.
+3. *Preuve.* Dès qu'un ajustement s'applique, la valeur est affichée « Dérivé » (même si la cohorte de départ était mesurée), et l'ajustement est écrit en clair sous « D'où vient cette valeur ».
+4. *Sans âge ou sans sexe*, l'idéal du groupe de référence est affiché, avec la mention « non ajusté à l'athlète ».
+
+**Recoupement.** La pente de 0,65 ml/kg/min par an donne, via la règle de la puissance au VO₂max, une baisse du seuil de 0,05 W/kg par an, cohérente avec la baisse mesurée de la puissance à 4 mmol/L (0,044 W/kg par an chez l'homme).
+
+**Limites.** La pente d'âge vient de cyclistes ; son application à la course est une extrapolation. Les cohortes de Gordon mélangent les sexes : le retrait de l'effet de sexe est approximatif (quelques pour cent). L'âge de référence des valeurs dérivées de niveau Qualifiable et Elite est fixé à 30 ans (hypothèse).
+
+**Cohérence avec le radar.** Le radar et les limiteurs continuent d'utiliser le repère TFCL du moteur (déjà ajusté à l'âge, non sourcé). Chaque tuile affiche ce repère sous l'idéal quand il existe, avec la mention « repère du moteur du plan, distinct de l'idéal sourcé ».
