@@ -7,6 +7,8 @@
  * Pourquoi : la grille de zones ne peut pas distinguer un seuil mesuré d'une
  * estimation de montre ou du calculateur pré-test sans cette information.
  */
+import type { Json } from '@/integrations/supabase/types';
+
 export type ThresholdField = 'ftp' | 'pace_threshold_sec_per_km';
 export type ThresholdOrigin = 'test_20min' | 'calculator' | 'watch' | 'entered';
 
@@ -35,8 +37,8 @@ export function readThresholdOrigin(fieldSources: unknown, field: ThresholdField
 }
 
 /** Nouvelle carte `field_sources` ; `origin` vide laisse la provenance existante intacte. */
-export function withThresholdOrigin(fieldSources: unknown, field: ThresholdField, origin: ThresholdOrigin | '' | null | undefined): Record<string, unknown> {
-  const next = { ...object(fieldSources) };
+export function withThresholdOrigin(fieldSources: unknown, field: ThresholdField, origin: ThresholdOrigin | '' | null | undefined): { [key: string]: Json | undefined } {
+  const next = { ...object(fieldSources) } as { [key: string]: Json | undefined };
   if (!origin) return next;
   const label = THRESHOLD_ORIGIN_OPTIONS[field].find(o => o.value === origin)?.label ?? origin;
   next[field] = { source: origin, protocol: label };
