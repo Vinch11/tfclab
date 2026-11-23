@@ -149,7 +149,7 @@ const FC_MAX_PCT_STANDARD: Record<ZoneId6, ZoneBounds | null> = {
  * autour de 88-91 % FCmax, un peu plus haute en course qu'en vélo (masse
  * musculaire sollicitée + absence d'appui assis).
  */
-const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
+export const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
   bike: 0.89,
   run: 0.91,
   swim: 0.87,
@@ -162,7 +162,7 @@ const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
  * comme indiqué pour HR_SUBTHRESHOLD_EXPONENT ci-dessous. L'ancien défaut (0,5) supposait une
  * FC de repos ≈ 95 bpm et remontait toutes les zones FC.
  */
-const DEFAULT_REST_HR_FRACTION = 0.3;
+export const DEFAULT_REST_HR_FRACTION = 0.3;
 
 /**
  * Relation FC / intensité sous le seuil, exprimée en réserve cardiaque.
@@ -172,7 +172,7 @@ const DEFAULT_REST_HR_FRACTION = 0.3;
  * conforme aux mesures labo. Un exposant < 1 (ancien modèle) surestimait
  * fortement la FC en endurance (Z2 collée au seuil).
  */
-const HR_SUBTHRESHOLD_EXPONENT = 1.4;
+export const HR_SUBTHRESHOLD_EXPONENT = 1.4;
 
 
 interface DerivedHrResult {

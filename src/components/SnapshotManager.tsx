@@ -54,6 +54,8 @@ import { NolioCriticalRecordsImporter } from "@/components/NolioCriticalRecordsI
 import { NolioDurabilityFinder } from "@/components/NolioDurabilityFinder";
 import { parseStoredDurability, withDurability } from "@/lib/durability/longSessionDurability";
 import { criticalEnvelope, parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
+import { ThresholdOriginSelect } from "@/components/ThresholdOriginSelect";
+import { readThresholdOrigin, withThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
 
 // CAP objectives where running economy is critical
 const CAP_OBJECTIVES = [
@@ -92,6 +94,7 @@ const INITIAL_FORM_STATE = {
   fc_max: "",
   vma: "",
   ftp: "",
+  ftp_origin: "" as ThresholdOrigin | "",
   css: "",
   vo2max: "",
   vlamax: "",
@@ -119,6 +122,7 @@ const INITIAL_FORM_STATE = {
   run_economy_score_manual: "",
   // 🏃 VLamax CAP (données pour estimation)
   pace_threshold: "",
+  pace_threshold_origin: "" as ThresholdOrigin | "",
   sprint_15s: "",
   run_power_max: "",
   run_power_threshold: "",
@@ -188,6 +192,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       fc_max: s.fc_max != null ? String(s.fc_max) : "",
       vma: s.vma != null ? String(s.vma) : "",
       ftp: s.ftp != null ? String(s.ftp) : "",
+      ftp_origin: readThresholdOrigin(s.field_sources, "ftp") ?? "",
       css: s.css != null ? String(s.css) : "",
       vo2max: s.vo2max != null ? String(s.vo2max) : "",
       vlamax: s.vlamax != null ? String(s.vlamax) : "",
@@ -221,6 +226,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
+      pace_threshold_origin: readThresholdOrigin(s.field_sources, "pace_threshold_sec_per_km") ?? "",
       sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
       run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
       run_power_threshold: s.running_power_threshold != null ? String(s.running_power_threshold) : "",
@@ -321,6 +327,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
+      field_sources: withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
@@ -416,6 +423,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
+      field_sources: withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
@@ -716,6 +724,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             value={formData.ftp}
             onChange={(e) => setFormData({ ...formData, ftp: e.target.value })}
           />
+          <div className="mt-1">
+            <ThresholdOriginSelect field="ftp" value={formData.ftp_origin} onChange={(v) => setFormData({ ...formData, ftp_origin: v })} />
+          </div>
         </div>
         <div>
           <Label htmlFor="vma">VMA (km/h)</Label>
@@ -1252,6 +1263,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 onChange={(e) => setFormData({ ...formData, pace_threshold: e.target.value })}
               />
               <p className="text-xs text-muted-foreground mt-1">Allure tenable ~1h (SL2)</p>
+              <div className="mt-1">
+                <ThresholdOriginSelect field="pace_threshold_sec_per_km" value={formData.pace_threshold_origin} onChange={(v) => setFormData({ ...formData, pace_threshold_origin: v })} />
+              </div>
             </div>
             <div>
               <Label htmlFor="sprint_15s">Sprint 15s (mètres)</Label>

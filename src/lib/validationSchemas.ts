@@ -98,6 +98,8 @@ export const snapshotSchema = z.object({
   gi_issues_flag: z.boolean().nullable().optional(),
   force_development_mode: z.boolean().nullable().optional(),
   critical_metrics: z.record(z.unknown()).nullable().optional(),
+  // Provenance par champ (ex. FTP, allure seuil : test réalisé, calculateur, montre) — cf. zones/thresholdOrigin.
+  field_sources: z.record(z.unknown()).optional(),
 });
 
 export type ValidatedSnapshot = z.infer<typeof snapshotSchema>;

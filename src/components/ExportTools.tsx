@@ -103,6 +103,7 @@ import { comparisonGoals, readPerformanceGoal } from '@/lib/coachingCompass/perf
 import { latestPairs } from '@/lib/diagnostic/durabilityDay';
 import { reportFieldEvidence } from '@/lib/reportKit/fieldEvidence';
 import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
+import { anchoredGridPreviewHTML } from '@/lib/reportKit/anchoredGridPreview';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
 import { analyzeCriticalPower, generateRecoveryTable, effectiveWprime, type CriticalPowerResult } from "@/lib/v2/criticalPowerModel";
@@ -8300,6 +8301,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     ${payload.reportBrief ? coachDecision(payload.reportBrief) : ''}
     ${strategy || payload.calendar !== undefined ? `<section class="edition-section" id="planification"><h2>Planification vers l’objectif</h2>${preparationTimeline(strategy, [getObjectifLabel(athlete.goal), payload.nextRace].filter(Boolean).join(' · '), false)}${calendarPreview(payload.calendar)}</section>` : ''}
     ${plates.map(([id,title,deck,content])=>visualChapter(id,title,deck,content)).join('')}
+    ${anchoredGridPreviewHTML(payload)}
 
     ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture des repères par discipline', true)}
     ${buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}

@@ -19,20 +19,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Gauge, Target, TrendingUp, Info, Activity } from "lucide-react";
 
-type Level = "beginner" | "intermediate" | "advanced" | "elite";
+import { LEVEL_VMA_PERCENT, type ThresholdPaceLevel as Level } from "@/lib/zones/thresholdPaceLevels";
 
 interface PaceTargets {
   conservative: number; // sec/km
   target: number;
   ambitious: number;
 }
-
-const LEVEL_VMA_PERCENT: Record<Level, { conservative: number; target: number; ambitious: number }> = {
-  beginner:     { conservative: 0.78, target: 0.81, ambitious: 0.84 },
-  intermediate: { conservative: 0.82, target: 0.85, ambitious: 0.87 },
-  advanced:     { conservative: 0.85, target: 0.88, ambitious: 0.90 },
-  elite:        { conservative: 0.88, target: 0.90, ambitious: 0.92 },
-};
 
 const LEVEL_LABELS: Record<Level, string> = {
   beginner: "Débutant (<6 mois CAP)",
@@ -347,7 +340,7 @@ export function ThresholdPaceEstimator({ defaultVma }: ThresholdPaceEstimatorPro
             <Alert className="bg-orange-500/10 border-orange-500/30">
               <Info className="h-3.5 w-3.5 text-orange-500" />
               <AlertDescription className="text-xs">
-                <strong>Signal d'alerte :</strong> si tu ralentis de plus de 5 sec/km après le km 10,
+                <strong>Signal d'alerte :</strong> si tu ralentis de plus de 5 sec/km dès le 2e km,
                 tu es parti trop vite — réduis la cadence pour finir le test, et recommence dans 7 jours.
               </AlertDescription>
             </Alert>
