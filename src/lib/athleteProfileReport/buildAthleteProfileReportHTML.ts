@@ -60,14 +60,13 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     const sectionRows = brief?.sections.find(s => s.sport === sp)?.rows ?? [];
     const withRange = <T extends { key?: string }>(r: T) => ({ ...r, range: sectionRows.find(x => x.key === r.key)?.zone ?? null });
     const energy = (vo2 && !comparisons.some(r => r.key === 'vo2max') ? [{...vo2, target: vo2.target?.[0], source: vo2.source ?? undefined}, ...comparisons] : comparisons).map(withRange);
-    const raceMarkers = sets.flatMap(z => z.markers ?? []).filter(m => m.id === 'race_specific' && m.absolute)
-      .map(m => ({ label: (sp === 'bike' ? 'Puissance de course · ' : 'Allure de course · ') + d.objectifLabel, absolute: m.absolute! }));
+    const landmarks = sets.flatMap(z => z.landmarks ?? []);
     return chapter('reperes-' + sp, sp === 'run' ? 'Ta course à pied en chiffres' : 'Ton vélo en chiffres', `
       <div class="sport-intro"><div class="chapter-image">${sportPhoto(sp)}</div><div>
       <p>${sp === 'run' ? 'Sur le terrain, tes allures donnent un sens aux chiffres du bilan. Retrouve ici les repères à consulter avant une séance.' : 'Sur la route, tes watts permettent de retrouver un effort d’une sortie à l’autre. Ces repères t’aident à lire tes séances.'}</p>
       ${sets.map(z => `<p class="chapter-detail">${z.source === 'derived' ? 'Zones calculées à partir du bilan' : 'Grille de zones provisoire'}${z.anchors.length ? ' · ' + z.anchors.map(esc).join(', ') : ''}.</p>`).join('')}
       </div></div>
-      ${sportDiagramHTML({sport: sp, athlete: true, raceMarkers, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
+      ${sportDiagramHTML({sport: sp, athlete: true, landmarks, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);
   }).join('');
   const swim = d.swimming ? chapter('reperes-swim', 'Tes repères en natation', swimFigure(d.swimming.css)) : '';

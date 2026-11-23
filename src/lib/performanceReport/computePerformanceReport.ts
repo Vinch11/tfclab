@@ -28,6 +28,7 @@ import { TRAINABILITY_CAPS } from "@/lib/v2/trainabilityCaps";
 import { LIMITER_INFO } from "@/lib/v2/unifiedLimiterDetection";
 import { getLimiterImpactCopy } from "@/lib/limiterImpactCopy";
 import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
+import { legacyToZone6, type LegacyZoneId } from '@/lib/zones/zoneMapping';
 import { getVlamaxTarget } from "@/lib/v2/vlamaxTargets";
 import { compassReportRows, compassSportReportRows, compassTteReportRows, buildCompassReportSummaryHTML } from '@/lib/coachingCompass/reportPresentation';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
@@ -374,7 +375,8 @@ export function computePerformanceReport(
     return hi > mlssW * 2.2 ? `${m[1]} W +` : raw;
   };
   const zones: PerfZoneRow[] = (zoneSet?.zones ?? []).map((z: any) => {
-    const key = String(z.id ?? "").toUpperCase().slice(0, 2);
+    // Grille du plan (Z1…Z7, Z4a/Z4b) → domaine physiologique des tableaux ci-dessus.
+    const key: string = legacyToZone6(String(z.id ?? "") as LegacyZoneId) ?? String(z.id ?? "").toUpperCase().slice(0, 2);
     return {
       id: z.id,
       label: z.label,

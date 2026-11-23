@@ -25,7 +25,7 @@ export function buildPerformanceReportHTML(input: PerformanceReportInput, visual
     chapters.push([sport, sportName[sport], sportDiagramHTML({
       sport, comparisons: input.sportComparisons?.[sport] ?? [],
       tte: (input.sportTte ?? []).filter(t => t.sport === sport).map(t => ({...t, key:'tte', unit:'min'})),
-      zones: sets.flatMap(s => s.zones), durability: input.durabilityDataBySport?.[sport],
+      zones: sets.flatMap(s => s.zones), landmarks: sets.flatMap(s => s.landmarks ?? []), durability: input.durabilityDataBySport?.[sport],
     })]);
   }
   if (visuals?.terrain) chapters.push(['terrain','Traces et repères de terrain',visuals.terrain]);
