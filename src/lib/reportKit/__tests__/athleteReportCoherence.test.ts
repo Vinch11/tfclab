@@ -3,6 +3,7 @@ import { computeStrategicRoadmap } from '@/lib/v2/strategicRoadmap';
 import { preparationTimeline, gapFigure } from '../editions';
 import { sportDiagramHTML } from '../pedagogy';
 import { reportSportZoneSets } from '../sportDiagramData';
+import { buildTargetTable } from '@/lib/plan/targetTable';
 import { gapPercent, type FactorRow } from '@/lib/coachingCompass/factorStates';
 import { deriveTrainingZones } from '@/lib/zones/deriveTrainingZones';
 import { estimateProfileFatMaxPctFTP } from '@/lib/v2/fatmaxTFCL';
@@ -65,22 +66,42 @@ describe('rapport athlète — cohérence', () => {
     expect(Number(z1.heartRate!.split('–')[0])).toBeLessThan(105);
   });
 
-  it('les zones extrêmes restent ouvertes et la plage de course est transmise', () => {
-    const sets = reportSportZoneSets({ athlete: { goal: 'IM' },
-      effectiveRefs: { ftp: 188, vo2max: 52, weightKg: 51.9, vma: 13, fcMax: 192 },
-      effectiveSnapshot: { pace_threshold_sec_per_km: 315 }, vlamax: { value: 0.2 } });
+  const payload = { athlete: { goal: 'IM' }, ambition: { current: 'competitor' },
+    effectiveRefs: { ftp: 188, vo2max: 52, weightKg: 51.9, vma: 13, fcMax: 192 },
+    effectiveSnapshot: { date: '2026-11-12', pace_threshold_sec_per_km: 315, vlamax: 0.2 },
+    coachingCompass: { profile: { fatmax: { value: 71 } } } };
+
+  it('le rapport affiche la grille des plans, avec exactement les chiffres des séances', () => {
+    const sets = reportSportZoneSets(payload);
+    const table = buildTargetTable({ ftp: 188, vma: 13, fcMax: 192, paceThresholdSecPerKm: 315, vlamax: 0.2, vo2max: 52, weightKg: 51.9, objective: 'IM', ambition: 'competitor' });
     const bike = sets.find(s => s.sportLabel === 'Vélo')!;
     const run = sets.find(s => s.sportLabel === 'Course à pied')!;
+    expect(bike.zones.map(z => z.id)).toEqual(['Z1', 'Z2', 'Z3', 'Z4a', 'Z4b', 'Z5', 'Z6', 'Z7']);
+    const z2 = table.bikeZonesW.Z2!;
+    expect(bike.zones[1].absolute).toBe(`${z2[0]}–${z2[1]} W`);
+    expect(bike.zones[5].label).toBe('Seuil (MLSS)');
     expect(bike.zones[0].absolute).toMatch(/^< \d+ W$/);
-    expect(bike.zones[5].absolute).toMatch(/^> \d+ W$/);
+    expect(bike.zones[7].absolute).toMatch(/^> \d+ W$/);
     expect(run.zones[0].absolute).toMatch(/^plus lent que \d:\d\d\/km$/);
-    expect(run.zones[5].absolute).toMatch(/^plus rapide que \d:\d\d\/km$/);
-    expect(bike.markers?.find(m => m.id === 'race_specific')?.absolute).toMatch(/^\d+–\d+ W$/);
+    expect(run.zones[7].absolute).toMatch(/^plus rapide que \d:\d\d\/km$/);
+    const hr = table.fcZonesBpm.Z2!;
+    expect(bike.zones[1].heartRate).toBe(`${hr[0]}–${hr[1]} bpm`);
+    expect(bike.markers?.[0].absolute).toBe(`${table.racePowerRange![0]}–${table.racePowerRange![1]} W`);
+  });
+
+  it('les repères sont posés sur la grille avec leur zone et leur source', () => {
+    const [bike, run] = reportSportZoneSets(payload);
+    const byLabel = (l: string) => bike.landmarks!.find(x => x.label.startsWith(l))!;
+    expect(byLabel('FTP')).toMatchObject({ value: '188 W', source: 'Bilan' });
+    expect(byLabel('MLSS').zone).toMatch(/^Z(4b|5)$/);
+    expect(byLabel('FatMax')).toMatchObject({ value: '133 W', zone: 'Z2' });
+    expect(byLabel('Puissance de course').source).toBe('Repère des séances du plan');
+    expect(run.landmarks!.find(x => x.label === 'VMA')).toMatchObject({ value: '4:37/km', zone: 'Z6' });
   });
 
   it('l’édition athlète parle de repère d’objectif, pas de compass ni de moteur', () => {
     const html = sportDiagramHTML({ sport: 'bike', athlete: true, zones: [], durability: null,
-      raceMarkers: [{ label: 'Puissance de course · Ironman', absolute: '125–140 W' }],
+      landmarks: [{ label: 'MLSS', value: '184 W', zone: 'Z5', source: 'Modèle métabolique' }],
       comparisons: [{ key: 'vo2max', label: 'VO₂max', value: 52, target: 49.3, unit: 'ml/kg/min', range: { low: 50.4, high: 56.4 } }],
       tte: [{ key: 'tte', label: 'TTE vélo', value: 35, target: 52, unit: 'min' }] });
     expect(html).toContain('Repère pour ton objectif : 50,4–56,4 ml/kg/min');

@@ -1,83 +1,167 @@
-/** Read-only report projection: reuse the canonical zones and stored long-session observations. */
+/**
+ * Read-only report projection of the zones the athlete actually trains with.
+ *
+ * Les rapports affichent la grille des plans (Z1, Z2, Z3, Z4a, Z4b, Z5, Z6, Z7), avec les
+ * watts, allures et FC calculés par `buildTargetTable` — la même table que les séances du
+ * plan et l'export Nolio. Les repères physiologiques (MLSS, CP/CS, FatMax, VMA…) sont posés
+ * sur cette grille avec leur source ; ils ne servent jamais de bornes. Aucun calcul de
+ * prescription n'est ajouté ici.
+ */
 import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZoneSet } from '@/lib/zones/deriveTrainingZones';
+import { buildTargetTable, type TargetTable, type ZoneKey, type Range } from '@/lib/plan/targetTable';
+import { TRAINING_ZONES } from '@/lib/trainingZonesDefinition';
+import { findMLSSPower } from '@/lib/v2/maderMetabolicModel';
+import { getObjectifLabel } from '@/types/athlete';
 import { reportFieldEvidence } from './fieldEvidence';
 import type { StoredDurability } from '@/lib/durability/longSessionDurability';
-import type { ReportZoneSet } from '@/lib/athleteProfileReport/types';
+import type { ReportZoneLandmark, ReportZoneRow, ReportZoneSet } from '@/lib/athleteProfileReport/types';
 
-/**
- * Bornes extrêmes lisibles : Z1 n'a pas de plancher et Z6 n'a pas de plafond physiologique.
- * Afficher « 0–132 W » ou « 218–564 W » suggérait des limites qui n'existent pas.
- */
-function openEnded(id: string, absolute: string | null, sport: 'bike' | 'run'): string | null {
-  if (!absolute) return absolute;
-  const parts = absolute.replace(/\/km$| W$/, '').split('–');
-  if (parts.length !== 2) return absolute;
-  const [low, high] = parts;
-  if (sport === 'bike') return id === 'Z1' ? `< ${high} W` : id === 'Z6' ? `> ${low} W` : absolute;
-  // Course : la plage est notée « rapide–lent » (min/km).
-  return id === 'Z6' ? `plus rapide que ${high}/km` : absolute;
+type Sport = 'bike' | 'run';
+const positive = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0;
+const pace = (sec: number) => {
+  const total = Math.round(sec);
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+};
+const ZONE_IDS = TRAINING_ZONES.map(z => z.id as ZoneKey);
+
+/** Inputs identiques à ceux du plan (AIPlanViewer / génération) pour obtenir les mêmes chiffres. */
+export function reportTargetTable(payload: any): TargetTable | null {
+  const refs = payload?.effectiveRefs;
+  const snap = payload?.effectiveSnapshot;
+  if (!positive(refs?.ftp) && !positive(refs?.vma)) return null;
+  try {
+    return buildTargetTable({
+      ftp: refs?.ftp ?? null, vma: refs?.vma ?? null, css: refs?.css ?? null, fcMax: refs?.fcMax ?? null,
+      fcRest: snap?.fc_repos ?? null, paceThresholdSecPerKm: snap?.pace_threshold_sec_per_km ?? null,
+      vlamax: snap?.vlamax ?? null, vlamaxRun: snap?.vlamax_run ?? null,
+      vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null,
+      objective: payload?.athlete?.goal ?? null, ambition: payload?.ambition?.current ?? null,
+    });
+  } catch {
+    return null;
+  }
 }
 
-function mapZoneSet(set: DerivedZoneSet, sportLabel: string): ReportZoneSet {
-  const sport = /course/i.test(sportLabel) ? 'run' : 'bike';
-  const rows = set.zones;
-  return {
-    markers: (set.markers ?? []).map(m => ({ id: m.id, label: m.label, absolute: m.absolute })),
-    sportLabel,
-    source: set.source,
-    confidence: set.confidence,
-    anchors: set.anchors ?? [],
-    fallbackReason: set.fallbackReason,
-    zones: rows.map((z, i) => ({
-      id: z.id,
-      label: z.label,
-      condition: z.condition,
-      pctRef: `${Math.round(z.pctRef.min)}–${Math.round(z.pctRef.max)} %`,
-      refLabel: z.refLabel,
-      // Course Z1 : pas d'allure calculable sous 0 km/h, on l'exprime depuis le bas de Z2.
-      absolute: sport === 'run' && z.id === 'Z1' && !z.absolute && rows[i + 1]?.absolute
-        ? `plus lent que ${rows[i + 1].absolute!.split('–')[1]}`
-        : openEnded(z.id, z.absolute, sport),
-      heartRate: z.heartRate,
-      hrPct: z.fcMaxPct ? `${Math.round(z.fcMaxPct.min)}–${Math.round(z.fcMaxPct.max)} %` : null,
-    })),
-  };
+function zoneOf(ranges: Partial<Record<ZoneKey, Range>>, value: number): string | null {
+  // Les bornes voisines se touchent : une valeur posée sur une borne reste dans la zone la moins
+  // intense (la VMA est le haut de Z6, pas le bas de Z7).
+  // Les bornes de la table sont arrondies (W, s/km) : on compare la valeur arrondie de la même façon.
+  const v = Math.round(value);
+  return ZONE_IDS.find(id => {
+    const r = ranges[id];
+    return !!r && v >= Math.min(r[0], r[1]) && v <= Math.max(r[0], r[1]);
+  }) ?? null;
 }
 
-/** Same sport-specific zone derivation as the athlete reports; no new physiology. */
+function zoneRows(table: TargetTable, sport: Sport): ReportZoneRow[] {
+  const ranges = sport === 'bike' ? table.bikeZonesW : table.runPacesSecPerKm;
+  const ids = ZONE_IDS.filter(id => ranges[id]);
+  return ids.map((id, i) => {
+    const def = TRAINING_ZONES.find(z => z.id === id)!;
+    const [a, b] = ranges[id]!;
+    const first = i === 0, last = i === ids.length - 1;
+    let absolute: string, pctRef: string, refLabel: string;
+    if (sport === 'bike') {
+      const ftp = table.ftpW!;
+      const pct = (w: number) => Math.round(w / ftp * 100);
+      absolute = first ? `< ${b} W` : last ? `> ${a} W` : `${a}–${b} W`;
+      pctRef = first ? `< ${pct(b)} %` : last ? `> ${pct(a)} %` : `${pct(a)}–${pct(b)} %`;
+      refLabel = '% FTP';
+    } else {
+      // [rapide, lent] en s/km.
+      const vma = table.vmaKmh;
+      const pct = (sec: number) => vma ? Math.round(3600 / sec / vma * 100) : null;
+      absolute = first ? `plus lent que ${pace(a)}/km` : last ? `plus rapide que ${pace(b)}/km` : `${pace(a)}–${pace(b)}/km`;
+      const lo = pct(b), hi = pct(a);
+      pctRef = lo == null || hi == null ? '' : first ? `< ${hi} %` : last ? `> ${lo} %` : `${lo}–${hi} %`;
+      refLabel = '% VMA';
+    }
+    const hr = table.fcZonesBpm[id];
+    return {
+      id, label: def.label, condition: `${def.positionSeuils} · ${def.description}`,
+      pctRef, refLabel, absolute,
+      heartRate: hr ? `${hr[0]}–${hr[1]} bpm` : null,
+      hrPct: hr && table.fcMax ? `${Math.round(hr[0] / table.fcMax * 100)}–${Math.round(hr[1] / table.fcMax * 100)} %` : null,
+    };
+  });
+}
+
+function bikeLandmarks(payload: any, table: TargetTable): ReportZoneLandmark[] {
+  const refs = payload?.effectiveRefs, snap = payload?.effectiveSnapshot;
+  const ftp = table.ftpW;
+  if (!ftp) return [];
+  const out: ReportZoneLandmark[] = [];
+  const add = (label: string, watts: number, source: string, shown = `${Math.round(watts)} W`) =>
+    out.push({ label, value: shown, zone: zoneOf(table.bikeZonesW, watts), source });
+  const fatmaxPct = payload?.coachingCompass?.profile?.fatmax?.value;
+  if (positive(fatmaxPct)) add('FatMax', ftp * fatmaxPct / 100, 'Estimation du modèle');
+  if (table.racePowerRange) {
+    const [lo, hi] = table.racePowerRange;
+    add('Puissance de course · ' + getObjectifLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`);
+  }
+  if (positive(snap?.vlamax) && positive(refs?.vo2max) && positive(refs?.weightKg)) {
+    const mlss = findMLSSPower({ vo2max: refs.vo2max, vlamax: snap.vlamax, weight: refs.weightKg });
+    if (positive(mlss)) add('MLSS', mlss, 'Modèle métabolique (VO₂max et VLamax du bilan)');
+  }
+  add('FTP', ftp, 'Bilan');
+  const critical = reportFieldEvidence(snap).critical.cycling;
+  if (critical && critical.coachReview?.verdict !== 'reject')
+    add('Puissance critique (CP)', critical.critical, critical.status === 'confirmed' ? 'Confirmée par le coach' : 'Estimation non confirmée');
+  if (positive(snap?.map5min_w)) add('Puissance max 5 min', snap.map5min_w, 'Bilan');
+  return out;
+}
+
+function runLandmarks(payload: any, table: TargetTable, derived: DerivedZoneSet | null): ReportZoneLandmark[] {
+  const snap = payload?.effectiveSnapshot;
+  const out: ReportZoneLandmark[] = [];
+  const add = (label: string, secPerKm: number, source: string, shown = `${pace(secPerKm)}/km`) =>
+    out.push({ label, value: shown, zone: zoneOf(table.runPacesSecPerKm, secPerKm), source });
+  const race = getObjectifLabel(payload?.athlete?.goal);
+  if (table.racePaceRange) {
+    const [fast, slow] = table.racePaceRange;
+    add('Allure de course · ' + race, (fast + slow) / 2, 'Repère des séances du plan', `${pace(fast)}–${pace(slow)}/km`);
+  } else {
+    const marker = derived?.markers.find(m => m.id === 'race_specific');
+    const m = marker?.absolute?.match(/^(\d+):(\d\d)–(\d+):(\d\d)\/km$/);
+    if (m) add('Allure de course · ' + race, ((+m[1] * 60 + +m[2]) + (+m[3] * 60 + +m[4])) / 2,
+      'Calculée depuis ton allure au seuil', `${m[1]}:${m[2]}–${m[3]}:${m[4]}/km`);
+  }
+  if (positive(snap?.pace_threshold_sec_per_km)) add('Allure au seuil', snap.pace_threshold_sec_per_km, 'Bilan');
+  const critical = reportFieldEvidence(snap).critical.running;
+  if (critical && critical.coachReview?.verdict !== 'reject')
+    add('Vitesse critique (CS)', 1000 / critical.critical, critical.status === 'confirmed' ? 'Confirmée par le coach' : 'Estimation non confirmée');
+  if (table.vmaKmh) add('VMA', 3600 / table.vmaKmh, 'Bilan');
+  return out;
+}
+
+/** Same zones as the athlete's plan sessions; physiological landmarks placed on them. */
 export function reportSportZoneSets(payload: any): ReportZoneSet[] {
   const refs = payload?.effectiveRefs;
   const snap = payload?.effectiveSnapshot;
-  const paceThreshold = (snap?.pace_threshold_sec_per_km as number | null | undefined)
-    ?? estimateRunThresholdPaceSecPerKm(refs?.vma ?? null, payload?.runMLSS?.effectivePct ?? null);
+  const table = reportTargetTable(payload);
+  if (!table) return [];
+  const goal = payload?.athlete?.goal ?? null;
   const sets: ReportZoneSet[] = [];
-  if (refs?.ftp) {
-    sets.push(mapZoneSet(deriveTrainingZones({
-      sport: 'bike',
-      ftp: refs.ftp,
-      fcMax: refs.fcMax ?? null,
-      fcRest: snap?.fc_repos ?? null,
-      fcThreshold: snap?.fc_seuil ?? snap?.fc_threshold ?? null,
-      raceObjective: payload?.athlete?.goal ?? null,
-      vlamax: payload?.vlamax?.value ?? null,
-      vo2max: refs.vo2max ?? null,
-      weightKg: refs.weightKg ?? null,
-    }), 'Vélo'));
+  if (table.ftpW) {
+    // Ancres et provenance : même dérivation que la table du plan.
+    const derived = deriveTrainingZones({ sport: 'bike', ftp: table.ftpW, fcMax: refs?.fcMax ?? null, fcRest: snap?.fc_repos ?? null,
+      vlamax: snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
+    const race = table.racePowerRange;
+    sets.push({
+      sportLabel: 'Vélo', source: table.meta.zoneSource.bike, confidence: derived.confidence, anchors: derived.anchors ?? [],
+      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'bike'), landmarks: bikeLandmarks(payload, table),
+      markers: race ? [{ id: 'race_specific', label: 'Puissance de course', absolute: `${race[0]}–${race[1]} W` }] : [],
+    });
   }
-  if (refs?.vma || paceThreshold) {
-    sets.push(mapZoneSet(deriveTrainingZones({
-      sport: 'run',
-      vma: refs?.vma ?? null,
-      paceThresholdSecPerKm: typeof paceThreshold === 'number' ? paceThreshold : null,
-      paceThresholdEstimated: snap?.pace_threshold_sec_per_km == null,
-      raceObjective: payload?.athlete?.goal ?? null,
-      fcMax: refs?.fcMax ?? null,
-      fcRest: snap?.fc_repos ?? null,
-      fcThreshold: snap?.fc_seuil ?? snap?.fc_threshold ?? null,
-      vlamax: snap?.vlamax_run ?? null,
-      vo2max: refs?.vo2max ?? null,
-      weightKg: refs?.weightKg ?? null,
-    }), 'Course à pied'));
+  if (table.vmaKmh) {
+    const threshold = snap?.pace_threshold_sec_per_km ?? estimateRunThresholdPaceSecPerKm(table.vmaKmh, null);
+    const derived = deriveTrainingZones({ sport: 'run', vma: table.vmaKmh, paceThresholdSecPerKm: threshold ?? null,
+      paceThresholdEstimated: !positive(snap?.pace_threshold_sec_per_km), fcMax: refs?.fcMax ?? null, fcRest: snap?.fc_repos ?? null,
+      vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
+    sets.push({
+      sportLabel: 'Course à pied', source: table.meta.zoneSource.run, confidence: derived.confidence, anchors: derived.anchors ?? [],
+      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'run'), landmarks: runLandmarks(payload, table, derived),
+    });
   }
   return sets;
 }

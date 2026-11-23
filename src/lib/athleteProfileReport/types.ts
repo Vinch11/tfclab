@@ -80,8 +80,18 @@ export interface ReportZoneSet {
   anchors: string[];
   fallbackReason: string | null;
   zones: ReportZoneRow[];
-  /** Repères transversaux du moteur de zones (Sweet Spot, intensité spécifique de l'épreuve). */
+  /** Intensité spécifique de l'épreuve, identique à celle du plan (`race_specific`). */
   markers?: { id: string; label: string; absolute: string | null }[];
+  /** Repères physiologiques posés sur la grille (MLSS, CP/CS, FatMax, VMA…), avec leur zone et leur source. */
+  landmarks?: ReportZoneLandmark[];
+}
+
+export interface ReportZoneLandmark {
+  label: string;
+  value: string;
+  /** Zone de la grille du plan qui contient le repère (ex. « Z5 »), ou null hors grille. */
+  zone: string | null;
+  source: string;
 }
 
 export interface ReportPhase {

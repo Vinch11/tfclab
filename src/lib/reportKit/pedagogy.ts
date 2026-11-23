@@ -33,8 +33,8 @@ export interface SportDiagramInput {
   durability?: StoredDurabilitySport | null;
   /** Édition athlète : vocabulaire sans jargon interne (compass, repère TFCL). */
   athlete?: boolean;
-  /** Intensité ou allure spécifique de l'épreuve, issue du moteur de zones. */
-  raceMarkers?: { label: string; absolute: string }[];
+  /** Repères physiologiques posés sur la grille du plan (valeur, zone, source). */
+  landmarks?: { label: string; value: string; zone: string | null; source: string }[];
 }
 
 export const PEDAGOGY_CSS = `
@@ -96,7 +96,12 @@ export const PEDAGOGY_CSS = `
 .durability-track{height:12px;background:${RK.surfaceAlt};border-radius:3px;overflow:hidden}
 .durability-track>span{display:block;height:100%;background:${RK.primary};border-radius:3px}
 .durability-pair.late .durability-track>span{background:${RK.amber}}
-.race-markers{margin-top:12px;padding:10px 12px;border-radius:10px;background:${RK.mintSoft}}.race-markers p,.edition .race-markers p{margin:0 0 4px;font-size:12.5px;line-height:1.45;color:${RK.ink}}
+.zone-landmarks{margin-top:14px;padding:10px 12px;border-radius:10px;background:${RK.mintSoft};break-inside:avoid}
+.zone-landmarks h5{font-size:12px;margin:0 0 6px;color:${RK.ink};text-transform:uppercase;letter-spacing:.06em}
+.landmark-table{width:100%;border-collapse:collapse}.landmark-table td{padding:5px 4px;border-top:1px solid ${RK.lineSoft};font-size:12px;vertical-align:middle;color:${RK.ink}}
+.landmark-table tr:first-child td{border-top:0}.landmark-table small{display:block;font-size:9.5px;color:${RK.muted};font-weight:400}
+.landmark-table .landmark-value{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.zone-chip{display:inline-block;padding:1px 7px;border-radius:6px;background:${RK.surface};border:1px solid ${RK.line};font-size:11px;font-weight:700}
 .diagram-note{font-size:10px;line-height:1.55;color:${RK.muted};margin:10px 0 0}
 .diagram-source{font-size:9px;color:${RK.faint};margin-top:5px}
 @media screen and (max-width:640px){
@@ -108,7 +113,7 @@ export const PEDAGOGY_CSS = `
 }
 `;
 
-const ZONE_COLORS = [RK.faint, RK.mint, RK.primary, RK.amber, RK.danger, RK.ink] as const;
+const ZONE_COLORS = [RK.faint, RK.mint, RK.primary, RK.amber, '#C2571A', RK.danger, RK.ink] as const;
 const known = (r: PersonalComparison) => r.value != null && Number.isFinite(r.value) && r.value > 0;
 const decimalsFor = (unit: string) => unit === 'min' ? 0 : ['mmol/L/s', 'W/kg'].includes(unit) ? 2 : 1;
 const display = (r: PersonalComparison, value: number) => `${num(value, decimalsFor(r.unit))} ${esc(r.unit)}`;
@@ -144,12 +149,12 @@ function energyHTML(input: SportDiagramInput): string {
   ).join('')}</div></div>`;
 }
 
-function raceMarkersHTML(input: SportDiagramInput): string {
-  const rows = (input.raceMarkers ?? []).filter(m => m.absolute);
+function landmarksHTML(input: SportDiagramInput): string {
+  const rows = input.landmarks ?? [];
   if (!rows.length) return '';
-  return `<div class="race-markers">${rows.map(m => `<p><b>${esc(m.label)}</b> · ${esc(m.absolute)}</p>`).join('')}<p class="diagram-note">${input.sport === 'bike'
-    ? 'Plage calculée depuis ton seuil. Elle sert à reconnaître l’effort pendant les sorties spécifiques ; le jour de course, la chaleur, le parcours et ton ressenti l’ajustent.'
-    : 'Allure calculée depuis ta vitesse au seuil, après le vélo. Elle se confirme pendant les enchaînements vélo-course.'}</p></div>`;
+  return `<div class="zone-landmarks"><h5>Tes repères sur cette grille</h5><table class="landmark-table"><tbody>${rows.map(l =>
+    `<tr><td><b>${esc(l.label)}</b><small>${esc(l.source)}</small></td><td class="landmark-value">${esc(l.value)}</td><td>${l.zone ? `<span class="zone-chip">${esc(l.zone)}</span>` : '—'}</td></tr>`).join('')}</tbody></table>
+    <p class="diagram-note">Les repères situent tes seuils dans la grille ; ils ne déplacent pas les zones. Une estimation se confirme par un test.</p></div>`;
 }
 
 function zonesHTML(input: SportDiagramInput): string {
@@ -169,9 +174,9 @@ function zonesHTML(input: SportDiagramInput): string {
     </tr>`;
   }).join('');
   return `<div class="diagram-block zones-block"><h4>Zones d’effort · de la récupération à l’intensité maximale</h4>
-    <p class="diagram-intro">Chaque plage est exprimée en ${unit}, avec la fréquence cardiaque lorsqu’elle est disponible. Les zones affichées restent propres à ${input.sport === 'bike' ? 'ton vélo' : 'ta course'}.</p>
+    <p class="diagram-intro">Ce sont les zones de tes séances, avec les mêmes chiffres que ton plan. Chaque plage est exprimée en ${unit}, avec la fréquence cardiaque lorsqu’elle est disponible.</p>
     <div class="zone-direction"><span>Plus facile</span><span></span><span>Plus intense</span></div>
-    <table class="zone-table"><thead class="zone-head"><tr><th scope="col">Zone</th><th scope="col">Ce que tu travailles</th><th scope="col">Ta plage personnelle</th><th scope="col">Cardio</th></tr></thead><tbody>${body}</tbody></table>${raceMarkersHTML(input)}</div>`;
+    <table class="zone-table"><thead class="zone-head"><tr><th scope="col">Zone</th><th scope="col">Ce que tu travailles</th><th scope="col">Ta plage personnelle</th><th scope="col">Cardio</th></tr></thead><tbody>${body}</tbody></table>${landmarksHTML(input)}</div>`;
 }
 
 function tteHTML(rows: PersonalComparison[], athlete = false): string {
