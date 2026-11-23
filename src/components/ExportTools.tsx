@@ -99,6 +99,9 @@ import { buildCompassReportSummaryHTML, buildCompassReportReferencesHTML, compas
 import { completeProfileHTML } from '@/lib/coachingCompass/completeProfile';
 import { buildStaffEvidenceHTML } from '@/lib/coachingCompass/staffEvidence';
 import { buildReportReadingHTML } from '@/lib/coachingCompass/reportReading';
+import { comparisonGoals, readPerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
+import { latestPairs } from '@/lib/diagnostic/durabilityDay';
+import { reportFieldEvidence } from '@/lib/reportKit/fieldEvidence';
 import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/sportDiagramData';
 import { computeCoachingCompass, type TFCLCoachingCompassResult, type CoachingCompassInput } from "@/lib/coachingCompass";
 // ✅ NEW: Import CP/W' model
@@ -1955,7 +1958,9 @@ function buildExportPayload(
   };
   const fatigueScore = fatigueStateToScore[effectiveSnapshot?.fatigue_state || "ok"] ?? 4;
 
-  const compassInput: CoachingCompassInput = dashboardInput ?? {
+  const fieldEvidence = reportFieldEvidence(effectiveSnapshot);
+  const durabilityPairs = latestPairs(athleteTests, athlete.id, effectiveSnapshot?.date);
+  const compassInput: CoachingCompassInput = dashboardInput ? { ...dashboardInput, criticalMetrics: fieldEvidence.projected, durabilityPairs } : {
     ftp: effectiveRefs.ftp ?? null,
     poids: effectiveRefs.weightKg ?? null,
     vo2max: effectiveRefs.vo2max ?? null,
@@ -1994,11 +1999,13 @@ function buildExportPayload(
     strategyResult: lorangResult,
     lactateThresholds: null,
     wprimeKj: cpResultForPayload && !cpResultForPayload.cpBounded ? cpResultForPayload.wprimeKJ : null,
-    criticalMetrics: (effectiveSnapshot as { critical_metrics?: unknown } | null)?.critical_metrics,
+    criticalMetrics: fieldEvidence.projected,
+    durabilityPairs,
     objectif: athlete.goal || "IM",
     ambition: ambition,
     sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
     athleteAge: athleteAge,
+    performanceGoal: readPerformanceGoal(comparisonGoals(athlete.refs)[`${athlete.goal || 'IM'}:${ambition}`]),
   };
   const reportCompass = computeCoachingCompass(compassInput);
 

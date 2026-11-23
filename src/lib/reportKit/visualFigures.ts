@@ -9,8 +9,8 @@ export const pace = (seconds: number) => {
   const s = Math.round(seconds);
   return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 };
-export const chartFigure = (title: string, diagram: string, reading: string, source: string) =>
-  `<figure class="lab-figure"><figcaption><h3>${esc(title)}</h3><small>${esc(source)}</small></figcaption>${diagram}<p class="figure-reading">${esc(reading)}</p></figure>`;
+export const chartFigure = (title: string, diagram: string, reading: string, source: string, referenceHTML = '') =>
+  `<figure class="lab-figure"><figcaption><h3>${esc(title)}</h3><small>${esc(source)}</small></figcaption>${diagram}<p class="figure-reading">${esc(reading)}</p>${referenceHTML ? `<small>${referenceHTML}</small>` : ''}</figure>`;
 
 export function rangeGauge(row: FactorRow, source?: string): string {
   if (!positive(row.value) || !row.zone || !positive(row.zone.high) || !positive(row.zone.low)) return '';

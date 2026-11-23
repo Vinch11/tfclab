@@ -173,3 +173,27 @@
  .edition .journey-map{break-inside:auto;margin:4mm 0;padding:5mm}.journey-map li{padding-bottom:3mm}
  .edition .journey-map h4{font-size:14pt}.edition .journey-map p{font-size:10pt}
 }
+
+/* Field fits use their own units and a neutral, uncapped comparison scale. */
+.edition .field-card {border:1px solid var(--line);border-radius:16px;margin:16px 0;overflow:hidden;break-inside:avoid}
+.field-head {display:grid;grid-template-columns:minmax(100px,28%) 1fr;align-items:stretch;background:#eef5fa}
+.field-head>div,.field-body {padding:14px 20px}
+.edition .field-head figure {margin:0;position:relative;min-height:104px}
+.field-head img {width:100%;height:100%;position:absolute;inset:0;object-fit:cover}
+.field-head figcaption {display:none}
+.edition .field-head h3,.edition .field-body h4 {margin:2px 0;color:var(--navy)}
+.field-head small,.edition .field-head p {color:var(--quiet);font-size:12px;margin:0}
+.edition .field-value {font-size:30px;line-height:1.2;color:var(--blue);font-variant-numeric:tabular-nums}
+.edition .field-value small {font-size:16px;color:inherit}
+.edition .field-body p {margin:5px 0 0;font-size:14px;line-height:1.45}
+.edition .field-body .field-context,.edition .field-body .field-check {font-size:12px;color:var(--quiet)}
+.edition .field-body .field-check,.edition .field-followup {border-left:3px solid #ac732e;padding-left:10px}
+.demand-legend,.critical-scale {display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px 12px}
+.critical-rail {position:relative;height:12px;background:#dae6ee;border-radius:6px;margin:10px 0}
+.critical-rail i {display:block;height:100%;background:#246dab;border-radius:6px}
+.critical-rail b {position:absolute;top:-4px;height:20px;width:2px;background:#102e50}
+.critical-scale {font-size:11px;color:var(--quiet)}
+@media screen and (max-width:450px) {
+  .field-head {grid-template-columns:25% 1fr}.field-head>div,.field-body {padding:12px}
+}
+.edition .field-body p+h4 {margin-top:10px}

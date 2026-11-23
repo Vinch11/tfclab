@@ -27,7 +27,7 @@ describe('detailed personal sport diagrams', () => {
     expect(html).toContain('150–180 W');
     expect(html).toContain('125–140 bpm');
     expect(html).toContain('35 min');
-    expect(html).toContain('cible 52 min');
+    expect(html).toContain('repère TFCL 52 min');
     expect(html).toContain('200,0 W');
     expect(html).toContain('180,0 W');
     expect(html).toContain('2026-10-08');
@@ -44,7 +44,7 @@ describe('detailed personal sport diagrams', () => {
     });
     expect(html).toContain('14,2 <small>km/h</small>');
     expect(html).toContain('4:30–4:45 /km');
-    expect(html).toContain('12 min restent');
+    expect(html).toContain('12 min d’écart');
     expect(html).not.toContain('FatMax');
     expect(html).not.toContain('>200<');
   });

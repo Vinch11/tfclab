@@ -23,6 +23,10 @@ test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et 
     await expect(report.locator('main')).toContainText('Enchaînement spécifique');
     await expect(report.locator('#empreinte .lab-gauge').first()).toBeVisible();
     await expect(report.locator('#terrain')).toContainText('Puissance pendant le test');
+    await expect(report.locator('[data-critical-sport="bike"]')).toContainText('232 W');
+    await expect(report.locator('[data-critical-sport="run"]')).toContainText('4:16 min/km');
+    await expect(report.locator('[data-critical-sport="run"]')).toContainText('Estimation à confirmer');
+    await expect(report.locator('.durability-summary').first()).toContainText('2 sorties longues');
     await expect(report.locator('#evolution')).toContainText('171 W');
     if (audience === 'coach') {
       await expect(report.locator('#terrain')).toContainText('Capteur témoin');

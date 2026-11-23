@@ -49,7 +49,7 @@ export function pairedDecoupling(pair: SavedPair): number | null {
   return computeDecouplingPct({ output1: output(pair.early), output2: output(pair.late), hr1: pair.hr1, hr2: pair.hr2 });
 }
 
-export function latestPairs(tests: readonly { athlete_id:string; type:string; raw:unknown }[], athleteId:string) {
-  const rows = tests.flatMap(t=>t.athlete_id===athleteId && t.type===durabilityProtocol && validPair(t.raw) ? [t.raw] : []);
+export function latestPairs(tests: readonly { athlete_id:string; type:string; raw:unknown }[], athleteId:string, through?:string) {
+  const rows = tests.flatMap(t=>t.athlete_id===athleteId && t.type===durabilityProtocol && validPair(t.raw) && (!through || t.raw.day <= through) ? [t.raw] : []);
   return (["run","bike"] as const).flatMap(sport => rows.filter(p=>p.sport===sport).sort((a,b)=>b.day.localeCompare(a.day)).slice(0,1));
 }

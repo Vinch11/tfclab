@@ -1,5 +1,6 @@
 /** Detailed personal sport diagrams: resolved zones, energy markers and stored long sessions only. */
 import { esc, num, RK } from './index';
+import { durabilityReviewNotes } from '../coachingCompass/factorStates';
 import { metricSourceLabel } from '../coachingCompass/presentation';
 import type { DurabilitySport, StoredDurabilitySport } from '../durability/longSessionDurability';
 
@@ -135,20 +136,24 @@ function tteHTML(rows: PersonalComparison[]): string {
     const value = r.value ?? 0;
     const target = r.target != null && Number.isFinite(r.target) && r.target > 0 ? r.target : null;
     const max = Math.max(value, target ?? 0, 1) * 1.12;
-    const gap = target == null ? 'Aucune cible définie dans le compass.' : value < target ? `${display(r, target - value)} restent pour atteindre la cible.` : value > target ? `${display(r, value - target)} au-dessus de la cible.` : 'La cible est atteinte.';
-    return `<div class="tte-marker"><div class="tte-label">${esc(r.label)}</div><div class="tte-numbers"><strong>${display(r, value)}</strong>${target != null ? `<span>cible ${display(r, target)}</span>` : ''}</div><div class="tte-track" aria-hidden="true">${target != null ? `<span class="tte-target" style="left:${(target / max * 100).toFixed(2)}%"></span>` : ''}<span class="tte-value" style="left:${(value / max * 100).toFixed(2)}%"></span></div><div class="tte-gap">${gap}</div>${r.source ? `<div class="diagram-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`;
+    const gap = target == null ? 'Aucun repère de comparaison disponible.' : value < target ? `${display(r, target - value)} d’écart avec le repère interne.` : value > target ? `${display(r, value - target)} au-dessus du repère interne.` : 'Durée égale au repère interne.';
+    return `<div class="tte-marker"><div class="tte-label">${esc(r.label)}</div><div class="tte-numbers"><strong>${display(r, value)}</strong>${target != null ? `<span>repère TFCL ${display(r, target)}</span>` : ''}</div><div class="tte-track" aria-hidden="true">${target != null ? `<span class="tte-target" style="left:${(target / max * 100).toFixed(2)}%"></span>` : ''}<span class="tte-value" style="left:${(value / max * 100).toFixed(2)}%"></span></div><div class="tte-gap">${gap}</div>${r.source ? `<div class="diagram-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`;
   }).join('')}</div>`;
 }
 
 function durabilityHTML(sport: DurabilitySport, d?: StoredDurabilitySport | null): string {
   if (!d || d.sessions.length < 2) return '';
   const signed = (v: number) => `${v > 0 ? '+' : ''}${num(v, 1)} %`;
-  return `<div class="durability-summary"><strong>${signed(d.meanChangePct)}</strong><span>variation moyenne entre le début et la fin de ${d.sessions.length} sorties longues</span></div><p class="diagram-intro">Pour chaque sortie, le meilleur effort de 20 minutes du début est comparé à celui du dernier tiers. Les barres montrent les valeurs réellement enregistrées ; elles ne représentent pas une évolution entre les dates.</p>${d.sessions.map(s => {
-    const max = Math.max(s.early, s.late, 1);
-    const earlyLabel = sport === 'bike' ? `${num(s.early, 1)} W` : 'Meilleur 20 min';
-    const lateLabel = sport === 'bike' ? `${num(s.late, 1)} W` : signed(s.changePct);
+  const what = sport === 'bike' ? 'la puissance' : 'la vitesse';
+  const review = durabilityReviewNotes(d);
+  return `<div class="durability-summary"><strong>${signed(d.meanChangePct)}</strong><span>variation moyenne de ${what} sur ${d.sessions.length} sorties longues</span></div><p class="diagram-intro">Chaque paire compare les 20 meilleures minutes du début et du dernier tiers de la même sortie.</p>${d.sessions.map(s => {
+    const scalar = Number.isFinite(s.early) && s.early > 0 && Number.isFinite(s.late) && s.late >= 0;
+    if (!scalar) return `<p>${esc(s.date)} · ${signed(s.changePct)} · comparaison enregistrée</p>`;
+    const max = Math.max(s.early, s.late);
+    const earlyLabel = sport === 'bike' ? `${num(s.early, 1)} W` : '100 % du début';
+    const lateLabel = sport === 'bike' ? `${num(s.late, 1)} W` : num(100 + s.changePct, 1) + ' % du début';
     return `<div class="durability-session"><div class="durability-session-head"><span><strong>${esc(s.date)}</strong> · ${esc(s.name)}</span><span>${s.durationMin} min · ${signed(s.changePct)}</span></div><div class="durability-pair"><span>Début · 20 min</span><div class="durability-track"><span style="width:${(s.early / max * 100).toFixed(2)}%"></span></div><strong>${earlyLabel}</strong></div><div class="durability-pair late"><span>Fin · 20 min</span><div class="durability-track"><span style="width:${(s.late / max * 100).toFixed(2)}%"></span></div><strong>${lateLabel}</strong></div></div>`;
-  }).join('')}<p class="diagram-note">Estimation à vérifier avec ton coach : elle dépend de l’effort réellement produit en fin de sortie. En course, la vitesse brute du capteur n’est pas convertie en allure lorsque son unité n’est pas documentée.</p>`;
+  }).join('')}<p class="diagram-note">Une fin de sortie volontairement facile peut expliquer une baisse. Relis ces valeurs avec le parcours, la chaleur et ton ressenti. ${esc(review.join(' '))}</p>`;
 }
 
 /** One detailed diagram per sport; missing values stay absent rather than becoming neutral placeholders. */
@@ -159,5 +164,5 @@ export function sportDiagramHTML(input: SportDiagramInput): string {
   const zones = zonesHTML(input);
   if (!energy && !zones && !tte && !durability) return '<p class="edition-caption">Un test dans cette discipline permettra de préciser les repères.</p>';
   const title = input.sport === 'bike' ? 'Vélo · énergie, zones et durabilité' : 'Course · énergie, zones et durabilité';
-  return `<figure class="sport-diagram" data-sport="${input.sport}"><div class="diagram-heading"><div class="diagram-kicker">Ton profil en chiffres</div><h3>${title}</h3></div>${energy}${zones}${tte || durability ? `<div class="diagram-block durability-block"><h4>Durabilité · seuil et fin de sortie longue</h4><p class="diagram-intro">Le TTE indique le temps tenu au seuil. Les sorties longues montrent, séparément, ce que tu conserves après une charge prolongée.</p>${tte}${durability}</div>` : ''}</figure>`;
+  return `<figure class="sport-diagram" data-sport="${input.sport}"><div class="diagram-heading"><div class="diagram-kicker">Ton profil en chiffres</div><h3>${title}</h3></div>${energy}${zones}${tte ? `<div class="diagram-block"><h4>Combien de temps au seuil ?</h4><p class="diagram-intro">Le TTE exprime une durée à une intensité précise. Sa lecture dépend du seuil retenu, du protocole et du motif de l’arrêt.</p>${tte}</div>` : ''}${durability ? `<div class="diagram-block durability-block"><h4>Que devient ton rythme en fin de sortie longue ?</h4>${durability}</div>` : ''}</figure>`;
 }

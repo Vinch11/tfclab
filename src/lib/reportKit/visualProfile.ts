@@ -7,7 +7,9 @@ import {
 import { storedTestCurves, TEST_CHANNELS } from '../coachingCompass/testCurves';
 import { metricSourceLabel } from '../coachingCompass/presentation';
 import { fmt } from '../coachingCompass/factorStates';
-import { parseStoredCriticalMetrics } from '../criticalMetrics';
+import { criticalFigure, pairedFigure } from './fieldFigures';
+import { latestPairs } from '../diagnostic/durabilityDay';
+import { reportFieldEvidence } from './fieldEvidence';
 import { esc } from './index';
 import { dateLabel, sportName } from './editions';
 import { chartFigure, pace, rangeGauge, tracePlot } from './visualFigures';
@@ -23,6 +25,7 @@ interface Dossier {
   reportBrief?: ReportBrief;
 }
 export interface VisualProfile {
+  illustratedCritical?: Sport[];
   portrait: string;
   terrain: string;
   evolution: string;
@@ -160,48 +163,6 @@ function bodyComposition(s: DbSnapshot): string {
   );
 }
 
-/** Valeur critique ajustée sur les efforts du bilan, avec la même réserve de lecture que l'app. */
-function criticalSentence(metric: { critical: number; reserve: number; status: string } | undefined, sport: Sport): string {
-  if (!metric || !valid(metric.critical) || !valid(metric.reserve)) return '';
-  const status = metric.status === 'confirmed' ? 'confirmée par le coach' : 'estimation non confirmée';
-  return sport === 'bike'
-    ? ' La puissance critique ajustée sur ces efforts est de ' + fmt(Math.round(metric.critical)) + ' W, avec une réserve W′ de ' + fmt(Math.round(metric.reserve / 100) / 10) +
-      ' kJ (' + status + '). Ce n’est pas une puissance tenable une heure.'
-    : ' La vitesse critique ajustée sur ces efforts est de ' + fmt(Math.round(metric.critical * 36) / 10) + ' km/h (' + pace(1000 / metric.critical) + ' min/km), avec une réserve D′ de ' +
-      fmt(Math.round(metric.reserve)) + ' m (' + status + '). Ce n’est pas une allure tenable une heure.';
-}
-
-function effortFigures(s: DbSnapshot, sport: Sport): string {
-  const critical = parseStoredCriticalMetrics(s.critical_metrics);
-  const metric = sport === 'bike' ? critical.cycling : critical.running;
-  const points = (metric?.efforts ?? [])
-    .filter((e) => valid(e.value) && valid(e.durationSec) && (!e.date || e.date <= s.date))
-    .map((e) => ({ x: e.durationSec, y: sport === 'bike' ? e.value : (e.durationSec * 1000) / e.value }))
-    .sort((a, b) => a.x - b.x);
-  const unit = sport === 'bike' ? 'W' : 'min/km';
-  const format = sport === 'bike' ? fmt : pace;
-  return tracePlot({
-    title: sport === 'bike' ? 'Puissance et durée des efforts' : 'Allure et durée des efforts',
-    xLabel: 'Durée de l’effort (min:s)',
-    xText: pace,
-    yLabel: unit,
-    yText: format,
-    traces: [{ label: 'Efforts enregistrés', points }],
-    scatter: true,
-    source: 'Efforts conservés dans le bilan · ' + sportName[sport],
-    reading: points.length
-      ? 'Chaque point correspond à un effort distinct. Sur ' +
-        pace(points[points.length - 1].x) +
-        ', le résultat enregistré est de ' +
-        format(points[points.length - 1].y) +
-        ' ' +
-        unit +
-        '.' +
-        criticalSentence(metric, sport)
-      : '',
-  });
-}
-
 function testFigure(d: Dossier, sport: Sport, coach: boolean): string {
   const tests = storedTestCurves(d.tests, d.athlete.id).filter(
     (t) => t.sport === sport && (!d.effectiveSnapshot || t.date <= d.effectiveSnapshot.date),
@@ -330,15 +291,23 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
     })
     .join('');
   const snapshot = d.effectiveSnapshot?.athlete_id === d.athlete.id ? d.effectiveSnapshot : null;
+  const { critical } = reportFieldEvidence(snapshot);
+  const pairs = snapshot ? latestPairs(d.tests, d.athlete.id, snapshot.date) : [];
   const terrain = sports
     .map(
       (sport) =>
         (snapshot ? (sport === 'run' ? runningLandmarks(snapshot) : bikeLandmarks(snapshot)) : '') +
-        (snapshot ? effortFigures(snapshot, sport) : '') +
+        (snapshot ? criticalFigure(sport === 'bike' ? critical.cycling : critical.running, sport,
+          d.reportBrief?.sections.find(s => s.sport === sport)?.rows ?? [], coach) : '') +
+        pairedFigure(pairs.find(pair => pair.sport === sport), coach) +
         testFigure(d, sport, coach),
     )
     .join('');
   return {
+    illustratedCritical: sports.filter(sport => {
+      const metric = sport === 'bike' ? critical.cycling : critical.running;
+      return metric && metric.coachReview?.verdict !== 'reject';
+    }),
     portrait: gauges + (coach && snapshot ? bodyComposition(snapshot) : ''),
     terrain,
     evolution: sports.map((sp, i) => historyFigures(d, sp, coach, i === 0)).join(''),
