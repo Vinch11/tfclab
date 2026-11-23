@@ -1082,7 +1082,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
 
   const nolioRefs = useMemo(() => {
     if (!athleteId) {
-      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null, pmax5s: null, p30s: null, p60s: null, map5min: null, tlimMin: null };
+      return { ftp: null, vma: null, css: null, fcMax: null, fcRest: null, paceThresholdSecPerKm: null, vlamax: null, vlamaxRun: null, vo2max: null, weightKg: null, pmax5s: null, p30s: null, p60s: null, map5min: null, tlimMin: null, snapshot: null };
     }
     const athlete = athletes.find((a) => a.id === athleteId) ?? null;
     const r = getEffectiveRefs(athlete, snapshots);
@@ -1103,6 +1103,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
       p60s: snap?.p60s_w ?? null,
       map5min: snap?.map5min_w ?? null,
       tlimMin: snap?.tlim_vvo2max_min ?? null,
+      snapshot: snap ?? null,
     };
   }, [athletes, snapshots, athleteId]);
 
@@ -1146,6 +1147,7 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         vlamaxRun: nolioRefs.vlamaxRun,
         vo2max: nolioRefs.vo2max,
         weightKg: nolioRefs.weightKg,
+        snapshot: nolioRefs.snapshot,
         objective: gapContext?.objective ?? null,
         ambition: gapContext?.ambition ?? null,
         targetTimeMinutes: targetTimeMinutesForObjective,
@@ -1681,13 +1683,13 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
               </p>
               <div className="flex flex-wrap items-center gap-1.5">
                 <Badge variant="secondary" className="text-[10px]">
-                  Zones {targetTable.meta.zoneSource.run === "derived" ? "personnalisées" : "standard"} · course
+                  Zones {targetTable.meta.zoneSource.run !== "standard" ? "personnalisées" : "standard"} · course
                 </Badge>
                 <Badge variant="secondary" className="text-[10px]">
-                  Zones {targetTable.meta.zoneSource.bike === "derived" ? "personnalisées" : "standard"} · vélo
+                  Zones {targetTable.meta.zoneSource.bike !== "standard" ? "personnalisées" : "standard"} · vélo
                 </Badge>
                 <Badge variant="secondary" className="text-[10px]">
-                  FC {targetTable.meta.zoneSource.hr === "derived" ? "personnalisée" : "grille standard"}
+                  FC {targetTable.meta.zoneSource.hr !== "standard" ? "personnalisée" : "grille standard"}
                 </Badge>
               </div>
               <p className="text-[10px] text-muted-foreground">

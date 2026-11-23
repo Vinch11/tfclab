@@ -31,7 +31,7 @@ interface ZonePayload {
   ambition?: { current?: string | null } | null;
   effectiveRefs?: { ftp?: Num; vma?: Num; css?: Num; fcMax?: Num; vo2max?: Num; weightKg?: Num } | null;
   effectiveSnapshot?: { date: string; athlete_id?: string; critical_metrics?: unknown; fc_repos?: Num;
-    pace_threshold_sec_per_km?: Num; vlamax?: Num; vlamax_run?: Num; map5min_w?: Num } | null;
+    pace_threshold_sec_per_km?: Num; vlamax?: Num; vlamax_run?: Num; map5min_w?: Num; field_sources?: unknown; ftp?: Num; vma?: Num; fc_max?: Num; weight_kg?: Num; vo2max?: Num } | null;
   coachingCompass?: { profile?: { fatmax?: { value?: Num } } } | null;
 }
 const objectiveLabel = (goal: string | null | undefined) => getObjectifLabel((goal ?? '') as Parameters<typeof getObjectifLabel>[0]);
@@ -48,6 +48,7 @@ export function reportTargetTable(payload: ZonePayload | null | undefined): Targ
       vlamax: snap?.vlamax ?? null, vlamaxRun: snap?.vlamax_run ?? null,
       vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null,
       objective: payload?.athlete?.goal ?? null, ambition: payload?.ambition?.current ?? null,
+      snapshot: snap ?? null,
     });
   } catch {
     return null;
@@ -160,7 +161,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
       vlamax: snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
     const race = table.racePowerRange;
     sets.push({
-      sportLabel: 'Vélo', source: table.meta.zoneSource.bike, confidence: derived.confidence, anchors: derived.anchors ?? [],
+      sportLabel: 'Vélo', source: table.meta.zoneSource.bike === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: derived.anchors ?? [],
       fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'bike'), landmarks: bikeLandmarks(payload, table),
       markers: race ? [{ id: 'race_specific', label: 'Puissance de course', absolute: `${race[0]}–${race[1]} W` }] : [],
     });
@@ -171,7 +172,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
       paceThresholdEstimated: !positive(snap?.pace_threshold_sec_per_km), fcMax: refs?.fcMax ?? null, fcRest: snap?.fc_repos ?? null,
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
     sets.push({
-      sportLabel: 'Course à pied', source: table.meta.zoneSource.run, confidence: derived.confidence, anchors: derived.anchors ?? [],
+      sportLabel: 'Course à pied', source: table.meta.zoneSource.run === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: derived.anchors ?? [],
       fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'run'), landmarks: runLandmarks(payload, table, derived),
     });
   }

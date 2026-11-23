@@ -18,6 +18,8 @@ import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { deriveTrainingZones, makeStandardPctToAbsolute, estimateRunThresholdPaceSecPerKm, getDerivedZone } from "@/lib/zones/deriveTrainingZones";
 import { legacyToZone6, type LegacyZoneId } from "@/lib/zones/zoneMapping";
+import { ZONE_GRID_MODE, type ZoneGridMode } from "@/lib/zones/zoneGridConfig";
+import { anchoredBikeGrid, anchoredRunGrid, bikeGridWatts, gridHeartRates, runGridPaces, type AnchoredGridSnapshot } from "@/lib/zones/anchoredZoneGrid";
 
 
 export type ZoneKey = "Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5" | "Z6" | "Z7";
@@ -49,7 +51,7 @@ export interface TargetTable {
     sport: string;
     generatedAt: number;
     /** Provenance des bornes de zones injectées (par sport). */
-    zoneSource: { bike: "derived" | "standard"; run: "derived" | "standard"; hr: "derived" | "standard" };
+    zoneSource: { bike: "derived" | "standard" | "anchored"; run: "derived" | "standard" | "anchored"; hr: "derived" | "standard" | "anchored" };
   };
 }
 
@@ -84,6 +86,10 @@ export interface BuildTargetTableInput {
   vlamaxRun?: number | null;
   vo2max?: number | null;
   weightKg?: number | null;
+  /** Grille à utiliser ; par défaut ZONE_GRID_MODE (zoneGridConfig.ts). */
+  gridMode?: ZoneGridMode;
+  /** Bilan complet (CP/CS, provenance du seuil, PMA 5 min) pour la grille ancrée. */
+  snapshot?: AnchoredGridSnapshot | null;
 }
 
 
@@ -194,6 +200,26 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
 
   }
 
+  // Grille ancrée sur le seuil critique (non activée par défaut, cf. zoneGridConfig.ts).
+  const anchored = { bike: false, run: false, hr: false };
+  if ((input.gridMode ?? ZONE_GRID_MODE) === "anchored") {
+    const snap: AnchoredGridSnapshot = { ...(input.snapshot ?? {}), ftp, vma, pace_threshold_sec_per_km: input.paceThresholdSecPerKm ?? input.snapshot?.pace_threshold_sec_per_km ?? null,
+      fc_max: fcMax, fc_repos: input.fcRest ?? input.snapshot?.fc_repos ?? null, vo2max: input.vo2max ?? null, vlamax: input.vlamax ?? null, weight_kg: input.weightKg ?? null };
+    const opts = { ambition: input.ambition ?? null };
+    const bikeGrid = anchoredBikeGrid(snap, opts);
+    const runGrid = anchoredRunGrid(snap, opts);
+    if (bikeGrid) { Object.assign(bikeZonesW, bikeGridWatts(bikeGrid)); anchored.bike = true; }
+    if (runGrid) {
+      for (const k of Object.keys(runPaces)) delete runPaces[k as ZoneKey];
+      Object.assign(runPaces, runGridPaces(runGrid)); anchored.run = true;
+    }
+    const hrGrid = preferRun ? runGrid ?? bikeGrid : bikeGrid ?? runGrid;
+    if (hrGrid && fcMax) {
+      for (const k of Object.keys(fcZones)) delete fcZones[k as ZoneKey];
+      Object.assign(fcZones, gridHeartRates(hrGrid)); anchored.hr = true;
+    }
+  }
+
   // Sweet Spot 88-94% FTP
   const sstW: Range | null = ftp ? [Math.round(0.88 * ftp), Math.round(0.94 * ftp)] : null;
 
@@ -264,9 +290,9 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       sport: mapObjectiveToSport(input.objective),
       generatedAt: Date.now(),
       zoneSource: {
-        bike: bikeAbs ? "derived" : "standard",
-        run: runAbs ? "derived" : "standard",
-        hr: hrSet ? "derived" : "standard",
+        bike: anchored.bike ? "anchored" : bikeAbs ? "derived" : "standard",
+        run: anchored.run ? "anchored" : runAbs ? "derived" : "standard",
+        hr: anchored.hr ? "anchored" : hrSet ? "derived" : "standard",
       },
     },
 
