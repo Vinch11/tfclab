@@ -41,14 +41,14 @@ describe('illustrations personnalisées des rapports', () => {
     const withCritical = { ...current, critical_metrics: { cycling: { critical: 262.4, reserve: 18300, status: 'estimate', efforts: [effort('1', 180, 380), effort('2', 420, 310), effort('3', 720, 285)], r2: 0.99, residualPct: 1, sensitivityPct: 2, warnings: [], savedAt: '2026-09-21', latestEffortDate: '2026-09-10' } } } as unknown as DbSnapshot;
     const v = buildVisualProfile({ ...inputs, effectiveSnapshot: withCritical, snapshotHistory: [withCritical] }, perf, true);
     const text = Object.values(v).join(' ');
-    expect(text).toContain('La puissance critique ajustée sur ces efforts est de 262 W');
-    expect(text).toContain('réserve W′ de 18,3 kJ');
-    expect(text).toContain('estimation non confirmée');
-    expect(text).toContain('Ce n’est pas une puissance tenable une heure.');
+    expect(text).toContain('Puissance critique · 262 W');
+    expect(text).toContain('18,3 kJ (W′)');
+    expect(text).toContain('Estimation à confirmer');
+    expect(text).toContain('seuil lactique stable');
   });
   it('sans efforts valides, aucune phrase de seuil critique n’est inventée', () => {
     const v = buildVisualProfile(inputs, perf, true);
-    expect(Object.values(v).join(' ')).not.toContain('puissance critique ajustée');
+    expect(Object.values(v).join(' ')).not.toContain('data-critical-sport');
   });
   it('réserve les informations privées au coach et borne la chronologie au bilan actif', () => {
     const coach = buildVisualProfile(inputs, perf, true),

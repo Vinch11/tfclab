@@ -1,6 +1,7 @@
 /** Read-only report projection: reuse the canonical zones and stored long-session observations. */
 import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZoneSet } from '@/lib/zones/deriveTrainingZones';
-import { parseStoredDurability, type StoredDurability } from '@/lib/durability/longSessionDurability';
+import { reportFieldEvidence } from './fieldEvidence';
+import type { StoredDurability } from '@/lib/durability/longSessionDurability';
 import type { ReportZoneSet } from '@/lib/athleteProfileReport/types';
 
 function mapZoneSet(set: DerivedZoneSet, sportLabel: string): ReportZoneSet {
@@ -60,5 +61,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
 }
 
 export function reportSportDurability(payload: any): StoredDurability {
-  return parseStoredDurability(payload?.effectiveSnapshot?.critical_metrics);
+  const snapshot = payload?.effectiveSnapshot;
+  if (!snapshot || (payload.athlete?.id && snapshot.athlete_id !== payload.athlete.id)) return {};
+  return reportFieldEvidence(snapshot).durability;
 }

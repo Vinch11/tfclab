@@ -30,9 +30,9 @@ const input: CoachingCompassInput = {
   },
   objectif: "IM", ambition: "competitor", sportFocus: "triathlon", athleteAge: 51, athleteSex: "F",
 };
-const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", source: "manual", weight_kg:52, vma:14.2, ftp:188, vo2max:50, css:100, pace_threshold_sec_per_km:315, tte_observed_min_run:40, coach_notes:"Note réservée au coach", created_at: "", updated_at: "" } as unknown as DbSnapshot;
+const snapshot = { id: "s1", athlete_id: "a1", coach_id: "c1", date: "2026-11-12", critical_metrics: input.criticalMetrics, source: "manual", weight_kg:52, vma:14.2, ftp:188, vo2max:50, css:100, pace_threshold_sec_per_km:315, tte_observed_min_run:40, coach_notes:"Note réservée au coach", created_at: "", updated_at: "" } as unknown as DbSnapshot;
 
-const prior: DbSnapshot = {...snapshot, id:"s0", date:"2026-09-14", ftp:171, pace_threshold_sec_per_km:330, coach_notes:null};
+const prior: DbSnapshot = {...snapshot, id:"s0", critical_metrics:null, date:"2026-09-14", ftp:171, pace_threshold_sec_per_km:330, coach_notes:null};
 const testRide = {id:"t1", athlete_id:"a1", coach_id:"c1", date:"2026-11-10", name:"Effort en paliers", sport:"bike", vlamax:null,
   raw:{protocol:"Paliers vélo", sensor:"Capteur témoin", streams:{time:[0,30,60,90], watts:[120,141,155,179], heartrate:[105,114,121,132]}}} as unknown as DbTest;
 

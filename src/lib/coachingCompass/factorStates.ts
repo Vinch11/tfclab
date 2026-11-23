@@ -33,6 +33,7 @@ export type FactorRow = {
   stateText?: Partial<Record<"below" | "inside" | "above", string>>;
   /** Ligne de statut sous le niveau de preuve (ex. « Estimation non confirmée »). */
   caption?: string;
+  goalPaceSecPerKm?: number;
   /** Qualité de la mesure : « ok » seulement si rien ne demande de la revoir ou de la refaire. */
   reliability?: { level: "ok" | "review"; notes: string[] };
   /** Prochaine étape pour mesurer ou refaire la mesure (page de tests de l'app). */
@@ -108,13 +109,22 @@ const todayIso = () => new Date().toISOString().slice(0, 10);
 
 type StoredCritical = NonNullable<ReturnType<typeof parseStoredCriticalMetrics>["cycling"]>;
 /** Lecture de la qualité d'un ajustement CP/CS, avec la politique de l'app (CRITICAL_POLICY) : 42 jours, 3 efforts, validation du coach. */
-function criticalReliability(c: StoredCritical, today: string): NonNullable<FactorRow["reliability"]> {
+export function criticalReliability(c: StoredCritical, today: string = todayIso()): NonNullable<FactorRow["reliability"]> {
   const notes: string[] = [];
   if (c.coachReview?.verdict === "reject") notes.push("Écarté par l'avis du coach.");
   else if (c.status !== "confirmed") notes.push("Estimation non validée par le coach : elle n'ajuste aucune séance.");
+  if (c.coachReview?.verdict === "reserve") notes.push("Le coach a émis une réserve sur cet ajustement.");
+  if (!Number.isFinite(ageDays(c.latestEffortDate, today))) notes.push("Date du dernier effort à documenter.");
   if (c.latestEffortDate && ageDays(c.latestEffortDate, today) > CRITICAL_POLICY.maxAgeDays) notes.push(`Efforts de plus de ${CRITICAL_POLICY.maxAgeDays} jours : à refaire.`);
   for (const w of c.warnings ?? []) if (typeof w === "string" && w && !notes.includes(w)) notes.push(w);
   return { level: notes.length ? "review" : "ok", notes };
+}
+
+export function durabilityReviewNotes(d: NonNullable<ReturnType<typeof parseStoredDurability>["bike"]>, today: string = todayIso()): string[] {
+  const notes: string[] = [];
+  if (d.sessions.length < 3) notes.push(`Seulement ${d.sessions.length} sorties : à confirmer avec davantage de sorties longues.`);
+  if (d.to && ageDays(d.to, today) > 90) notes.push("Sorties de plus de 3 mois : à actualiser.");
+  return notes;
 }
 
 export function observedRows(input: CoachingCompassInput, sport: FactorSport, today: string = todayIso()): FactorRow[] {
@@ -144,9 +154,7 @@ export function observedRows(input: CoachingCompassInput, sport: FactorSport, to
   const longObjective = isLongObjective(input.objectif);
   if (durability) {
     const d = durability;
-    const notes: string[] = [];
-    if (d.sessions.length < 3) notes.push(`Seulement ${d.sessions.length} sorties : à confirmer avec davantage de sorties longues.`);
-    if (d.to && ageDays(d.to, today) > 90) notes.push("Sorties de plus de 3 mois : à actualiser.");
+    const notes = durabilityReviewNotes(d, today);
     rows.push({ key: "durability", label: "Durabilité (sorties longues)", unit: "%", value: d.meanChangePct, zone: null, tier: "observed", state: "none",
       basis: `Meilleur effort de 20 min au début contre le dernier tiers de ${d.sessions.length} sorties longues Nolio (${sport === "bike" ? "≥ 2 h" : "≥ 1 h 30"}), moyenne ${d.meanChangePct.toLocaleString("fr-BE")} %. `
         + (sport === "bike" ? "Repère d'observation, pas une cible : −10,8 ± 7,8 % (5 min) et −10,1 ± 6,5 % (20 min) après 1 000 kJ chez 20 cyclistes amateurs. " : "Repère d'observation, pas une cible : −5,5 % de vitesse au seuil après 90 min chez 18 marathoniens. ")
@@ -176,7 +184,7 @@ function criticalDemandRow(input: CoachingCompassInput, metrics: ProfileComparis
   if (!critical || !goal || goal.kind !== "goal" || !(goal.low > 0)) return null;
   const csKmh = critical.critical * 3.6;
   const value = Math.round(goal.low / csKmh * 1000) / 10;
-  return { key: "demandcs", label: "Exigence du chrono visé (% de la CS)", unit: "%", value, zone: null, tier: "observed", state: "none",
+  return { key: "demandcs", goalPaceSecPerKm: 3600 / goal.low, label: "Exigence du chrono visé (% de la CS)", unit: "%", value, zone: null, tier: "observed", state: "none",
     basis: `Le chrono visé demande ${value.toLocaleString("fr-BE")} % de la vitesse critique enregistrée. Repères publiés : environ 85 % chez des marathoniens récréatifs (84,8 ± 13,6 %, les plus rapides plus près de la CS) et environ 96 % chez des élites. Ce n'est pas une cible par ambition ; si la CS est une estimation, la valeur est indicative.`,
     evidence: ["cs-marathon-2020"], engineNote: null,
     caption: "Calculé avec la CS " + (critical.status === "confirmed" ? "confirmée" : "estimée") + " · " + (Math.round(csKmh * 10) / 10).toLocaleString("fr-BE") + " km/h",

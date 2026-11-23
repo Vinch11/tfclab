@@ -1,3 +1,5 @@
+import { pairedDecoupling } from '../diagnostic/durabilityDay';
+import { parseStoredDurability } from '../durability/longSessionDurability';
 import { computeCoachingCompass } from './computeCoachingCompass';
 import type { CoachingCompassInput } from './types';
 import { metricSourceLabel } from './presentation';
@@ -16,6 +18,7 @@ export function completeProfile(input: CoachingCompassInput, css: number | null 
   const view = compass.presentation;
   if (!view) return [];
   const sports = view.sport === 'triathlon' ? ['bike', 'run'] as const : [view.sport] as const;
+  const durability = parseStoredDurability(input.criticalMetrics);
   const result: CompleteDiscipline[] = sports.map(sport => {
     const axes = sport === 'run' ? view.runningDiagnostic?.axes ?? [] : view.cyclingDiagnostic?.axes ?? view.axes;
     const indicators: CompleteIndicator[] = axes.filter(a => !['fatmax', 'wprime', 'durability'].includes(a.key)).map(a => ({
@@ -40,7 +43,12 @@ export function completeProfile(input: CoachingCompassInput, css: number | null 
       indicators.push({ key: `critical-${ref.label}-${ref.unit}`, label: ref.label + (sport === 'run' && ref.unit === 'W' || sport === 'run' && ref.unit === 'kJ' ? ' · capteur' : ''), value: positive(ref.value), unit: ref.unit, target: null, source: ref.source, explanation: 'Paramètre ajusté à des efforts. W′/D′ ne mesurent ni la force ni la VLamax. ' + ref.conditions });
     }
     add('fatmax', 'FatMax', sport === 'bike' ? compass.profile.fatmax.value : null, '% FTP', sport === 'run' ? 'Pas de transfert du FatMax vélo vers la course. Voir les courbes exploratoires propres au sport.' : 'Repère lipidique modélisé. Le débit d’oxydation est détaillé dans les courbes.', 'estimation');
-    add('durability', 'Durabilité prolongée', null, '', 'Non évaluée : nécessite des comparaisons avant/après effort prolongé. Le TTE seul ne la mesure pas.');
+    const long = durability[sport];
+    const pair = input.durabilityPairs?.find(p => p.sport === sport);
+    const decoupling = pair && pairedDecoupling(pair);
+    if (decoupling != null) indicators.push({ key: 'paired-decoupling', label: 'Découplage sur deux blocs de 10 min', value: Math.round(decoupling * 10) / 10, unit: '%', target: null, source: 'observed', explanation: 'Comparaison du rapport entre allure ou puissance et fréquence cardiaque sur le test du ' + pair.day + '.' });
+    indicators.push({ key: 'durability', label: 'Durabilité · sorties longues', value: long?.meanChangePct ?? null, unit: '%', target: null,
+      source: long ? 'records' : 'unknown', explanation: long ? `Variation moyenne sur ${long.sessions.length} sorties longues, entre les meilleurs efforts de 20 minutes du début et du dernier tiers.` : 'À documenter en comparant le début et la fin de sorties longues.' });
     return { sport: sport === 'run' ? 'Course à pied' : 'Vélo', indicators };
   });
   if (view.sport === 'triathlon') result.push({ sport: 'Natation', indicators: [{ key: 'css', label: 'CSS', value: positive(css), unit: 's/100 m', target: null, source: positive(css) == null ? 'unknown' : 'snapshot', explanation: 'Vitesse critique de nage enregistrée ; ne certifie pas un profil métabolique de natation.' }] });

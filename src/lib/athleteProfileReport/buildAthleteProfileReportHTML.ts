@@ -47,7 +47,11 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const disciplines = sports.map(sp => {
     const tte = (d.sportTte ?? []).filter(r => sp === 'run' ? /course/i.test(r.label) : /vélo/i.test(r.label));
     const sets = d.zoneSets.filter(z => sp === 'run' ? /course/i.test(z.sportLabel) : /vélo/i.test(z.sportLabel));
-    const refs = (d.sportReferences ?? []).filter(r => r.sport === (sp === 'run' ? 'running' : 'cycling') && r.value != null && r.value > 0);
+    const refs = (d.sportReferences ?? []).filter(r => {
+      if (r.sport !== (sp === 'run' ? 'running' : 'cycling') || r.value == null || r.value <= 0) return false;
+      const covered = d.visuals?.illustratedCritical?.includes(sp);
+      return !covered || (sp === 'run' && (r.unit === 'W' || r.unit === 'kJ'));
+    });
     const comparisons = d.sportComparisons?.[sp] ?? [];
     const vo2 = d.metrics.find(m => m.key === 'vo2max' && m.value != null && m.value > 0);
     const energy = vo2 && !comparisons.some(r => r.key === 'vo2max') ? [{...vo2, target: vo2.target?.[0], source: vo2.source ?? undefined}, ...comparisons] : comparisons;
