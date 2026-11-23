@@ -94,7 +94,7 @@ export function gapPercent(r: FactorRow): number {
  * docs/etude-cp-cs-durabilite-tte-2026-11-22.md). Affichage seul.
  */
 const LONG_OBJECTIVES = new Set(["Marathon", "IM", "703", "Ultra"]);
-const isLongObjective = (objective: string) => LONG_OBJECTIVES.has(normalizeObjective(objective)) || /ultra|trail/i.test(objective);
+export const isLongObjective = (objective: string) => LONG_OBJECTIVES.has(normalizeObjective(objective)) || /ultra|trail/i.test(objective);
 
 const CP_BASIS = "Ajustement de 3 efforts maximaux de 2 à 15 min (Nolio ou saisie). La CP n'est pas une allure ou une puissance tenable une heure : elle se situe en moyenne ≈ 12 W au-dessus du MLSS, avec un écart individuel de −19 à +44 W (méta-analyse 2025). Ne sert pas à classer les limiteurs.";
 const CS_BASIS = "Ajustement d'efforts maximaux de 2 à 15 min (Nolio ou saisie). Chez des coureurs bien entraînés, la CS dépasse l'allure du MLSS (16,4 contre 15,2 km/h, 10 coureurs) : à lire comme la frontière du seuil sévère, pas comme une allure tenable une heure. Ne sert pas à classer les limiteurs.";
@@ -198,6 +198,12 @@ export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoac
   const sections = buildProfileComparisons(input, compass).map(g => {
     const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
       ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport, age: input.athleteAge, sex: input.athleteSex }) : null));
+    const bilanAge = input.snapshotDate ? ageDays(input.snapshotDate, today) : null;
+    for (const r of rows) {
+      // Une valeur ancienne n'est jamais retirée : seule la lecture change, pour avertir qu'il faudrait retester.
+      if (IDEAL_FACTORS.has(r.key) && r.value != null && bilanAge != null && bilanAge > 90)
+        r.reliability = { level: "review", notes: [`Bilan du ${dayLabel(input.snapshotDate as string)}, il y a plus de 90 jours : il faudrait retester. La valeur reste utilisée.`] };
+    }
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
     const sport = g.sport as FactorSport;
     const csDemand = sport === "run" ? criticalDemandRow(input, g.metrics, today) : null;
