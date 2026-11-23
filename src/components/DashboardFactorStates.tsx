@@ -5,6 +5,7 @@ import { getObjectifLabel, type ObjectifType } from "@/types/athlete";
 import type { CoachingCompassInput, TFCLCoachingCompassResult } from "@/lib/coachingCompass/types";
 import { buildFactorStates, fmt, type FactorRow } from "@/lib/coachingCompass/factorStates";
 import { compassEvidence } from "@/lib/coachingCompass/referenceRegistry";
+import { MeasureStatus } from "@/components/ObservedFactors";
 
 const TIER = {
   measured: { label: "Mesuré", hint: "Cohorte publiée du même niveau", cls: "bg-[var(--mint)] text-accent" },
@@ -50,6 +51,7 @@ function FactorTile({ r }: { r: FactorRow }) {
         <span>{tier.hint}</span>
       </p>
       {r.caption && <p className="text-xs text-muted-foreground">{r.caption}</p>}
+      <MeasureStatus r={r} />
       {r.engineNote && <p className="text-xs leading-relaxed text-muted-foreground">{r.engineNote} C’est une valeur de coaching, non issue d’études ; elle sert au classement du Compass et aux plans, pas à l’idéal sourcé ci-dessus.</p>}
       {(r.basis || r.adjustment || links.length > 0) && (
         <details className="text-xs text-muted-foreground">

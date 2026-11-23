@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { ObservedFactors } from "../ObservedFactors";
+import { ObservedFactors, MeasureStatus } from "../ObservedFactors";
 import type { FactorRow } from "@/lib/coachingCompass/factorStates";
 
 afterEach(cleanup);
@@ -24,6 +24,27 @@ describe("Mesures observées", () => {
   });
   it("sans ligne, rien n'est rendu", () => {
     const { container } = render(<ObservedFactors title="t" rows={[]} />);
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
+describe("Qualité de la mesure et prochaine étape", () => {
+  it("mesure fiable : badge sans liste de réserves", () => {
+    render(<MeasureStatus r={row({ reliability: { level: "ok", notes: [] } })} />);
+    expect(screen.getByText("Mesure fiable")).toBeVisible();
+    expect(screen.queryByRole("list")).toBeNull();
+  });
+  it("mesure à revoir : réserves listées en clair", () => {
+    render(<MeasureStatus r={row({ reliability: { level: "review", notes: ["Efforts de plus de 42 jours : à refaire."] } })} />);
+    expect(screen.getByText("Mesure à revoir")).toBeVisible();
+    expect(screen.getByText("Efforts de plus de 42 jours : à refaire.")).toBeVisible();
+  });
+  it("mesure absente : le lien mène à la page de tests", () => {
+    render(<ObservedFactors title="t" rows={[row({ value: null, state: "missing", caption: undefined, action: { label: "Programmer les 3 efforts dans Nolio", href: "/diagnostic/tests?module=cs-run" } })]} />);
+    expect(screen.getByRole("link", { name: "Programmer les 3 efforts dans Nolio" })).toHaveAttribute("href", "/diagnostic/tests?module=cs-run");
+  });
+  it("sans fiabilité ni action, rien n'est rendu", () => {
+    const { container } = render(<MeasureStatus r={row({ reliability: undefined, action: undefined })} />);
     expect(container).toBeEmptyDOMElement();
   });
 });
