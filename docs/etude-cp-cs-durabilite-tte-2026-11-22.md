@@ -91,15 +91,33 @@ Cadre déjà utilisé : **Mesuré**, **Dérivé**, **Repère de coaching**.
 **Phase 3 — Moteur de plans (seulement après validation)**
 - Remplacer le TTE par CS/CP et durabilité dans la détection des limiteurs. Avant cela : jeu de données réelles, tests d'or (golden) sur les plans, et empreinte de release. Le coach conserve la main sur l'ordre des limiteurs.
 
-### État de la phase 1 (mise en œuvre)
+### État de la mise en œuvre (phases 1 et 2)
 
-Fait, en affichage seul (moteur et plans inchangés) :
-- **Dashboard, tuile des facteurs :** CP et W′ (vélo), CS et D′ (course), durabilité des sorties longues Nolio, avec le niveau de preuve « Observé », le statut (confirmé par le coach ou estimation) et les sources. La durabilité manquante apparaît comme « À mesurer » pour les objectifs longs (marathon, ultra, 70.3, Ironman).
-- **Carte « Limiteurs hiérarchisés » :** une ligne « Mesurés, sans cible sourcée donc non classés ».
+Tout est en affichage seul : le moteur de plans et le classement des limiteurs sont inchangés.
+
+**Phase 1 (affichage), terminée**
+- **Dashboard, tuile des facteurs :** CP et W′ (vélo), CS et D′ (course), durabilité des sorties longues Nolio, niveau de preuve « Observé », statut et sources.
+- **Marathon :** ligne « Exigence du chrono visé (% de la CS) » avec les repères publiés (≈ 85 % chez des récréatifs, ≈ 96 % chez des élites). Pas de ligne pour 5 km, 10 km et semi : aucune valeur vérifiée.
+- **Carte « Limiteurs hiérarchisés » :** ligne « Mesurés, sans cible sourcée donc non classés ».
 - **100%lab :** section « Seuil critique et durabilité » par sport.
+- **Compass (profil détaillé) :** bloc « Seuil critique » par sport.
+- **Rapports :** le graphique des efforts indique la valeur critique ajustée, avec sa réserve (statut, « pas tenable une heure »).
 - **Registre des références :** poole-2016, cp-mlss-2025, cs-mlss-2021, cs-marathon-2020, durability-running-2025.
 
-Reste à faire : ligne « exigence du chrono en % de CS » (marathon), rapports PDF, Compass (profil détaillé).
+**Phase 2 (mesure), ce qui existait déjà et ce qui est ajouté**
+- *Existait déjà :* pages de tests `/diagnostic/tests?module=cp-bike | cs-run | durability-bike | durability-run`, envoi des séances vers Nolio, import des efforts et des sorties longues dans le bilan, protocole avant/après.
+- *Ajouté :* chaque mesure absente affiche « À mesurer » avec un lien direct vers le bon protocole ; la qualité de chaque mesure est dite en clair (« Mesure fiable » ou « Mesure à revoir » avec les raisons : estimation non validée, efforts de plus de 42 jours, avertissements de l'ajustement, moins de 3 sorties longues, sorties de plus de 3 mois, avis « écarter » du coach).
+- *Seuils de qualité :* repris de la politique de l'app pour CP/CS (`CRITICAL_POLICY` : 42 jours, validation du coach). Les seuils de la durabilité (3 sorties, 3 mois) sont mon jugement, pas des valeurs publiées.
+- *Limite constatée :* les tests des Days ne contiennent pas d'effort de 3, 7 et 12 min : ils ne fournissent aucun point de CP ou de CS. Il faut le protocole dédié ou des efforts maximaux déjà présents dans les enregistrements Nolio.
+
+**Protocoles Days dédiés à la CS et à la CP**
+- *Track Day · Vitesse critique (1000 m + 3000 m)* : le test habituel du coach (échauffement 15 min, 1000 m maximal, 30 min de récupération, 3000 m maximal, retour au calme 10 min), envoyé dans Nolio avec des étapes en distance.
+- *Bike Day · Puissance critique (3 min + 12 min)* : même structure à vélo (3 min maximal, 30 min de récupération, 12 min maximal).
+- *Troisième point :* le 1500 m du Track Day, ou le test 5 min du Bike Day, à condition que les trois efforts tombent dans les 28 jours. Avec deux points seulement, la CS ou la CP reste une estimation : la politique de l'app l'exige (`criticalEfforts`).
+- *Limites à connaître :* les deux efforts sont dans la même séance (le second peut être un peu pénalisé) ; le 3000 m ne doit pas dépasser 15 min (sinon le remplacer par un 2000 m) ; la politique de l'app rejette un ajustement trop sensible au retrait d'un point (plus de 10 %), même avec des efforts propres.
+- *Origine :* l'import Nolio lit les records de distance (1000, 1500, 3000 m) et de puissance (3 et 12 min) de la période ; la page de tests (`/diagnostic/tests?module=cs-day | cp-day`) envoie les séances et imprime les fiches.
+
+Non couvert : rapports PDF d'audit, et le moteur de plans (phase 3).
 
 ## 5. Lacunes et points à vérifier
 

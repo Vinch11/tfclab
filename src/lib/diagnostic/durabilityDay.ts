@@ -6,8 +6,8 @@ export type EnduranceSport = "bike" | "run";
 export const durabilityProtocol = "tfcl-durability-paired-v1";
 export const separateDay = "Prévoir la durabilité un autre jour que le Day ou les essais maximaux, pendant une sortie longue habituelle.";
 export const criticalGuide = {
-  run: "Pour individualiser les allures autour de la vitesse critique, utiliser trois efforts maximaux documentés de 3, 7 et 12 min. Le 5 km contrôlé du Track Day ne constitue pas un essai maximal.",
-  bike: "Pour individualiser les watts autour de la puissance critique, utiliser les efforts maximaux documentés du protocole CP (12, 7 et 3 min). Les sprints et le 20 min du Bike Day ont une autre fonction.",
+  run: "Vitesse critique : faire le « Track Day · Vitesse critique » (1000 m puis 3000 m, 30 min de récupération). Le 1500 m du Track Day fournit le troisième point si les trois efforts tombent dans les 28 jours ; avec deux points seulement, la vitesse critique reste une estimation. Le 5 km contrôlé du Track Day ne constitue pas un essai maximal.",
+  bike: "Puissance critique : faire le « Bike Day · Puissance critique » (3 min puis 12 min, 30 min de récupération). Le test 5 min du Bike Day fournit le troisième point si les trois efforts tombent dans les 28 jours ; avec deux points seulement, la puissance critique reste une estimation. Les sprints et le 20 min du Bike Day ont une autre fonction (20 min dépasse la durée admissible de 15 min).",
 };
 export function intensity(sport: EnduranceSport, raw: string) {
   if (sport === "bike") return /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : 0;

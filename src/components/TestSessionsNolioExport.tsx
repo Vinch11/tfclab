@@ -12,12 +12,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { buildSportTestingNolioSessions, type NolioStepLike, type TestingWeekNolioSession } from '@/lib/diagnostic/testingWeekNolioSessions';
 import { buildCriticalSpeedNolioSessions } from '@/lib/diagnostic/criticalSpeedAssessment';
-import { buildTrackDayNolioSession, buildBikeDayNolioSession } from '@/lib/diagnostic/dayTestNolioSessions';
+import { buildTrackDayNolioSession, buildBikeDayNolioSession, buildCriticalTrackDayNolioSession, buildCriticalBikeDayNolioSession } from '@/lib/diagnostic/dayTestNolioSessions';
 
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { compactSessions, type FieldModule } from "@/lib/diagnostic/compactFieldAssessment";
 
-export type TestRoute = FieldModule | 'durability-run' | 'durability-bike' | 'track-day' | 'bike-day' | 'week-run' | 'week-bike' | 'critical';
+export type TestRoute = FieldModule | 'durability-run' | 'durability-bike' | 'track-day' | 'bike-day' | 'cs-day' | 'cp-day' | 'week-run' | 'week-bike' | 'critical';
 const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSession[] }> = {
   'durability-run': {label:'Durabilité course', build: () => []},
   'durability-bike': {label:'Durabilité vélo', build: () => []},
@@ -29,6 +29,8 @@ const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSe
   'easy-run': {label:'Course continue confortable', build: () => compactSessions('easy-run')},
   'track-day': { label: 'TFCL Track Day™', build: () => [buildTrackDayNolioSession()] },
   'bike-day': { label: 'TFCL Bike Day™', build: () => [buildBikeDayNolioSession()] },
+  'cs-day': { label: 'Track Day · Vitesse critique (1000 m + 3000 m)', build: () => [buildCriticalTrackDayNolioSession()] },
+  'cp-day': { label: 'Bike Day · Puissance critique (3 min + 12 min)', build: () => [buildCriticalBikeDayNolioSession()] },
   'week-run': { label: 'Semaine de tests course', build: () => buildSportTestingNolioSessions('run') },
   'week-bike': { label: 'Semaine de tests vélo', build: () => buildSportTestingNolioSessions('bike') },
   critical: { label: 'Vitesse critique · 3 efforts', build: buildCriticalSpeedNolioSessions },

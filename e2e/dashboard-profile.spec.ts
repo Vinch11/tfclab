@@ -15,6 +15,9 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   // Triathlon : mesurée en vélo, « À mesurer » en course, donc deux tuiles.
   await expect(factors.getByRole('heading', { name: 'Durabilité (sorties longues)' })).toHaveCount(2);
   await expect(factors.getByText('Observé', { exact: true }).first()).toBeVisible();
+  // La qualité dépend de la date du jour (efforts de plus de 42 jours) : on vérifie qu'elle est dite, pas laquelle.
+  await expect(factors.getByText(/Mesure (fiable|à revoir)/).first()).toBeVisible();
+  await expect(factors.getByRole('link', { name: 'Programmer un test avant/après' }).first()).toHaveAttribute('href', /module=durability-(run|bike)/);
   const limiters = page.getByRole('region', { name: 'Limiteurs hiérarchisés' });
   await expect(limiters).toBeVisible();
   await expect(limiters.getByRole('listitem').first()).toContainText('Limiteur 1');

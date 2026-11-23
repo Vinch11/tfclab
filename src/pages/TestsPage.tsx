@@ -81,7 +81,7 @@ export default function TestsPage() {
     return () => { cancelled = true; };
   }, [selectedAthlete?.id]);
   
-  const modules: (FieldModule | "durability-bike" | "durability-run")[] = ["hold-bike","hold-run","durability-bike","durability-run","cp-bike","cs-run","trail-repeat","easy-run"];
+  const modules: (FieldModule | "durability-bike" | "durability-run" | "cs-day" | "cp-day")[] = ["hold-bike","hold-run","durability-bike","durability-run","cp-bike","cs-run","cs-day","cp-day","trail-repeat","easy-run"];
   const requested = new URLSearchParams(window.location.search).get("module");
   modules.sort((a,b)=>Number(b === requested)-Number(a === requested));
 

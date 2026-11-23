@@ -39,3 +39,47 @@ export function buildBikeDayNolioSession(): TestingWeekNolioSession {
     st('cooldown', 600, 'Retour au calme Z1'),
   ]);
 }
+
+/**
+ * Days dédiés à la vitesse et à la puissance critiques. Chaque Day fournit deux efforts maximaux ;
+ * le troisième point vient du Day existant (1500 m du Track Day, 5 min du Bike Day), ce qui donne
+ * trois durées d'au moins 2 min et d'un rapport ≥ 3, conditions de la politique TFCL (voir criticalEfforts).
+ */
+export const CRITICAL_DAYS = {
+  run: { version: 'tfcl-cs-day-v1', distancesM: [1000, 3000], restMin: 30, thirdPoint: 'le 1500 m du Track Day', maxSec: 900 },
+  bike: { version: 'tfcl-cp-day-v1', durationsSec: [180, 720], restMin: 30, thirdPoint: 'le test 5 min du Bike Day', maxSec: 900 },
+} as const;
+
+export function buildCriticalTrackDayNolioSession(): TestingWeekNolioSession {
+  const [d1, d2] = CRITICAL_DAYS.run.distancesM;
+  return session('run', 'TFCL Track Day™ · Vitesse critique (1000 m + 3000 m)', [
+    'Piste 400 m. Deux efforts maximaux continus, 30 min de récupération entre les deux. Noter le temps de chaque effort au dixième de seconde.',
+    'Ces deux points servent à la vitesse critique (CS) et à D′. Le troisième point est ' + CRITICAL_DAYS.run.thirdPoint + ' (même période de 28 jours) ; avec deux points seulement, la CS reste une estimation.',
+    'Validité : parcours plat mesuré, aucun arrêt dans l’effort, même piste et mêmes conditions pour les trois efforts, reposé. Si le 3000 m dépasse 15 min, le remplacer par un 2000 m.',
+    'Les deux efforts sont dans la même séance : le second peut être un peu pénalisé par le premier. Si possible, répéter un autre jour pour confirmer.',
+    'Version du protocole : ' + CRITICAL_DAYS.run.version + '.',
+  ].join('\n\n'), [
+    st('warmup', 900, 'Échauffement à ton aise : footing calme + éducatifs + 1 à 2 accélérations de 15 s, récupération 1 min'),
+    dist('active', d1, '2,5 tours de piste à effort maximal. Essaie de garder un effort constant et lissé au maximum. Noter le temps.'),
+    st('rest', CRITICAL_DAYS.run.restMin * 60, 'Tu as maintenant 30 min de repos : tu peux courir, marcher ou alterner. Objectif : récupérer au mieux.'),
+    dist('active', d2, '7,5 tours de piste à effort maximal. Essaie de garder un effort constant et de lisser ton effort au mieux. Noter le temps.'),
+    st('cooldown', 600, 'Tu peux trottiner à ton aise pour récupérer.'),
+  ]);
+}
+
+export function buildCriticalBikeDayNolioSession(): TestingWeekNolioSession {
+  const [t1, t2] = CRITICAL_DAYS.bike.durationsSec;
+  return session('bike', 'TFCL Bike Day™ · Puissance critique (3 min + 12 min)', [
+    'Capteur de puissance, même vélo et même parcours plat ou home-trainer pour les efforts. Deux efforts maximaux continus, 30 min de récupération entre les deux. Noter la puissance moyenne de chaque effort.',
+    'Ces deux points servent à la puissance critique (CP) et à W′. Le troisième point est ' + CRITICAL_DAYS.bike.thirdPoint + ' (même période de 28 jours) ; avec deux points seulement, la CP reste une estimation.',
+    'Validité : puissance mesurée sans interruption, effort régulier et maximal, reposé, mêmes conditions pour les trois efforts. Ne pas partir trop fort : le dosage régulier compte plus que le pic.',
+    'Les deux efforts sont dans la même séance : le second peut être un peu pénalisé par le premier. Si possible, répéter un autre jour pour confirmer.',
+    'Version du protocole : ' + CRITICAL_DAYS.bike.version + '.',
+  ].join('\n\n'), [
+    st('warmup', 900, 'Échauffement progressif Z2, puis 2 ouvertures de 1 min à allure soutenue'),
+    st('active', t1, 'Effort maximal 3 min, puissance la plus régulière possible. Noter la puissance moyenne.'),
+    st('rest', CRITICAL_DAYS.bike.restMin * 60, 'Récupération très facile complète (Z1). Tu peux pédaler très léger ou t’arrêter.'),
+    st('active', t2, 'Effort maximal 12 min, puissance régulière, ne pars pas trop fort. Noter la puissance moyenne.'),
+    st('cooldown', 600, 'Retour au calme Z1.'),
+  ]);
+}

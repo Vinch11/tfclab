@@ -128,9 +128,89 @@ describe("facteurs observés : seuil critique, réserve anaérobie, durabilité"
     expect(short.sections[0].rows.find(r => r.key === "durability")).toBeUndefined();
   });
 
-  it("sans métriques critiques, rien n'est inventé", () => {
+  it("sans métriques critiques, aucune valeur n'est inventée : « à mesurer » avec le moyen de la mesurer", () => {
     const s = states("IM", "competitor", triathlon);
-    for (const key of ["cp", "wprime", "cs", "dprime"]) expect(s.sections.flatMap(x => x.rows).some(r => r.key === key)).toBe(false);
+    for (const [key, sport, module] of [["cp", "bike", "cp-day"], ["cs", "run", "cs-day"]] as const) {
+      const r = rows(s, sport).find(x => x.key === key)!;
+      expect(r).toMatchObject({ value: null, state: "missing", tier: "observed", action: { href: "/diagnostic/tests?module=" + module } });
+    }
+    for (const key of ["wprime", "dprime"]) expect(s.sections.flatMap(x => x.rows).some(r => r.key === key)).toBe(false);
     expect(s.observed).toEqual([]);
+    expect(s.unmeasured.map(x => x.r.key)).toEqual(expect.arrayContaining(["cp", "cs"]));
+  });
+});
+
+describe("qualité de la mesure et prochaine étape", () => {
+  const base = { critical: 262.4, reserve: 18300, status: "confirmed", latestEffortDate: "2026-11-02", efforts: [], warnings: [] as string[] };
+  const bikeRow = (cycling: object, today: string, key = "cp") =>
+    buildFactorStates({ objectif: "IM", ambition: "competitor", criticalMetrics: { cycling } } as unknown as CoachingCompassInput, triathlon as unknown as TFCLCoachingCompassResult, today)
+      .sections.find(x => x.sport === "bike")!.rows.find(r => r.key === key)!;
+
+  it("confirmée, récente et sans avertissement : mesure fiable", () => {
+    expect(bikeRow(base, "2026-11-20").reliability).toEqual({ level: "ok", notes: [] });
+  });
+  it("efforts de plus de 42 jours : à refaire", () => {
+    const r = bikeRow(base, "2026-12-20").reliability!;
+    expect(r.level).toBe("review");
+    expect(r.notes.join(" ")).toContain("plus de 42 jours");
+  });
+  it("estimation non validée : à revoir ; avertissements du bilan repris", () => {
+    const r = bikeRow({ ...base, status: "estimate", warnings: ["Deux points : qualité d’ajustement non vérifiable ; troisième effort requis avant prescription dans TFCL."] }, "2026-11-20").reliability!;
+    expect(r.level).toBe("review");
+    expect(r.notes.some(n => n.includes("non validée par le coach"))).toBe(true);
+    expect(r.notes.some(n => n.includes("troisième effort requis"))).toBe(true);
+  });
+  it("avis « écarter » du coach : à revoir", () => {
+    const r = bikeRow({ ...base, coachReview: { verdict: "reject", text: "x", date: "2026-11-03" } }, "2026-11-20").reliability!;
+    expect(r.notes[0]).toContain("Écarté par l'avis du coach");
+  });
+
+  const durability = (n: number, to: string) => ({ bike: { status: "estimate", method: "best20_early_vs_last_third", windowVersion: 2, unit: "W", meanChangePct: -8.2, from: "2026-05-01", to, savedAt: to,
+    sessions: Array.from({ length: n }, (_, i) => ({ id: "s" + i, date: "2026-10-1" + i, name: "Sortie", durationMin: 180, early: 250, late: 230, changePct: -8 })) } });
+  const dur = (n: number, to: string, today: string) =>
+    buildFactorStates({ objectif: "IM", ambition: "competitor", criticalMetrics: { durability: durability(n, to) } } as unknown as CoachingCompassInput, triathlon as unknown as TFCLCoachingCompassResult, today)
+      .sections.find(x => x.sport === "bike")!.rows.find(r => r.key === "durability")!;
+
+  it("durabilité : 2 sorties seulement ou sorties anciennes → à revoir, avec le test avant/après proposé", () => {
+    const few = dur(2, "2026-11-01", "2026-11-20");
+    expect(few.reliability!.level).toBe("review");
+    expect(few.action).toEqual({ label: "Programmer un test avant/après", href: "/diagnostic/tests?module=durability-bike" });
+    const old = dur(4, "2026-06-01", "2026-11-20");
+    expect(old.reliability!.notes.join(" ")).toContain("plus de 3 mois");
+  });
+  it("durabilité : 3 sorties récentes → fiable, sans action", () => {
+    const ok = dur(3, "2026-11-01", "2026-11-20");
+    expect(ok.reliability).toEqual({ level: "ok", notes: [] });
+    expect(ok.action).toBeUndefined();
+  });
+  it("durabilité absente sur objectif long : l'action mène au test de la bonne discipline", () => {
+    const r = states("Marathon", "competitor", { presentation: { sport: "run", axes: [axis("vo2max", 52, 50, "ml/kg/min")] } }).sections[0].rows.find(x => x.key === "durability")!;
+    expect(r.action!.href).toBe("/diagnostic/tests?module=durability-run");
+  });
+});
+
+describe("exigence du chrono visé en % de la vitesse critique (marathon)", () => {
+  const input = (objectif: string, extra: object = {}) => ({ objectif, ambition: "competitor", performanceGoal: { minutes: 180 },
+    criticalMetrics: { running: { critical: 4.2, reserve: 200, status: "confirmed", latestEffortDate: "2026-11-02", efforts: [], warnings: [] } }, ...extra }) as unknown as CoachingCompassInput;
+  const compass = { presentation: { sport: "run", axes: [axis("vma", 16, null, "km/h")] } } as unknown as TFCLCoachingCompassResult;
+  const row = (i: CoachingCompassInput) => buildFactorStates(i, compass, "2026-11-20").sections[0].rows.find(r => r.key === "demandcs");
+
+  it("3 h au marathon = 14,07 km/h, soit 93 % d'une CS de 15,12 km/h, avec les repères publiés", () => {
+    const r = row(input("Marathon"))!;
+    expect(r.value).toBe(93);
+    expect(r).toMatchObject({ unit: "%", tier: "observed", state: "none", zone: null, evidence: ["cs-marathon-2020"] });
+    expect(r.basis).toContain("84,8 ± 13,6");
+    expect(r.basis).toContain("96 %");
+    expect(r.caption).toContain("confirmée");
+  });
+  it("jamais classée : aucune cible par ambition", () => {
+    const s = buildFactorStates(input("Marathon"), compass, "2026-11-20");
+    expect(s.ranked.some(x => x.r.key === "demandcs")).toBe(false);
+    expect(s.observed.some(x => x.r.key === "demandcs")).toBe(true);
+  });
+  it("seulement pour le marathon, et seulement si la CS et le chrono visé existent", () => {
+    expect(row(input("10K"))).toBeUndefined();
+    expect(row(input("Marathon", { criticalMetrics: undefined }))).toBeUndefined();
+    expect(row(input("Marathon", { performanceGoal: undefined }))).toBeUndefined();
   });
 });

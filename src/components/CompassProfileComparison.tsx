@@ -9,6 +9,7 @@ import { compassEvidence, COMPASS_REFERENCE_VERSION } from '@/lib/coachingCompas
 import { cn } from '@/lib/utils';
 import { CompassProfileRadar } from './CompassProfileRadar';
 import { CompassDurability } from './CompassDurability';
+import { CompassCritical } from './CompassCritical';
 import { comparePerformance, goalDistance, PERFORMANCE_SOURCES, readPerformanceGoal } from '@/lib/coachingCompass/performanceComparison';
 import { publishedRaceStatistics } from '@/lib/coachingCompass/raceStatistics';
 import { formatTime } from '@/lib/raceAnalysis';
@@ -77,6 +78,7 @@ export function CompassProfileComparison({ input, compass, athleteName, detailsO
         {g.sport === 'run' && performance.pace && <p className="my-2 text-sm">Allure demandée par {performance.distance?.tri ? 'le split course' : 'le chrono'} · <strong>{fieldIntensity('run', performance.pace)}</strong></p>}
         {g.sport === 'bike' && goal?.bikeWatts && <p className="my-2 text-sm">Puissance de course visée par le coach · <strong>{goal.bikeWatts} W</strong></p>}
         {g.sport === 'run' && performance.cohort && source && <p className="text-xs text-muted-foreground">Groupe {performance.cohort.label} · VO₂max observée {fmt(performance.cohort.vo2)} ± {fmt(performance.cohort.vo2Sd)} ml/kg/min (moyenne ± écart-type). <a className="underline" href={source.url}>{source.name}</a></p>}
+        <CompassCritical sport={g.sport} input={input} />
         <CompassDurability sport={g.sport} input={input} />
       </section>)}
     </div></>}

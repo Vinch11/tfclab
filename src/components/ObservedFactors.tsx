@@ -1,6 +1,26 @@
 import { compassEvidence } from "@/lib/coachingCompass/referenceRegistry";
 import { fmt, type FactorRow } from "@/lib/coachingCompass/factorStates";
 
+/** Qualité de la mesure et prochaine étape : partagé par la tuile du Dashboard, 100%lab et le Compass. */
+export function MeasureStatus({ r }: { r: FactorRow }) {
+  if (!r.reliability && !r.action) return null;
+  return (
+    <div className="space-y-1 text-xs">
+      {r.reliability && (
+        <p className="flex flex-wrap items-center gap-2">
+          <span className={"ui-badge px-2 py-0.5 " + (r.reliability.level === "ok" ? "bg-[var(--mint)] text-accent" : "bg-[#fff0ce] text-[#3d2e13]")}>
+            {r.reliability.level === "ok" ? "Mesure fiable" : "Mesure à revoir"}
+          </span>
+        </p>
+      )}
+      {r.reliability && r.reliability.notes.length > 0 && (
+        <ul className="list-disc space-y-0.5 pl-4 text-muted-foreground">{r.reliability.notes.map(n => <li key={n}>{n}</li>)}</ul>
+      )}
+      {r.action && <p><a className="font-medium underline" href={r.action.href}>{r.action.label}</a></p>}
+    </div>
+  );
+}
+
 /**
  * Mesures propres à l'athlète (seuil critique, réserve anaérobie, durabilité) : valeur, statut,
  * origine et sources. Aucune cible ni classement, faute de norme publiée. Affichage seul.
@@ -21,6 +41,7 @@ export function ObservedFactors({ rows, title }: { rows: FactorRow[]; title: str
               </p>
               <p className="text-sm text-muted-foreground">{r.caption ?? "Données insuffisantes"}</p>
               <p className="mt-1 text-xs text-muted-foreground">Observé : mesure de l’athlète, sans cible publiée ni classement.</p>
+              <div className="mt-2"><MeasureStatus r={r} /></div>
               {(r.basis || links.length > 0) && (
                 <details className="text-sm">
                   <summary className="cursor-pointer py-2 font-medium">Interpréter ce repère</summary>

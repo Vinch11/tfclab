@@ -160,6 +160,17 @@ function bodyComposition(s: DbSnapshot): string {
   );
 }
 
+/** Valeur critique ajustée sur les efforts du bilan, avec la même réserve de lecture que l'app. */
+function criticalSentence(metric: { critical: number; reserve: number; status: string } | undefined, sport: Sport): string {
+  if (!metric || !valid(metric.critical) || !valid(metric.reserve)) return '';
+  const status = metric.status === 'confirmed' ? 'confirmée par le coach' : 'estimation non confirmée';
+  return sport === 'bike'
+    ? ' La puissance critique ajustée sur ces efforts est de ' + fmt(Math.round(metric.critical)) + ' W, avec une réserve W′ de ' + fmt(Math.round(metric.reserve / 100) / 10) +
+      ' kJ (' + status + '). Ce n’est pas une puissance tenable une heure.'
+    : ' La vitesse critique ajustée sur ces efforts est de ' + fmt(Math.round(metric.critical * 36) / 10) + ' km/h (' + pace(1000 / metric.critical) + ' min/km), avec une réserve D′ de ' +
+      fmt(Math.round(metric.reserve)) + ' m (' + status + '). Ce n’est pas une allure tenable une heure.';
+}
+
 function effortFigures(s: DbSnapshot, sport: Sport): string {
   const critical = parseStoredCriticalMetrics(s.critical_metrics);
   const metric = sport === 'bike' ? critical.cycling : critical.running;
@@ -185,7 +196,8 @@ function effortFigures(s: DbSnapshot, sport: Sport): string {
         format(points[points.length - 1].y) +
         ' ' +
         unit +
-        '.'
+        '.' +
+        criticalSentence(metric, sport)
       : '',
   });
 }

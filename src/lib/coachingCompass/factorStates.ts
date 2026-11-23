@@ -2,6 +2,7 @@ import type { CoachingCompassInput, TFCLCoachingCompassResult } from "./types";
 import { buildProfileComparisons, type ProfileComparison } from "./profileComparison";
 import { idealReference, idealState, type IdealFactor, type IdealReference } from "./idealReferences";
 import { parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
+import { CRITICAL_POLICY } from "@/lib/criticalEfforts";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { normalizeObjective } from "@/lib/physiologicalTargets";
 
@@ -32,6 +33,10 @@ export type FactorRow = {
   stateText?: Partial<Record<"below" | "inside" | "above", string>>;
   /** Ligne de statut sous le niveau de preuve (ex. « Estimation non confirmée »). */
   caption?: string;
+  /** Qualité de la mesure : « ok » seulement si rien ne demande de la revoir ou de la refaire. */
+  reliability?: { level: "ok" | "review"; notes: string[] };
+  /** Prochaine étape pour mesurer ou refaire la mesure (page de tests de l'app). */
+  action?: { label: string; href: string };
 };
 
 /** Ce que l'objectif chronométré exige de la VMA, face à ce que soutiennent les élites sur cette distance. */
@@ -95,39 +100,87 @@ const CP_BASIS = "Ajustement de 3 efforts maximaux de 2 à 15 min (Nolio ou sais
 const CS_BASIS = "Ajustement d'efforts maximaux de 2 à 15 min (Nolio ou saisie). Chez des coureurs bien entraînés, la CS dépasse l'allure du MLSS (16,4 contre 15,2 km/h, 10 coureurs) : à lire comme la frontière du seuil sévère, pas comme une allure tenable une heure. Ne sert pas à classer les limiteurs.";
 const RESERVE_BASIS = "Travail réalisable au-dessus du seuil critique. Utile pour doser les intervalles. Les preuves ne permettent pas d'en faire une mesure de la VLamax : facteur distinct, jamais classé.";
 
-export function observedRows(input: CoachingCompassInput, sport: FactorSport): FactorRow[] {
+const TEST_PAGE = "/diagnostic/tests?module=";
+const DAY_MS = 86400000;
+const ageDays = (iso: string, today: string) => (Date.parse(today + "T00:00:00Z") - Date.parse(iso.slice(0, 10) + "T00:00:00Z")) / DAY_MS;
+const dayLabel = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+type StoredCritical = NonNullable<ReturnType<typeof parseStoredCriticalMetrics>["cycling"]>;
+/** Lecture de la qualité d'un ajustement CP/CS, avec la politique de l'app (CRITICAL_POLICY) : 42 jours, 3 efforts, validation du coach. */
+function criticalReliability(c: StoredCritical, today: string): NonNullable<FactorRow["reliability"]> {
+  const notes: string[] = [];
+  if (c.coachReview?.verdict === "reject") notes.push("Écarté par l'avis du coach.");
+  else if (c.status !== "confirmed") notes.push("Estimation non validée par le coach : elle n'ajuste aucune séance.");
+  if (c.latestEffortDate && ageDays(c.latestEffortDate, today) > CRITICAL_POLICY.maxAgeDays) notes.push(`Efforts de plus de ${CRITICAL_POLICY.maxAgeDays} jours : à refaire.`);
+  for (const w of c.warnings ?? []) if (typeof w === "string" && w && !notes.includes(w)) notes.push(w);
+  return { level: notes.length ? "review" : "ok", notes };
+}
+
+export function observedRows(input: CoachingCompassInput, sport: FactorSport, today: string = todayIso()): FactorRow[] {
   const rows: FactorRow[] = [];
   const critical = parseStoredCriticalMetrics(input.criticalMetrics)[sport === "bike" ? "cycling" : "running"];
-  const status = (c: NonNullable<typeof critical>) => (c.coachReview?.verdict === "reject" ? "Écarté par l'avis du coach : n'ajuste aucune séance"
+  const status = (c: StoredCritical) => (c.coachReview?.verdict === "reject" ? "Écarté par l'avis du coach : n'ajuste aucune séance"
     : c.status === "confirmed" ? "Confirmé par le coach" : "Estimation non confirmée : affichée, n'ajuste aucune séance")
-    + (c.latestEffortDate ? " · efforts jusqu'au " + c.latestEffortDate.split("-").reverse().join("/") : "");
-  const make = (key: string, label: string, unit: string, value: number, basis: string, evidence: string[], caption: string): FactorRow =>
-    ({ key, label, unit, value, zone: null, tier: "observed", state: "none", basis, evidence, engineNote: null, caption });
+    + (c.latestEffortDate ? " · efforts jusqu'au " + dayLabel(c.latestEffortDate) : "");
+  const make = (key: string, label: string, unit: string, value: number, basis: string, evidence: string[], c: StoredCritical): FactorRow =>
+    ({ key, label, unit, value, zone: null, tier: "observed", state: "none", basis, evidence, engineNote: null, caption: status(c), reliability: criticalReliability(c, today) });
   if (critical) {
     if (sport === "bike") {
-      rows.push(make("cp", "Puissance critique (CP)", "W", Math.round(critical.critical), CP_BASIS, ["poole-2016", "cp-mlss-2025"], status(critical)));
-      rows.push(make("wprime", "Réserve anaérobie (W′)", "kJ", Math.round(critical.reserve / 100) / 10, RESERVE_BASIS, ["poole-2016"], status(critical)));
+      rows.push(make("cp", "Puissance critique (CP)", "W", Math.round(critical.critical), CP_BASIS, ["poole-2016", "cp-mlss-2025"], critical));
+      rows.push(make("wprime", "Réserve anaérobie (W′)", "kJ", Math.round(critical.reserve / 100) / 10, RESERVE_BASIS, ["poole-2016"], critical));
     } else {
-      rows.push(make("cs", "Vitesse critique (CS)", "km/h", Math.round(critical.critical * 36) / 10, CS_BASIS, ["cs-mlss-2021", "cs-marathon-2020"], status(critical)));
-      rows.push(make("dprime", "Réserve anaérobie (D′)", "m", Math.round(critical.reserve), RESERVE_BASIS, ["cs-mlss-2021"], status(critical)));
+      rows.push(make("cs", "Vitesse critique (CS)", "km/h", Math.round(critical.critical * 36) / 10, CS_BASIS, ["cs-mlss-2021", "cs-marathon-2020"], critical));
+      rows.push(make("dprime", "Réserve anaérobie (D′)", "m", Math.round(critical.reserve), RESERVE_BASIS, ["cs-mlss-2021"], critical));
     }
+  } else {
+    const key = sport === "bike" ? "cp" : "cs";
+    rows.push({ key, label: sport === "bike" ? "Puissance critique (CP)" : "Vitesse critique (CS)", unit: sport === "bike" ? "W" : "km/h", value: null, zone: null, tier: "observed", state: "missing",
+      basis: "Se mesure avec 3 efforts maximaux de 2 à 15 min, dans les mêmes conditions et sur 28 jours au plus. Le Day dédié fournit deux efforts ; le troisième vient du Day existant (1500 m du Track Day, 5 min du Bike Day). Les efforts peuvent aussi être importés de Nolio dans le bilan (Repères critiques).",
+      evidence: sport === "bike" ? ["poole-2016"] : ["cs-mlss-2021"], engineNote: null,
+      action: { label: sport === "bike" ? "Programmer le Bike Day · Puissance critique" : "Programmer le Track Day · Vitesse critique", href: TEST_PAGE + (sport === "bike" ? "cp-day" : "cs-day") } });
   }
   const durability = parseStoredDurability(input.criticalMetrics)[sport];
   const longObjective = isLongObjective(input.objectif);
   if (durability) {
     const d = durability;
+    const notes: string[] = [];
+    if (d.sessions.length < 3) notes.push(`Seulement ${d.sessions.length} sorties : à confirmer avec davantage de sorties longues.`);
+    if (d.to && ageDays(d.to, today) > 90) notes.push("Sorties de plus de 3 mois : à actualiser.");
     rows.push({ key: "durability", label: "Durabilité (sorties longues)", unit: "%", value: d.meanChangePct, zone: null, tier: "observed", state: "none",
       basis: `Meilleur effort de 20 min au début contre le dernier tiers de ${d.sessions.length} sorties longues Nolio (${sport === "bike" ? "≥ 2 h" : "≥ 1 h 30"}), moyenne ${d.meanChangePct.toLocaleString("fr-BE")} %. `
         + (sport === "bike" ? "Repère d'observation, pas une cible : −10,8 ± 7,8 % (5 min) et −10,1 ± 6,5 % (20 min) après 1 000 kJ chez 20 cyclistes amateurs. " : "Repère d'observation, pas une cible : −5,5 % de vitesse au seuil après 90 min chez 18 marathoniens. ")
         + "Dépend de ce que l'athlète a réellement poussé en fin de séance : à confirmer avec le coach.",
       evidence: sport === "bike" ? ["durability-cycling-2025", "durability-hunter-2025"] : ["durability-running-2025", "durability-hunter-2025"], engineNote: null,
-      caption: "Estimation depuis les sorties enregistrées · du " + d.from.split("-").reverse().join("/") + " au " + d.to.split("-").reverse().join("/") });
+      caption: "Estimation depuis les sorties enregistrées · du " + dayLabel(d.from) + " au " + dayLabel(d.to),
+      reliability: { level: notes.length ? "review" : "ok", notes },
+      action: notes.length ? { label: "Programmer un test avant/après", href: TEST_PAGE + (sport === "bike" ? "durability-bike" : "durability-run") } : undefined });
   } else if (longObjective) {
     rows.push({ key: "durability", label: "Durabilité (sorties longues)", unit: "%", value: null, zone: null, tier: "observed", state: "missing",
       basis: "Pertinente pour les objectifs longs. Se mesure à partir d'au moins 2 sorties longues Nolio (vélo ≥ 2 h, course ≥ 1 h 30) ou d'un test avant/après charge.",
-      evidence: ["durability-hunter-2025"], engineNote: null });
+      evidence: ["durability-hunter-2025"], engineNote: null,
+      action: { label: "Programmer un test avant/après", href: TEST_PAGE + (sport === "bike" ? "durability-bike" : "durability-run") } });
   }
   return rows;
+}
+
+/**
+ * Marathon : ce que le chrono visé demande, en % de la vitesse critique. Repères publiés :
+ * environ 85 % chez des marathoniens récréatifs (84,8 ± 13,6 %), environ 96 % chez des élites
+ * (Smyth et Muniz-Pumares, 2020). Pas de valeur vérifiée pour 5 km, 10 km et semi : aucune ligne.
+ */
+function criticalDemandRow(input: CoachingCompassInput, metrics: ProfileComparison[], today: string): FactorRow | null {
+  if (normalizeObjective(input.objectif) !== "Marathon") return null;
+  const critical = parseStoredCriticalMetrics(input.criticalMetrics).running;
+  const goal = metrics.find(m => m.key === "raceSpeed")?.reference;
+  if (!critical || !goal || goal.kind !== "goal" || !(goal.low > 0)) return null;
+  const csKmh = critical.critical * 3.6;
+  const value = Math.round(goal.low / csKmh * 1000) / 10;
+  return { key: "demandcs", label: "Exigence du chrono visé (% de la CS)", unit: "%", value, zone: null, tier: "observed", state: "none",
+    basis: `Le chrono visé demande ${value.toLocaleString("fr-BE")} % de la vitesse critique enregistrée. Repères publiés : environ 85 % chez des marathoniens récréatifs (84,8 ± 13,6 %, les plus rapides plus près de la CS) et environ 96 % chez des élites. Ce n'est pas une cible par ambition ; si la CS est une estimation, la valeur est indicative.`,
+    evidence: ["cs-marathon-2020"], engineNote: null,
+    caption: "Calculé avec la CS " + (critical.status === "confirmed" ? "confirmée" : "estimée") + " · " + (Math.round(csKmh * 10) / 10).toLocaleString("fr-BE") + " km/h",
+    reliability: criticalReliability(critical, today) };
 }
 
 export type FactorSport = "run" | "bike";
@@ -141,13 +194,14 @@ export interface FactorStates {
   observed: { r: FactorRow; sport: FactorSport }[];
 }
 
-export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoachingCompassResult): FactorStates {
+export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoachingCompassResult, today: string = todayIso()): FactorStates {
   const sections = buildProfileComparisons(input, compass).map(g => {
     const rows = g.metrics.filter(m => SHOWN.has(m.key)).map(m => row(m, IDEAL_FACTORS.has(m.key)
       ? idealReference(m.key as IdealFactor, { objective: input.objectif, ambition: input.ambition, sport: g.sport, age: input.athleteAge, sex: input.athleteSex }) : null));
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
     const sport = g.sport as FactorSport;
-    return { sport, rows: [...rows, ...(demand ? [demand] : []), ...observedRows(input, sport)] };
+    const csDemand = sport === "run" ? criticalDemandRow(input, g.metrics, today) : null;
+    return { sport, rows: [...rows, ...(demand ? [demand] : []), ...(csDemand ? [csDemand] : []), ...observedRows(input, sport, today)] };
   }).filter(s => s.rows.length > 0);
   const all = sections.flatMap(s => s.rows.map(r => ({ r, sport: s.sport })));
   return {
