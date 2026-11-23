@@ -32,11 +32,21 @@ export const ANCHORED_ZONE_IDS: LegacyZoneId[] = ["Z1", "Z2", "Z3", "Z4a", "Z4b"
 
 /** Limites hautes de Z1…Z5 en fraction du seuil critique (Z5 se termine au seuil critique). */
 export const GRID_FRACTIONS: Record<GridSport, Record<"Z1" | "Z2" | "Z3" | "Z4a" | "Z4b" | "Z5", number>> = {
-  bike: { Z1: 0.65, Z2: 0.77, Z3: 0.85, Z4a: 0.90, Z4b: 0.93, Z5: 1.0 },
+  // Haut de Z2 vélo à 0,75 CP (et non 0,77) : validation par simulation (nov. 2026), le premier
+  // seuil varie d'un athlète à l'autre ; 0,75 garde l'endurance sous ce seuil chez 70 % des athlètes.
+  bike: { Z1: 0.65, Z2: 0.75, Z3: 0.85, Z4a: 0.90, Z4b: 0.93, Z5: 1.0 },
   run: { Z1: 0.70, Z2: 0.82, Z3: 0.86, Z4a: 0.90, Z4b: 0.93, Z5: 1.0 },
 };
 /** MLSS en fraction du seuil critique. */
 export const MLSS_FRACTION: Record<GridSport, number> = { bike: 0.95, run: 0.94 };
+/**
+ * Seuil critique DÉDUIT d'un seuil saisi (FTP en W, allure seuil convertie en km/h), sans CP/CS confirmée.
+ * Vélo : CP ≈ FTP / 0,965 (CP ≈ FTP + 3 %, FTP ≈ MLSS + 1,4 %).
+ * Course : CS ≈ 1,01 × vitesse seuil. Le test 20 min × 0,95 n'est pas validé en course ; selon le modèle
+ * de la vitesse critique il donne ≈ 99 % de la CS. Avec / 0,94, la Z5 débordait dans le domaine sévère
+ * chez 82 % des athlètes simulés ; avec 1,01, l'erreur éventuelle est du côté lent (sûr).
+ */
+export const THRESHOLD_TO_CRITICAL: Record<GridSport, number> = { bike: 1 / 0.965, run: 1.01 };
 /** Plafond d'un seuil critique DÉDUIT, en fraction de la VMA (au-delà : VMA ou seuil à revérifier). */
 const MAX_DERIVED_CS_OVER_VMA = 0.97;
 const DAY_MS = 86400000;
@@ -138,7 +148,7 @@ function buildZones(sport: GridSport, critical: number, top: number, fcMax: numb
   }));
 }
 
-/** Grille vélo : CP confirmée, sinon FTP (CP ≈ FTP / 0,95). Null sans FTP ni CP. */
+/** Grille vélo : CP confirmée, sinon FTP (CP ≈ FTP / 0,965). Null sans FTP ni CP. */
 export function anchoredBikeGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions = {}): AnchoredGrid | null {
   const today = o.today ?? new Date().toISOString().slice(0, 10);
   const parsed = parseStoredCriticalMetrics(s.critical_metrics);
@@ -150,7 +160,7 @@ export function anchoredBikeGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions
   let critical: number, source: AnchorSource;
   if (cp) { critical = cp.critical; source = "critical_confirmed"; }
   else {
-    critical = ftp! / MLSS_FRACTION.bike;
+    critical = ftp! * THRESHOLD_TO_CRITICAL.bike;
     source = origin === "test_20min" ? "threshold_test" : origin ? "threshold_estimate" : "threshold_unknown";
     if (origin === "watch") alerts.push("FTP de montre ou de plateforme : estimation, à confirmer par un test 20 min.");
   }
@@ -173,7 +183,7 @@ export function anchoredBikeGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions
     measured: source === "critical_confirmed" || source === "threshold_test", zones: buildZones("bike", critical, top, fcMax, positive(s.fc_repos) ? s.fc_repos : null), alerts };
 }
 
-/** Grille course : CS confirmée, sinon allure seuil (CS ≈ vitesse seuil / 0,94), sinon VMA. Null sans VMA ni seuil. */
+/** Grille course : CS confirmée, sinon allure seuil (CS ≈ 1,01 × vitesse seuil), sinon VMA. Null sans VMA ni seuil. */
 export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions = {}): AnchoredGrid | null {
   const today = o.today ?? new Date().toISOString().slice(0, 10);
   const parsed = parseStoredCriticalMetrics(s.critical_metrics);
@@ -185,7 +195,7 @@ export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions 
   let critical: number, source: AnchorSource;
   if (cs) { critical = cs.critical * 3.6; source = "critical_confirmed"; }
   else if (pace && origin !== "watch" && origin !== "calculator") {
-    critical = 3600 / pace / MLSS_FRACTION.run;
+    critical = (3600 / pace) * THRESHOLD_TO_CRITICAL.run;
     source = origin === "test_20min" ? "threshold_test" : "threshold_unknown";
   } else if (vma) {
     // Cible du calculateur TFCL = allure d'un effort maximal de 20 min, proche de la CS
@@ -194,7 +204,7 @@ export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions 
     source = "vma_estimate";
     if (pace) alerts.push(`Allure seuil ${origin === "watch" ? "de montre" : "du calculateur"} non utilisée : estimation, à remplacer par un test seuil 20 min.`);
   } else if (pace) {
-    critical = 3600 / pace / MLSS_FRACTION.run;
+    critical = (3600 / pace) * THRESHOLD_TO_CRITICAL.run;
     source = "threshold_estimate";
   } else return null;
   if (vma && critical > vma * MAX_DERIVED_CS_OVER_VMA) {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anchoredBikeGrid, anchoredRunGrid, GRID_FRACTIONS, bikeGridWatts, runGridPaces } from '../anchoredZoneGrid';
+import { anchoredBikeGrid, anchoredRunGrid, GRID_FRACTIONS, THRESHOLD_TO_CRITICAL, bikeGridWatts, runGridPaces } from '../anchoredZoneGrid';
 import { readThresholdOrigin, withThresholdOrigin } from '../thresholdOrigin';
 import { buildTargetTable } from '@/lib/plan/targetTable';
 
@@ -55,6 +55,19 @@ describe('grille Z1–Z7 ancrée sur le seuil critique', () => {
     expect(g.firstThreshold / g.critical).toBeCloseTo(GRID_FRACTIONS.run.Z2, 6);
   });
 
+  it('réglages prudents validés par simulation : CP = FTP / 0,965, CS = 1,01 × vitesse seuil, Z2 vélo à 0,75 CP', () => {
+    expect(THRESHOLD_TO_CRITICAL.bike).toBeCloseTo(1 / 0.965, 9);
+    expect(THRESHOLD_TO_CRITICAL.run).toBe(1.01);
+    expect(GRID_FRACTIONS.bike.Z2).toBe(0.75);
+    const bike = anchoredBikeGrid({ ftp: 250 }, { today })!;
+    expect(bike.critical).toBeCloseTo(250 / 0.965, 6);
+    expect(bike.firstThreshold).toBeCloseTo(0.75 * 250 / 0.965, 6);
+    expect(zoneOfWatts(bike, 250)).toBe('Z5');
+    const run = anchoredRunGrid({ pace_threshold_sec_per_km: 300 }, { today })!;
+    expect(run.critical).toBeCloseTo(12 * 1.01, 6);
+    expect(zoneOfKmh(run, 12)).toBe('Z5');
+  });
+
   it('n’ancre pas les zones sur une allure de montre ou du calculateur quand la VMA existe', () => {
     for (const origin of ['watch', 'calculator'] as const) {
       const g = anchoredRunGrid({ ...emanuela, field_sources: withThresholdOrigin({}, 'pace_threshold_sec_per_km', origin) }, { today, ambition: 'competitor' })!;
@@ -66,7 +79,7 @@ describe('grille Z1–Z7 ancrée sur le seuil critique', () => {
   });
 
   it('limite un seuil déduit trop proche de la VMA, pas une CS confirmée', () => {
-    const near = anchoredRunGrid({ vma: 16, pace_threshold_sec_per_km: 240 }, { today })!;
+    const near = anchoredRunGrid({ vma: 16, pace_threshold_sec_per_km: 230 }, { today })!;
     expect(near.critical).toBeCloseTo(16 * 0.97, 6);
     expect(near.alerts.join(' ')).toMatch(/très proche de la VMA/);
     const cs = anchoredRunGrid({ vma: 19, pace_threshold_sec_per_km: 205, critical_metrics: critical('running', 18.3 / 3.6, 'confirmed') }, { today })!;
