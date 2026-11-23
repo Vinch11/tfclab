@@ -3,6 +3,7 @@ import { esc, rich } from './index';
 import { sportPhoto } from './story';
 import { fmt, planFactorIndex, type FactorRow, type RankedGap } from '../coachingCompass/factorStates';
 import type { CalendarEntry, ReportBrief } from './reportBrief';
+import { getObjectifLabel } from '@/types/athlete';
 
 export const sportName = { bike: 'Vélo', run: 'Course à pied' };
 const tierName = { measured: 'Référence publiée', derived: 'Référence dérivée', cohort: 'Référence de cohorte', coaching: 'Repère interne TFCL' };
@@ -48,11 +49,13 @@ export function gapFigure(gaps: RankedGap[], detailed: boolean, brief?: ReportBr
       const { r, sport, gap, verify } = entry;
       const index = planFactorIndex(engine, entry);
       const citations = r.evidence.map(id => compassEvidence.find(e => e.id === id)).filter(Boolean);
-      return `<div class="gap-row"><div class="gap-caption"><div><small>${sportName[sport]} · ${tierName[r.tier]}</small><b>${rank + 1}. ${esc(r.label)}</b></div><strong>${fmt(gap)} %</strong></div>
+      const tier = detailed ? tierName[r.tier] : 'Repère de ton objectif';
+      const engineLabel = detailed ? (index === 0 ? 'Bloc ciblé par le moteur' : 'Également retenu par le moteur') : (index === 0 ? 'C’est la priorité de ton plan' : 'Aussi travaillé dans ton plan');
+      return `<div class="gap-row"><div class="gap-caption"><div><small>${sportName[sport]} · ${tier}</small><b>${rank + 1}. ${esc(r.label)}</b></div><strong>${fmt(gap)} %</strong></div>
     <div class="gap-track" aria-hidden="true"><i style="width:${gap / high * 100}%"></i></div>
     <p>Bilan <b>${r.value == null ? '—' : fmt(r.value) + ' ' + esc(r.unit)}</b> · Repère <b>${esc(referenceRange(r))}</b></p>
     ${verify ? `<p class="estimate">À vérifier. Le modèle monte jusqu’à ${fmt(verify.modelHigh)} mmol/L/s${verify.observed != null ? `, avec une estimation de terrain à ${fmt(verify.observed)} mmol/L/s${verify.observedDate ? ' le ' + esc(dateLabel(verify.observedDate)) : ''}` : ''}. L’écart affiché peut refléter cette incertitude.</p>` : ''}
-    ${index >= 0 ? `<p><b>${index === 0 ? "Bloc ciblé par le moteur" : "Également retenu par le moteur"}</b>${detailed && engine[index].facts ? ' · ' + esc(engine[index].facts) : ''}</p>` : ''}
+    ${index >= 0 ? `<p><b>${engineLabel}</b>${detailed && engine[index].facts ? ' · ' + esc(engine[index].facts) : ''}</p>` : ''}
     ${detailed && r.basis ? `<p>${esc(r.basis)} ${esc(r.adjustment ?? '')}</p>` : ''}${detailed && citations.length ? `<small>${citations.map(e => `<a href="${esc(e.url)}">${esc(e.title)}</a>`).join(' · ')}</small>` : ''}</div>`;
     }).join('')}</figure>`;
 }
@@ -108,24 +111,61 @@ const phaseActions: Record<string, string> = {
   'Fraîcheur & Densité': 'Arriver avec des jambes fraîches',
 };
 
-export function preparationTimeline(roadmap: import('../athleteProfileReport/types').ReportRoadmap | null | undefined, goal: string, athlete: boolean) {
-  if (!roadmap?.phases.length) return '';
-  const phases = roadmap.phases;
-  return `<section class="journey-map${athlete ? ' athlete-journey' : ''}"><p class="journey-kicker">Trajectoire proposée</p>
-    <h3>${roadmap.totalWeeks} semaines jusqu’à l’objectif</h3>
-    <ol>${phases.map((phase,index) => {
-      const action = phaseActions[phase.name] || phase.name;
-      const explanation = phasePurposes.find(([re]) => re.test(phase.name))?.[1] || phase.focus;
-      const span = phase.startWeek === phase.endWeek ? 'Semaine ' + phase.startWeek : 'Semaines ' + phase.startWeek + ' à ' + phase.endWeek;
-      return `<li><span class="journey-pin" aria-hidden="true">${athlete ? '' : index+1}</span><div><small>${athlete ? `Bloc ${index + 1}` : span}</small><h4>${esc(action)}</h4>
-        <p>${esc(explanation)}</p>${!athlete && phase.focus !== explanation ? `<p class="journey-detail"><b>Travail prévu</b> · ${esc(phase.focus)}</p>` : ''}
-        ${phase.targets.length ? `<p class="journey-detail"><b>${athlete ? 'Repère à observer' : 'Repère de fin de bloc'}</b> · ${phase.targets.map(rich).join(' · ')}</p>` : ''}</div></li>`;
-    }).join('')}</ol>
-    <div class="journey-goal"><small>Objectif</small><strong>${esc(goal)}</strong></div></section>`;
+const CYCLE_SUFFIX = /\s*\(Cycle \d+\/\d+ — [^)]*\)\s*$/;
+const shortDate = (iso: string) => dateLabel(iso);
+function weekDate(start: string | undefined, week: number, endOfWeek = false): string | null {
+  if (!start || !/^\d{4}-\d\d-\d\d$/.test(start)) return null;
+  const t = Date.parse(start + 'T00:00:00Z') + ((week - 1) * 7 + (endOfWeek ? 6 : 0)) * 86400000;
+  return Number.isFinite(t) ? new Date(t).toISOString().slice(0, 10) : null;
+}
+type Roadmap = import('../athleteProfileReport/types').ReportRoadmap;
+type Cycle = NonNullable<Roadmap['cycles']>[number];
+/** Nom lisible d'une course de la trajectoire : nom saisi, type d'épreuve et date. */
+export function cycleRaceLabel(c: Cycle): string {
+  return [c.raceName?.trim(), getObjectifLabel(c.objective as Parameters<typeof getObjectifLabel>[0]), c.raceDate ? shortDate(c.raceDate) : null]
+    .filter((v, i, all) => v && all.indexOf(v) === i).join(' · ');
 }
 
-export function calendarPreview(rows: CalendarEntry[] | null | undefined, athlete = false): string {
+export function preparationTimeline(roadmap: Roadmap | null | undefined, goal: string, athlete: boolean) {
+  if (!roadmap?.phases.length) return '';
+  const phases = roadmap.phases;
+  const cycles = (roadmap.cycles ?? []).filter(c => c.endWeek >= c.startWeek);
+  const multi = cycles.length > 1;
+  const lastCycle = multi ? cycles[cycles.length - 1] : null;
+  const finalGoal = lastCycle ? cycleRaceLabel(lastCycle) : goal;
+  const start = roadmap.startDate;
+  // Sans date de départ, la frise est un gabarit : elle ne compte pas les semaines restantes.
+  const heading = multi
+    ? `${cycles.length} courses · ${roadmap.totalWeeks} semaines de préparation`
+    : start ? `${roadmap.totalWeeks} semaines jusqu’à l’objectif` : `Trajectoire type sur ${roadmap.totalWeeks} semaines`;
+  const span = (phase: Roadmap['phases'][number]) => {
+    const from = weekDate(start, phase.startWeek), to = weekDate(start, phase.endWeek, true);
+    const weeks = phase.startWeek === phase.endWeek ? 'Semaine ' + phase.startWeek : 'Semaines ' + phase.startWeek + ' à ' + phase.endWeek;
+    const dates = from && to ? `Du ${shortDate(from)} au ${shortDate(to)}` : null;
+    return athlete ? (dates ?? weeks) : [weeks, dates].filter(Boolean).join(' · ');
+  };
+  let shown = -1;
+  const items = phases.map((phase, index) => {
+    const base = phase.name.replace(CYCLE_SUFFIX, '');
+    const cycleIndex = multi ? cycles.findIndex(c => phase.startWeek >= c.startWeek && phase.startWeek <= c.endWeek) : -1;
+    const header = cycleIndex >= 0 && cycleIndex !== shown
+      ? (shown = cycleIndex, `<li class="journey-cycle"><div></div><div><small>Course ${cycleIndex + 1} sur ${cycles.length}</small><h4>${esc(cycleRaceLabel(cycles[cycleIndex]))}</h4></div></li>`) : '';
+    const action = phaseActions[base] || base;
+    const explanation = phasePurposes.find(([re]) => re.test(base))?.[1] || phase.focus;
+    return `${header}<li><span class="journey-pin" aria-hidden="true">${athlete ? '' : index + 1}</span><div><small>${esc(span(phase))}</small><h4>${esc(action)}</h4>
+        <p>${esc(explanation)}</p>${!athlete && phase.focus !== explanation ? `<p class="journey-detail"><b>Travail prévu</b> · ${esc(phase.focus)}</p>` : ''}
+        ${phase.targets.length ? `<p class="journey-detail"><b>${athlete ? 'Repère à observer' : 'Repère de fin de bloc'}</b> · ${phase.targets.map(rich).join(' · ')}</p>` : ''}</div></li>`;
+  }).join('');
+  return `<section class="journey-map${athlete ? ' athlete-journey' : ''}"><p class="journey-kicker">Trajectoire proposée</p>
+    <h3>${esc(heading)}</h3>
+    <ol>${items}</ol>
+    <div class="journey-goal"><small>${multi ? 'Dernière course de la trajectoire' : 'Objectif'}</small><strong>${esc(finalGoal)}</strong></div></section>`;
+}
+
+export function calendarPreview(rows: CalendarEntry[] | null | undefined, athlete = false, hideEmpty = false): string {
   if (rows === undefined) return '';
+  // Rapport athlète complet : un calendrier vide ou illisible n'apporte rien à l'athlète.
+  if (!rows?.length && hideEmpty) return '';
   if (!rows?.length) return `<p class="edition-caption">${rows === null ? 'Le calendrier enregistré n’a pas pu être lu.' : 'Aucune séance à venir dans le calendrier TFCLab.'}</p>`;
   rows = [...rows].sort((a,b) => a.date.localeCompare(b.date));
   const phases: {label: string; start: string; end: string; count: number}[] = [];

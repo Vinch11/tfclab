@@ -12,7 +12,7 @@ export const pace = (seconds: number) => {
 export const chartFigure = (title: string, diagram: string, reading: string, source: string, referenceHTML = '') =>
   `<figure class="lab-figure"><figcaption><h3>${esc(title)}</h3><small>${esc(source)}</small></figcaption>${diagram}<p class="figure-reading">${esc(reading)}</p>${referenceHTML ? `<small>${referenceHTML}</small>` : ''}</figure>`;
 
-export function rangeGauge(row: FactorRow, source?: string): string {
+export function rangeGauge(row: FactorRow, source?: string, athlete = false): string {
   if (!positive(row.value) || !row.zone || !positive(row.zone.high) || !positive(row.zone.low)) return '';
   const { low, high } = row.zone;
   const top = Math.max(row.value, high) * 1.16;
@@ -31,7 +31,7 @@ export function rangeGauge(row: FactorRow, source?: string): string {
       : `<path d="${arc(low, high, 71)}" fill="none" stroke="${teal}" stroke-width="12"/>`;
   const [x, y] = point(row.value, 71);
   const target = (low === high ? fmt(low) : fmt(low) + '–' + fmt(high)) + ' ' + row.unit;
-  const level = {
+  const level = athlete ? 'Repère de ton objectif' : {
     measured: 'Référence publiée',
     derived: 'Référence dérivée',
     cohort: 'Référence de cohorte',

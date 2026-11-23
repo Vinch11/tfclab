@@ -80,8 +80,11 @@ function row(metric: ProfileComparison, ideal: IdealReference | null): FactorRow
  * le sens qui pénalise : sous la zone pour une capacité, des deux côtés pour le VLamax
  * (plus bas n'est pas toujours mieux), au-dessus pour l'exigence du chrono visé.
  */
-export function gapPercent(r: FactorRow): number {
+export function gapPercent(r: FactorRow, longObjective = false): number {
   if (r.value == null || !r.zone || r.zone.low <= 0) return 0;
+  // Épreuve longue (marathon, 70.3, Ironman, ultra) : un VLamax sous le repère économise le glycogène.
+  // Ce n'est pas un écart à combler ; seul le dépassement par le haut reste classé.
+  if (r.key === "vlamax" && longObjective && r.state === "below") return 0;
   if (r.key !== "demand" && r.state === "below") return (r.zone.low - r.value) / r.zone.low * 100;
   if ((r.key === "vlamax" || r.key === "demand") && r.state === "above") return (r.value - r.zone.high) / r.zone.high * 100;
   return 0;
@@ -215,12 +218,15 @@ export function buildFactorStates(input: CoachingCompassInput, compass: TFCLCoac
     const demand = g.sport === "run" ? demandRow(g.metrics, input.objectif) : null;
     const sport = g.sport as FactorSport;
     const csDemand = sport === "run" ? criticalDemandRow(input, g.metrics, today) : null;
+    if (isLongObjective(input.objectif)) for (const r of rows) {
+      if (r.key === "vlamax") r.stateText = { ...r.stateText, below: "Sous le repère : économique sur épreuve longue" };
+    }
     return { sport, rows: [...rows, ...(demand ? [demand] : []), ...(csDemand ? [csDemand] : []), ...observedRows(input, sport, today)] };
   }).filter(s => s.rows.length > 0);
   const all = sections.flatMap(s => s.rows.map(r => ({ r, sport: s.sport })));
   return {
     sections,
-    ranked: all.map(x => ({ ...x, gap: gapPercent(x.r) })).filter(x => x.gap > 0.05).sort((a, b) => b.gap - a.gap),
+    ranked: all.map(x => ({ ...x, gap: gapPercent(x.r, isLongObjective(input.objectif)) })).filter(x => x.gap > 0.05).sort((a, b) => b.gap - a.gap),
     unmeasured: all.filter(x => x.r.state === "missing"),
     observed: all.filter(x => x.r.tier === "observed" && x.r.value != null),
   };

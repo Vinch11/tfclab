@@ -208,6 +208,25 @@ function testFigure(d: Dossier, sport: Sport, coach: boolean): string {
   return '';
 }
 
+/** Intensité spécifique de l'épreuve (moteur de zones), lue sur la grille vélo du rapport. */
+function raceBand(p: PerformanceReportInput): { low: number; high: number } | null {
+  const bike = p.zoneSets?.find((set) => /v[ée]lo/i.test(set.sportLabel));
+  const marker = bike?.markers?.find((m) => m.id === 'race_specific')?.absolute;
+  const m = marker?.match(/^(\d+)\s*[–-]\s*(\d+)\s*W$/);
+  return m ? { low: Number(m[1]), high: Number(m[2]) } : null;
+}
+
+function interpolate(curve: PerformanceReportInput['curve'], power: number, key: 'carbGh' | 'fatGh'): number | null {
+  for (let i = 1; i < curve.length; i++) {
+    const a = curve[i - 1], b = curve[i];
+    if (power >= a.power && power <= b.power) {
+      const t = b.power === a.power ? 0 : (power - a.power) / (b.power - a.power);
+      return a[key] + t * (b[key] - a[key]);
+    }
+  }
+  return null;
+}
+
 function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
   if (!p.sports?.includes('bike') || !valid(p.physio.ftp) || !p.curve || p.curve.length < 3) return '';
   const curve = p.curve.filter((pt) => valid(pt.power));
@@ -221,12 +240,20 @@ function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
   const fields = (key: 'fatGh' | 'carbGh' | 'lactate' | 'production' | 'clearance') =>
     curve.map((pt) => ({ x: pt.power, y: pt[key] }));
   const peak = curve.reduce((a, b) => (a.fatGh > b.fatGh ? a : b));
+  // Plateau lipidique : puissances où l'oxydation reste à ≥ 90 % du maximum tracé. Le repère
+  // FatMax du profil (jauge et zones) se lit dans cette fenêtre au lieu d'un second « pic ».
+  const plateau = curve.filter((pt) => pt.fatGh >= peak.fatGh * 0.9).map((pt) => pt.power);
+  const fatMaxW = valid(p.physio.fatMaxW) ? p.physio.fatMaxW : null;
+  const race = raceBand(p);
+  const carbAt = (w: number) => interpolate(curve, w, 'carbGh');
+  const raceCarbs = race ? [carbAt(race.low), carbAt(race.high)] : null;
   const fuel = tracePlot({
     title: 'À quelle puissance changent les carburants utilisés ?',
     xLabel: 'Puissance (W)',
     yLabel: 'Oxydation (g/h)',
     xGuides: [
-      { value: peak.power, label: 'Pic lipidique tracé', unit: 'W' },
+      fatMaxW ? { value: fatMaxW, label: 'Ton repère FatMax', unit: 'W' } : { value: peak.power, label: 'Pic lipidique tracé', unit: 'W' },
+      ...(race ? [{ value: Math.round((race.low + race.high) / 2), label: 'Puissance de course visée', unit: 'W' }] : []),
       { value: p.physio.ftp, label: 'FTP du bilan', unit: 'W' },
     ],
     traces: [
@@ -234,7 +261,12 @@ function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
       { label: 'Glucides', points: fields('carbGh') },
     ],
     source,
-    reading: `Parmi les intensités tracées, le maximum d’oxydation lipidique est de ${fmt(peak.fatGh)} g/h à ${fmt(peak.power)} W. La courbe glucides décrit la consommation estimée pendant l’effort. Le ravitaillement dépend aussi de la durée et de la tolérance digestive.`,
+    reading: (fatMaxW
+      ? `Ton repère FatMax, utilisé pour tes zones, est de ${fmt(fatMaxW)} W. Sur la courbe du modèle, l’oxydation des graisses reste proche de son maximum (≈ ${fmt(peak.fatGh)} g/h) entre ${fmt(Math.min(...plateau))} et ${fmt(Math.max(...plateau))} W. `
+      : `Parmi les intensités tracées, le maximum d’oxydation lipidique est de ${fmt(peak.fatGh)} g/h à ${fmt(peak.power)} W. `)
+      + (race && raceCarbs && raceCarbs.every((v) => v != null)
+        ? `À ta puissance de course visée (${fmt(race.low)}–${fmt(race.high)} W), le modèle estime une consommation de glucides d’environ ${fmt(Math.round(raceCarbs[0]!))}–${fmt(Math.round(raceCarbs[1]!))} g/h. C’est la dépense, pas la quantité à avaler : le ravitaillement se construit à l’entraînement selon ta tolérance digestive.`
+        : 'La courbe glucides décrit la consommation estimée pendant l’effort. Le ravitaillement dépend aussi de la durée et de la tolérance digestive.'),
   });
   if (!coach) return fuel;
   const lac = tracePlot({
@@ -273,8 +305,10 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
   const gauges = (d.reportBrief?.sections ?? [])
     .map(({ sport, rows }) => {
       const axes = p.sportComparisons?.[sport] ?? [];
+      // Édition athlète en triathlon : la VO₂max commune n'apparaît qu'une fois (cadran vélo).
+      const sharedVo2 = !coach && sport === 'run' && sports.includes('bike');
       const cards = rows
-        .filter((r) => r.key !== 'demand')
+        .filter((r) => r.key !== 'demand' && !(sharedVo2 && r.key === 'vo2max'))
         .map((r) => {
           const axis =
             axes.find((a) => a.key === r.key) ??
@@ -282,6 +316,7 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
           return rangeGauge(
             r,
             axis?.value === r.value && axis.source ? metricSourceLabel(axis.source) : undefined,
+            !coach,
           );
         })
         .filter(Boolean);
