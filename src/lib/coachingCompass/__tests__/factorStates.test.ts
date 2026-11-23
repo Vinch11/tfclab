@@ -130,7 +130,7 @@ describe("facteurs observés : seuil critique, réserve anaérobie, durabilité"
 
   it("sans métriques critiques, aucune valeur n'est inventée : « à mesurer » avec le moyen de la mesurer", () => {
     const s = states("IM", "competitor", triathlon);
-    for (const [key, sport, module] of [["cp", "bike", "cp-bike"], ["cs", "run", "cs-run"]] as const) {
+    for (const [key, sport, module] of [["cp", "bike", "cp-day"], ["cs", "run", "cs-day"]] as const) {
       const r = rows(s, sport).find(x => x.key === key)!;
       expect(r).toMatchObject({ value: null, state: "missing", tier: "observed", action: { href: "/diagnostic/tests?module=" + module } });
     }

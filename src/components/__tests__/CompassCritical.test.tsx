@@ -19,6 +19,6 @@ describe("Compass : seuil critique", () => {
   it("sans mesure : « À mesurer » et le lien vers les 3 efforts", () => {
     render(<CompassCritical sport="bike" input={input()} />);
     expect(screen.getByText("À mesurer")).toBeVisible();
-    expect(screen.getByRole("link", { name: /Programmer les 3 efforts/ })).toHaveAttribute("href", "/diagnostic/tests?module=cp-bike");
+    expect(screen.getByRole("link", { name: /Programmer le Bike Day · Puissance critique/ })).toHaveAttribute("href", "/diagnostic/tests?module=cp-day");
   });
 });

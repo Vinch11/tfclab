@@ -110,6 +110,13 @@ Tout est en affichage seul : le moteur de plans et le classement des limiteurs s
 - *Seuils de qualité :* repris de la politique de l'app pour CP/CS (`CRITICAL_POLICY` : 42 jours, validation du coach). Les seuils de la durabilité (3 sorties, 3 mois) sont mon jugement, pas des valeurs publiées.
 - *Limite constatée :* les tests des Days ne contiennent pas d'effort de 3, 7 et 12 min : ils ne fournissent aucun point de CP ou de CS. Il faut le protocole dédié ou des efforts maximaux déjà présents dans les enregistrements Nolio.
 
+**Protocoles Days dédiés à la CS et à la CP**
+- *Track Day · Vitesse critique (1000 m + 3000 m)* : le test habituel du coach (échauffement 15 min, 1000 m maximal, 30 min de récupération, 3000 m maximal, retour au calme 10 min), envoyé dans Nolio avec des étapes en distance.
+- *Bike Day · Puissance critique (3 min + 12 min)* : même structure à vélo (3 min maximal, 30 min de récupération, 12 min maximal).
+- *Troisième point :* le 1500 m du Track Day, ou le test 5 min du Bike Day, à condition que les trois efforts tombent dans les 28 jours. Avec deux points seulement, la CS ou la CP reste une estimation : la politique de l'app l'exige (`criticalEfforts`).
+- *Limites à connaître :* les deux efforts sont dans la même séance (le second peut être un peu pénalisé) ; le 3000 m ne doit pas dépasser 15 min (sinon le remplacer par un 2000 m) ; la politique de l'app rejette un ajustement trop sensible au retrait d'un point (plus de 10 %), même avec des efforts propres.
+- *Origine :* l'import Nolio lit les records de distance (1000, 1500, 3000 m) et de puissance (3 et 12 min) de la période ; la page de tests (`/diagnostic/tests?module=cs-day | cp-day`) envoie les séances et imprime les fiches.
+
 Non couvert : rapports PDF d'audit, et le moteur de plans (phase 3).
 
 ## 5. Lacunes et points à vérifier

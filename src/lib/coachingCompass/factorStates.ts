@@ -136,9 +136,9 @@ export function observedRows(input: CoachingCompassInput, sport: FactorSport, to
   } else {
     const key = sport === "bike" ? "cp" : "cs";
     rows.push({ key, label: sport === "bike" ? "Puissance critique (CP)" : "Vitesse critique (CS)", unit: sport === "bike" ? "W" : "km/h", value: null, zone: null, tier: "observed", state: "missing",
-      basis: "Se mesure avec 3 efforts maximaux de 2 à 15 min (3, 7 et 12 min recommandés), dans les mêmes conditions et sur 28 jours au plus. Les efforts peuvent aussi être importés de Nolio dans le bilan (Repères critiques).",
+      basis: "Se mesure avec 3 efforts maximaux de 2 à 15 min, dans les mêmes conditions et sur 28 jours au plus. Le Day dédié fournit deux efforts ; le troisième vient du Day existant (1500 m du Track Day, 5 min du Bike Day). Les efforts peuvent aussi être importés de Nolio dans le bilan (Repères critiques).",
       evidence: sport === "bike" ? ["poole-2016"] : ["cs-mlss-2021"], engineNote: null,
-      action: { label: "Programmer les 3 efforts dans Nolio", href: TEST_PAGE + (sport === "bike" ? "cp-bike" : "cs-run") } });
+      action: { label: sport === "bike" ? "Programmer le Bike Day · Puissance critique" : "Programmer le Track Day · Vitesse critique", href: TEST_PAGE + (sport === "bike" ? "cp-day" : "cs-day") } });
   }
   const durability = parseStoredDurability(input.criticalMetrics)[sport];
   const longObjective = isLongObjective(input.objectif);
