@@ -24,8 +24,20 @@ const pace = (sec: number) => {
 };
 const ZONE_IDS = TRAINING_ZONES.map(z => z.id as ZoneKey);
 
+type Num = number | null | undefined;
+/** Champs du payload d'export lus pour les zones (même provenance que le plan). */
+interface ZonePayload {
+  athlete?: { id?: string; goal?: string | null } | null;
+  ambition?: { current?: string | null } | null;
+  effectiveRefs?: { ftp?: Num; vma?: Num; css?: Num; fcMax?: Num; vo2max?: Num; weightKg?: Num } | null;
+  effectiveSnapshot?: { date: string; athlete_id?: string; critical_metrics?: unknown; fc_repos?: Num;
+    pace_threshold_sec_per_km?: Num; vlamax?: Num; vlamax_run?: Num; map5min_w?: Num } | null;
+  coachingCompass?: { profile?: { fatmax?: { value?: Num } } } | null;
+}
+const objectiveLabel = (goal: string | null | undefined) => getObjectifLabel((goal ?? '') as Parameters<typeof getObjectifLabel>[0]);
+
 /** Inputs identiques à ceux du plan (AIPlanViewer / génération) pour obtenir les mêmes chiffres. */
-export function reportTargetTable(payload: any): TargetTable | null {
+export function reportTargetTable(payload: ZonePayload | null | undefined): TargetTable | null {
   const refs = payload?.effectiveRefs;
   const snap = payload?.effectiveSnapshot;
   if (!positive(refs?.ftp) && !positive(refs?.vma)) return null;
@@ -86,7 +98,7 @@ function zoneRows(table: TargetTable, sport: Sport): ReportZoneRow[] {
   });
 }
 
-function bikeLandmarks(payload: any, table: TargetTable): ReportZoneLandmark[] {
+function bikeLandmarks(payload: ZonePayload, table: TargetTable): ReportZoneLandmark[] {
   const refs = payload?.effectiveRefs, snap = payload?.effectiveSnapshot;
   const ftp = table.ftpW;
   if (!ftp) return [];
@@ -97,7 +109,7 @@ function bikeLandmarks(payload: any, table: TargetTable): ReportZoneLandmark[] {
   if (positive(fatmaxPct)) add('FatMax', ftp * fatmaxPct / 100, 'Estimation du modèle');
   if (table.racePowerRange) {
     const [lo, hi] = table.racePowerRange;
-    add('Puissance de course · ' + getObjectifLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`);
+    add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`);
   }
   if (positive(snap?.vlamax) && positive(refs?.vo2max) && positive(refs?.weightKg)) {
     const mlss = findMLSSPower({ vo2max: refs.vo2max, vlamax: snap.vlamax, weight: refs.weightKg });
@@ -111,12 +123,12 @@ function bikeLandmarks(payload: any, table: TargetTable): ReportZoneLandmark[] {
   return out;
 }
 
-function runLandmarks(payload: any, table: TargetTable, derived: DerivedZoneSet | null): ReportZoneLandmark[] {
+function runLandmarks(payload: ZonePayload, table: TargetTable, derived: DerivedZoneSet | null): ReportZoneLandmark[] {
   const snap = payload?.effectiveSnapshot;
   const out: ReportZoneLandmark[] = [];
   const add = (label: string, secPerKm: number, source: string, shown = `${pace(secPerKm)}/km`) =>
     out.push({ label, value: shown, zone: zoneOf(table.runPacesSecPerKm, secPerKm), source });
-  const race = getObjectifLabel(payload?.athlete?.goal);
+  const race = objectiveLabel(payload?.athlete?.goal);
   if (table.racePaceRange) {
     const [fast, slow] = table.racePaceRange;
     add('Allure de course · ' + race, (fast + slow) / 2, 'Repère des séances du plan', `${pace(fast)}–${pace(slow)}/km`);
