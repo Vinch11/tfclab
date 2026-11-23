@@ -69,6 +69,18 @@ export interface StrategicRoadmap {
   phases: RoadmapPhase[];
   limiterSummary: string;
   personalized: boolean;    // true if adapted to athlete profile
+  /** Date ISO de la semaine 1 (affichage des dates dans les rapports). */
+  startDate?: string;
+  /** Plans multi-objectifs : une entrée par pic de forme, avec la course visée (affichage seul). */
+  cycles?: RoadmapCycle[];
+}
+
+export interface RoadmapCycle {
+  objective: string;
+  raceName?: string;
+  raceDate?: string;
+  startWeek: number;
+  endWeek: number;
 }
 
 export interface RoadmapInput {
@@ -542,7 +554,7 @@ function computeGoalWeekClient(planStartDate: string | undefined, raceDate: stri
   return days >= 0 ? Math.floor(days / 7) + 1 : undefined;
 }
 
-interface RoadmapCycleSegment { startWeek: number; endWeek: number; objective: string; goalWeek: number }
+interface RoadmapCycleSegment { startWeek: number; endWeek: number; objective: string; goalWeek: number; raceName?: string; raceDate?: string }
 
 const ROADMAP_REGEN_WEEKS_BETWEEN_PEAKS = 2; // cohérent avec promptHelpers.ts (MULTI_OBJECTIVE_REGEN_WEEKS_BETWEEN_PEAKS)
 
@@ -563,7 +575,7 @@ function computeRoadmapCycleSegments(raceGoals: ClassifiableRaceGoal[], planStar
     const isLastSegment = i === fullPeaks.length - 1;
     const segEnd = isLastSegment ? totalWeeks : c.goalWeek;
     if (segEnd - cursor + 1 >= 2) {
-      segments.push({ startWeek: cursor, endWeek: segEnd, objective: String(c.goal.objective || ""), goalWeek: c.goalWeek });
+      segments.push({ startWeek: cursor, endWeek: segEnd, objective: String(c.goal.objective || ""), goalWeek: c.goalWeek, raceName: c.goal.raceName, raceDate: c.goal.raceDate });
     }
     cursor = segEnd + ROADMAP_REGEN_WEEKS_BETWEEN_PEAKS + 1;
   });
@@ -675,6 +687,8 @@ export function computeStrategicRoadmap(input: RoadmapInput): StrategicRoadmap {
         ? `${limiterInfo.emoji} Limiteur principal : ${limiterInfo.label} — ${input.limiterResult!.limiterExplanation}`
         : `${cycleSegments.length} pics de forme complets, chacun avec son propre cycle`,
       personalized: !!(input.limiterResult && input.limiterResult.primaryLimiter !== "none"),
+      startDate: input.planStartDate,
+      cycles: cycleSegments.map(({ objective, raceName, raceDate, startWeek, endWeek }) => ({ objective, raceName, raceDate, startWeek, endWeek })),
     };
   }
 

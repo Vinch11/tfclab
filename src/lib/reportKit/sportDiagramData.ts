@@ -4,20 +4,40 @@ import { reportFieldEvidence } from './fieldEvidence';
 import type { StoredDurability } from '@/lib/durability/longSessionDurability';
 import type { ReportZoneSet } from '@/lib/athleteProfileReport/types';
 
+/**
+ * Bornes extrêmes lisibles : Z1 n'a pas de plancher et Z6 n'a pas de plafond physiologique.
+ * Afficher « 0–132 W » ou « 218–564 W » suggérait des limites qui n'existent pas.
+ */
+function openEnded(id: string, absolute: string | null, sport: 'bike' | 'run'): string | null {
+  if (!absolute) return absolute;
+  const parts = absolute.replace(/\/km$| W$/, '').split('–');
+  if (parts.length !== 2) return absolute;
+  const [low, high] = parts;
+  if (sport === 'bike') return id === 'Z1' ? `< ${high} W` : id === 'Z6' ? `> ${low} W` : absolute;
+  // Course : la plage est notée « rapide–lent » (min/km).
+  return id === 'Z6' ? `plus rapide que ${high}/km` : absolute;
+}
+
 function mapZoneSet(set: DerivedZoneSet, sportLabel: string): ReportZoneSet {
+  const sport = /course/i.test(sportLabel) ? 'run' : 'bike';
+  const rows = set.zones;
   return {
+    markers: (set.markers ?? []).map(m => ({ id: m.id, label: m.label, absolute: m.absolute })),
     sportLabel,
     source: set.source,
     confidence: set.confidence,
     anchors: set.anchors ?? [],
     fallbackReason: set.fallbackReason,
-    zones: set.zones.map(z => ({
+    zones: rows.map((z, i) => ({
       id: z.id,
       label: z.label,
       condition: z.condition,
       pctRef: `${Math.round(z.pctRef.min)}–${Math.round(z.pctRef.max)} %`,
       refLabel: z.refLabel,
-      absolute: z.absolute,
+      // Course Z1 : pas d'allure calculable sous 0 km/h, on l'exprime depuis le bas de Z2.
+      absolute: sport === 'run' && z.id === 'Z1' && !z.absolute && rows[i + 1]?.absolute
+        ? `plus lent que ${rows[i + 1].absolute!.split('–')[1]}`
+        : openEnded(z.id, z.absolute, sport),
       heartRate: z.heartRate,
       hrPct: z.fcMaxPct ? `${Math.round(z.fcMaxPct.min)}–${Math.round(z.fcMaxPct.max)} %` : null,
     })),
@@ -38,6 +58,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
       fcMax: refs.fcMax ?? null,
       fcRest: snap?.fc_repos ?? null,
       fcThreshold: snap?.fc_seuil ?? snap?.fc_threshold ?? null,
+      raceObjective: payload?.athlete?.goal ?? null,
       vlamax: payload?.vlamax?.value ?? null,
       vo2max: refs.vo2max ?? null,
       weightKg: refs.weightKg ?? null,
@@ -49,6 +70,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
       vma: refs?.vma ?? null,
       paceThresholdSecPerKm: typeof paceThreshold === 'number' ? paceThreshold : null,
       paceThresholdEstimated: snap?.pace_threshold_sec_per_km == null,
+      raceObjective: payload?.athlete?.goal ?? null,
       fcMax: refs?.fcMax ?? null,
       fcRest: snap?.fc_repos ?? null,
       fcThreshold: snap?.fc_seuil ?? snap?.fc_threshold ?? null,

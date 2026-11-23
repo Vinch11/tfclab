@@ -11,6 +11,8 @@ export interface PersonalComparison {
   target?: number | null;
   unit: string;
   source?: string;
+  /** Plage de référence de l'objectif, identique aux jauges du rapport (prioritaire sur `target`). */
+  range?: { low: number; high: number } | null;
 }
 
 export interface SportDiagramZone {
@@ -29,6 +31,10 @@ export interface SportDiagramInput {
   tte: PersonalComparison[];
   zones: SportDiagramZone[];
   durability?: StoredDurabilitySport | null;
+  /** Édition athlète : vocabulaire sans jargon interne (compass, repère TFCL). */
+  athlete?: boolean;
+  /** Intensité ou allure spécifique de l'épreuve, issue du moteur de zones. */
+  raceMarkers?: { label: string; absolute: string }[];
 }
 
 export const PEDAGOGY_CSS = `
@@ -90,6 +96,7 @@ export const PEDAGOGY_CSS = `
 .durability-track{height:12px;background:${RK.surfaceAlt};border-radius:3px;overflow:hidden}
 .durability-track>span{display:block;height:100%;background:${RK.primary};border-radius:3px}
 .durability-pair.late .durability-track>span{background:${RK.amber}}
+.race-markers{margin-top:12px;padding:10px 12px;border-radius:10px;background:${RK.mintSoft}}.race-markers p,.edition .race-markers p{margin:0 0 4px;font-size:12.5px;line-height:1.45;color:${RK.ink}}
 .diagram-note{font-size:10px;line-height:1.55;color:${RK.muted};margin:10px 0 0}
 .diagram-source{font-size:9px;color:${RK.faint};margin-top:5px}
 @media screen and (max-width:640px){
@@ -117,13 +124,32 @@ function energyMeaning(key: string | undefined, sport: DurabilitySport): string 
   }
 }
 
+function referenceText(r: PersonalComparison, athlete: boolean): string {
+  const range = r.range && r.range.low > 0 && r.range.high > 0 ? r.range : null;
+  const target = r.target != null && Number.isFinite(r.target) && r.target > 0 ? r.target : null;
+  if (!range && target == null) return '';
+  const digits = decimalsFor(r.unit);
+  const value = range ? (range.low === range.high ? num(range.low, digits) : `${num(range.low, digits)}–${num(range.high, digits)}`) + ' ' + esc(r.unit) : display(r, target!);
+  return `<div class="energy-target">${athlete ? 'Repère pour ton objectif' : 'Cible du compass'} : ${value}</div>`;
+}
+
 function energyHTML(input: SportDiagramInput): string {
   const rows = input.comparisons.filter(r => r.key !== 'tte' && known(r));
   if (!rows.length) return '';
-  return `<div class="diagram-block energy-block"><h4>Énergie · tes repères physiologiques</h4><p class="diagram-intro">Les chiffres ci-dessous viennent du bilan affiché dans ton compass. La cible, lorsqu’elle existe, est reprise sans modification.</p><div class="energy-grid">${rows.map(r => {
-    const target = r.target != null && Number.isFinite(r.target) && r.target > 0 ? r.target : null;
-    return `<div class="energy-marker" data-energy="${esc(r.key ?? '')}"><div class="energy-label">${esc(r.label)}</div><div class="energy-value">${num(r.value, decimalsFor(r.unit))} <small>${esc(r.unit)}</small></div>${target != null ? `<div class="energy-target">Cible du compass : ${display(r, target)}</div>` : ''}<div class="energy-meaning">${energyMeaning(r.key, input.sport)}</div>${r.source ? `<div class="energy-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`;
-  }).join('')}</div></div>`;
+  const intro = input.athlete
+    ? 'Les chiffres ci-dessous viennent de ton bilan. Le repère est le même que sur tes jauges.'
+    : 'Les chiffres ci-dessous viennent du bilan affiché dans ton compass. La cible, lorsqu’elle existe, est reprise sans modification.';
+  return `<div class="diagram-block energy-block"><h4>Énergie · tes repères physiologiques</h4><p class="diagram-intro">${intro}</p><div class="energy-grid">${rows.map(r =>
+    `<div class="energy-marker" data-energy="${esc(r.key ?? '')}"><div class="energy-label">${esc(r.label)}</div><div class="energy-value">${num(r.value, decimalsFor(r.unit))} <small>${esc(r.unit)}</small></div>${referenceText(r, !!input.athlete)}<div class="energy-meaning">${energyMeaning(r.key, input.sport)}</div>${r.source ? `<div class="energy-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`
+  ).join('')}</div></div>`;
+}
+
+function raceMarkersHTML(input: SportDiagramInput): string {
+  const rows = (input.raceMarkers ?? []).filter(m => m.absolute);
+  if (!rows.length) return '';
+  return `<div class="race-markers">${rows.map(m => `<p><b>${esc(m.label)}</b> · ${esc(m.absolute)}</p>`).join('')}<p class="diagram-note">${input.sport === 'bike'
+    ? 'Plage calculée depuis ton seuil. Elle sert à reconnaître l’effort pendant les sorties spécifiques ; le jour de course, la chaleur, le parcours et ton ressenti l’ajustent.'
+    : 'Allure calculée depuis ta vitesse au seuil, après le vélo. Elle se confirme pendant les enchaînements vélo-course.'}</p></div>`;
 }
 
 function zonesHTML(input: SportDiagramInput): string {
@@ -145,18 +171,19 @@ function zonesHTML(input: SportDiagramInput): string {
   return `<div class="diagram-block zones-block"><h4>Zones d’effort · de la récupération à l’intensité maximale</h4>
     <p class="diagram-intro">Chaque plage est exprimée en ${unit}, avec la fréquence cardiaque lorsqu’elle est disponible. Les zones affichées restent propres à ${input.sport === 'bike' ? 'ton vélo' : 'ta course'}.</p>
     <div class="zone-direction"><span>Plus facile</span><span></span><span>Plus intense</span></div>
-    <table class="zone-table"><thead class="zone-head"><tr><th scope="col">Zone</th><th scope="col">Ce que tu travailles</th><th scope="col">Ta plage personnelle</th><th scope="col">Cardio</th></tr></thead><tbody>${body}</tbody></table></div>`;
+    <table class="zone-table"><thead class="zone-head"><tr><th scope="col">Zone</th><th scope="col">Ce que tu travailles</th><th scope="col">Ta plage personnelle</th><th scope="col">Cardio</th></tr></thead><tbody>${body}</tbody></table>${raceMarkersHTML(input)}</div>`;
 }
 
-function tteHTML(rows: PersonalComparison[]): string {
+function tteHTML(rows: PersonalComparison[], athlete = false): string {
   const valid = rows.filter(known);
   if (!valid.length) return '';
   return `<div class="tte-grid">${valid.map(r => {
     const value = r.value ?? 0;
     const target = r.target != null && Number.isFinite(r.target) && r.target > 0 ? r.target : null;
     const max = Math.max(value, target ?? 0, 1) * 1.12;
-    const gap = target == null ? 'Aucun repère de comparaison disponible.' : value < target ? `${display(r, target - value)} d’écart avec le repère interne.` : value > target ? `${display(r, value - target)} au-dessus du repère interne.` : 'Durée égale au repère interne.';
-    return `<div class="tte-marker"><div class="tte-label">${esc(r.label)}</div><div class="tte-numbers"><strong>${display(r, value)}</strong>${target != null ? `<span>repère TFCL ${display(r, target)}</span>` : ''}</div><div class="tte-track" aria-hidden="true">${target != null ? `<span class="tte-target" style="left:${(target / max * 100).toFixed(2)}%"></span>` : ''}<span class="tte-value" style="left:${(value / max * 100).toFixed(2)}%"></span></div><div class="tte-gap">${gap}</div>${r.source ? `<div class="diagram-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`;
+    const ref = athlete ? 'repère de ton objectif' : 'repère interne';
+    const gap = target == null ? 'Aucun repère de comparaison disponible.' : value < target ? `${display(r, target - value)} d’écart avec le ${ref}.` : value > target ? `${display(r, value - target)} au-dessus du ${ref}.` : `Durée égale au ${ref}.`;
+    return `<div class="tte-marker"><div class="tte-label">${esc(r.label)}</div><div class="tte-numbers"><strong>${display(r, value)}</strong>${target != null ? `<span>${athlete ? 'repère pour ton objectif' : 'repère TFCL'} ${display(r, target)}</span>` : ''}</div><div class="tte-track" aria-hidden="true">${target != null ? `<span class="tte-target" style="left:${(target / max * 100).toFixed(2)}%"></span>` : ''}<span class="tte-value" style="left:${(value / max * 100).toFixed(2)}%"></span></div><div class="tte-gap">${gap}</div>${r.source ? `<div class="diagram-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`;
   }).join('')}</div>`;
 }
 
@@ -178,7 +205,7 @@ function durabilityHTML(sport: DurabilitySport, d?: StoredDurabilitySport | null
 /** One detailed diagram per sport; missing values stay absent rather than becoming neutral placeholders. */
 export function sportDiagramHTML(input: SportDiagramInput): string {
   const durability = durabilityHTML(input.sport, input.durability);
-  const tte = tteHTML(input.tte);
+  const tte = tteHTML(input.tte, !!input.athlete);
   const energy = energyHTML(input);
   const zones = zonesHTML(input);
   if (!energy && !zones && !tte && !durability) return '<p class="edition-caption">Un test dans cette discipline permettra de préciser les repères.</p>';

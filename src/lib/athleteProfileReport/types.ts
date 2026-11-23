@@ -80,6 +80,8 @@ export interface ReportZoneSet {
   anchors: string[];
   fallbackReason: string | null;
   zones: ReportZoneRow[];
+  /** Repères transversaux du moteur de zones (Sweet Spot, intensité spécifique de l'épreuve). */
+  markers?: { id: string; label: string; absolute: string | null }[];
 }
 
 export interface ReportPhase {
@@ -100,6 +102,10 @@ export interface ReportRoadmap {
   phases: ReportPhase[];
   limiterSummary: string;
   personalized: boolean;
+  /** Date ISO de la semaine 1, quand le plan la connaît. */
+  startDate?: string;
+  /** Plans multi-objectifs : un cycle par course visée. */
+  cycles?: { objective: string; raceName?: string; raceDate?: string; startWeek: number; endWeek: number }[];
 }
 
 export interface ReportTargetProgress {

@@ -155,8 +155,14 @@ const DEFAULT_THRESHOLD_HR_FRACTION: Record<ZoneSport, number> = {
   swim: 0.87,
 };
 
-/** Fraction de FCmax au repos par défaut si la FC de repos est inconnue. */
-const DEFAULT_REST_HR_FRACTION = 0.5;
+/**
+ * Fraction de FCmax au repos par défaut si la FC de repos est inconnue.
+ * ≈ 0,30 : FC de repos de 55-60 bpm pour une FCmax de 185-195 bpm, valeur courante chez
+ * l'athlète d'endurance. C'est aussi la valeur qui place la FC de FatMax vers 78-80 % FCmax,
+ * comme indiqué pour HR_SUBTHRESHOLD_EXPONENT ci-dessous. L'ancien défaut (0,5) supposait une
+ * FC de repos ≈ 95 bpm et remontait toutes les zones FC.
+ */
+const DEFAULT_REST_HR_FRACTION = 0.3;
 
 /**
  * Relation FC / intensité sous le seuil, exprimée en réserve cardiaque.
@@ -356,7 +362,10 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
       if (mlssW <= 0) fallbackReason = "MLSS non calculable";
       else {
         const mlssPctFtp = clamp((mlssW / ftp) * 100, 80, 112);
-        const fatMaxPctFtp = computeFatMaxAnchorPctFTP(vla, vo2) ?? 65;
+        // Même ancre que le Compass (estimateProfileFatMaxPctFTP) : poids et FTP réels, sans
+        // repli sur 70 kg ni sur un ratio FTP/PMA générique — sinon deux FatMax différentes
+        // apparaissaient dans le même rapport (jauge et zones).
+        const fatMaxPctFtp = computeFatMaxAnchorPctFTP(vla, vo2, weight, ftp) ?? 65;
         pct = deriveBikePct(fatMaxPctFtp, mlssPctFtp);
         refAtThreshold = mlssPctFtp;
         anchors.push(
@@ -439,7 +448,7 @@ export function deriveTrainingZones(input: DeriveZonesInput): DerivedZoneSet {
     );
     hrPctById = hr.pct;
     anchors.push(
-      `FC seuil ≈ ${hr.thresholdHrBpm} bpm (${Math.round(hr.thresholdHrPct)} % FCmax)${hr.measured ? " — mesurée" : " — estimée"}, zones FC en réserve cardiaque (repos ${Math.round(hr.restHrPct)} % FCmax)`,
+      `FC seuil ≈ ${hr.thresholdHrBpm} bpm (${Math.round(hr.thresholdHrPct)} % FCmax)${hr.measured ? " — mesurée" : " — estimée"}, zones FC en réserve cardiaque (${isPos(input.fcRest) ? `repos ${Math.round(input.fcRest)} bpm` : `FC de repos non renseignée, valeur type ${Math.round(hr.restHrPct)} % FCmax`})`,
     );
   } else if (fcMax) {
     anchors.push("Zones FC : grille standard (%FCmax tabulé) — FC seuil non dérivable");

@@ -161,6 +161,8 @@
 .journey-pin{display:grid;place-items:center;width:34px;height:34px;background:#154e80;color:white;border-radius:50%;font-weight:700}
 .athlete-journey .journey-pin{width:12px;height:12px;margin:5px auto 0;box-shadow:0 0 0 4px #d4e7f4}
 .athlete-journey li::before{top:17px;bottom:-5px}
+.edition .journey-map li.journey-cycle{padding:6px 0 12px}.edition .journey-map li.journey-cycle::before{content:none}
+.edition .journey-map li.journey-cycle h4{font-size:15px;color:#22678e;text-transform:uppercase;letter-spacing:.04em}
 .journey-map small{font-size:12px;color:#21597c;font-weight:650}.edition .journey-map h4{font-size:19px;line-height:1.2;margin:2px 0 4px;color:#12395b;text-transform:none}
 .edition .journey-map p{margin:2px 0;font-size:14px;line-height:1.4}.edition .journey-map .journey-detail{font-size:12px;color:#405c72}
 .edition .journey-goal{padding:11px 16px;background:#133e60;color:white;border-radius:10px}.journey-goal small{display:block;color:#b5e7ed}.journey-goal strong{display:block;font-size:17px}
@@ -183,7 +185,9 @@
   .folio-brand {position:static;padding:4mm 8mm;background:#153e63}
   .folio-brand img {width:8mm;height:8mm}
   .edition .folio-image figure {height:auto}
-  .edition .folio-image figure img {height:100mm;object-position:center}
+  /* 82 mm : avec 5 repères (2 lignes) et les marges ajoutées par Safari, 100 mm faisait déborder
+     la dernière ligne de la couverture sur une page presque vide. */
+  .edition .folio-image figure img {height:82mm;object-position:center}
   .folio-copy {padding:9mm 9mm 12mm}
   .edition .folio-cover h1 {font-size:36pt!important;margin:3mm 0 5mm}
   .edition .folio-intro {font-size:12pt;line-height:1.4}

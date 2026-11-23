@@ -34,16 +34,16 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     meta: [['Objectif', d.objectifLabel], ['Ambition', d.ambitionLabel], ['Prochaine course', d.nextRace ?? ''], ['Bilan de référence', d.snapshotDate ? dateLabel(d.snapshotDate) : 'À compléter'], ['Édition du', d.generatedAt]],
     sport: sports[0], logo: d.logoBase64 });
   const opening = chapter('portrait', 'Ce que tes tests racontent', `
-    ${support ? `<p class="edition-deck">En ${sportName[support.sport].toLowerCase()}, tu peux déjà t’appuyer sur ton résultat de ${esc(support.r.label)}. Ton bilan indique <b>${fmt(support.r.value!)} ${esc(support.r.unit)}</b>, dans la plage de comparaison de ton objectif (${esc(referenceRange(support.r))}).</p>` : `<p class="edition-deck">${brief ? 'On part des efforts que tu as déjà réalisés. Ton prochain test permettra de situer les qualités sur lesquelles tu peux t’appuyer.' : rich(d.profileNarrative)}</p>`}
+    ${support ? `<p class="edition-deck">${support.r.key === 'vo2max' ? 'Tu peux déjà t’appuyer sur ta VO₂max, commune à tes sports.' : `En ${sportName[support.sport].toLowerCase()}, tu peux déjà t’appuyer sur ton résultat de ${esc(support.r.label)}.`} Ton bilan indique <b>${fmt(support.r.value!)} ${esc(support.r.unit)}</b>, dans la plage de comparaison de ton objectif (${esc(referenceRange(support.r))}).</p>` : `<p class="edition-deck">${brief ? 'On part des efforts que tu as déjà réalisés. Ton prochain test permettra de situer les qualités sur lesquelles tu peux t’appuyer.' : rich(d.profileNarrative)}</p>`}
     ${first ? `<h3>Ce qui mérite ton attention en ${sportName[first.sport].toLowerCase()}</h3><p><b>${esc(first.r.label)}.</b> ${esc(guide[first.r.key] ?? 'Ce repère aide à préciser la qualité à travailler pour ton épreuve.')}</p>${gapFigure(brief.ranked.slice(0, 3), false, brief)}` : ''}
-    ${flow ? `<div class="note"><b>La priorité retenue pour ton entraînement</b><p>${esc(flow.title)}</p>${flow.lead?.status ? `<small>${esc(flow.lead.status)}</small>` : ''}</div>` : ''}`);
+    ${flow ? `<div class="note"><b>La priorité retenue pour ton entraînement</b><p>${esc(flow.title)}</p></div>` : ''}`);
   const journey = chapter('preparation', 'Comment on prépare ton objectif', `
     ${preparationTimeline(d.roadmap, [d.objectifLabel, d.nextRace].filter(Boolean).join(' · '), true)}
     ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
       ${decision.athleteMessage ? `<p>${rich(decision.athleteMessage)}</p>` : ''}
       ${decision.workouts.length ? `<h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul>` : ''}` :
       `<p class="edition-deck">${esc(flow?.decision ?? 'Ton coach précisera le premier chantier avec toi.')}</p>`}
-    ${calendarPreview(d.calendar, true)}`);
+    ${calendarPreview(d.calendar, true, true)}`);
   const disciplines = sports.map(sp => {
     const tte = (d.sportTte ?? []).filter(r => sp === 'run' ? /course/i.test(r.label) : /vélo/i.test(r.label));
     const sets = d.zoneSets.filter(z => sp === 'run' ? /course/i.test(z.sportLabel) : /vélo/i.test(z.sportLabel));
@@ -52,15 +52,22 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       const covered = d.visuals?.illustratedCritical?.includes(sp);
       return !covered || (sp === 'run' && (r.unit === 'W' || r.unit === 'kJ'));
     });
-    const comparisons = d.sportComparisons?.[sp] ?? [];
-    const vo2 = d.metrics.find(m => m.key === 'vo2max' && m.value != null && m.value > 0);
-    const energy = vo2 && !comparisons.some(r => r.key === 'vo2max') ? [{...vo2, target: vo2.target?.[0], source: vo2.source ?? undefined}, ...comparisons] : comparisons;
+    // La VO₂max du bilan est commune aux sports : en triathlon, elle n'est montrée qu'une fois (vélo),
+    // avec un seul repère, plutôt que deux fois avec deux plages différentes.
+    const sharedVo2 = sp === 'run' && sports.includes('bike');
+    const comparisons = (d.sportComparisons?.[sp] ?? []).filter(r => !(sharedVo2 && r.key === 'vo2max'));
+    const vo2 = sharedVo2 ? undefined : d.metrics.find(m => m.key === 'vo2max' && m.value != null && m.value > 0);
+    const sectionRows = brief?.sections.find(s => s.sport === sp)?.rows ?? [];
+    const withRange = <T extends { key?: string }>(r: T) => ({ ...r, range: sectionRows.find(x => x.key === r.key)?.zone ?? null });
+    const energy = (vo2 && !comparisons.some(r => r.key === 'vo2max') ? [{...vo2, target: vo2.target?.[0], source: vo2.source ?? undefined}, ...comparisons] : comparisons).map(withRange);
+    const raceMarkers = sets.flatMap(z => z.markers ?? []).filter(m => m.id === 'race_specific' && m.absolute)
+      .map(m => ({ label: (sp === 'bike' ? 'Puissance de course · ' : 'Allure de course · ') + d.objectifLabel, absolute: m.absolute! }));
     return chapter('reperes-' + sp, sp === 'run' ? 'Ta course à pied en chiffres' : 'Ton vélo en chiffres', `
       <div class="sport-intro"><div class="chapter-image">${sportPhoto(sp)}</div><div>
       <p>${sp === 'run' ? 'Sur le terrain, tes allures donnent un sens aux chiffres du bilan. Retrouve ici les repères à consulter avant une séance.' : 'Sur la route, tes watts permettent de retrouver un effort d’une sortie à l’autre. Ces repères t’aident à lire tes séances.'}</p>
       ${sets.map(z => `<p class="chapter-detail">${z.source === 'derived' ? 'Zones calculées à partir du bilan' : 'Grille de zones provisoire'}${z.anchors.length ? ' · ' + z.anchors.map(esc).join(', ') : ''}.</p>`).join('')}
       </div></div>
-      ${sportDiagramHTML({sport: sp, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
+      ${sportDiagramHTML({sport: sp, athlete: true, raceMarkers, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);
   }).join('');
   const swim = d.swimming ? chapter('reperes-swim', 'Tes repères en natation', swimFigure(d.swimming.css)) : '';
