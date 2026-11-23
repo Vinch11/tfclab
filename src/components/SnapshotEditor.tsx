@@ -228,8 +228,8 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
   const [date, setDate] = useState(snapshot.date);
   const [sportMain, setSportMain] = useState<string>(snapshot.sport_main ?? "");
   const [ftp, setFtp] = useState(snapshot.ftp != null ? String(snapshot.ftp) : "");
-  const [ftpOrigin, setFtpOrigin] = useState<ThresholdOrigin | "">(readThresholdOrigin((snapshot as any).field_sources, "ftp") ?? "");
-  const [paceOrigin, setPaceOrigin] = useState<ThresholdOrigin | "">(readThresholdOrigin((snapshot as any).field_sources, "pace_threshold_sec_per_km") ?? "");
+  const [ftpOrigin, setFtpOrigin] = useState<ThresholdOrigin | "">(readThresholdOrigin(snapshot.field_sources, "ftp") ?? "");
+  const [paceOrigin, setPaceOrigin] = useState<ThresholdOrigin | "">(readThresholdOrigin(snapshot.field_sources, "pace_threshold_sec_per_km") ?? "");
   const [pmax5s, setPmax5s] = useState(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
   const [weight, setWeight] = useState(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
   const [vo2, setVo2] = useState(snapshot.vo2max != null ? String(snapshot.vo2max) : "");
@@ -302,7 +302,7 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       tte_observed_min: numOrNull(tteObserved) != null ? Math.round(numOrNull(tteObserved)!) : null,
       // ✅ Champs pour calcul VLamax CAP
       pace_threshold_sec_per_km: parsePaceToSeconds(paceThreshold),
-      field_sources: withThresholdOrigin(withThresholdOrigin((snapshot as any).field_sources, "ftp", ftpOrigin), "pace_threshold_sec_per_km", paceOrigin),
+      field_sources: withThresholdOrigin(withThresholdOrigin(snapshot.field_sources, "ftp", ftpOrigin), "pace_threshold_sec_per_km", paceOrigin),
       sprint_15s_distance: numOrNull(sprint15s),
       running_power_max: numOrNull(runPowerMax),
       running_power_threshold: numOrNull(runPowerThreshold),
@@ -322,8 +322,8 @@ export function SnapshotEditor({ snapshot, trigger, staffMode = false }: Snapsho
       setDate(snapshot.date);
       setSportMain(snapshot.sport_main ?? "");
       setFtp(snapshot.ftp != null ? String(snapshot.ftp) : "");
-      setFtpOrigin(readThresholdOrigin((snapshot as any).field_sources, "ftp") ?? "");
-      setPaceOrigin(readThresholdOrigin((snapshot as any).field_sources, "pace_threshold_sec_per_km") ?? "");
+      setFtpOrigin(readThresholdOrigin(snapshot.field_sources, "ftp") ?? "");
+      setPaceOrigin(readThresholdOrigin(snapshot.field_sources, "pace_threshold_sec_per_km") ?? "");
       setPmax5s(snapshot.pmax_5s != null ? String(snapshot.pmax_5s) : "");
       setWeight(snapshot.weight_kg != null ? String(snapshot.weight_kg) : "");
       setVo2(snapshot.vo2max != null ? String(snapshot.vo2max) : "");

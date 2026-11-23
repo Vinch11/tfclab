@@ -26,7 +26,7 @@ const ZONE_IDS = TRAINING_ZONES.map(z => z.id as ZoneKey);
 
 type Num = number | null | undefined;
 /** Champs du payload d'export lus pour les zones (même provenance que le plan). */
-interface ZonePayload {
+export interface ZonePayload {
   athlete?: { id?: string; goal?: string | null } | null;
   ambition?: { current?: string | null } | null;
   effectiveRefs?: { ftp?: Num; vma?: Num; css?: Num; fcMax?: Num; vo2max?: Num; weightKg?: Num } | null;

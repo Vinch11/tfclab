@@ -109,6 +109,8 @@ export interface DbSnapshot {
   // Tlim@vVO2max (Billat 1996) — calibrage volume 30/30 (cf. tlimVolumeCalibration.ts)
   tlim_vvo2max_min?: number | null;
   critical_metrics?: import("@/integrations/supabase/types").Json | null;
+  /** Provenance par champ (ex. FTP, allure seuil) — cf. lib/zones/thresholdOrigin. */
+  field_sources?: import("@/integrations/supabase/types").Json | null;
   created_at?: string;
   updated_at?: string;
 }

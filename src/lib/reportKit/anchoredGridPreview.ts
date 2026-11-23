@@ -6,7 +6,7 @@
 import { buildTargetTable, type ZoneKey } from '@/lib/plan/targetTable';
 import { anchoredBikeGrid, anchoredRunGrid, ANCHOR_SOURCE_LABELS, ANCHORED_ZONE_IDS, type AnchoredGrid } from '@/lib/zones/anchoredZoneGrid';
 import { ZONE_GRID_MODE } from '@/lib/zones/zoneGridConfig';
-import { reportTargetTable } from './sportDiagramData';
+import { reportTargetTable, type ZonePayload } from './sportDiagramData';
 import { esc } from './index';
 
 const pace = (sec: number) => `${Math.floor(Math.round(sec) / 60)}:${String(Math.round(sec) % 60).padStart(2, '0')}`;
@@ -38,12 +38,12 @@ function sportBlock(label: string, grid: AnchoredGrid, table: ReturnType<typeof 
 }
 
 /** Section HTML du rapport coach ; vide si la grille ancrée est déjà active ou incalculable. */
-export function anchoredGridPreviewHTML(payload: any): string {
+export function anchoredGridPreviewHTML(payload: ZonePayload | null | undefined): string {
   if (ZONE_GRID_MODE === 'anchored') return '';
   const table = reportTargetTable(payload);
   const snap = payload?.effectiveSnapshot;
   if (!table || !snap) return '';
-  const refs = payload?.effectiveRefs ?? {};
+  const refs: NonNullable<ZonePayload['effectiveRefs']> = payload?.effectiveRefs ?? {};
   const input = { ...snap, ftp: refs.ftp ?? snap.ftp, vma: refs.vma ?? snap.vma, fc_max: refs.fcMax ?? snap.fc_max, weight_kg: refs.weightKg ?? snap.weight_kg, vo2max: refs.vo2max ?? snap.vo2max };
   const opts = { ambition: payload?.ambition?.current ?? null };
   const bike = table.ftpW ? anchoredBikeGrid(input, opts) : null;
