@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
+import { groupReportIntroductions } from "@/lib/print/groupReportIntroductions";
+
 /**
  * Page d'impression dédiée — décision coach explicite (2026-10-22, suite à
  * un retour de PDF ENTIÈREMENT VIDE à l'impression sur PC). Remplace le
@@ -25,22 +27,20 @@ export default function PrintPreviewPage() {
     const stored = key ? sessionStorage.getItem(key) : null;
     const autoPrint = params.get("autoPrint") === "1";
     const show = (html: string) => {
-    // Remplace entièrement le document actuel par celui déjà généré
-    // (même mécanisme que `doc.write` utilisé historiquement dans l'iframe
-    // de surcouche, ici appliqué à la fenêtre top-level elle-même — plus
-    // besoin d'iframe ni de synchronisation de hauteur/échelle).
-    document.open();
-    document.write(html);
-    document.close();
-    if (autoPrint) {
-      setTimeout(() => {
-        try {
-          window.print();
-        } catch {
-          // Ignore
-        }
-      }, 300);
-    }
+      document.open();
+      document.write(html);
+      document.close();
+
+      // A stylesheet before the helper script can defer parsing the report body.
+      const prepare = () => {
+        groupReportIntroductions(document);
+        if (autoPrint) setTimeout(() => window.print(), 300);
+      };
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", prepare, { once: true });
+      } else {
+        prepare();
+      }
     };
     if (stored) return show(stored);
     if (!key || !window.opener) { setMissing(true); return; }

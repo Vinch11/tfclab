@@ -54,7 +54,7 @@
   .edition .edition-cover {break-inside:avoid;padding-bottom:4mm;border-bottom:1px solid var(--line)}
   .edition .edition-cover h1 {font-size:34px}.edition-headline .sport-figure img{height:110px}
   .edition .edition-headline{padding:14px 0}.edition .edition-deck{font-size:14px}.edition p,.edition li{font-size:10.5pt}
-  .edition .edition-section h2{font-size:18pt}.edition h2,.edition h3,.edition figcaption {break-after:avoid}
+  .edition .edition-section h2{font-size:18pt}.edition h2,.edition h3,.edition figure>figcaption:first-child {break-after:avoid}
   .edition .diagram-block,.edition .sport-diagram,.edition .pagebreakAvoid{break-inside:auto;overflow:visible}
   .edition .durability-session,.edition .energy-marker,.edition .zone-row{break-inside:avoid}
 }
@@ -129,7 +129,6 @@
 .body-rail i {display:block;height:100%;background:#147e76}
 @media print {
   .edition-ending {break-inside:avoid}
-  .edition .gauge-sport {break-inside:avoid}
 }
 @media print {
   .edition>.edition-nav {display:flex;border:0;border-bottom:1px solid #cadae5;border-radius:0;gap:0 12px;padding:1mm 0 3mm;margin:0 0 3mm;break-inside:avoid}
@@ -139,6 +138,7 @@
   }
 }
 
+.edition .print-introduction {display:contents}
 .edition .folio-cover{isolation:isolate;overflow:hidden;border-radius:22px;margin:0 0 20px;background:#edf5fc;color:#12345a;box-shadow:0 14px 38px #17325320}
 .folio-image{position:relative;height:clamp(215px,35vw,390px);background:linear-gradient(140deg,#1564a4,#88c4d8)}
 .edition .folio-image figure,.folio-image figure img{display:block;width:100%;height:100%;margin:0;border-radius:0;object-fit:cover;object-position:center 48%}
@@ -166,12 +166,115 @@
 .edition .journey-goal{padding:11px 16px;background:#133e60;color:white;border-radius:10px}.journey-goal small{display:block;color:#b5e7ed}.journey-goal strong{display:block;font-size:17px}
 .edition .scheduled-blocks li{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px;border-bottom:1px solid #cbddea;padding:7px 0}.scheduled-blocks span,.scheduled-blocks small{color:#456078}
 @media print{
- @page reportFront{size:A4;margin:0;@bottom-right{content:none}}
- .edition .folio-cover{page:reportFront;break-after:page;break-inside:avoid;min-height:296mm;margin:0;border:0;border-radius:0;box-shadow:none;print-color-adjust:exact}
- .folio-image{height:135mm}.folio-brand{padding:12mm 15mm}.folio-copy{padding:12mm 15mm}.edition .folio-cover h1{font-size:50pt!important}.edition .folio-cover p{font-size:12pt}.folio-facts{gap:5mm 10mm}
- .edition-section:has(>.journey-map){break-before:page}
- .edition .journey-map{break-inside:auto;margin:4mm 0;padding:5mm}.journey-map li{padding-bottom:3mm}
- .edition .journey-map h4{font-size:14pt}.edition .journey-map p{font-size:10pt}
+  /* Use the same printable area throughout. Safari adds its own paper margins. */
+  .edition .folio-cover {
+    page-break-after:always;
+    break-after:page;
+    page-break-inside:avoid;
+    break-inside:avoid;
+    isolation:auto;
+    overflow:visible;
+    margin:0;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .folio-image {height:auto;background:#153e63}
+  .folio-image::after {content:none}
+  .folio-brand {position:static;padding:4mm 8mm;background:#153e63}
+  .folio-brand img {width:8mm;height:8mm}
+  .edition .folio-image figure {height:auto}
+  .edition .folio-image figure img {height:100mm;object-position:center}
+  .folio-copy {padding:9mm 9mm 12mm}
+  .edition .folio-cover h1 {font-size:36pt!important;margin:3mm 0 5mm}
+  .edition .folio-intro {font-size:12pt;line-height:1.4}
+  .folio-facts {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4mm;margin-top:6mm;padding-top:4mm}
+  .folio-facts dd {font-size:10pt}
+  .edition p {orphans:2;widows:2}
+  .edition h2,.edition h3,.edition h4,.edition .diagram-heading,.edition .diagram-intro,
+  .edition .zone-direction,.edition .visual-chapter>.edition-deck,.edition .journey-kicker {
+    page-break-after:avoid;
+    break-after:avoid;
+  }
+  .edition .visual-chapter>.edition-deck,.edition .diagram-heading,
+  .edition .diagram-intro {page-break-inside:avoid;break-inside:avoid}
+  .edition .edition-section {margin-bottom:4mm}
+  .edition .edition-ending .edition-section {margin-bottom:1mm}
+  .edition .edition-ending h2 {font-size:14pt;margin:0 0 1mm}
+  .edition .edition-ending p {font-size:9.5pt;line-height:1.35;max-width:none;margin:0 0 1mm}
+  .edition .edition-ending footer {padding:0;font-size:8pt}
+  .edition .print-introduction {display:block;page-break-inside:avoid;break-inside:avoid}
+  .edition .gauge-sport {margin:3mm 0;page-break-inside:avoid;break-inside:avoid}
+  .lab-gauges {grid-template-columns:repeat(4,minmax(0,1fr))}
+  .edition .lab-gauge {background:#f3f8fc}
+  .edition .lab-gauge strong {font-size:15pt}
+  .edition .lab-gauge svg {max-width:27mm}
+  .edition .chapter-image {margin:2mm 0 3mm}
+  .edition .chapter-image img {height:34mm;border-radius:2mm}
+  .edition .sport-intro {display:grid;grid-template-columns:26% 1fr;gap:4mm;align-items:center;break-inside:avoid}
+  .edition .sport-intro .chapter-image {margin:0}
+  .edition .sport-intro img {height:21mm}
+  .edition [id^="reperes-"]>h2 {margin-bottom:2mm}
+  .edition .sport-diagram .diagram-heading {padding:1.5mm 3mm}
+  .edition .diagram-kicker {display:none}
+  .edition .diagram-heading h3 {font-size:13pt;margin:0}
+  .edition .energy-marker>div+div {margin-top:1mm}
+  .edition .energy-marker .energy-value {line-height:1}
+  .edition .zone-direction {margin:1mm 0}
+  .edition .diagram-block {line-height:1.3}
+  .edition .energy-grid,.edition .tte-grid {gap:1.5mm}
+  .edition .zone-table th,.edition .zone-table td {padding:.75mm 1.5mm}
+  .edition .zone-table th:first-child {width:8%}
+  .edition .zone-table th:nth-child(2) {width:43%}
+  .edition .zone-id {height:6mm;width:6mm;border-radius:1.4mm}
+  .edition .tte-block {display:grid;grid-template-columns:1fr 1fr;gap:1mm 4mm;align-content:start}
+  .edition .tte-block .diagram-intro {grid-column:1}
+  .edition .tte-block .tte-grid {grid-column:2;grid-row:1/3;display:block;margin:0}
+  .edition .tte-block .tte-marker {padding:2mm 3mm}
+  .edition .tte-block .tte-numbers {margin:0}
+  .edition .tte-block .tte-numbers strong {font-size:16pt}
+  .edition .sport-intro .chapter-detail {font-size:8.5pt}
+  .edition .sport-intro p {font-size:9.5pt;line-height:1.4;margin:1.5mm 0}
+  .edition #preparation:has(.journey-map li:nth-child(5)),
+  .edition .edition-section:has(>.sport-intro + .sport-diagram .zone-table) {
+    page-break-before:always;
+    break-before:page;
+  }
+  .edition #reperes-swim {page-break-inside:avoid;break-inside:avoid}
+  .edition #reperes-swim:has(.lab-figure) {display:grid;grid-template-columns:32% 1fr;gap:0 4mm;align-items:center}
+  .edition #reperes-swim h2 {grid-column:1/-1}
+  .edition #reperes-swim .lab-figure {margin:0}
+  .edition #reperes-swim .landmark {padding:1mm 0}
+  .edition #reperes-swim .figure-reading {margin-top:2mm;padding-top:2mm}
+  .edition #reperes-swim:has(.lab-figure) img {height:45mm}
+  .edition .sport-intro+.sport-diagram .energy-grid {grid-template-columns:repeat(auto-fit,minmax(32mm,1fr))}
+  .edition .diagram-block {padding:2mm 3mm}
+  .edition .sport-diagram {margin:3mm 0}
+  .edition .sport-diagram:last-child {margin-bottom:0}
+  .edition .edition-section:has(+.edition-ending) {margin-bottom:2mm}
+  .edition .diagram-intro {font-size:9pt;margin-bottom:2mm}
+  .edition .energy-marker {padding:2mm 3mm}
+  .edition .energy-label {min-height:0}
+  .edition .energy-value {font-size:17pt;margin-top:1mm}
+  .edition .energy-block,.edition .tte-block,
+  .edition .note,.edition .journey-goal,.edition .scheduled-blocks li {
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  /* The paper overview pairs the sport title and the threshold marker in one
+     band. Additional observations and the zone table continue below it. */
+  .edition .diagram-overview:has(>.tte-block) {
+    display:grid;
+    grid-template-columns:1fr 2fr;
+    page-break-inside:avoid;
+    break-inside:avoid;
+  }
+  .edition .diagram-overview>.diagram-heading {align-content:center}
+  .edition .energy-block {display:inline-block;width:100%;vertical-align:top}
+  .edition .journey-map {break-inside:auto;margin:3mm 0;padding:3mm 4mm}
+  .edition .journey-map li {page-break-inside:avoid;break-inside:avoid;padding-bottom:4mm}
+  .edition .journey-map h4 {font-size:12pt}
+  .edition .journey-map p {font-size:10pt}
+  .edition .journey-map li:last-child {page-break-after:avoid;break-after:avoid}
 }
 
 /* Field fits use their own units and a neutral, uncapped comparison scale. */

@@ -56,9 +56,10 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     const vo2 = d.metrics.find(m => m.key === 'vo2max' && m.value != null && m.value > 0);
     const energy = vo2 && !comparisons.some(r => r.key === 'vo2max') ? [{...vo2, target: vo2.target?.[0], source: vo2.source ?? undefined}, ...comparisons] : comparisons;
     return chapter('reperes-' + sp, sp === 'run' ? 'Ta course à pied en chiffres' : 'Ton vélo en chiffres', `
-      <div class="chapter-image">${sportPhoto(sp)}</div>
+      <div class="sport-intro"><div class="chapter-image">${sportPhoto(sp)}</div><div>
       <p>${sp === 'run' ? 'Sur le terrain, tes allures donnent un sens aux chiffres du bilan. Retrouve ici les repères à consulter avant une séance.' : 'Sur la route, tes watts permettent de retrouver un effort d’une sortie à l’autre. Ces repères t’aident à lire tes séances.'}</p>
       ${sets.map(z => `<p class="chapter-detail">${z.source === 'derived' ? 'Zones calculées à partir du bilan' : 'Grille de zones provisoire'}${z.anchors.length ? ' · ' + z.anchors.map(esc).join(', ') : ''}.</p>`).join('')}
+      </div></div>
       ${sportDiagramHTML({sport: sp, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);
   }).join('');

@@ -16,8 +16,8 @@ export function editionCover(o: {
     const coach = o.label === 'Rapport coach';
     const details = o.meta.filter(([,v]) => v && v !== '—');
     return `<header class="folio-cover ${coach ? 'staff-cover' : 'athlete-cover'}">
-      <div class="folio-image">${o.sport ? sportPhoto(o.sport, coach) : ''}<div class="folio-brand">
-        ${o.logo ? `<img src="${esc(o.logo)}" alt="">` : ''}<b>Two For Coaching Lab</b><span>${esc(o.label)}</span></div></div>
+      <div class="folio-image"><div class="folio-brand">
+        ${o.logo ? `<img src="${esc(o.logo)}" alt="">` : ''}<b>Two For Coaching Lab</b><span>${esc(o.label)}</span></div>${o.sport ? sportPhoto(o.sport, coach) : ''}</div>
       <div class="folio-copy"><p class="folio-name">${esc(o.name)}</p><h1>${esc(o.title)}</h1><p class="folio-intro">${esc(o.intro)}</p>
       <dl class="folio-facts">${details.map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl></div></header>`;
   }
