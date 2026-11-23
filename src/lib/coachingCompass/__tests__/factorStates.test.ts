@@ -214,3 +214,22 @@ describe("exigence du chrono visé en % de la vitesse critique (marathon)", () =
     expect(row(input("Marathon", { performanceGoal: undefined }))).toBeUndefined();
   });
 });
+
+describe("bilan ancien : valeur conservée, avertissement", () => {
+  const compass = { presentation: { sport: "run", axes: [axis("vo2max", 52, 50, "ml/kg/min"), axis("vma", 16.7, null, "km/h"), axis("vlamax", 0.5, 0.45, "mmol/L/s")] } } as unknown as TFCLCoachingCompassResult;
+  const rows = (snapshotDate: string | null, today: string) =>
+    buildFactorStates({ objectif: "Marathon", ambition: "competitor", snapshotDate } as unknown as CoachingCompassInput, compass, today).sections[0].rows;
+  it("plus de 90 jours : la valeur reste, la tuile dit qu'il faudrait retester", () => {
+    const r = rows("2026-08-01", "2026-11-20");
+    const vma = r.find(x => x.key === "vma")!;
+    expect(vma.value).toBe(16.7);
+    expect(vma.reliability!.level).toBe("review");
+    expect(vma.reliability!.notes[0]).toContain("il faudrait retester");
+    expect(vma.reliability!.notes[0]).toContain("La valeur reste utilisée");
+    expect(r.find(x => x.key === "vo2max")!.reliability!.level).toBe("review");
+  });
+  it("bilan récent ou sans date : aucun avertissement de fraîcheur", () => {
+    expect(rows("2026-11-01", "2026-11-20").find(x => x.key === "vma")!.reliability).toBeUndefined();
+    expect(rows(null, "2026-11-20").find(x => x.key === "vma")!.reliability).toBeUndefined();
+  });
+});

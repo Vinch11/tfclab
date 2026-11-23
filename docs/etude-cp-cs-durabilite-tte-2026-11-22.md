@@ -117,6 +117,13 @@ Tout est en affichage seul : le moteur de plans et le classement des limiteurs s
 - *Limites à connaître :* les deux efforts sont dans la même séance (le second peut être un peu pénalisé) ; le 3000 m ne doit pas dépasser 15 min (sinon le remplacer par un 2000 m) ; la politique de l'app rejette un ajustement trop sensible au retrait d'un point (plus de 10 %), même avec des efforts propres.
 - *Origine :* l'import Nolio lit les records de distance (1000, 1500, 3000 m) et de puissance (3 et 12 min) de la période ; la page de tests (`/diagnostic/tests?module=cs-day | cp-day`) envoie les séances et imprime les fiches.
 
+**Checklist des tests de l'athlète (Dashboard)**
+- Section « Tests à faire pour cet athlète », repliée par défaut ; la ligne de titre résume « X sur Y à jour · Z à retester · W à faire ».
+- Contenu selon l'objectif et le sport : VO₂max, sprint, puissance 5 min, FTP et CP (vélo) ; sprint, VMA, allure seuil et CS (course) ; durabilité pour les objectifs longs. Chaque ligne donne la valeur conservée, la date du dernier test, l'état, le protocole et un lien vers le protocole détaillé avec impression et envoi vers Nolio.
+- **Validité :** 42 jours pour la CP et la CS (politique de l'app), 90 jours pour les autres tests (valeur de coaching, non issue d'études). **Une valeur dont la validité est dépassée n'est jamais retirée** : elle reste affichée et utilisée, et le Dashboard avertit seulement qu'il faudrait retester (ligne de la checklist et tuile du facteur).
+- **Tout tester en quelques jours :** plan de Days (Bike Day, Track Day, puis les Days Puissance critique et Vitesse critique), un Day par jour, au moins 48 h entre deux Days du même sport ; deux versions : tests à faire ou à retester, et plan complet. Les deux s'envoient vers Nolio en une fois.
+- *Limites :* la date d'un test de bilan est celle du bilan, pas du jour exact de chaque effort ; la durabilité et le laboratoire se programment à part ; VO₂max n'a pas de protocole de terrain dans l'app.
+
 Non couvert : rapports PDF d'audit, et le moteur de plans (phase 3).
 
 ## 5. Lacunes et points à vérifier

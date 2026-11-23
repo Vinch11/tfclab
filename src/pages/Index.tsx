@@ -30,6 +30,8 @@ import { IndexSeancesView } from "@/components/IndexSeances";
 import { ExportTools } from "@/components/ExportTools";
 import { SnapshotManager } from "@/components/SnapshotManager";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
+import { DashboardTestChecklist } from "@/components/DashboardTestChecklist";
+import { TestSessionsNolioExport } from "@/components/TestSessionsNolioExport";
 import { LowCRRJustificationCard } from "@/components/LowCRRJustificationCard";
 import { DashboardRecommendationsCard } from "@/components/DashboardRecommendationsCard";
 import { SnapshotEvolutionChart } from "@/components/SnapshotEvolutionChart";
@@ -1849,6 +1851,9 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             input={dashboardInput} compass={dashboardCompass} athleteName={currentAthlete.name} /> : null}
           states={!isExpress && dashboardInput && dashboardCompass ? buildFactorStates(dashboardInput, dashboardCompass) : null}
           factors={!isExpress && dashboardInput && dashboardCompass ? <DashboardFactorStates input={dashboardInput} compass={dashboardCompass} /> : null}
+          testChecklist={!isExpress && dashboardInput ? <DashboardTestChecklist key={dashboardInput.athleteId} input={dashboardInput}
+            renderExporter={(route, plans) => <TestSessionsNolioExport routes={route === "plan-todo" ? ["plan-todo", "plan-all"] : route === "plan-all" ? ["plan-all", "plan-todo"] : [route]}
+              plans={plans} ftp={dashboardInput.ftp} pace={dashboardInput.paceThresholdSecPerKm} />} /> : null}
           compass={fullCompass}
           bilans={<SnapshotManager athleteId={currentAthlete.id} athleteName={currentAthlete.name}
             athleteGoal={currentAthlete.goal || "IM"} activeSnapshotId={currentAthlete.active_snapshot_id} staffMode={staffMode} />}
