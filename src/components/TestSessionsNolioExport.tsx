@@ -17,7 +17,7 @@ import { buildTrackDayNolioSession, buildBikeDayNolioSession, buildCriticalTrack
 import { openPrintableHTML } from "@/lib/openPrintableHTML";
 import { compactSessions, type FieldModule } from "@/lib/diagnostic/compactFieldAssessment";
 
-export type TestRoute = FieldModule | 'durability-run' | 'durability-bike' | 'track-day' | 'bike-day' | 'cs-day' | 'cp-day' | 'week-run' | 'week-bike' | 'critical';
+export type TestRoute = FieldModule | 'durability-run' | 'durability-bike' | 'track-day' | 'bike-day' | 'cs-day' | 'cp-day' | 'plan-todo' | 'plan-all' | 'week-run' | 'week-bike' | 'critical';
 const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSession[] }> = {
   'durability-run': {label:'Durabilité course', build: () => []},
   'durability-bike': {label:'Durabilité vélo', build: () => []},
@@ -31,13 +31,17 @@ const ROUTES: Record<TestRoute, { label: string; build: () => TestingWeekNolioSe
   'bike-day': { label: 'TFCL Bike Day™', build: () => [buildBikeDayNolioSession()] },
   'cs-day': { label: 'Track Day · Vitesse critique (1000 m + 3000 m)', build: () => [buildCriticalTrackDayNolioSession()] },
   'cp-day': { label: 'Bike Day · Puissance critique (3 min + 12 min)', build: () => [buildCriticalBikeDayNolioSession()] },
+  'plan-todo': { label: 'Plan des tests à faire ou à retester', build: () => [] },
+  'plan-all': { label: 'Plan de tests complet', build: () => [] },
   'week-run': { label: 'Semaine de tests course', build: () => buildSportTestingNolioSessions('run') },
   'week-bike': { label: 'Semaine de tests vélo', build: () => buildSportTestingNolioSessions('bike') },
   critical: { label: 'Vitesse critique · 3 efforts', build: buildCriticalSpeedNolioSessions },
 };
 const offset = (s: TestingWeekNolioSession) => (s.weekNumber - 1) * 7 + s.dayIndex;
 
-export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRoute[]; ftp?: number | null; pace?: number | null }) {
+export type TestPlans = Partial<Record<'plan-todo' | 'plan-all', { label: string; sessions: TestingWeekNolioSession[] }>>;
+
+export function TestSessionsNolioExport({ routes, ftp, pace, plans }: { routes: TestRoute[]; ftp?: number | null; pace?: number | null; plans?: TestPlans }) {
   const { currentAthlete } = useAthletes();
   const [route, setRoute] = useState<TestRoute>(routes[0]);
   const [start, setStart] = useState(() => format(new Date(), 'yyyy-MM-dd'));
@@ -46,9 +50,9 @@ export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRou
   const [between, setBetween] = useState('45');
   const [targets, setTargets] = useState({bike:'', run:''});
   const sport = route === 'durability-bike' ? 'bike' : route === 'durability-run' ? 'run' : null;
-  const sessions = useMemo(() => (sport ? durabilitySession(sport, Number(between), targets[sport]) : route === 'hold-bike' || route === 'hold-run'
+  const sessions = useMemo(() => (route === 'plan-todo' || route === 'plan-all' ? (plans?.[route]?.sessions ?? []) : sport ? durabilitySession(sport, Number(between), targets[sport]) : route === 'hold-bike' || route === 'hold-run'
     ? compactSessions(route, Number(holdMinutes), route === 'hold-bike' ? ftp : pace)
-    : ROUTES[route].build()).filter(s => s.structuredWorkout.length > 0), [route, holdMinutes, ftp, pace, sport, between, targets]);
+    : ROUTES[route].build()).filter(s => s.structuredWorkout.length > 0), [route, holdMinutes, ftp, pace, sport, between, targets, plans]);
   const [picked, setPicked] = useState<Set<number>>(new Set());
   const [open, setOpen] = useState<number | null>(null);
   const [nolioId, setNolioId] = useState<number | null>(null);
@@ -105,7 +109,7 @@ export function TestSessionsNolioExport({ routes, ftp, pace }: { routes: TestRou
     <h2 className="text-lg font-semibold">Séances structurées · Nolio</h2>
     <button type="button" disabled={!picked.size} onClick={printSelected} className="text-sm underline print:hidden">Imprimer les fiches sélectionnées</button>
     <div className="grid gap-3 sm:grid-cols-2 print:hidden">
-      {routes.length > 1 && <Select value={route} onValueChange={v => setRoute(v as TestRoute)}><SelectTrigger aria-label="Parcours de tests" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent>{routes.map(r => <SelectItem key={r} value={r}>{ROUTES[r].label}</SelectItem>)}</SelectContent></Select>}
+      {routes.length > 1 && <Select value={route} onValueChange={v => setRoute(v as TestRoute)}><SelectTrigger aria-label="Parcours de tests" className="min-h-11"><SelectValue /></SelectTrigger><SelectContent>{routes.map(r => <SelectItem key={r} value={r}>{(r === 'plan-todo' || r === 'plan-all') && plans?.[r] ? plans[r]!.label : ROUTES[r].label}</SelectItem>)}</SelectContent></Select>}
       {sport && <><p className="sm:col-span-2 text-sm">{separateDay} Choisir une cible facile déjà tolérée et la durée entre les deux blocs. Durée totale prévue : {40 + Number(between)} min.</p>
         <label>Cible des deux blocs ({sport === 'run' ? 'min/km' : 'W'})<Input value={targets[sport]} placeholder={sport === 'run' ? '5:30' : '180'} onChange={e=>setTargets({...targets,[sport]:e.target.value})} /></label>
         <label>Endurance entre les blocs (min)<Input type="number" min="1" max="300" value={between} onChange={e=>setBetween(e.target.value)} /></label></>}

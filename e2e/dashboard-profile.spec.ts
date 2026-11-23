@@ -24,5 +24,16 @@ test('the dashboard shows the profile, every factor against its ideal and the ra
   await expect(limiters).toContainText('Bloc d’entraînement ciblé par le moteur');
   await expect(limiters).toContainText('Mesurés, sans cible sourcée donc non classés');
   await expect(limiters.getByRole('heading', { name: 'Priorité du moteur de plans' })).toHaveCount(0);
+  // Checklist des tests : repliée par défaut ; une valeur ancienne reste affichée avec l'avertissement « à retester ».
+  const checklist = page.locator('details[aria-label="Tests à faire pour cet athlète"]');
+  await expect(checklist).toBeVisible();
+  await expect(checklist).not.toHaveAttribute('open', '');
+  await expect(checklist.locator('summary').first()).toContainText('à retester');
+  await checklist.locator('summary').first().click();
+  await expect(checklist.getByText('Valeur conservée').first()).toBeVisible();
+  await expect(checklist.getByText(/validité 90 jours dépassée/).first()).toBeVisible();
+  await expect(checklist.getByRole('region', { name: 'Tout tester en quelques jours' })).toContainText('Plan complet');
+  await checklist.getByRole('button', { name: 'Voir et envoyer le plan complet' }).click();
+  await expect(page.getByTestId('exporter')).toHaveText('Exporteur Nolio : plan-all');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

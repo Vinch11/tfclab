@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ExportTools } from "@/components/ExportTools";
 import { CloudDataProvider } from "@/contexts/CloudDataContext";
 import { CoachDashboard } from "@/components/CoachDashboard";
+import { DashboardTestChecklist } from "@/components/DashboardTestChecklist";
 import { CompassProfileComparison } from "@/components/CompassProfileComparison";
 import { DashboardFactorStates } from "@/components/DashboardFactorStates";
 import { buildFactorStates } from "@/lib/coachingCompass/factorStates";
@@ -51,6 +52,7 @@ export default function DashboardProfileHarness() {
           profile={<CompassProfileComparison input={input} compass={compass} athleteName="Athlète fictif" />}
           states={buildFactorStates(input, compass)}
           factors={<DashboardFactorStates input={input} compass={compass} />}
+          testChecklist={<DashboardTestChecklist input={input} today="2027-03-01" renderExporter={(route) => <p data-testid="exporter">Exporteur Nolio : {route}</p>} />}
           compass={<p>Compass complet</p>} bilans={<p>Bilans</p>} analyses={<p>Analyses</p>}
         />
         {reports && <CloudDataProvider><ExportTools athlete={athlete} dashboardInput={input} snapshots={[snapshot,prior]} tests={[testRide]} ambition="competitor" open onOpenChange={setReports}/></CloudDataProvider>}
