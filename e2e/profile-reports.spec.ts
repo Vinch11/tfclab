@@ -1,6 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import { fileURLToPath } from 'node:url';
 
-test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et ordinateur', async ({page, context}) => {
+GlobalWorkerOptions.workerSrc = fileURLToPath(new URL('../node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url));
+
+test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et ordinateur', async ({page, context, browserName}) => {
+  // The document also supports system fonts when the external font CDN is unavailable.
+  await context.route('https://fonts.googleapis.com/**', route => route.fulfill({contentType: 'text/css', body: ''}));
   await context.route('**/rest/v1/**', async route => {
     const calendar = new URL(route.request().url()).pathname.endsWith('/training_plan');
     await route.fulfill({json:calendar ? [
@@ -41,6 +47,38 @@ test('les deux éditions du dashboard ouvrent le bon contenu sur téléphone et 
       await expect(report.locator('#reperes-swim img')).toBeVisible();
     }
     expect(await report.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await report.emulateMedia({media:'print'});
+    await report.setViewportSize({width:650,height:920});
+    await report.evaluate(async () => {
+      await document.fonts.ready;
+      await Promise.all(Array.from(document.images, img => img.decode()));
+    });
+    const cover = report.locator('.folio-cover');
+    expect((await cover.boundingBox())!.height).toBeLessThan(945); // 250 mm of usable A4 height
+    await expect(report.locator('.tfc-print-helper')).toBeHidden();
+    await expect(report.locator('#empreinte .print-introduction').first()).toContainText('VO₂max');
+    if (browserName === 'chromium') {
+      // Allow room for native printer headers and footers, as on a phone.
+      await report.addStyleTag({content:'@page { margin:20mm !important }'});
+      const pdf = await getDocument({data: new Uint8Array(await report.pdf({
+        format:'A4', printBackground:true, preferCSSPageSize:true,
+      })), isEvalSupported:false}).promise;
+      try {
+        const first = await (await pdf.getPage(1)).getTextContent();
+        const firstPage = first.items.map(item => 'str' in item ? item.str : '').join(' ');
+        for (const fact of await cover.locator('dd').allTextContents()) expect(firstPage).toContain(fact);
+        expect(firstPage).toContain('Camille');
+        const pages = [];
+        for (let i = 2; i <= pdf.numPages; i++) {
+          const pageText = await (await pdf.getPage(i)).getTextContent();
+          pages.push(pageText.items.map(item => 'str' in item ? item.str : '').join(' '));
+        }
+        expect(pages.join(' ')).toContain('Enchaînement spécifique');
+        expect(pages.join(' ')).toContain(audience === 'coach' ? 'Note réservée au coach' : 'Ce que tu observeras avec ton coach');
+      } finally {
+        await pdf.destroy();
+      }
+    }
     await report.close();
   }
 });
