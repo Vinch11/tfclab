@@ -6,7 +6,7 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery, ChevronDown } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
@@ -36,9 +35,7 @@ import {
   formatSecToPace, 
   computeRunEconomyScore, 
   getEconomyLabelStyle,
-  getEconomyPotentielBonus
 } from "@/lib/runningEconomySnapshot";
-import { resolveRunningEconomy } from "@/lib/runningEconomySimple";
 import { 
   estimateVLamaxCap, 
   canEstimateVLamaxCap, 
@@ -48,7 +45,8 @@ import {
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
-import { checkSnapshotForm } from "@/lib/snapshotTestDays";
+import { checkSnapshotForm, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 import { NolioCriticalRecordsImporter } from "@/components/NolioCriticalRecordsImporter";
 import { NolioDurabilityFinder } from "@/components/NolioDurabilityFinder";
@@ -92,11 +90,13 @@ const INITIAL_FORM_STATE = {
   sport_main: "", // "" = auto (déduit de l'objectif), "run"/"bike"/"triathlon"/"swim"
   confidence: "",
   fc_max: "",
+  fc_repos: "",
   vma: "",
   ftp: "",
   ftp_origin: "" as ThresholdOrigin | "",
   css: "",
   vo2max: "",
+  vo2max_origin: "" as Vo2maxOrigin | "",
   vlamax: "",
   vlamax_run: "", // ✅ VLamax CAP
   weight_kg: "",
@@ -190,11 +190,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       sport_main: (s as any).sport_main || "",
       confidence: s.confidence != null ? String(s.confidence) : "",
       fc_max: s.fc_max != null ? String(s.fc_max) : "",
+      fc_repos: s.fc_repos != null ? String(s.fc_repos) : "",
       vma: s.vma != null ? String(s.vma) : "",
       ftp: s.ftp != null ? String(s.ftp) : "",
       ftp_origin: readThresholdOrigin(s.field_sources, "ftp") ?? "",
       css: s.css != null ? String(s.css) : "",
-      vo2max: s.vo2max != null ? String(s.vo2max) : "",
+      vo2max: (() => { const v = readVo2max(s).value; return v != null ? String(v) : ""; })(),
+      vo2max_origin: readVo2max(s).origin ?? "",
       vlamax: s.vlamax != null ? String(s.vlamax) : "",
       vlamax_run: s.vlamax_run != null ? String(s.vlamax_run) : "",
       weight_kg: s.weight_kg != null ? String(s.weight_kg) : "",
@@ -222,7 +224,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref: s.run_hr_ref_bpm != null ? String(s.run_hr_ref_bpm) : "",
       run_duration_min: s.run_duration_min != null ? String(s.run_duration_min) : "",
       run_hr_drift_pct: s.run_hr_drift_pct != null ? String(s.run_hr_drift_pct) : "",
-      run_economy_score_manual: s.run_economy_score != null ? String(s.run_economy_score) : "",
+      run_economy_score_manual: "",
 
       // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
@@ -259,7 +261,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     if (blockIfInvalid()) return;
     // ✅ VLamax uniquement si mode Staff, sinon null (sera calculée)
     const vlamax = staffMode ? parseNum(formData.vlamax) : null;
-    const vo2max = parseNum(formData.vo2max);
+    const vo2 = writeVo2max(
+      withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
+    );
+    const vo2max = vo2.vo2max;
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
     // Calculer l'économie CAP
@@ -290,8 +296,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       ...staffLactateUpdate({}, vlamax, vlamaxRun),
       cycle_tag: formData.cycle_tag || null,
       sport_main: formData.sport_main || null,
-      confidence: parseNum(formData.confidence),
+      confidence: snapshotConfidence(formData as unknown as Record<string, string>),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
+      fc_repos: parseNum(formData.fc_repos) ? Math.round(parseNum(formData.fc_repos)!) : null,
       vma: parseNum(formData.vma),
       ftp: parseNum(formData.ftp) ? Math.round(parseNum(formData.ftp)!) : null,
       css: parseNum(formData.css),
@@ -307,11 +314,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         p30s_w: parseNum(formData.p30s_w) ? Math.round(parseNum(formData.p30s_w)!) : null,
         p60s_w: parseNum(formData.p60s_w) ? Math.round(parseNum(formData.p60s_w)!) : null,
         map5min_w: parseNum(formData.map5min_w) ? Math.round(parseNum(formData.map5min_w)!) : null,
-        protocol_quality: parseNum(formData.protocol_quality) ? Math.round(parseNum(formData.protocol_quality)!) : 3,
+        protocol_quality: snapshotProtocolQuality(formData as unknown as Record<string, string>),
       } as Record<string, unknown>),
 
       // ✅ PRO TTE
-      tte_mode: (formData.tte_mode as string) || "LOAD",
+      // TTE estimé par la charge (module A) retiré de la saisie : un TTE observé passe en module B.
+      tte_mode: parseNum(formData.tte_observed_min) ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
@@ -322,12 +330,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
       run_duration_min: runDuration ? Math.round(runDuration) : null,
       run_hr_drift_pct: runDrift,
-      run_economy_score: (() => { const m = parseNum(formData.run_economy_score_manual); return m != null ? Math.round(Math.max(0, Math.min(100, m))) : economyResult.score; })(),
+      run_economy_score: economyResult.score,
       run_economy_label: economyResult.label,
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
-      field_sources: withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      field_sources: vo2.field_sources as DbSnapshot["field_sources"],
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
@@ -359,7 +367,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     // ✅ VLamax uniquement si mode Staff, sinon conserver la valeur existante
     const vlamax = staffMode ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
-    const vo2max = parseNum(formData.vo2max);
+    const vo2 = writeVo2max(
+      withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
+    );
+    const vo2max = vo2.vo2max;
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
     // Calculer l'économie CAP
@@ -385,8 +397,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       date: formData.date,
       cycle_tag: formData.cycle_tag || null,
       sport_main: formData.sport_main || null,
-      confidence: parseNum(formData.confidence),
+      confidence: snapshotConfidence(formData as unknown as Record<string, string>),
       fc_max: parseNum(formData.fc_max) ? Math.round(parseNum(formData.fc_max)!) : null,
+      fc_repos: parseNum(formData.fc_repos) ? Math.round(parseNum(formData.fc_repos)!) : null,
       vma: parseNum(formData.vma),
       ftp: parseNum(formData.ftp) ? Math.round(parseNum(formData.ftp)!) : null,
       css: parseNum(formData.css),
@@ -403,11 +416,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         p30s_w: parseNum(formData.p30s_w) ? Math.round(parseNum(formData.p30s_w)!) : null,
         p60s_w: parseNum(formData.p60s_w) ? Math.round(parseNum(formData.p60s_w)!) : null,
         map5min_w: parseNum(formData.map5min_w) ? Math.round(parseNum(formData.map5min_w)!) : null,
-        protocol_quality: parseNum(formData.protocol_quality) ? Math.round(parseNum(formData.protocol_quality)!) : 3,
+        protocol_quality: snapshotProtocolQuality(formData as unknown as Record<string, string>),
       } as Record<string, unknown>),
 
       // ✅ PRO TTE
-      tte_mode: (formData.tte_mode as string) || "LOAD",
+      // TTE estimé par la charge (module A) retiré de la saisie : un TTE observé passe en module B.
+      tte_mode: parseNum(formData.tte_observed_min) ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
       ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
@@ -418,12 +432,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_hr_ref_bpm: runHr ? Math.round(runHr) : null,
       run_duration_min: runDuration ? Math.round(runDuration) : null,
       run_hr_drift_pct: runDrift,
-      run_economy_score: (() => { const m = parseNum(formData.run_economy_score_manual); return m != null ? Math.round(Math.max(0, Math.min(100, m))) : economyResult.score; })(),
+      run_economy_score: economyResult.score ?? editingSnapshot.run_economy_score ?? null,
       run_economy_label: economyResult.label,
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
-      field_sources: withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      field_sources: vo2.field_sources as DbSnapshot["field_sources"],
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
@@ -499,6 +513,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     }));
   };
 
+  const applyNolioRestingHr = useCallback((v: string) => {
+    setNolioFields(prevSet => new Set(prevSet).add("fc_repos"));
+    setFormData(prev => ({ ...prev, fc_repos: v }));
+  }, [setFormData]);
+
   const applyNolioPeriod = (fields: SnapshotRecordFields, notes: string) => {
     setNolioFields(prevSet => {
       const next = new Set(prevSet);
@@ -550,31 +569,35 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           setNolioFields(prevSet => { if (!prevSet.has(key)) return prevSet; const n = new Set(prevSet); n.delete(key); return n; });
           setFormData(prev => ({ ...prev, [key]: value }));
         }}
+        renderExtra={(key) => {
+          if (key === "ftp") return <div className="mt-1"><ThresholdOriginSelect field="ftp" value={formData.ftp_origin} onChange={(v) => setFormData(prev => ({ ...prev, ftp_origin: v }))} /></div>;
+          if (key === "pace_threshold") return <div className="mt-1"><ThresholdOriginSelect field="pace_threshold_sec_per_km" value={formData.pace_threshold_origin} onChange={(v) => setFormData(prev => ({ ...prev, pace_threshold_origin: v }))} /></div>;
+          if (key === "fc_repos") return <NolioRestingHrHint athleteId={athleteId} value={formData.fc_repos ?? ""} onApply={applyNolioRestingHr} />;
+          if (key === "vo2max") return (
+            <div className="mt-1 space-y-1">
+              <Select value={formData.vo2max_origin || undefined} onValueChange={(v) => setFormData(prev => ({ ...prev, vo2max_origin: v as Vo2maxOrigin }))}>
+                <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="Provenance de la VO₂max" /></SelectTrigger>
+                <SelectContent>{VO2MAX_ORIGIN_OPTIONS.map(o => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
+              </Select>
+              {formData.vo2max_origin === "watch" && <p className="text-[11px] text-muted-foreground">Gardée pour information : elle n’entre dans aucun calcul.</p>}
+            </div>
+          );
+          return null;
+        }}
       />
 
       <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
 
-      <p className="text-sm font-medium pt-1">Tous les champs</p>
+      <p className="text-sm font-medium pt-1">Compléments</p>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="date">Date</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="cycle_tag">Tag de cycle</Label>
-          <Input
-            id="cycle_tag"
-            placeholder="Base1, Build2, Peak..."
-            value={formData.cycle_tag}
-            onChange={(e) => setFormData({ ...formData, cycle_tag: e.target.value })}
-          />
-        </div>
+      <div>
+        <Label htmlFor="cycle_tag">Tag de cycle <span className="text-xs text-muted-foreground font-normal">(optionnel)</span></Label>
+        <Input
+          id="cycle_tag"
+          placeholder="Base1, Build2, Peak..."
+          value={formData.cycle_tag}
+          onChange={(e) => setFormData({ ...formData, cycle_tag: e.target.value })}
+        />
       </div>
 
       {/* 🎯 Sport principal — verrouille le routage VLamax (CAP vs vélo) et les cibles */}
@@ -627,19 +650,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="vo2max">VO₂max</Label>
-          <Input
-            id="vo2max"
-            type="number"
-            step="0.1"
-            placeholder="55"
-            value={formData.vo2max}
-            onChange={(e) => setFormData({ ...formData, vo2max: e.target.value })}
-          />
-        </div>
-        
+      <div className="grid grid-cols-2 gap-4">
         {/* ✅ VLamax - UNIQUEMENT visible en mode Staff */}
         {staffMode ? (
           <div>
@@ -699,293 +710,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           </div>
         )}
 
-        <div>
-          <Label htmlFor="confidence">Niveau de fiabilité (0-1)</Label>
-          <Input
-            id="confidence"
-            type="number"
-            step="0.1"
-            min="0"
-            max="1"
-            placeholder="0.8"
-            value={formData.confidence}
-            onChange={(e) => setFormData({ ...formData, confidence: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="ftp">FTP (W)</Label>
-          <Input
-            id="ftp"
-            type="number"
-            placeholder="280"
-            value={formData.ftp}
-            onChange={(e) => setFormData({ ...formData, ftp: e.target.value })}
-          />
-          <div className="mt-1">
-            <ThresholdOriginSelect field="ftp" value={formData.ftp_origin} onChange={(v) => setFormData({ ...formData, ftp_origin: v })} />
-          </div>
-        </div>
-        <div>
-          <Label htmlFor="vma">VMA (km/h)</Label>
-          <Input
-            id="vma"
-            type="number"
-            step="0.1"
-            placeholder="18"
-            value={formData.vma}
-            onChange={(e) => setFormData({ ...formData, vma: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="fc_max">FC max</Label>
-          <Input
-            id="fc_max"
-            type="number"
-            placeholder="190"
-            value={formData.fc_max}
-            onChange={(e) => setFormData({ ...formData, fc_max: e.target.value })}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="weight_kg">Poids (kg)</Label>
-          <Input
-            id="weight_kg"
-            type="number"
-            step="0.1"
-            placeholder="70"
-            value={formData.weight_kg}
-            onChange={(e) => setFormData({ ...formData, weight_kg: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="pmax_5s">Pmax 5s (W)</Label>
-          <Input
-            id="pmax_5s"
-            type="number"
-            placeholder="1200"
-            value={formData.pmax_5s}
-            onChange={(e) => setFormData({ ...formData, pmax_5s: e.target.value })}
-          />
-        </div>
-        <div>
-          <Label htmlFor="css">CSS (sec/100m)</Label>
-          <Input
-            id="css"
-            type="number"
-            step="0.01"
-            placeholder="1.40"
-            value={formData.css}
-            onChange={(e) => setFormData({ ...formData, css: e.target.value })}
-          />
-        </div>
-      </div>
-
-      {/* ✅ VLamax Bike V2 Enhanced - Power Indices */}
-      <div className="p-4 rounded-lg border-2 border-amber-500/30 bg-amber-500/5">
-        <div className="flex items-center gap-2 mb-3">
-          <p className="text-base font-semibold">⚡ Indices de Puissance (VLamax V2)</p>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground" />
-              </TooltipTrigger>
-              <TooltipContent className="max-w-sm">
-                <p className="font-medium mb-2">Formule VLamax V2 Enhanced</p>
-                <p className="text-xs mb-2">Ces indices de puissance permettent une estimation VLamax plus précise et discriminante.</p>
-                <p className="text-xs">P30s, P60s = meilleurs efforts sur 30s et 60s. MAP5min = puissance max aérobie sur 5 minutes.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <Badge variant="outline" className="text-[10px] ml-auto">Staff avancé</Badge>
-        </div>
-        
-        <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
-          <p className="text-sm text-muted-foreground">
-            Compléter ces données pour activer la formule VLamax V2 Enhanced avec calibration cluster TFCL.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="p30s_w">P30s (W)</Label>
-            <Input
-              id="p30s_w"
-              type="number"
-              placeholder="850"
-              value={formData.p30s_w}
-              onChange={(e) => setFormData({ ...formData, p30s_w: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Meilleur 30s</p>
-          </div>
-          <div>
-            <Label htmlFor="p60s_w">P60s (W)</Label>
-            <Input
-              id="p60s_w"
-              type="number"
-              placeholder="650"
-              value={formData.p60s_w}
-              onChange={(e) => setFormData({ ...formData, p60s_w: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Meilleur 1 min</p>
-          </div>
-          <div>
-            <Label htmlFor="map5min_w">MAP 5min (W)</Label>
-            <Input
-              id="map5min_w"
-              type="number"
-              placeholder="350"
-              value={formData.map5min_w}
-              onChange={(e) => setFormData({ ...formData, map5min_w: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground mt-1">Puissance aérobie max</p>
-          </div>
-          <div>
-            <Label htmlFor="protocol_quality">Qualité protocole</Label>
-            <Select value={formData.protocol_quality} onValueChange={(v) => setFormData({ ...formData, protocol_quality: v })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 - Très faible</SelectItem>
-                <SelectItem value="2">2 - Faible</SelectItem>
-                <SelectItem value="3">3 - Moyenne</SelectItem>
-                <SelectItem value="4">4 - Bonne</SelectItem>
-                <SelectItem value="5">5 - Excellente</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-muted-foreground mt-1">Fiabilité des tests</p>
-          </div>
-        </div>
-        
-        {/* Indicateur de couverture */}
-        {(() => {
-          const hasP30 = !!formData.p30s_w;
-          const hasP60 = !!formData.p60s_w;
-          const hasMAP = !!formData.map5min_w;
-          const hasFTP = !!formData.ftp;
-          const count = [hasP30, hasP60, hasMAP, hasFTP].filter(Boolean).length;
-          const complete = count >= 3;
-          return (
-            <div className={`mt-3 p-2 rounded text-xs ${complete ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"}`}>
-              {complete 
-                ? `✓ VLamax V2 Enhanced activée (${count}/4 indices)`
-                : `⚠️ ${count}/4 indices renseignés — ajouter P30s, P60s ou MAP5min pour activer V2 Enhanced`
-              }
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* ✅ TTE PRO */}
-      <div className="p-3 rounded-lg border border-border bg-secondary/20">
-        <p className="text-sm font-medium mb-2">TTE (PRO) — choisir le module</p>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label>Mode TTE</Label>
-            <Select value={formData.tte_mode} onValueChange={(v) => setFormData({ ...formData, tte_mode: v as any })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="LOAD">Module A — Estimation via charge (FTP + TSS 7 jours)</SelectItem>
-                <SelectItem value="OBSERVED">Module B — TTE observé (test seuil)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="tss_7d" className={formData.tte_mode === "LOAD" && !formData.tss_7d ? "text-warning" : ""}>
-              TSS 7 jours {formData.tte_mode === "LOAD" && <span className="text-xs">(requis pour Module A)</span>}
-            </Label>
-            <Input
-              id="tss_7d"
-              type="number"
-              placeholder="ex: 450"
-              value={formData.tss_7d}
-              onChange={(e) => setFormData({ ...formData, tss_7d: e.target.value })}
-              className={formData.tte_mode === "LOAD" && !formData.tss_7d ? "border-warning" : ""}
-            />
-            {formData.tte_mode === "LOAD" && !formData.tss_7d && (
-              <p className="text-xs text-warning mt-1">⚠️ Renseignez TSS 7j pour un TTE fiable</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3">
-          <Label htmlFor="tte_observed_min" className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "text-warning" : ""}>
-            Durée tenue au seuil — vélo (min) {formData.tte_mode === "OBSERVED" && <span className="text-xs">(requis pour Module B)</span>}
-          </Label>
-          <Input
-            id="tte_observed_min"
-            type="number"
-            placeholder="ex: 55"
-            value={formData.tte_observed_min}
-            onChange={(e) => setFormData({ ...formData, tte_observed_min: e.target.value })}
-            className={formData.tte_mode === "OBSERVED" && !formData.tte_observed_min ? "border-warning" : ""}
-          />
-          {formData.tte_mode === "OBSERVED" && !formData.tte_observed_min && (
-            <p className="text-xs text-warning mt-1">⚠️ Renseignez le TTE mesuré pour utiliser le Module B</p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">
-            Module B recommandé : effort au seuil continu / CP-like. Plus fiable que l'estimation par charge.
-          </p>
-        </div>
-
-        <div className="mt-3">
-          <Label htmlFor="tte_observed_min_run">Durée tenue au seuil — course (min)</Label>
-          <Input
-            id="tte_observed_min_run"
-            type="number"
-            placeholder="ex: 40"
-            value={formData.tte_observed_min_run}
-            onChange={(e) => setFormData({ ...formData, tte_observed_min_run: e.target.value })}
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Mesurée en course uniquement. Laissez vide si non testée : la durabilité course affichera « Données insuffisantes ».
-          </p>
-        </div>
-
-        {/* Preview */}
-        <div className="mt-3 text-xs text-muted-foreground">
-          {(() => {
-            const tte = computeTTEEffectif({
-              ftp: parseNum(formData.ftp),
-              tss_7d: parseNum(formData.tss_7d),
-              tte_mode: formData.tte_mode as any,
-              tte_observed_min: parseNum(formData.tte_observed_min),
-              objectif: athleteGoal,
-            });
-            const isIncomplete = (formData.tte_mode === "LOAD" && !formData.tss_7d) || 
-                                  (formData.tte_mode === "OBSERVED" && !formData.tte_observed_min);
-            return (
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-2">
-                  <span className={`px-2 py-1 rounded border ${isIncomplete ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
-                    TTE final: <b className="text-foreground">{tte.tte_min} min</b>
-                  </span>
-                  <span className={`px-2 py-1 rounded border ${tte.source === "unknown" ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
-                    Source: <b className="text-foreground">{getSourceLabel(tte.source)}</b>
-                  </span>
-                  <span className={`px-2 py-1 rounded border ${tte.confidence < 0.6 ? "bg-warning/10 border-warning/50" : "bg-background border-border"}`}>
-                    Fiabilité: <b className="text-foreground">{tte.confidence >= 0.7 ? "Élevée" : tte.confidence >= 0.5 ? "Modérée" : "Limitée"}</b>
-                  </span>
-                </div>
-                {isIncomplete && (
-                  <p className="text-warning text-xs">
-                    ⚠️ Données manquantes — le TTE utilise un fallback moins fiable
-                  </p>
-                )}
-              </div>
-            );
-          })()}
-        </div>
       </div>
 
       {/* 🏃 ÉCONOMIE DE COURSE (CAP) - Module Staff-Grade */}
@@ -1007,28 +731,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </TooltipProvider>
           </div>
           
-          {/* Description pédagogique */}
-          <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
-            <p className="text-sm text-muted-foreground mb-2">
-              Cette section évalue l'efficience en course à pied : combien d'effort cardiaque est nécessaire pour maintenir une allure donnée dans la durée.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              <strong className="text-foreground">L'économie de course est un facteur clé</strong> en semi-marathon, marathon, trail et triathlon longue distance.
-            </p>
-          </div>
-
-          {/* Conseils intégrés */}
-          <div className="flex flex-wrap gap-2 mb-4 text-xs">
-            <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              💡 Sortie continue 60-90 min idéale
-            </span>
-            <span className="px-2 py-1 rounded bg-blue-500/10 text-blue-600 border border-blue-500/20">
-              💡 Tempo stable 30-45 min aussi valable
-            </span>
-            <span className="px-2 py-1 rounded bg-muted/50 text-muted-foreground border border-muted">
-              ⚠️ Éviter séances fractionnées/irrégulières
-            </span>
-          </div>
+          <p className="text-xs text-muted-foreground mb-3">Rempli par le Track Day : allure stable, FC moyenne et dérive cardiaque sur la même séance.</p>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -1081,139 +784,27 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           </div>
 
-          {/* Saisie manuelle directe du score (override) + estimation auto VMA/Allure */}
-          <div className="mt-4 p-3 rounded-lg border border-primary/30 bg-primary/5">
-            <Label htmlFor="run_economy_score_manual" className="flex items-center gap-1.5">
-              <span className="text-sm font-semibold">Score Économie de course (0–100) — manuel</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      Saisie directe d'un score d'économie de course connu (test labo, observation coach).
-                      Vide = score auto-calculé depuis allure + FC + dérive (ou estimation VMA/Allure).
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Label>
-            <div className="grid grid-cols-2 gap-3 mt-1">
-              <Input
-                id="run_economy_score_manual"
-                type="number"
-                step="1"
-                min="0"
-                max="100"
-                placeholder="Auto"
-                value={formData.run_economy_score_manual}
-                onChange={(e) => setFormData({ ...formData, run_economy_score_manual: e.target.value })}
-              />
-              {(() => {
-                const vmaNum = parseNum(formData.vma);
-                const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
-                const est = resolveRunningEconomy({ vmaKmh: vmaNum, pace30MinSecPerKm: paceThresholdSec });
-                if (!est || est.score == null) {
-                  return <div className="text-xs text-muted-foreground self-center">Estim. auto: renseigner VMA + Allure seuil</div>;
-                }
-                return (
-                  <div className="text-xs self-center">
-                    <span className="text-muted-foreground">≈ </span>
-                    <span className="font-semibold text-foreground">{est.score}/100</span>
-                    {est.mlKgKm != null && <span className="text-muted-foreground"> · {est.mlKgKm.toFixed(1)} ml/kg/km</span>}
-                    <div className="text-[10px] text-muted-foreground mt-0.5">Estim. auto (VMA / Allure)</div>
-                  </div>
-                );
-              })()}
-            </div>
-          </div>
-
-
-          <div className="mt-4 p-3 rounded-lg border border-border bg-background/50">
-            {(() => {
-              const paceSec = parsePaceToSec(formData.run_pace_ref);
-              const hr = parseNum(formData.run_hr_ref);
-              const duration = parseNum(formData.run_duration_min);
-              const drift = parseNum(formData.run_hr_drift_pct);
-              const fcMax = parseNum(formData.fc_max);
-              
-              const result = computeRunEconomyScore({
-                paceSec: paceSec ? Math.round(paceSec) : null,
-                hr: hr ? Math.round(hr) : null,
-                durationMin: duration ? Math.round(duration) : null,
-                driftPct: drift,
-                fcMax: fcMax ? Math.round(fcMax) : null,
-              });
-              
-              const style = getEconomyLabelStyle(result.label);
-              
-              if (result.score === null) {
-                return (
-                  <div className="text-center">
-                    <span className="text-sm text-muted-foreground">
-                      Score non calculé — renseignez allure + FC pour activer l'analyse
-                    </span>
-                  </div>
-                );
-              }
-              
-              // Bonus/Malus pour Potentiel Physiologique
-              const bonusInfo = getEconomyPotentielBonus(result.score, result.label);
-              
-              return (
-                <div className="space-y-3">
-                  <div className="flex flex-wrap gap-3 items-center justify-center">
-                    <div className={`px-4 py-2 rounded-lg ${style.bg}`}>
-                      <span className={`text-2xl font-bold ${style.text}`}>{result.score}</span>
-                      <span className="text-sm text-muted-foreground">/100</span>
-                    </div>
-                    <div className={`px-3 py-2 rounded-lg ${style.bg}`}>
-                      <span className="text-lg">{style.icon}</span>
-                      <span className={`ml-2 font-medium ${style.text}`}>{style.labelFr}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Interprétation du score */}
-                  <div className="text-center">
-                    {result.score >= 75 && (
-                      <p className="text-xs text-green-600">
-                        ✅ Économie excellente — Allure durable, faible dérive cardiaque
-                        <br/><strong>→ BONUS important sur Potentiel Physiologique CAP</strong>
-                      </p>
-                    )}
-                    {result.score >= 55 && result.score < 75 && (
-                      <p className="text-xs text-blue-600">
-                        ✔️ Bonne économie — Base solide mais perfectible
-                        <br/><strong>→ BONUS modéré sur Potentiel Physiologique CAP</strong>
-                      </p>
-                    )}
-                    {result.score < 55 && (
-                      <p className="text-xs text-orange-600">
-                        ⚠️ Économie fragile — Coût cardiaque élevé, dérive importante
-                        <br/><strong>→ MALUS sur Potentiel Physiologique CAP</strong>
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="text-center text-xs text-muted-foreground border-t border-border pt-2">
-                    Impact Potentiel Physiologique: <span className={bonusInfo.bonus >= 0 ? "text-green-600" : "text-orange-600"}>
-                      {bonusInfo.description}
-                    </span>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-          
-          {/* Méthodologie */}
-          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border">
-            <p className="text-xs text-muted-foreground">
-              <strong className="text-foreground">📊 Méthodologie:</strong> Ce score est basé sur des données terrain.
-              Il ne remplace pas un test laboratoire mais permet une analyse fiable pour la prise de décision coach.
-              La précision dépend directement de la qualité des données saisies.
-            </p>
-          </div>
+          {(() => {
+            const paceSec = parsePaceToSec(formData.run_pace_ref);
+            const hr = parseNum(formData.run_hr_ref);
+            const duration = parseNum(formData.run_duration_min);
+            const drift = parseNum(formData.run_hr_drift_pct);
+            const fcMax = parseNum(formData.fc_max);
+            const result = computeRunEconomyScore({
+              paceSec: paceSec ? Math.round(paceSec) : null,
+              hr: hr ? Math.round(hr) : null,
+              durationMin: duration ? Math.round(duration) : null,
+              driftPct: drift,
+              fcMax: fcMax ? Math.round(fcMax) : null,
+            });
+            return (
+              <p className="mt-3 text-xs text-muted-foreground">
+                {result.score === null
+                  ? "Repère non calculé : renseigner allure et FC."
+                  : `Repère cardiaque calculé : ${result.score}/100 (estimation à partir de la FC, pas une mesure d'économie).`}
+              </p>
+            );
+          })()}
         </div>
       )}
 
@@ -1252,103 +843,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="pace_threshold">Allure Seuil (min:sec/km)</Label>
-              <Input
-                id="pace_threshold"
-                type="text"
-                placeholder="4:30"
-                value={formData.pace_threshold}
-                onChange={(e) => setFormData({ ...formData, pace_threshold: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Allure tenable ~1h (SL2)</p>
-              <div className="mt-1">
-                <ThresholdOriginSelect field="pace_threshold_sec_per_km" value={formData.pace_threshold_origin} onChange={(v) => setFormData({ ...formData, pace_threshold_origin: v })} />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="sprint_15s">Sprint 15s (mètres)</Label>
-              <Input
-                id="sprint_15s"
-                type="number"
-                step="0.1"
-                placeholder="85"
-                value={formData.sprint_15s}
-                onChange={(e) => setFormData({ ...formData, sprint_15s: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Distance sur 15s max</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mt-3">
-            <div>
-              <Label htmlFor="run_power_max">Puissance Max CAP (W)</Label>
-              <Input
-                id="run_power_max"
-                type="number"
-                placeholder="450"
-                value={formData.run_power_max}
-                onChange={(e) => setFormData({ ...formData, run_power_max: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Stryd/Garmin: sprint 5-10s</p>
-            </div>
-            <div>
-              <Label htmlFor="run_power_threshold">Puissance Seuil CAP (W)</Label>
-              <Input
-                id="run_power_threshold"
-                type="number"
-                placeholder="280"
-                value={formData.run_power_threshold}
-                onChange={(e) => setFormData({ ...formData, run_power_threshold: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">rFTP / effort ~1h</p>
-            </div>
-          </div>
-
-          {/* Courbe de puissance running (Score G CAP) */}
-          <Collapsible>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full justify-between text-xs mt-2">
-                <span>⚡ Courbe de puissance running (Score G)</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2">
-              <p className="text-xs text-muted-foreground mb-3">
-                Données Stryd/Garmin/COROS pour activer la fusion duale Score G + VMA/Seuil.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="run_power_1s" className="text-xs">P1s (W)</Label>
-                  <Input id="run_power_1s" type="number" placeholder="800" value={formData.run_power_1s}
-                    onChange={(e) => setFormData({ ...formData, run_power_1s: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="run_power_5s" className="text-xs">P5s (W)</Label>
-                  <Input id="run_power_5s" type="number" placeholder="650" value={formData.run_power_5s}
-                    onChange={(e) => setFormData({ ...formData, run_power_5s: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="run_power_30s" className="text-xs">P30s (W)</Label>
-                  <Input id="run_power_30s" type="number" placeholder="500" value={formData.run_power_30s}
-                    onChange={(e) => setFormData({ ...formData, run_power_30s: e.target.value })} />
-                </div>
-                <div>
-                  <Label htmlFor="run_power_60s" className="text-xs">P60s (W)</Label>
-                  <Input id="run_power_60s" type="number" placeholder="420" value={formData.run_power_60s}
-                    onChange={(e) => setFormData({ ...formData, run_power_60s: e.target.value })} />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="run_power_5min" className="text-xs">P5min (W)</Label>
-                  <Input id="run_power_5min" type="number" placeholder="340" value={formData.run_power_5min}
-                    onChange={(e) => setFormData({ ...formData, run_power_5min: e.target.value })} />
-                  <p className="text-xs text-muted-foreground mt-1">Référence aérobie running</p>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
+          <p className="text-xs text-muted-foreground mb-2">Calculée à partir du bloc Course de la fiche (sprint 15 s, VMA, allure seuil).</p>
 
           {staffMode && (
             <div className="mt-4 pt-4 border-t border-border">

@@ -280,7 +280,9 @@ export function ConfigurationPage() {
       const totalChanged = created + updated;
       const prefix = target ? `${target.name} — ` : "";
       if (totalChanged > 0) {
-        const message = `${prefix}${created} snapshot${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}${updated > 0 ? `, ${updated} mis à jour` : ""}`;
+        // Le bilan actif est complété (FC repos, FC max, poids vides) ; un bilan n'est créé que s'il n'en existe aucun.
+        const parts = [updated > 0 ? `${updated} bilan${updated > 1 ? "s" : ""} complété${updated > 1 ? "s" : ""}` : "", created > 0 ? `${created} bilan${created > 1 ? "s" : ""} créé${created > 1 ? "s" : ""}` : ""].filter(Boolean);
+        const message = `${prefix}${parts.join(", ")}`;
         setNolioMetricsSuccess({ created, updated, message });
         toast({ title: "Métriques importées", description: message });
       } else {
@@ -619,7 +621,7 @@ export function ConfigurationPage() {
                   <div>
                     <Label className="font-medium text-base">Importer les métriques Nolio</Label>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                      Récupère les dernières métriques de chaque athlète lié et crée des snapshots.
+                      Complète le bilan actif de chaque athlète lié : FC repos (médiane 7 jours), FC max et poids s’ils manquent. La VO₂max de la montre est gardée pour information, sans entrer dans les calculs.
                     </p>
                   </div>
                 </div>

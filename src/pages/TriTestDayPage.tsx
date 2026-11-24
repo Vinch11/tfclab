@@ -4,6 +4,7 @@
  * Onglets : Natation, Vélo, Course. Synthèse par discipline.
  */
 
+import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -195,6 +196,7 @@ export default function TriTestDayPage() {
             <div>
               <Label>FC repos (bpm)</Label>
               <input className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm" type="number" value={fcRepos} onChange={(e) => setFcRepos(e.target.value)} placeholder="48" />
+              <NolioRestingHrHint athleteId={currentAthlete?.id} value={fcRepos} onApply={setFcRepos} />
             </div>
           </CardContent>
         </Card>

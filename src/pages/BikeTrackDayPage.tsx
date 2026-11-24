@@ -1,4 +1,5 @@
 import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
+import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { fitCriticalEfforts, type CriticalEffort } from "@/lib/criticalEfforts";
 import { toStoredCritical } from "@/lib/criticalMetrics";
 import { THRESHOLD_TO_CRITICAL } from "@/lib/zones/anchoredZoneGrid";
@@ -411,6 +412,7 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+              <NolioRestingHrHint athleteId={currentAthlete?.id} value={fcReposManual} onApply={setFcReposManual} />
             </div>
             <div>
               <Label>
