@@ -247,12 +247,16 @@ function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
   const race = raceBand(p);
   const carbAt = (w: number) => interpolate(curve, w, 'carbGh');
   const raceCarbs = race ? [carbAt(race.low), carbAt(race.high)] : null;
+  // Édition coach : on parle de l'athlète ; édition athlète : tutoiement.
+  const w = coach
+    ? { fatMax: 'Repère FatMax', fatMaxText: 'Le repère FatMax, utilisé pour les zones,', race: 'À la puissance de course visée', tolerance: 'sa tolérance digestive' }
+    : { fatMax: 'Ton repère FatMax', fatMaxText: 'Ton repère FatMax, utilisé pour tes zones,', race: 'À ta puissance de course visée', tolerance: 'ta tolérance digestive' };
   const fuel = tracePlot({
     title: 'À quelle puissance changent les carburants utilisés ?',
     xLabel: 'Puissance (W)',
     yLabel: 'Oxydation (g/h)',
     xGuides: [
-      fatMaxW ? { value: fatMaxW, label: 'Ton repère FatMax', unit: 'W' } : { value: peak.power, label: 'Pic lipidique tracé', unit: 'W' },
+      fatMaxW ? { value: fatMaxW, label: w.fatMax, unit: 'W' } : { value: peak.power, label: 'Pic lipidique tracé', unit: 'W' },
       ...(race ? [{ value: Math.round((race.low + race.high) / 2), label: 'Puissance de course visée', unit: 'W' }] : []),
       { value: p.physio.ftp, label: 'FTP du bilan', unit: 'W' },
     ],
@@ -262,10 +266,10 @@ function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
     ],
     source,
     reading: (fatMaxW
-      ? `Ton repère FatMax, utilisé pour tes zones, est de ${fmt(fatMaxW)} W. Sur la courbe du modèle, l’oxydation des graisses reste proche de son maximum (≈ ${fmt(peak.fatGh)} g/h) entre ${fmt(Math.min(...plateau))} et ${fmt(Math.max(...plateau))} W. `
+      ? `${w.fatMaxText} est de ${fmt(fatMaxW)} W. Sur la courbe du modèle, l’oxydation des graisses reste proche de son maximum (≈ ${fmt(peak.fatGh)} g/h) entre ${fmt(Math.min(...plateau))} et ${fmt(Math.max(...plateau))} W. `
       : `Parmi les intensités tracées, le maximum d’oxydation lipidique est de ${fmt(peak.fatGh)} g/h à ${fmt(peak.power)} W. `)
       + (race && raceCarbs && raceCarbs.every((v) => v != null)
-        ? `À ta puissance de course visée (${fmt(race.low)}–${fmt(race.high)} W), le modèle estime une consommation de glucides d’environ ${fmt(Math.round(raceCarbs[0]!))}–${fmt(Math.round(raceCarbs[1]!))} g/h. C’est la dépense, pas la quantité à avaler : le ravitaillement se construit à l’entraînement selon ta tolérance digestive.`
+        ? `${w.race} (${fmt(race.low)}–${fmt(race.high)} W), le modèle estime une consommation de glucides d’environ ${fmt(Math.round(raceCarbs[0]!))}–${fmt(Math.round(raceCarbs[1]!))} g/h. C’est la dépense, pas la quantité à avaler : le ravitaillement se construit à l’entraînement selon ${w.tolerance}.`
         : 'La courbe glucides décrit la consommation estimée pendant l’effort. Le ravitaillement dépend aussi de la durée et de la tolérance digestive.'),
   });
   if (!coach) return fuel;

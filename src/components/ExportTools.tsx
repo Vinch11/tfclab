@@ -4224,6 +4224,9 @@ function buildExecutiveSummaryHTML(payload: ExportPayload): string {
   `;
 }
 
+/** Annexes autorisées dans le rapport coach : faits enregistrés uniquement, aucun calcul de modèle. */
+export const COACH_FACTUAL_APPENDICES: ReadonlySet<keyof ReportSections> = new Set<keyof ReportSections>(['historique', 'tests', 'fitImports', 'checkins']);
+
 function buildStaffGradeReportHTML(payload: ExportPayload, performance: PerformanceReportInput, logoBase64: string, options: ExportOptions = { sections: DEFAULT_REPORT_SECTIONS }, calibrationEvidences: CalibrationEvidence[] = []): string {
   const { 
     athlete, effectiveSnapshot, effectiveRefs, 
@@ -6627,7 +6630,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     
     evolutionHTML = `
       <div class="card mt">
-        <h3>📈 Évolution (2 derniers snapshots)</h3>
+        <h3>📈 Évolution entre les 2 derniers bilans</h3>
         <div class="grid4">
           <div>
             <div class="muted">Δ FTP</div>
@@ -6654,7 +6657,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
 
   const snapshotsHTML = `
     <section id="historique-snapshots" class="section">
-      <h2>F. Historique snapshots</h2>
+      <h2>Historique des bilans</h2>
       <div class="card">
         <table>
           <thead>
@@ -6677,7 +6680,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
                     <td class="muted">${htmlEscape(s.source || "")}</td>
                   </tr>`;
                 }).join("")
-              : '<tr><td colspan="10" class="muted">Aucun snapshot enregistré</td></tr>'}
+              : '<tr><td colspan="10" class="muted">Aucun bilan enregistré</td></tr>'}
           </tbody>
         </table>
       </div>
@@ -6692,7 +6695,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
   
   const testsHTML = `
     <section id="historique-tests" class="section pagebreak">
-      <h2>G. Historique tests</h2>
+      <h2>Historique des tests</h2>
       <div class="card">
         <table>
           <thead>
@@ -7196,7 +7199,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
   
   const fitImportsHTML = fitImportTests.length > 0 ? `
     <section id="fit-imports" class="section pagebreak">
-      <h2>📁 Tests Observés (Import FIT)</h2>
+      <h2>📁 Tests observés (import FIT)</h2>
       
       <div class="alert alertInfo mb">
         <b>📋 Philosophie terrain</b> : Les valeurs issues de fichiers FIT sont des observations terrain. 
@@ -7259,7 +7262,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     </section>
   ` : `
     <section id="fit-imports" class="section pagebreakAvoid">
-      <h2>📁 Tests Observés (Import FIT)</h2>
+      <h2>📁 Tests observés (import FIT)</h2>
       
       <div class="alert alertInfo mb">
         <b>📋 Philosophie terrain</b> : Les valeurs issues de fichiers FIT sont des observations terrain.
@@ -7897,7 +7900,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
             }
           </div>
           <div class="muted" style="margin-top:4px;font-size:9px;">
-            Modèle Mader-Heck (2003) — Cinétique lactate Michaelis-Menten + clearance MCT. Parité Dashboard/Export.
+            Modèle Mader-Heck (2003) — Cinétique lactate Michaelis-Menten + clearance MCT.
           </div>
         </div>
       </section>
@@ -8037,7 +8040,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
             <text x="${svgW - 8}" y="${svgH / 2}" text-anchor="middle" font-size="8" fill="#97949F" transform="rotate(90, ${svgW - 8}, ${svgH / 2})">kcal/h</text>
           </svg>
           <div class="muted" style="text-align:center;margin-top:8px;font-size:9px;">
-            Modèle Mader — Oxydation lipidique (Randle cycle) + partitionnement énergétique. Parité Dashboard/Export.
+            Modèle Mader — Oxydation lipidique (Randle cycle) + partitionnement énergétique.
           </div>
         </div>
       </section>
@@ -8177,7 +8180,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
         ${isAthlete ? '' : `<div class="card" style="background:#FAF9F5;">
           <div class="muted" style="font-size:10px;">
             <b>Méthodologie :</b> ${output.modelNote}
-            Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003). Parité Dashboard/Export.
+            Métriques métaboliques (MLSS, FatMax, TTE) calculées par modèle Mader-Heck (2003).
             Confiance du modèle : ${Math.round(output.confidence * 100)}%.
           </div>
         </div>`}
@@ -8276,7 +8279,12 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
   const sectionOrder = getSectionOrder();
   
   // Assembler les sections dans l'ordre personnalisé
-  const included = sectionOrder.filter(key => options.sections[key] && sectionHTMLMap[key]?.trim());
+  // Rapport coach : seules les annexes factuelles restent (données enregistrées, tests, qualité).
+  // Les modules modélisés (Pacing Envelope, LDRI, risque blessure, nutrition prédictive, prédictions,
+  // ajustement d'âge, VLamax × confiance, Run MLSS, CP/W′bal, courbes simulées…) recalculaient leurs
+  // propres repères sur des données parfois absentes et contredisaient la décision : retirés (nov. 2026)
+  // jusqu'à ce qu'ils lisent la même source que le corps du rapport.
+  const included = sectionOrder.filter(key => COACH_FACTUAL_APPENDICES.has(key) && options.sections[key] && sectionHTMLMap[key]?.trim());
   const appendices = included.map(key => `<div class="technical-chapter" id="annexe-${key}">${sectionHTMLMap[key]}</div>`).join('');
   const toc = included.length ? `<section id="analyses" class="edition-section"><h2>Analyses complémentaires</h2>
     ${editionNav(included.map(key => [`annexe-${key}`, SECTION_LABELS[key]]))}</section>` : '';
@@ -9696,13 +9704,17 @@ export function ExportTools({ dashboardInput, athlete, snapshots, tests, checkin
   // ci-dessus (exportRaceGoals) que RoadmapStrategique.tsx/Index.tsx pour le
   // dashboard — jusqu'ici jamais transmises au PDF, qui affichait donc un
   // cycle unique pour un athlète multi-objectifs.
-  const roadmapRaceGoals = mapDbRaceGoalsForRoadmap(exportRaceGoals);
-  payload.raceGoals = roadmapRaceGoals.raceGoals;
+  // Rapport = planification à venir : les courses passées sont de l'historique, et la frise démarre
+  // au plus tôt à la date du rapport (sinon le cycle d'une course déjà courue occupe toute la frise).
   const today = format(new Date(), "yyyy-MM-dd");
+  const upcomingRaceGoals = exportRaceGoals.filter(race => race.race_date > today);
+  const roadmapRaceGoals = mapDbRaceGoalsForRoadmap(upcomingRaceGoals);
+  payload.raceGoals = roadmapRaceGoals.raceGoals;
   const nextRace = exportRaceGoals.filter(race => race.race_date >= today)
     .sort((a, b) => a.race_date.localeCompare(b.race_date))[0];
   if (nextRace) payload.nextRace = (nextRace.race_name || getObjectifLabel(nextRace.race_type)) + " · " + dateLabel(nextRace.race_date);
-  payload.planStartDate = roadmapRaceGoals.planStartDate;
+  const planStart = mapDbRaceGoalsForRoadmap(exportRaceGoals).planStartDate;
+  payload.planStartDate = planStart && planStart < today ? today : planStart;
   const exportCheck = canExport(payload);
 
   const [isExporting, setIsExporting] = useState(false);
