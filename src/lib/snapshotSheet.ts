@@ -1,0 +1,114 @@
+/**
+ * Fiche athlète en lecture : un résumé par bloc (Contexte, Vélo, Course, Natation, Durabilité, Labo, Notes),
+ * chaque valeur avec sa source quand elle est connue. Aucun calcul de modèle : seulement ce qui est enregistré.
+ */
+import { parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
+import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
+import { readThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
+import { readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+
+export type SheetBlockId = "ctx" | "bike" | "run" | "swim" | "durability" | "labo" | "notes";
+export interface SheetRow { label: string; value: string; source?: string }
+export interface SheetBlock { id: SheetBlockId; title: string; summary: string; rows: SheetRow[] }
+
+export interface SheetSnapshot {
+  date: string; source?: string | null;
+  weight_kg?: number | null; fc_max?: number | null; fc_repos?: number | null;
+  pmax_5s?: number | null; p30s_w?: number | null; p60s_w?: number | null; map5min_w?: number | null;
+  ftp?: number | null; tte_observed_min?: number | null;
+  sprint_15s_distance?: number | null; vma?: number | null; pace_threshold_sec_per_km?: number | null; tte_observed_min_run?: number | null;
+  run_pace_ref_sec_per_km?: number | null; run_hr_ref_bpm?: number | null; run_hr_drift_pct?: number | null;
+  css?: number | null; vo2max?: number | null; vlamax?: number | null; vlamax_run?: number | null; fat_pct?: number | null;
+  critical_metrics?: unknown; field_sources?: unknown; coach_notes?: string | null;
+}
+
+export const SNAPSHOT_SOURCE_LABEL: Record<string, string> = {
+  track_day: "Track Day", bike_track_day: "Bike Day", swim_pool_day: "Pool Day", tri_test_day: "Tri Day",
+  tfcl_testing_week: "Testing Week", lab_import: "Labo", nolio: "Nolio", manual: "Saisie", staff: "Saisie staff",
+  profil_express: "Profil express",
+};
+const ORIGIN_LABEL: Record<ThresholdOrigin, string> = {
+  test_20min: "test 20 min", cp_test: "Bike Day", track_day_cs: "Track Day", calculator: "calculateur", watch: "montre", entered: "saisie",
+};
+const VO2_LABEL: Record<Vo2maxOrigin, string> = { lab: "labo", estimated: "estimation 3,5 × VMA", watch: "montre, hors calculs", entered: "saisie" };
+
+const ok = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
+const fr = (v: number, d = 0) => v.toLocaleString("fr-FR", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+const mmss = (sec: number) => { const t = Math.round(sec); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+const dateFr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
+const criticalLabel = (c: StoredCriticalSport) => (c.status === "confirmed" ? "confirmée" : "estimation");
+
+export function buildSnapshotSheet(s: SheetSnapshot): SheetBlock[] {
+  const critical = parseStoredCriticalMetrics(s.critical_metrics);
+  const durability = parseStoredDurability(s.critical_metrics);
+  const ftpOrigin = readThresholdOrigin(s.field_sources, "ftp");
+  const paceOrigin = readThresholdOrigin(s.field_sources, "pace_threshold_sec_per_km");
+  const vo2 = readVo2max(s);
+  const blocks: SheetBlock[] = [];
+  const push = (id: SheetBlockId, title: string, rows: SheetRow[], summary: string[]) =>
+    blocks.push({ id, title, rows, summary: summary.filter(Boolean).join(" · ") || "À compléter" });
+
+  // Contexte
+  push("ctx", "Contexte", [
+    ok(s.weight_kg) ? { label: "Poids", value: `${fr(s.weight_kg, 1)} kg` } : null,
+    ok(s.fc_max) ? { label: "FC max", value: `${s.fc_max} bpm` } : null,
+    ok(s.fc_repos) ? { label: "FC repos", value: `${s.fc_repos} bpm` } : null,
+  ].filter(Boolean) as SheetRow[], [ok(s.weight_kg) ? `${fr(s.weight_kg, 1)} kg` : "", ok(s.fc_max) ? `FC max ${s.fc_max}` : "", ok(s.fc_repos) ? `FC repos ${s.fc_repos}` : ""]);
+
+  // Vélo
+  const cp = critical.cycling;
+  push("bike", "Vélo", [
+    cp ? { label: "Puissance critique (CP)", value: `${Math.round(cp.critical)} W · W′ ${fr(cp.reserve / 1000, 1)} kJ`, source: criticalLabel(cp) } : null,
+    ok(s.ftp) ? { label: "FTP / seuil", value: `${s.ftp} W`, source: ftpOrigin ? ORIGIN_LABEL[ftpOrigin] : undefined } : null,
+    ok(s.pmax_5s) ? { label: "Sprint 5 s", value: `${s.pmax_5s} W` } : null,
+    ok(s.p30s_w) ? { label: "30 s", value: `${s.p30s_w} W` } : null,
+    ok(s.p60s_w) ? { label: "60 s", value: `${s.p60s_w} W` } : null,
+    ok(s.map5min_w) ? { label: "Puissance 5 min", value: `${s.map5min_w} W` } : null,
+    ok(s.tte_observed_min) ? { label: "Durée tenue au seuil", value: `${s.tte_observed_min} min` } : null,
+  ].filter(Boolean) as SheetRow[], [
+    cp ? `CP ${Math.round(cp.critical)} W (${criticalLabel(cp)})` : ok(s.ftp) ? `FTP ${s.ftp} W${ftpOrigin ? ` (${ORIGIN_LABEL[ftpOrigin]})` : ""}` : "",
+    ok(s.map5min_w) ? `5 min ${s.map5min_w} W` : "",
+  ]);
+
+  // Course
+  const cs = critical.running;
+  push("run", "Course", [
+    cs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / cs.critical)}/km · D′ ${Math.round(cs.reserve)} m`, source: criticalLabel(cs) } : null,
+    ok(s.pace_threshold_sec_per_km) ? { label: "Allure seuil", value: `${mmss(s.pace_threshold_sec_per_km)}/km`, source: paceOrigin ? ORIGIN_LABEL[paceOrigin] : undefined } : null,
+    ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h` } : null,
+    ok(s.sprint_15s_distance) ? { label: "Sprint 15 s", value: `${fr(s.sprint_15s_distance)} m` } : null,
+    ok(s.tte_observed_min_run) ? { label: "Durée tenue au seuil", value: `${s.tte_observed_min_run} min` } : null,
+    ok(s.run_pace_ref_sec_per_km) && ok(s.run_hr_ref_bpm)
+      ? { label: "FC à allure stable", value: `${s.run_hr_ref_bpm} bpm à ${mmss(s.run_pace_ref_sec_per_km)}/km${typeof s.run_hr_drift_pct === "number" ? ` · dérive ${fr(s.run_hr_drift_pct, 1)} %` : ""}` } : null,
+  ].filter(Boolean) as SheetRow[], [
+    cs ? `CS ${mmss(1000 / cs.critical)}/km (${criticalLabel(cs)})` : ok(s.pace_threshold_sec_per_km) ? `Seuil ${mmss(s.pace_threshold_sec_per_km)}/km${paceOrigin ? ` (${ORIGIN_LABEL[paceOrigin]})` : ""}` : "",
+    ok(s.vma) ? `VMA ${fr(s.vma, 1)} km/h` : "",
+  ]);
+
+  // Natation
+  push("swim", "Natation", ok(s.css) ? [{ label: "CSS", value: `${mmss(s.css)}/100 m` }] : [], [ok(s.css) ? `CSS ${mmss(s.css)}/100 m` : ""]);
+
+  // Durabilité
+  const dur = (["bike", "run"] as const).filter(sp => durability[sp]).map(sp => {
+    const d = durability[sp]!;
+    return { label: sp === "bike" ? "Vélo" : "Course", value: `${d.meanChangePct > 0 ? "+" : ""}${fr(d.meanChangePct, 1)} % en fin de sortie longue (${d.sessions.length} séances)`, source: "à vérifier" };
+  });
+  push("durability", "Durabilité", dur, dur.map(r => `${r.label} ${r.value.split(" en ")[0]}`));
+
+  // Labo
+  push("labo", "Labo", [
+    vo2.value != null ? { label: "VO₂max", value: `${fr(vo2.value, 1)} ml/kg/min`, source: vo2.origin ? VO2_LABEL[vo2.origin] : "provenance à préciser" } : null,
+    ok(s.vlamax) ? { label: "VLamax vélo", value: `${fr(s.vlamax, 2)} mmol/L/s`, source: "mesurée" } : null,
+    ok(s.vlamax_run) ? { label: "VLamax course", value: `${fr(s.vlamax_run, 2)} mmol/L/s`, source: "mesurée" } : null,
+    ok(s.fat_pct) ? { label: "Masse grasse", value: `${fr(s.fat_pct, 1)} %` } : null,
+  ].filter(Boolean) as SheetRow[], [vo2.value != null ? `VO₂max ${fr(vo2.value, 1)}${vo2.origin ? ` (${VO2_LABEL[vo2.origin]})` : ""}` : "", ok(s.vlamax) ? `VLamax ${fr(s.vlamax, 2)}` : ""]);
+
+  // Notes
+  const notes = (s.coach_notes ?? "").trim();
+  push("notes", "Notes coach", notes ? [{ label: "Notes", value: notes }] : [], [notes ? (notes.length > 70 ? `${notes.slice(0, 70)}…` : notes) : ""]);
+
+  return blocks;
+}
+
+export const sheetHeadline = (s: SheetSnapshot) =>
+  `Bilan du ${dateFr(s.date)}${s.source ? ` · ${SNAPSHOT_SOURCE_LABEL[s.source] ?? s.source}` : ""}`;
