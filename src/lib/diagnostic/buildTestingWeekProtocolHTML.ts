@@ -743,7 +743,7 @@ export function buildTestingWeekDossierHTML(
       <table>
         <thead><tr><th style="width:55%">Métrique</th><th style="width:25%">Valeur</th><th style="width:20%">Précédente</th></tr></thead>
         <tbody>
-          ${["CSS (min:sec/100m)", "V max sprint (m/s)", "CSS / V max (%)", "VLamax nage estimée (mmol/L/s)", "TTE nage estimé (min)", "Drift cardiaque 1500m (%)"].map((r) => `<tr><td>${escapeHtml(r)}</td><td class="fill-cell"></td><td class="fill-cell"></td></tr>`).join("")}
+          ${["CSS (min:sec/100m)", "V max sprint (m/s)", "CSS / V max (%)"].map((r) => `<tr><td>${escapeHtml(r)}</td><td class="fill-cell"></td><td class="fill-cell"></td></tr>`).join("")}
         </tbody>
       </table>` : "");
 
