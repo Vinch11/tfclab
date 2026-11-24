@@ -192,6 +192,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
     const grid = reportGrid(payload, table, 'bike');
     sets.push({
       sportLabel: 'Vélo', source: table.meta.zoneSource.bike === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: grid ? anchoredAnchors(grid) : derived.anchors ?? [],
+      summary: grid ? `Tes zones partent de ton seuil critique à vélo : ${Math.round(grid.critical)} W.${grid.measured ? '' : ' Un test le confirmera.'}` : undefined,
       fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'bike', grid), landmarks: bikeLandmarks(payload, table, grid),
       markers: race ? [{ id: 'race_specific', label: 'Puissance de course', absolute: `${race[0]}–${race[1]} W` }] : [],
     });
@@ -204,6 +205,7 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
     const grid = reportGrid(payload, table, 'run');
     sets.push({
       sportLabel: 'Course à pied', source: table.meta.zoneSource.run === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: grid ? anchoredAnchors(grid) : derived.anchors ?? [],
+      summary: grid ? `Tes zones partent de ta vitesse critique en course : ${pace(3600 / grid.critical)}/km.${grid.measured ? '' : ' Un test la confirmera.'}` : undefined,
       fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'run', grid), landmarks: runLandmarks(payload, table, derived, grid),
     });
   }

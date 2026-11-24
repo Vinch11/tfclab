@@ -249,8 +249,8 @@ function metabolicFigures(p: PerformanceReportInput, coach: boolean): string {
   const raceCarbs = race ? [carbAt(race.low), carbAt(race.high)] : null;
   // Édition coach : on parle de l'athlète ; édition athlète : tutoiement.
   const w = coach
-    ? { fatMax: 'Repère FatMax', fatMaxText: 'Le repère FatMax, utilisé pour les zones,', race: 'À la puissance de course visée', tolerance: 'sa tolérance digestive' }
-    : { fatMax: 'Ton repère FatMax', fatMaxText: 'Ton repère FatMax, utilisé pour tes zones,', race: 'À ta puissance de course visée', tolerance: 'ta tolérance digestive' };
+    ? { fatMax: 'Repère FatMax', fatMaxText: 'Le repère FatMax', race: 'À la puissance de course visée', tolerance: 'sa tolérance digestive' }
+    : { fatMax: 'Ton repère FatMax', fatMaxText: 'Ton repère FatMax', race: 'À ta puissance de course visée', tolerance: 'ta tolérance digestive' };
   const fuel = tracePlot({
     title: 'À quelle puissance changent les carburants utilisés ?',
     xLabel: 'Puissance (W)',

@@ -32,13 +32,16 @@ export function buildReportReadingHTML(compass: TFCLCoachingCompassResult, optio
     ${sports.map(sport => {
       const comparisons = compassSportReportRows(compass, sport).filter(r => r.key !== 'tte');
       const sharedVo2 = rows.find(r => r.key === 'vo2max');
+      const sets = (options.zoneSets ?? []).filter(set => sport === 'bike' ? /v[ée]lo/i.test(set.sportLabel) : /course/i.test(set.sportLabel));
+      const basis = sets.flatMap(set => set.anchors);
       return sportDiagramHTML({
         sport,
         comparisons: sharedVo2 && !comparisons.some(r => r.key === 'vo2max') ? [sharedVo2, ...comparisons] : comparisons,
         tte: compassTteReportRows(compass).filter(r => r.sport === sport).map(r => ({ ...r, key: 'tte', unit: 'min' })),
-        zones: (options.zoneSets ?? []).filter(set => sport === 'bike' ? /v[ée]lo/i.test(set.sportLabel) : /course/i.test(set.sportLabel)).flatMap(set => set.zones),
+        zones: sets.flatMap(set => set.zones),
+        landmarks: sets.flatMap(set => set.landmarks ?? []),
         durability: options.durability?.[sport],
-      });
+      }) + (basis.length ? `<h4>Base des zones · ${sport === 'bike' ? 'vélo' : 'course'}</h4>${list(basis.map(a => a.replace(/\.$/, '')))}` : '');
     }).join('')}
     ${compass.completeProfileHTML ?? ''}
     <p><b>VO₂max</b> : plafond d’utilisation de l’oxygène. <b>VMA</b> : vitesse maximale aérobie course, dépendante du protocole. <b>FTP / MLSS</b> : repères de seuil liés mais non identiques par définition. <b>VLamax</b> : débit glycolytique maximal estimé ou mesuré selon la source, pas une mesure de force. <b>W′ / D′</b> : réserves ajustées au-dessus de CP / vitesse critique, propres au sport. <b>FatMax</b> : intensité d’oxydation lipidique maximale ; une estimation vélo ne donne pas une allure course.</p>

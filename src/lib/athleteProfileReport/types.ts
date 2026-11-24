@@ -78,6 +78,8 @@ export interface ReportZoneSet {
   source: "derived" | "standard";
   confidence: number;
   anchors: string[];
+  /** Phrase simple pour l'édition athlète (base des zones), sans jargon ni alertes. */
+  summary?: string;
   fallbackReason: string | null;
   zones: ReportZoneRow[];
   /** Intensité spécifique de l'épreuve, identique à celle du plan (`race_specific`). */

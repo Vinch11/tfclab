@@ -187,13 +187,16 @@
   .edition .folio-image figure {height:auto}
   /* 82 mm : avec 5 repères (2 lignes) et les marges ajoutées par Safari, 100 mm faisait déborder
      la dernière ligne de la couverture sur une page presque vide. */
-  .edition .folio-image figure img {height:82mm;object-position:center}
-  .folio-copy {padding:9mm 9mm 12mm}
-  .edition .folio-cover h1 {font-size:36pt!important;margin:3mm 0 5mm}
+  /* 70 mm et un bas de couverture resserré : Safari iOS ajoute en-tête et pied de page ; à 82 mm le fond
+     de la couverture débordait de quelques mm et créait une page 2 blanche. */
+  .edition .folio-image figure img {height:70mm;object-position:center}
+  .folio-copy {padding:7mm 9mm 5mm}
+  .edition .folio-cover h1 {font-size:32pt!important;margin:2mm 0 4mm}
   .edition .folio-intro {font-size:12pt;line-height:1.4}
   .folio-facts {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4mm;margin-top:6mm;padding-top:4mm}
   .folio-facts dd {font-size:10pt}
   .edition p {orphans:2;widows:2}
+  .edition .note {page-break-inside:avoid;break-inside:avoid}
   .edition h2,.edition h3,.edition h4,.edition .diagram-heading,.edition .diagram-intro,
   .edition .zone-direction,.edition .visual-chapter>.edition-deck,.edition .journey-kicker {
     page-break-after:avoid;
