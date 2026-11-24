@@ -19,6 +19,17 @@ const guide: Record<string, string> = {
   demand: 'Le chrono que tu vises demande de soutenir une certaine part de ta vitesse maximale aérobie. Cette comparaison aide ton coach à juger l’exigence de l’allure visée.',
 };
 
+/** Les décisions du compass sont écrites pour le coach : on les traduit pour l'athlète. */
+const NEXT_STEP: Record<string, string> = {
+  'Contrôler le progrès sur le terrain': 'Ton plan démarre sur cette priorité. Ton coach suivra tes séances pour vérifier que ce repère progresse.',
+  'Vérifier le facteur prioritaire': 'Avant de lancer le premier bloc, ton coach vérifiera ce repère avec toi lors d’un prochain test.',
+  'Compléter la comparaison': 'Il manque encore quelques tests pour choisir ton premier chantier. Ton coach te dira lesquels.',
+};
+export function athleteNextStep(decision: string | null | undefined): string {
+  if (!decision) return 'Ton coach précisera le premier chantier avec toi.';
+  return NEXT_STEP[decision] ?? `Le premier chantier proposé est « ${decision} ».`;
+}
+
 export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): string {
   const sports = d.sports ?? [];
   const brief = d.brief;
@@ -42,7 +53,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
       ${decision.athleteMessage ? `<p>${rich(decision.athleteMessage)}</p>` : ''}
       ${decision.workouts.length ? `<h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul>` : ''}` :
-      `<p class="edition-deck">${esc(flow?.decision ?? 'Ton coach précisera le premier chantier avec toi.')}</p>`}
+      `<div class="note next-step"><b>Prochaine étape avec ton coach</b><p>${esc(athleteNextStep(flow?.decision))}</p></div>`}
     ${calendarPreview(d.calendar, true, true)}`);
   const disciplines = sports.map(sp => {
     const tte = (d.sportTte ?? []).filter(r => sp === 'run' ? /course/i.test(r.label) : /vélo/i.test(r.label));
@@ -64,7 +75,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     return chapter('reperes-' + sp, sp === 'run' ? 'Ta course à pied en chiffres' : 'Ton vélo en chiffres', `
       <div class="sport-intro"><div class="chapter-image">${sportPhoto(sp)}</div><div>
       <p>${sp === 'run' ? 'Sur le terrain, tes allures donnent un sens aux chiffres du bilan. Retrouve ici les repères à consulter avant une séance.' : 'Sur la route, tes watts permettent de retrouver un effort d’une sortie à l’autre. Ces repères t’aident à lire tes séances.'}</p>
-      ${sets.map(z => `<p class="chapter-detail">${z.source === 'derived' ? 'Zones calculées à partir du bilan' : 'Grille de zones provisoire'}${z.anchors.length ? ' · ' + z.anchors.map(esc).join(', ') : ''}.</p>`).join('')}
+      ${sets.map(z => `<p class="chapter-detail">${esc(z.summary ?? (z.source === 'derived' ? 'Zones calculées à partir de ton bilan.' : 'Grille de zones provisoire, à confirmer par un test.'))}</p>`).join('')}
       </div></div>
       ${sportDiagramHTML({sport: sp, athlete: true, landmarks, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);

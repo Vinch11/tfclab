@@ -22,6 +22,7 @@
 import type { LegacyZoneId } from "./zoneMapping";
 import { DEFAULT_REST_HR_FRACTION, DEFAULT_THRESHOLD_HR_FRACTION, HR_SUBTHRESHOLD_EXPONENT } from "./deriveTrainingZones";
 import { isMeasuredOrigin, readThresholdOrigin, type ThresholdOrigin } from "./thresholdOrigin";
+import { vo2maxFromVma, vo2maxVmaMismatch } from "./vo2maxCoherence";
 import { LEVEL_VMA_PERCENT, levelForAmbition } from "./thresholdPaceLevels";
 import { parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
 import { CRITICAL_POLICY } from "@/lib/criticalEfforts";
@@ -219,8 +220,8 @@ export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions 
     alerts.push(`CS non confirmée (${(unconfirmed.critical * 3.6).toFixed(1)} km/h) différente du seuil retenu (${critical.toFixed(1)} km/h) : à valider par le coach.`);
   // VO₂max ≈ 3,5 × VMA (km/h) (Léger) : un écart > 10 % signale souvent une VO₂max de montre.
   if (vma && positive(s.vo2max)) {
-    const expected = 3.5 * vma;
-    if (Math.abs(s.vo2max - expected) / expected > 0.1)
+    const expected = vo2maxFromVma(vma);
+    if (vo2maxVmaMismatch(s.vo2max, vma))
       alerts.push(`VO₂max saisie (${Math.round(s.vo2max)} ml/kg/min) incohérente avec la VMA de ${vma} km/h (≈ ${Math.round(expected)} attendus) : VO₂max ou VMA à vérifier (souvent une valeur de montre).`);
   }
   const top = Math.max(vma ?? critical * 1.1, critical * 1.03);
