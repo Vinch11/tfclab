@@ -1,3 +1,4 @@
+import type { CriticalEffort } from '@/lib/criticalEfforts';
 /**
  * Vitesse critique du Track Day : 1 500 m puis 3 000 m maximaux, 30 min de récupération.
  *
@@ -29,4 +30,16 @@ export function criticalSpeedFromTrack(sec1500: number, sec3000: number): TrackC
   const dPrimeM = 3000 - csMs * sec3000;
   if (dPrimeM < 30 || dPrimeM > 500) return fail(`D′ calculé à ${Math.round(dPrimeM)} m, hors des valeurs plausibles (30–500 m) : vérifier les deux temps.`);
   return { valid: true, csMs, dPrimeM, error: null };
+}
+
+/**
+ * Trois courses maximales du Track Day (1 500 m, 3 000 m, 1 000 m ; 30 min de récupération)
+ * converties en efforts critiques pour la politique TFCL (2 à 15 min, rapport ≥ 3).
+ * `confirmed` = le coach atteste des efforts maximaux dans des conditions identiques.
+ */
+export function trackDayEfforts(runs: { metres: number; sec: number }[], date: string, conditions: string, confirmed: boolean): CriticalEffort[] {
+  return runs.filter(r => r.sec > 0).map(r => ({
+    id: `track-day-${r.metres}`, sport: 'running' as const, durationSec: r.sec, value: r.metres, measurement: 'distance' as const,
+    date, session: 'TFCL Track Day · vitesse critique', conditions, source: 'manual' as const, confirmed,
+  }));
 }

@@ -34,11 +34,11 @@ describe("Tests à faire pour cet athlète", () => {
     const routes: string[] = [];
     render(<DashboardTestChecklist input={input} today="2026-11-20" renderExporter={r => { routes.push(r); return <p data-testid="exp">{r}</p>; }} />);
     const row = screen.getByText("Vitesse critique (CS) et D′").closest("li") as HTMLElement;
-    expect(row).toHaveTextContent("1000 m maximal, 30 min de récupération, 3000 m maximal");
+    expect(row).toHaveTextContent("Track Day : 1 500 m, 3 000 m puis 1 000 m maximaux");
     expect(row).toHaveTextContent("Validité : 42 jours");
     expect(screen.queryByTestId("exp")).toBeNull();
     fireEvent.click(within(row).getByRole("button", { name: /protocole détaillé et l’envoyer vers Nolio/ }));
-    expect(screen.getByTestId("exp")).toHaveTextContent("cs-day");
+    expect(screen.getByTestId("exp")).toHaveTextContent("track-day");
   });
   it("VO₂max : pas d'envoi vers Nolio, faute de protocole de terrain", () => {
     render(<DashboardTestChecklist input={input} today="2026-11-20" />);
@@ -49,13 +49,13 @@ describe("Tests à faire pour cet athlète", () => {
     const routes: string[] = [];
     render(<DashboardTestChecklist input={input} today="2026-11-20" renderExporter={(r, plans) => { routes.push(r); return <p data-testid="exp">{r}:{plans["plan-all"]?.sessions.length}</p>; }} />);
     const plan = screen.getByRole("region", { name: "Tout tester en quelques jours" });
-    expect(plan).toHaveTextContent("Plan complet : J1 · Bike Day → J2 · Track Day → J3 · Bike Day · Puissance critique → J4 · Track Day · Vitesse critique");
+    expect(plan).toHaveTextContent("Plan complet : J1 · Bike Day · Sprints → J2 · Track Day → J3 · Bike Day · Puissance critique → J5 · Durability Day · vélo → J6 · Durability Day · course");
     expect(plan).toHaveTextContent("Tests à faire ou à retester :");
     fireEvent.click(within(plan).getByRole("button", { name: "Voir et envoyer le plan complet" }));
-    expect(screen.getByTestId("exp")).toHaveTextContent("plan-all:4");
+    expect(screen.getByTestId("exp")).toHaveTextContent("plan-all:5");
   });
   it("tout est à jour côté Days : le dit, et le plan complet reste disponible", () => {
-    const fresh = { ...input, criticalMetrics: { cycling: { critical: 260, reserve: 18000, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] },
+    const fresh = { ...input, durabilityPairs: [{ day: "2026-11-15", sport: "bike", between: 120, target: "200", early: "200", late: "200", hr1: 140, hr2: 146, rpe1: 4, rpe2: 6, context: "home-trainer" }, { day: "2026-11-16", sport: "run", between: 60, target: "5:30", early: "5:30", late: "5:30", hr1: 150, hr2: 156, rpe1: 4, rpe2: 6, context: "piste" }], criticalMetrics: { cycling: { critical: 260, reserve: 18000, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] },
       running: { critical: 4.2, reserve: 200, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] } } } as unknown as CoachingCompassInput;
     render(<DashboardTestChecklist input={fresh} today="2026-11-20" />);
     expect(screen.getByRole("region", { name: "Tout tester en quelques jours" })).toHaveTextContent("Tous les tests programmables par les Days sont à jour.");

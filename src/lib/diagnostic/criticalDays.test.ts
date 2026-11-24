@@ -79,9 +79,9 @@ describe("les Days alimentent bien la politique critique de l'app", () => {
 
 describe("guide des Days", () => {
   it("renvoie vers les nouveaux Days, le Track Day 1500 m + 3000 m et le Bike Day 12/5/3 min", () => {
-    expect(criticalGuide.run).toContain("Track Day · Vitesse critique");
-    expect(criticalGuide.run).toContain("Track Day (1500 m puis 3000 m maximaux) fournit déjà deux points");
-    expect(criticalGuide.bike).toContain("Bike Day · Puissance critique");
+    expect(criticalGuide.run).toContain("intégrée au Track Day (1500 m, 3000 m puis 1000 m maximaux");
+    expect(criticalGuide.run).toContain("se confirment dans le Day");
+    expect(criticalGuide.bike).toContain("intégrée au Bike Day");
     expect(criticalGuide.bike).toContain("12 min, 5 min puis 3 min maximaux");
   });
 });

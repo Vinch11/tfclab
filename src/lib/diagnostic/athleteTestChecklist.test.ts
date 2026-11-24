@@ -89,8 +89,8 @@ describe("tests selon le sport et l'objectif", () => {
 describe("tout tester en quelques jours", () => {
   it("plan complet : un Day par jour, 48 h entre deux Days du même sport", () => {
     const plan = buildTestingPlan(buildTestChecklist(base, "2026-11-20"), true);
-    expect(plan.map(d => d.day)).toEqual(["bike-day", "track-day", "cp-day", "cs-day"]);
-    expect(plan.map(d => d.dayNumber)).toEqual([1, 2, 3, 4]); // vélo, course, vélo, course : 48 h entre deux Days du même sport
+    expect(plan.map(d => d.day)).toEqual(["bike-day", "track-day", "cp-day", "durability-bike", "durability-run"]);
+    expect(plan.map(d => d.dayNumber)).toEqual([1, 2, 3, 5, 6]); // 48 h entre deux Days du même sport ; la durabilité en dernier
     const bike = plan.filter(d => d.day === "bike-day" || d.day === "cp-day").map(d => d.dayNumber);
     expect(bike[1] - bike[0]).toBeGreaterThanOrEqual(2);
     expect(plan[0].session.sport).toBe("bike");
@@ -104,11 +104,17 @@ describe("tout tester en quelques jours", () => {
     expect(todo).not.toContain("bike-day"); // tests vélo à jour
   });
   it("tout est à jour : plan vide, plan complet disponible", () => {
-    const c = buildTestChecklist(input({ criticalMetrics: { cycling: { critical: 260, reserve: 18000, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] },
+    const c = buildTestChecklist(input({ durabilityPairs: [{ day: "2026-11-15", sport: "bike", between: 120, target: "200", early: "200", late: "200", hr1: 140, hr2: 146, rpe1: 4, rpe2: 6, context: "home-trainer" }, { day: "2026-11-16", sport: "run", between: 60, target: "5:30", early: "5:30", late: "5:30", hr1: 150, hr2: 156, rpe1: 4, rpe2: 6, context: "piste" }], criticalMetrics: { cycling: { critical: 260, reserve: 18000, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] },
       running: { critical: 4.2, reserve: 200, status: "confirmed", latestEffortDate: "2026-11-10", efforts: [], warnings: [] } } }), "2026-11-20");
     const todo = buildTestingPlan(c, false);
     expect(todo).toEqual([]);
-    expect(buildTestingPlan(c, true).length).toBe(4);
+    expect(buildTestingPlan(c, true).length).toBe(5);
+  });
+  it("Durability Day : deux blocs enregistrés rendent la durabilité « à jour »", () => {
+    const c = buildTestChecklist(input({ durabilityPairs: [{ day: "2026-11-15", sport: "bike", between: 120, target: "200", early: "200", late: "200", hr1: 140, hr2: 146, rpe1: 4, rpe2: 6, context: "home-trainer" }, { day: "2026-11-16", sport: "run", between: 60, target: "5:30", early: "5:30", late: "5:30", hr1: 150, hr2: 156, rpe1: 4, rpe2: 6, context: "piste" }], }), "2026-11-20");
+    const bike = c.items.find(i => i.key === "durability-bike")!;
+    expect(bike.status).toBe("ok");
+    expect(bike.valueText).toContain("Durability Day");
   });
   it("les semaines suivantes sont décalées proprement", () => {
     const plan = buildTestingPlan(buildTestChecklist(base, "2026-11-20"), true);

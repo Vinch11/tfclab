@@ -6,8 +6,9 @@ import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { CRITICAL_POLICY } from "@/lib/criticalEfforts";
 import type { TestingWeekNolioSession } from "./testingWeekNolioSessions";
 import {
-  buildBikeDayNolioSession, buildCriticalBikeDayNolioSession, buildCriticalTrackDayNolioSession, buildTrackDayNolioSession,
+  buildBikeDayNolioSession, buildCriticalBikeDayNolioSession, buildTrackDayNolioSession,
 } from "./dayTestNolioSessions";
+import { durabilityPlanSession, pairedDecoupling } from "./durabilityDay";
 
 /**
  * Checklist des tests d'un athlète : quels tests, faits quand, encore valables ou non.
@@ -71,8 +72,8 @@ const P = {
   sprintRun: ["Échauffement 15 min, accélérations en ligne droite, puis 2 sprints de 30 m départ arrêté et un effort maximal de 15 s.", "Noter les temps et la distance exacte."],
   vma: ["Test 6 min (ou 1500 m) à allure maximale stable sur piste, reposé.", "Noter la distance ou le temps et chaque tour."],
   threshold: ["Track Day : 1 500 m maximal, 30 min de récupération, puis 3 000 m maximal sur piste.", "Les deux temps donnent la vitesse critique ; l'allure seuil du bilan en découle (CS / 1,01)."],
-  cs: ["1000 m maximal, 30 min de récupération, 3000 m maximal (Track Day · Vitesse critique).", "Avec le Track Day (1 500 m + 3 000 m), un seul 1 000 m maximal dans les 28 jours suffit pour trois points."],
-  durability: ["Sortie longue habituelle : comparer le meilleur effort de 20 min au début et dans le dernier tiers, ou deux blocs de 10 min à la même cible avant/après une période d'endurance.", "Sur au moins 2 sorties (vélo ≥ 2 h, course ≥ 1 h 30)."],
+  cs: ["Track Day : 1 500 m, 3 000 m puis 1 000 m maximaux, 30 min de récupération entre chaque.", "Trois points dans la même séance, confirmés dans le Day."],
+  durability: ["Durability Day : deux blocs de 10 min à la même cible, au début et à la fin d'une sortie longue (vélo ≥ 2 h 30, course ≥ 1 h 30).", "Ou, sans Durability Day : meilleur effort de 20 min au début et dans le dernier tiers, sur au moins 2 sorties longues."],
   vo2: ["Test maximal en laboratoire, ou valeur estimée à partir de la VMA ou du test 5 min.", "Pas de protocole de terrain dédié dans l'app."],
 };
 
@@ -122,7 +123,7 @@ export function buildTestChecklist(input: CoachingCompassInput, today: string = 
     add({ key: "threshold-run", label: "Allure seuil course (Track Day 1 500 m + 3 000 m)", sport: "run", feeds: "Allure au seuil", validityDays: other, day: "track-day", protocol: P.threshold,
       valueText: num(input.paceThresholdSecPerKm) ? pace(input.paceThresholdSecPerKm) : null, date: bilan });
     const cs = critical.running;
-    add({ key: "cs-run", label: "Vitesse critique (CS) et D′", sport: "run", feeds: "Seuil critique, réserve anaérobie", validityDays: crit, day: "cs-day", protocol: P.cs,
+    add({ key: "cs-run", label: "Vitesse critique (CS) et D′", sport: "run", feeds: "Seuil critique, réserve anaérobie", validityDays: crit, day: "track-day", protocol: P.cs,
       valueText: cs ? "CS " + fmt(Math.round(cs.critical * 36) / 10) + " km/h · D′ " + fmt(Math.round(cs.reserve)) + " m" : null, date: cs?.latestEffortDate || null,
       note: cs && cs.status !== "confirmed" ? "Estimation non validée par le coach." : undefined });
   }
@@ -130,23 +131,30 @@ export function buildTestChecklist(input: CoachingCompassInput, today: string = 
     for (const sport of [bike ? "bike" : null, run ? "run" : null] as const) {
       if (!sport) continue;
       const d = durability[sport];
+      // Durability Day : deux blocs de 10 min à la même cible (enregistrés dans « Durabilité »).
+      const pair = (input.durabilityPairs ?? []).find(p => p.sport === sport);
+      const decoupling = pair ? pairedDecoupling(pair) : null;
+      const usePair = !!pair && decoupling != null && (!d || pair.day > d.to);
       add({ key: sport === "bike" ? "durability-bike" : "durability-run", label: "Durabilité · " + (sport === "bike" ? "vélo" : "course"), sport, feeds: "Durabilité après effort prolongé",
         validityDays: other, day: sport === "bike" ? "durability-bike" : "durability-run", protocol: P.durability,
-        valueText: d ? d.meanChangePct.toLocaleString("fr-BE") + " % (effort de 20 min, fin de sortie)" : null, date: d?.to ?? null });
+        valueText: usePair ? (Math.round(decoupling! * 10) / 10).toLocaleString("fr-BE") + " % de découplage (Durability Day)" : d ? d.meanChangePct.toLocaleString("fr-BE") + " % (effort de 20 min, fin de sortie)" : null,
+        date: usePair ? pair!.day : d?.to ?? null });
     }
   }
   const count = (s: TestStatus) => items.filter(i => i.status === s).length;
   return { items, summary: { total: items.length, ok: count("ok"), stale: count("stale"), missing: count("missing") } };
 }
 
-/** Days qui couvrent les tests de la checklist ; durabilité et laboratoire se programment à part. */
-const DAY_BUILDERS: Record<"bike-day" | "track-day" | "cp-day" | "cs-day", { sport: "bike" | "run"; build: () => TestingWeekNolioSession; label: string }> = {
-  "bike-day": { sport: "bike", build: buildBikeDayNolioSession, label: "Bike Day" },
+/** Days qui couvrent les tests de la checklist, durabilité comprise ; le laboratoire se programme à part. */
+const DAY_BUILDERS: Record<"bike-day" | "track-day" | "cp-day" | "durability-bike" | "durability-run", { sport: "bike" | "run"; build: () => TestingWeekNolioSession; label: string }> = {
+  "bike-day": { sport: "bike", build: buildBikeDayNolioSession, label: "Bike Day · Sprints" },
   "track-day": { sport: "run", build: buildTrackDayNolioSession, label: "Track Day" },
   "cp-day": { sport: "bike", build: buildCriticalBikeDayNolioSession, label: "Bike Day · Puissance critique" },
-  "cs-day": { sport: "run", build: buildCriticalTrackDayNolioSession, label: "Track Day · Vitesse critique" },
+  "durability-bike": { sport: "bike", build: () => durabilityPlanSession("bike"), label: "Durability Day · vélo" },
+  "durability-run": { sport: "run", build: () => durabilityPlanSession("run"), label: "Durability Day · course" },
 };
-const ORDER = ["bike-day", "track-day", "cp-day", "cs-day"] as const;
+// La vitesse critique est intégrée au Track Day (1 500, 3 000 et 1 000 m) ; la durabilité vient en dernier.
+const ORDER = ["bike-day", "track-day", "cp-day", "durability-bike", "durability-run"] as const;
 
 export interface PlannedDay { day: (typeof ORDER)[number]; label: string; dayNumber: number; covers: string[]; session: TestingWeekNolioSession }
 

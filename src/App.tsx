@@ -31,6 +31,7 @@ const AthletesListPage = lazy(() => import("./pages/AthletesListPage"));
 const AITrainingPlanPage = lazy(() => import("./pages/AITrainingPlanPage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
 const RaceSimulationPage = lazy(() => import("./pages/RaceSimulationPage"));
+const DurabilityDayPage = lazy(() => import("./pages/DurabilityDayPage"));
 const PacingAuditPage = lazy(() => import("./pages/PacingAuditPage"));
 const RunningProfilePage = lazy(() => import("./pages/RunningProfilePage"));
 const CriticalMetricsPage = lazy(() => import("./pages/CriticalMetricsPage"));
@@ -167,6 +168,7 @@ export default function App() {
                   <Route path="/diagnostic/bike-track-day" element={<ProtectedRoute><BikeTrackDayPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/swim-pool-day" element={<ProtectedRoute><SwimPoolDayPage /></ProtectedRoute>} />
                   <Route path="/diagnostic/tri-test-day" element={<ProtectedRoute><TriTestDayPage /></ProtectedRoute>} />
+                  <Route path="/diagnostic/durability-day" element={<ProtectedRoute><DurabilityDayPage /></ProtectedRoute>} />
 
                   {/* ═══════════════════════════════════════════ */}
                   {/* SECTION 4 — PLANIFICATION                  */}
