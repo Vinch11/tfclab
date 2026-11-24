@@ -107,12 +107,14 @@ describe('grille Z1–Z7 ancrée sur le seuil critique', () => {
 describe('table des plans et interrupteur de grille', () => {
   const input = { ftp: 188, vma: 13, fcMax: 192, paceThresholdSecPerKm: 315, vlamax: 0.2, vo2max: 52, weightKg: 51.9, objective: 'IM', ambition: 'competitor' };
 
-  it('sans activation, la table des plans est inchangée', () => {
+  it('grille activée par défaut ; l’ancienne reste disponible explicitement', () => {
     const byDefault = buildTargetTable(input);
-    const explicit = buildTargetTable({ ...input, gridMode: 'current' });
-    expect(byDefault.bikeZonesW).toEqual(explicit.bikeZonesW);
-    expect(byDefault.runPacesSecPerKm).toEqual(explicit.runPacesSecPerKm);
-    expect(byDefault.meta.zoneSource.bike).toBe('derived');
+    const anchored = buildTargetTable({ ...input, gridMode: 'anchored' });
+    const legacy = buildTargetTable({ ...input, gridMode: 'current' });
+    expect(byDefault.bikeZonesW).toEqual(anchored.bikeZonesW);
+    expect(byDefault.runPacesSecPerKm).toEqual(anchored.runPacesSecPerKm);
+    expect(byDefault.meta.zoneSource.bike).toBe('anchored');
+    expect(legacy.meta.zoneSource.bike).toBe('derived');
   });
 
   it('activée, la table reprend la grille ancrée et des FC distinctes par zone', () => {
