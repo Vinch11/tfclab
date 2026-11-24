@@ -9,13 +9,13 @@ import { TEST_DAYS, checkSnapshotForm, snapshotReadiness, type TestDayFieldKey }
 interface Props {
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  nolioFields: Set<string>;
+  filledFrom: Record<string, string>;
   /** Contenu affiché sous un champ (provenance, valeur Nolio…). */
   renderExtra?: (key: TestDayFieldKey) => ReactNode;
 }
 
 /** Fiche athlète : un bloc par sport, chaque valeur saisie à un seul endroit. */
-export function SnapshotTestDays({ formData, onChange, nolioFields, renderExtra }: Props) {
+export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra }: Props) {
   const check = checkSnapshotForm(formData);
   const readiness = snapshotReadiness(formData);
   return (
@@ -41,7 +41,7 @@ export function SnapshotTestDays({ formData, onChange, nolioFields, renderExtra 
                 <div key={f.key}>
                   <Label htmlFor={`day-${f.key}`} className="flex items-center gap-1.5 text-xs">
                     {f.label}{f.unit && ` (${f.unit})`}
-                    {nolioFields.has(f.key) && <Badge variant="secondary" className="h-4 px-1 text-[10px]">Nolio</Badge>}
+                    {filledFrom[f.key] && <Badge variant="secondary" className="h-4 px-1 text-[10px]">{filledFrom[f.key]}</Badge>}
                   </Label>
                   <Input
                     id={`day-${f.key}`}

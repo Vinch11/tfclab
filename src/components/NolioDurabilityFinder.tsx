@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -17,23 +17,28 @@ const norm = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 const LABEL: Record<DurabilitySport, string> = { bike: 'Vélo', run: 'Course à pied' };
 const MAX_READS = 15;
 
-export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athleteName?: string; stored: StoredDurability; onSave: (sport: DurabilitySport, value: StoredDurabilitySport) => void }) {
+type Driven = { athlete?: string; from?: string; to?: string; runKey?: number; onDone?: () => void };
+
+export function NolioDurabilityFinder({ athleteName, stored, onSave, athlete: fixedAthlete, from: fixedFrom, to: fixedTo, runKey, onDone }: { athleteName?: string; stored: StoredDurability; onSave: (sport: DurabilitySport, value: StoredDurabilitySport) => void } & Driven) {
+  const driven = runKey !== undefined;
   const [athletes, setAthletes] = useState<Array<{ id: string; name: string; has_api_access: boolean }>>([]);
-  const [athlete, setAthlete] = useState('');
-  const [from, setFrom] = useState(iso(new Date(Date.now() - 90 * 864e5)));
-  const [to, setTo] = useState(iso(new Date()));
+  const [pickedAthlete, setAthlete] = useState('');
+  const [pickedFrom, setFrom] = useState(iso(new Date(Date.now() - 90 * 864e5)));
+  const [pickedTo, setTo] = useState(iso(new Date()));
+  const athlete = fixedAthlete ?? pickedAthlete, from = fixedFrom ?? pickedFrom, to = fixedTo ?? pickedTo;
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [found, setFound] = useState<Partial<Record<DurabilitySport, DurabilitySession[]>> | null>(null);
 
   useEffect(() => {
+    if (driven) return;
     call({ action: 'catalogues' }).then(d => {
       const list = (d?.athletes ?? []) as typeof athletes;
       setAthletes(list);
       if (athleteName) { const m = list.find(a => a.has_api_access && norm(a.name) === norm(athleteName)); if (m) setAthlete(m.id); }
     }).catch(() => setError('Connexion Nolio indisponible.'));
-  }, [athleteName]);
+  }, [athleteName, driven]);
 
   const run = async () => {
     setBusy(true); setError(null); setFound(null);
@@ -56,19 +61,27 @@ export function NolioDurabilityFinder({ athleteName, stored, onSave }: { athlete
       }
       setFound(out);
     } catch { setError('Lecture Nolio interrompue : rien n’a été calculé.'); }
-    finally { setBusy(false); setProgress(''); }
+    finally { setBusy(false); setProgress(''); onDone?.(); }
   };
+  const lastRun = useRef(0);
+  useEffect(() => {
+    if (!runKey || runKey === lastRun.current || !athlete) return;
+    lastRun.current = runKey;
+    void run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey, athlete]);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-      <div className="flex flex-wrap items-center gap-2"><Timer className="h-4 w-4 shrink-0 text-primary" /><h3 className="font-semibold">Durabilité sur sorties longues</h3><Badge variant="secondary">À vérifier</Badge></div>
+    <div className={driven ? 'space-y-3' : 'rounded-xl border border-border bg-card p-4 space-y-3'}>
+      <div className="flex flex-wrap items-center gap-2"><Timer className="h-4 w-4 shrink-0 text-primary" />{driven ? <h4 className="text-sm font-semibold">3. Durabilité sur sorties longues (90 derniers jours)</h4> : <h3 className="font-semibold">Durabilité sur sorties longues</h3>}<Badge variant="secondary">À vérifier</Badge></div>
       <p className="text-sm text-muted-foreground">Compare ton meilleur effort de 20 min en début de séance et dans le dernier tiers, sur les sorties d’au moins 2 h à vélo ou 1 h 30 en course. Calcul allégé : une moyenne par minute suffit, sans relevé seconde par seconde dans TFCL. Moyenne sur au moins 2 séances. Ne change ni les limiteurs ni les plans.</p>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
+      {!driven && <><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
         <div className="sm:col-span-2"><Label>Athlète Nolio</Label><select className="w-full h-11 rounded-md border border-input bg-background px-2 text-sm" value={athlete} onChange={e => setAthlete(e.target.value)}><option value="">Choisir…</option>{athletes.filter(a => a.has_api_access).map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
         <div><Label>Du</Label><Input type="date" value={from} onChange={e => setFrom(e.target.value)} /></div>
         <div><Label>Au</Label><Input type="date" value={to} onChange={e => setTo(e.target.value)} /></div>
       </div>
-      <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={!athlete || busy}>{busy ? progress || 'Lecture…' : 'Calculer la durabilité'}</Button>
+      <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={!athlete || busy}>{busy ? progress || 'Lecture…' : 'Calculer la durabilité'}</Button></>}
+      {driven && busy && <p className="text-sm text-muted-foreground">{progress || 'Lecture…'}</p>}
       {error && <p className="text-sm text-destructive">{error}</p>}
       {found && (['bike', 'run'] as const).map(sport => {
         const list = found[sport] ?? [];

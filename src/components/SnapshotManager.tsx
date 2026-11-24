@@ -25,7 +25,6 @@ import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
 import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
-import { NolioPeriodTestFinder } from "@/components/NolioPeriodTestFinder";
 import { mergeEmptyFields, type SnapshotRecordFields } from "@/lib/nolioV2Records";
 import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
@@ -47,9 +46,10 @@ import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
 import { checkSnapshotForm, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
 import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
+import { NolioFillAssistant } from "@/components/NolioFillAssistant";
+import { SnapshotFillMenu } from "@/components/SnapshotFillMenu";
+import { fillEmpty, labValuesToForm, type FillSource } from "@/lib/snapshotFill";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
-import { NolioCriticalRecordsImporter } from "@/components/NolioCriticalRecordsImporter";
-import { NolioDurabilityFinder } from "@/components/NolioDurabilityFinder";
 import { parseStoredDurability, withDurability } from "@/lib/durability/longSessionDurability";
 import { criticalEnvelope, parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
 import { ThresholdOriginSelect } from "@/components/ThresholdOriginSelect";
@@ -162,7 +162,11 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const [compareB, setCompareB] = useState<string>("");
 
   const snapshots = getSnapshotsForAthlete(athleteId);
-  const [nolioFields, setNolioFields] = useState<Set<string>>(new Set());
+  /** Champ → source du remplissage (Days, Nolio, Labo) : badge affiché dans la fiche. */
+  const [filledFrom, setFilledFrom] = useState<Record<string, FillSource>>({});
+  const markFilled = useCallback((keys: string[], source: FillSource) => {
+    if (keys.length) setFilledFrom(prev => ({ ...prev, ...Object.fromEntries(keys.map(k => [k, source])) }));
+  }, []);
   
   // Derive editingSnapshot from persisted ID
   const editingSnapshot = useMemo(() => {
@@ -178,13 +182,13 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const resetForm = () => {
     clearFormData();
-    setNolioFields(new Set());
+    setFilledFrom({});
     setEditingSnapshotId({ id: null });
   };
 
-  const loadSnapshotToForm = (s: DbSnapshot) => {
+  const snapshotFormValues = (s: DbSnapshot): typeof formData => {
     const snapshotAny = s as unknown as Record<string, unknown>;
-    setFormData({
+    return {
       date: s.date || new Date().toISOString().slice(0, 10),
       cycle_tag: s.cycle_tag || "",
       sport_main: (s as any).sport_main || "",
@@ -239,7 +243,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       run_power_5min: (s as any).running_power_5min != null ? String((s as any).running_power_5min) : "",
 
       coach_notes: s.coach_notes || "",
-    });
+    };
+  };
+
+  const loadSnapshotToForm = (s: DbSnapshot) => {
+    setFilledFrom({});
+    setFormData(snapshotFormValues(s));
   };
 
   const parseNum = (v: string): number | null => {
@@ -260,7 +269,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const handleCreate = async () => {
     if (blockIfInvalid()) return;
     // ✅ VLamax uniquement si mode Staff, sinon null (sera calculée)
-    const vlamax = staffMode ? parseNum(formData.vlamax) : null;
+    const vlamaxMeasured = staffMode || (formData as Record<string, unknown>).vlamax_from_lab === "true";
+    const vlamax = vlamaxMeasured ? parseNum(formData.vlamax) : null;
     const vo2 = writeVo2max(
       withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
@@ -366,7 +376,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     if (blockIfInvalid()) return;
 
     // ✅ VLamax uniquement si mode Staff, sinon conserver la valeur existante
-    const vlamax = staffMode ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
+    const vlamaxMeasured = staffMode || (formData as Record<string, unknown>).vlamax_from_lab === "true";
+    const vlamax = vlamaxMeasured ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
     const vo2 = writeVo2max(
       withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
@@ -488,6 +499,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const handleNolioImport = (values: NolioImportResult) => {
+    const map: Record<string, string> = { running_power_max: "run_power_max", running_power_threshold: "run_power_threshold", running_power_1s: "run_power_1s", running_power_5s: "run_power_5s", running_power_30s: "run_power_30s", running_power_60s: "run_power_60s", running_power_5min: "run_power_5min" };
+    markFilled(Object.entries(values).filter(([k, v]) => v && !["date", "coach_notes", "protocol_quality", "is_semaine_test"].includes(k)).map(([k]) => map[k] ?? k), "Nolio");
     setFormData(prev => ({
       ...prev,
       ...(values.date && { date: values.date }),
@@ -514,16 +527,12 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const applyNolioRestingHr = useCallback((v: string) => {
-    setNolioFields(prevSet => new Set(prevSet).add("fc_repos"));
+    markFilled(["fc_repos"], "Nolio");
     setFormData(prev => ({ ...prev, fc_repos: v }));
-  }, [setFormData]);
+  }, [setFormData, markFilled]);
 
   const applyNolioPeriod = (fields: SnapshotRecordFields, notes: string) => {
-    setNolioFields(prevSet => {
-      const next = new Set(prevSet);
-      Object.entries(fields).forEach(([k, v]) => { if (v && !String((formData as Record<string, unknown>)[k] ?? "").trim()) next.add(k); });
-      return next;
-    });
+    markFilled(Object.entries(fields).filter(([k, v]) => v && !String((formData as Record<string, unknown>)[k] ?? "").trim()).map(([k]) => k), "Nolio");
     setFormData(prev => ({
       ...mergeEmptyFields(prev, fields),
       coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
@@ -532,41 +541,98 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const renderForm = () => (
     <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain pr-2">
-      <NolioPeriodTestFinder athleteName={athleteName} current={formData as unknown as Record<string, unknown>} onApply={applyNolioPeriod} />
-      <NolioCriticalRecordsImporter athleteName={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (m[sport] || !value) return prev; return { ...prev, critical_metrics: JSON.stringify({ ...m, [sport]: value }) }; })} />
-      <NolioDurabilityFinder athleteName={athleteName} stored={parseStoredDurability((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => ({ ...prev, critical_metrics: withDurability((prev as Record<string, unknown>).critical_metrics, sport, value) }))} />
-      {/* Nolio Import Button */}
       {(() => {
-        const latestSnap = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
+        const ref = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
+        const editingRef = !!ref && editingSnapshot?.id === ref.id;
+        const fillFromRef = () => {
+          if (!ref) return;
+          const { form, filled } = fillEmpty(formData as unknown as Record<string, unknown>, snapshotFormValues(ref) as unknown as Record<string, unknown>);
+          if (!filled.length) { toast.info("Aucune case vide à remplir depuis ce bilan."); return; }
+          setFormData({ ...(form as unknown as typeof formData), coach_notes: [formData.coach_notes, `Repris du bilan du ${ref.date} (${ref.source ?? "bilan"}).`].filter(Boolean).join("\n") });
+          markFilled(filled, "Days");
+          toast.success(`${filled.length} valeur${filled.length > 1 ? "s" : ""} reprise${filled.length > 1 ? "s" : ""} du bilan des Days.`);
+        };
+        const storedCritical = parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics);
         return (
-          <div className="flex items-center gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-sm text-muted-foreground flex-1">Importer depuis Nolio</span>
-            <NolioImporter 
-              onImport={handleNolioImport} 
-              variant="inline"
-              previousVLamax={latestSnap?.vlamax ?? null}
-              currentFtp={latestSnap?.ftp ?? null}
-              currentWeight={latestSnap?.weight_kg ?? null}
-              currentVo2max={latestSnap?.vo2max ?? null}
-              currentVlamax={latestSnap?.vlamax ?? null}
-              objectif={athleteGoal}
-            />
-          </div>
+          <SnapshotFillMenu
+            days={!ref ? (
+              <div className="space-y-2 text-sm">
+                <p>Aucun bilan pour cet athlète : commence par un Day (Bike, Track, Pool…), il crée le bilan tout seul.</p>
+                <Button size="sm" variant="outline" onClick={() => navigate("/diagnostic")}>Ouvrir les Days</Button>
+              </div>
+            ) : editingRef ? (
+              <p className="text-sm">Tu modifies déjà le bilan actif ({ref.date.split("-").reverse().join("/")}), celui que les Days complètent.</p>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <p>Bilan actif du <b>{ref.date.split("-").reverse().join("/")}</b> ({ref.source ?? "bilan"}). Ses valeurs remplissent les cases vides de cette fiche.</p>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" onClick={fillFromRef}>Reprendre les valeurs</Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate("/diagnostic")}>Ouvrir les Days</Button>
+                </div>
+              </div>
+            )}
+            nolio={(
+              <div className="space-y-4">
+                <NolioFillAssistant
+                  athleteName={athleteName}
+                  current={formData as unknown as Record<string, unknown>}
+                  storedCritical={storedCritical}
+                  storedDurability={parseStoredDurability((formData as Record<string, unknown>).critical_metrics)}
+                  onApplyFields={applyNolioPeriod}
+                  onSaveCritical={(sport, value) => { setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (m[sport] || !value) return prev; return { ...prev, critical_metrics: JSON.stringify({ ...m, [sport]: value }) }; }); if (value) markFilled(["critical_metrics"], "Nolio"); }}
+                  onSaveDurability={(sport, value) => { setFormData(prev => ({ ...prev, critical_metrics: withDurability((prev as Record<string, unknown>).critical_metrics, sport, value) })); markFilled(["critical_metrics"], "Nolio"); }}
+                />
+                <details className="border-t border-border pt-2">
+                  <summary className="cursor-pointer py-2 text-sm font-medium">Avancé : fichier de courbes ou records détaillés</summary>
+                  <div className="space-y-3 pt-2">
+                    <div className="flex items-center gap-2 rounded-lg border border-dashed border-primary/30 p-3">
+                      <TrendingUp className="h-4 w-4 text-primary" />
+                      <span className="flex-1 text-sm text-muted-foreground">Fichier de courbes exporté de Nolio</span>
+                      <NolioImporter
+                        onImport={handleNolioImport}
+                        variant="inline"
+                        previousVLamax={ref?.vlamax ?? null}
+                        currentFtp={ref?.ftp ?? null}
+                        currentWeight={ref?.weight_kg ?? null}
+                        currentVo2max={ref?.vo2max ?? null}
+                        currentVlamax={ref?.vlamax ?? null}
+                        objectif={athleteGoal}
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground">Records détaillés · vérifie que l’athlète Nolio sélectionné est bien {athleteName}.</p>
+                    <NolioPeriodRecords onApply={applyNolioPeriod} />
+                  </div>
+                </details>
+              </div>
+            )}
+            lab={(
+              <div className="space-y-2 text-sm">
+                <p>Lis un rapport de laboratoire (PDF) : VO₂max, VLamax, FC max, poids et masse grasse. Tu vérifies chaque valeur avant qu’elle remplisse la fiche.</p>
+                <LabImportDialog
+                  athleteId={athleteId}
+                  athleteName={athleteName}
+                  athleteGoal={athleteGoal}
+                  previousSnapshot={ref ?? null}
+                  triggerLabel="Choisir le PDF labo"
+                  onApplyToForm={(values) => {
+                    const lab = labValuesToForm(values as Record<string, unknown>);
+                    const { form, filled } = fillEmpty(formData as unknown as Record<string, unknown>, lab);
+                    const note = typeof values.coach_notes === "string" ? values.coach_notes : "Import labo (PDF)";
+                    setFormData({ ...(form as unknown as typeof formData), ...(filled.includes("vlamax") ? { vlamax_from_lab: "true" } : {}), coach_notes: [formData.coach_notes, note].filter(Boolean).join("\n") });
+                    markFilled(filled, "Labo");
+                  }}
+                />
+              </div>
+            )}
+          />
         );
       })()}
 
-      <details className="border-b border-border pb-3">
-        <summary className="cursor-pointer py-3 text-sm font-medium">Nolio — records détaillés (avancé)</summary>
-        <p className="text-sm text-muted-foreground">Bilan de {athleteName} · Vérifiez que l’athlète Nolio sélectionné correspond.</p>
-        <NolioPeriodRecords onApply={applyNolioPeriod}/>
-      </details>
-
       <SnapshotTestDays
         formData={formData as unknown as Record<string, string>}
-        nolioFields={nolioFields}
+        filledFrom={filledFrom}
         onChange={(key, value) => {
-          setNolioFields(prevSet => { if (!prevSet.has(key)) return prevSet; const n = new Set(prevSet); n.delete(key); return n; });
+          setFilledFrom(prev => { if (!(key in prev)) return prev; const n = { ...prev }; delete n[key]; return n; });
           setFormData(prev => ({ ...prev, [key]: value }));
         }}
         renderExtra={(key) => {
@@ -580,13 +646,15 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 <SelectContent>{VO2MAX_ORIGIN_OPTIONS.map(o => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
               </Select>
               {formData.vo2max_origin === "watch" && <p className="text-[11px] text-muted-foreground">Gardée pour information : elle n’entre dans aucun calcul.</p>}
+              {filledFrom.vlamax === "Labo" && formData.vlamax && <p className="text-[11px] text-muted-foreground">VLamax du rapport labo : {formData.vlamax} mmol/L/s (mesure).</p>}
+              {filledFrom.fat_pct === "Labo" && formData.fat_pct && <p className="text-[11px] text-muted-foreground">Masse grasse du rapport labo : {formData.fat_pct} %.</p>}
             </div>
           );
           return null;
         }}
       />
 
-      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
+      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo{filledFrom.critical_metrics ? ` · rempli depuis ${filledFrom.critical_metrics}` : ""}</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
 
       <p className="text-sm font-medium pt-1">Compléments</p>
 

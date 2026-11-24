@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -17,11 +17,15 @@ async function call(body: Record<string, string>) {
   return data;
 }
 
-export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { athleteName?: string; stored: StoredCriticalMetrics; onSave: (sport: CriticalMetricKey, value: StoredCriticalSport | null) => void }) {
+type Driven = { athlete?: string; from?: string; to?: string; runKey?: number; onDone?: () => void };
+
+export function NolioCriticalRecordsImporter({ athleteName, stored, onSave, athlete: fixedAthlete, from: fixedFrom, to: fixedTo, runKey, onDone }: { athleteName?: string; stored: StoredCriticalMetrics; onSave: (sport: CriticalMetricKey, value: StoredCriticalSport | null) => void } & Driven) {
   const [catalogues, setCatalogues] = useState<Catalogues | null>(null);
-  const [athlete, setAthlete] = useState('');
-  const [from, setFrom] = useState(new Date(Date.now() - 42 * 864e5).toISOString().slice(0, 10));
-  const [to, setTo] = useState(new Date().toISOString().slice(0, 10));
+  const [pickedAthlete, setAthlete] = useState('');
+  const [pickedFrom, setFrom] = useState(new Date(Date.now() - 42 * 864e5).toISOString().slice(0, 10));
+  const [pickedTo, setTo] = useState(new Date().toISOString().slice(0, 10));
+  const athlete = fixedAthlete ?? pickedAthlete, from = fixedFrom ?? pickedFrom, to = fixedTo ?? pickedTo;
+  const driven = runKey !== undefined;
   const [records, setRecords] = useState<ReviewedRecord[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +44,7 @@ export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { 
   }, []);
   const reset = () => { setRecords(null); setIdentity(false); setSameSensor(false); };
   const search = async () => {
-    if (!catalogues || !athlete || !from || !to || from > to) return;
+    if (!catalogues || !athlete || !from || !to || from > to) { onDone?.(); return; }
     setBusy(true); setError(''); reset();
     try {
       const sessions = await call({ action: 'test_sessions', athlete, from, to });
@@ -49,16 +53,26 @@ export function NolioCriticalRecordsImporter({ athleteName, stored, onSave }: { 
       const result = await readCriticalPeriodRecords(catalogues.sports, id => call({ action: 'records', athlete, sport: id, from, to, cat: 'ppr', record_type: 'time' }), activeSports);
       setRecords(result);
     } catch (e) { setError(e instanceof Error ? e.message : 'Lecture impossible.'); }
-    finally { setBusy(false); }
+    finally { setBusy(false); onDone?.(); }
   };
+  const lastRun = useRef(0);
+  useEffect(() => {
+    if (!runKey || runKey === lastRun.current || !catalogues) return;
+    lastRun.current = runKey;
+    void search();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey, catalogues]);
+  // Catalogue Nolio indisponible : l'assistant ne doit pas rester bloqué sur cette étape.
+  useEffect(() => { if (runKey && error && !catalogues && lastRun.current !== runKey) { lastRun.current = runKey; onDone?.(); } }, [runKey, error, catalogues, onDone]);
   return <section className="min-w-0 space-y-4 border-b border-border py-4">
-    <h3 className="font-semibold">Records de puissance Nolio · course et vélo</h3>
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
+    {driven ? <h4 className="text-sm font-semibold">2. Records de puissance · puissance et vitesse critiques</h4> : <h3 className="font-semibold">Records de puissance Nolio · course et vélo</h3>}
+    {!driven && <><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
       <div className="sm:col-span-2"><Label htmlFor="critical-nolio-athlete">Athlète Nolio</Label><select id="critical-nolio-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy || !catalogues} onChange={e => { setAthlete(e.target.value); reset(); }}><option value="">Choisir un athlète</option>{catalogues?.athletes.map(a => <option key={a.id} value={a.id} disabled={!a.has_api_access}>{a.name}</option>)}</select></div>
       <div><Label htmlFor="critical-nolio-from">Du</Label><Input id="critical-nolio-from" type="date" value={from} max={to} disabled={busy} onChange={e => { setFrom(e.target.value); reset(); }} /></div>
       <div><Label htmlFor="critical-nolio-to">Au (inclus)</Label><Input id="critical-nolio-to" type="date" value={to} min={from} disabled={busy} onChange={e => { setTo(e.target.value); reset(); }} /></div>
     </div>
-    <Button className="h-auto min-h-11 max-w-full whitespace-normal text-left" onClick={search} disabled={busy || !catalogues || !athlete || !from || !to || from > to}><Search className="mr-2 h-4 w-4 shrink-0" />{busy ? 'Lecture des records…' : 'Trouver les records de la période'}</Button>
+    <Button className="h-auto min-h-11 max-w-full whitespace-normal text-left" onClick={search} disabled={busy || !catalogues || !athlete || !from || !to || from > to}><Search className="mr-2 h-4 w-4 shrink-0" />{busy ? 'Lecture des records…' : 'Trouver les records de la période'}</Button></>}
+    {driven && busy && <p className="text-sm text-muted-foreground">Lecture des records…</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {records && <>
       <p className="text-sm text-muted-foreground">{records.filter(r => r.sportBase === 'running').length} records course · {records.filter(r => r.sportBase === 'cycling').length} records vélo · {from} → {to}</p>

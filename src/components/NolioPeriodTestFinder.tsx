@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,11 @@ type Props = {
   /** Valeurs déjà saisies : jamais remplacées automatiquement. */
   current?: Record<string, unknown>;
   onApply?: (fields: SnapshotRecordFields, notes: string) => void;
+  /** Piloté par l'assistant Nolio : chaque nouvelle valeur lance la recherche ; onDone à la fin. */
+  runKey?: number;
+  onDone?: () => void;
+  /** Sans titre ni explication (affiché dans l'assistant). */
+  embedded?: boolean;
 };
 type ListedSession = { id: string; name: string; date: string; sportBase: 'cycling' | 'running' };
 type Lap = { duration?: number; stats?: { watts_avg?: { value?: number }; heartrate_max?: { value?: number } } };
@@ -30,7 +35,7 @@ const BADGE: Record<DetectedTest['confidence'], [string, 'default' | 'secondary'
   measured: ['Test retrouvé', 'default'], check: ['À vérifier', 'secondary'], info: ['Information', 'outline'],
 };
 
-export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, to: fixedTo, athleteName, current = {}, onApply }: Props) {
+export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, to: fixedTo, athleteName, current = {}, onApply, runKey, onDone, embedded }: Props) {
   const [athletes, setAthletes] = useState<Array<{ id: string; name: string; has_api_access: boolean }> | null>(null);
   const [athlete, setAthlete] = useState(fixedAthlete ?? '');
   const [from, setFrom] = useState(fixedFrom ?? iso(new Date(Date.now() - 35 * 864e5)));
@@ -89,8 +94,16 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
       setValues(Object.fromEntries(found.map(t => [t.field, String(t.value)])));
       setSelected(new Set(found.filter(t => t.fillable && !hasValue(t.field)).map(t => t.field)));
     } catch (e) { setError(e instanceof Error ? e.message : 'Lecture Nolio impossible.'); }
-    finally { setBusy(false); }
+    finally { setBusy(false); onDone?.(); }
   };
+
+  const lastRun = useRef(0);
+  useEffect(() => {
+    if (!runKey || runKey === lastRun.current || !athlete) return;
+    lastRun.current = runKey;
+    void run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [runKey, athlete]);
 
   const apply = () => {
     if (!tests || !onApply) return;
@@ -106,11 +119,11 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
   const byField = new Map((tests ?? []).map(t => [t.field, t]));
   const count = [...selected].length;
 
-  return <section className="space-y-4 rounded-lg border border-primary/40 bg-primary/5 p-4">
-    <div>
+  return <section className={embedded ? 'space-y-4' : 'space-y-4 rounded-lg border border-primary/40 bg-primary/5 p-4'}>
+    {embedded ? <h4 className="text-sm font-semibold">1. Tests de la période</h4> : <div>
       <h3 className="flex items-center gap-2 font-semibold"><Sparkles className="h-4 w-4 text-primary" />Remplir depuis Nolio</h3>
       <p className="text-sm text-muted-foreground">Choisis la période des tests : toutes les séances vélo et course sont analysées, le meilleur résultat est proposé pour chaque test.</p>
-    </div>
+    </div>}
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 [&>div]:min-w-0">
       {!fixedAthlete && <div className="sm:col-span-2"><Label htmlFor="fill-athlete">Athlète Nolio</Label>
         <select id="fill-athlete" className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm" value={athlete} disabled={busy || !athletes} onChange={e => { setAthlete(e.target.value); setTests(null); }}>
@@ -120,7 +133,9 @@ export function NolioPeriodTestFinder({ athlete: fixedAthlete, from: fixedFrom, 
       {!fixedFrom && <div><Label htmlFor="fill-from">Du</Label><Input id="fill-from" type="date" value={from} max={to} disabled={busy} onChange={e => { setFrom(e.target.value); setTests(null); }} /></div>}
       {!fixedTo && <div><Label htmlFor="fill-to">Au (inclus)</Label><Input id="fill-to" type="date" value={to} min={from} disabled={busy} onChange={e => { setTo(e.target.value); setTests(null); }} /></div>}
     </div>
-    <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={busy || !athlete || !from || !to || from > to}>{busy ? progress || 'Lecture…' : 'Trouver les tests de la période'}</Button>
+    {runKey === undefined
+      ? <Button className="h-auto min-h-11 max-w-full whitespace-normal" onClick={run} disabled={busy || !athlete || !from || !to || from > to}>{busy ? progress || 'Lecture…' : 'Trouver les tests de la période'}</Button>
+      : busy && <p className="text-sm text-muted-foreground">{progress || 'Lecture des séances…'}</p>}
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
     {tests && <div className="space-y-4">
