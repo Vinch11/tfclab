@@ -1,4 +1,5 @@
 import type { DbSnapshot } from "@/hooks/useCloudData";
+import { criticalEnvelope } from "@/lib/criticalMetrics";
 
 /**
  * testingWeekSnapshotMerge — Consolide en UN snapshot les résultats déjà
@@ -49,6 +50,9 @@ export type TestingField = keyof Pick<
   | "running_power_max"
   | "running_power_threshold"
   | "run_hr_drift_pct"
+  | "pmax_5s"
+  | "vlamax"
+  | "vlamax_run"
 >;
 
 export const TESTING_FIELDS: TestingField[] = [
@@ -71,6 +75,9 @@ export const TESTING_FIELDS: TestingField[] = [
   "running_power_max",
   "running_power_threshold",
   "run_hr_drift_pct",
+  "pmax_5s",
+  "vlamax",
+  "vlamax_run",
 ];
 
 export const TESTING_FIELD_LABELS: Record<TestingField, string> = {
@@ -93,6 +100,9 @@ export const TESTING_FIELD_LABELS: Record<TestingField, string> = {
   running_power_max: "Puissance course max (W)",
   running_power_threshold: "Puissance course seuil (W)",
   run_hr_drift_pct: "Dérive FC course (%)",
+  pmax_5s: "Sprint vélo 5 s (W)",
+  vlamax: "VLamax vélo (mmol/L/s)",
+  vlamax_run: "VLamax course (mmol/L/s)",
 };
 
 export interface MergedFieldOrigin {
@@ -166,11 +176,28 @@ export function buildConsolidatedSnapshotPayload(
   const sourceDates = Array.from(
     new Set(merged.contributingSnapshots.map((s) => `${s.source} (${s.date})`)),
   );
+  // Métriques critiques (CP, vitesse critique, données brutes des Days, durabilité) et provenances
+  // des champs : fusion clé par clé, le bilan le plus récent gagnant (contributingSnapshots est trié).
+  const critical: Record<string, unknown> = {};
+  const sources: Record<string, unknown> = {};
+  for (const snap of merged.contributingSnapshots) {
+    Object.assign(critical, criticalEnvelope(snap.critical_metrics));
+    const fs = snap.field_sources;
+    if (fs && typeof fs === "object" && !Array.isArray(fs)) {
+      for (const [key, value] of Object.entries(fs)) {
+        // Provenance gardée seulement si la valeur retenue vient de ce même bilan.
+        const origin = merged.fieldOrigins[key as TestingField];
+        if (!origin || (origin.date === snap.date && origin.source === snap.source)) sources[key] = value;
+      }
+    }
+  }
   return {
     athlete_id: merged.athleteId,
     coach_id: "",
     date: todayISO,
     source: "testing_week_consolidated",
+    ...(Object.keys(critical).length ? { critical_metrics: critical as DbSnapshot["critical_metrics"] } : {}),
+    ...(Object.keys(sources).length ? { field_sources: sources as DbSnapshot["field_sources"] } : {}),
     coach_notes: sourceDates.length > 0
       ? `Snapshot consolidé — semaine de test complète. Sources : ${sourceDates.join(", ")}.`
       : "Snapshot consolidé — semaine de test complète.",

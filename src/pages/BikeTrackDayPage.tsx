@@ -1,3 +1,4 @@
+import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { fitCriticalEfforts, type CriticalEffort } from "@/lib/criticalEfforts";
 import { toStoredCritical } from "@/lib/criticalMetrics";
 import { THRESHOLD_TO_CRITICAL } from "@/lib/zones/anchoredZoneGrid";
@@ -56,7 +57,7 @@ export default function BikeTrackDayPage() {
   const navigate = useNavigate();
   const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
+  const { addSnapshot, setActiveSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -276,7 +277,8 @@ export default function BikeTrackDayPage() {
       toast({ title: "Sélectionnez un athlète", variant: "destructive" });
       return;
     }
-    const snap = await addSnapshot({
+    const { snapshot: snap, carried } = await saveDaySnapshot({
+      day: {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "bike_track_day",
@@ -301,10 +303,12 @@ export default function BikeTrackDayPage() {
       p60s_w: calc.p60 || null,
 
       coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — P12' ${fmt(num(p12min), 0)}W · PMA 5' ${fmt(calc.map, 0)}W · P3' ${fmt(calc.cp3, 0)}W · CP ${fmt(calc.cp, 0)}W · W' ${fmt(calc.wPrime, 0)}J · FTP ${calc.ftpOrigin === "cp_test" ? "= CP × 0,965" : calc.ftpOrigin === "test_20min" ? "test 20 min" : "rampe"} · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · sprint 10 s ${fmt(calc.p10, 0)} W${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
-    } as any);
+    } as any,
+      snapshots: snapshots ?? [], activeSnapshotId: currentAthlete.active_snapshot_id, addSnapshot, setActiveSnapshot,
+    });
     if (snap) {
       clearStorageOnly();
-      toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
+      toast({ title: "Bilan de campagne mis à jour et activé", description: carried.length ? `${carried.length} valeur(s) des Days précédents reprise(s).` : "Premier Day de la campagne." });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
       toast({ title: "Échec création snapshot", variant: "destructive" });

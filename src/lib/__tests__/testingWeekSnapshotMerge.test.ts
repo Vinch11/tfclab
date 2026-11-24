@@ -115,3 +115,17 @@ describe("buildConsolidatedSnapshotPayload", () => {
     expect(payload.ftp).toBeUndefined();
   });
 });
+
+describe("consolidation : CP, vitesse critique, provenance et VLamax conservées", () => {
+  it("fusionne les métriques critiques et garde la provenance des valeurs retenues", () => {
+    const bike = snap({ id: "bike", date: "2026-09-02", source: "bike_track_day", ftp: 241, pmax_5s: 900, vlamax: 0.35,
+      field_sources: { ftp: { source: "cp_test" } }, critical_metrics: { cycling: { critical: 250, reserve: 18000, status: "confirmed" } } });
+    const track = snap({ id: "track", date: "2026-09-04", source: "track_day", vma: 14, pace_threshold_sec_per_km: 300, vlamax_run: 0.5,
+      field_sources: { pace_threshold_sec_per_km: { source: "track_day_cs" } }, critical_metrics: { running: { critical: 3.3, reserve: 150, status: "confirmed" } } });
+    const merged = mergeTestingWeekSnapshots("ath-1", [bike, track], "2026-09-01");
+    const payload = buildConsolidatedSnapshotPayload(merged, "2026-09-05");
+    expect(payload).toMatchObject({ ftp: 241, pmax_5s: 900, vlamax: 0.35, vlamax_run: 0.5, vma: 14 });
+    expect(Object.keys(payload.critical_metrics as object).sort()).toEqual(["cycling", "running"]);
+    expect(payload.field_sources).toEqual({ ftp: { source: "cp_test" }, pace_threshold_sec_per_km: { source: "track_day_cs" } });
+  });
+});

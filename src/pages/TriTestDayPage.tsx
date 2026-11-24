@@ -4,6 +4,7 @@
  * Onglets : Natation, Vélo, Course. Synthèse par discipline.
  */
 
+import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -23,7 +24,7 @@ export default function TriTestDayPage() {
   const navigate = useNavigate();
   const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot } = useCloudDataContext() as any;
+  const { addSnapshot, setActiveSnapshot, snapshots } = useCloudDataContext() as any;
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
 
@@ -79,7 +80,8 @@ export default function TriTestDayPage() {
       toast({ title: "Sélectionnez un athlète", variant: "destructive" });
       return;
     }
-    const snap = await addSnapshot({
+    const { snapshot: snap, carried } = await saveDaySnapshot({
+      day: {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "tri_test_day",
@@ -93,10 +95,12 @@ export default function TriTestDayPage() {
       fc_repos: num(fcRepos) > 0 ? num(fcRepos) : null,
       vo2max: vo2maxEst > 0 ? Math.round(vo2maxEst * 10) / 10 : null,
       coach_notes: `TFCL Tri Test Day™ — Distance ${distance} · Statut: nage ${swimDone}, vélo ${bikeDone}, run ${runDone}`,
-    } as any);
+    } as any,
+      snapshots: snapshots ?? [], activeSnapshotId: currentAthlete.active_snapshot_id, addSnapshot, setActiveSnapshot,
+    });
     if (snap) {
       clearStorageOnly();
-      toast({ title: "Snapshot triathlon créé" });
+      toast({ title: "Bilan de campagne mis à jour et activé", description: carried.length ? `${carried.length} valeur(s) des Days précédents reprise(s).` : "Premier Day de la campagne." });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
       toast({ title: "Échec création snapshot", variant: "destructive" });

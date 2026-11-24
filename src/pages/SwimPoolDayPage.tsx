@@ -8,6 +8,7 @@
  *  - Toussaint & Hollander 1994 (économie nage)
  */
 
+import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarLayout } from "@/components/SidebarLayout";
@@ -42,7 +43,7 @@ export default function SwimPoolDayPage() {
   const navigate = useNavigate();
   const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots } = useCloudDataContext() as any;
+  const { addSnapshot, setActiveSnapshot, snapshots } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -125,7 +126,8 @@ export default function SwimPoolDayPage() {
       toast({ title: "Sélectionnez un athlète", variant: "destructive" });
       return;
     }
-    const snap = await addSnapshot({
+    const { snapshot: snap, carried } = await saveDaySnapshot({
+      day: {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "swim_pool_day",
@@ -137,10 +139,12 @@ export default function SwimPoolDayPage() {
       // ⚠ Ne PAS écrire vlamax_run ni tte_observed_min (champs CAP/bike).
       coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
 
-    } as any);
+    } as any,
+      snapshots: snapshots ?? [], activeSnapshotId: currentAthlete.active_snapshot_id, addSnapshot, setActiveSnapshot,
+    });
     if (snap) {
       clearStorageOnly();
-      toast({ title: "Snapshot créé" });
+      toast({ title: "Bilan de campagne mis à jour et activé", description: carried.length ? `${carried.length} valeur(s) des Days précédents reprise(s).` : "Premier Day de la campagne." });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
       toast({ title: "Échec création snapshot", variant: "destructive" });
@@ -165,7 +169,7 @@ export default function SwimPoolDayPage() {
           <div>
             <h1 className="text-lg sm:text-2xl font-bold">🏊 TFCL Pool Day™</h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Protocole piscine 1h30 — CSS, VLamax nage, capacité aérobie
+              Protocole piscine 1h — sprint 25 m et CSS (400 m puis 200 m)
             </p>
           </div>
           <Button
