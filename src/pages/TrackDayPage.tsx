@@ -1,3 +1,4 @@
+import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { fitCriticalEfforts } from "@/lib/criticalEfforts";
 import { toStoredCritical } from "@/lib/criticalMetrics";
 import { criticalSpeedFromTrack, trackDayEfforts } from "@/lib/diagnostic/trackDayCriticalSpeed";
@@ -67,7 +68,7 @@ export default function TrackDayPage() {
   const navigate = useNavigate();
   const { logoUrl } = useAppLogo();
   const { athletes, currentAthlete, setSelectedAthleteId } = useAthletes();
-  const { addSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
+  const { addSnapshot, setActiveSnapshot, snapshots, updateAthlete } = useCloudDataContext() as any;
 
   const [activeTab, setActiveTab] = useState("diagnostic");
   const [staffMode, setStaffMode] = useState(() => localStorage.getItem("vlab-staff-mode") === "true");
@@ -338,12 +339,13 @@ export default function TrackDayPage() {
       toast({ title: "Sélectionnez un athlète", variant: "destructive" });
       return;
     }
-    const snap = await addSnapshot({
+    const { snapshot: snap, carried } = await saveDaySnapshot({
+      day: {
       athlete_id: currentAthlete.id,
       date: testDate,
       source: "track_day",
       critical_metrics: { trackDay: trackVariant === "distance"
-        ? { protocol: "1500m_3000m_1000m_cs", sec1500: num(sec1500) || null, sec3000: num(sec3000) || null, sec1000: num(sec1000) || null,
+        ? { protocol: "1500m_3000m_1000m_cs", sec1500: num(sec1500) || null, sec3000: num(sec3000) || null, sec1000: num(sec1000) || null, sprint1kmSec: num(t1000m) || null,
             csMs: calc.cs.valid ? Math.round(calc.cs.csMs * 1000) / 1000 : null, dPrimeM: calc.cs.valid ? Math.round(calc.cs.dPrimeM) : null }
         : { protocol: "6min_20min", metres6: num(d6min) || null, metres20: num(d20min) || null },
         ...(calc.csFit && calc.csFitValid ? { running: toStoredCritical(calc.csFit, calc.csEfforts, csConfirmed, testDate) } : {}) },
@@ -360,12 +362,13 @@ export default function TrackDayPage() {
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
       ...(trackVariant === "distance" && calc.cs.valid ? { field_sources: withThresholdOrigin({}, "pace_threshold_sec_per_km", "track_day_cs") } : {}),
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
-      pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
-    } as any);
+    } as any,
+      snapshots: snapshots ?? [], activeSnapshotId: currentAthlete.active_snapshot_id, addSnapshot, setActiveSnapshot,
+    });
     if (snap) {
       clearStorageOnly();
-      toast({ title: "Snapshot créé", description: "Ouverture pour validation…" });
+      toast({ title: "Bilan de campagne mis à jour et activé", description: carried.length ? `${carried.length} valeur(s) des Days précédents reprise(s).` : "Premier Day de la campagne." });
       navigate(`/athlete/${currentAthlete.id}`);
     } else {
       toast({ title: "Échec création snapshot", variant: "destructive" });
@@ -391,7 +394,7 @@ export default function TrackDayPage() {
           <div>
             <h1 className="text-lg sm:text-2xl font-bold">TFCL Track Day™</h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Protocole piste 400m — VMA, VLamax, Seuil, TTE en 2h
+              Protocole piste 400m — sprints, VMA et vitesse critique sur 3 points (3h)
             </p>
           </div>
           <Button
