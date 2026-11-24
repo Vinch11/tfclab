@@ -16,6 +16,7 @@ import { usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
+import { GarminZonesCard } from "@/components/GarminZonesCard";
 import { DerivedTrainingZonesCard } from "@/components/DerivedTrainingZonesCard";
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
@@ -1944,6 +1945,11 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
             render: () => (
               <DerivedTrainingZonesCard />
             ),
+          },
+          // Zones Garmin (5 zones) à recopier dans la montre
+          {
+            id: "garmin-zones",
+            render: () => <GarminZonesCard />,
           },
 
           // Seuils Lactiques TFCL
