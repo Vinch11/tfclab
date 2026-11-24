@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Loader2 } from "lucide-react";
+import { SplashScreen } from "@/components/SplashScreen";
 import { useProfile } from "@/hooks/useProfile";
 
 /**
@@ -11,11 +11,7 @@ import { useProfile } from "@/hooks/useProfile";
 export function CoachOnlyGate({ children }: { children: ReactNode }) {
   const { profile, loading, error } = useProfile();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Vérification des droits coach">
-        <Loader2 className="h-6 w-6 animate-spin" />
-      </div>
-    );
+    return <SplashScreen label="Vérification des droits coach…" />;
   }
   if (error || profile?.role !== "STAFF_COACH") {
     return (

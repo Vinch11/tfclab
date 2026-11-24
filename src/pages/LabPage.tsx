@@ -1,10 +1,11 @@
+import { LoadingStatus } from "@/components/SplashScreen";
 import { PairedBars } from "@/components/charts/PairedBars";
 import { FieldDecisionReview } from "@/components/FieldDecisionReview";
 import { useMemo, useState } from 'react';
 import type { CoachingCompassInput } from '@/lib/coachingCompass/types';
 import { LabPriorities, SnapshotReview, BlindReview } from '@/components/charts/LabCoachReview';
 import { Link } from 'react-router-dom';
-import { FlaskConical, ArrowLeft, Loader2 } from 'lucide-react';
+import { FlaskConical, ArrowLeft } from 'lucide-react';
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudDataContext } from '@/contexts/CloudDataContext';
 import { earlierBilans } from '@/lib/lab/coachReview';
@@ -43,7 +44,7 @@ export default function LabPage({ compass }: { compass?: CoachingCompassInput | 
     <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-8">
       <section className="lab-intro space-y-3"><p className="text-xs font-semibold text-primary">TFCLAB · PROFIL MÉTABOLIQUE</p><h2 className="text-3xl font-bold">{currentAthlete?.nom ?? 'Votre laboratoire'}</h2><p className="text-sm text-muted-foreground max-w-3xl leading-relaxed">Vos valeurs TFCL · bilan du {snapshot?.date ?? '—'}.</p></section>
       {snapshot && <button className="text-sm text-primary underline" onClick={() => setBlind(!blind)}>{blind ? 'Revenir au bilan actuel' : 'Relire un bilan historique à l’aveugle'}</button>}
-      {blind && snapshot ? <BlindReview athletes={visibleAthletes} tests={tests} birth={currentAthlete?.dateNaissance} key={snapshot.id} snapshots={snapshots} reference={snapshot} /> : loading ? <Loader2 aria-label="Chargement des bilans" className="h-6 w-6 animate-spin text-primary" /> : !input || !snapshot ? <section className="border-y border-border py-12"><h3 className="text-lg font-semibold">Aucun bilan disponible</h3><p className="text-muted-foreground mt-2">Les courbes nécessitent un bilan enregistré pour cet athlète.</p><Button asChild variant="outline" className="mt-5"><Link to="/essentiels">Ouvrir les bilans</Link></Button></section> : <>
+      {blind && snapshot ? <BlindReview athletes={visibleAthletes} tests={tests} birth={currentAthlete?.dateNaissance} key={snapshot.id} snapshots={snapshots} reference={snapshot} /> : loading ? <LoadingStatus label="Chargement des bilans…" /> : !input || !snapshot ? <section className="border-y border-border py-12"><h3 className="text-lg font-semibold">Aucun bilan disponible</h3><p className="text-muted-foreground mt-2">Les courbes nécessitent un bilan enregistré pour cet athlète.</p><Button asChild variant="outline" className="mt-5"><Link to="/essentiels">Ouvrir les bilans</Link></Button></section> : <>
         {compass && compass.athleteId === snapshot.athlete_id && <><LabPriorities input={compass} snapshot={snapshot} tests={tests} /><FieldDecisionReview key={snapshot.athlete_id} input={compass} snapshotId={snapshot.id} /></>}
         {input.sportFocus === 'triathlon' && <Tabs value={sport} onValueChange={v => { if (v === 'bike' || v === 'run') setSelection(v); }}><TabsList className="min-h-12"><TabsTrigger value="bike" className="min-h-11">Vélo</TabsTrigger><TabsTrigger value="run" className="min-h-11">Course à pied</TabsTrigger></TabsList></Tabs>}
         <section aria-label="Repères physiologiques" className="space-y-4">

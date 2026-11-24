@@ -1,3 +1,4 @@
+import { SplashScreen } from "@/components/SplashScreen";
 import { latestPairs } from "@/lib/diagnostic/durabilityDay";
 import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
 import { readPerformanceGoal, storedPerformance, comparisonGoals } from "@/lib/coachingCompass/performanceComparison";
@@ -184,7 +185,6 @@ import {
   Plus,
   Trash2,
   LogOut,
-  Loader2,
   User,
   Camera,
   ClipboardCheck,
@@ -1097,14 +1097,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Chargement des données...</p>
-        </div>
-      </div>
-    );
+    return <SplashScreen label="Chargement des données des athlètes…" />;
   }
 
   const openDashboardCompass = () => navigate("/?vue=compass", { state: { activeTab: "dashboard" } });

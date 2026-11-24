@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { ChartNoAxesColumnIncreasing, Eye, EyeOff, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { LoadingStatus } from "@/components/SplashScreen";
 import PasswordStrengthIndicator from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
 import logo2fc from "@/assets/logo-2fc.png";
@@ -92,10 +93,7 @@ const AuthPage = () => {
         <div className="auth-sheet">
           <div className="auth-content">
             {authLoading ? (
-              <p className="auth-status" role="status">
-                <Loader2 className="animate-spin" aria-hidden="true" />
-                Chargement…
-              </p>
+              <LoadingStatus label="Vérification de la session…" />
             ) : user ? (
               <>
                 <h1>Vous êtes déjà connecté</h1>
