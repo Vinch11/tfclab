@@ -8292,6 +8292,8 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
   if (payload.reportBrief) nav.push(['lecture-coach', 'Décision']);
   if (strategy || payload.calendar !== undefined) nav.push(['planification', 'Ligne du temps']);
   nav.push(...plates.map(([id,title]):[string,string]=>[id,title]));
+  const gridPreview = anchoredGridPreviewHTML(payload);
+  if (gridPreview) nav.push(['grille-corrigee', 'Grille corrigée (aperçu)']);
   nav.push(['executive-overview', 'Repères'], ['report-reading', 'Interprétation'], ['staff-evidence', 'Tests et sources']);
   if (included.length) nav.push(['analyses', 'Analyses complémentaires']);
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8">
@@ -8301,7 +8303,7 @@ function buildStaffGradeReportHTML(payload: ExportPayload, performance: Performa
     ${payload.reportBrief ? coachDecision(payload.reportBrief) : ''}
     ${strategy || payload.calendar !== undefined ? `<section class="edition-section" id="planification"><h2>Planification vers l’objectif</h2>${preparationTimeline(strategy, [getObjectifLabel(athlete.goal), payload.nextRace].filter(Boolean).join(' · '), false)}${calendarPreview(payload.calendar)}</section>` : ''}
     ${plates.map(([id,title,deck,content])=>visualChapter(id,title,deck,content)).join('')}
-    ${anchoredGridPreviewHTML(payload)}
+    ${gridPreview}
 
     ${buildCompassReportSummaryHTML(payload.coachingCompass, 'executive-overview', 'Lecture des repères par discipline', true)}
     ${buildReportReadingHTML(payload.coachingCompass, { zoneSets: reportSportZoneSets(payload), durability: reportSportDurability(payload) })}

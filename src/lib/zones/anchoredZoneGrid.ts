@@ -217,6 +217,12 @@ export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions 
   const unconfirmed = parsed.running && !cs ? parsed.running : null;
   if (unconfirmed && Math.abs(unconfirmed.critical * 3.6 - critical) / critical > 0.05)
     alerts.push(`CS non confirmée (${(unconfirmed.critical * 3.6).toFixed(1)} km/h) différente du seuil retenu (${critical.toFixed(1)} km/h) : à valider par le coach.`);
+  // VO₂max ≈ 3,5 × VMA (km/h) (Léger) : un écart > 10 % signale souvent une VO₂max de montre.
+  if (vma && positive(s.vo2max)) {
+    const expected = 3.5 * vma;
+    if (Math.abs(s.vo2max - expected) / expected > 0.1)
+      alerts.push(`VO₂max saisie (${Math.round(s.vo2max)} ml/kg/min) incohérente avec la VMA de ${vma} km/h (≈ ${Math.round(expected)} attendus) : VO₂max ou VMA à vérifier (souvent une valeur de montre).`);
+  }
   const top = Math.max(vma ?? critical * 1.1, critical * 1.03);
   const fcMax = positive(o.fcMax) ? o.fcMax : positive(s.fc_max) ? s.fc_max : null;
   return { sport: "run", critical, mlss: critical * MLSS_FRACTION.run, firstThreshold: critical * GRID_FRACTIONS.run.Z2, top, source,

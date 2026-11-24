@@ -24,17 +24,21 @@ function current(range: [number, number] | undefined, sport: 'bike' | 'run', fir
   return first ? `plus lent que ${pace(range[0])}/km` : last ? `plus rapide que ${pace(range[1])}/km` : `${pace(range[0])}–${pace(range[1])}/km`;
 }
 
-function sportBlock(label: string, grid: AnchoredGrid, table: ReturnType<typeof buildTargetTable>): string {
+function sportBlock(label: string, grid: AnchoredGrid, table: ReturnType<typeof buildTargetTable>, threshold: number | null | undefined): string {
   const ranges = grid.sport === 'bike' ? table.bikeZonesW : table.runPacesSecPerKm;
   const critical = grid.sport === 'bike' ? `${Math.round(grid.critical)} W` : `${grid.critical.toFixed(1)} km/h (${pace(3600 / grid.critical)}/km)`;
+  const fromThreshold = grid.source !== 'critical_confirmed' && grid.source !== 'vma_estimate';
+  const basis = grid.sport === 'bike'
+    ? (fromThreshold && threshold ? ` = FTP du bilan ${Math.round(threshold)} W ÷ 0,965 (la FTP reste dans Z5)` : '')
+    : (fromThreshold && threshold ? ` = allure seuil du bilan ${pace(threshold)}/km × 1,01 (l'allure seuil reste dans Z5)` : grid.source === 'vma_estimate' ? ' = VMA × % du niveau (calculateur TFCL)' : '');
   const rows = ANCHORED_ZONE_IDS.map((id, i) => {
     const z = grid.zones.find(x => x.id === id);
     return `<tr><td>${id}</td><td>${esc(current(ranges[id as ZoneKey], grid.sport, i === 0, i === ANCHORED_ZONE_IDS.length - 1))}</td><td><b>${esc(cell(grid, id as ZoneKey))}</b></td><td>${z?.hr ? (i === 0 ? `< ${z.hr[1]} bpm` : `${z.hr[0]}–${z.hr[1]} bpm`) : '—'}</td></tr>`;
   }).join('');
   return `<h3>${esc(label)}</h3>
-    <p>Seuil critique retenu : <b>${esc(critical)}</b> · ${esc(ANCHOR_SOURCE_LABELS[grid.source])}${grid.measured ? '' : ' · <b>estimation</b>'}</p>
+    <p>Haut de Z5 (${grid.sport === 'bike' ? 'CP' : 'CS'}${grid.source === 'critical_confirmed' ? '' : ' estimée'}) : <b>${esc(critical)}</b>${esc(basis)} · ${esc(ANCHOR_SOURCE_LABELS[grid.source])}${grid.measured ? '' : ' · <b>estimation</b>'}</p>
     <table><thead><tr><th>Zone</th><th>Grille actuelle des plans</th><th>Grille corrigée</th><th>FC corrigée</th></tr></thead><tbody>${rows}</tbody></table>
-    ${grid.alerts.length ? `<ul>${grid.alerts.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p>Aucune incohérence détectée dans le bilan.</p>'}`;
+    ${grid.alerts.length ? `<ul>${grid.alerts.map(a => `<li>${esc(a)}</li>`).join('')}</ul>` : '<p>Aucune alerte sur les valeurs du bilan utilisées par cette grille.</p>'}`;
 }
 
 /** Section HTML du rapport coach ; vide si la grille ancrée est déjà active ou incalculable. */
@@ -51,5 +55,5 @@ export function anchoredGridPreviewHTML(payload: ZonePayload | null | undefined)
   if (!bike && !run) return '';
   return `<section class="edition-section" id="grille-corrigee"><h2>Grille corrigée — aperçu, non activée</h2>
     <p>Mêmes zones Z1–Z7, limites ancrées sur le seuil critique (CP vélo, CS course) calculé depuis le bilan. Les plans utilisent toujours la grille actuelle. Comparer les deux colonnes avec le ressenti et les données de séance de l'athlète.</p>
-    ${bike ? sportBlock('Vélo', bike, table) : ''}${run ? sportBlock('Course à pied', run, table) : ''}</section>`;
+    ${bike ? sportBlock('Vélo', bike, table, input.ftp) : ''}${run ? sportBlock('Course à pied', run, table, input.pace_threshold_sec_per_km) : ''}</section>`;
 }
