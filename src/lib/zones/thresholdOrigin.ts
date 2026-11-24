@@ -10,7 +10,7 @@
 import type { Json } from '@/integrations/supabase/types';
 
 export type ThresholdField = 'ftp' | 'pace_threshold_sec_per_km';
-export type ThresholdOrigin = 'test_20min' | 'calculator' | 'watch' | 'entered';
+export type ThresholdOrigin = 'test_20min' | 'track_day_cs' | 'calculator' | 'watch' | 'entered';
 
 export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: ThresholdOrigin; label: string }[]> = {
   ftp: [
@@ -20,13 +20,14 @@ export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: Threshold
   ],
   pace_threshold_sec_per_km: [
     { value: 'test_20min', label: 'Test seuil 20 min TFCL réalisé (× 0,95)' },
+    { value: 'track_day_cs', label: 'Track Day : 1 500 m + 3 000 m maximaux (vitesse critique)' },
     { value: 'calculator', label: 'Calculateur TFCL (estimation avant test)' },
     { value: 'watch', label: 'Montre (Garmin…)' },
     { value: 'entered', label: 'Autre / saisie libre' },
   ],
 };
 
-const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'calculator', 'watch', 'entered']);
+const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'track_day_cs', 'calculator', 'watch', 'entered']);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 
 /** Provenance déclarée, ou null si le champ n'en a pas (bilans antérieurs). */
@@ -46,4 +47,4 @@ export function withThresholdOrigin(fieldSources: unknown, field: ThresholdField
 }
 
 /** Un seuil issu d'un test réalisé peut ancrer les zones ; les autres sont des estimations. */
-export const isMeasuredOrigin = (origin: ThresholdOrigin | null) => origin === 'test_20min';
+export const isMeasuredOrigin = (origin: ThresholdOrigin | null) => origin === 'test_20min' || origin === 'track_day_cs';

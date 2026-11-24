@@ -1,3 +1,6 @@
+import { criticalSpeedFromTrack } from "@/lib/diagnostic/trackDayCriticalSpeed";
+import { THRESHOLD_TO_CRITICAL } from "@/lib/zones/anchoredZoneGrid";
+import { withThresholdOrigin } from "@/lib/zones/thresholdOrigin";
 import { DayBlockNav } from "@/components/DayBlockNav";
 import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
@@ -106,7 +109,7 @@ export default function TrackDayPage() {
   // Bloc 3 — Seuil
   const [trackVariant, setTrackVariant] = useState("timed");
   const [sec1500, setSec1500] = useState("");
-  const [secTempo5k, setSecTempo5k] = useState("");
+  const [sec3000, setSec3000] = useState("");
   const [d6min, setD6min] = useState("");
   const [d20min, setD20min] = useState("");
 
@@ -143,7 +146,7 @@ export default function TrackDayPage() {
     t600m: { value: t600m, set: setT600m, default: "" },
     trackVariant: { value: trackVariant, set: setTrackVariant, default: "timed" },
     sec1500: { value: sec1500, set: setSec1500, default: "" },
-    secTempo5k: { value: secTempo5k, set: setSecTempo5k, default: "" },
+    sec3000: { value: sec3000, set: setSec3000, default: "" },
     d6min: { value: d6min, set: setD6min, default: "" },
     d20min: { value: d20min, set: setD20min, default: "" },
     fcDebutZ2: { value: fcDebutZ2, set: setFcDebutZ2, default: "" },
@@ -282,8 +285,12 @@ export default function TrackDayPage() {
       : vma6min > 0 ? vma6min : (vma1km > 0 ? vma1km : 0);
 
 
-    // Allure seuil depuis 20 min
-    const vSeuilKmh = trackVariant === "distance" ? (num(secTempo5k) > 0 ? 18000 / num(secTempo5k) : 0) : num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
+    // Variante « distance » : 1 500 m puis 3 000 m maximaux (30 min de récupération) → vitesse critique
+    // (modèle distance–temps, d = D′ + CS·t ; Galbraith 2014, Kordi 2019). L'allure seuil enregistrée
+    // vaut CS / 1,01 : la grille ancrée (THRESHOLD_TO_CRITICAL.run) retrouve ainsi exactement la CS.
+    const cs = criticalSpeedFromTrack(num(sec1500), num(sec3000));
+    // Variante « temps » : allure seuil = distance des 20 min (historique)
+    const vSeuilKmh = trackVariant === "distance" ? (cs.valid ? (cs.csMs * 3.6) / THRESHOLD_TO_CRITICAL.run : 0) : num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
 
     const tteEst = ratioSeuilVMA > 0 ? Math.max(25, Math.min(75, 30 + (ratioSeuilVMA - 0.85) * 400)) : 0;
@@ -318,12 +325,12 @@ export default function TrackDayPage() {
       v100, v200, v400, v600, v1km, vma1km,
       P1s, P5s, P30s, P60s,
       vma400, vma400Warning, vma6min, vmaConfirmee,
-      vSeuilKmh, ratioSeuilVMA,
+      vSeuilKmh, ratioSeuilVMA, cs,
       tteEst,
       driftPct,
       scoreG, vlamaxEst, vo2maxEst,
     };
-  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, secTempo5k, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, sec3000, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0;
@@ -339,7 +346,8 @@ export default function TrackDayPage() {
       date: testDate,
       source: "track_day",
       critical_metrics: { trackDay: trackVariant === "distance"
-        ? { protocol: "1500m_5km_tempo", sec1500: num(sec1500) || null, secTempo5k: num(secTempo5k) || null }
+        ? { protocol: "1500m_3000m_cs", sec1500: num(sec1500) || null, sec3000: num(sec3000) || null,
+            csMs: calc.cs.valid ? Math.round(calc.cs.csMs * 1000) / 1000 : null, dPrimeM: calc.cs.valid ? Math.round(calc.cs.dPrimeM) : null }
         : { protocol: "6min_20min", metres6: num(d6min) || null, metres20: num(d20min) || null } },
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
@@ -352,6 +360,7 @@ export default function TrackDayPage() {
 
 
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
+      ...(trackVariant === "distance" && calc.cs.valid ? { field_sources: withThresholdOrigin({}, "pace_threshold_sec_per_km", "track_day_cs") } : {}),
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
       pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)}${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
@@ -397,7 +406,7 @@ export default function TrackDayPage() {
           </Button>
         </div>
 
-        <p className="text-sm text-muted-foreground">Le protocole Nolio et la fiche imprimée utilisent un 1 500 m et un 5 km. Choisir cette variante dans le bloc 3 pour y reporter les temps réalisés.</p>
+        <p className="text-sm text-muted-foreground">Le protocole Nolio et la fiche imprimée utilisent un 1 500 m puis un 3 000 m maximaux, avec 30 min de récupération entre les deux. Choisir cette variante dans le bloc 3 pour y reporter les temps réalisés.</p>
         <DayBlockNav sport="run" />
         <DurabilityDayLink sport="run" />
         <TestSessionsNolioExport routes={['track-day']} />
@@ -725,24 +734,25 @@ export default function TrackDayPage() {
             <div className="flex items-center justify-between">
               <CardTitle id="day-block-3" className="scroll-mt-20 text-base flex items-center gap-2">
                 <Target className="h-4 w-4 text-blue-500" />
-                Bloc 3 — Seuil
+                Bloc 3 — Vitesse critique
               </CardTitle>
-              <Badge variant="secondary">35 min</Badge>
+              <Badge variant="secondary">50 min</Badge>
             </div>
             <CardDescription className="text-xs leading-relaxed">
-              Choisir le protocole effectivement réalisé. L’allure du bloc prolongé donne un repère de terrain à confirmer.
+              Choisir le protocole effectivement réalisé. Les deux efforts maximaux donnent la vitesse critique (CS) ; l’allure seuil enregistrée en découle.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="sm:col-span-2">Protocole réalisé
               <select className="block rounded border bg-background p-2" value={trackVariant} onChange={e => setTrackVariant(e.target.value)}>
                 <option value="timed">6 min et 20 min · distances parcourues</option>
-                <option value="distance">1 500 m maximal et 5 km tempo · fiche et Nolio</option>
+                <option value="distance">1 500 m et 3 000 m maximaux · fiche et Nolio</option>
               </select>
             </label>
             {trackVariant === "distance" ? <>
               <label>Temps du 1 500 m maximal (s)<Input type="number" min="1" value={sec1500} onChange={e => setSec1500(e.target.value)} /></label>
-              <label>Temps du 5 km tempo (s)<Input type="number" min="1" value={secTempo5k} onChange={e => setSecTempo5k(e.target.value)} /></label>
+              <label>Temps du 3 000 m maximal, après 30 min de récupération (s)<Input type="number" min="1" value={sec3000} onChange={e => setSec3000(e.target.value)} /></label>
+              {calc.cs.error && <p className="sm:col-span-2 text-xs text-destructive">{calc.cs.error}</p>}
             </> : <>
               <label>Distance 6 min (m)<Input type="number" value={d6min} onChange={e => setD6min(e.target.value)} placeholder="1850" />
                 {fmtNolioDate(nolioDates.d6min) && <small>{fmtNolioDate(nolioDates.d6min)}</small>}</label>
@@ -750,6 +760,10 @@ export default function TrackDayPage() {
             </>}
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 mt-1 text-xs">
               <Metric label={trackVariant === "distance" ? "Vitesse sur 1 500 m · repère VMA" : "VMA 6 min estimée"} value={fmt(trackVariant === "distance" ? calc.vmaConfirmee : calc.vma6min, 1)} unit="km/h" />
+              {trackVariant === "distance" ? <>
+                <Metric label="Vitesse critique (CS)" value={fmt(calc.cs.valid ? calc.cs.csMs * 3.6 : 0, 1)} unit="km/h" />
+                <Metric label="D′" value={fmt(calc.cs.valid ? calc.cs.dPrimeM : 0, 0)} unit="m" />
+              </> : null}
               <Metric label="V seuil" value={fmt(calc.vSeuilKmh, 1)} unit="km/h" />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" />
               <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" />

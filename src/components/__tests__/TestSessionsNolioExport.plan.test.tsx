@@ -26,7 +26,7 @@ describe("Exporteur Nolio : plan de tests en quelques jours", () => {
     const all = buildTestingPlan(checklist, true);
     render(<TestSessionsNolioExport routes={["plan-all", "plan-todo"]} plans={{ "plan-all": { label: "Plan de tests complet (4 Days)", sessions: all.map(d => d.session) }, "plan-todo": { label: "Plan des tests à faire", sessions: [] } }} />);
     expect(screen.getByText(/TFCL Bike Day™ · FTP, VLamax, PMA/)).toBeInTheDocument();
-    expect(screen.getByText(/TFCL Track Day™ · VMA, VLamax, seuil/)).toBeInTheDocument();
+    expect(screen.getByText(/TFCL Track Day™ · VMA, VLamax, vitesse critique/)).toBeInTheDocument();
     expect(screen.getByText(/Bike Day · Puissance critique/)).toBeInTheDocument();
     expect(screen.getByText(/Track Day · Vitesse critique/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Date du premier jour de tests"), { target: { value: "2026-12-01" } });
