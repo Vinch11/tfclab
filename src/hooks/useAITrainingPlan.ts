@@ -297,6 +297,8 @@ export interface PlanAthleteData {
   runMLSSEffectiveSource?: "observed" | "predicted" | "none" | null;
   /** Économie de course (Score G, 1-5) utile pour qualifier la prédiction MLSS */
   runEconomyScore?: number | null;
+  /** Champs du bilan actif lus par la grille de zones ancrée (CP/CS, provenance du seuil, PMA, FC repos). */
+  gridSnapshot?: import("@/lib/zones/anchoredZoneGrid").AnchoredGridSnapshot | null;
 }
 
 export interface RaceGoal {
@@ -835,6 +837,8 @@ export function useAITrainingPlan() {
           vlamaxRun: athleteData.vlamaxRun ?? null,
           vo2max: athleteData.vo2max ?? null,
           weightKg: athleteData.weightKg ?? null,
+          fcRest: athleteData.gridSnapshot?.fc_repos ?? null,
+          snapshot: athleteData.gridSnapshot ?? null,
 
           objective: planConfig.objective ?? null,
           // Clé canonique ("world_class"), jamais le libellé UI (planConfig.ambition,

@@ -13,8 +13,9 @@ describe("buildTargetTable", () => {
     expect(t.sstW).toEqual([246, 263]);
     expect(t.racePowerW).toBe(Math.round(0.85 * 280)); // 238
     expect(t.racePowerRange).toEqual([233, 243]);
-    // Z2 = 56-75% FTP = 157-210W
-    expect(t.bikeZonesW.Z2).toEqual([Math.round(0.56 * 280), Math.round(0.75 * 280)]);
+    // Grille ancrée (active depuis le 24/11/2026) : CP = FTP / 0,965 ; Z2 = 65–75 % de la CP.
+    const cp = 280 / 0.965;
+    expect(t.bikeZonesW.Z2).toEqual([Math.round(0.65 * cp), Math.round(0.75 * cp)]);
   });
 
   it("B-SEMI profile (VMA=18) → racePace fenêtre plausible pour semi", () => {

@@ -200,7 +200,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
 
   }
 
-  // Grille ancrée sur le seuil critique (non activée par défaut, cf. zoneGridConfig.ts).
+  // Grille ancrée sur le seuil critique (active par défaut depuis le 24/11/2026, cf. zoneGridConfig.ts).
   const anchored = { bike: false, run: false, hr: false };
   if ((input.gridMode ?? ZONE_GRID_MODE) === "anchored") {
     const snap: AnchoredGridSnapshot = { ...(input.snapshot ?? {}), ftp, vma, pace_threshold_sec_per_km: input.paceThresholdSecPerKm ?? input.snapshot?.pace_threshold_sec_per_km ?? null,

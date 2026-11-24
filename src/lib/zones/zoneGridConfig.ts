@@ -6,4 +6,4 @@
  * s'affiche en aperçu dans le rapport coach jusqu'à validation sur des athlètes réels.
  */
 export type ZoneGridMode = "current" | "anchored";
-export const ZONE_GRID_MODE: ZoneGridMode = "current";
+export const ZONE_GRID_MODE: ZoneGridMode = "anchored";

@@ -1371,6 +1371,13 @@ export default function AITrainingPlanPage() {
     const refs = getEffectiveRefs(athlete, athleteSnapshots);
     data.fcMax = refs.fcMax;
     if (!data.sex && athlete.sex) data.sex = athlete.sex;
+    // Grille de zones ancrée : CP/CS confirmées, provenance du seuil, PMA et FC repos du bilan actif.
+    const gridSnap = getEffectiveSnapshot(athlete, athleteSnapshots);
+    data.gridSnapshot = gridSnap ? {
+      ftp: gridSnap.ftp ?? null, vma: gridSnap.vma ?? null, pace_threshold_sec_per_km: gridSnap.pace_threshold_sec_per_km ?? null,
+      map5min_w: gridSnap.map5min_w ?? null, fc_repos: gridSnap.fc_repos ?? null,
+      critical_metrics: gridSnap.critical_metrics ?? null, field_sources: gridSnap.field_sources ?? null,
+    } : null;
 
     return { data, diagnostic };
   }, [buildDiagnosticForAthlete, getSnapshotsForAthlete]);
