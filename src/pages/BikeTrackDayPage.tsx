@@ -184,7 +184,9 @@ export default function BikeTrackDayPage() {
       const r10 = pick(10); if (r10) { setP10s(String(Math.round(r10.v))); dates.p10s = labelDate(r10); }
       const r30 = pick(30); if (r30) { setP30s(String(Math.round(r30.v))); dates.p30s = labelDate(r30); }
       const r60 = pick(60); if (r60) { setP60s(String(Math.round(r60.v))); dates.p60s = labelDate(r60); }
+      const r720 = pick(720); if (r720) { setP12min(String(Math.round(r720.v))); dates.p12min = labelDate(r720); }
       const r300 = pick(300); if (r300) { setMap5min(String(Math.round(r300.v))); dates.map5min = labelDate(r300); }
+      const r180 = pick(180); if (r180) { setCp3min(String(Math.round(r180.v))); dates.cp3min = labelDate(r180); }
       const r1200 = pick(1200); if (r1200) { setP20min(String(Math.round(r1200.v))); dates.p20min = labelDate(r1200); }
       setNolioDates(dates);
       const count = Object.keys(dates).length;
@@ -540,6 +542,7 @@ export default function BikeTrackDayPage() {
               {nolioDates.p5s && <small>{nolioDates.p5s}</small>}
               <Label>Puissance 12 min (W)</Label>
               <Input type="number" value={p12min} onChange={(e) => setP12min(e.target.value)} placeholder="270" />
+              {fmtNolioDate(nolioDates.p12min) && <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.p12min)}</div>}
               <Label>PMA 5 min (W)</Label>
               <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
               {fmtNolioDate(nolioDates.map5min) && (
@@ -553,6 +556,8 @@ export default function BikeTrackDayPage() {
             <div>
               <Label>Puissance 3 min (W)</Label>
               <Input type="number" value={cp3min} onChange={(e) => setCp3min(e.target.value)} placeholder="400" />
+              {fmtNolioDate(nolioDates.cp3min) && <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.cp3min)}</div>}
+              {(nolioDates.p12min || nolioDates.map5min || nolioDates.cp3min) && <p className="text-[10px] text-amber-700 dark:text-amber-400 mt-1">Records Nolio : meilleures valeurs de la période, pas forcément des efforts maximaux. Ne cocher « Je confirme » que s'ils viennent d'une vraie séance de test.</p>}
             </div>
             <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
               <Metric label="CP" value={fmt(calc.cp, 0)} unit="W" />
