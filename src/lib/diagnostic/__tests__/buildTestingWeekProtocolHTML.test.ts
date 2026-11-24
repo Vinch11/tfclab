@@ -177,11 +177,11 @@ describe("buildTestingWeekDossierHTML — triathlon-compact (calendrier fusionn�
     expect(html).toContain("Jour 2");
     expect(html).toContain("TFCL Pool Day™");
     // Contenu réel du protocole (PROTOCOLS["pool-day"]) — garantit l'absence de divergence.
-    expect(html).toContain("Bloc 2 — Sprint (VLamax nage)");
-    expect(html).toContain("Bloc 3 — CSS (200 + 400m)");
-    expect(html).toContain("Bloc 4 — Endurance critique (1500m)");
+    expect(html).toContain("Bloc 2 — Sprint 25 m (vitesse maximale)");
+    expect(html).toContain("Bloc 3 — CSS (400 m puis 200 m)");
+    expect(html).not.toContain("Bloc 4 — Endurance critique (1500m)");
     expect(html).toContain("CSS estimée");
-    expect(html).toContain("VLamax nage estimée");
+    expect(html).not.toContain("VLamax nage estimée");
     const idxJour1b = html.indexOf("Jour 1b");
     const idxJour2 = html.indexOf("Jour 2");
     const idxJour3 = html.indexOf("Jour 3");

@@ -1,6 +1,6 @@
 /**
  * SwimPoolDayPage — TFCL Pool Day™
- * Protocole piscine 1h30 : CSS, VLamax nage, capacité aérobie.
+ * Protocole piscine 1h : sprint 25 m et CSS (400 m puis 200 m maximaux, 15 à 20 min de récupération).
  *
  * Références :
  *  - Wakayoshi et al. 1992 (Critical Swim Speed)
@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Waves, Zap, Target, Heart, Save, ArrowLeft } from "lucide-react";
+import { Waves, Zap, Target, Save, ArrowLeft } from "lucide-react";
 import { useAthletes } from "@/contexts/AthleteContext";
 import { useCloudDataContext } from "@/contexts/CloudDataContext";
 import { toast } from "@/hooks/use-toast";
@@ -77,9 +77,6 @@ export default function SwimPoolDayPage() {
   const [t200, setT200] = useState("");
 
   // Bloc 3 — aérobie
-  const [fcDebut800, setFcDebut800] = useState("");
-  const [fcFin800, setFcFin800] = useState("");
-  const [t800, setT800] = useState("");
 
   // ─── Persistance localStorage par athlète ─────────────────────
   const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -96,9 +93,6 @@ export default function SwimPoolDayPage() {
     t100: { value: t100, set: setT100, default: "" },
     t400: { value: t400, set: setT400, default: "" },
     t200: { value: t200, set: setT200, default: "" },
-    fcDebut800: { value: fcDebut800, set: setFcDebut800, default: "" },
-    fcFin800: { value: fcFin800, set: setFcFin800, default: "" },
-    t800: { value: t800, set: setT800, default: "" },
   });
 
   const handleClearForm = () => {
@@ -119,39 +113,10 @@ export default function SwimPoolDayPage() {
     const cssPer100 = css > 0 ? 100 / css : 0; // sec/100m
     const ratioCssVmax = css > 0 && vMax > 0 ? css / vMax : 0;
 
-    const fcD = num(fcDebut800), fcF = num(fcFin800);
-    const driftPct = fcD > 0 ? ((fcF - fcD) / fcD) * 100 : 0;
-    const t800Theo = cssPer100 > 0 ? cssPer100 * 8 * 1.10 : 0; // CSS+10% (plus lent)
-    const ecart800 = num(t800) > 0 && t800Theo > 0 ? num(t800) - t800Theo : 0;
-
-    // TTE estimé nage : plus le ratio CSS/Vmax est haut, plus la nage est endurante
-    const tteEst = ratioCssVmax > 0
-      ? Math.max(20, Math.min(60, 25 + (ratioCssVmax - 0.55) * 200))
-      : 0;
-
-    // VLamax nage par bandes (Mader 2003 adapté natation) :
-    //   ratio > 0.85 → faible 0.25-0.35 (profil endurant)
-    //   ratio 0.75-0.85 → moyenne 0.35-0.55
-    //   ratio < 0.75 → élevée 0.55-0.80 (profil sprinter)
-    let vlamaxSwimIdx = 0;
-    let vlamaxBand: "faible" | "moyenne" | "élevée" | "" = "";
-    let vlamaxRange = "";
-    if (ratioCssVmax > 0) {
-      if (ratioCssVmax > 0.85) {
-        vlamaxBand = "faible"; vlamaxRange = "0.25–0.35";
-        vlamaxSwimIdx = 0.35 - Math.min(0.10, (ratioCssVmax - 0.85) * 1.0);
-      } else if (ratioCssVmax >= 0.75) {
-        vlamaxBand = "moyenne"; vlamaxRange = "0.35–0.55";
-        vlamaxSwimIdx = 0.35 + ((0.85 - ratioCssVmax) / 0.10) * 0.20;
-      } else {
-        vlamaxBand = "élevée"; vlamaxRange = "0.55–0.80";
-        vlamaxSwimIdx = Math.min(0.80, 0.55 + (0.75 - ratioCssVmax) * 1.5);
-      }
-      vlamaxSwimIdx = Math.max(0.25, Math.min(0.80, vlamaxSwimIdx));
-    }
-
-    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax, driftPct, t800Theo, ecart800, tteEst, vlamaxSwimIdx, vlamaxBand, vlamaxRange };
-  }, [t25, t50, t100, t400, t200, fcDebut800, fcFin800, t800]);
+    // Retirés (audit nov. 2026) : bloc 800 m à CSS + 10 %, « TTE nage estimé » et « VLamax nage » par bandes
+    // du ratio CSS/Vmax — formules sans base scientifique. Le ratio reste affiché comme profil.
+    return { v25, v50, v100, vMax, css, cssPer100, ratioCssVmax };
+  }, [t25, t50, t100, t400, t200]);
 
   const canCreate = !!currentAthlete && calc.cssPer100 > 0;
 
@@ -170,9 +135,7 @@ export default function SwimPoolDayPage() {
       css: calc.cssPer100 || null,
       critical_metrics: { poolDay: { poolMetres: Number(poolLen), t200: num(t200), t400: num(t400) } },
       // ⚠ Ne PAS écrire vlamax_run ni tte_observed_min (champs CAP/bike).
-      // Les indices natation (vlamaxSwimIdx, tteEst) restent tracés dans coach_notes
-      // en attendant l'ajout des colonnes dédiées vlamax_swim / tte_observed_min_swim.
-      coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}% · VLamax nage idx ${fmt(calc.vlamaxSwimIdx, 2)} · TTE est ${fmt(calc.tteEst, 0)}min · drift 800m ${fmt(calc.driftPct, 1)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
+      coach_notes: `TFCL Pool Day™ — Bassin ${poolLen}m — CSS ${fmtPace(calc.cssPer100)}/100m · V max ${fmt(calc.vMax, 2)} m/s · CSS/Vmax ${fmt(calc.ratioCssVmax * 100, 0)}%${heightCm > 0 ? ` · taille ${heightCm}cm` : ""}`,
 
     } as any);
     if (snap) {
@@ -336,7 +299,7 @@ export default function SwimPoolDayPage() {
               <Badge variant="secondary">40 min</Badge>
             </div>
             <CardDescription className="text-xs">
-              <b>400 m max</b> — récup 8 min — <b>200 m max</b>. CSS = (400 − 200) / (T400 − T200).
+              <b>400 m max</b> — 15 à 20 min de nage souple — <b>200 m max</b>, départs dans l'eau. CSS (s/100 m) = (T400 − T200) / 2. La CSS se situe un peu au-dessus du seuil lactique (Dekerle 2005) : c'est le haut de la zone seuil.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -359,40 +322,6 @@ export default function SwimPoolDayPage() {
           </CardContent>
         </Card>
 
-        {/* Bloc 3 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Heart className="h-4 w-4 text-red-500" /> Bloc 3 — Aérobie
-              </CardTitle>
-              <Badge variant="secondary">20 min</Badge>
-            </div>
-            <CardDescription className="text-xs">
-              <b>800 m continu</b> à allure CSS+10% (plus lente que CSS). Cible : {fmtPace(calc.cssPer100 * 1.10)}/100m.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <Label>FC début (bpm)</Label>
-              <Input type="number" value={fcDebut800} onChange={(e) => setFcDebut800(e.target.value)} placeholder="140" />
-            </div>
-            <div>
-              <Label>FC fin (bpm)</Label>
-              <Input type="number" value={fcFin800} onChange={(e) => setFcFin800(e.target.value)} placeholder="155" />
-            </div>
-            <div>
-              <Label>Temps 800m réel (sec)</Label>
-              <Input type="number" value={t800} onChange={(e) => setT800(e.target.value)} placeholder="720" />
-            </div>
-            <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
-              <Metric label="Drift cardiaque" value={fmt(calc.driftPct, 1)} unit="%" />
-              <Metric label="T800 théo" value={fmt(calc.t800Theo, 0)} unit="sec" />
-              <Metric label="Écart réel/théo" value={`${calc.ecart800 > 0 ? "+" : ""}${fmt(Math.abs(calc.ecart800), 0)}`} unit="sec" />
-            </div>
-          </CardContent>
-        </Card>
-
         <Card className="border-cyan-500/30 bg-cyan-500/5">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -405,15 +334,8 @@ export default function SwimPoolDayPage() {
               <Metric label="CSS" value={fmt(calc.cssPer100, 1)} unit="sec/100m" big />
               <Metric label="V max" value={fmt(calc.vMax, 2)} unit="m/s" big />
               <Metric label="CSS/Vmax" value={fmt(calc.ratioCssVmax * 100, 0)} unit="%" big />
-              <Metric label="VLamax nage (idx)" value={fmt(calc.vlamaxSwimIdx, 2)} unit="" big />
-              <Metric label="TTE nage est." value={fmt(calc.tteEst, 0)} unit="min" big />
             </div>
-            {calc.vlamaxBand && (
-              <p className="text-[11px] text-cyan-700 dark:text-cyan-400">
-                <b>VLamax nage : {calc.vlamaxBand}</b> ({calc.vlamaxRange} mmol/L/s) — ratio CSS/Vmax = {fmt(calc.ratioCssVmax * 100, 0)}%.
-                <span className="text-muted-foreground"> Réf : Mader 2003 adapté natation.</span>
-              </p>
-            )}
+            <p className="text-[11px] text-muted-foreground">Ratio CSS/Vmax : profil sprint (ratio bas) ou endurance (ratio haut), à comparer d'un test à l'autre pour le même nageur.</p>
             {(() => {
               const fields = [
                 { k: "Poids", ok: massKg > 0 },
@@ -422,7 +344,6 @@ export default function SwimPoolDayPage() {
                 { k: "Taille", ok: heightCm > 0 },
                 { k: "CSS", ok: calc.cssPer100 > 0 },
                 { k: "V max", ok: calc.vMax > 0 },
-                { k: "Drift 800m", ok: calc.driftPct !== 0 },
               ];
               const filled = fields.filter((f) => f.ok).length;
               return (

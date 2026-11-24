@@ -64,10 +64,10 @@ function describe(valueText: string | null, date: string | null, validityDays: n
 }
 
 const P = {
-  sprintBike: ["Échauffement 15 min, puis 3 sprints maximaux de 10 s départ arrêté (3 min de récupération).", "Un effort maximal de 30 s, puis, si prévu, 60 s. Noter puissance pic et moyenne.", "Capteur de puissance, efforts sans cible."],
-  map5: ["Échauffement progressif, puis 5 min à la puissance maximale soutenable.", "Noter la puissance moyenne. Sert aussi de troisième point pour la puissance critique."],
-  ftp: ["Test 20 min à puissance maximale stable, après récupération complète.", "Valeur issue d'un protocole seuil, pas d'un simple record."],
-  cpBike: ["3 min maximal, 30 min de récupération, 12 min maximal (Bike Day · Puissance critique).", "Le test 5 min du Bike Day fournit le troisième point dans les 28 jours."],
+  sprintBike: ["Échauffement 15 min, puis 3 sprints maximaux de 10 s départ arrêté (3 min de récupération).", "Un effort maximal de 30 s après 8 min de récupération. Noter puissance pic et moyenne.", "Capteur de puissance, efforts sans cible. Séance à part de la puissance critique."],
+  map5: ["5 min maximal dans le Bike Day · Puissance critique (12, 5 et 3 min, 30 min de récupération entre chaque).", "Noter la puissance moyenne. C'est aussi un des trois points de la puissance critique."],
+  ftp: ["Déduite de la puissance critique (FTP = CP × 0,965) : pas de test séparé nécessaire.", "Test 20 min en contrôle seulement, un autre jour, reposé (FTP = 0,95 × P moyenne)."],
+  cpBike: ["12 min, 5 min et 3 min maximaux, 30 min de récupération entre chaque (Bike Day · Puissance critique).", "Les trois points sont dans la même séance."],
   sprintRun: ["Échauffement 15 min, accélérations en ligne droite, puis 2 sprints de 30 m départ arrêté et un effort maximal de 15 s.", "Noter les temps et la distance exacte."],
   vma: ["Test 6 min (ou 1500 m) à allure maximale stable sur piste, reposé.", "Noter la distance ou le temps et chaque tour."],
   threshold: ["Track Day : 1 500 m maximal, 30 min de récupération, puis 3 000 m maximal sur piste.", "Les deux temps donnent la vitesse critique ; l'allure seuil du bilan en découle (CS / 1,01)."],
@@ -102,9 +102,9 @@ export function buildTestChecklist(input: CoachingCompassInput, today: string = 
     const sprint = [input.pmax5s, input.p30sW, input.p60sW].some(num);
     add({ key: "sprint-bike", label: "Sprint vélo (5 s, 30 s, 60 s)", sport: "bike", feeds: "VLamax, puissance pic", validityDays: other, day: "bike-day", protocol: P.sprintBike,
       valueText: sprint ? [num(input.pmax5s) ? fmt(input.pmax5s) + " W (5 s)" : null, num(input.p30sW) ? fmt(input.p30sW) + " W (30 s)" : null].filter(Boolean).join(" · ") : null, date: bilan });
-    add({ key: "map5-bike", label: "Puissance 5 min (PMA)", sport: "bike", feeds: "Plafond aérobie vélo", validityDays: other, day: "bike-day", protocol: P.map5,
+    add({ key: "map5-bike", label: "Puissance 5 min (PMA)", sport: "bike", feeds: "Plafond aérobie vélo", validityDays: other, day: "cp-day", protocol: P.map5,
       valueText: num(input.map5minW) ? fmt(input.map5minW) + " W" : null, date: bilan });
-    add({ key: "ftp-bike", label: "FTP / seuil vélo", sport: "bike", feeds: "FTP/kg", validityDays: other, day: "bike-day", protocol: P.ftp,
+    add({ key: "ftp-bike", label: "FTP / seuil vélo", sport: "bike", feeds: "FTP/kg", validityDays: other, day: "cp-day", protocol: P.ftp,
       valueText: num(input.ftp) ? fmt(input.ftp) + " W" : null, date: bilan });
     const cp = critical.cycling;
     add({ key: "cp-bike", label: "Puissance critique (CP) et W′", sport: "bike", feeds: "Seuil critique, réserve anaérobie", validityDays: crit, day: "cp-day", protocol: P.cpBike,

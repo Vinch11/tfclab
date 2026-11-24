@@ -5,7 +5,7 @@ import { DayBlockNav } from "@/components/DayBlockNav";
 import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * TrackDayPage — TFCL Track Day™
- * Protocole piste complet en 2h pour estimer VMA, VLamax, Seuil, TTE, FatMax
+ * Protocole piste complet en 2h30 : sprints, VMA (1 500 m) et vitesse critique (1 500 m + 3 000 m)
  * en une seule séance.
  *
  * Références :
@@ -272,17 +272,16 @@ export default function TrackDayPage() {
     const v200 = num(t200m) > 0 ? (200 / num(t200m)) * 3.6 : 0;
     const v400 = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 : 0;
     const v1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 : 0;
-    const vma1km = num(t1000m) > 0 ? (1000 / num(t1000m)) * 3.6 * 1.08 : 0;
     const v600 = num(t600m) > 0 ? (600 / num(t600m)) * 3.6 : 0;
     const P60s = powerWperKg(v400);
 
     const vma400Raw = num(t400m) > 0 ? (400 / num(t400m)) * 3.6 * 1.05 : 0;
     const vma400 = vma400Raw > 30 ? 0 : vma400Raw;
     const vma400Warning = vma400Raw > 30;
-    // VMA depuis 6 min (Léger)
-    const vma6min = num(d6min) > 0 ? (num(d6min) / 6) * 60 / 1000 * 1.05 : 0;
+    // VMA depuis 6 min : vitesse moyenne, sans majoration (le 6 min surestime déjà la VMA de 3 à 5 %)
+    const vma6min = num(d6min) > 0 ? (num(d6min) / 6) * 60 / 1000 : 0;
     const vmaConfirmee = trackVariant === "distance" ? (num(sec1500) > 0 ? 5400 / num(sec1500) : 0)
-      : vma6min > 0 ? vma6min : (vma1km > 0 ? vma1km : 0);
+      : vma6min;
 
 
     // Variante « distance » : 1 500 m puis 3 000 m maximaux (30 min de récupération) → vitesse critique
@@ -293,28 +292,14 @@ export default function TrackDayPage() {
     const vSeuilKmh = trackVariant === "distance" ? (cs.valid ? (cs.csMs * 3.6) / THRESHOLD_TO_CRITICAL.run : 0) : num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
 
-    const tteEst = ratioSeuilVMA > 0 ? Math.max(25, Math.min(75, 30 + (ratioSeuilVMA - 0.85) * 400)) : 0;
+    // « TTE estimé » retiré (formule sans base) : le TTE se mesure (test TTE ou journée de durabilité).
 
     const fcD = num(fcDebutZ2);
     const fcF = num(fcFinZ2);
     const driftPct = fcD > 0 && fcF > 0 ? ((fcF - fcD) / fcD) * 100 : null;
 
-    // VLamax — Score G fusionne sprints disponibles + ratio seuil/VMA inversé
-    const sprintRefs = [22, 18, 12, 8];
-    const sprintVals = [P1s, P5s, P30s, P60s];
-    const sprintAvail = sprintVals
-      .map((p, i) => p > 0 ? Math.max(0, Math.min(1, p / sprintRefs[i])) : null)
-      .filter((v): v is number => v != null);
-    const sprintScore = sprintAvail.length > 0
-      ? sprintAvail.reduce((a, b) => a + b, 0) / sprintAvail.length
-      : 0;
-
-    const ratioInv = ratioSeuilVMA > 0
-      ? Math.max(0, Math.min(1, (0.95 - ratioSeuilVMA) / 0.15))
-      : 0.5;
-
-    const scoreG = sprintScore * 0.6 + ratioInv * 0.4;
-    const vlamaxEst = vmaConfirmee > 0 ? 0.25 + scoreG * 0.6 : 0;
+    // « VLamax est. » (Score G : 60 % sprints, 40 % ratio seuil/VMA) retiré : pondération sans base.
+    // La VLamax course est estimée par le moteur unifié à partir du sprint 15 s (vlamaxCapEstimator).
 
     // VO2max estimé depuis VMA — Léger & Mercier 1984 : VO2max ≈ VMA × 3.5
     const vo2maxEst = vmaConfirmee > 0 ? vmaConfirmee * 3.5 : 0;
@@ -322,13 +307,12 @@ export default function TrackDayPage() {
     return {
       vMaxFrom30, P5sFrom100, P30sFrom200, P1sFromCmj, scoreNeuroBonds,
       neuroScore, neuroCount,
-      v100, v200, v400, v600, v1km, vma1km,
+      v100, v200, v400, v600, v1km,
       P1s, P5s, P30s, P60s,
       vma400, vma400Warning, vma6min, vmaConfirmee,
       vSeuilKmh, ratioSeuilVMA, cs,
-      tteEst,
       driftPct,
-      scoreG, vlamaxEst, vo2maxEst,
+      vo2maxEst,
     };
   }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, sec3000, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
@@ -363,7 +347,7 @@ export default function TrackDayPage() {
       ...(trackVariant === "distance" && calc.cs.valid ? { field_sources: withThresholdOrigin({}, "pace_threshold_sec_per_km", "track_day_cs") } : {}),
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
       pace1km_sec: num(t1000m) > 0 ? num(t1000m) : null,
-      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h — Score G ${fmt(calc.scoreG, 2)}${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
+      coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -721,7 +705,7 @@ export default function TrackDayPage() {
             </div>
             <div className="sm:col-span-2 grid grid-cols-4 gap-2 mt-1 text-xs">
               <Metric label="Vitesse 400m" value={fmt(calc.v400, 1)} unit="km/h" />
-              <Metric label="VMA (1km)" value={fmt(calc.vma1km, 1)} unit="km/h" />
+              <Metric label="Vitesse 1 000 m (au-dessus de la VMA)" value={fmt(calc.v1km, 1)} unit="km/h" />
               <Metric label="V 600m" value={fmt(calc.v600, 1)} unit="km/h" />
               <Metric label="P60s" value={fmt(calc.P60s, 2)} unit="W/kg" />
             </div>
@@ -766,7 +750,6 @@ export default function TrackDayPage() {
               </> : null}
               <Metric label="V seuil" value={fmt(calc.vSeuilKmh, 1)} unit="km/h" />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" />
-              <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" />
             </div>
           </CardContent>
         </Card>
@@ -818,9 +801,7 @@ export default function TrackDayPage() {
               <Metric label="VMA" value={fmt(calc.vmaConfirmee, 1)} unit="km/h" big />
               <Metric label="Allure seuil" value={paceMinKm(calc.vSeuilKmh)} unit="min/km" big />
               <Metric label="Ratio seuil/VMA" value={fmt(calc.ratioSeuilVMA * 100, 1)} unit="%" big />
-              <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
-              <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
             </div>
             {(() => {
               const fields = [
@@ -831,7 +812,6 @@ export default function TrackDayPage() {
                 { k: "VMA", ok: calc.vmaConfirmee > 0 },
                 { k: "Allure seuil", ok: calc.vSeuilKmh > 0 },
                 { k: "Sprint 15s", ok: num(sprint15sM) > 0 },
-                { k: "VLamax", ok: calc.vlamaxEst > 0 },
                 { k: "VO2max", ok: calc.vo2maxEst > 0 },
               ];
               const filled = fields.filter((f) => f.ok).length;

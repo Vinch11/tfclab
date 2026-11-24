@@ -31,17 +31,19 @@ describe("Track Day · Vitesse critique", () => {
 
 describe("Bike Day · Puissance critique", () => {
   const day = buildCriticalBikeDayNolioSession();
-  it("3 min, 30 min de repos, 12 min, sans cible imposée", () => {
+  it("12 min, 5 min et 3 min, 30 min de repos entre chaque, sans cible imposée", () => {
     expect(day.sport).toBe("bike");
     const w = steps(day);
-    expect(w.map(x => x.intensity_type)).toEqual(["warmup", "active", "rest", "active", "cooldown"]);
-    expect(w[1]).toMatchObject({ step_duration_value: 180, target_type: "no_target" });
+    expect(w.map(x => x.intensity_type)).toEqual(["warmup", "active", "rest", "active", "rest", "active", "cooldown"]);
+    expect(w[1]).toMatchObject({ step_duration_value: 720, target_type: "no_target" });
     expect(w[2]).toMatchObject({ step_duration_value: 30 * 60 });
-    expect(w[3]).toMatchObject({ step_duration_value: 720, target_type: "no_target" });
+    expect(w[3]).toMatchObject({ step_duration_value: 300, target_type: "no_target" });
+    expect(w[4]).toMatchObject({ step_duration_value: 30 * 60 });
+    expect(w[5]).toMatchObject({ step_duration_value: 180, target_type: "no_target" });
   });
-  it("dit où trouver le troisième point", () => {
-    expect(day.objectif).toContain("le test 5 min du Bike Day");
-    expect(day.objectif).toContain("la CP reste une estimation");
+  it("trois points dans la même séance, FTP déduite de la CP", () => {
+    expect(day.objectif).toContain("Les trois points donnent la puissance critique");
+    expect(day.objectif).toContain("CP × 0,965");
   });
 });
 
@@ -76,10 +78,10 @@ describe("les Days alimentent bien la politique critique de l'app", () => {
 });
 
 describe("guide des Days", () => {
-  it("renvoie vers les nouveaux Days, le Track Day 1500 m + 3000 m et garde la limite du 20 min", () => {
+  it("renvoie vers les nouveaux Days, le Track Day 1500 m + 3000 m et le Bike Day 12/5/3 min", () => {
     expect(criticalGuide.run).toContain("Track Day · Vitesse critique");
     expect(criticalGuide.run).toContain("Track Day (1500 m puis 3000 m maximaux) fournit déjà deux points");
     expect(criticalGuide.bike).toContain("Bike Day · Puissance critique");
-    expect(criticalGuide.bike).toContain("20 min dépasse la durée admissible de 15 min");
+    expect(criticalGuide.bike).toContain("12 min, 5 min puis 3 min maximaux");
   });
 });
