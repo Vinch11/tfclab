@@ -21,7 +21,7 @@
  */
 import type { LegacyZoneId } from "./zoneMapping";
 import { DEFAULT_REST_HR_FRACTION, DEFAULT_THRESHOLD_HR_FRACTION, HR_SUBTHRESHOLD_EXPONENT } from "./deriveTrainingZones";
-import { readThresholdOrigin, type ThresholdOrigin } from "./thresholdOrigin";
+import { isMeasuredOrigin, readThresholdOrigin, type ThresholdOrigin } from "./thresholdOrigin";
 import { LEVEL_VMA_PERCENT, levelForAmbition } from "./thresholdPaceLevels";
 import { parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
 import { CRITICAL_POLICY } from "@/lib/criticalEfforts";
@@ -53,14 +53,14 @@ const DAY_MS = 86400000;
 
 export type AnchorSource =
   | "critical_confirmed"   // CP/CS confirmée par le coach, récente
-  | "threshold_test"       // FTP / allure seuil d'un test 20 min réalisé
+  | "threshold_test"       // FTP / allure seuil d'un test réalisé (20 min, ou CS du Track Day)
   | "threshold_unknown"    // valeur du bilan sans provenance (bilans antérieurs)
   | "threshold_estimate"   // calculateur TFCL ou montre
   | "vma_estimate";        // estimation depuis la VMA (calculateur TFCL)
 
 export const ANCHOR_SOURCE_LABELS: Record<AnchorSource, string> = {
   critical_confirmed: "Seuil critique confirmé par le coach",
-  threshold_test: "Test seuil 20 min réalisé",
+  threshold_test: "Test seuil réalisé (20 min ou Track Day 1 500 m + 3 000 m)",
   threshold_unknown: "Seuil du bilan, provenance non renseignée",
   threshold_estimate: "Seuil estimé (calculateur ou montre)",
   vma_estimate: "Estimation depuis la VMA",
@@ -196,7 +196,7 @@ export function anchoredRunGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions 
   if (cs) { critical = cs.critical * 3.6; source = "critical_confirmed"; }
   else if (pace && origin !== "watch" && origin !== "calculator") {
     critical = (3600 / pace) * THRESHOLD_TO_CRITICAL.run;
-    source = origin === "test_20min" ? "threshold_test" : "threshold_unknown";
+    source = isMeasuredOrigin(origin) ? "threshold_test" : "threshold_unknown";
   } else if (vma) {
     // Cible du calculateur TFCL = allure d'un effort maximal de 20 min, proche de la CS
     // (tenable environ 20 à 30 min, Jones 2019) : CS ≈ VMA × % du niveau.

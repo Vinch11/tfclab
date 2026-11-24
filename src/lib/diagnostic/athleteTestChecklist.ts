@@ -70,8 +70,8 @@ const P = {
   cpBike: ["3 min maximal, 30 min de récupération, 12 min maximal (Bike Day · Puissance critique).", "Le test 5 min du Bike Day fournit le troisième point dans les 28 jours."],
   sprintRun: ["Échauffement 15 min, accélérations en ligne droite, puis 2 sprints de 30 m départ arrêté et un effort maximal de 15 s.", "Noter les temps et la distance exacte."],
   vma: ["Test 6 min (ou 1500 m) à allure maximale stable sur piste, reposé.", "Noter la distance ou le temps et chaque tour."],
-  threshold: ["5 km à allure seuil soutenable (RPE 8/10) sur piste ou parcours plat mesuré.", "Noter les temps au km. Ce n'est pas un effort maximal."],
-  cs: ["1000 m maximal, 30 min de récupération, 3000 m maximal (Track Day · Vitesse critique).", "Le 1500 m du Track Day fournit le troisième point dans les 28 jours."],
+  threshold: ["Track Day : 1 500 m maximal, 30 min de récupération, puis 3 000 m maximal sur piste.", "Les deux temps donnent la vitesse critique ; l'allure seuil du bilan en découle (CS / 1,01)."],
+  cs: ["1000 m maximal, 30 min de récupération, 3000 m maximal (Track Day · Vitesse critique).", "Avec le Track Day (1 500 m + 3 000 m), un seul 1 000 m maximal dans les 28 jours suffit pour trois points."],
   durability: ["Sortie longue habituelle : comparer le meilleur effort de 20 min au début et dans le dernier tiers, ou deux blocs de 10 min à la même cible avant/après une période d'endurance.", "Sur au moins 2 sorties (vélo ≥ 2 h, course ≥ 1 h 30)."],
   vo2: ["Test maximal en laboratoire, ou valeur estimée à partir de la VMA ou du test 5 min.", "Pas de protocole de terrain dédié dans l'app."],
 };
@@ -119,7 +119,7 @@ export function buildTestChecklist(input: CoachingCompassInput, today: string = 
       note: !tested && ref && num(ref.value) ? "Valeur estimée, sans sprint testé." : undefined });
     add({ key: "vma-run", label: "VMA course (6 min ou 1500 m)", sport: "run", feeds: "VMA, plafond aérobie course", validityDays: other, day: "track-day", protocol: P.vma,
       valueText: num(input.vma) ? fmt(input.vma) + " km/h" : null, date: bilan });
-    add({ key: "threshold-run", label: "Allure seuil course (5 km contrôlé)", sport: "run", feeds: "Allure au seuil", validityDays: other, day: "track-day", protocol: P.threshold,
+    add({ key: "threshold-run", label: "Allure seuil course (Track Day 1 500 m + 3 000 m)", sport: "run", feeds: "Allure au seuil", validityDays: other, day: "track-day", protocol: P.threshold,
       valueText: num(input.paceThresholdSecPerKm) ? pace(input.paceThresholdSecPerKm) : null, date: bilan });
     const cs = critical.running;
     add({ key: "cs-run", label: "Vitesse critique (CS) et D′", sport: "run", feeds: "Seuil critique, réserve anaérobie", validityDays: crit, day: "cs-day", protocol: P.cs,

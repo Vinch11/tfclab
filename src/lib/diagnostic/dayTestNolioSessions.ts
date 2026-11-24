@@ -12,7 +12,7 @@ const session = (sport: string, title: string, objectif: string, structuredWorko
   ({ weekNumber: 1, dayIndex: 0, sessionIndex: 0, sport, title, objectif, details: objectif, isRest: false, structuredWorkout });
 
 export function buildTrackDayNolioSession(): TestingWeekNolioSession {
-  return session('run', 'TFCL Track Day™ · VMA, VLamax, seuil', 'Piste 400 m. Noter chaque temps et distance demandés. Efforts maximaux sans cible.' + ' ' + criticalGuide.run + ' ' + separateDay, [
+  return session('run', 'TFCL Track Day™ · VMA, VLamax, vitesse critique', 'Piste 400 m. Noter chaque temps et distance demandés. Efforts maximaux sans cible.' + ' ' + criticalGuide.run + ' ' + separateDay, [
     st('warmup', 900, 'Échauffement progressif : footing + gammes'),
     rep(3, [dist('active', 80, 'Ligne droite accélérée'), st('rest', 60, 'Retour en marchant')]),
     rep(2, [dist('active', 30, 'Sprint maximal 30 m départ arrêté — noter le temps'), st('rest', 180, 'Récupération complète')]),
@@ -20,8 +20,8 @@ export function buildTrackDayNolioSession(): TestingWeekNolioSession {
     st('active', 15, 'Effort maximal 15 s lancé — noter la distance exacte'),
     st('rest', 480, 'Récupération complète'),
     dist('active', 1500, 'Test 1500 m à allure maximale stable — noter le temps et chaque tour'),
-    st('rest', 600, 'Récupération active'),
-    dist('active', 5000, '5 km allure seuil soutenable (RPE 8/10) — noter les temps au km'),
+    st('rest', 1800, 'Récupération 30 min : marche, puis footing très lent les 10 dernières minutes'),
+    dist('active', 3000, 'Test 3000 m à allure maximale régulière — noter le temps et chaque tour'),
     st('cooldown', 900, 'Retour au calme Z1 obligatoire'),
   ]);
 }

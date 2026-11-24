@@ -76,9 +76,9 @@ describe("les Days alimentent bien la politique critique de l'app", () => {
 });
 
 describe("guide des Days", () => {
-  it("renvoie vers les nouveaux Days et garde la limite du 5 km et du 20 min", () => {
+  it("renvoie vers les nouveaux Days, le Track Day 1500 m + 3000 m et garde la limite du 20 min", () => {
     expect(criticalGuide.run).toContain("Track Day · Vitesse critique");
-    expect(criticalGuide.run).toContain("5 km contrôlé du Track Day ne constitue pas un essai maximal");
+    expect(criticalGuide.run).toContain("Track Day (1500 m puis 3000 m maximaux) fournit déjà deux points");
     expect(criticalGuide.bike).toContain("Bike Day · Puissance critique");
     expect(criticalGuide.bike).toContain("20 min dépasse la durée admissible de 15 min");
   });
