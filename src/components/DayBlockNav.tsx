@@ -2,13 +2,13 @@ const blocks = {
   run: [
     ['Vitesse et accélération', 'Chronos des efforts courts', 20],
     ['Efforts glycolytiques', 'Temps sur les distances réalisées', 25],
-    ['Seuil', 'Chronos ou distances selon la variante', 35],
+    ['Vitesse critique', '1 500 m puis 3 000 m maximaux, 30 min entre les deux', 50],
     ['Endurance en Z2', 'Fréquence cardiaque au début et à la fin', 20],
   ],
   bike: [
     ['Puissance de sprint', 'Puissance sur les efforts courts', 15],
-    ['Capacité aérobie', 'Puissances sur 5 et 3 minutes', 30],
-    ['Seuil FTP', 'Puissance du 20 minutes ou du palier', 35],
+    ['Puissance critique', '12, 5 et 3 min maximaux, autre jour', 120],
+    ['FTP 20 min (optionnel)', 'Contrôle seulement, autre jour', 35],
     ['Endurance en Z2', 'Fréquence cardiaque au début et à la fin', 20],
   ],
 } as const;

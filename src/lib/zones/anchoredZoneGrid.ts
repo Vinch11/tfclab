@@ -60,7 +60,7 @@ export type AnchorSource =
 
 export const ANCHOR_SOURCE_LABELS: Record<AnchorSource, string> = {
   critical_confirmed: "Seuil critique confirmé par le coach",
-  threshold_test: "Test seuil réalisé (20 min ou Track Day 1 500 m + 3 000 m)",
+  threshold_test: "Test réalisé (20 min, Bike Day puissance critique ou Track Day)",
   threshold_unknown: "Seuil du bilan, provenance non renseignée",
   threshold_estimate: "Seuil estimé (calculateur ou montre)",
   vma_estimate: "Estimation depuis la VMA",
@@ -161,7 +161,7 @@ export function anchoredBikeGrid(s: AnchoredGridSnapshot, o: AnchoredGridOptions
   if (cp) { critical = cp.critical; source = "critical_confirmed"; }
   else {
     critical = ftp! * THRESHOLD_TO_CRITICAL.bike;
-    source = origin === "test_20min" ? "threshold_test" : origin ? "threshold_estimate" : "threshold_unknown";
+    source = isMeasuredOrigin(origin) ? "threshold_test" : origin ? "threshold_estimate" : "threshold_unknown";
     if (origin === "watch") alerts.push("FTP de montre ou de plateforme : estimation, à confirmer par un test 20 min.");
   }
   if (cp && ftp && Math.abs(cp.critical * MLSS_FRACTION.bike - ftp) / ftp > 0.08)

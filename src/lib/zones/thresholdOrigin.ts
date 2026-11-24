@@ -10,10 +10,11 @@
 import type { Json } from '@/integrations/supabase/types';
 
 export type ThresholdField = 'ftp' | 'pace_threshold_sec_per_km';
-export type ThresholdOrigin = 'test_20min' | 'track_day_cs' | 'calculator' | 'watch' | 'entered';
+export type ThresholdOrigin = 'test_20min' | 'cp_test' | 'track_day_cs' | 'calculator' | 'watch' | 'entered';
 
 export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: ThresholdOrigin; label: string }[]> = {
   ftp: [
+    { value: 'cp_test', label: 'Bike Day : puissance critique 12/5/3 min (FTP = CP × 0,965)' },
     { value: 'test_20min', label: 'Test 20 min réalisé (× 0,95)' },
     { value: 'watch', label: 'Montre ou plateforme (Garmin, Zwift…)' },
     { value: 'entered', label: 'Autre / saisie libre' },
@@ -27,7 +28,7 @@ export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: Threshold
   ],
 };
 
-const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'track_day_cs', 'calculator', 'watch', 'entered']);
+const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'cp_test', 'track_day_cs', 'calculator', 'watch', 'entered']);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 
 /** Provenance déclarée, ou null si le champ n'en a pas (bilans antérieurs). */
@@ -47,4 +48,4 @@ export function withThresholdOrigin(fieldSources: unknown, field: ThresholdField
 }
 
 /** Un seuil issu d'un test réalisé peut ancrer les zones ; les autres sont des estimations. */
-export const isMeasuredOrigin = (origin: ThresholdOrigin | null) => origin === 'test_20min' || origin === 'track_day_cs';
+export const isMeasuredOrigin = (origin: ThresholdOrigin | null) => origin === 'test_20min' || origin === 'cp_test' || origin === 'track_day_cs';

@@ -1,8 +1,12 @@
+import { fitCriticalEfforts, type CriticalEffort } from "@/lib/criticalEfforts";
+import { toStoredCritical } from "@/lib/criticalMetrics";
+import { THRESHOLD_TO_CRITICAL } from "@/lib/zones/anchoredZoneGrid";
+import { withThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
 import { DayBlockNav } from "@/components/DayBlockNav";
 import { DurabilityDayLink } from "@/components/DurabilityDayLink";
 /**
  * BikeTrackDayPage — TFCL Bike Day™
- * Protocole vélo 2h : FTP, VLamax, MAP, W' en une séance.
+ * Protocole vélo : sprints (une séance) et puissance critique 12/5/3 min (une autre séance) → CP, W′, PMA, FTP, VLamax estimée.
  *
  * Références :
  *  - Coggan & Allen 2010 (FTP from 20min × 0.95)
@@ -87,6 +91,7 @@ export default function BikeTrackDayPage() {
   const [v60s, setV60s] = useState(""); const [s60s, setS60s] = useState("");
 
   // Bloc 2 — Aérobie
+  const [p12min, setP12min] = useState("");
   const [map5min, setMap5min] = useState("");
   const [fcMaxTest, setFcMaxTest] = useState("");
   const [cp3min, setCp3min] = useState("");
@@ -127,6 +132,7 @@ export default function BikeTrackDayPage() {
     s30s: { value: s30s, set: setS30s, default: "" },
     v60s: { value: v60s, set: setV60s, default: "" },
     s60s: { value: s60s, set: setS60s, default: "" },
+    p12min: { value: p12min, set: setP12min, default: "" },
     map5min: { value: map5min, set: setMap5min, default: "" },
     fcMaxTest: { value: fcMaxTest, set: setFcMaxTest, default: "" },
     cp3min: { value: cp3min, set: setCp3min, default: "" },
@@ -204,11 +210,21 @@ export default function BikeTrackDayPage() {
     const map = num(map5min);
     const cp3 = num(cp3min);
     const ratioCp3Map = map > 0 && cp3 > 0 ? cp3 / map : 0;
-    // W' rough estimate : (cp3 - FTP) × 180 (Skiba style) — fallback
+    // Puissance critique : 12, 5 et 3 min maximaux, 30 min de récupération (régression travail–temps,
+    // politique TFCL : 2 à 15 min, rapport ≥ 3). Remplace l'ancien W′ = (P3 − FTP) × 180.
+    const cpEfforts: CriticalEffort[] = ([[720, num(p12min)], [300, map], [180, cp3]] as const)
+      .filter(([, w]) => w > 0)
+      .map(([sec, w]) => ({ id: `bike-day-${sec}`, sport: "cycling" as const, durationSec: sec, value: w, measurement: "power" as const,
+        date: testDate, session: "TFCL Bike Day · puissance critique", conditions: setup === "ht" ? "home-trainer" : "route", source: "manual" as const, confirmed: false }));
+    const cpFit = cpEfforts.length >= 2 ? fitCriticalEfforts(cpEfforts, "cycling", testDate) : null;
+    const cpValid = !!cpFit && cpFit.status !== "insufficient";
+    const cp = cpValid ? cpFit!.critical : 0;
+    const wPrime = cpValid ? cpFit!.reserve : 0;
+    const ftpCp = cp > 0 ? cp / THRESHOLD_TO_CRITICAL.bike : 0; // FTP = CP × 0,965 (grille corrigée)
     const ftp20 = num(p20min) > 0 ? num(p20min) * 0.95 : 0;
     const ftpRampe = num(rampeLast) > 0 ? num(rampeLast) * 0.75 : 0;
-    const ftp = ftp20 > 0 ? ftp20 : ftpRampe;
-    const wPrime = ftp > 0 && cp3 > 0 ? Math.max(0, (cp3 - ftp) * 180) : 0;
+    const ftp = ftpCp > 0 ? ftpCp : ftp20 > 0 ? ftp20 : ftpRampe;
+    const ftpOrigin: ThresholdOrigin = ftpCp > 0 ? "cp_test" : ftp20 > 0 ? "test_20min" : "entered";
     const ftpKg = ftp > 0 && massKg > 0 ? ftp / massKg : 0;
     const fractUtil = map > 0 && ftp > 0 ? ftp / map : 0;
 
@@ -216,9 +232,7 @@ export default function BikeTrackDayPage() {
     const driftPct = fcD > 0 && fcF > 0 ? ((fcF - fcD) / fcD) * 100 : null;
     const ratioZ2Ftp = num(puissanceZ2) > 0 && ftp > 0 ? num(puissanceZ2) / ftp : 0;
 
-    const tteEst = fractUtil > 0 ? Math.max(25, Math.min(75, 30 + (fractUtil - 0.75) * 400)) : 0;
-
-    // VO2max estimé depuis MAP — Hawley & Noakes 1992 : VO2max ≈ MAP × 10.8 / poids + 7
+    // VO2max estimé depuis la PMA 5 min — équation ACSM : VO2max ≈ PMA × 10,8 / poids + 7
     const vo2maxEst = map > 0 && massKg > 0 ? (map * 10.8) / massKg + 7 : 0;
 
     // VLamax vélo — moteur complet (Mader MLSS/TTE, CP/W', Score G avec
@@ -243,15 +257,16 @@ export default function BikeTrackDayPage() {
 
     return {
       p10, p30, p60, map, cp3, ratioCp3Map,
+      cp, cpFit, cpEfforts, ftpCp, ftpOrigin,
       ftp20, ftpRampe, ftp, ftpKg, wPrime, fractUtil,
       vlamaxEst, vo2maxEst,
       vlamaxConfidence: vlamaxResult.confidence,
       vlamaxConfidenceLabel: vlamaxResult.confidenceLabel,
       vlamaxFormula: vlamaxResult.formulaLabel,
       vlamaxWarnings: vlamaxResult.warnings,
-      driftPct, ratioZ2Ftp, tteEst,
+      driftPct, ratioZ2Ftp,
     };
-  }, [setup, p5s, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, map5min, cp3min, p20min, rampeLast, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
+  }, [setup, p5s, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, p12min, map5min, cp3min, p20min, rampeLast, testDate, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
 
   const canCreate = !!currentAthlete && calc.ftp > 0;
 
@@ -267,7 +282,9 @@ export default function BikeTrackDayPage() {
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
       fc_max: fcMax > 0 ? fcMax : null,
-      ftp: calc.ftp || null,
+      ftp: calc.ftp ? Math.round(calc.ftp) : null,
+      field_sources: withThresholdOrigin({}, "ftp", calc.ftpOrigin),
+      ...(calc.cpFit && calc.cp > 0 ? { critical_metrics: { cycling: toStoredCritical(calc.cpFit, calc.cpEfforts, false, testDate) } } : {}),
       vlamax: calc.vlamaxEst || null,
       pmax_5s: num(p5s) || null,
       vlamax_source: "estimated",
@@ -282,7 +299,7 @@ export default function BikeTrackDayPage() {
       p30s_w: calc.p30 || null,
       p60s_w: calc.p60 || null,
 
-      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — MAP ${fmt(calc.map, 0)}W · CP3' ${fmt(calc.cp3, 0)}W · W' ${fmt(calc.wPrime, 0)}J · fractUtil ${fmt(calc.fractUtil * 100, 0)}% · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · TTE estimée ${fmt(calc.tteEst, 0)}min · sprint 10 s ${fmt(calc.p10, 0)} W${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
+      coach_notes: `TFCL Bike Day™ — ${setup === "ht" ? "Home trainer" : "Route"} — T° ${tempC || "?"}°C — P12' ${fmt(num(p12min), 0)}W · PMA 5' ${fmt(calc.map, 0)}W · P3' ${fmt(calc.cp3, 0)}W · CP ${fmt(calc.cp, 0)}W · W' ${fmt(calc.wPrime, 0)}J · FTP ${calc.ftpOrigin === "cp_test" ? "= CP × 0,965" : calc.ftpOrigin === "test_20min" ? "test 20 min" : "rampe"} · VO2max est. ${fmt(calc.vo2maxEst, 1)}ml/kg/min · sprint 10 s ${fmt(calc.p10, 0)} W${heightCm > 0 ? ` · taille ${heightCm}cm` : ""} · VLamax [${calc.vlamaxFormula}, confiance ${calc.vlamaxConfidenceLabel.toLowerCase()}]${calc.vlamaxWarnings.length > 0 ? ` (⚠ ${calc.vlamaxWarnings.join(" · ")})` : ""}`,
     } as any);
     if (snap) {
       clearStorageOnly();
@@ -311,7 +328,7 @@ export default function BikeTrackDayPage() {
           <div>
             <h1 className="text-lg sm:text-2xl font-bold">🚴 TFCL Bike Day™</h1>
             <p className="text-xs sm:text-sm text-muted-foreground">
-              Protocole vélo 2h — FTP, VLamax, MAP, W' en une séance
+              Deux séances : sprints (45 min) et puissance critique 12/5/3 min (2 h, un autre jour)
             </p>
           </div>
           <Button
@@ -503,12 +520,12 @@ export default function BikeTrackDayPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle id="day-block-2" className="scroll-mt-20 text-base flex items-center gap-2">
-                <Activity className="h-4 w-4 text-orange-500" /> Bloc 2 — Capacité Aérobie
+                <Activity className="h-4 w-4 text-orange-500" /> Bloc 2 — Puissance critique (12, 5 et 3 min)
               </CardTitle>
-              <Badge variant="secondary">30 min</Badge>
+              <Badge variant="secondary">2 h · autre jour</Badge>
             </div>
             <CardDescription className="text-xs">
-              • <b>MAP</b> = 5 min max — récup 8 min — <b>CP court</b> = 3 min max
+              Séance à part, reposé : <b>12 min max</b> — 30 min de récupération — <b>5 min max</b> (PMA) — 30 min — <b>3 min max</b>. Les trois puissances donnent la CP et W′ ; la FTP en découle (CP × 0,965).
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -516,7 +533,9 @@ export default function BikeTrackDayPage() {
               <Label htmlFor="bike-day-five-sec">Meilleure puissance sur 5 s, si enregistrée (W)</Label>
               <Input id="bike-day-five-sec" type="number" value={p5s} onChange={e => setP5s(e.target.value)} />
               {nolioDates.p5s && <small>{nolioDates.p5s}</small>}
-              <Label>MAP 5 min (W)</Label>
+              <Label>Puissance 12 min (W)</Label>
+              <Input type="number" value={p12min} onChange={(e) => setP12min(e.target.value)} placeholder="270" />
+              <Label>PMA 5 min (W)</Label>
               <Input type="number" value={map5min} onChange={(e) => setMap5min(e.target.value)} placeholder="350" />
               {fmtNolioDate(nolioDates.map5min) && (
                 <div className="text-[10px] text-muted-foreground/70 mt-0.5">{fmtNolioDate(nolioDates.map5min)}</div>
@@ -527,13 +546,16 @@ export default function BikeTrackDayPage() {
               <Input type="number" value={fcMaxTest} onChange={(e) => setFcMaxTest(e.target.value)} placeholder="188" />
             </div>
             <div>
-              <Label>CP 3 min (W)</Label>
+              <Label>Puissance 3 min (W)</Label>
               <Input type="number" value={cp3min} onChange={(e) => setCp3min(e.target.value)} placeholder="400" />
             </div>
             <div className="sm:col-span-3 grid grid-cols-3 gap-2 text-xs">
-              <Metric label="MAP" value={fmt(calc.map, 0)} unit="W" />
-              <Metric label="CP3'/MAP" value={fmt(calc.ratioCp3Map * 100, 0)} unit="%" />
-              <Metric label="W' estimé" value={fmt(calc.wPrime, 0)} unit="J" />
+              <Metric label="CP" value={fmt(calc.cp, 0)} unit="W" />
+              <Metric label="W′" value={fmt(calc.wPrime / 1000, 1)} unit="kJ" />
+              <Metric label="FTP (CP × 0,965)" value={fmt(calc.ftpCp, 0)} unit="W" />
+              {calc.cpFit && [...calc.cpFit.errors, ...calc.cpFit.warnings].length > 0 && (
+                <p className="col-span-full text-[11px] text-amber-700 dark:text-amber-400">{[...calc.cpFit.errors, ...calc.cpFit.warnings].join(" ")}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -543,12 +565,12 @@ export default function BikeTrackDayPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle id="day-block-3" className="scroll-mt-20 text-base flex items-center gap-2">
-                <Target className="h-4 w-4 text-blue-500" /> Bloc 3 — Seuil FTP
+                <Target className="h-4 w-4 text-blue-500" /> Bloc 3 — FTP 20 min (optionnel)
               </CardTitle>
-              <Badge variant="secondary">35 min</Badge>
+              <Badge variant="secondary">contrôle</Badge>
             </div>
             <CardDescription className="text-xs">
-              <b>20 min max</b> (gold standard Coggan, FTP = P20 × 0.95). Alternative : test rampe (FTP = palier × 0.75).
+              Inutile si la puissance critique est mesurée. Sinon : <b>20 min max</b> un autre jour, reposé (FTP = P20 × 0,95). Rampe (palier × 0,75) : dépannage seulement, estimation peu fiable.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -570,7 +592,7 @@ export default function BikeTrackDayPage() {
             <div className="sm:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <Metric label="FTP (20min)" value={fmt(calc.ftp20, 0)} unit="W" />
               <Metric label="FTP (rampe)" value={fmt(calc.ftpRampe, 0)} unit="W" />
-              <Metric label="FTP retenue" value={fmt(calc.ftp, 0)} unit="W" />
+              <Metric label={calc.ftpOrigin === "cp_test" ? "FTP retenue (CP)" : "FTP retenue"} value={fmt(calc.ftp, 0)} unit="W" />
               <Metric label="FTP/kg" value={fmt(calc.ftpKg, 2)} unit="W/kg" />
               <Metric label="FTP/MAP (fractUtil)" value={fmt(calc.fractUtil * 100, 0)} unit="%" />
             </div>
@@ -621,10 +643,10 @@ export default function BikeTrackDayPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
               <Metric label="FTP" value={fmt(calc.ftp, 0)} unit="W" big />
               <Metric label="FTP/kg" value={fmt(calc.ftpKg, 2)} unit="W/kg" big />
-              <Metric label="MAP" value={fmt(calc.map, 0)} unit="W" big />
-              <Metric label="W'" value={fmt(calc.wPrime, 0)} unit="J" big />
+              <Metric label="PMA 5 min" value={fmt(calc.map, 0)} unit="W" big />
+              <Metric label="CP" value={fmt(calc.cp, 0)} unit="W" big />
+              <Metric label="W′" value={fmt(calc.wPrime / 1000, 1)} unit="kJ" big />
               <Metric label="VLamax est." value={fmt(calc.vlamaxEst, 2)} unit="mmol/L/s" big />
-              <Metric label="TTE est." value={fmt(calc.tteEst, 0)} unit="min" big />
               <Metric label="VO2max est." value={fmt(calc.vo2maxEst, 1)} unit="ml/kg/min" big />
             </div>
             {calc.vlamaxEst > 0 && (
@@ -635,7 +657,7 @@ export default function BikeTrackDayPage() {
             )}
             {calc.vo2maxEst > 0 && (
               <p className="text-[10px] text-amber-700 dark:text-amber-400">
-                <b>VO2max</b> = MAP × 10.8 / poids + 7 (Hawley &amp; Noakes 1992) — <b>Estimé — confiance : moyenne (±3 ml/kg/min)</b>
+                <b>VO2max</b> = PMA 5 min × 10,8 / poids + 7 (équation ACSM) — <b>Estimé — à préférer à la VO₂max de montre</b>
               </p>
             )}
             {(() => {
@@ -646,7 +668,7 @@ export default function BikeTrackDayPage() {
                 { k: "Taille", ok: heightCm > 0 },
                 { k: "FTP", ok: calc.ftp > 0 },
                 { k: "MAP", ok: calc.map > 0 },
-                { k: "CP3'", ok: calc.cp3 > 0 },
+                { k: "CP", ok: calc.cp > 0 },
                 { k: "VLamax", ok: calc.vlamaxEst > 0 },
                 { k: "VO2max", ok: calc.vo2maxEst > 0 },
               ];
