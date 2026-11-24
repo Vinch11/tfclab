@@ -69,7 +69,7 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
   "track-day": {
     name: "TFCL Track Day™",
     emoji: "🏃",
-    subtitle: "Protocole piste 400m — VMA, VLamax, vitesse critique en 2h30",
+    subtitle: "Protocole piste 400m — VMA, VLamax, vitesse critique sur 3 points en 3h",
     material: ["Piste 400m", "Chronomètre", "Cardiofréquencemètre", "Cônes 30m / 100m", "GPS / montre"],
     blocks: [
       {
@@ -120,25 +120,25 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         ],
       },
       {
-        title: "Bloc 4 — Vitesse critique (3 000 m maximal)",
-        duration: "~45 min (30 min de récupération incluses)",
+        title: "Bloc 4 — Vitesse critique (3 000 m puis 1 000 m maximaux)",
+        duration: "~1h20 (2 × 30 min de récupération incluses)",
         instructions: [
           "Récupération 30 min : marche, puis footing très lent les 10 dernières minutes.",
-          "3 000 m à allure maximale régulière (7,5 tours).",
-          "Noter le temps total et chaque tour, FC moyenne et FC pic.",
+          "3 000 m à allure maximale régulière (7,5 tours). Noter le temps et chaque tour.",
+          "Récupération 30 min, même principe.",
+          "1 000 m à allure maximale régulière (2,5 tours). Noter le temps.",
         ],
         rows: [
           { measure: "Temps 3 000 m total", unit: "min:sec" },
-          { measure: "Tours 1 à 4 (400 m)", unit: "sec" },
-          { measure: "Tours 5 à 7,5", unit: "sec" },
-          { measure: "FC moyenne 3 000 m", unit: "bpm" },
+          { measure: "Tours 1 à 7,5 (400 m)", unit: "sec" },
+          { measure: "Temps 1 000 m total", unit: "min:sec" },
           { measure: "FC pic", unit: "bpm" },
         ],
       },
     ],
     results: [
       { metric: "VMA estimée", unit: "km/h" },
-      { metric: "Vitesse critique (CS)", unit: "km/h" },
+      { metric: "Vitesse critique (CS, 3 points)", unit: "km/h" },
       { metric: "D′ (réserve au-dessus de la CS)", unit: "m" },
       { metric: "VLamax estimée (sans lactate)", unit: "mmol/L/s" },
       { metric: "FC max observée", unit: "bpm" },
@@ -170,7 +170,9 @@ const PROTOCOLS: Record<DiagnosticProtocol, ProtocolDef> = {
         items: [
           "Vitesse sur 1 500 m (km/h) = 5 400 / temps en secondes. Repère de terrain pour estimer la VMA.",
           "Vitesse critique CS (m/s) = 1 500 / (temps 3 000 m − temps 1 500 m) ; D′ (m) = 3 000 − CS × temps 3 000 m (modèle distance–temps).",
-          "Allure seuil enregistrée dans le bilan = CS / 1,01 : la grille de zones retrouve ainsi la CS. Un 1 000 m maximal dans les 28 jours confirme la CS (trois points).",
+          "Avec le 1 000 m : CS et D′ par régression sur les trois courses (distance = D′ + CS × temps), confirmées dans le Day par le coach.",
+          "Allure seuil enregistrée dans le bilan = CS / 1,01 : la grille de zones retrouve ainsi la CS.",
+          "Si le 3 000 m dépasse 15 min, la CS reste une estimation : utiliser le test vitesse critique en temps (3, 7 et 12 min).",
           "VLamax course ≈ −0,5066 + 0,01420 × distance 15 s : régression interne (15 coureurs), estimation sans lactate. Avec un lecteur de lactate : prélèvements avant et après le sprint (méthode de Mader).",
           "FC max retenue = max(FC pic 1500m, FC pic 3000m).",
         ],

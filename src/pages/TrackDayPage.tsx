@@ -1,4 +1,6 @@
-import { criticalSpeedFromTrack } from "@/lib/diagnostic/trackDayCriticalSpeed";
+import { fitCriticalEfforts } from "@/lib/criticalEfforts";
+import { toStoredCritical } from "@/lib/criticalMetrics";
+import { criticalSpeedFromTrack, trackDayEfforts } from "@/lib/diagnostic/trackDayCriticalSpeed";
 import { THRESHOLD_TO_CRITICAL } from "@/lib/zones/anchoredZoneGrid";
 import { withThresholdOrigin } from "@/lib/zones/thresholdOrigin";
 import { DayBlockNav } from "@/components/DayBlockNav";
@@ -110,6 +112,8 @@ export default function TrackDayPage() {
   const [trackVariant, setTrackVariant] = useState("timed");
   const [sec1500, setSec1500] = useState("");
   const [sec3000, setSec3000] = useState("");
+  const [sec1000, setSec1000] = useState("");
+  const [csConfirmed, setCsConfirmed] = useState(false);
   const [d6min, setD6min] = useState("");
   const [d20min, setD20min] = useState("");
 
@@ -147,6 +151,7 @@ export default function TrackDayPage() {
     trackVariant: { value: trackVariant, set: setTrackVariant, default: "timed" },
     sec1500: { value: sec1500, set: setSec1500, default: "" },
     sec3000: { value: sec3000, set: setSec3000, default: "" },
+    sec1000: { value: sec1000, set: setSec1000, default: "" },
     d6min: { value: d6min, set: setD6min, default: "" },
     d20min: { value: d20min, set: setD20min, default: "" },
     fcDebutZ2: { value: fcDebutZ2, set: setFcDebutZ2, default: "" },
@@ -287,7 +292,15 @@ export default function TrackDayPage() {
     // Variante « distance » : 1 500 m puis 3 000 m maximaux (30 min de récupération) → vitesse critique
     // (modèle distance–temps, d = D′ + CS·t ; Galbraith 2014, Kordi 2019). L'allure seuil enregistrée
     // vaut CS / 1,01 : la grille ancrée (THRESHOLD_TO_CRITICAL.run) retrouve ainsi exactement la CS.
-    const cs = criticalSpeedFromTrack(num(sec1500), num(sec3000));
+    const cs2 = criticalSpeedFromTrack(num(sec1500), num(sec3000));
+    // Troisième effort (1 000 m, 30 min après le 3 000 m) : vitesse critique sur 3 points, confirmable
+    // dans le Day (politique TFCL : efforts de 2 à 15 min, le plus long ≥ 3 × le plus court).
+    const csEfforts = trackVariant === "distance" && num(sec1000) > 0
+      ? trackDayEfforts([{ metres: 1000, sec: num(sec1000) }, { metres: 1500, sec: num(sec1500) }, { metres: 3000, sec: num(sec3000) }], testDate, surface || "piste", csConfirmed)
+      : [];
+    const csFit = csEfforts.length === 3 ? fitCriticalEfforts(csEfforts, "running", testDate) : null;
+    const csFitValid = !!csFit && csFit.status !== "insufficient";
+    const cs = csFitValid ? { valid: true, csMs: csFit!.critical, dPrimeM: csFit!.reserve, error: null } : cs2;
     // Variante « temps » : allure seuil = distance des 20 min (historique)
     const vSeuilKmh = trackVariant === "distance" ? (cs.valid ? (cs.csMs * 3.6) / THRESHOLD_TO_CRITICAL.run : 0) : num(d20min) > 0 ? (num(d20min) / 20) * 60 / 1000 : 0;
     const ratioSeuilVMA = vmaConfirmee > 0 && vSeuilKmh > 0 ? vSeuilKmh / vmaConfirmee : 0;
@@ -310,11 +323,11 @@ export default function TrackDayPage() {
       v100, v200, v400, v600, v1km,
       P1s, P5s, P30s, P60s,
       vma400, vma400Warning, vma6min, vmaConfirmee,
-      vSeuilKmh, ratioSeuilVMA, cs,
+      vSeuilKmh, ratioSeuilVMA, cs, csFit, csFitValid, csEfforts,
       driftPct,
       vo2maxEst,
     };
-  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, sec3000, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
+  }, [t30m, t100m, t200m, cmjCm, bonds5m, t400m, t1000m, t600m, trackVariant, sec1500, sec3000, sec1000, csConfirmed, testDate, surface, d6min, d20min, fcDebutZ2, fcFinZ2, massKg, heightM]);
 
   const canCreateSnapshot =
     !!currentAthlete && calc.vmaConfirmee > 0;
@@ -330,9 +343,10 @@ export default function TrackDayPage() {
       date: testDate,
       source: "track_day",
       critical_metrics: { trackDay: trackVariant === "distance"
-        ? { protocol: "1500m_3000m_cs", sec1500: num(sec1500) || null, sec3000: num(sec3000) || null,
+        ? { protocol: "1500m_3000m_1000m_cs", sec1500: num(sec1500) || null, sec3000: num(sec3000) || null, sec1000: num(sec1000) || null,
             csMs: calc.cs.valid ? Math.round(calc.cs.csMs * 1000) / 1000 : null, dPrimeM: calc.cs.valid ? Math.round(calc.cs.dPrimeM) : null }
-        : { protocol: "6min_20min", metres6: num(d6min) || null, metres20: num(d20min) || null } },
+        : { protocol: "6min_20min", metres6: num(d6min) || null, metres20: num(d20min) || null },
+        ...(calc.csFit && calc.csFitValid ? { running: toStoredCritical(calc.csFit, calc.csEfforts, csConfirmed, testDate) } : {}) },
       weight_kg: massKg > 0 ? massKg : null,
       fc_repos: fcRepos > 0 ? fcRepos : null,
       fc_max: fcMax > 0 ? fcMax : null,
@@ -736,7 +750,12 @@ export default function TrackDayPage() {
             {trackVariant === "distance" ? <>
               <label>Temps du 1 500 m maximal (s)<Input type="number" min="1" value={sec1500} onChange={e => setSec1500(e.target.value)} /></label>
               <label>Temps du 3 000 m maximal, après 30 min de récupération (s)<Input type="number" min="1" value={sec3000} onChange={e => setSec3000(e.target.value)} /></label>
+              <label>Temps du 1 000 m maximal, après 30 min de récupération (s)<Input type="number" min="1" value={sec1000} onChange={e => setSec1000(e.target.value)} /></label>
+              <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={csConfirmed} onChange={e => setCsConfirmed(e.target.checked)} />Je confirme : trois efforts maximaux, mêmes conditions</label>
               {calc.cs.error && <p className="sm:col-span-2 text-xs text-destructive">{calc.cs.error}</p>}
+              {num(sec3000) > 900 && <p className="sm:col-span-2 text-xs text-amber-700 dark:text-amber-400">3 000 m au-delà de 15 min : la vitesse critique reste une estimation. Pour la confirmer, utiliser le test vitesse critique en temps (3, 7 et 12 min).</p>}
+              {calc.csFit && [...calc.csFit.errors, ...calc.csFit.warnings].length > 0 && <p className="sm:col-span-2 text-xs text-amber-700 dark:text-amber-400">{[...calc.csFit.errors, ...calc.csFit.warnings].join(" ")}</p>}
+              {calc.csFit && calc.csFit.status === "eligible" && csConfirmed && <p className="sm:col-span-2 text-xs text-emerald-700 dark:text-emerald-400">Vitesse critique confirmée sur 3 points : elle sera utilisée directement par la grille de zones.</p>}
             </> : <>
               <label>Distance 6 min (m)<Input type="number" value={d6min} onChange={e => setD6min(e.target.value)} placeholder="1850" />
                 {fmtNolioDate(nolioDates.d6min) && <small>{fmtNolioDate(nolioDates.d6min)}</small>}</label>

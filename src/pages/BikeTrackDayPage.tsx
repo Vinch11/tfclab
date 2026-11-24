@@ -92,6 +92,7 @@ export default function BikeTrackDayPage() {
 
   // Bloc 2 — Aérobie
   const [p12min, setP12min] = useState("");
+  const [cpConfirmed, setCpConfirmed] = useState(false);
   const [map5min, setMap5min] = useState("");
   const [fcMaxTest, setFcMaxTest] = useState("");
   const [cp3min, setCp3min] = useState("");
@@ -215,7 +216,7 @@ export default function BikeTrackDayPage() {
     const cpEfforts: CriticalEffort[] = ([[720, num(p12min)], [300, map], [180, cp3]] as const)
       .filter(([, w]) => w > 0)
       .map(([sec, w]) => ({ id: `bike-day-${sec}`, sport: "cycling" as const, durationSec: sec, value: w, measurement: "power" as const,
-        date: testDate, session: "TFCL Bike Day · puissance critique", conditions: setup === "ht" ? "home-trainer" : "route", source: "manual" as const, confirmed: false }));
+        date: testDate, session: "TFCL Bike Day · puissance critique", conditions: setup === "ht" ? "home-trainer" : "route", source: "manual" as const, confirmed: cpConfirmed }));
     const cpFit = cpEfforts.length >= 2 ? fitCriticalEfforts(cpEfforts, "cycling", testDate) : null;
     const cpValid = !!cpFit && cpFit.status !== "insufficient";
     const cp = cpValid ? cpFit!.critical : 0;
@@ -266,7 +267,7 @@ export default function BikeTrackDayPage() {
       vlamaxWarnings: vlamaxResult.warnings,
       driftPct, ratioZ2Ftp,
     };
-  }, [setup, p5s, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, p12min, map5min, cp3min, p20min, rampeLast, testDate, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
+  }, [setup, p5s, p10s, p30s, p60s, v10s, s10s, v30s, s30s, v60s, s60s, p12min, map5min, cp3min, p20min, rampeLast, testDate, cpConfirmed, fcDebutZ2, fcFinZ2, puissanceZ2, massKg]);
 
   const canCreate = !!currentAthlete && calc.ftp > 0;
 
@@ -284,7 +285,7 @@ export default function BikeTrackDayPage() {
       fc_max: fcMax > 0 ? fcMax : null,
       ftp: calc.ftp ? Math.round(calc.ftp) : null,
       field_sources: withThresholdOrigin({}, "ftp", calc.ftpOrigin),
-      ...(calc.cpFit && calc.cp > 0 ? { critical_metrics: { cycling: toStoredCritical(calc.cpFit, calc.cpEfforts, false, testDate) } } : {}),
+      ...(calc.cpFit && calc.cp > 0 ? { critical_metrics: { cycling: toStoredCritical(calc.cpFit, calc.cpEfforts, cpConfirmed, testDate) } } : {}),
       vlamax: calc.vlamaxEst || null,
       pmax_5s: num(p5s) || null,
       vlamax_source: "estimated",
@@ -553,6 +554,10 @@ export default function BikeTrackDayPage() {
               <Metric label="CP" value={fmt(calc.cp, 0)} unit="W" />
               <Metric label="W′" value={fmt(calc.wPrime / 1000, 1)} unit="kJ" />
               <Metric label="FTP (CP × 0,965)" value={fmt(calc.ftpCp, 0)} unit="W" />
+              <label className="col-span-full flex items-center gap-2 text-sm"><input type="checkbox" checked={cpConfirmed} onChange={e => setCpConfirmed(e.target.checked)} />Je confirme : trois efforts maximaux, mêmes conditions</label>
+              {calc.cpFit && calc.cpFit.status === "eligible" && cpConfirmed && (
+                <p className="col-span-full text-[11px] text-emerald-700 dark:text-emerald-400">Puissance critique confirmée sur 3 points : elle sera utilisée directement par la grille de zones.</p>
+              )}
               {calc.cpFit && [...calc.cpFit.errors, ...calc.cpFit.warnings].length > 0 && (
                 <p className="col-span-full text-[11px] text-amber-700 dark:text-amber-400">{[...calc.cpFit.errors, ...calc.cpFit.warnings].join(" ")}</p>
               )}

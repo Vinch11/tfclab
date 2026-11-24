@@ -22,6 +22,8 @@ export function buildTrackDayNolioSession(): TestingWeekNolioSession {
     dist('active', 1500, 'Test 1500 m à allure maximale stable — noter le temps et chaque tour'),
     st('rest', 1800, 'Récupération 30 min : marche, puis footing très lent les 10 dernières minutes'),
     dist('active', 3000, 'Test 3000 m à allure maximale régulière — noter le temps et chaque tour'),
+    st('rest', 1800, 'Récupération 30 min : marche, puis footing très lent les 10 dernières minutes'),
+    dist('active', 1000, 'Test 1000 m à allure maximale régulière — noter le temps'),
     st('cooldown', 900, 'Retour au calme Z1 obligatoire'),
   ]);
 }

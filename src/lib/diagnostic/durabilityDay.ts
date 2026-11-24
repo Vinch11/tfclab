@@ -6,8 +6,8 @@ export type EnduranceSport = "bike" | "run";
 export const durabilityProtocol = "tfcl-durability-paired-v1";
 export const separateDay = "Prévoir la durabilité un autre jour que le Day ou les essais maximaux, pendant une sortie longue habituelle.";
 export const criticalGuide = {
-  run: "Vitesse critique : faire le « Track Day · Vitesse critique » (1000 m puis 3000 m, 30 min de récupération). Le Track Day (1500 m puis 3000 m maximaux) fournit déjà deux points ; un 1000 m maximal dans les 28 jours donne le troisième. Avec deux points seulement, la vitesse critique reste une estimation.",
-  bike: "Puissance critique : faire le « Bike Day · Puissance critique » (12 min, 5 min puis 3 min maximaux, 30 min de récupération entre chaque). Les trois points tombent dans la même séance ; la FTP en découle (CP × 0,965). Les sprints du Bike Day ont une autre fonction et se font un autre jour.",
+  run: "Vitesse critique : intégrée au Track Day (1500 m, 3000 m puis 1000 m maximaux, 30 min de récupération entre chaque). Les trois points tombent dans la même séance et se confirment dans le Day. Si le 3000 m dépasse 15 min, utiliser le test vitesse critique en temps (3, 7 et 12 min).",
+  bike: "Puissance critique : intégrée au Bike Day, séance « Puissance critique » (12 min, 5 min puis 3 min maximaux, 30 min de récupération entre chaque). Les trois points tombent dans la même séance et se confirment dans le Day ; la FTP en découle (CP × 0,965). Les sprints se font un autre jour.",
 };
 export function intensity(sport: EnduranceSport, raw: string) {
   if (sport === "bike") return /^\d+(\.\d+)?$/.test(raw) ? Number(raw) : 0;
@@ -52,4 +52,19 @@ export function pairedDecoupling(pair: SavedPair): number | null {
 export function latestPairs(tests: readonly { athlete_id:string; type:string; raw:unknown }[], athleteId:string, through?:string) {
   const rows = tests.flatMap(t=>t.athlete_id===athleteId && t.type===durabilityProtocol && validPair(t.raw) && (!through || t.raw.day <= through) ? [t.raw] : []);
   return (["run","bike"] as const).flatMap(sport => rows.filter(p=>p.sport===sport).sort((a,b)=>b.day.localeCompare(a.day)).slice(0,1));
+}
+
+/**
+ * Séance de durabilité pour le plan de tests (Days) : même structure que `durabilitySession`,
+ * sans cible chiffrée (le coach la choisit à l'envoi dans « Durabilité »). Vélo ≥ 2 h, course ≥ 1 h 30.
+ */
+export function durabilityPlanSession(sport: EnduranceSport): TestingWeekNolioSession {
+  const between = sport === "bike" ? 120 : 60;
+  const block = "Tenir la cible d’endurance choisie par le coach (" + (sport === "bike" ? "puissance" : "allure") + " déjà tolérée, haut de Z2) sur terrain comparable. Marquer le tour. Relever la moyenne réelle, la FC moyenne des 5 dernières minutes et le ressenti sur 10.";
+  const step = (minutes: number, notes: string, intensity_type: NolioStepLike["intensity_type"] = "active"): NolioStepLike =>
+    ({type:"step", step_duration_type:"duration", step_duration_value:minutes*60, intensity_type, target_type:"no_target", notes});
+  const details = separateDay + " Les deux blocs de 10 min à la même cible, au début et à la fin, mesurent la perte d’efficacité après l’effort prolongé. Enregistrer les résultats dans « Durabilité ».";
+  return {weekNumber:1,dayIndex:0,sessionIndex:0,sport,title:"TFCL Durability Day™ · " + (sport === "bike" ? "vélo" : "course"),objectif:details,details,isRest:false,structuredWorkout:[
+    step(15,"Échauffement progressif","warmup"),step(10,block),step(between,"Endurance habituelle, maintenir une intensité régulière ; ravitaillement comme en course."),step(10,block),step(5,"Retour au calme","cooldown"),
+  ]};
 }
