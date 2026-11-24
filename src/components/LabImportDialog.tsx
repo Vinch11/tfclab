@@ -29,6 +29,9 @@ interface LabImportDialogProps {
   athleteGoal: string;
   previousSnapshot: DbSnapshot | null;
   onImportComplete?: (snapshot: DbSnapshot) => void;
+  /** Mode fiche : les valeurs validées remplissent le formulaire au lieu de créer un snapshot séparé. */
+  onApplyToForm?: (values: Partial<DbSnapshot>) => void;
+  triggerLabel?: string;
 }
 
 type ImportStep = "upload" | "analyzing" | "validation" | "complete";
@@ -38,12 +41,14 @@ export function LabImportDialog({
   athleteName, 
   athleteGoal,
   previousSnapshot,
-  onImportComplete 
+  onImportComplete,
+  onApplyToForm,
+  triggerLabel,
 }: LabImportDialogProps) {
   const { addSnapshot, addTest } = useCloudData();
   
   // Use persisted dialog state to survive page minimize/restore
-  const [isOpen, setIsOpen] = usePersistedDialogState(`lab-import-${athleteId}`, false);
+  const [isOpen, setIsOpen] = usePersistedDialogState(`lab-import-${athleteId}${onApplyToForm ? "-fiche" : ""}`, false);
   const [step, setStep] = useState<ImportStep>("upload");
   const [reportType, setReportType] = useState<ReportType>("auto");
   const [createLinkedTest, setCreateLinkedTest] = useState(true);
@@ -251,6 +256,26 @@ export function LabImportDialog({
       // Map to snapshot
       const snapshotData = mapExtractToSnapshot(editedExtract, athleteGoal);
 
+      if (onApplyToForm) {
+        if (createLinkedTest) {
+          await addTest(
+            athleteId,
+            "LAB",
+            `Test labo importé (${editedExtract.meta.reportType})`,
+            editedExtract.performance.sport,
+            editedExtract.meta.sourceConfidence,
+            editedExtract.vlamax.value,
+            JSON.parse(JSON.stringify({ labExtract: editedExtract })),
+            `Import PDF - ${editedExtract.meta.reportDate || "Date inconnue"}`
+          );
+        }
+        onApplyToForm(snapshotData);
+        toast.success("Fiche remplie avec le rapport labo : vérifie puis enregistre.");
+        setIsOpen(false);
+        resetState();
+        return;
+      }
+
       // Create snapshot
       const newSnapshot = await addSnapshot({
         athlete_id: athleteId,
@@ -305,7 +330,7 @@ export function LabImportDialog({
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <FlaskConical className="h-4 w-4 mr-2" />
-          Importer Test Labo (PDF)
+          {triggerLabel ?? "Importer Test Labo (PDF)"}
         </Button>
       </DialogTrigger>
       
@@ -501,7 +526,7 @@ export function LabImportDialog({
                 Annuler
               </Button>
               <Button onClick={handleCreateSnapshot}>
-                Créer Profil PRO
+                {onApplyToForm ? "Remplir la fiche" : "Créer Profil PRO"}
               </Button>
             </div>
           </div>
