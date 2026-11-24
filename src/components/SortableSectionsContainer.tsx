@@ -4,6 +4,7 @@
  * Supporte la visibilité des sections ET le filtrage Running Focus Mode
  */
 
+import { isModeledSectionHidden } from "@/lib/featureFlags/modeledModules";
 import { useState, useMemo, ReactNode } from "react";
 import {
   DndContext,
@@ -94,6 +95,9 @@ export function SortableSectionsContainer({
       order = displayConfigs.filter(c => c.visible).map(c => c.id);
     }
     
+    // Modules modélisés masqués (voir featureFlags/modeledModules), y compris en mode édition
+    order = order.filter(id => !isModeledSectionHidden(id));
+
     // Appliquer le filtre Running Focus Mode (sauf en mode édition)
     if (!isEditMode) {
       order = filterSectionsForRunningMode(order, isRunningOnly);
@@ -180,8 +184,8 @@ export function SortableSectionsContainer({
   };
 
   // Compter les sections visibles
-  const visibleCount = displayConfigs.filter(c => c.visible).length;
-  const totalCount = displayConfigs.length;
+  const visibleCount = displayConfigs.filter(c => c.visible && !isModeledSectionHidden(c.id)).length;
+  const totalCount = displayConfigs.filter(c => !isModeledSectionHidden(c.id)).length;
 
   return (
     <div className={cn("relative", className)}>
