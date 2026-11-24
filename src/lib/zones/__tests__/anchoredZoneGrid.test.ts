@@ -68,6 +68,14 @@ describe('grille Z1–Z7 ancrée sur le seuil critique', () => {
     expect(zoneOfKmh(run, 12)).toBe('Z5');
   });
 
+  it('signale une VO₂max incohérente avec la VMA (≈ 3,5 × VMA), sans déplacer les zones', () => {
+    const watch = anchoredRunGrid({ ...emanuela, vo2max: 52 }, { today })!;
+    const coherent = anchoredRunGrid({ ...emanuela, vo2max: 45 }, { today })!;
+    expect(watch.alerts.join(' ')).toMatch(/VO₂max saisie \(52 ml\/kg\/min\) incohérente avec la VMA de 13 km\/h/);
+    expect(coherent.alerts.join(' ')).not.toMatch(/VO₂max/);
+    expect(watch.zones).toEqual(coherent.zones);
+  });
+
   it('n’ancre pas les zones sur une allure de montre ou du calculateur quand la VMA existe', () => {
     for (const origin of ['watch', 'calculator'] as const) {
       const g = anchoredRunGrid({ ...emanuela, field_sources: withThresholdOrigin({}, 'pace_threshold_sec_per_km', origin) }, { today, ambition: 'competitor' })!;
