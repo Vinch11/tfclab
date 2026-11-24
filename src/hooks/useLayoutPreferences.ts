@@ -58,6 +58,7 @@ export const PROFIL_SECTIONS: SectionDefinition[] = [
   { id: "nolio-analysis", label: "Analyse Nolio — Données & Moteur V2", icon: "Activity", category: "analyse", defaultVisible: true },
   { id: "evolution-chart", label: "Évolution VLamax & TTE", icon: "TrendingUp", category: "analyse", defaultVisible: true },
   { id: "training-zones", label: "Zones d'entraînement", icon: "Target", category: "metriques", defaultVisible: true },
+  { id: "garmin-zones", label: "Zones Garmin (5 zones) · à recopier dans la montre", icon: "Target", category: "metriques", defaultVisible: true },
   { id: "lactate-thresholds-profil", label: "Correspondances lactiques TFCL", icon: "Droplets", category: "metriques", defaultVisible: true },
   { id: "vlamax-v2-calibration-profil", label: "VLamax TFCL™", icon: "Zap", category: "analyse", defaultVisible: true },
   { id: "vlamax-profile-scale-profil", label: "Profil VLamax — Échelle des spécialités", icon: "Activity", category: "metriques", defaultVisible: true },
@@ -387,6 +388,7 @@ export function useLayoutPreferences(): UseLayoutPreferencesReturn {
 
       // Insérer les sections manquantes à des positions stratégiques
       insertMissing("analyse-section", ["getting-started"]);
+      insertMissing("garmin-zones", ["training-zones"]);
       insertMissing("leviers-section", ["analyse-section"]);
       insertMissing("objective-manager", ["athlete-refs"]);
       insertMissing("cpw-prime-curve", ["metabolic-power-curve", "fatmax-tfcl", "coach-decision-unified"]);
