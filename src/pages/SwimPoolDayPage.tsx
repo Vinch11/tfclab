@@ -8,6 +8,7 @@
  *  - Toussaint & Hollander 1994 (économie nage)
  */
 
+import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -237,6 +238,7 @@ export default function SwimPoolDayPage() {
             <div>
               <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+              <NolioRestingHrHint athleteId={currentAthlete?.id} value={fcReposManual} onApply={setFcReposManual} />
             </div>
             <div>
               <Label>

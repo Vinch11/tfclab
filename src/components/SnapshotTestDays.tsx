@@ -1,28 +1,32 @@
+import type { ReactNode } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2, Circle } from "lucide-react";
-import { TEST_DAYS, checkSnapshotForm, snapshotReadiness } from "@/lib/snapshotTestDays";
+import { TEST_DAYS, checkSnapshotForm, snapshotReadiness, type TestDayFieldKey } from "@/lib/snapshotTestDays";
 
 interface Props {
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
   nolioFields: Set<string>;
+  /** Contenu affiché sous un champ (provenance, valeur Nolio…). */
+  renderExtra?: (key: TestDayFieldKey) => ReactNode;
 }
 
-export function SnapshotTestDays({ formData, onChange, nolioFields }: Props) {
+/** Fiche athlète : un bloc par sport, chaque valeur saisie à un seul endroit. */
+export function SnapshotTestDays({ formData, onChange, nolioFields, renderExtra }: Props) {
   const check = checkSnapshotForm(formData);
   const readiness = snapshotReadiness(formData);
   return (
     <div className="space-y-3 rounded-lg border border-border p-3">
-      <p className="text-sm font-medium">Bilan par journée de tests</p>
+      <p className="text-sm font-medium">Fiche athlète</p>
       <Tabs defaultValue="ctx">
-        <TabsList className="grid w-full grid-cols-4 h-auto">
+        <TabsList className="grid w-full grid-cols-5 h-auto">
           {TEST_DAYS.map((d) => {
             const filled = d.fields.filter((f) => formData[f.key]?.trim()).length;
             return (
-              <TabsTrigger key={d.id} value={d.id} className="flex-col gap-0.5 py-2 text-xs">
+              <TabsTrigger key={d.id} value={d.id} className="flex-col gap-0.5 px-1 py-2 text-xs">
                 <span>{d.title}</span>
                 <span className="text-muted-foreground">{filled}/{d.fields.length}</span>
               </TabsTrigger>
@@ -48,6 +52,7 @@ export function SnapshotTestDays({ formData, onChange, nolioFields }: Props) {
                     onChange={(e) => onChange(f.key, e.target.value)}
                     className="h-11"
                   />
+                  {renderExtra?.(f.key)}
                 </div>
               ))}
             </div>

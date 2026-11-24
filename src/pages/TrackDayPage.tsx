@@ -1,4 +1,5 @@
 import { saveDaySnapshot } from "@/lib/diagnostic/daySnapshot";
+import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { fitCriticalEfforts } from "@/lib/criticalEfforts";
 import { toStoredCritical } from "@/lib/criticalMetrics";
 import { criticalSpeedFromTrack, trackDayEfforts } from "@/lib/diagnostic/trackDayCriticalSpeed";
@@ -360,7 +361,11 @@ export default function TrackDayPage() {
 
 
       pace_threshold_sec_per_km: calc.vSeuilKmh > 0 ? Math.round(3600 / calc.vSeuilKmh) : null,
-      ...(trackVariant === "distance" && calc.cs.valid ? { field_sources: withThresholdOrigin({}, "pace_threshold_sec_per_km", "track_day_cs") } : {}),
+      // Provenance : CS du Track Day (seuil) et VO₂max estimée (3,5 × VMA), jamais confondue avec une mesure labo.
+      field_sources: {
+        ...(trackVariant === "distance" && calc.cs.valid ? withThresholdOrigin({}, "pace_threshold_sec_per_km", "track_day_cs") : {}),
+        ...(calc.vo2maxEst > 0 ? { vo2max: { source: "estimated", protocol: "Estimation TFCL (3,5 × VMA, Track Day)" } } : {}),
+      },
       sprint_15s_distance: num(sprint15sM) > 0 ? num(sprint15sM) : null,
       coach_notes: `TFCL Track Day™ — ${surface} — T° ${tempC || "?"}°C, vent ${wind || "?"} km/h${heightM > 0 ? ` — taille ${(heightM * 100).toFixed(0)}cm` : ""}`,
     } as any,
@@ -482,6 +487,7 @@ export default function TrackDayPage() {
             <div>
               <Label>FC repos (bpm) <span className="text-[10px] text-muted-foreground">— optionnel</span></Label>
               <Input type="number" value={fcReposManual} onChange={(e) => setFcReposManual(e.target.value)} placeholder="52" />
+              <NolioRestingHrHint athleteId={currentAthlete?.id} value={fcReposManual} onApply={setFcReposManual} />
             </div>
             <div>
               <Label>
