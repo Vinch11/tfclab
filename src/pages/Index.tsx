@@ -17,6 +17,8 @@ import { SidebarLayout } from "@/components/SidebarLayout";
 import { MetricCard } from "@/components/MetricCard";
 import { TrainingZonesCard } from "@/components/TrainingZonesCard";
 import { GarminZonesCard } from "@/components/GarminZonesCard";
+import { PlanZonesCard } from "@/components/PlanZonesCard";
+import { ZONE_GRID_MODE } from "@/lib/zones/zoneGridConfig";
 import { DerivedTrainingZonesCard } from "@/components/DerivedTrainingZonesCard";
 import { TestProtocols } from "@/components/TestProtocols";
 import { VLamaxTestingPage } from "@/components/VLamaxTestingPage";
@@ -1943,7 +1945,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
           {
             id: "training-zones",
             render: () => (
-              <DerivedTrainingZonesCard />
+              ZONE_GRID_MODE === "anchored" ? <PlanZonesCard /> : <DerivedTrainingZonesCard />
             ),
           },
           // Zones Garmin (5 zones) à recopier dans la montre

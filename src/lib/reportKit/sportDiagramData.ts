@@ -11,6 +11,7 @@ import { deriveTrainingZones, estimateRunThresholdPaceSecPerKm, type DerivedZone
 import { buildTargetTable, type TargetTable, type ZoneKey, type Range } from '@/lib/plan/targetTable';
 import { TRAINING_ZONES } from '@/lib/trainingZonesDefinition';
 import { findMLSSPower } from '@/lib/v2/maderMetabolicModel';
+import { anchoredBikeGrid, anchoredRunGrid, ANCHOR_SOURCE_LABELS, type AnchoredGrid } from '@/lib/zones/anchoredZoneGrid';
 import { getObjectifLabel } from '@/types/athlete';
 import { reportFieldEvidence } from './fieldEvidence';
 import type { StoredDurability } from '@/lib/durability/longSessionDurability';
@@ -55,6 +56,26 @@ export function reportTargetTable(payload: ZonePayload | null | undefined): Targ
   }
 }
 
+/** Grille ancrée du rapport (mêmes entrées que la table des plans) — null si le sport n'est pas ancré. */
+function reportGrid(payload: ZonePayload | null | undefined, table: TargetTable, sport: 'bike' | 'run'): AnchoredGrid | null {
+  if (table.meta.zoneSource[sport] !== 'anchored') return null;
+  const refs = payload?.effectiveRefs ?? {}, snap = payload?.effectiveSnapshot;
+  if (!snap) return null;
+  const input = { ...snap, ftp: refs.ftp ?? snap.ftp, vma: refs.vma ?? snap.vma, fc_max: refs.fcMax ?? snap.fc_max, weight_kg: refs.weightKg ?? snap.weight_kg, vo2max: refs.vo2max ?? snap.vo2max };
+  const opts = { ambition: payload?.ambition?.current ?? null };
+  return sport === 'bike' ? anchoredBikeGrid(input, opts) : anchoredRunGrid(input, opts);
+}
+const pctText = (x: number) => Math.round(x * 100) + ' %';
+function anchoredAnchors(grid: AnchoredGrid): string[] {
+  const unit = grid.sport === 'bike' ? 'CP' : 'CS';
+  const crit = grid.sport === 'bike' ? `${Math.round(grid.critical)} W` : `${grid.critical.toFixed(1).replace('.', ',')} km/h`;
+  return [
+    `Zones ancrées sur le seuil critique (${unit}) : ${crit} · ${ANCHOR_SOURCE_LABELS[grid.source]}${grid.measured ? '' : ' (estimation)'}.`,
+    `Premier seuil ≈ ${pctText(grid.firstThreshold / grid.critical)} de la ${unit} (haut de Z2) ; MLSS ≈ ${pctText(grid.mlss / grid.critical)} de la ${unit} (dans Z5).`,
+    ...grid.alerts,
+  ];
+}
+
 function zoneOf(ranges: Partial<Record<ZoneKey, Range>>, value: number): string | null {
   // Les bornes voisines se touchent : une valeur posée sur une borne reste dans la zone la moins
   // intense (la VMA est le haut de Z6, pas le bas de Z7).
@@ -66,7 +87,7 @@ function zoneOf(ranges: Partial<Record<ZoneKey, Range>>, value: number): string 
   }) ?? null;
 }
 
-function zoneRows(table: TargetTable, sport: Sport): ReportZoneRow[] {
+function zoneRows(table: TargetTable, sport: Sport, grid: AnchoredGrid | null = null): ReportZoneRow[] {
   const ranges = sport === 'bike' ? table.bikeZonesW : table.runPacesSecPerKm;
   const ids = ZONE_IDS.filter(id => ranges[id]);
   return ids.map((id, i) => {
@@ -89,7 +110,8 @@ function zoneRows(table: TargetTable, sport: Sport): ReportZoneRow[] {
       pctRef = lo == null || hi == null ? '' : first ? `< ${hi} %` : last ? `> ${lo} %` : `${lo}–${hi} %`;
       refLabel = '% VMA';
     }
-    const hr = table.fcZonesBpm[id];
+    // Grille ancrée : FC propre au sport (un triathlète n'a pas la même FC à vélo et en course).
+    const hr = (grid ? grid.zones.find(z => z.id === id)?.hr ?? null : null) ?? table.fcZonesBpm[id];
     return {
       id, label: def.label, condition: `${def.positionSeuils} · ${def.description}`,
       pctRef, refLabel, absolute,
@@ -99,7 +121,7 @@ function zoneRows(table: TargetTable, sport: Sport): ReportZoneRow[] {
   });
 }
 
-function bikeLandmarks(payload: ZonePayload, table: TargetTable): ReportZoneLandmark[] {
+function bikeLandmarks(payload: ZonePayload, table: TargetTable, grid: AnchoredGrid | null = null): ReportZoneLandmark[] {
   const refs = payload?.effectiveRefs, snap = payload?.effectiveSnapshot;
   const ftp = table.ftpW;
   if (!ftp) return [];
@@ -112,7 +134,10 @@ function bikeLandmarks(payload: ZonePayload, table: TargetTable): ReportZoneLand
     const [lo, hi] = table.racePowerRange;
     add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`);
   }
-  if (positive(snap?.vlamax) && positive(refs?.vo2max) && positive(refs?.weightKg)) {
+  if (grid) {
+    add('Premier seuil (estimé)', grid.firstThreshold, `≈ ${pctText(grid.firstThreshold / grid.critical)} de la CP`);
+    add('MLSS (estimé)', grid.mlss, `≈ ${pctText(grid.mlss / grid.critical)} de la CP`);
+  } else if (positive(snap?.vlamax) && positive(refs?.vo2max) && positive(refs?.weightKg)) {
     const mlss = findMLSSPower({ vo2max: refs.vo2max, vlamax: snap.vlamax, weight: refs.weightKg });
     if (positive(mlss)) add('MLSS', mlss, 'Modèle métabolique (VO₂max et VLamax du bilan)');
   }
@@ -124,7 +149,7 @@ function bikeLandmarks(payload: ZonePayload, table: TargetTable): ReportZoneLand
   return out;
 }
 
-function runLandmarks(payload: ZonePayload, table: TargetTable, derived: DerivedZoneSet | null): ReportZoneLandmark[] {
+function runLandmarks(payload: ZonePayload, table: TargetTable, derived: DerivedZoneSet | null, grid: AnchoredGrid | null = null): ReportZoneLandmark[] {
   const snap = payload?.effectiveSnapshot;
   const out: ReportZoneLandmark[] = [];
   const add = (label: string, secPerKm: number, source: string, shown = `${pace(secPerKm)}/km`) =>
@@ -138,6 +163,10 @@ function runLandmarks(payload: ZonePayload, table: TargetTable, derived: Derived
     const m = marker?.absolute?.match(/^(\d+):(\d\d)–(\d+):(\d\d)\/km$/);
     if (m) add('Allure de course · ' + race, ((+m[1] * 60 + +m[2]) + (+m[3] * 60 + +m[4])) / 2,
       'Calculée depuis ton allure au seuil', `${m[1]}:${m[2]}–${m[3]}:${m[4]}/km`);
+  }
+  if (grid) {
+    add('Premier seuil (estimé)', 3600 / grid.firstThreshold, `≈ ${pctText(grid.firstThreshold / grid.critical)} de la CS`);
+    add('MLSS (estimé)', 3600 / grid.mlss, `≈ ${pctText(grid.mlss / grid.critical)} de la CS`);
   }
   if (positive(snap?.pace_threshold_sec_per_km)) add('Allure au seuil', snap.pace_threshold_sec_per_km, 'Bilan');
   const critical = reportFieldEvidence(snap).critical.running;
@@ -160,9 +189,10 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
     const derived = deriveTrainingZones({ sport: 'bike', ftp: table.ftpW, fcMax: refs?.fcMax ?? null, fcRest: snap?.fc_repos ?? null,
       vlamax: snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
     const race = table.racePowerRange;
+    const grid = reportGrid(payload, table, 'bike');
     sets.push({
-      sportLabel: 'Vélo', source: table.meta.zoneSource.bike === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: derived.anchors ?? [],
-      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'bike'), landmarks: bikeLandmarks(payload, table),
+      sportLabel: 'Vélo', source: table.meta.zoneSource.bike === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: grid ? anchoredAnchors(grid) : derived.anchors ?? [],
+      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'bike', grid), landmarks: bikeLandmarks(payload, table, grid),
       markers: race ? [{ id: 'race_specific', label: 'Puissance de course', absolute: `${race[0]}–${race[1]} W` }] : [],
     });
   }
@@ -171,9 +201,10 @@ export function reportSportZoneSets(payload: any): ReportZoneSet[] {
     const derived = deriveTrainingZones({ sport: 'run', vma: table.vmaKmh, paceThresholdSecPerKm: threshold ?? null,
       paceThresholdEstimated: !positive(snap?.pace_threshold_sec_per_km), fcMax: refs?.fcMax ?? null, fcRest: snap?.fc_repos ?? null,
       vlamax: snap?.vlamax_run ?? snap?.vlamax ?? null, vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null, raceObjective: goal });
+    const grid = reportGrid(payload, table, 'run');
     sets.push({
-      sportLabel: 'Course à pied', source: table.meta.zoneSource.run === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: derived.anchors ?? [],
-      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'run'), landmarks: runLandmarks(payload, table, derived),
+      sportLabel: 'Course à pied', source: table.meta.zoneSource.run === 'standard' ? 'standard' : 'derived', confidence: derived.confidence, anchors: grid ? anchoredAnchors(grid) : derived.anchors ?? [],
+      fallbackReason: derived.fallbackReason, zones: zoneRows(table, 'run', grid), landmarks: runLandmarks(payload, table, derived, grid),
     });
   }
   return sets;
