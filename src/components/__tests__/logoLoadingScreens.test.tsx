@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 
 /**
@@ -58,7 +58,7 @@ describe("Écrans de chargement (AuthGate / OnboardingGate) — logo custom du c
       </MemoryRouter>
     );
 
-    const img = screen.getByAltText("24C Lab") as HTMLImageElement;
+    const img = screen.getByAltText("Logo du coach") as HTMLImageElement;
     expect(img.src).toBe(CUSTOM_LOGO);
   });
 
@@ -74,8 +74,19 @@ describe("Écrans de chargement (AuthGate / OnboardingGate) — logo custom du c
       </MemoryRouter>
     );
 
-    const img = screen.getByAltText("24C Lab") as HTMLImageElement;
+    const img = screen.getByAltText("Logo du coach") as HTMLImageElement;
     expect(img.src).toBe(CUSTOM_LOGO);
+  });
+
+  it("restaure le logo TFCLab si le logo personnalisé ne peut pas être affiché", async () => {
+    localStorage.setItem(CACHE_KEY, CUSTOM_LOGO);
+    const { AuthGate } = await import("../AuthGate");
+    render(<MemoryRouter><AuthGate><div /></AuthGate></MemoryRouter>);
+
+    fireEvent.error(screen.getByAltText("Logo du coach"));
+    const fallback = screen.getByAltText("Logo TFCLab");
+    expect(fallback).not.toHaveAttribute("src", CUSTOM_LOGO);
+    expect(fallback).not.toHaveAttribute("data-custom");
   });
 
   it("sans logo en cache, retombe sur le logo par défaut packagé (pas de casse)", async () => {
@@ -89,7 +100,7 @@ describe("Écrans de chargement (AuthGate / OnboardingGate) — logo custom du c
       </MemoryRouter>
     );
 
-    const img = screen.getByAltText("24C Lab") as HTMLImageElement;
+    const img = screen.getByAltText("Logo TFCLab") as HTMLImageElement;
     expect(img.src).not.toBe(CUSTOM_LOGO);
     expect(img.src.length).toBeGreaterThan(0);
   });

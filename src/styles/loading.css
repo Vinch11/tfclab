@@ -1,0 +1,125 @@
+/* Loaded by index.html so the first paint and the React screens share one surface. */
+.loading-screen {
+  --loading-paper: #fff;
+  --loading-field: #e9f1f7;
+  --loading-light: #f9fcff;
+  --loading-edge: #d1dfea;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: max(1.25rem, env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right))
+    max(1.25rem, env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 32%, var(--loading-light), transparent 76%), var(--loading-field);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+#splash-screen { position: fixed; inset: 0; overflow: auto; }
+
+.dark .loading-screen, .loading-screen[data-dark] {
+  --loading-paper: #152b40;
+  --loading-field: #0d1b2b;
+  --loading-light: #1b344e;
+  --loading-edge: #31495f;
+}
+
+.loading-card {
+  width: min(100%, 31rem);
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid var(--loading-edge);
+  border-radius: 1.5rem;
+  background: var(--loading-paper);
+  box-shadow: 0 1.3rem 3.4rem -2rem rgb(23 58 93 / 38%);
+}
+
+.loading-cover {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: clamp(11.5rem, 45vw, 15rem);
+  padding: clamp(1.2rem, 4vw, 1.8rem);
+  color: white;
+  background-color: #125488;
+  background-image: linear-gradient(90deg, #062a49b3, #07375b33 54%, transparent 76%),
+    url('../assets/auth-track-mobile.webp');
+  background-size: cover;
+  background-position: center 28%;
+}
+
+.loading-logo {
+  box-sizing: border-box;
+  display: block;
+  width: 3rem;
+  height: 3rem;
+  padding: .2rem;
+  object-fit: contain;
+  border: 1px solid #ffffff4a;
+  border-radius: .875rem;
+  background: #112a40;
+}
+
+.loading-logo[data-custom] { background: #fff; }
+
+.loading-brand {
+  color: white;
+  font-size: clamp(1.9rem, 7.5vw, 2.75rem);
+  font-weight: 650;
+  letter-spacing: -.055em;
+  line-height: .99;
+}
+
+.loading-status {
+  --loading-ink: #26445e;
+  --loading-track: #dce8f2;
+  --loading-accent: #287bbb;
+  display: grid;
+  gap: .85rem;
+  max-width: 31rem;
+  color: var(--loading-ink);
+  font: 550 .9375rem/1.45 'DM Sans', system-ui, sans-serif;
+  letter-spacing: -.01em;
+}
+
+.dark .loading-status, [data-dark] .loading-status {
+  --loading-ink: #e4f0fa;
+  --loading-track: #30485f;
+  --loading-accent: #80c4fa;
+}
+
+.loading-card .loading-status {
+  padding: 1.25rem clamp(1.2rem, 4vw, 1.8rem) 1.4rem;
+}
+
+.loading-rail {
+  display: block;
+  overflow: hidden;
+  height: .25rem;
+  border-radius: 1rem;
+  background: var(--loading-track);
+}
+
+.loading-rail::after {
+  content: "";
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--loading-accent);
+  animation: loading-sweep 1.7s ease-in-out infinite alternate;
+}
+
+@keyframes loading-sweep { to { transform: translateX(163%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-rail::after { animation: none; }
+}
+
+@media (max-height: 420px) {
+  .loading-cover { min-height: 7.5rem; flex-direction: row; align-items: center; justify-content: flex-start; }
+}

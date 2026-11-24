@@ -49,7 +49,7 @@ export default defineConfig(async ({ mode, command }) => {
         short_name: "2FC Lab",
         description: "Laboratoire de performance - Analyse physiologique staff-grade",
         theme_color: "#0d1117",
-        background_color: "#0d1117",
+        background_color: "#e9f1f7",
         display: "standalone",
         orientation: "any",
         start_url: "/",
@@ -75,8 +75,7 @@ export default defineConfig(async ({ mode, command }) => {
       },
       workbox: {
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB pour accommoder les librairies PDF
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,json}"]
-,
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,woff,ttf,json}", "**/auth-track-mobile-*.webp"],
         navigateFallback: "/index.html",
         navigateFallbackAllowlist: [/^(?!\/__).*/],
         // Important: never fallback to index.html for DOCX downloads/fetches

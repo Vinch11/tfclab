@@ -4,9 +4,8 @@
 
 import { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { useProfile, getCachedLogoUrl } from "@/hooks/useProfile";
-import { Loader2 } from "lucide-react";
-import logo from "@/assets/logo-2fc.png";
+import { useProfile } from "@/hooks/useProfile";
+import { SplashScreen } from "@/components/SplashScreen";
 
 interface OnboardingGateProps {
   children: ReactNode;
@@ -16,17 +15,7 @@ export function OnboardingGate({ children }: OnboardingGateProps) {
   const { profile, loading } = useProfile();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <img src={getCachedLogoUrl() || logo} alt="24C Lab" className="h-36 w-auto animate-pulse" />
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <p className="text-muted-foreground text-sm">Chargement du profil...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <SplashScreen label="Chargement du profil…" />;
   }
 
   // If profile exists but onboarding not completed, redirect to onboarding

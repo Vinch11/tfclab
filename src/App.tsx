@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
+import { SplashScreen } from "@/components/SplashScreen";
 import ScrollToTop from "./components/ScrollToTop";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -73,15 +73,6 @@ const DashboardProfileHarness = lazy(() => import("./pages/__e2e/DashboardProfil
 
 const queryClient = new QueryClient();
 
-/** Centered spinner shown while a route chunk is loading */
-function RouteFallback() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-    </div>
-  );
-}
-
 /** Wraps a page in auth + onboarding + athlete providers */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return (
@@ -114,7 +105,7 @@ export default function App() {
             <ScrollToTop />
             <AuthProvider>
               <AppErrorBoundary>
-              <Suspense fallback={<RouteFallback />}>
+              <Suspense fallback={<SplashScreen label="Ouverture de la page…" />}>
                 <SectionSurface>
                 <Routes>
                   {/* Auth */}
