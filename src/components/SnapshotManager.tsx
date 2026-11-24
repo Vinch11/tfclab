@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Calendar, Pin, HelpCircle, Beaker, Wand2, Bike, PersonStanding, Battery } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Pin, HelpCircle, Beaker, Bike, Battery } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
@@ -28,19 +28,12 @@ import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
 import { mergeEmptyFields, type SnapshotRecordFields } from "@/lib/nolioV2Records";
 import { DbSnapshot, useCloudData } from "@/contexts/CloudDataContext";
 import { deriveMetabolicProfile, generateTwoForCoachingInsights, calculateDelta, formatValue } from "@/types/snapshot";
-import { computeTTEEffectif, getSourceLabel, formatTTEDisplay } from "@/engines/diagnostic";
+import { computeTTEEffectif } from "@/engines/diagnostic";
 import { 
   parsePaceToSec, 
   formatSecToPace, 
   computeRunEconomyScore, 
-  getEconomyLabelStyle,
 } from "@/lib/runningEconomySnapshot";
-import { 
-  estimateVLamaxCap, 
-  canEstimateVLamaxCap, 
-  getEstimationSourcesDescription,
-  VLamaxCapEstimateInput
-} from "@/lib/v2/vlamaxCapEstimator";
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
@@ -48,6 +41,8 @@ import { checkSnapshotForm, readVo2max, snapshotConfidence, snapshotProtocolQual
 import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { NolioFillAssistant } from "@/components/NolioFillAssistant";
 import { SnapshotFillMenu } from "@/components/SnapshotFillMenu";
+import { SnapshotSheet } from "@/components/SnapshotSheet";
+import type { SheetBlockId, SheetSnapshot } from "@/lib/snapshotSheet";
 import { fillEmpty, labValuesToForm, type FillSource } from "@/lib/snapshotFill";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 import { parseStoredDurability, withDurability } from "@/lib/durability/longSessionDurability";
@@ -151,6 +146,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const [isCreateOpen, setIsCreateOpen] = usePersistedDialogState(`snapshot-create-${athleteId}`, false);
   const [isEditOpen, setIsEditOpen] = usePersistedDialogState(`snapshot-edit-${athleteId}`, false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  /** Bloc de la fiche à ouvrir dans le formulaire (« Modifier ce bloc »). */
+  const [editBlock, setEditBlock] = useState<SheetBlockId | null>(null);
 
   // Persist the editing snapshot ID to restore state after page navigation
   const [editingSnapshotId, setEditingSnapshotId] = usePersistedFormState<{ id: string | null }>(
@@ -183,6 +180,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const resetForm = () => {
     clearFormData();
     setFilledFrom({});
+    setEditBlock(null);
     setEditingSnapshotId({ id: null });
   };
 
@@ -469,6 +467,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     });
 
     if (!updated) return;
+    setEditBlock(null);
     setIsEditOpen(false);
     setEditingSnapshotId({ id: null });
   };
@@ -492,7 +491,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     }
   };
 
-  const openEdit = (s: DbSnapshot) => {
+  const openEdit = (s: DbSnapshot, block?: SheetBlockId) => {
+    setEditBlock(block ?? null);
     setEditingSnapshotId({ id: s.id });
     loadSnapshotToForm(s);
     setIsEditOpen(true);
@@ -631,6 +631,8 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       <SnapshotTestDays
         formData={formData as unknown as Record<string, string>}
         filledFrom={filledFrom}
+        initialTab={editBlock && ["ctx", "bike", "run", "swim", "labo"].includes(editBlock) ? editBlock : undefined}
+        key={`fiche-${editingSnapshot?.id ?? "new"}-${editBlock ?? ""}`}
         onChange={(key, value) => {
           setFilledFrom(prev => { if (!(key in prev)) return prev; const n = { ...prev }; delete n[key]; return n; });
           setFormData(prev => ({ ...prev, [key]: value }));
@@ -946,201 +948,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
             </div>
           )}
 
-          {/* Estimation VLamax CAP en temps réel */}
-          {(() => {
-            const paceThresholdSec = parsePaceToSec(formData.pace_threshold);
-            const vmaNum = parseNum(formData.vma);
-            const tteNum = parseNum(formData.tte_observed_min_run);
-            
-            // Calculer économie de course pour ajustement confiance
-            const runPaceSec = parsePaceToSec(formData.run_pace_ref);
-            const runHr = parseNum(formData.run_hr_ref);
-            const runDuration = parseNum(formData.run_duration_min);
-            const runDrift = parseNum(formData.run_hr_drift_pct);
-            const fcMax = parseNum(formData.fc_max);
-            
-            const economyResult = computeRunEconomyScore({
-              paceSec: runPaceSec ? Math.round(runPaceSec) : null,
-              hr: runHr ? Math.round(runHr) : null,
-              durationMin: runDuration ? Math.round(runDuration) : null,
-              driftPct: runDrift,
-              fcMax: fcMax ? Math.round(fcMax) : null,
-            });
-            
-            const estimationInput: VLamaxCapEstimateInput = {
-              vma: vmaNum,
-              paceThresholdSecPerKm: paceThresholdSec,
-              tteMin: tteNum,
-              sprint15sDistance: parseNum(formData.sprint_15s),
-              runningPowerMax: parseNum(formData.run_power_max),
-              runningPowerThreshold: parseNum(formData.run_power_threshold),
-              // Économie de course (calculée en temps réel)
-              runEconomyScore: economyResult.score,
-              runHrDriftPct: runDrift,
-              runPaceRefSecPerKm: runPaceSec,
-            };
-            
-            const canEstimate = canEstimateVLamaxCap(estimationInput);
-            
-            if (!canEstimate) {
-              return (
-                <div className="mt-3 p-3 rounded-lg bg-muted/50 border border-border text-center">
-                  <p className="text-sm text-muted-foreground">
-                    ⚠️ Renseignez VMA + au moins 1 donnée pour activer l'estimation VLamax CAP
-                  </p>
-                </div>
-              );
-            }
-            
-            const estimate = estimateVLamaxCap(estimationInput);
-            const sourcesDescription = getEstimationSourcesDescription(estimate);
-            
-            // Icône/label selon source
-            const sourceLabel = estimate.confidence >= 0.70 
-              ? "🏃 Test terrain" 
-              : estimate.confidence >= 0.50 
-                ? "📐 Estimation fiable" 
-                : "⚠️ Estimation limitée";
-            const confidenceBg = estimate.confidence >= 0.70 
-              ? "bg-green-500/10" 
-              : estimate.confidence >= 0.50 
-                ? "bg-blue-500/10" 
-                : "bg-amber-500/10";
-            const confidenceColor = estimate.confidence >= 0.70 
-              ? "text-green-600 dark:text-green-400" 
-              : estimate.confidence >= 0.50 
-                ? "text-blue-600 dark:text-blue-400" 
-                : "text-amber-600 dark:text-amber-400";
-            
-            return (
-              <div className={`mt-3 p-4 rounded-lg border border-border ${confidenceBg}`}>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-sm font-medium">📊 Estimation VLamax CAP</p>
-                  <div className="flex items-center gap-2">
-                    <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${confidenceColor}`}>
-                      <span>{sourceLabel}</span>
-                    </div>
-                    {/* Bouton Appliquer l'estimation - uniquement en mode Staff */}
-                    {staffMode && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 gap-1.5 text-xs border-primary/50 hover:bg-primary/10"
-                        onClick={() => setFormData({ ...formData, vlamax_run: estimate.value.toFixed(2) })}
-                      >
-                        <Wand2 className="w-3 h-3" />
-                        Appliquer
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="text-center">
-                    <p className="text-3xl font-bold text-foreground">{estimate.value.toFixed(2)}</p>
-                    <p className="text-xs text-muted-foreground">mmol/L/s</p>
-                  </div>
-                  <div className="flex-1 text-sm text-muted-foreground">
-                    <p className="font-medium text-foreground mb-1">Sources utilisées:</p>
-                    <p>{sourcesDescription}</p>
-                  </div>
-                </div>
-                
-                {/* Graphique comparaison Bike vs CAP pour triathlètes */}
-                {isTriathlonObjective(athleteGoal) && formData.vlamax && (
-                  <div className="mb-3 p-3 rounded-lg bg-background/50 border border-border">
-                    <p className="text-xs font-medium text-foreground mb-2 flex items-center gap-2">
-                      <Bike className="w-3 h-3" />
-                      Comparaison VLamax Vélo vs CAP
-                    </p>
-                    <div className="flex items-end gap-2 h-16">
-                      {/* Barre Vélo */}
-                      <div className="flex-1 flex flex-col items-center">
-                        <div 
-                          className="w-full bg-blue-500/80 rounded-t transition-all"
-                          style={{ height: `${Math.min(100, (parseNum(formData.vlamax) ?? 0) / 0.8 * 100)}%` }}
-                        />
-                        <p className="text-xs mt-1 font-medium">{parseNum(formData.vlamax)?.toFixed(2) ?? "—"}</p>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <Bike className="w-2.5 h-2.5" /> Vélo
-                        </p>
-                      </div>
-                      {/* Barre CAP */}
-                      <div className="flex-1 flex flex-col items-center">
-                        <div 
-                          className="w-full bg-green-500/80 rounded-t transition-all"
-                          style={{ height: `${Math.min(100, estimate.value / 0.8 * 100)}%` }}
-                        />
-                        <p className="text-xs mt-1 font-medium">{estimate.value.toFixed(2)}</p>
-                        <p className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <PersonStanding className="w-2.5 h-2.5" /> CAP
-                        </p>
-                      </div>
-                      {/* Delta */}
-                      <div className="flex-1 flex flex-col items-center justify-end">
-                        {(() => {
-                          const bikeVal = parseNum(formData.vlamax) ?? 0;
-                          const delta = estimate.value - bikeVal;
-                          const deltaColor = delta > 0.05 ? "text-amber-600" : delta < -0.05 ? "text-green-600" : "text-muted-foreground";
-                          return (
-                            <>
-                              <p className={`text-sm font-bold ${deltaColor}`}>
-                                {delta > 0 ? "+" : ""}{delta.toFixed(2)}
-                              </p>
-                              <p className="text-[10px] text-muted-foreground">Δ</p>
-                            </>
-                          );
-                        })()}
-                      </div>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                      {(() => {
-                        const bikeVal = parseNum(formData.vlamax) ?? 0;
-                        const delta = estimate.value - bikeVal;
-                        if (Math.abs(delta) < 0.03) return "Profils similaires entre vélo et course";
-                        if (delta > 0.05) return "⚠️ CAP plus glycolytique — attention sur marathon vélo";
-                        if (delta < -0.05) return "✓ CAP plus endurant — bon signe pour IM/70.3";
-                        return "Légère différence entre disciplines";
-                      })()}
-                    </p>
-                  </div>
-                )}
-                
-                {/* Détails de calcul */}
-                {estimate.details && (
-                  <div className="text-xs text-muted-foreground p-2 rounded bg-background/50 border border-border">
-                    <p className="font-medium mb-1">Détail du calcul:</p>
-                    <p>{estimate.details}</p>
-                  </div>
-                )}
-                
-                {/* Interprétation */}
-                <div className="mt-3 pt-3 border-t border-border text-xs">
-                  {estimate.value < 0.35 && (
-                    <p className="text-green-600 dark:text-green-400">
-                      🌱 <strong>Profil endurant</strong> — Excellente capacité aérobie, faible production lactique
-                    </p>
-                  )}
-                  {estimate.value >= 0.35 && estimate.value < 0.45 && (
-                    <p className="text-blue-600 dark:text-blue-400">
-                      ⚖️ <strong>Profil équilibré</strong> — Bonne polyvalence métabolique
-                    </p>
-                  )}
-                  {estimate.value >= 0.45 && estimate.value < 0.55 && (
-                    <p className="text-amber-600 dark:text-amber-400">
-                      💪 <strong>Profil glycolytique modéré</strong> — Capacité anaérobie solide
-                    </p>
-                  )}
-                  {estimate.value >= 0.55 && (
-                    <p className="text-orange-600 dark:text-orange-400">
-                      🔥 <strong>Profil glycolytique élevé</strong> — Grande puissance anaérobie, attention sur ultra-endurance
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
         </div>
       )}
 
@@ -1159,15 +966,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
   const renderSnapshotCard = (s: DbSnapshot) => {
     const { profile, score } = deriveMetabolicProfile(s.vlamax ?? null, s.vo2max ?? null);
-
-    const tteEff = computeTTEEffectif({
-      ftp: s.ftp ?? null,
-      tss_7d: s.tss_7d ?? null,
-      tte_mode: (s.tte_mode as any) ?? "LOAD",
-      tte_observed_min: s.tte_observed_min ?? null,
-      tte_observed_min_run: (s as any).tte_observed_min_run ?? null,
-      objectif: athleteGoal,
-    });
 
     const insights = generateTwoForCoachingInsights(
       {
@@ -1216,17 +1014,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 {score != null && ` (score ${score}/100)`}
               </p>
 
-              <div className="flex flex-wrap gap-2 mt-2 text-xs text-muted-foreground">
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  TTE: <b className="text-foreground">{tteEff.tte_min} min</b>
-                </span>
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  Source TTE: <b className="text-foreground">{getSourceLabel(tteEff.source)}</b>
-                </span>
-                <span className="px-2 py-1 rounded bg-background border border-border">
-                  Fiabilité TTE: <b className="text-foreground">{tteEff.confidence >= 0.7 ? "Élevée" : tteEff.confidence >= 0.5 ? "Modérée" : "Limitée"}</b>
-                </span>
-              </div>
             </div>
 
             <div className="flex gap-1">
@@ -1260,68 +1047,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <div className="grid grid-cols-5 gap-2 text-sm">
-            <div>
-              <span className="text-muted-foreground">VO₂max:</span>{" "}
-              <span className="font-medium">{formatValue(s.vo2max)}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">VLamax:</span>{" "}
-              <span className="font-medium">{formatValue(s.vlamax)}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">FTP:</span>{" "}
-              <span className="font-medium">{formatValue(s.ftp, "W")}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">VMA:</span>{" "}
-              <span className="font-medium">{formatValue(s.vma, "km/h")}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">TSS 7d:</span>{" "}
-              <span className={`font-medium ${!s.tss_7d ? "text-warning" : ""}`}>
-                {s.tss_7d ? formatValue(s.tss_7d) : "—"}
-              </span>
-            </div>
-          </div>
-
-          {/* 🏃 Économie CAP (si données disponibles) */}
-          {(s.run_economy_score != null || s.run_pace_ref_sec_per_km != null) && (
-            <div className="p-2 rounded-lg border border-blue-500/30 bg-blue-500/5">
-              <p className="text-xs font-medium text-blue-600 mb-2">🏃 Économie CAP</p>
-              <div className="grid grid-cols-5 gap-2 text-xs">
-                <div>
-                  <span className="text-muted-foreground">Allure:</span>{" "}
-                  <span className="font-medium">
-                    {s.run_pace_ref_sec_per_km ? formatSecToPace(s.run_pace_ref_sec_per_km) + "/km" : "—"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">FC:</span>{" "}
-                  <span className="font-medium">{s.run_hr_ref_bpm ? s.run_hr_ref_bpm + " bpm" : "—"}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Durée:</span>{" "}
-                  <span className="font-medium">{s.run_duration_min ? s.run_duration_min + " min" : "—"}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Dérive:</span>{" "}
-                  <span className="font-medium">{s.run_hr_drift_pct != null ? s.run_hr_drift_pct + "%" : "—"}</span>
-                </div>
-                <div>
-                  {(() => {
-                    const label = (s.run_economy_label as any) || "unknown";
-                    const style = getEconomyLabelStyle(label);
-                    return (
-                      <span className={`px-2 py-0.5 rounded text-xs ${style.bg} ${style.text}`}>
-                        {style.icon} {s.run_economy_score ?? "—"}/100
-                      </span>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-          )}
+          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} onEditBlock={(block) => openEdit(s, block)} />
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">
@@ -1340,19 +1066,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               </AccordionContent>
             </AccordionItem>
 
-            {s.coach_notes && (
-              <AccordionItem value="notes" className="border-none">
-                <AccordionTrigger className="py-2 text-sm">
-                  <span className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Notes coach
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-sm text-muted-foreground">{s.coach_notes}</p>
-                </AccordionContent>
-              </AccordionItem>
-            )}
           </Accordion>
         </CardContent>
       </Card>

@@ -12,16 +12,18 @@ interface Props {
   filledFrom: Record<string, string>;
   /** Contenu affiché sous un champ (provenance, valeur Nolio…). */
   renderExtra?: (key: TestDayFieldKey) => ReactNode;
+  /** Onglet ouvert au départ (« Modifier ce bloc » depuis la fiche). */
+  initialTab?: string;
 }
 
 /** Fiche athlète : un bloc par sport, chaque valeur saisie à un seul endroit. */
-export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra }: Props) {
+export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra, initialTab }: Props) {
   const check = checkSnapshotForm(formData);
   const readiness = snapshotReadiness(formData);
   return (
     <div className="space-y-3 rounded-lg border border-border p-3">
       <p className="text-sm font-medium">Fiche athlète</p>
-      <Tabs defaultValue="ctx">
+      <Tabs defaultValue={initialTab ?? "ctx"}>
         <TabsList className="grid w-full grid-cols-5 h-auto">
           {TEST_DAYS.map((d) => {
             const filled = d.fields.filter((f) => formData[f.key]?.trim()).length;
