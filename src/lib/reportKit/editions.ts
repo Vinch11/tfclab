@@ -83,7 +83,7 @@ const phasePurposes: [RegExp, string][] = [
   [/seuil/i, 'Ce bloc travaille la capacité à tenir un effort soutenu et régulier. Le repère à suivre est la durée pendant laquelle l’allure ou la puissance reste stable.'],
   [/allure|spécifi|specifi|race.pace|peak/i, 'Les répétitions à l’intensité de course permettent de reconnaître le bon rythme et de vérifier qu’il reste maîtrisé quand la fatigue arrive.'],
   [/affût|affut|taper/i, 'Cette période laisse davantage de place à la récupération à l’approche de la course.'],
-  [/base|fonci|endurance/i, 'Cette période installe la régularité et l’aisance dont tu auras besoin dans les efforts plus longs.'],
+  [/base|fonci|endurance/i, 'Cette période installe la régularité et l’aisance nécessaires aux efforts plus longs.'],
   [/build|développement|construction/i, 'Ce bloc développe la qualité ciblée par le plan. Reprendre une séance comparable en fin de bloc aide à voir si le même effort devient plus facile.'],
   [/durabilité|tenue|tte/i, 'L’enjeu est de conserver un effort régulier quand la fatigue monte. Comparer le début et la fin des efforts longs permet de suivre cette capacité.'],
   [/récup|recup/i, 'Cette période laisse le temps de retrouver de la fraîcheur avant la suite.'],

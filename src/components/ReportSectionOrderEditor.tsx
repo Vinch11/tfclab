@@ -587,7 +587,7 @@ export function ReportSectionOrderEditor() {
           </Button>
         </div>
         <CardDescription>
-          Réorganisez et masquez les sections du rapport PDF exporté
+          Réorganisez et masquez les sections du rapport PDF exporté. Le rapport coach n'inclut en annexe que les données enregistrées (historique des bilans, tests, imports FIT, état de fatigue) : les modules modélisés sont retirés tant qu'ils ne lisent pas la même source que le corps du rapport.
         </CardDescription>
       </CardHeader>
       

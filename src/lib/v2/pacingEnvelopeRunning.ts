@@ -201,7 +201,7 @@ const READINESS_MODIFIERS: Record<ReadinessState, {
 const PACING_TEXTS = {
   disclaimer: `TFCL ne cherche pas l'allure parfaite, mais l'allure la plus robuste jusqu'à la ligne.`,
   
-  methodology: `Le Pacing Envelope™ CAP est calculé via le moteur unifié TFCL™ (Chantier C):
+  methodology: `Le Pacing Envelope™ CAP est calculé via le moteur unifié TFCL™:
 • Centre = modèle continu %CS f(durée, ambition) — Smyth & Muniz-Pumares 2022
 • Largeur asymétrique haut/bas — Skiba 2024 (W'-balance dynamics)
 • Conversion %VMA → %seuil via vCS/vVMA = 0.90 (Jones-Vanhatalo 2017)

@@ -512,7 +512,7 @@ ou VMA (course), correspondant aux intensités réelles de compétition.`,
   disclaimer: `TFCL NE PRESCRIT PAS une allure. TFCL EXPLIQUE, SIMULE et CADRE la décision.
 Le coach garde toujours la main sur la décision finale.`,
 
-  methodology: `Calcul basé sur (modèle continu Chantier A — Smyth 2022 / Skiba 2024):
+  methodology: `Calcul basé sur (modèle continu — Smyth 2022 / Skiba 2024):
 • Centre de l'enveloppe = %CS continu f(durée, niveau d'ambition)
 • Largeur = baseWidth × (W'/CP normalisé) × durationFactor
 • VLamax effectif (modulation fine de la largeur)
