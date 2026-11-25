@@ -9,8 +9,8 @@
  */
 import type { Json } from '@/integrations/supabase/types';
 
-export type ThresholdField = 'ftp' | 'pace_threshold_sec_per_km';
-export type ThresholdOrigin = 'test_20min' | 'cp_test' | 'track_day_cs' | 'calculator' | 'watch' | 'entered';
+export type ThresholdField = 'ftp' | 'pace_threshold_sec_per_km' | 'vma';
+export type ThresholdOrigin = 'test_20min' | 'cp_test' | 'track_day_cs' | 'vma_test' | 'calculator' | 'watch' | 'entered';
 
 export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: ThresholdOrigin; label: string }[]> = {
   ftp: [
@@ -26,9 +26,16 @@ export const THRESHOLD_ORIGIN_OPTIONS: Record<ThresholdField, { value: Threshold
     { value: 'watch', label: 'Montre (Garmin…)' },
     { value: 'entered', label: 'Autre / saisie libre' },
   ],
+  // VMA : même mécanisme de provenance ; elle n'ancre jamais la grille de zones (isMeasuredOrigin l'ignore).
+  vma: [
+    { value: 'vma_test', label: 'Test VMA réalisé (Track Day, demi-Cooper, VAMEVAL…)' },
+    { value: 'calculator', label: 'Estimation (records, calculateur TFCL)' },
+    { value: 'watch', label: 'Montre (Garmin…)' },
+    { value: 'entered', label: 'Autre / saisie libre' },
+  ],
 };
 
-const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'cp_test', 'track_day_cs', 'calculator', 'watch', 'entered']);
+const ORIGINS = new Set<ThresholdOrigin>(['test_20min', 'cp_test', 'track_day_cs', 'vma_test', 'calculator', 'watch', 'entered']);
 const object = (v: unknown): Record<string, unknown> => v && typeof v === 'object' && !Array.isArray(v) ? v as Record<string, unknown> : {};
 
 /** Provenance déclarée, ou null si le champ n'en a pas (bilans antérieurs). */
@@ -49,3 +56,15 @@ export function withThresholdOrigin(fieldSources: unknown, field: ThresholdField
 
 /** Un seuil issu d'un test réalisé peut ancrer les zones ; les autres sont des estimations. */
 export const isMeasuredOrigin = (origin: ThresholdOrigin | null) => origin === 'test_20min' || origin === 'cp_test' || origin === 'track_day_cs';
+
+/**
+ * Provenance déclarée → source affichée dans le Compass et les rapports (lecture seule) :
+ * test réalisé = « Test terrain déclaré », montre, estimation ou saisie coach.
+ */
+export function originDisplaySource(origin: ThresholdOrigin | null | undefined): string | null {
+  if (!origin) return null;
+  if (origin === 'test_20min' || origin === 'cp_test' || origin === 'track_day_cs' || origin === 'vma_test') return 'observed';
+  if (origin === 'watch') return 'watch';
+  if (origin === 'calculator') return 'estimation';
+  return 'coach';
+}

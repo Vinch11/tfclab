@@ -15,6 +15,7 @@ export function metricSourceLabel(source: string, key?: string): string {
   if (source === "snapshot") return "📋 Bilan — provenance à confirmer";
   if (source === "records") return "📐 Estimation par records";
   if (source === "coach") return "✍️ Saisie coach";
+  if (source === "watch") return "⌚ Montre";
   if (source === "unknown") return "Données insuffisantes";
   return "📐 Estimation";
 }
@@ -49,13 +50,14 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     if (qualifier && input.sportFocus === 'run') return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, value: null, score: 0, source: 'unknown' };
     // VO₂max : la provenance déclarée dans la fiche remplace « Bilan — provenance à confirmer ».
     const vo2Source = input.vo2maxOrigin === 'lab' ? 'test_labo' : input.vo2maxOrigin === 'estimated' ? 'estimation' : input.vo2maxOrigin === 'entered' ? 'coach' : source;
-    return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, source: axis.key === "vo2max" ? (!input.vo2max ? "estimation" : vo2Source) : source };
+    const declared = axis.key === 'vma' ? input.vmaSource : axis.key === 'ftpkg' ? input.ftpSource : null;
+    return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, source: axis.key === "vo2max" ? (!input.vo2max ? "estimation" : vo2Source) : declared ?? source };
   });
   // Preserve the engine's ranked categories and their original metric order.
   const ranked = input.limiterResult?.categoryRanking?.flatMap(c => c.metrics) ?? input.limiterResult?.gapAnalysis ?? [];
   const priorityMetrics = ranked.filter(g => g.weightedImpact > 0 && g.prescriptionApplicable !== false).map(g => g.metric);
   const disciplines = sport === 'triathlon' ? buildDisciplineAxes(input, axes) : undefined;
-  const runningDiagnostic = disciplines?.runningDiagnostic ?? (sport === 'run' ? computeRunningCompassDiagnostic({ objectif: input.objectif, ambition: (input.ambition || 'age_group') as AmbitionLevel, age: input.athleteAge, vma: input.vma, vo2max: input.vo2max, vo2Source: 'snapshot', paceThresholdSecPerKm: input.paceThresholdSecPerKm, vlamax: input.vlamaxRunReference ?? (input.sportFocus === 'run' ? input.vlamaxEffectif : null), tte: input.sportFocus === 'run' ? input.tteEffectif : input.tteEffectifRun ?? null, economy: input.runEconomyScore, drift: input.hrDriftPct }) : undefined);
+  const runningDiagnostic = disciplines?.runningDiagnostic ?? (sport === 'run' ? computeRunningCompassDiagnostic({ objectif: input.objectif, ambition: (input.ambition || 'age_group') as AmbitionLevel, age: input.athleteAge, vma: input.vma, vo2max: input.vo2max, vo2Source: 'snapshot', vmaSource: input.vmaSource ?? undefined, paceThresholdSecPerKm: input.paceThresholdSecPerKm, vlamax: input.vlamaxRunReference ?? (input.sportFocus === 'run' ? input.vlamaxEffectif : null), tte: input.sportFocus === 'run' ? input.tteEffectif : input.tteEffectifRun ?? null, economy: input.runEconomyScore, drift: input.hrDriftPct }) : undefined);
   return {
     axes,
     disciplineAxes: disciplines,
