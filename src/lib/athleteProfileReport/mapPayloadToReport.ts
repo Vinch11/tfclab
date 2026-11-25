@@ -9,6 +9,7 @@ import { reportSportDurability, reportSportZoneSets } from '@/lib/reportKit/spor
  */
 
 import { reportSports } from '@/lib/reportKit/story';
+import { swimGauge } from '@/lib/reportKit/profileGauges';
 import { getObjectifLabel } from '@/types/athlete';
 import { compassReportRows, compassSportReportRows, compassTteReportRows } from '@/lib/coachingCompass/reportPresentation';
 
@@ -96,7 +97,7 @@ export function mapExportPayloadToProfileReport(
     brief: payload.reportBrief,
     calendar: payload.calendar,
     swimming: !/duathlon/i.test(goal ?? '') && (compass?.presentation?.sport === 'triathlon' || /^(IM|703|Olympic|Sprint|Ironman)$/i.test(goal ?? ''))
-      ? { css: refs?.css > 0 ? Math.round(refs.css) : null } : undefined,
+      ? { css: refs?.css > 0 ? Math.round(refs.css) : null, gauge: swimGauge(payload, true) } : undefined,
     nextRace: payload.nextRace,
     objectifLabel: goal ? getObjectifLabel(goal) : "ton prochain objectif",
     ambitionLabel: opts.ambitionLabel,

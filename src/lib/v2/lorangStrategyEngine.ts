@@ -22,7 +22,21 @@ import {
   type VlamaxTargetRange as _CanonicalVlamaxTargetRange,
 } from './vlamaxTargets';
 
+/**
+ * Séance de seuil proportionnée à la durée tenue aujourd'hui (TTE) : répétitions ≈ 40–50 % de la TTE,
+ * temps total ≈ 1 à 1,5 TTE, puis +2 à 5 min par semaine (pratique des coachs ; Coggan, Seiler).
+ * Sans TTE connue : prescription générique.
+ */
+export function thresholdRepsForTte(tteMin: number | null | undefined): string {
+  if (typeof tteMin !== "number" || !Number.isFinite(tteMin) || tteMin <= 0) return "2×20-30min au seuil pour augmenter le TTE";
+  const rep = Math.max(6, Math.min(30, Math.round((tteMin * 0.5) / 2) * 2));
+  const reps = tteMin < 30 ? 3 : 2;
+  if (rep >= 20) return `${reps}×${rep}min au seuil (TTE ${Math.round(tteMin)} min), puis +5 min par semaine jusqu'à 2×30min`;
+  return `${reps}×${rep}min au seuil (TTE ${Math.round(tteMin)} min), puis +2 à 3 min par répétition chaque semaine vers 2×20-30min`;
+}
+
 // Re-export pour usage externe
+
 export type { AerobicWeaknessDetail };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -902,7 +916,7 @@ function activateLevers(
     const firmPrescription = tteIsLimiting
       ? [
           "Sorties longues Z2 progressives (2-4h vélo / 1h30-2h30 CAP)",
-          "2×20-30min au seuil pour augmenter le TTE",
+          thresholdRepsForTte(tteGap?.value),
           "Z2 + bloc tempo final 20-30min",
           "Progression charge +10%/semaine max",
         ]

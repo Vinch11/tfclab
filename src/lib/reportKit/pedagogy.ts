@@ -68,6 +68,9 @@ export const PEDAGOGY_CSS = GARMIN_BOX_CSS + `
 .zone-table th:first-child{width:10%}.zone-table th:nth-child(2){width:39%}.zone-table th:nth-child(3){width:29%}
 .zone-table .zone-head th{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:${RK.faint};padding:0 10px 6px}
 .zone-table .zone-row td{border-top:1px solid ${RK.lineSoft}}
+/* Impression : une zone ne se coupe jamais entre deux pages. */
+.zone-table tr,.zone-row,.landmark-table tr{break-inside:avoid;page-break-inside:avoid}
+.zone-table td{break-inside:avoid}
 .zone-id{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:${RK.surface};font-size:11px;font-weight:700}
 .zone-name{font-size:12px;line-height:1.35;color:${RK.ink};font-weight:600}
 .zone-condition{font-size:10px;line-height:1.4;color:${RK.muted};margin-top:2px}
