@@ -86,6 +86,10 @@ export interface ReportZoneSet {
   markers?: { id: string; label: string; absolute: string | null }[];
   /** Repères physiologiques posés sur la grille (MLSS, CP/CS, FatMax, VMA…), avec leur zone et leur source. */
   landmarks?: ReportZoneLandmark[];
+  /** Grille ancrée : seuil critique (W vélo, km/h course). */
+  critical?: number;
+  /** Les 5 zones Garmin à recopier dans la montre (mêmes chiffres que le tableau de bord). */
+  garmin?: import('@/lib/zones/garminZones').GarminZone[];
 }
 
 export interface ReportZoneLandmark {

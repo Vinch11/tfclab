@@ -7,6 +7,7 @@ import { visualChapter } from '../reportKit/visualProfile';
 import { swimFigure } from '../reportKit/swimFigure';
 import { fmt } from '../coachingCompass/factorStates';
 import { metricSourceLabel } from '../coachingCompass/presentation';
+import { garminBoxHTML } from '../reportKit/garminBox';
 import type { AthleteProfileReportInput } from './types';
 
 const guide: Record<string, string> = {
@@ -78,6 +79,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
       ${sets.map(z => `<p class="chapter-detail">${esc(z.summary ?? (z.source === 'derived' ? 'Zones calculées à partir de ton bilan.' : 'Grille de zones provisoire, à confirmer par un test.'))}</p>`).join('')}
       </div></div>
       ${sportDiagramHTML({sport: sp, athlete: true, landmarks, comparisons: energy, tte: tte.map(r => ({...r, key:'tte', unit:'min'})), zones: sets.flatMap(z => z.zones), durability: d.durabilityDataBySport?.[sp]})}
+      ${sets.map(z => garminBoxHTML(z.garmin, sp, true)).join('')}
       ${refs.length ? `<dl class="edition-meta">${refs.map(r => `<div><dt>${esc(r.label)}</dt><dd>${fmt(r.value!)} ${esc(r.unit)}</dd><small>${esc(metricSourceLabel(r.source))}</small></div>`).join('')}</dl>` : ''}`);
   }).join('');
   const swim = d.swimming ? chapter('reperes-swim', 'Tes repères en natation', swimFigure(d.swimming.css)) : '';

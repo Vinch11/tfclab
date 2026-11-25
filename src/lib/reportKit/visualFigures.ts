@@ -12,7 +12,9 @@ export const pace = (seconds: number) => {
 export const chartFigure = (title: string, diagram: string, reading: string, source: string, referenceHTML = '') =>
   `<figure class="lab-figure"><figcaption><h3>${esc(title)}</h3><small>${esc(source)}</small></figcaption>${diagram}<p class="figure-reading">${esc(reading)}</p>${referenceHTML ? `<small>${referenceHTML}</small>` : ''}</figure>`;
 
-export function rangeGauge(row: FactorRow, source?: string, athlete = false): string {
+/** `opts.display` : affichage d'une valeur (ex. allure) ; `opts.sentence` : phrase pédagogique sous le cadran. */
+export function rangeGauge(row: FactorRow, source?: string, athlete = false, opts: { display?: (v: number) => string; sentence?: string } = {}): string {
+  const show = opts.display ?? ((v: number) => fmt(v) + ' ' + row.unit);
   if (!positive(row.value) || !row.zone || !positive(row.zone.high) || !positive(row.zone.low)) return '';
   const { low, high } = row.zone;
   const top = Math.max(row.value, high) * 1.16;
@@ -30,7 +32,7 @@ export function rangeGauge(row: FactorRow, source?: string, athlete = false): st
       ? `<path d="M ${xy(low, 58)} L ${xy(low, 82)}" stroke="${teal}" stroke-width="4"/>`
       : `<path d="${arc(low, high, 71)}" fill="none" stroke="${teal}" stroke-width="12"/>`;
   const [x, y] = point(row.value, 71);
-  const target = (low === high ? fmt(low) : fmt(low) + '–' + fmt(high)) + ' ' + row.unit;
+  const target = opts.display ? (low === high ? show(low) : show(low) + ' – ' + show(high)) : (low === high ? fmt(low) : fmt(low) + '–' + fmt(high)) + ' ' + row.unit;
   const level = athlete ? 'Repère de ton objectif' : {
     measured: 'Référence publiée',
     derived: 'Référence dérivée',
@@ -38,14 +40,19 @@ export function rangeGauge(row: FactorRow, source?: string, athlete = false): st
     coaching: 'Repère interne TFCL',
   }[row.tier];
   return `<figure class="lab-gauge"><figcaption>${esc(row.label)}</figcaption>
-    <svg viewBox="0 0 190 103" role="img" aria-label="${esc(row.label)} · ${fmt(row.value)} ${esc(row.unit)} · repère ${esc(target)}">
+    <svg viewBox="0 0 190 103" role="img" aria-label="${esc(row.label)} · ${esc(show(row.value))} · repère ${esc(target)}">
     <path d="${arc(0, top, 71)}" stroke="#dce7f0" stroke-width="12" fill="none" stroke-linecap="round"/>${band}
     ${Array.from({ length: 9 }, (_, i) => `<path d="M ${xy((top * i) / 8, 82)} L ${xy((top * i) / 8, 87)}" stroke="#91aabb"/>`).join('')}
     <path d="M 95 90 L ${xy(row.value, 62)}" stroke="${blue}" stroke-width="3"/><circle cx="95" cy="90" r="4" fill="${blue}"/>
     <circle cx="${x}" cy="${y}" r="5" fill="white" stroke="${blue}" stroke-width="3"/>
-    <text x="22" y="101">0</text><text x="171" y="101" text-anchor="end">${fmt(top)}</text></svg>
-    <strong>${fmt(row.value)} <small>${esc(row.unit)}</small></strong>
-    ${source ? `<small>${esc(source)}</small>` : ''}<span><i></i> ${esc(target)}</span><small>${level}</small></figure>`;
+    ${opts.display ? '' : `<text x="22" y="101">0</text><text x="171" y="101" text-anchor="end">${fmt(top)}</text>`}</svg>
+    <strong>${opts.display ? esc(show(row.value)) : `${fmt(row.value)} <small>${esc(row.unit)}</small>`}</strong>
+    ${source ? `<small>${esc(source)}</small>` : ''}<span><i></i> ${esc(target)}</span><small>${level}</small>${opts.sentence ? `<p class="gauge-note">${esc(opts.sentence)}</p>` : ''}</figure>`;
+}
+
+/** Cadran à mesurer : on montre le repère qui manque et le test qui le donne, plutôt que de le cacher. */
+export function pendingGauge(label: string, need: string, sentence?: string): string {
+  return `<figure class="lab-gauge pending-gauge"><figcaption>${esc(label)}</figcaption><strong>À mesurer</strong><small>${esc(need)}</small>${sentence ? `<p class="gauge-note">${esc(sentence)}</p>` : ''}</figure>`;
 }
 
 export type Dot = { x: number; y: number | null; status?: string };

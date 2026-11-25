@@ -2,6 +2,7 @@ import type { TFCLCoachingCompassResult } from './types';
 import { metricSourceLabel } from './presentation';
 import { compassReportRows, compassSportReportRows, compassTteReportRows } from './reportPresentation';
 import { PEDAGOGY_CSS, sportDiagramHTML } from '../reportKit/pedagogy';
+import { garminBoxHTML } from '../reportKit/garminBox';
 import type { ReportZoneSet } from '../athleteProfileReport/types';
 import type { StoredDurability } from '../durability/longSessionDurability';
 
@@ -41,7 +42,7 @@ export function buildReportReadingHTML(compass: TFCLCoachingCompassResult, optio
         zones: sets.flatMap(set => set.zones),
         landmarks: sets.flatMap(set => set.landmarks ?? []),
         durability: options.durability?.[sport],
-      }) + (basis.length ? `<h4>Base des zones · ${sport === 'bike' ? 'vélo' : 'course'}</h4>${list(basis.map(a => a.replace(/\.$/, '')))}` : '');
+      }) + (basis.length ? `<h4>Base des zones · ${sport === 'bike' ? 'vélo' : 'course'}</h4>${list(basis.map(a => a.replace(/\.$/, '')))}` : '') + sets.map(set => garminBoxHTML(set.garmin, sport, false)).join('');
     }).join('')}
     ${compass.completeProfileHTML ?? ''}
     <p><b>VO₂max</b> : plafond d’utilisation de l’oxygène. <b>VMA</b> : vitesse maximale aérobie course, dépendante du protocole. <b>FTP / MLSS</b> : repères de seuil liés mais non identiques par définition. <b>VLamax</b> : débit glycolytique maximal estimé ou mesuré selon la source, pas une mesure de force. <b>W′ / D′</b> : réserves ajustées au-dessus de CP / vitesse critique, propres au sport. <b>FatMax</b> : intensité d’oxydation lipidique maximale ; une estimation vélo ne donne pas une allure course.</p>
