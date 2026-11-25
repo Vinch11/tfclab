@@ -45,3 +45,14 @@ describe('bilan de campagne des Days', () => {
     expect(res.activated).toBe(true);
   });
 });
+
+describe("TTE reprise quand un Day change le seuil", () => {
+  it("FTP recalibrée de plus de 5 % : la TTE reprise sort des calculs", async () => {
+    const { completeDaySnapshot } = await import("../daySnapshot");
+    const base = { id: "b", athlete_id: "a", date: "2026-11-12", source: "manual", ftp: 210, tte_observed_min: 19 } as never;
+    const { payload } = completeDaySnapshot({ athlete_id: "a", date: "2026-11-25", source: "bike_track_day", ftp: 188 } as never, base);
+    const p = payload as Record<string, unknown>;
+    expect(p.tte_observed_min).toBeNull();
+    expect((p.field_sources as Record<string, { value: number; refW: number }>).tte_observed_min_record).toMatchObject({ value: 19, refW: 210 });
+  });
+});

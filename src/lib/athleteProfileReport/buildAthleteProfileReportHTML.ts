@@ -50,7 +50,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     ${flow ? `<div class="note"><b>La priorité retenue pour ton entraînement</b><p>${esc(flow.title)}</p></div>` : ''}`);
   const journey = chapter('preparation', 'Comment on prépare ton objectif', `
     ${preparationTimeline(d.roadmap, [d.objectifLabel, d.nextRace].filter(Boolean).join(' · '), true)}
-    ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
+    ${decision ? `<p class="edition-deck">Le premier chantier proposé est « ${esc(decision.block)} »${decision.durationWeeks > 0 && !d.roadmap ? `, sur ${decision.durationWeeks} semaines` : ''}.</p>
       ${decision.athleteMessage ? `<p>${rich(decision.athleteMessage)}</p>` : ''}
       ${decision.workouts.length ? `<h3>À quoi cela ressemble à l’entraînement</h3><ul>${decision.workouts.slice(0, 3).map(w => `<li>${rich(w)}</li>`).join('')}</ul>` : ''}` :
       `<div class="note next-step"><b>Prochaine étape avec ton coach</b><p>${esc(athleteNextStep(flow?.decision))}</p></div>`}
@@ -91,7 +91,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   const portrait = visualChapter('empreinte','Ton profil en un regard','L’aiguille bleue représente ton bilan. Le vert situe le repère utilisé pour ton objectif. Chaque cadran se lit dans sa propre unité.', illustrations?.portrait ?? '');
   const terrain = visualChapter('terrain','De tes tests à tes séances','Ces repères viennent de tes efforts enregistrés. Ils donnent un sens concret aux sensations et aux chiffres de ta montre.', illustrations?.terrain ?? '');
   const fuels = visualChapter('carburants','Ce qui alimente ton effort à vélo','Voici comment ton profil influence le recours aux graisses et aux glucides selon les watts que tu développes.', illustrations?.metabolism ?? '');
-  const evolution = visualChapter('evolution','Ce qui a changé depuis tes derniers bilans','Les points datés permettent de retrouver ton parcours et de choisir ce que tu voudras vérifier la prochaine fois.', illustrations?.evolution ?? '');
+  // Règle coach (13/11/2026) : aucun historique ni progression dans le rapport athlète ; l'historique reste dans l'édition coach.
   const nav:[string,string][]=[['portrait','Ton profil']];
   if (portrait) nav.push(['empreinte','Tes jauges']);
   if (terrain) nav.push(['terrain','Tes tests']);
@@ -99,8 +99,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
   nav.push(['preparation','Ta préparation']);
   if (swim) nav.push(['reperes-swim','Natation']);
   nav.push(...sports.map((sp):[string,string]=>['reperes-'+sp,sportName[sp]]));
-  if (evolution) nav.push(['evolution','Tes progrès']);
   nav.push(['suivi','Ton prochain bilan']);
   return reportDocument({title: `Rapport athlète — ${d.athleteName}`, extraCSS: ATHLETE_VISUAL_CSS + PEDAGOGY_CSS + editionCSS,
-    body: `<main class="edition">${cover}${editionNav(nav)}${opening}${portrait}${terrain}${fuels}${journey}${swim}${disciplines}${evolution}<div class="edition-ending">${review}<footer>Two For Coaching Lab · ${esc(d.athleteName)} · ${esc(d.generatedAt)}</footer></div></main>`});
+    body: `<main class="edition">${cover}${editionNav(nav)}${opening}${portrait}${terrain}${fuels}${journey}${swim}${disciplines}<div class="edition-ending">${review}<footer>Two For Coaching Lab · ${esc(d.athleteName)} · ${esc(d.generatedAt)}</footer></div></main>`});
 }

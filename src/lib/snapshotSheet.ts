@@ -5,7 +5,7 @@
 import { criticalEnvelope, parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { readThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
-import { readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+import { readTte, readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
 
 export type SheetBlockId = "ctx" | "bike" | "run" | "swim" | "durability" | "labo" | "notes";
 export interface SheetRow { label: string; value: string; source?: string }
@@ -47,6 +47,17 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
   const ftpOrigin = readThresholdOrigin(s.field_sources, "ftp");
   const paceOrigin = readThresholdOrigin(s.field_sources, "pace_threshold_sec_per_km");
   const vo2 = readVo2max(s);
+  const tte = readTte(s);
+  const tteRow = (sport: "bike" | "run"): SheetRow | null => {
+    const t = tte[sport];
+    if (t.value == null) return null;
+    const ref = t.ref == null ? "" : sport === "bike" ? ` à ${Math.round(t.ref)} W` : ` à ${mmss(t.ref)}/km`;
+    if (t.stale) {
+      const thr = t.threshold == null ? "" : sport === "bike" ? ` (FTP ${t.threshold} W)` : ` (seuil ${mmss(t.threshold)}/km)`;
+      return { label: "Durée tenue au seuil", value: `${t.value} min${ref}${thr}`, source: "autre seuil, hors calculs : à refaire" };
+    }
+    return { label: "Durée tenue au seuil", value: `${t.value} min${ref}` };
+  };
   const blocks: SheetBlock[] = [];
   const push = (id: SheetBlockId, title: string, rows: SheetRow[], summary: string[]) =>
     blocks.push({ id, title, rows, summary: summary.filter(Boolean).join(" · ") || "À compléter" });
@@ -67,7 +78,7 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     ok(s.p30s_w) ? { label: "30 s", value: `${s.p30s_w} W` } : null,
     ok(s.p60s_w) ? { label: "60 s", value: `${s.p60s_w} W` } : null,
     ok(s.map5min_w) ? { label: "Puissance 5 min", value: `${s.map5min_w} W` } : null,
-    ok(s.tte_observed_min) ? { label: "Durée tenue au seuil", value: `${s.tte_observed_min} min` } : null,
+    tteRow("bike"),
   ].filter(Boolean) as SheetRow[], [
     cp ? `CP ${Math.round(cp.critical)} W (${criticalLabel(cp)})` : ok(s.ftp) ? `FTP ${s.ftp} W${ftpOrigin ? ` (${ORIGIN_LABEL[ftpOrigin]})` : ""}` : "",
     ok(s.map5min_w) ? `5 min ${s.map5min_w} W` : "",
@@ -83,7 +94,7 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     ok(s.pace_threshold_sec_per_km) ? { label: "Allure seuil", value: `${mmss(s.pace_threshold_sec_per_km)}/km`, source: paceOrigin ? ORIGIN_LABEL[paceOrigin] : undefined } : null,
     ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h` } : null,
     ok(s.sprint_15s_distance) ? { label: "Sprint 15 s", value: `${fr(s.sprint_15s_distance)} m` } : null,
-    ok(s.tte_observed_min_run) ? { label: "Durée tenue au seuil", value: `${s.tte_observed_min_run} min` } : null,
+    tteRow("run"),
     ok(s.run_pace_ref_sec_per_km) && ok(s.run_hr_ref_bpm)
       ? { label: "FC à allure stable", value: `${s.run_hr_ref_bpm} bpm à ${mmss(s.run_pace_ref_sec_per_km)}/km${typeof s.run_hr_drift_pct === "number" ? ` · dérive ${fr(s.run_hr_drift_pct, 1)} %` : ""}` } : null,
   ].filter(Boolean) as SheetRow[], [

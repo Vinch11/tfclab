@@ -12,6 +12,7 @@ export function metricSourceLabel(source: string): string {
   if (source === "test_terrain" || source === "test") return "🏃 Terrain — à confirmer";
   if (source === "snapshot") return "📋 Bilan — provenance à confirmer";
   if (source === "records") return "📐 Estimation par records";
+  if (source === "coach") return "✍️ Saisie coach";
   if (source === "unknown") return "Données insuffisantes";
   return "📐 Estimation";
 }
@@ -44,7 +45,9 @@ export function buildCompassPresentation(input: CoachingCompassInput, compass: T
     if (sport === 'run' && axis.key === 'vo2max' && !input.vo2max) return { ...axis, value: null, score: 0, source: 'unknown' };
     const qualifier = sport === 'triathlon' && ['vlamax', 'fatmax', 'ftpkg'].includes(axis.key) ? ' vélo' : '';
     if (qualifier && input.sportFocus === 'run') return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, value: null, score: 0, source: 'unknown' };
-    return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, source: axis.key === "vo2max" && !input.vo2max ? "estimation" : source };
+    // VO₂max : la provenance déclarée dans la fiche remplace « Bilan — provenance à confirmer ».
+    const vo2Source = input.vo2maxOrigin === 'lab' ? 'test_labo' : input.vo2maxOrigin === 'estimated' ? 'estimation' : input.vo2maxOrigin === 'entered' ? 'coach' : source;
+    return { ...axis, label: axis.label + qualifier, shortLabel: axis.shortLabel + qualifier, source: axis.key === "vo2max" ? (!input.vo2max ? "estimation" : vo2Source) : source };
   });
   // Preserve the engine's ranked categories and their original metric order.
   const ranked = input.limiterResult?.categoryRanking?.flatMap(c => c.metrics) ?? input.limiterResult?.gapAnalysis ?? [];

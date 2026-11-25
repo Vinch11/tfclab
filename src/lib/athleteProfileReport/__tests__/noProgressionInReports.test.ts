@@ -79,3 +79,11 @@ describe('athlete profile report has no progression', () => {
     expect(html).toContain('Footing long');
   });
 });
+
+describe('athlete report never shows the bilans history', () => {
+  it('drops the evolution chapter even when history figures exist', () => {
+    const withHistory = buildAthleteProfileReportHTML({ ...base, visuals: { portrait: '', terrain: '', metabolism: '', evolution: '<figure>HISTORIQUE-FTP</figure>' } as unknown as AthleteProfileReportInput['visuals'] });
+    expect(withHistory).not.toContain('HISTORIQUE-FTP');
+    expect(withHistory).not.toContain('Tes progrès');
+  });
+});

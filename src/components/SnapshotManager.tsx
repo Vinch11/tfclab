@@ -36,7 +36,7 @@ import {
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
-import { checkSnapshotForm, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+import { checkSnapshotForm, readTte, writeTte, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
 import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { NolioFillAssistant } from "@/components/NolioFillAssistant";
 import { SnapshotFillMenu } from "@/components/SnapshotFillMenu";
@@ -94,6 +94,8 @@ const INITIAL_FORM_STATE = {
   tss_7d: "",
   tte_observed_min: "",
   tte_observed_min_run: "",
+  tte_ref_w: "",
+  tte_ref_pace: "",
   critical_metrics: "",
   // ⚡ État de fatigue au moment du snapshot
   fatigue_state: "ok",
@@ -215,8 +217,16 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       // PRO TTE
       tte_mode: (s.tte_mode as string) || "LOAD",
       tss_7d: s.tss_7d != null ? String(s.tss_7d) : "",
-      tte_observed_min: s.tte_observed_min != null ? String(s.tte_observed_min) : "",
-      tte_observed_min_run: (s as any).tte_observed_min_run != null ? String((s as any).tte_observed_min_run) : "",
+      ...(() => {
+        // TTE en calcul ou gardée à part (tenue à un autre seuil), avec l'intensité réellement tenue.
+        const t = readTte(s as unknown as Parameters<typeof readTte>[0]);
+        return {
+          tte_observed_min: t.bike.value != null ? String(t.bike.value) : "",
+          tte_observed_min_run: t.run.value != null ? String(t.run.value) : "",
+          tte_ref_w: t.bike.ref != null ? String(t.bike.ref) : "",
+          tte_ref_pace: t.run.ref != null ? t.formatPace(t.run.ref) : "",
+        };
+      })(),
       critical_metrics: (s as any).critical_metrics ? JSON.stringify((s as any).critical_metrics) : "",
 
       // ⚡ État de fatigue
@@ -275,6 +285,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
     );
     const vo2max = vo2.vo2max;
+    const tte = writeTte(vo2.field_sources, formData as unknown as Record<string, string>, formData.date);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
     // Calculer l'économie CAP
@@ -328,10 +339,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // ✅ PRO TTE
       // TTE estimé par la charge (module A) retiré de la saisie : un TTE observé passe en module B.
-      tte_mode: parseNum(formData.tte_observed_min) ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
+      tte_mode: tte.tte_observed_min ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
-      tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
-      ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
+      tte_observed_min: tte.tte_observed_min,
+      ...({ tte_observed_min_run: tte.tte_observed_min_run } as Record<string, unknown>),
       ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = criticalEnvelope(raw); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
@@ -344,7 +355,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
-      field_sources: vo2.field_sources as DbSnapshot["field_sources"],
+      field_sources: tte.field_sources as DbSnapshot["field_sources"],
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,
@@ -382,6 +393,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
     );
     const vo2max = vo2.vo2max;
+    const tte = writeTte(vo2.field_sources, formData as unknown as Record<string, string>, formData.date);
     const { profile, score } = deriveMetabolicProfile(vlamax, vo2max);
 
     // Calculer l'économie CAP
@@ -431,10 +443,10 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // ✅ PRO TTE
       // TTE estimé par la charge (module A) retiré de la saisie : un TTE observé passe en module B.
-      tte_mode: parseNum(formData.tte_observed_min) ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
+      tte_mode: tte.tte_observed_min ? "OBSERVED" : ((formData.tte_mode as string) || "LOAD"),
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
-      tte_observed_min: parseNum(formData.tte_observed_min) ? Math.round(parseNum(formData.tte_observed_min)!) : null,
-      ...({ tte_observed_min_run: parseNum(formData.tte_observed_min_run) ? Math.round(parseNum(formData.tte_observed_min_run)!) : null } as Record<string, unknown>),
+      tte_observed_min: tte.tte_observed_min,
+      ...({ tte_observed_min_run: tte.tte_observed_min_run } as Record<string, unknown>),
       ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = criticalEnvelope(raw); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
@@ -447,7 +459,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
       // 🏃 VLamax CAP (données pour estimation)
       pace_threshold_sec_per_km: paceThresholdSec ? Math.round(paceThresholdSec) : null,
-      field_sources: vo2.field_sources as DbSnapshot["field_sources"],
+      field_sources: tte.field_sources as DbSnapshot["field_sources"],
       sprint_15s_distance: parseNum(formData.sprint_15s),
       running_power_max: parseNum(formData.run_power_max) ? Math.round(parseNum(formData.run_power_max)!) : null,
       running_power_threshold: parseNum(formData.run_power_threshold) ? Math.round(parseNum(formData.run_power_threshold)!) : null,

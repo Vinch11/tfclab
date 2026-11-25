@@ -236,6 +236,7 @@ import {
   normalizeAmbitionLevel,
 } from "@/types/ambitionLevel";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
+import { readVo2max } from "@/lib/snapshotTestDays";
 
 type LabProjection = import("@/lib/coachingCompass/types").CoachingCompassInput;
 const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => React.ReactElement } = {}) => {
@@ -961,6 +962,7 @@ const Index = ({ renderLab }: { renderLab?: (input: LabProjection | null) => Rea
       ftp: effectiveRefs.ftp,
       poids: effectiveRefs.weightKg,
       vo2max: effectiveCloudSnapshot.vo2max ?? currentAthlete.vo2max ?? null,
+      vo2maxOrigin: effectiveCloudSnapshot.vo2max ? readVo2max(effectiveCloudSnapshot).origin : null,
       tss7d: effectiveCloudSnapshot.tss_7d ?? null,
       snapshotDate: effectiveCloudSnapshot.date ?? null,
       snapshotUpdatedAt: effectiveCloudSnapshot.updated_at ?? null,
