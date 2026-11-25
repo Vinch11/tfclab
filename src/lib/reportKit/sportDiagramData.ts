@@ -96,19 +96,21 @@ function zoneRows(table: TargetTable, sport: Sport, grid: AnchoredGrid | null = 
     const first = i === 0, last = i === ids.length - 1;
     let absolute: string, pctRef: string, refLabel: string;
     if (sport === 'bike') {
-      const ftp = table.ftpW!;
-      const pct = (w: number) => Math.round(w / ftp * 100);
+      // Grille ancrée : pourcentages de la CP (la base annoncée des zones), sinon de la FTP.
+      const ref = grid ? grid.critical : table.ftpW!;
+      const pct = (w: number) => Math.round(w / ref * 100);
       absolute = first ? `< ${b} W` : last ? `> ${a} W` : `${a}–${b} W`;
       pctRef = first ? `< ${pct(b)} %` : last ? `> ${pct(a)} %` : `${pct(a)}–${pct(b)} %`;
-      refLabel = '% FTP';
+      refLabel = grid ? '% CP' : '% FTP';
     } else {
       // [rapide, lent] en s/km.
-      const vma = table.vmaKmh;
+      // Grille ancrée : pourcentages de la vitesse critique (km/h), sinon de la VMA.
+      const vma = grid ? grid.critical : table.vmaKmh;
       const pct = (sec: number) => vma ? Math.round(3600 / sec / vma * 100) : null;
       absolute = first ? `plus lent que ${pace(a)}/km` : last ? `plus rapide que ${pace(b)}/km` : `${pace(a)}–${pace(b)}/km`;
       const lo = pct(b), hi = pct(a);
       pctRef = lo == null || hi == null ? '' : first ? `< ${hi} %` : last ? `> ${lo} %` : `${lo}–${hi} %`;
-      refLabel = '% VMA';
+      refLabel = grid ? '% CS' : '% VMA';
     }
     // Grille ancrée : FC propre au sport (un triathlète n'a pas la même FC à vélo et en course).
     const hr = (grid ? grid.zones.find(z => z.id === id)?.hr ?? null : null) ?? table.fcZonesBpm[id];

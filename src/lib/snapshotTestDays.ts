@@ -10,7 +10,8 @@ export type TestDayFieldKey =
   | "pmax_5s" | "p30s_w" | "p60s_w" | "sprint_15s"
   | "map5min_w" | "vma"
   | "ftp" | "tte_observed_min" | "pace_threshold" | "tte_observed_min_run" | "css" | "vo2max"
-  | "run_pace_ref" | "run_hr_ref" | "run_duration_min" | "run_hr_drift_pct";
+  | "run_pace_ref" | "run_hr_ref" | "run_duration_min" | "run_hr_drift_pct"
+  | "tte_ref_w" | "tte_ref_pace";
 
 export interface TestDayField { key: TestDayFieldKey; label: string; unit: string; placeholder: string; type?: "number" | "date" | "text" }
 export interface TestDay { id: string; title: string; hint: string; fields: TestDayField[] }
@@ -33,12 +34,14 @@ export const TEST_DAYS: TestDay[] = [
     { key: "map5min_w", label: "Puissance 5 min", unit: "W", placeholder: "320" },
     { key: "ftp", label: "FTP / seuil", unit: "W", placeholder: "260" },
     { key: "tte_observed_min", label: "Durée tenue au seuil", unit: "min", placeholder: "45" },
+    { key: "tte_ref_w", label: "Puissance tenue pendant cette durée", unit: "W", placeholder: "= FTP" },
   ] },
   { id: "run", title: "Course", hint: "Track Day : sprint, VMA et seuil. Les 4 dernières cases (footing à allure stable) sont facultatives. La vitesse critique se valide dans « Repères critiques ».", fields: [
     { key: "sprint_15s", label: "Distance en 15 s", unit: "m", placeholder: "95" },
     { key: "vma", label: "VMA", unit: "km/h", placeholder: "17" },
     { key: "pace_threshold", label: "Allure seuil", unit: "min/km", placeholder: "4:10", type: "text" },
     { key: "tte_observed_min_run", label: "Durée tenue au seuil", unit: "min", placeholder: "40" },
+    { key: "tte_ref_pace", label: "Allure tenue pendant cette durée", unit: "min/km", placeholder: "= seuil", type: "text" },
     { key: "run_pace_ref", label: "Footing : allure stable", unit: "min/km", placeholder: "5:30", type: "text" },
     { key: "run_hr_ref", label: "Footing : FC moyenne", unit: "bpm", placeholder: "145" },
     { key: "run_duration_min", label: "Footing : durée", unit: "min", placeholder: "60" },
@@ -107,6 +110,7 @@ const RANGES: Partial<Record<TestDayFieldKey, [number, number]>> = {
   sprint_15s: [30, 200], map5min_w: [80, 700], vma: [8, 30], ftp: [50, 600],
   tte_observed_min: [1, 120], tte_observed_min_run: [1, 120], css: [50, 300],
   fc_repos: [25, 110], vo2max: [20, 95],
+  tte_ref_w: [50, 600],
   run_hr_ref: [60, 220], run_duration_min: [10, 300], run_hr_drift_pct: [-30, 50],
 };
 const LABEL = Object.fromEntries(TEST_DAYS.flatMap((d) => d.fields.map((f) => [f.key, f.label])));
@@ -141,6 +145,13 @@ export function checkSnapshotForm(f: Form): SnapshotCheck {
   }
   const fcRest = num(f.fc_repos), fcMax = num(f.fc_max);
   if (fcRest && fcMax && !Number.isNaN(fcRest) && !Number.isNaN(fcMax) && fcRest >= fcMax) errors.push("FC repos supérieure ou égale à la FC max.");
+  if (Number.isNaN(paceToSec(f.tte_ref_pace))) errors.push("Course — allure tenue pendant la durée au seuil : format attendu min:ss.");
+  for (const sport of ["bike", "run"] as const) {
+    const t = tteFromForm(f, sport);
+    if (t.stale) warnings.push(sport === "bike"
+      ? `Durée au seuil vélo tenue à ${t.refLabel} alors que la FTP est ${t.thresholdLabel} : elle est gardée pour information mais n'entre pas dans les calculs. À refaire au bon seuil.`
+      : `Durée au seuil course tenue à ${t.refLabel} alors que l'allure seuil est ${t.thresholdLabel} : gardée pour information, hors calculs. À refaire au bon seuil.`);
+  }
   const tteBike = num(f.tte_observed_min), tteRun = num(f.tte_observed_min_run);
   if (tteBike && !num(f.ftp)) warnings.push("Durée tenue au seuil vélo sans FTP : à quelle intensité a-t-elle été tenue ?");
   if (tteRun && !pace) warnings.push("Durée tenue au seuil course sans allure seuil.");
@@ -196,4 +207,58 @@ export function snapshotProtocolQuality(f: Form): number {
   const imported = num(f.protocol_quality);
   const base = imported != null && !Number.isNaN(imported) && imported >= 1 && imported <= 5 ? Math.round(imported) : 3;
   return measured ? Math.max(4, base) : base;
+}
+
+
+/**
+ * Durée tenue au seuil (TTE) et intensité réellement tenue.
+ * Une TTE n'a de sens qu'au seuil du bilan : tenue à plus de 5 % d'écart (FTP mal calibrée,
+ * allure seuil changée), elle est gardée pour information dans field_sources mais retirée des calculs.
+ */
+export const TTE_THRESHOLD_TOLERANCE = 0.05;
+const mmss = (sec: number) => { const t = Math.round(sec); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+
+export function tteFromForm(f: Form, sport: "bike" | "run"): { minutes: number | null; ref: number | null; threshold: number | null; stale: boolean; refLabel: string; thresholdLabel: string } {
+  const minutes = num(sport === "bike" ? f.tte_observed_min : f.tte_observed_min_run);
+  const ref = sport === "bike" ? num(f.tte_ref_w) : paceToSec(f.tte_ref_pace);
+  const threshold = sport === "bike" ? num(f.ftp) : paceToSec(f.pace_threshold);
+  const valid = (v: number | null) => v != null && !Number.isNaN(v) && v > 0;
+  const stale = valid(minutes) && valid(ref) && valid(threshold) && Math.abs(ref! - threshold!) / threshold! > TTE_THRESHOLD_TOLERANCE;
+  const label = (v: number | null) => !valid(v) ? "" : sport === "bike" ? `${Math.round(v!)} W` : `${mmss(v!)}/km`;
+  return { minutes: valid(minutes) ? minutes : null, ref: valid(ref) ? ref : null, threshold: valid(threshold) ? threshold : null, stale, refLabel: label(ref), thresholdLabel: label(threshold) };
+}
+
+const TTE_KEYS = { bike: { column: "tte_observed_min", record: "tte_observed_min_record" }, run: { column: "tte_observed_min_run", record: "tte_observed_min_run_record" } } as const;
+
+/** Colonnes TTE + field_sources à enregistrer. TTE tenue à un autre seuil → colonne vide, valeur gardée à part. */
+export function writeTte(fieldSources: unknown, f: Form, date: string): { tte_observed_min: number | null; tte_observed_min_run: number | null; field_sources: Record<string, unknown> } {
+  const next = { ...obj(fieldSources) };
+  const out = { tte_observed_min: null as number | null, tte_observed_min_run: null as number | null };
+  for (const sport of ["bike", "run"] as const) {
+    const t = tteFromForm(f, sport);
+    const { column, record } = TTE_KEYS[sport];
+    delete next[column]; delete next[record];
+    if (t.minutes == null) continue;
+    const meta = { ...(t.ref != null ? (sport === "bike" ? { refW: Math.round(t.ref) } : { refPaceSec: Math.round(t.ref) }) : {}) };
+    if (t.stale) next[record] = { value: Math.round(t.minutes), date, ...meta, threshold: Math.round(t.threshold!), note: "Tenue à un autre seuil : hors calculs, à refaire." };
+    else {
+      out[column] = Math.round(t.minutes);
+      if (Object.keys(meta).length) next[column] = meta;
+    }
+  }
+  return { ...out, field_sources: next };
+}
+
+/** Valeurs de formulaire depuis un bilan (TTE en calcul ou gardée à part). */
+export function readTte(snapshot: { tte_observed_min?: number | null; tte_observed_min_run?: number | null; field_sources?: unknown }) {
+  const fs = obj(snapshot.field_sources);
+  const pick = (sport: "bike" | "run") => {
+    const { column, record } = TTE_KEYS[sport];
+    const stored = sport === "bike" ? snapshot.tte_observed_min : snapshot.tte_observed_min_run;
+    const meta = obj(fs[column]), rec = obj(fs[record]);
+    const value = typeof stored === "number" && stored > 0 ? stored : typeof rec.value === "number" ? rec.value : null;
+    const ref = sport === "bike" ? (meta.refW ?? rec.refW) : (meta.refPaceSec ?? rec.refPaceSec);
+    return { value, ref: typeof ref === "number" ? ref : null, stale: !(typeof stored === "number" && stored > 0) && typeof rec.value === "number", threshold: typeof rec.threshold === "number" ? rec.threshold : null };
+  };
+  return { bike: pick("bike"), run: pick("run"), formatPace: mmss };
 }

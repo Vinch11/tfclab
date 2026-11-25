@@ -10,8 +10,8 @@ export type FillSource = "Days" | "Nolio" | "Labo";
 /** Valeurs mesurées reprises d'un bilan ; la provenance suit sa valeur. */
 export const FILLABLE_FIELDS = [
   "fc_max", "fc_repos", "weight_kg", "fat_pct", "sport_main",
-  "pmax_5s", "p30s_w", "p60s_w", "map5min_w", "ftp", "tte_observed_min",
-  "sprint_15s", "vma", "pace_threshold", "tte_observed_min_run",
+  "pmax_5s", "p30s_w", "p60s_w", "map5min_w", "ftp", "tte_observed_min", "tte_ref_w",
+  "sprint_15s", "vma", "pace_threshold", "tte_observed_min_run", "tte_ref_pace",
   "run_pace_ref", "run_hr_ref", "run_duration_min", "run_hr_drift_pct",
   "css", "vo2max", "vlamax", "vlamax_run",
   "run_power_max", "run_power_threshold", "run_power_1s", "run_power_5s", "run_power_30s", "run_power_60s", "run_power_5min",

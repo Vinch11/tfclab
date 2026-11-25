@@ -63,6 +63,24 @@ export function completeDaySnapshot(day: DayPayload, base: Snap | null): { paylo
   for (const key of Object.keys(baseSources)) if (present((day as Record<string, unknown>)[key])) delete baseSources[key];
   const sources = { ...baseSources, ...object(day.field_sources) };
   if (Object.keys(sources).length) payload.field_sources = sources;
+  // Une TTE reprise n'a de sens qu'au seuil auquel elle a été tenue : si le Day change ce seuil
+  // de plus de 5 % (FTP recalibrée, nouvelle allure seuil), elle sort des calculs et reste gardée à part.
+  const sourcesOut = object(payload.field_sources);
+  for (const [column, threshold, refKey, record] of [
+    ['tte_observed_min', 'ftp', 'refW', 'tte_observed_min_record'],
+    ['tte_observed_min_run', 'pace_threshold_sec_per_km', 'refPaceSec', 'tte_observed_min_run_record'],
+  ] as const) {
+    if (!carried.includes(column) || !present((day as Record<string, unknown>)[threshold])) continue;
+    const meta = object(sourcesOut[column]);
+    const ref = typeof meta[refKey] === 'number' ? meta[refKey] as number : (base as Record<string, unknown>)[threshold] as number | null;
+    const now = (day as Record<string, unknown>)[threshold] as number;
+    if (typeof ref !== 'number' || !(ref > 0) || !(now > 0) || Math.abs(ref - now) / now <= 0.05) continue;
+    sourcesOut[record] = { value: payload[column], date: base.date, [refKey]: Math.round(ref), threshold: Math.round(now), note: 'Tenue à un autre seuil : hors calculs, à refaire.' };
+    delete sourcesOut[column];
+    payload[column] = null;
+    carried.splice(carried.indexOf(column), 1);
+  }
+  if (Object.keys(sourcesOut).length) payload.field_sources = sourcesOut;
   if (!present(payload.sport_main) && present(base.sport_main)) payload.sport_main = base.sport_main;
   if (carried.length) {
     const note = `Complète le bilan du ${base.date} (${base.source}) : ${carried.length} valeur(s) reprise(s).`;

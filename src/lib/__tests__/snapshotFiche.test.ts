@@ -52,3 +52,18 @@ describe("champs calculés", () => {
     expect(snapshotProtocolQuality({ protocol_quality: "5", critical_metrics: confirmedCp })).toBe(5);
   });
 });
+
+describe("TTE et seuil auquel elle a été tenue", () => {
+  it("tenue à plus de 5 % de la FTP : gardée à part, hors calculs", async () => {
+    const { writeTte, readTte } = await import("@/lib/snapshotTestDays");
+    const out = writeTte({}, { ftp: "188", tte_observed_min: "19", tte_ref_w: "205" }, "2026-11-25");
+    expect(out.tte_observed_min).toBeNull();
+    expect(readTte({ tte_observed_min: null, field_sources: out.field_sources }).bike).toMatchObject({ value: 19, ref: 205, stale: true, threshold: 188 });
+    expect(checkSnapshotForm({ date: "2026-11-25", ftp: "188", tte_observed_min: "19", tte_ref_w: "205" }).warnings[0]).toContain("À refaire au bon seuil");
+  });
+  it("tenue au seuil (± 5 %) ou intensité non précisée : utilisée normalement", async () => {
+    const { writeTte } = await import("@/lib/snapshotTestDays");
+    expect(writeTte({}, { ftp: "188", tte_observed_min: "19", tte_ref_w: "190" }, "2026-11-25").tte_observed_min).toBe(19);
+    expect(writeTte({}, { ftp: "188", tte_observed_min: "19" }, "2026-11-25").tte_observed_min).toBe(19);
+  });
+});

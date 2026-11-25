@@ -1,4 +1,5 @@
 import { fieldHoldBounds } from "@/lib/diagnostic/fieldHold";
+import { readVo2max } from "@/lib/snapshotTestDays";
 import { computePotentielEffectifRich, type PotentielPhysiologiqueEffectif, getWeightsBySport } from "@/lib/potentielPhysiologiqueEffectif";
 import { mapSnapshotToV2 } from "@/lib/mapSnapshotToV2";
 import { resolveCompassSportFocus } from "@/lib/sportMainDeduction";
@@ -1965,6 +1966,7 @@ function buildExportPayload(
     ftp: effectiveRefs.ftp ?? null,
     poids: effectiveRefs.weightKg ?? null,
     vo2max: effectiveRefs.vo2max ?? null,
+    vo2maxOrigin: effectiveSnapshot?.vo2max ? readVo2max(effectiveSnapshot).origin : null,
     tss7d: effectiveSnapshot?.tss_7d ?? null,
     snapshotDate: effectiveSnapshot?.date ?? null,
     snapshotUpdatedAt: effectiveSnapshot?.updated_at ?? null,

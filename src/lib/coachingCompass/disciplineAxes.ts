@@ -13,7 +13,7 @@ export function buildDisciplineAxes(input: CoachingCompassInput, axes: RadarAxis
     economy: input.runEconomyScore, drift: input.hrDriftPct,
   });
   const run = runningDiagnostic.axes;
-  const bike = axes.filter(a => ['vo2max', 'vlamax', 'ftpkg', 'fatmax'].includes(a.key)).map(a => ({ ...a, shortLabel: a.shortLabel.replace(' vélo', ''), ...(a.key === 'vo2max' ? { label: 'VO₂max du bilan · modalité à confirmer', shortLabel: 'VO₂ bilan' } : {}) }));
+  const bike = axes.filter(a => ['vo2max', 'vlamax', 'ftpkg', 'fatmax'].includes(a.key)).map(a => ({ ...a, shortLabel: a.shortLabel.replace(' vélo', ''), ...(a.key === 'vo2max' ? { label: input.vo2maxOrigin ? 'VO₂max du bilan' : 'VO₂max du bilan · modalité à confirmer', shortLabel: 'VO₂ bilan' } : {}) }));
   const tte = input.sportFocus === 'run' ? null : input.tteEffectif;
   const target = getTTETargetByAmbition(input.objectif, ambition, input.athleteAge);
   const value = tte && Number.isFinite(tte.tte_min) && tte.tte_min > 0 ? tte.tte_min : null;

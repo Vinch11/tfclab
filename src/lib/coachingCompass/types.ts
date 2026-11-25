@@ -188,6 +188,8 @@ export interface CoachingCompassInput {
   ftp: number | null;
   poids: number | null;
   vo2max: number | null;
+  /** Provenance de la VO₂max du bilan (field_sources) : lab | estimated | entered ; null = non renseignée. */
+  vo2maxOrigin?: string | null;
   tss7d: number | null;
   snapshotDate: string | null;
   snapshotUpdatedAt: string | null;

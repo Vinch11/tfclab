@@ -1383,7 +1383,7 @@ function generateAthleteMessage(
     motor: "Ton plafond aérobie peut encore progresser. On va travailler ton 'moteur' avec des séances d'intensité ciblées.",
     glycolytic: "Ton système glycolytique consomme trop vite ton carburant. On va l'optimiser avec du travail d'endurance spécifique.",
     metabolic: "Ton efficacité énergétique peut progresser. Focus sur l'utilisation des lipides et la tolérance glucides.",
-    durability: "Ta capacité à tenir l'effort dans la durée est insuffisante. On va renforcer ton TTE avec du volume structuré et du travail au seuil.",
+    durability: "Tenir l'effort plus longtemps est ta plus grande marge de progrès. On va l'allonger avec des sorties longues régulières et des blocs au seuil de plus en plus longs.",
     neuromuscular: "Tes muscles peuvent gagner en force et en économie. Un travail neuromusculaire ciblé va t'aider.",
     availability: "Ta récupération est prioritaire. On adapte le plan pour te permettre de régénérer avant de charger.",
   };
@@ -1394,9 +1394,7 @@ function generateAthleteMessage(
     message += " On évite les sprints pour l'instant — ils iraient à l'encontre de ton objectif.";
   }
   
-  if (levers.length > 0) {
-    message += ` Levier principal : ${levers[0].label}.`;
-  }
+  // Le levier (« Volume Z2 / Endurance »…) est un vocabulaire coach : il reste dans le plan, pas dans le message athlète.
   
   return message;
 }
