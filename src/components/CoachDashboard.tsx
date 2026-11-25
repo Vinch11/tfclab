@@ -57,7 +57,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
   const [search, setSearch] = useSearchParams();
   const express = snapshot?.source === "finisher-express";
   const panel = search.get("vue");
-  const panels = { compass: express ? "Bilan Express" : "Compass", bilans: "Bilans de l’athlète", analyses: "Analyses complémentaires" };
+  const panels = { compass: express ? "Bilan Express" : "Compass", bilans: "Fiche athlète", analyses: "Analyses complémentaires" };
   const activePanel: DashboardPanel | null = panel === "bilans" || (panel === "compass" && !!compass) || (panel === "analyses" && !!snapshot && !express) ? panel : null;
   const heading = useRef<HTMLHeadingElement>(null);
   const previousPanel = useRef(activePanel);
@@ -91,7 +91,7 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
         <progress aria-label="Repères physiologiques renseignés" value={coverage.filled} max={coverage.total}
           className="block h-2 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:bg-primary" />
       </div>}
-      {snapshot && <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary" to={linkTo("bilans")}>Gérer les bilans <ArrowRight className="size-4" /></Link>}
+      {snapshot && <Link className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-primary" to={linkTo("bilans")}>Ouvrir la fiche athlète <ArrowRight className="size-4" /></Link>}
       <div className="mt-auto w-full border-t pt-1">
         {nextRace && <p className="my-2 text-sm leading-relaxed"><span className="block text-xs text-muted-foreground">Prochaine course · {displayDate(nextRace.date)}</span><strong>{nextRace.name}</strong></p>}
         {onOpenEditions && <button type="button" onClick={onOpenEditions} className={actionClass + " w-full"}><FolderOpen aria-hidden className="size-5 shrink-0 text-primary" /> Rapports coach et athlète {arrow}</button>}
@@ -134,6 +134,16 @@ export function CoachDashboard({ athlete, athletes, onSelectAthlete, ambition, o
             </Select>
           </label>
         </div>
+        {/* Onglets de l'athlète : la fiche (snapshot) toujours à un appui. */}
+        <nav aria-label="Sections de l’athlète" className="grid auto-cols-fr grid-flow-col gap-1 rounded-lg bg-muted/50 p-1">
+          {([[null, "Tableau de bord"], ["bilans", "Fiche athlète"], ...(compass ? [["compass", panels.compass]] : []), ...(snapshot && !express ? [["analyses", "Analyses"]] : [])] as [DashboardPanel | null, string][]).map(([view, label]) => (
+            <Link key={label} to={linkTo(view ?? undefined)} aria-current={activePanel === view ? "page" : undefined}
+              className={"flex min-h-11 min-w-0 items-center justify-center rounded-md px-1 text-center text-xs font-medium transition-all sm:text-sm " +
+                (activePanel === view ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+              {label}
+            </Link>
+          ))}
+        </nav>
       </header>
 
       {activePanel ? <section className="min-w-0 space-y-3">

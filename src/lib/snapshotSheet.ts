@@ -2,7 +2,7 @@
  * Fiche athlète en lecture : un résumé par bloc (Contexte, Vélo, Course, Natation, Durabilité, Labo, Notes),
  * chaque valeur avec sa source quand elle est connue. Aucun calcul de modèle : seulement ce qui est enregistré.
  */
-import { parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
+import { criticalEnvelope, parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { readThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
 import { readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
@@ -38,7 +38,10 @@ const mmss = (sec: number) => { const t = Math.round(sec); return `${Math.floor(
 const dateFr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
 const criticalLabel = (c: StoredCriticalSport) => (c.status === "confirmed" ? "confirmée" : "estimation");
 
-export function buildSnapshotSheet(s: SheetSnapshot): SheetBlock[] {
+/** Durability Day (deux blocs de 10 min) : découplage en %, enregistré comme test et non dans le bilan. */
+export interface SheetDurabilityPair { sport: "bike" | "run"; decouplingPct: number; day: string }
+
+export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?: SheetDurabilityPair[] } = {}): SheetBlock[] {
   const critical = parseStoredCriticalMetrics(s.critical_metrics);
   const durability = parseStoredDurability(s.critical_metrics);
   const ftpOrigin = readThresholdOrigin(s.field_sources, "ftp");
@@ -70,10 +73,13 @@ export function buildSnapshotSheet(s: SheetSnapshot): SheetBlock[] {
     ok(s.map5min_w) ? `5 min ${s.map5min_w} W` : "",
   ]);
 
-  // Course
+  // Course — CS ajustée (repères critiques), sinon CS à deux distances calculée par le Track Day.
   const cs = critical.running;
+  const track = criticalEnvelope(s.critical_metrics).trackDay as { csMs?: unknown; dPrimeM?: unknown } | undefined;
+  const trackCs = !cs && track && ok(track.csMs) ? { ms: track.csMs, d: ok(track.dPrimeM) ? track.dPrimeM : null } : null;
   push("run", "Course", [
-    cs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / cs.critical)}/km · D′ ${Math.round(cs.reserve)} m`, source: criticalLabel(cs) } : null,
+    cs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / cs.critical)}/km · D′ ${Math.round(cs.reserve)} m`, source: criticalLabel(cs) }
+      : trackCs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / trackCs.ms)}/km${trackCs.d ? ` · D′ ${Math.round(trackCs.d)} m` : ""}`, source: "Track Day 1 500 / 3 000 m, à valider" } : null,
     ok(s.pace_threshold_sec_per_km) ? { label: "Allure seuil", value: `${mmss(s.pace_threshold_sec_per_km)}/km`, source: paceOrigin ? ORIGIN_LABEL[paceOrigin] : undefined } : null,
     ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h` } : null,
     ok(s.sprint_15s_distance) ? { label: "Sprint 15 s", value: `${fr(s.sprint_15s_distance)} m` } : null,
@@ -81,7 +87,7 @@ export function buildSnapshotSheet(s: SheetSnapshot): SheetBlock[] {
     ok(s.run_pace_ref_sec_per_km) && ok(s.run_hr_ref_bpm)
       ? { label: "FC à allure stable", value: `${s.run_hr_ref_bpm} bpm à ${mmss(s.run_pace_ref_sec_per_km)}/km${typeof s.run_hr_drift_pct === "number" ? ` · dérive ${fr(s.run_hr_drift_pct, 1)} %` : ""}` } : null,
   ].filter(Boolean) as SheetRow[], [
-    cs ? `CS ${mmss(1000 / cs.critical)}/km (${criticalLabel(cs)})` : ok(s.pace_threshold_sec_per_km) ? `Seuil ${mmss(s.pace_threshold_sec_per_km)}/km${paceOrigin ? ` (${ORIGIN_LABEL[paceOrigin]})` : ""}` : "",
+    cs ? `CS ${mmss(1000 / cs.critical)}/km (${criticalLabel(cs)})` : trackCs ? `CS ${mmss(1000 / trackCs.ms)}/km (Track Day)` : ok(s.pace_threshold_sec_per_km) ? `Seuil ${mmss(s.pace_threshold_sec_per_km)}/km${paceOrigin ? ` (${ORIGIN_LABEL[paceOrigin]})` : ""}` : "",
     ok(s.vma) ? `VMA ${fr(s.vma, 1)} km/h` : "",
   ]);
 
@@ -89,11 +95,22 @@ export function buildSnapshotSheet(s: SheetSnapshot): SheetBlock[] {
   push("swim", "Natation", ok(s.css) ? [{ label: "CSS", value: `${mmss(s.css)}/100 m` }] : [], [ok(s.css) ? `CSS ${mmss(s.css)}/100 m` : ""]);
 
   // Durabilité
-  const dur = (["bike", "run"] as const).filter(sp => durability[sp]).map(sp => {
-    const d = durability[sp]!;
-    return { label: sp === "bike" ? "Vélo" : "Course", value: `${d.meanChangePct > 0 ? "+" : ""}${fr(d.meanChangePct, 1)} % en fin de sortie longue (${d.sessions.length} séances)`, source: "à vérifier" };
-  });
-  push("durability", "Durabilité", dur, dur.map(r => `${r.label} ${r.value.split(" en ")[0]}`));
+  const dur: SheetRow[] = [];
+  const durSummary: string[] = [];
+  for (const sp of ["bike", "run"] as const) {
+    const name = sp === "bike" ? "Vélo" : "Course";
+    const pair = (extras.durabilityPairs ?? []).find(p => p.sport === sp);
+    if (pair) {
+      dur.push({ label: `${name} · Durability Day`, value: `${fr(pair.decouplingPct, 1)} % de découplage (${dateFr(pair.day)})`, source: "test" });
+      durSummary.push(`${name} ${fr(pair.decouplingPct, 1)} %`);
+    }
+    const d = durability[sp];
+    if (d) {
+      dur.push({ label: `${name} · sorties longues Nolio`, value: `${d.meanChangePct > 0 ? "+" : ""}${fr(d.meanChangePct, 1)} % sur l’effort de 20 min en fin de sortie (${d.sessions.length} séances)`, source: "à vérifier" });
+      if (!pair) durSummary.push(`${name} ${d.meanChangePct > 0 ? "+" : ""}${fr(d.meanChangePct, 1)} %`);
+    }
+  }
+  push("durability", "Durabilité", dur, durSummary);
 
   // Labo
   push("labo", "Labo", [

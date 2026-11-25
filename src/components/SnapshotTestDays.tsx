@@ -14,10 +14,12 @@ interface Props {
   renderExtra?: (key: TestDayFieldKey) => ReactNode;
   /** Onglet ouvert au départ (« Modifier ce bloc » depuis la fiche). */
   initialTab?: string;
+  /** Contenu sous les champs d'un onglet (CP/CS, durabilité…). */
+  renderFooter?: (tabId: string) => ReactNode;
 }
 
 /** Fiche athlète : un bloc par sport, chaque valeur saisie à un seul endroit. */
-export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra, initialTab }: Props) {
+export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra, initialTab, renderFooter }: Props) {
   const check = checkSnapshotForm(formData);
   const readiness = snapshotReadiness(formData);
   return (
@@ -58,6 +60,7 @@ export function SnapshotTestDays({ formData, onChange, filledFrom, renderExtra, 
                 </div>
               ))}
             </div>
+            {renderFooter?.(d.id)}
           </TabsContent>
         ))}
       </Tabs>
