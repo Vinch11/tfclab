@@ -6,7 +6,7 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,8 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Pin, HelpCircle, Beaker, Bike, Battery } from "lucide-react";
+import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Pin, Beaker, Bike, Battery } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
@@ -42,25 +41,14 @@ import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { NolioFillAssistant } from "@/components/NolioFillAssistant";
 import { SnapshotFillMenu } from "@/components/SnapshotFillMenu";
 import { SnapshotSheet } from "@/components/SnapshotSheet";
-import type { SheetBlockId, SheetSnapshot } from "@/lib/snapshotSheet";
+import { buildSnapshotSheet, type SheetBlockId, type SheetDurabilityPair, type SheetSnapshot } from "@/lib/snapshotSheet";
+import { latestPairs, pairedDecoupling } from "@/lib/diagnostic/durabilityDay";
 import { fillEmpty, labValuesToForm, type FillSource } from "@/lib/snapshotFill";
 import { CriticalEffortsPanel } from "@/components/CriticalEffortsPanel";
 import { parseStoredDurability, withDurability } from "@/lib/durability/longSessionDurability";
 import { criticalEnvelope, parseStoredCriticalMetrics } from "@/lib/criticalMetrics";
 import { ThresholdOriginSelect } from "@/components/ThresholdOriginSelect";
 import { readThresholdOrigin, withThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
-
-// CAP objectives where running economy is critical
-const CAP_OBJECTIVES = [
-  "Marathon", "marathon", "Semi", "semi", "SemiMarathon", "Course", "Trail", "TrailCourt", "TrailLong",
-  "TrailMountain", "TrailUltra", "TrailShort", "TriathlonLD", "TriathlonOD",
-  "IM", "Ironman", "ironman", "70.3", "703", "olympic", "OD"
-];
-
-function isRunningObjective(goal: string | null | undefined): boolean {
-  if (!goal) return false;
-  return CAP_OBJECTIVES.includes(goal);
-}
 
 // Triathlon objectives where bike vs run comparison is relevant
 const TRIATHLON_OBJECTIVES = ["IM", "Ironman", "70.3", "703", "TriathlonLD", "TriathlonOD"];
@@ -140,12 +128,14 @@ const FATIGUE_STATES = [
 
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
   const navigate = useNavigate();
-  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot } = useCloudData();
+  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot, tests } = useCloudData();
 
   // Use persisted dialog states to survive page minimize/restore
   const [isCreateOpen, setIsCreateOpen] = usePersistedDialogState(`snapshot-create-${athleteId}`, false);
   const [isEditOpen, setIsEditOpen] = usePersistedDialogState(`snapshot-edit-${athleteId}`, false);
   const [isCompareOpen, setIsCompareOpen] = useState(false);
+  const [criticalOpen, setCriticalOpen] = useState(false);
+  const criticalRef = useRef<HTMLDetailsElement>(null);
   /** Bloc de la fiche à ouvrir dans le formulaire (« Modifier ce bloc »). */
   const [editBlock, setEditBlock] = useState<SheetBlockId | null>(null);
 
@@ -183,6 +173,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     setEditBlock(null);
     setEditingSnapshotId({ id: null });
   };
+
+  /** Durability Day (tests « deux blocs ») : découplage le plus récent par sport. */
+  const durabilityPairs = useMemo<SheetDurabilityPair[]>(() => latestPairs(tests, athleteId).flatMap(p => {
+    const pct = pairedDecoupling(p);
+    return pct == null ? [] : [{ sport: p.sport, decouplingPct: pct, day: p.day }];
+  }), [tests, athleteId]);
+
+  /** Fiche en cours de saisie, au format de la fiche en lecture (pour les rappels CP/CS et durabilité). */
+  const formSheetSnapshot = (): SheetSnapshot => ({
+    date: formData.date, critical_metrics: (formData as Record<string, unknown>).critical_metrics,
+  });
 
   const snapshotFormValues = (s: DbSnapshot): typeof formData => {
     const snapshotAny = s as unknown as Record<string, unknown>;
@@ -637,6 +638,24 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           setFilledFrom(prev => { if (!(key in prev)) return prev; const n = { ...prev }; delete n[key]; return n; });
           setFormData(prev => ({ ...prev, [key]: value }));
         }}
+        renderFooter={(tab) => {
+          if (tab !== "bike" && tab !== "run") return null;
+          const sheet = buildSnapshotSheet(formSheetSnapshot(), { durabilityPairs });
+          const sportRows = (sheet.find(b => b.id === tab)?.rows ?? []).filter(r => /critique/.test(r.label));
+          const durRows = (sheet.find(b => b.id === "durability")?.rows ?? []).filter(r => r.label.startsWith(tab === "bike" ? "Vélo" : "Course"));
+          return (
+            <div className="space-y-1.5 rounded-md border border-border bg-muted/30 p-2 text-xs">
+              <p className="font-medium">{tab === "bike" ? "Puissance critique et durabilité" : "Vitesse critique et durabilité"}</p>
+              {sportRows.length ? sportRows.map(r => <p key={r.label}>{r.label} : <b>{r.value}</b>{r.source && ` (${r.source})`}</p>)
+                : <p className="text-muted-foreground">{tab === "bike" ? "CP / W′ : pas encore enregistrée (Bike Day « Puissance critique » ou records Nolio)." : "CS / D′ : pas encore enregistrée (Track Day 1 500 / 3 000 / 1 000 m ou records Nolio)."}</p>}
+              {durRows.length ? durRows.map(r => <p key={r.label}>{r.label} : <b>{r.value}</b></p>)
+                : <p className="text-muted-foreground">Durabilité : pas encore mesurée (Durability Day ou sorties longues Nolio).</p>}
+              <Button type="button" size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setCriticalOpen(true); requestAnimationFrame(() => criticalRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })); }}>
+                {tab === "bike" ? "Valider ou corriger la CP" : "Valider ou corriger la CS"}
+              </Button>
+            </div>
+          );
+        }}
         renderExtra={(key) => {
           if (key === "ftp") return <div className="mt-1"><ThresholdOriginSelect field="ftp" value={formData.ftp_origin} onChange={(v) => setFormData(prev => ({ ...prev, ftp_origin: v }))} /></div>;
           if (key === "pace_threshold") return <div className="mt-1"><ThresholdOriginSelect field="pace_threshold_sec_per_km" value={formData.pace_threshold_origin} onChange={(v) => setFormData(prev => ({ ...prev, pace_threshold_origin: v }))} /></div>;
@@ -648,7 +667,22 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 <SelectContent>{VO2MAX_ORIGIN_OPTIONS.map(o => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}</SelectContent>
               </Select>
               {formData.vo2max_origin === "watch" && <p className="text-[11px] text-muted-foreground">Gardée pour information : elle n’entre dans aucun calcul.</p>}
-              {filledFrom.vlamax === "Labo" && formData.vlamax && <p className="text-[11px] text-muted-foreground">VLamax du rapport labo : {formData.vlamax} mmol/L/s (mesure).</p>}
+              {staffMode ? (
+                <div className="grid grid-cols-2 gap-2 pt-2">
+                  <div>
+                    <Label htmlFor="vlamax" className="text-xs">VLamax vélo (labo)</Label>
+                    <Input id="vlamax" type="number" step="0.01" placeholder="0.40" className="h-11" value={formData.vlamax} onChange={(e) => setFormData(prev => ({ ...prev, vlamax: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="vlamax_run" className="text-xs">VLamax course (labo)</Label>
+                    <Input id="vlamax_run" type="number" step="0.01" placeholder="0.35" className="h-11" value={formData.vlamax_run} onChange={(e) => setFormData(prev => ({ ...prev, vlamax_run: e.target.value }))} />
+                  </div>
+                </div>
+              ) : filledFrom.vlamax === "Labo" && formData.vlamax ? (
+                <p className="text-[11px] text-muted-foreground">VLamax du rapport labo : {formData.vlamax} mmol/L/s (mesure).</p>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">VLamax : seulement une mesure de laboratoire (« PDF labo » ou mode Staff). Sinon l’app l’estime.</p>
+              )}
               {filledFrom.fat_pct === "Labo" && formData.fat_pct && <p className="text-[11px] text-muted-foreground">Masse grasse du rapport labo : {formData.fat_pct} %.</p>}
             </div>
           );
@@ -656,7 +690,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         }}
       />
 
-      <details className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo{filledFrom.critical_metrics ? ` · rempli depuis ${filledFrom.critical_metrics}` : ""}</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
+      <details ref={criticalRef} open={criticalOpen} onToggle={(e) => setCriticalOpen((e.currentTarget as HTMLDetailsElement).open)} className="border-b border-border"><summary className="cursor-pointer py-3 text-sm font-medium">Repères critiques · Course et vélo{filledFrom.critical_metrics ? ` · rempli depuis ${filledFrom.critical_metrics}` : ""}</summary><CriticalEffortsPanel athleteLabel={athleteName} stored={parseStoredCriticalMetrics((formData as Record<string, unknown>).critical_metrics)} onSave={(sport, value) => setFormData(prev => { const m = criticalEnvelope(prev.critical_metrics); if (value) m[sport] = value; else delete m[sport]; return { ...prev, critical_metrics: Object.keys(m).length ? JSON.stringify(m) : "" }; })}/></details>
 
       <p className="text-sm font-medium pt-1">Compléments</p>
 
@@ -720,237 +754,6 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           ))}
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
-        {/* ✅ VLamax - UNIQUEMENT visible en mode Staff */}
-        {staffMode ? (
-          <div>
-            <Label htmlFor="vlamax" className="flex items-center gap-1.5">
-              <span>VLamax (mesurée)</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      Mode Staff : VLamax mesurée en laboratoire (lactate). 
-                      Cette valeur verrouille l'estimation automatique.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Label>
-            <Input
-              id="vlamax"
-              type="number"
-              step="0.01"
-              placeholder="0.40 (lactate)"
-              value={formData.vlamax}
-              onChange={(e) => setFormData({ ...formData, vlamax: e.target.value })}
-              className="border-primary/50"
-            />
-            <p className="text-xs text-primary mt-1">
-              ✓ Verrouille la VLamax (source: test labo)
-            </p>
-          </div>
-        ) : (
-          <div>
-            <Label className="text-muted-foreground flex items-center gap-1.5">
-              <span>VLamax</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <HelpCircle className="h-3 w-3" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p className="text-xs">
-                      La VLamax est calculée automatiquement à partir du snapshot.
-                      Activez le Mode Staff pour saisir une mesure lactate.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Label>
-            <div className="h-10 px-3 py-2 rounded-md border border-border bg-muted/50 text-sm text-muted-foreground flex items-center">
-              Calculée auto
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Mode Staff pour VLamax mesurée
-            </p>
-          </div>
-        )}
-
-      </div>
-
-      {/* 🏃 ÉCONOMIE DE COURSE (CAP) - Module Staff-Grade */}
-      {isRunningObjective(athleteGoal) && (
-        <div className="p-4 rounded-lg border-2 border-blue-500/30 bg-blue-500/5">
-          <div className="flex items-center gap-2 mb-3">
-            <p className="text-base font-semibold">🏃 Économie de course (CAP)</p>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p className="font-medium mb-2">Économie de course = efficience physiologique</p>
-                  <p className="text-xs mb-2">Combien d'effort cardiaque est nécessaire pour maintenir une allure donnée dans la durée.</p>
-                  <p className="text-xs">Plus la FC est basse à allure donnée → meilleure économie → performance facilitée.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-          
-          <p className="text-xs text-muted-foreground mb-3">Rempli par le Track Day : allure stable, FC moyenne et dérive cardiaque sur la même séance.</p>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="run_pace_ref">Allure de référence (min:sec/km)</Label>
-              <Input
-                id="run_pace_ref"
-                type="text"
-                placeholder="4:30"
-                value={formData.run_pace_ref}
-                onChange={(e) => setFormData({ ...formData, run_pace_ref: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Allure tenue de façon stable pendant la séance</p>
-            </div>
-            <div>
-              <Label htmlFor="run_hr_ref">Fréquence cardiaque moyenne (bpm)</Label>
-              <Input
-                id="run_hr_ref"
-                type="number"
-                placeholder="148"
-                value={formData.run_hr_ref}
-                onChange={(e) => setFormData({ ...formData, run_hr_ref: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">FC moyenne observée à cette allure</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mt-3">
-            <div>
-              <Label htmlFor="run_duration_min">Durée de la séance (min)</Label>
-              <Input
-                id="run_duration_min"
-                type="number"
-                placeholder="70"
-                value={formData.run_duration_min}
-                onChange={(e) => setFormData({ ...formData, run_duration_min: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Durée totale à allure stable</p>
-            </div>
-            <div>
-              <Label htmlFor="run_hr_drift_pct">Dérive cardiaque % (recommandé)</Label>
-              <Input
-                id="run_hr_drift_pct"
-                type="number"
-                step="0.1"
-                placeholder="4.5"
-                value={formData.run_hr_drift_pct}
-                onChange={(e) => setFormData({ ...formData, run_hr_drift_pct: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground mt-1">Augmentation FC entre début et fin (ex: +6%)</p>
-            </div>
-          </div>
-
-          {(() => {
-            const paceSec = parsePaceToSec(formData.run_pace_ref);
-            const hr = parseNum(formData.run_hr_ref);
-            const duration = parseNum(formData.run_duration_min);
-            const drift = parseNum(formData.run_hr_drift_pct);
-            const fcMax = parseNum(formData.fc_max);
-            const result = computeRunEconomyScore({
-              paceSec: paceSec ? Math.round(paceSec) : null,
-              hr: hr ? Math.round(hr) : null,
-              durationMin: duration ? Math.round(duration) : null,
-              driftPct: drift,
-              fcMax: fcMax ? Math.round(fcMax) : null,
-            });
-            return (
-              <p className="mt-3 text-xs text-muted-foreground">
-                {result.score === null
-                  ? "Repère non calculé : renseigner allure et FC."
-                  : `Repère cardiaque calculé : ${result.score}/100 (estimation à partir de la FC, pas une mesure d'économie).`}
-              </p>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* 🏃 DONNÉES VLAMAX CAP (pour estimation) */}
-      {isRunningObjective(athleteGoal) && (
-        <div className="p-4 rounded-lg border-2 border-accent/30 bg-accent/5">
-          <div className="flex items-center gap-2 mb-3">
-            <p className="text-base font-semibold">🏃 Données VLamax CAP</p>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent className="max-w-sm">
-                  <p className="font-medium mb-2">Données pour estimer la VLamax Course</p>
-                  <p className="text-xs mb-2">Ces données permettent de calculer automatiquement la VLamax CAP, distincte de la VLamax vélo.</p>
-                  <p className="text-xs">Plus vous remplissez de champs, plus l'estimation sera précise.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-auto h-7 text-xs gap-1"
-              onClick={() => navigate("/cap-testing-week")}
-            >
-              <Beaker className="w-3 h-3" />
-              Semaine Tests CAP
-            </Button>
-          </div>
-          
-          <div className="p-3 rounded-lg bg-background/50 border border-border mb-4">
-            <p className="text-sm text-muted-foreground">
-              Ces données servent à estimer la VLamax spécifique à la course à pied (glycolyse en course).
-              Différente de la VLamax vélo car la biomécanique et le recrutement musculaire diffèrent.
-            </p>
-          </div>
-
-          <p className="text-xs text-muted-foreground mb-2">Calculée à partir du bloc Course de la fiche (sprint 15 s, VMA, allure seuil).</p>
-
-          {staffMode && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <Label htmlFor="vlamax_run" className="flex items-center gap-1.5">
-                <span>VLamax CAP (mesurée)</span>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p className="text-xs">
-                        Mode Staff : VLamax CAP mesurée en laboratoire.
-                        Cette valeur verrouille l'estimation automatique.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </Label>
-              <Input
-                id="vlamax_run"
-                type="number"
-                step="0.01"
-                placeholder="0.35 (course)"
-                value={formData.vlamax_run}
-                onChange={(e) => setFormData({ ...formData, vlamax_run: e.target.value })}
-                className="border-primary/50 mt-1"
-              />
-              <p className="text-xs text-primary mt-1">
-                ✓ Verrouille la VLamax CAP (source: test labo)
-              </p>
-            </div>
-          )}
-
-        </div>
-      )}
-
       <div>
         <Label htmlFor="coach_notes">Notes coach</Label>
         <Textarea
@@ -1047,7 +850,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} onEditBlock={(block) => openEdit(s, block)} />
+          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} onEditBlock={(block) => openEdit(s, block)} />
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">

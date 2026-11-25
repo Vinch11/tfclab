@@ -26,3 +26,15 @@ describe("fiche en lecture", () => {
     expect(blocks.notes.rows).toEqual([]);
   });
 });
+
+describe("CS et durabilité visibles", () => {
+  it("CS à deux distances du Track Day affichée quand la CS ajustée manque", () => {
+    const b = buildSnapshotSheet({ date: "2026-11-12", critical_metrics: { trackDay: { protocol: "1500m_3000m_1000m_cs", csMs: 3.3, dPrimeM: 190 } } }).find(x => x.id === "run")!;
+    expect(b.summary).toBe("CS 5:03/km (Track Day)");
+    expect(b.rows[0].source).toBe("Track Day 1 500 / 3 000 m, à valider");
+  });
+  it("Durability Day affiché avec son découplage", () => {
+    const b = buildSnapshotSheet({ date: "2026-11-12" }, { durabilityPairs: [{ sport: "run", decouplingPct: 4.2, day: "2026-11-20" }] }).find(x => x.id === "durability")!;
+    expect(b.summary).toBe("Course 4,2 %");
+  });
+});

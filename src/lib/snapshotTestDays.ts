@@ -9,7 +9,8 @@ export type TestDayFieldKey =
   | "date" | "weight_kg" | "fc_max" | "fc_repos"
   | "pmax_5s" | "p30s_w" | "p60s_w" | "sprint_15s"
   | "map5min_w" | "vma"
-  | "ftp" | "tte_observed_min" | "pace_threshold" | "tte_observed_min_run" | "css" | "vo2max";
+  | "ftp" | "tte_observed_min" | "pace_threshold" | "tte_observed_min_run" | "css" | "vo2max"
+  | "run_pace_ref" | "run_hr_ref" | "run_duration_min" | "run_hr_drift_pct";
 
 export interface TestDayField { key: TestDayFieldKey; label: string; unit: string; placeholder: string; type?: "number" | "date" | "text" }
 export interface TestDay { id: string; title: string; hint: string; fields: TestDayField[] }
@@ -33,11 +34,15 @@ export const TEST_DAYS: TestDay[] = [
     { key: "ftp", label: "FTP / seuil", unit: "W", placeholder: "260" },
     { key: "tte_observed_min", label: "Durée tenue au seuil", unit: "min", placeholder: "45" },
   ] },
-  { id: "run", title: "Course", hint: "Track Day : sprint, VMA et seuil. La vitesse critique se valide dans « Repères critiques ».", fields: [
+  { id: "run", title: "Course", hint: "Track Day : sprint, VMA et seuil. Les 4 dernières cases (footing à allure stable) sont facultatives. La vitesse critique se valide dans « Repères critiques ».", fields: [
     { key: "sprint_15s", label: "Distance en 15 s", unit: "m", placeholder: "95" },
     { key: "vma", label: "VMA", unit: "km/h", placeholder: "17" },
     { key: "pace_threshold", label: "Allure seuil", unit: "min/km", placeholder: "4:10", type: "text" },
     { key: "tte_observed_min_run", label: "Durée tenue au seuil", unit: "min", placeholder: "40" },
+    { key: "run_pace_ref", label: "Footing : allure stable", unit: "min/km", placeholder: "5:30", type: "text" },
+    { key: "run_hr_ref", label: "Footing : FC moyenne", unit: "bpm", placeholder: "145" },
+    { key: "run_duration_min", label: "Footing : durée", unit: "min", placeholder: "60" },
+    { key: "run_hr_drift_pct", label: "Footing : dérive cardiaque", unit: "%", placeholder: "3" },
   ] },
   { id: "swim", title: "Natation", hint: "Pool Day : CSS calculée à partir du 400 m et du 200 m.", fields: [
     { key: "css", label: "CSS", unit: "s/100 m", placeholder: "95" },
@@ -102,6 +107,7 @@ const RANGES: Partial<Record<TestDayFieldKey, [number, number]>> = {
   sprint_15s: [30, 200], map5min_w: [80, 700], vma: [8, 30], ftp: [50, 600],
   tte_observed_min: [1, 120], tte_observed_min_run: [1, 120], css: [50, 300],
   fc_repos: [25, 110], vo2max: [20, 95],
+  run_hr_ref: [60, 220], run_duration_min: [10, 300], run_hr_drift_pct: [-30, 50],
 };
 const LABEL = Object.fromEntries(TEST_DAYS.flatMap((d) => d.fields.map((f) => [f.key, f.label])));
 
@@ -119,6 +125,7 @@ export function checkSnapshotForm(f: Form): SnapshotCheck {
   }
   const pace = paceToSec(f.pace_threshold);
   if (Number.isNaN(pace)) errors.push("Course — allure seuil : format attendu min:ss (ex. 4:10).");
+  if (Number.isNaN(paceToSec(f.run_pace_ref))) errors.push("Course — allure du footing : format attendu min:ss (ex. 5:30).");
 
   // Cohérence puissance-durée : une puissance plus longue ne peut pas dépasser une plus courte.
   const chain: TestDayFieldKey[] = ["pmax_5s", "p30s_w", "p60s_w", "map5min_w", "ftp"];
