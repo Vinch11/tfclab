@@ -2,14 +2,14 @@ import { useState } from "react";
 import { ChevronDown, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { buildSnapshotSheet, type SheetBlockId, type SheetDurabilityPair, type SheetSnapshot } from "@/lib/snapshotSheet";
+import { buildSnapshotSheet, type SheetAthlete, type SheetBlockId, type SheetDurabilityPair, type SheetSnapshot } from "@/lib/snapshotSheet";
 
 /**
  * Fiche en lecture : un résumé par bloc. Un appui déplie le bloc (valeurs + source),
  * « Modifier ce bloc » ouvre le formulaire directement sur le bon onglet.
  */
-export function SnapshotSheet({ snapshot, durabilityPairs, onEditBlock }: { snapshot: SheetSnapshot; durabilityPairs?: SheetDurabilityPair[]; onEditBlock?: (block: SheetBlockId) => void }) {
-  const blocks = buildSnapshotSheet(snapshot, { durabilityPairs });
+export function SnapshotSheet({ snapshot, durabilityPairs, athlete, onEditBlock }: { snapshot: SheetSnapshot; durabilityPairs?: SheetDurabilityPair[]; athlete?: SheetAthlete; onEditBlock?: (block: SheetBlockId) => void }) {
+  const blocks = buildSnapshotSheet(snapshot, { durabilityPairs, athlete });
   const [open, setOpen] = useState<SheetBlockId | null>(null);
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

@@ -6,7 +6,7 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -130,7 +130,20 @@ const FATIGUE_STATES = [
 
 export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSnapshotId, staffMode = false }: SnapshotManagerProps) {
   const navigate = useNavigate();
-  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot, tests } = useCloudData();
+  const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot, tests, athletes, updateAthlete } = useCloudData();
+  /** Sexe et date de naissance : propres à l'athlète (communs à tous les bilans), ils ajustent les repères de l'objectif. */
+  const athleteRecord = athletes.find(a => a.id === athleteId) ?? null;
+  const [identity, setIdentity] = useState<{ sex: string; birthDate: string }>({ sex: "", birthDate: "" });
+  const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "" }), [athleteRecord?.sex, athleteRecord?.birth_date]);
+  useEffect(() => { resetIdentity(); }, [resetIdentity]);
+  const saveIdentity = async () => {
+    if (!athleteRecord) return;
+    // Une case laissée vide ne supprime jamais une valeur déjà connue.
+    const sex = identity.sex === "M" || identity.sex === "F" ? identity.sex : athleteRecord.sex ?? null;
+    const birth = identity.birthDate || athleteRecord.birth_date || null;
+    if (sex === (athleteRecord.sex ?? null) && birth === (athleteRecord.birth_date ?? null)) return;
+    await updateAthlete(athleteId, { sex, birth_date: birth });
+  };
 
   // Use persisted dialog states to survive page minimize/restore
   const [isCreateOpen, setIsCreateOpen] = usePersistedDialogState(`snapshot-create-${athleteId}`, false);
@@ -170,6 +183,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   );
 
   const resetForm = () => {
+    resetIdentity();
     clearFormData();
     setFilledFrom({});
     setEditBlock(null);
@@ -256,6 +270,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   };
 
   const loadSnapshotToForm = (s: DbSnapshot) => {
+    resetIdentity();
     setFilledFrom({});
     setFormData(snapshotFormValues(s));
   };
@@ -377,6 +392,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
 
     // Le formulaire reste ouvert (saisie conservée) si l'enregistrement échoue.
     if (!created) return;
+    await saveIdentity();
     resetForm();
     setIsCreateOpen(false);
   };
@@ -480,6 +496,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     });
 
     if (!updated) return;
+    await saveIdentity();
     setEditBlock(null);
     setIsEditOpen(false);
     setEditingSnapshotId({ id: null });
@@ -651,6 +668,27 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
           setFormData(prev => ({ ...prev, [key]: value }));
         }}
         renderFooter={(tab) => {
+          if (tab === "ctx") return (
+            <div className="space-y-2 rounded-md border border-border bg-muted/30 p-2">
+              <p className="text-xs font-medium">Athlète (commun à tous ses bilans)</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="athlete-sex" className="text-xs">Sexe</Label>
+                  <Select value={identity.sex || undefined} onValueChange={(v) => setIdentity(prev => ({ ...prev, sex: v }))}>
+                    <SelectTrigger id="athlete-sex" className="h-11"><SelectValue placeholder="À renseigner" /></SelectTrigger>
+                    <SelectContent><SelectItem value="F">Femme</SelectItem><SelectItem value="M">Homme</SelectItem></SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="athlete-birth" className="text-xs">Date de naissance</Label>
+                  <Input id="athlete-birth" type="date" className="h-11" value={identity.birthDate} onChange={(e) => setIdentity(prev => ({ ...prev, birthDate: e.target.value }))} />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{!identity.sex || !identity.birthDate
+                ? "À renseigner : sans sexe ni âge, les repères de l’objectif (VO₂max, VMA, W/kg, CSS) restent ceux d’un groupe surtout masculin, non ajustés."
+                : "Les repères de l’objectif (VO₂max, VMA, W/kg, CSS) sont ajustés au sexe et à l’âge."}</p>
+            </div>
+          );
           if (tab !== "bike" && tab !== "run") return null;
           const sheet = buildSnapshotSheet(formSheetSnapshot(), { durabilityPairs });
           const sportRows = (sheet.find(b => b.id === tab)?.rows ?? []).filter(r => /critique/.test(r.label));
@@ -862,7 +900,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} onEditBlock={(block) => openEdit(s, block)} />
+          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} athlete={{ sex: athleteRecord?.sex ?? null, birthDate: athleteRecord?.birth_date ?? null }} onEditBlock={(block) => openEdit(s, block)} />
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">
