@@ -44,3 +44,20 @@ describe('VLamax et zones Garmin', () => {
     expect(html).toContain('ta montre');
   });
 });
+
+describe('fourchettes vérifiées (25/11/2026)', () => {
+  it('Ironman : 63–72 % de la CP ; seuil : 82–90 % de la VMA', () => {
+    const bike = extraGauges(d, 'bike', [], false).gauges.find(g => g.row.key === 'racePct')!;
+    expect(bike.row.zone).toMatchObject({ low: 63, high: 72 });
+    expect(bike.basis).toContain('IF 0,65–0,75');
+    const run = extraGauges(d, 'run', [vmaRow], false).gauges.find(g => g.row.key === 'thresholdPctVma')!;
+    expect(run.row.zone).toMatchObject({ low: 82, high: 90 });
+    expect(run.basis).toContain('vérifier d’abord la VMA');
+  });
+  it('CSS : repère femmes ≈ 8 % plus lent que le repère hommes', () => {
+    const men = swimGauge({ ...d, athlete: { ...d.athlete, sex: 'M' } }, true)!;
+    const women = swimGauge({ ...d, athlete: { ...d.athlete, sex: 'F' } }, true)!;
+    expect(men.display!(men.row.zone!.high)).toBe('1:28/100 m');
+    expect(women.display!(women.row.zone!.high)).toBe('1:35/100 m');
+  });
+});

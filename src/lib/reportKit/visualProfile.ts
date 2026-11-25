@@ -329,7 +329,7 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
       // Cadrans complémentaires (mesures des Days) puis repères encore à mesurer, avec le test qui les donne.
       const extra = extraGauges(d, sport, rows, !coach);
       const shown = new Set(rows.filter(r => r.value != null).map(r => r.key));
-      cards.push(...extra.gauges.filter(g => !shown.has(g.row.key)).map(g => rangeGauge(g.row, undefined, !coach, { display: g.display, sentence: g.sentence })).filter(Boolean));
+      cards.push(...extra.gauges.filter(g => !shown.has(g.row.key)).map(g => rangeGauge(g.row, coach ? g.basis : undefined, !coach, { display: g.display, sentence: g.sentence })).filter(Boolean));
       cards.push(...extra.pending.map(pg => pendingGauge(pg.label, pg.need, pg.sentence)));
       return cards.length
         ? `<div class="gauge-sport"><h3>${sportName[sport]}</h3><div class="lab-gauges">${cards.join('')}</div></div>`
@@ -337,7 +337,7 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
     })
     .join('') + (() => {
       const swim = swimGauge(d, !coach);
-      return swim ? `<div class="gauge-sport"><h3>Natation</h3><div class="lab-gauges">${rangeGauge(swim.row, undefined, !coach, { display: swim.display, sentence: swim.sentence })}</div></div>` : '';
+      return swim ? `<div class="gauge-sport"><h3>Natation</h3><div class="lab-gauges">${rangeGauge(swim.row, coach ? swim.basis : undefined, !coach, { display: swim.display, sentence: swim.sentence })}</div></div>` : '';
     })();
   const snapshot = d.effectiveSnapshot?.athlete_id === d.athlete.id ? d.effectiveSnapshot : null;
   const { critical } = reportFieldEvidence(snapshot);
