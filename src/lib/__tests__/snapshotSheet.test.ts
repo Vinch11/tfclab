@@ -38,3 +38,13 @@ describe("CS et durabilité visibles", () => {
     expect(b.summary).toBe("Course 4,2 %");
   });
 });
+
+describe("sexe et âge dans la fiche", () => {
+  it("renseignés : « Femme, 41 ans » ; absents : à compléter, repères non ajustés", () => {
+    const ok = buildSnapshotSheet({ date: "2026-11-25" }, { athlete: { sex: "F", birthDate: "1985-03-10" } }).find(b => b.id === "ctx")!;
+    expect(ok.summary).toBe("Femme, 41 ans");
+    const missing = buildSnapshotSheet({ date: "2026-11-25" }, { athlete: { sex: null, birthDate: null } }).find(b => b.id === "ctx")!;
+    expect(missing.summary).toBe("Sexe/âge à renseigner");
+    expect(missing.rows[0].source).toContain("repères non ajustés");
+  });
+});

@@ -41,7 +41,10 @@ const criticalLabel = (c: StoredCriticalSport) => (c.status === "confirmed" ? "c
 /** Durability Day (deux blocs de 10 min) : découplage en %, enregistré comme test et non dans le bilan. */
 export interface SheetDurabilityPair { sport: "bike" | "run"; decouplingPct: number; day: string }
 
-export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?: SheetDurabilityPair[] } = {}): SheetBlock[] {
+export interface SheetAthlete { sex?: string | null; birthDate?: string | null }
+const ageAt = (birth: string, on: string) => { const b = new Date(birth + "T00:00:00Z"), d = new Date(on + "T00:00:00Z"); let a = d.getUTCFullYear() - b.getUTCFullYear(); if (d.getUTCMonth() < b.getUTCMonth() || (d.getUTCMonth() === b.getUTCMonth() && d.getUTCDate() < b.getUTCDate())) a--; return a; };
+
+export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?: SheetDurabilityPair[]; athlete?: SheetAthlete } = {}): SheetBlock[] {
   const critical = parseStoredCriticalMetrics(s.critical_metrics);
   const durability = parseStoredDurability(s.critical_metrics);
   const ftpOrigin = readThresholdOrigin(s.field_sources, "ftp");
@@ -62,12 +65,19 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
   const push = (id: SheetBlockId, title: string, rows: SheetRow[], summary: string[]) =>
     blocks.push({ id, title, rows, summary: summary.filter(Boolean).join(" · ") || "À compléter" });
 
-  // Contexte
+  // Contexte — sexe et âge viennent de l'athlète (ils ajustent les repères de l'objectif).
+  const who = extras.athlete;
+  const sexText = who?.sex === "F" ? "Femme" : who?.sex === "M" ? "Homme" : "";
+  const age = who?.birthDate ? ageAt(who.birthDate, s.date) : null;
+  const identityRow: SheetRow | null = who ? (sexText && age != null
+    ? { label: "Athlète", value: `${sexText} · ${age} ans` }
+    : { label: "Sexe et âge", value: [sexText, age != null ? `${age} ans` : ""].filter(Boolean).join(" · ") || "non renseignés", source: "à compléter : repères non ajustés" }) : null;
   push("ctx", "Contexte", [
+    identityRow,
     ok(s.weight_kg) ? { label: "Poids", value: `${fr(s.weight_kg, 1)} kg` } : null,
     ok(s.fc_max) ? { label: "FC max", value: `${s.fc_max} bpm` } : null,
     ok(s.fc_repos) ? { label: "FC repos", value: `${s.fc_repos} bpm` } : null,
-  ].filter(Boolean) as SheetRow[], [ok(s.weight_kg) ? `${fr(s.weight_kg, 1)} kg` : "", ok(s.fc_max) ? `FC max ${s.fc_max}` : "", ok(s.fc_repos) ? `FC repos ${s.fc_repos}` : ""]);
+  ].filter(Boolean) as SheetRow[], [sexText && age != null ? `${sexText}, ${age} ans` : who ? "Sexe/âge à renseigner" : "", ok(s.weight_kg) ? `${fr(s.weight_kg, 1)} kg` : "", ok(s.fc_max) ? `FC max ${s.fc_max}` : "", ok(s.fc_repos) ? `FC repos ${s.fc_repos}` : ""]);
 
   // Vélo
   const cp = critical.cycling;

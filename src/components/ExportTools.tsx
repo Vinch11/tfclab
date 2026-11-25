@@ -2008,6 +2008,7 @@ function buildExportPayload(
     ambition: ambition,
     sportFocus: sportFocusForLimiter === 'run' ? 'run' : resolveCompassSportFocus(effectiveSnapshot, athlete, "triathlon"),
     athleteAge: athleteAge,
+    athleteSex: athlete.sex === "M" || athlete.sex === "F" ? athlete.sex : null,
     performanceGoal: readPerformanceGoal(comparisonGoals(athlete.refs)[`${athlete.goal || 'IM'}:${ambition}`]),
   };
   const reportCompass = computeCoachingCompass(compassInput);
