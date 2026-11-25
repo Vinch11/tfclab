@@ -20,7 +20,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Camera, Plus, Trash2, Edit, TrendingUp, Brain, Pin, Beaker, Bike, Battery } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { LabImportDialog } from "@/components/LabImportDialog";
 import { NolioImporter, NolioImportResult } from "@/components/NolioImporter";
 import { NolioPeriodRecords } from "@/components/NolioPeriodRecords";
@@ -36,7 +36,7 @@ import {
 import { usePersistedFormState, usePersistedDialogState } from "@/hooks/usePersistedFormState";
 import { pickReferenceSnapshot } from "@/lib/referenceSnapshot";
 import { SnapshotTestDays } from "@/components/SnapshotTestDays";
-import { checkSnapshotForm, readTte, writeTte, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+import { checkSnapshotForm, readLabExtras, withLabExtras, readTte, writeTte, readVo2max, snapshotConfidence, snapshotProtocolQuality, VO2MAX_ORIGIN_OPTIONS, writeVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
 import { NolioRestingHrHint } from "@/components/NolioRestingHrHint";
 import { NolioFillAssistant } from "@/components/NolioFillAssistant";
 import { SnapshotFillMenu } from "@/components/SnapshotFillMenu";
@@ -96,6 +96,8 @@ const INITIAL_FORM_STATE = {
   tte_observed_min_run: "",
   tte_ref_w: "",
   tte_ref_pace: "",
+  lab_mlss_w: "",
+  lab_lactate_mmol: "",
   critical_metrics: "",
   // ⚡ État de fatigue au moment du snapshot
   fatigue_state: "ok",
@@ -242,6 +244,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         };
       })(),
       critical_metrics: (s as any).critical_metrics ? JSON.stringify((s as any).critical_metrics) : "",
+      ...(() => { const lab = readLabExtras((s as any).critical_metrics); return { lab_mlss_w: lab.mlssW != null ? String(lab.mlssW) : "", lab_lactate_mmol: lab.lactateMmol != null ? String(lab.lactateMmol) : "" }; })(),
 
       // ⚡ État de fatigue
       fatigue_state: s.fatigue_state || "ok",
@@ -358,7 +361,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: tte.tte_observed_min,
       ...({ tte_observed_min_run: tte.tte_observed_min_run } as Record<string, unknown>),
-      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = criticalEnvelope(raw); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = withLabExtras(criticalEnvelope(raw), formData as unknown as Record<string, string>); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -463,7 +466,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       tss_7d: parseNum(formData.tss_7d) ? Math.round(parseNum(formData.tss_7d)!) : null,
       tte_observed_min: tte.tte_observed_min,
       ...({ tte_observed_min_run: tte.tte_observed_min_run } as Record<string, unknown>),
-      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = criticalEnvelope(raw); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
+      ...({ critical_metrics: (() => { const raw = (formData as Record<string, unknown>).critical_metrics; const m = withLabExtras(criticalEnvelope(raw), formData as unknown as Record<string, string>); return Object.keys(m).length ? m : null; })() } as Record<string, unknown>),
 
       // 🏃 ÉCONOMIE CAP
       run_pace_ref_sec_per_km: runPaceSec ? Math.round(runPaceSec) : null,
@@ -568,6 +571,68 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       coach_notes: prev.coach_notes ? `${prev.coach_notes}\n${notes}` : notes,
     }));
   };
+
+  /**
+   * Ancien Profil (athlete.refs + VO₂max de l'athlète) : utilisé en secours quand le bilan est vide.
+   * Une reprise unique le range dans le bilan actif (provenance « saisie coach ») puis le vide :
+   * la fiche devient la seule source des valeurs de test.
+   */
+  const LEGACY: { key: string; col: keyof DbSnapshot; label: string; unit: string; min: number; max: number }[] = [
+    { key: "weightKg", col: "weight_kg", label: "Poids", unit: "kg", min: 30, max: 200 },
+    { key: "fatPct", col: "fat_pct", label: "Masse grasse", unit: "%", min: 3, max: 50 },
+    { key: "fcMax", col: "fc_max", label: "FC max", unit: "bpm", min: 100, max: 250 },
+    { key: "vma", col: "vma", label: "VMA", unit: "km/h", min: 8, max: 30 },
+    { key: "ftp", col: "ftp", label: "FTP", unit: "W", min: 50, max: 500 },
+    { key: "css", col: "css", label: "CSS", unit: "s/100 m", min: 50, max: 200 },
+    { key: "vo2max", col: "vo2max", label: "VO₂max", unit: "ml/kg/min", min: 20, max: 100 },
+  ];
+  const legacy = useMemo(() => {
+    const refs = (athleteRecord?.refs && typeof athleteRecord.refs === "object" ? athleteRecord.refs : {}) as Record<string, unknown>;
+    const ref = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId) as unknown as Record<string, unknown> | null;
+    const items = LEGACY.flatMap(f => {
+      const raw = f.key === "vo2max" ? (refs.vo2max ?? athleteRecord?.vo2max) : refs[f.key];
+      const v = typeof raw === "number" && raw >= f.min && raw <= f.max ? raw : null;
+      return v == null ? [] : [{ ...f, value: v, text: `${Math.round(v * 10) / 10} ${f.unit}`, empty: !ref || ref[f.col] == null }];
+    });
+    return { items, toFill: items.filter(i => i.empty), ref };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [athleteRecord?.refs, athleteRecord?.vo2max, snapshots, athleteId, activeSnapshotId]);
+  const [migrating, setMigrating] = useState(false);
+  const migrateLegacy = async () => {
+    if (!athleteRecord) return;
+    setMigrating(true);
+    try {
+      const values = Object.fromEntries(legacy.toFill.map(i => [i.col, i.col === "fc_max" || i.col === "ftp" ? Math.round(i.value) : i.value]));
+      const sources: Record<string, unknown> = { ...((legacy.ref?.field_sources as Record<string, unknown> | null) ?? {}) };
+      for (const i of legacy.toFill) sources[i.col === "ftp" ? "ftp" : i.col] = { source: "entered", protocol: "Saisie coach (ancien profil)" };
+      if (legacy.toFill.length) {
+        let ok = false;
+        if (legacy.ref?.id) ok = await updateSnapshot(String(legacy.ref.id), { ...values, field_sources: sources } as Partial<DbSnapshot>);
+        else {
+          const created = await addSnapshot({ athlete_id: athleteId, coach_id: "", date: new Date().toISOString().slice(0, 10), source: "manual", ...values, field_sources: sources } as never);
+          ok = !!created;
+          if (created) await setActiveSnapshot(athleteId, (created as { id: string }).id);
+        }
+        if (!ok) return;
+      }
+      const refs = { ...((athleteRecord.refs && typeof athleteRecord.refs === "object" ? athleteRecord.refs : {}) as Record<string, unknown>) };
+      for (const f of LEGACY) delete refs[f.key];
+      await updateAthlete(athleteId, { refs: refs as never, vo2max: null });
+      toast.success(legacy.toFill.length ? "Valeurs reprises dans le bilan actif ; ancien Profil vidé." : "Ancien Profil vidé.");
+    } finally { setMigrating(false); }
+  };
+
+  // Lien profond « ?fiche=<bloc> » (Checklist coach, Profil) : ouvre le bilan actif sur le bon bloc.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const block = searchParams.get("fiche") as SheetBlockId | null;
+    if (!block) return;
+    const next = new URLSearchParams(searchParams); next.delete("fiche"); setSearchParams(next, { replace: true });
+    const ref = pickReferenceSnapshot(snapshots, athleteId, activeSnapshotId);
+    if (ref) openEdit(ref, block);
+    else { resetForm(); setEditBlock(block); setIsCreateOpen(true); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const renderForm = () => (
     <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain pr-2">
@@ -1123,6 +1188,18 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {legacy.items.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm" role="status">
+            <p className="font-medium">Valeurs saisies dans l’ancien Profil</p>
+            <p className="text-muted-foreground">
+              {legacy.items.map(i => `${i.label} ${i.text}`).join(" · ")}.{" "}
+              {legacy.toFill.length
+                ? "Elles sont encore utilisées en secours, sans provenance. Reprends-les dans le bilan actif (cases vides seulement, marquées « saisie coach ») ; l’ancien Profil sera ensuite vidé."
+                : "Le bilan actif a déjà ses propres valeurs : l’ancien Profil peut être vidé."}
+            </p>
+            <Button size="sm" onClick={migrateLegacy} disabled={migrating}>{migrating ? "Reprise…" : legacy.toFill.length ? "Reprendre dans le bilan actif" : "Vider l’ancien Profil"}</Button>
+          </div>
+        )}
         {snapshots.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />

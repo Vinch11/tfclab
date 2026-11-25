@@ -11,7 +11,7 @@ export type TestDayFieldKey =
   | "map5min_w" | "vma"
   | "ftp" | "tte_observed_min" | "pace_threshold" | "tte_observed_min_run" | "css" | "vo2max"
   | "run_pace_ref" | "run_hr_ref" | "run_duration_min" | "run_hr_drift_pct"
-  | "tte_ref_w" | "tte_ref_pace";
+  | "tte_ref_w" | "tte_ref_pace" | "lab_mlss_w" | "lab_lactate_mmol";
 
 export interface TestDayField { key: TestDayFieldKey; label: string; unit: string; placeholder: string; type?: "number" | "date" | "text" }
 export interface TestDay { id: string; title: string; hint: string; fields: TestDayField[] }
@@ -52,6 +52,8 @@ export const TEST_DAYS: TestDay[] = [
   ] },
   { id: "labo", title: "Labo", hint: "Mesures de laboratoire ou estimations documentées. Une VO₂max de montre est gardée pour information mais n'entre pas dans les calculs.", fields: [
     { key: "vo2max", label: "VO₂max", unit: "ml/kg/min", placeholder: "55" },
+    { key: "lab_mlss_w", label: "MLSS mesurée (vélo)", unit: "W", placeholder: "230" },
+    { key: "lab_lactate_mmol", label: "Lactate au seuil", unit: "mmol/L", placeholder: "3.5" },
   ] },
 ];
 
@@ -110,7 +112,7 @@ const RANGES: Partial<Record<TestDayFieldKey, [number, number]>> = {
   sprint_15s: [30, 200], map5min_w: [80, 700], vma: [8, 30], ftp: [50, 600],
   tte_observed_min: [1, 120], tte_observed_min_run: [1, 120], css: [50, 300],
   fc_repos: [25, 110], vo2max: [20, 95],
-  tte_ref_w: [50, 600],
+  tte_ref_w: [50, 600], lab_mlss_w: [50, 600], lab_lactate_mmol: [0.5, 12],
   run_hr_ref: [60, 220], run_duration_min: [10, 300], run_hr_drift_pct: [-30, 50],
 };
 const LABEL = Object.fromEntries(TEST_DAYS.flatMap((d) => d.fields.map((f) => [f.key, f.label])));
@@ -261,4 +263,21 @@ export function readTte(snapshot: { tte_observed_min?: number | null; tte_observ
     return { value, ref: typeof ref === "number" ? ref : null, stale: !(typeof stored === "number" && stored > 0) && typeof rec.value === "number", threshold: typeof rec.threshold === "number" ? rec.threshold : null };
   };
   return { bike: pick("bike"), run: pick("run"), formatPace: mmss };
+}
+
+
+/** Mesures labo sans colonne dédiée (MLSS, lactate au seuil) : rangées dans critical_metrics.lab. */
+export function readLabExtras(criticalMetrics: unknown): { mlssW: number | null; lactateMmol: number | null } {
+  let env: unknown = criticalMetrics;
+  if (typeof env === "string") { try { env = JSON.parse(env); } catch { env = null; } }
+  const lab = obj(obj(env).lab);
+  const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : null);
+  return { mlssW: n(lab.mlssW), lactateMmol: n(lab.lactateMmol) };
+}
+export function withLabExtras(envelope: Record<string, unknown>, f: Form): Record<string, unknown> {
+  const mlss = num(f.lab_mlss_w), lac = num(f.lab_lactate_mmol);
+  const next = { ...envelope };
+  const lab = { ...(mlss && !Number.isNaN(mlss) ? { mlssW: Math.round(mlss) } : {}), ...(lac && !Number.isNaN(lac) ? { lactateMmol: Math.round(lac * 10) / 10 } : {}) };
+  if (Object.keys(lab).length) next.lab = lab; else delete next.lab;
+  return next;
 }

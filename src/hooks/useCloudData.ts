@@ -41,6 +41,12 @@ export type DbPlan = Tables<"plans">;
 
 // Snapshot type (table created via migration, not yet in generated types)
 export interface DbSnapshot {
+  /** Chronos de course récents (saisie rapide du profil) : s et date. */
+  time_5k_sec?: number | null; time_5k_date?: string | null;
+  time_10k_sec?: number | null; time_10k_date?: string | null;
+  time_20k_sec?: number | null; time_20k_date?: string | null;
+  time_half_sec?: number | null; time_half_date?: string | null;
+  time_marathon_sec?: number | null; time_marathon_date?: string | null;
   id: string;
   athlete_id: string;
   coach_id: string;

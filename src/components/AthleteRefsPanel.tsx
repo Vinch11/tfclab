@@ -31,6 +31,7 @@ import {
   ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useCloudData, DbAthlete, DbSnapshot } from "@/contexts/CloudDataContext";
 import { AgeAdjustmentBadge } from "@/components/AgeAdjustmentBadge";
@@ -114,6 +115,7 @@ export function AthleteRefsPanel({
     ? PHYSIO_FIELDS_ALL.filter(f => !RUNNING_HIDDEN_PHYSIO_KEYS.includes(f.key))
     : PHYSIO_FIELDS_ALL;
   
+  const navigate = useNavigate();
   // Calcul des refs effectives
   const effective = useMemo(() => getEffectiveRefs(athlete, snapshots), [athlete, snapshots]);
   
@@ -159,19 +161,8 @@ export function AthleteRefsPanel({
         ? { ...athlete.refs as Record<string, unknown> }
         : {};
 
-      // Mettre à jour avec les nouvelles valeurs
-      [...ANTHROPO_FIELDS, ...PHYSIO_FIELDS].forEach(field => {
-        const val = form[field.profileKey];
-        if (val === "" || val == null) {
-          currentRefs[field.profileKey] = null;
-        } else {
-          const parsed = parseFloat(val);
-          currentRefs[field.profileKey] = isNaN(parsed) ? null : parsed;
-        }
-      });
-
+      // Les valeurs de test se saisissent uniquement dans la fiche (bilan) : refs inchangées ici.
       const success = await updateAthlete(athlete.id, { 
-        refs: currentRefs as any,
         birth_date: birthDate || null,
         sex: sex === 'M' || sex === 'F' ? sex : null,
       });
@@ -216,42 +207,19 @@ export function AthleteRefsPanel({
           </div>
         </div>
 
-        {/* Dominant value (if effective) */}
-        {isFromSnapshot && effectiveValue != null && (
-          <div className="px-3 py-2 rounded-md bg-success/5 border border-success/20">
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-display font-semibold text-2xl sm:text-3xl tracking-tight tabular-nums text-foreground">
-                {effectiveValue.toFixed(field.step === "0.1" ? 1 : 0)}
-              </span>
-              <span className="text-xs text-muted-foreground">{field.unit}</span>
-            </div>
+        {/* Lecture seule : la fiche (bilan actif) est la seule source des valeurs de test. */}
+        <div className={cn("px-3 py-2 rounded-md border", isFromSnapshot ? "bg-success/5 border-success/20" : "bg-muted/40 border-border")}>
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-display font-semibold text-2xl sm:text-3xl tracking-tight tabular-nums text-foreground">
+              {effectiveValue != null ? effectiveValue.toFixed(field.step === "0.1" ? 1 : 0) : "—"}
+            </span>
+            <span className="text-xs text-muted-foreground">{field.unit}</span>
           </div>
-        )}
-
-        {/* Profile input (secondary) */}
-        <div className="flex items-center gap-2 min-w-0">
-          <Input
-            id={field.profileKey}
-            type="number"
-            step={field.step || "1"}
-            min={field.min}
-            max={field.max}
-            placeholder={field.placeholder}
-            value={formValue}
-            onChange={(e) => handleChange(field.profileKey, e.target.value)}
-            className={cn(
-              "flex-1 bg-secondary/50 min-w-0 tabular-nums",
-              isFromSnapshot ? "text-sm h-8" : "font-display font-semibold text-xl sm:text-2xl tracking-tight h-11"
-            )}
-            title={isFromSnapshot ? "Valeur profil (snapshot prioritaire)" : undefined}
-          />
         </div>
-
-        {isFromSnapshot && formValue && (
-          <p className="text-[11px] text-muted-foreground truncate">
-            Profil : {formValue} {field.unit} (snapshot prioritaire)
-          </p>
+        {source === "profile" && (
+          <p className="text-[11px] text-amber-700 dark:text-amber-400">Ancienne saisie du profil : à reprendre dans la fiche (bandeau en haut de la fiche).</p>
         )}
+        {source === "none" && <p className="text-[11px] text-muted-foreground">À renseigner dans la fiche athlète.</p>}
       </div>
     );
   };
@@ -468,6 +436,7 @@ export function AthleteRefsPanel({
             Profil & Références
           </CardTitle>
           <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => navigate("/?vue=bilans&fiche=ctx")}>Modifier dans la fiche <ArrowRight className="h-3.5 w-3.5 ml-1" /></Button>
             <QuickChronoDialog athleteId={athlete.id} snapshots={snapshots} activeSnapshotId={athlete.active_snapshot_id ?? null} onSaved={onUpdate} />
             {isDirty && (
               <Button onClick={handleSave} disabled={saving} size="sm">

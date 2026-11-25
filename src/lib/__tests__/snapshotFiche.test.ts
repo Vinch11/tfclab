@@ -67,3 +67,13 @@ describe("TTE et seuil auquel elle a été tenue", () => {
     expect(writeTte({}, { ftp: "188", tte_observed_min: "19" }, "2026-11-25").tte_observed_min).toBe(19);
   });
 });
+
+describe("mesures labo sans colonne", () => {
+  it("MLSS et lactate rangés dans critical_metrics.lab, relus à l'identique", async () => {
+    const { withLabExtras, readLabExtras } = await import("@/lib/snapshotTestDays");
+    const env = withLabExtras({ cycling: { x: 1 } }, { lab_mlss_w: "231.4", lab_lactate_mmol: "3,4" });
+    expect(env.cycling).toEqual({ x: 1 });
+    expect(readLabExtras(env)).toEqual({ mlssW: 231, lactateMmol: 3.4 });
+    expect("lab" in withLabExtras(env, {})).toBe(false);
+  });
+});

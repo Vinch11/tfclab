@@ -24,6 +24,7 @@ export const DAY_CARRIED_FIELDS = [
   'vlamax', 'vlamax_source', 'vlamax_protocol', 'vlamax_is_reference', 'vlamax_run', 'run_hr_drift_pct', 'bike_hr_drift_flag', 'bike_cadence_rpm',
   'run_pace_ref_sec_per_km', 'run_hr_ref_bpm', 'run_duration_min', 'run_economy_score', 'run_economy_label',
   'running_power_max', 'running_power_threshold', 'running_power_1s', 'running_power_5s', 'running_power_30s', 'running_power_60s', 'running_power_5min',
+  'time_5k_sec', 'time_5k_date', 'time_10k_sec', 'time_10k_date', 'time_20k_sec', 'time_20k_date', 'time_half_sec', 'time_half_date', 'time_marathon_sec', 'time_marathon_date',
 ] as const satisfies readonly (keyof DbSnapshot)[];
 
 /** Métadonnées qui ne voyagent qu'avec leur valeur : si le Day mesure la VLamax, on ne reprend pas la source de l'ancienne. */
