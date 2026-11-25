@@ -31,6 +31,14 @@ export function athleteNextStep(decision: string | null | undefined): string {
   return NEXT_STEP[decision] ?? `Le premier chantier proposé est « ${decision} ».`;
 }
 
+/** La natation n'entre pas dans le classement vélo-course du plan : son écart est signalé à part, sans rang. */
+function swimGapNote(g: import('../reportKit/profileGauges').ExtraGauge | null | undefined): string {
+  if (!g || g.row.state !== 'below' || !g.row.zone || g.row.value == null || !(g.row.zone.low > 0)) return '';
+  const gap = Math.round((g.row.zone.low - g.row.value) / g.row.zone.low * 1000) / 10;
+  const show = g.display ?? ((v: number) => String(v));
+  return `<p class="edition-caption"><b>Natation</b> · CSS ${esc(show(g.row.value))} · repère ${esc(show(g.row.zone.high))} – ${esc(show(g.row.zone.low))} (écart ${gap.toLocaleString('fr-FR')} %). Elle n’entre pas dans ce classement vélo-course : ton coach la suit à part.</p>`;
+}
+
 export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): string {
   const sports = d.sports ?? [];
   const brief = d.brief;
@@ -47,7 +55,7 @@ export function buildAthleteProfileReportHTML(d: AthleteProfileReportInput): str
     sport: sports[0], logo: d.logoBase64 });
   const opening = chapter('portrait', 'Ce que tes tests racontent', `
     ${support ? `<p class="edition-deck">${support.r.key === 'vo2max' ? 'Tu peux déjà t’appuyer sur ta VO₂max, commune à tes sports.' : `En ${sportName[support.sport].toLowerCase()}, tu peux déjà t’appuyer sur ton résultat de ${esc(support.r.label)}.`} Ton bilan indique <b>${fmt(support.r.value!)} ${esc(support.r.unit)}</b>, dans la plage de comparaison de ton objectif (${esc(referenceRange(support.r))}).</p>` : `<p class="edition-deck">${brief ? 'On part des efforts que tu as déjà réalisés. Ton prochain test permettra de situer les qualités sur lesquelles tu peux t’appuyer.' : rich(d.profileNarrative)}</p>`}
-    ${first ? `<h3>Ce qui mérite ton attention en ${sportName[first.sport].toLowerCase()}</h3><p><b>${esc(first.r.label)}.</b> ${esc(guide[first.r.key] ?? 'Ce repère aide à préciser la qualité à travailler pour ton épreuve.')}</p>${gapFigure(brief.ranked.slice(0, 3), false, brief)}` : ''}
+    ${first ? `<h3>Ce qui mérite ton attention en ${sportName[first.sport].toLowerCase()}</h3><p><b>${esc(first.r.label)}.</b> ${esc(guide[first.r.key] ?? 'Ce repère aide à préciser la qualité à travailler pour ton épreuve.')}</p>${gapFigure(brief.ranked.slice(0, 3), false, brief)}${swimGapNote(d.swimming?.gauge)}` : ''}
     ${flow ? `<div class="note"><b>La priorité retenue pour ton entraînement</b><p>${esc(flow.title)}</p></div>` : ''}`);
   const journey = chapter('preparation', 'Comment on prépare ton objectif', `
     ${preparationTimeline(d.roadmap, [d.objectifLabel, d.nextRace].filter(Boolean).join(' · '), true)}

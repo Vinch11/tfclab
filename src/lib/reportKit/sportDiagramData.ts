@@ -88,6 +88,14 @@ function zoneOf(ranges: Partial<Record<ZoneKey, Range>>, value: number): string 
   }) ?? null;
 }
 
+/** Une plage (puissance ou allure de course) peut chevaucher deux zones : « Z2–Z3 », de la plus facile à la plus intense. */
+export function zoneSpan(ranges: Partial<Record<ZoneKey, Range>>, a: number, b: number): string | null {
+  const za = zoneOf(ranges, a), zb = zoneOf(ranges, b);
+  if (!za || !zb || za === zb) return za ?? zb;
+  const [lo, hi] = [za, zb].sort((x, y) => ZONE_IDS.indexOf(x as ZoneKey) - ZONE_IDS.indexOf(y as ZoneKey));
+  return `${lo}–${hi}`;
+}
+
 function zoneRows(table: TargetTable, sport: Sport, grid: AnchoredGrid | null = null): ReportZoneRow[] {
   const ranges = sport === 'bike' ? table.bikeZonesW : table.runPacesSecPerKm;
   const ids = ZONE_IDS.filter(id => ranges[id]);
@@ -129,13 +137,13 @@ function bikeLandmarks(payload: ZonePayload, table: TargetTable, grid: AnchoredG
   const ftp = table.ftpW;
   if (!ftp) return [];
   const out: ReportZoneLandmark[] = [];
-  const add = (label: string, watts: number, source: string, shown = `${Math.round(watts)} W`) =>
-    out.push({ label, value: shown, zone: zoneOf(table.bikeZonesW, watts), source });
+  const add = (label: string, watts: number, source: string, shown = `${Math.round(watts)} W`, span?: [number, number]) =>
+    out.push({ label, value: shown, zone: span ? zoneSpan(table.bikeZonesW, span[0], span[1]) : zoneOf(table.bikeZonesW, watts), source });
   const fatmaxPct = payload?.coachingCompass?.profile?.fatmax?.value;
   if (positive(fatmaxPct)) add('FatMax', ftp * fatmaxPct / 100, 'Estimation du modèle');
   if (table.racePowerRange) {
     const [lo, hi] = table.racePowerRange;
-    add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`);
+    add('Puissance de course · ' + objectiveLabel(payload?.athlete?.goal), (lo + hi) / 2, 'Repère des séances du plan', `${lo}–${hi} W`, [lo, hi]);
   }
   if (grid) {
     add('Premier seuil (estimé)', grid.firstThreshold, `≈ ${pctText(grid.firstThreshold / grid.critical)} de la CP`);
@@ -155,17 +163,17 @@ function bikeLandmarks(payload: ZonePayload, table: TargetTable, grid: AnchoredG
 function runLandmarks(payload: ZonePayload, table: TargetTable, derived: DerivedZoneSet | null, grid: AnchoredGrid | null = null): ReportZoneLandmark[] {
   const snap = payload?.effectiveSnapshot;
   const out: ReportZoneLandmark[] = [];
-  const add = (label: string, secPerKm: number, source: string, shown = `${pace(secPerKm)}/km`) =>
-    out.push({ label, value: shown, zone: zoneOf(table.runPacesSecPerKm, secPerKm), source });
+  const add = (label: string, secPerKm: number, source: string, shown = `${pace(secPerKm)}/km`, span?: [number, number]) =>
+    out.push({ label, value: shown, zone: span ? zoneSpan(table.runPacesSecPerKm, span[0], span[1]) : zoneOf(table.runPacesSecPerKm, secPerKm), source });
   const race = objectiveLabel(payload?.athlete?.goal);
   if (table.racePaceRange) {
     const [fast, slow] = table.racePaceRange;
-    add('Allure de course · ' + race, (fast + slow) / 2, 'Repère des séances du plan', `${pace(fast)}–${pace(slow)}/km`);
+    add('Allure de course · ' + race, (fast + slow) / 2, 'Repère des séances du plan', `${pace(fast)}–${pace(slow)}/km`, [fast, slow]);
   } else {
     const marker = derived?.markers.find(m => m.id === 'race_specific');
     const m = marker?.absolute?.match(/^(\d+):(\d\d)–(\d+):(\d\d)\/km$/);
     if (m) add('Allure de course · ' + race, ((+m[1] * 60 + +m[2]) + (+m[3] * 60 + +m[4])) / 2,
-      'Calculée depuis ton allure au seuil', `${m[1]}:${m[2]}–${m[3]}:${m[4]}/km`);
+      'Calculée depuis ton allure au seuil', `${m[1]}:${m[2]}–${m[3]}:${m[4]}/km`, [+m[1] * 60 + +m[2], +m[3] * 60 + +m[4]]);
   }
   if (grid) {
     add('Premier seuil (estimé)', 3600 / grid.firstThreshold, `≈ ${pctText(grid.firstThreshold / grid.critical)} de la CS`);

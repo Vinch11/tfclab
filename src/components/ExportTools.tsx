@@ -203,6 +203,8 @@ interface ExportPayload {
     name: string;
     goal: string | null;
     refs: Record<string, number | null>;
+    /** "M" | "F" ; repères ajustés au sexe (natation…). */
+    sex?: "M" | "F" | null;
   };
   effectiveSnapshot: DbSnapshot | null;
   effectiveRefs: EffectiveRefs;
@@ -2018,7 +2020,8 @@ function buildExportPayload(
       id: athlete.id,
       name: athlete.name,
       goal: athlete.goal,
-      refs: parseRefs(athlete.refs)
+      refs: parseRefs(athlete.refs),
+      sex: athlete.sex === "M" || athlete.sex === "F" ? athlete.sex : null,
     },
     effectiveSnapshot,
     effectiveRefs,

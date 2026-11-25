@@ -1,6 +1,6 @@
 // =============================================
 // FIX 11 - EFFECTIVE REFS (Source unique de vérité)
-// Snapshot actif > Dernier snapshot > Profil (athlete.refs) > null
+// Snapshot actif > (poids, masse grasse, FC max : bilan précédent ≤ 1 an) > Profil (athlete.refs) > null
 // ZÉRO valeur par défaut inventée
 // =============================================
 
@@ -28,7 +28,12 @@ export interface EffectiveRefs {
   };
   // Snapshot utilisé pour les valeurs (si applicable)
   snapshotUsed: DbSnapshot | null;
+  /** Mesures corporelles absentes du bilan de référence, reprises d'un bilan précédent : date de ce bilan. */
+  carriedFrom?: Partial<Record<"weightKg" | "fatPct" | "fcMax", string>>;
 }
+
+/** Mesures corporelles stables : un nouveau bilan sans poids ne doit pas effacer le dernier poids connu. */
+const BODY_CARRY_DAYS = 365;
 
 /**
  * Récupère le snapshot effectif (actif si défini, sinon dernier par date)
@@ -60,6 +65,14 @@ export function getEffectiveRefs(
 ): EffectiveRefs {
   const snapshot = getEffectiveSnapshot(athlete, snapshots);
   const profileRefs = parseAthleteRefs(athlete?.refs);
+  const carriedFrom: NonNullable<EffectiveRefs["carriedFrom"]> = {};
+  // Bilans précédents du même athlète (jusqu'à un an avant le bilan de référence), du plus récent au plus ancien.
+  const earlier = snapshot?.date
+    ? snapshots
+        .filter(s => s.id !== snapshot.id && s.athlete_id === snapshot.athlete_id && !!s.date && s.date <= snapshot.date
+          && (Date.parse(snapshot.date) - Date.parse(s.date)) / 86400000 <= BODY_CARRY_DAYS)
+        .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+    : [];
 
   // Helper: récupère valeur avec source
   const getValue = (
@@ -79,6 +92,17 @@ export function getEffectiveRefs(
           return { value: snapshotVal, source: "snapshot" };
         }
         // Valeur aberrante dans le snapshot - on l'ignore et on passe au profil
+      }
+    }
+    // 1b. Mesure corporelle (poids, masse grasse, FC max) absente du bilan : dernier bilan qui l'a mesurée.
+    if (profileKey === "weightKg" || profileKey === "fatPct" || profileKey === "fcMax") {
+      const prev = earlier.find(s => {
+        const v = s[snapshotKey];
+        return typeof v === "number" && (minValid === undefined || v >= minValid) && (maxValid === undefined || v <= maxValid);
+      });
+      if (prev) {
+        carriedFrom[profileKey] = prev.date;
+        return { value: prev[snapshotKey] as number, source: "snapshot" };
       }
     }
     // 2. Profil
@@ -116,6 +140,7 @@ export function getEffectiveRefs(
       vo2max: vo2max.source,
     },
     snapshotUsed: snapshot,
+    ...(Object.keys(carriedFrom).length ? { carriedFrom } : {}),
   };
 }
 

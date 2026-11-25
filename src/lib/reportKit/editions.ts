@@ -43,14 +43,18 @@ export function gapFigure(gaps: RankedGap[], detailed: boolean, brief?: ReportBr
   // Common scale for the displayed distances. Text retains units, direction and uncertainty.
   const engine = brief?.flow.lead ? [brief.flow.lead, ...brief.flow.others] : [];
   const high = Math.max(...gaps.map(x => x.gap), 1);
+  // Un facteur du moteur (ex. TTE) peut correspondre à deux sports : seul le premier affiché porte « priorité ».
+  const labelled = new Set<number>();
   return `<figure class="gap-figure"><figcaption>Écarts aux repères de l’objectif</figcaption>
     <p class="edition-caption">Longueur de la barre = distance à la borne du repère, en pourcentage.</p>
     ${gaps.map((entry, rank) => {
       const { r, sport, gap, verify } = entry;
       const index = planFactorIndex(engine, entry);
+      const lead = index === 0 && !labelled.has(0);
+      if (index >= 0) labelled.add(index);
       const citations = r.evidence.map(id => compassEvidence.find(e => e.id === id)).filter(Boolean);
       const tier = detailed ? tierName[r.tier] : 'Repère de ton objectif';
-      const engineLabel = detailed ? (index === 0 ? 'Bloc ciblé par le moteur' : 'Également retenu par le moteur') : (index === 0 ? 'C’est la priorité de ton plan' : 'Aussi travaillé dans ton plan');
+      const engineLabel = detailed ? (lead ? 'Bloc ciblé par le moteur' : 'Également retenu par le moteur') : (lead ? 'C’est la priorité de ton plan' : 'Aussi travaillé dans ton plan');
       return `<div class="gap-row"><div class="gap-caption"><div><small>${sportName[sport]} · ${tier}</small><b>${rank + 1}. ${esc(r.label)}</b></div><strong>${fmt(gap)} %</strong></div>
     <div class="gap-track" aria-hidden="true"><i style="width:${gap / high * 100}%"></i></div>
     <p>Bilan <b>${r.value == null ? '—' : fmt(r.value) + ' ' + esc(r.unit)}</b> · Repère <b>${esc(referenceRange(r))}</b></p>
@@ -139,7 +143,11 @@ export function preparationTimeline(roadmap: Roadmap | null | undefined, goal: s
     ? `${cycles.length} courses · ${roadmap.totalWeeks} semaines de préparation`
     : start ? `${roadmap.totalWeeks} semaines jusqu’à l’objectif` : `Trajectoire type sur ${roadmap.totalWeeks} semaines`;
   const span = (phase: Roadmap['phases'][number]) => {
-    const from = weekDate(start, phase.startWeek), to = weekDate(start, phase.endWeek, true);
+    const from = weekDate(start, phase.startWeek);
+    // La semaine de course se termine le jour de la course : l'affûtage ne déborde pas après.
+    const race = cycles.find(c => phase.endWeek === c.endWeek && phase.startWeek >= c.startWeek)?.raceDate;
+    const weekEnd = weekDate(start, phase.endWeek, true);
+    const to = race && weekEnd && from && race < weekEnd && race >= from ? race : weekEnd;
     const weeks = phase.startWeek === phase.endWeek ? 'Semaine ' + phase.startWeek : 'Semaines ' + phase.startWeek + ' à ' + phase.endWeek;
     const dates = from && to ? `Du ${shortDate(from)} au ${shortDate(to)}` : null;
     return athlete ? (dates ?? weeks) : [weeks, dates].filter(Boolean).join(' · ');

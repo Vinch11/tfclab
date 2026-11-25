@@ -138,7 +138,8 @@ export interface ReportTargetProgress {
 export interface AthleteProfileReportInput {
   brief?: import('../reportKit/reportBrief').ReportBrief;
   calendar?: import('../reportKit/reportBrief').CalendarEntry[] | null;
-  swimming?: { css: number | null };
+  /** `gauge` : CSS comparée au repère de l'objectif (même cadran que « Ton profil en un regard »). */
+  swimming?: { css: number | null; gauge?: import('../reportKit/profileGauges').ExtraGauge | null };
   reportReadingHTML?: string;
   compassSummaryHTML?: string;
   evidenceHTML?: string;

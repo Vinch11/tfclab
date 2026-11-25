@@ -186,6 +186,7 @@ function adaptPhasesToLimiter(
   templates: BasePhaseTemplate[],
   totalWeeks: number,
   limiter: UnifiedLimiterResult,
+  goal = "",
 ): RoadmapPhase[] {
   const { primaryLimiter, primaryLever, gapAnalysis, aerobicWeaknessDetail } = limiter;
 
@@ -266,6 +267,7 @@ function adaptPhasesToLimiter(
   // s'étire pour combler l'écart, jamais l'inverse (on ne fait pas démarrer
   // une phase plus tôt que ce que son delta prévoit).
   enforceContiguousPhases(phases, totalWeeks);
+  settlePhaseDurations(phases, totalWeeks, goal);
 
   return phases;
 }
@@ -294,6 +296,43 @@ function enforceContiguousPhases(phases: { startWeek: number; endWeek: number }[
     const last = phases[phases.length - 1];
     if (last.endWeek < totalWeeks) last.endWeek = totalWeeks;
   }
+}
+
+/**
+ * Durées physiologiques minimales (25/11/2026) :
+ * - affûtage : 8–14 jours optimaux (méta-analyse Bosquet et al. 2007) ; le marathon et les épreuves
+ *   longues (70.3, Ironman) gardent au moins 2 semaines (semaine de course comprise), les autres 1 ;
+ *   un décalage de limiteur ne le raccourcit jamais ;
+ * - bloc de développement : un mésocycle (2–3 semaines de charge + 1 d'assimilation) ; en dessous
+ *   de 3 semaines, la qualité visée n'a pas le temps de progresser.
+ * Les semaines manquantes sont prises au bloc le plus long, en gardant les proportions du modèle.
+ */
+const MIN_TAPER_WEEKS: Record<string, number> = { IM: 2, "703": 2, Marathon: 2 };
+const MIN_BLOCK_WEEKS = 3;
+const isTaper = (p: { subtitle?: string; name?: string }) => /affûtage|taper/i.test(`${p.subtitle ?? ""} ${p.name ?? ""}`);
+
+export function settlePhaseDurations(phases: { startWeek: number; endWeek: number; subtitle?: string; name?: string }[], totalWeeks: number, goal: string): void {
+  if (phases.length < 2 || totalWeeks < phases.length) return;
+  const len = phases.map(p => Math.max(1, p.endWeek - p.startWeek + 1));
+  const last = phases.length - 1;
+  const others = last;
+  if (isTaper(phases[last])) len[last] = Math.min(Math.max(len[last], MIN_TAPER_WEEKS[goal] ?? 1), totalWeeks - others);
+  const rest = totalWeeks - len[last];
+  // Proportions du modèle ramenées aux semaines restantes (plus forts restes d'abord).
+  const sum = len.slice(0, last).reduce((a, b) => a + b, 0);
+  const raw = len.slice(0, last).map(l => (l / sum) * rest);
+  const body = raw.map(Math.floor);
+  raw.map((r, i) => [r - Math.floor(r), i] as const).sort((a, b) => b[0] - a[0]).slice(0, rest - body.reduce((a, b) => a + b, 0)).forEach(([, i]) => body[i]++);
+  const min = Math.max(1, Math.min(MIN_BLOCK_WEEKS, Math.floor(rest / others)));
+  for (let i = 0; i < others; i++) {
+    while (body[i] < min) {
+      const donor = body.reduce((best, l, j) => (j !== i && l > min && l > (body[best] ?? 0) ? j : best), -1);
+      if (donor < 0) break;
+      body[donor]--; body[i]++;
+    }
+  }
+  let week = 1;
+  [...body, len[last]].forEach((l, i) => { phases[i].startWeek = week; phases[i].endWeek = week + l - 1; week += l; });
 }
 
 // Fix (audit "estimations de temps/stratégies") : les deltas ci-dessous ont
@@ -621,9 +660,10 @@ function computePhasesForCycle(objective: string, cycleWeeks: number, limiterRes
     // diffère du template natif (24 ou 12 sem), ça peut introduire un trou ou
     // un chevauchement d'1 semaine entre deux phases, même sans limiteur.
     enforceContiguousPhases(phases, cycleWeeks);
+    settlePhaseDurations(phases, cycleWeeks, objective);
     return phases;
   }
-  return adaptPhasesToLimiter(templates, cycleWeeks, limiterResult);
+  return adaptPhasesToLimiter(templates, cycleWeeks, limiterResult, objective);
 }
 
 export function computeStrategicRoadmap(input: RoadmapInput): StrategicRoadmap {
@@ -716,7 +756,7 @@ export function computeStrategicRoadmap(input: RoadmapInput): StrategicRoadmap {
     };
   }
 
-  const phases = adaptPhasesToLimiter(templates, totalWeeks, input.limiterResult);
+  const phases = adaptPhasesToLimiter(templates, totalWeeks, input.limiterResult, goal);
   const limiterInfo = LIMITER_INFO[input.limiterResult.primaryLimiter];
 
   return {
