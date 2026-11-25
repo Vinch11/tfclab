@@ -87,17 +87,17 @@ const F = {
   } satisfies SnapshotFieldSpec,
   sport_main: {
     unit: "",
-    read: (s) => ({ run: "Course à pied", bike: "Vélo", swim: "Natation", triathlon: "Triathlon" } as Record<string, string>)[(s as any)?.sport_main ?? ""] ?? null,
+    read: (s) => ({ run: "Course à pied", bike: "Vélo", swim: "Natation", triathlon: "Triathlon" } as Record<string, string>)[(s as { sport_main?: string } | null)?.sport_main ?? ""] ?? null,
     write: () => ({}),
   } satisfies SnapshotFieldSpec,
   lab_mlss: {
     unit: "W",
-    read: (s) => readLabExtras((s as any)?.critical_metrics).mlssW,
+    read: (s) => readLabExtras((s as { critical_metrics?: unknown } | null)?.critical_metrics).mlssW,
     write: () => ({}),
   } satisfies SnapshotFieldSpec,
   lab_lactate: {
     unit: "mmol/L",
-    read: (s) => readLabExtras((s as any)?.critical_metrics).lactateMmol,
+    read: (s) => readLabExtras((s as { critical_metrics?: unknown } | null)?.critical_metrics).lactateMmol,
     write: () => ({}),
   } satisfies SnapshotFieldSpec,
   weight_kg: {

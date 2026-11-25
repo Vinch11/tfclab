@@ -244,7 +244,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         };
       })(),
       critical_metrics: (s as any).critical_metrics ? JSON.stringify((s as any).critical_metrics) : "",
-      ...(() => { const lab = readLabExtras((s as any).critical_metrics); return { lab_mlss_w: lab.mlssW != null ? String(lab.mlssW) : "", lab_lactate_mmol: lab.lactateMmol != null ? String(lab.lactateMmol) : "" }; })(),
+      ...(() => { const lab = readLabExtras((s as { critical_metrics?: unknown }).critical_metrics); return { lab_mlss_w: lab.mlssW != null ? String(lab.mlssW) : "", lab_lactate_mmol: lab.lactateMmol != null ? String(lab.lactateMmol) : "" }; })(),
 
       // ⚡ État de fatigue
       fatigue_state: s.fatigue_state || "ok",
