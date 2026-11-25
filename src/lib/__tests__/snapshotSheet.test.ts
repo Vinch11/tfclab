@@ -48,3 +48,13 @@ describe("sexe et âge dans la fiche", () => {
     expect(missing.rows[0].source).toContain("repères non ajustés");
   });
 });
+
+describe("chronos et mesures labo dans la fiche", () => {
+  it("chronos de course affichés dans Course, MLSS et lactate dans Labo", () => {
+    const blocks = buildSnapshotSheet({ date: "2026-11-25", time_10k_sec: 2850, time_10k_date: "2026-10-12", critical_metrics: { lab: { mlssW: 230, lactateMmol: 3.4 } } });
+    const run = blocks.find(b => b.id === "run")!;
+    expect(run.rows.find(r => r.label === "Chrono 10 km")).toEqual({ label: "Chrono 10 km", value: "47:30 (4:45/km)", source: "12/10/2026" });
+    const labo = blocks.find(b => b.id === "labo")!;
+    expect(labo.rows.map(r => r.label)).toEqual(["MLSS mesurée (vélo)", "Lactate au seuil"]);
+  });
+});

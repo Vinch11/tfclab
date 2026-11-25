@@ -5,7 +5,7 @@
 import { criticalEnvelope, parseStoredCriticalMetrics, type StoredCriticalSport } from "@/lib/criticalMetrics";
 import { parseStoredDurability } from "@/lib/durability/longSessionDurability";
 import { readThresholdOrigin, type ThresholdOrigin } from "@/lib/zones/thresholdOrigin";
-import { readTte, readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
+import { readLabExtras, readTte, readVo2max, type Vo2maxOrigin } from "@/lib/snapshotTestDays";
 
 export type SheetBlockId = "ctx" | "bike" | "run" | "swim" | "durability" | "labo" | "notes";
 export interface SheetRow { label: string; value: string; source?: string }
@@ -19,6 +19,8 @@ export interface SheetSnapshot {
   sprint_15s_distance?: number | null; vma?: number | null; pace_threshold_sec_per_km?: number | null; tte_observed_min_run?: number | null;
   run_pace_ref_sec_per_km?: number | null; run_hr_ref_bpm?: number | null; run_hr_drift_pct?: number | null;
   css?: number | null; vo2max?: number | null; vlamax?: number | null; vlamax_run?: number | null; fat_pct?: number | null;
+  time_5k_sec?: number | null; time_10k_sec?: number | null; time_20k_sec?: number | null; time_half_sec?: number | null; time_marathon_sec?: number | null;
+  time_5k_date?: string | null; time_10k_date?: string | null; time_20k_date?: string | null; time_half_date?: string | null; time_marathon_date?: string | null;
   critical_metrics?: unknown; field_sources?: unknown; coach_notes?: string | null;
 }
 
@@ -43,6 +45,16 @@ export interface SheetDurabilityPair { sport: "bike" | "run"; decouplingPct: num
 
 export interface SheetAthlete { sex?: string | null; birthDate?: string | null }
 const ageAt = (birth: string, on: string) => { const b = new Date(birth + "T00:00:00Z"), d = new Date(on + "T00:00:00Z"); let a = d.getUTCFullYear() - b.getUTCFullYear(); if (d.getUTCMonth() < b.getUTCMonth() || (d.getUTCMonth() === b.getUTCMonth() && d.getUTCDate() < b.getUTCDate())) a--; return a; };
+
+const hms = (sec: number) => { const t = Math.round(sec), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), x = t % 60; return h ? `${h}:${String(m).padStart(2, "0")}:${String(x).padStart(2, "0")}` : `${m}:${String(x).padStart(2, "0")}`; };
+const CHRONOS = [["time_5k", "Chrono 5 km", 5], ["time_10k", "Chrono 10 km", 10], ["time_20k", "Chrono 20 km", 20], ["time_half", "Chrono semi", 21.0975], ["time_marathon", "Chrono marathon", 42.195]] as const;
+function chronoRows(s: SheetSnapshot): SheetRow[] {
+  const r = s as unknown as Record<string, unknown>;
+  return CHRONOS.flatMap(([k, label, km]) => {
+    const sec = r[`${k}_sec`], date = r[`${k}_date`];
+    return typeof sec === "number" && sec > 0 ? [{ label, value: `${hms(sec)} (${mmss(sec / km)}/km)`, source: typeof date === "string" && date ? dateFr(date) : undefined }] : [];
+  });
+}
 
 export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?: SheetDurabilityPair[]; athlete?: SheetAthlete } = {}): SheetBlock[] {
   const critical = parseStoredCriticalMetrics(s.critical_metrics);
@@ -105,6 +117,7 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h` } : null,
     ok(s.sprint_15s_distance) ? { label: "Sprint 15 s", value: `${fr(s.sprint_15s_distance)} m` } : null,
     tteRow("run"),
+    ...chronoRows(s),
     ok(s.run_pace_ref_sec_per_km) && ok(s.run_hr_ref_bpm)
       ? { label: "FC à allure stable", value: `${s.run_hr_ref_bpm} bpm à ${mmss(s.run_pace_ref_sec_per_km)}/km${typeof s.run_hr_drift_pct === "number" ? ` · dérive ${fr(s.run_hr_drift_pct, 1)} %` : ""}` } : null,
   ].filter(Boolean) as SheetRow[], [
@@ -139,6 +152,10 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     ok(s.vlamax) ? { label: "VLamax vélo", value: `${fr(s.vlamax, 2)} mmol/L/s`, source: "mesurée" } : null,
     ok(s.vlamax_run) ? { label: "VLamax course", value: `${fr(s.vlamax_run, 2)} mmol/L/s`, source: "mesurée" } : null,
     ok(s.fat_pct) ? { label: "Masse grasse", value: `${fr(s.fat_pct, 1)} %` } : null,
+    ...(() => { const lab = readLabExtras(s.critical_metrics); return [
+      lab.mlssW != null ? { label: "MLSS mesurée (vélo)", value: `${lab.mlssW} W`, source: "labo" } : null,
+      lab.lactateMmol != null ? { label: "Lactate au seuil", value: `${fr(lab.lactateMmol, 1)} mmol/L`, source: "labo" } : null,
+    ]; })(),
   ].filter(Boolean) as SheetRow[], [vo2.value != null ? `VO₂max ${fr(vo2.value, 1)}${vo2.origin ? ` (${VO2_LABEL[vo2.origin]})` : ""}` : "", ok(s.vlamax) ? `VLamax ${fr(s.vlamax, 2)}` : ""]);
 
   // Notes

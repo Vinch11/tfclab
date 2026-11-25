@@ -2,10 +2,9 @@
  * CoachChecklistPage — Checklists tests & données par sport (Run / Tri / Trail)
  * Cochable, persistante par athlète (localStorage), exportable PDF (print).
  *
- * ✅ Saisie inline : pour les items mappés à une colonne snapshot, le coach
- * peut entrer la valeur directement dans la checklist. La valeur est écrite
- * dans le snapshot actif (ou crée un snapshot du jour si absent), ce qui
- * la rend immédiatement utilisable par les moteurs Diagnostic / Décision / Plan.
+ * Valeurs de test : affichées depuis le bilan actif ; « Modifier dans la fiche » ouvre le bon bloc
+ * de la fiche athlète (source unique, avec provenance et contrôles). Seuls l'identité, la date de course
+ * et l'ambition (propres à l'athlète) restent modifiables ici.
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -26,6 +25,7 @@ import { AMBITION_DEFINITIONS, AMBITION_LEVELS_ORDERED } from "@/types/ambitionL
 import { toast } from "sonner";
 import { resolveRunningEconomyFromSnapshot } from "@/lib/runningEconomySimple";
 import { printCurrentDocument } from "@/lib/openPrintableHTML";
+import { readLabExtras } from "@/lib/snapshotTestDays";
 
 /**
  * Field mapping vers une colonne snapshot.
@@ -79,6 +79,27 @@ type Sport = "common" | "run" | "tri" | "trail";
 // ============================================================
 
 const F = {
+  fc_repos: {
+    unit: "bpm",
+    step: "1",
+    read: (s) => s?.fc_repos ?? null,
+    write: (v) => ({ fc_repos: Math.round(v) }),
+  } satisfies SnapshotFieldSpec,
+  sport_main: {
+    unit: "",
+    read: (s) => ({ run: "Course à pied", bike: "Vélo", swim: "Natation", triathlon: "Triathlon" } as Record<string, string>)[(s as { sport_main?: string } | null)?.sport_main ?? ""] ?? null,
+    write: () => ({}),
+  } satisfies SnapshotFieldSpec,
+  lab_mlss: {
+    unit: "W",
+    read: (s) => readLabExtras((s as { critical_metrics?: unknown } | null)?.critical_metrics).mlssW,
+    write: () => ({}),
+  } satisfies SnapshotFieldSpec,
+  lab_lactate: {
+    unit: "mmol/L",
+    read: (s) => readLabExtras((s as { critical_metrics?: unknown } | null)?.critical_metrics).lactateMmol,
+    write: () => ({}),
+  } satisfies SnapshotFieldSpec,
   weight_kg: {
     unit: "kg",
     step: "0.1",
@@ -308,14 +329,11 @@ const SOCLE: Section = {
   title: "Socle commun (tous athlètes)",
   items: [
     { id: "weight", label: "Poids (kg)", test: "Balance, à jeun le matin", encode: "Snapshot → Poids", field: F.weight_kg, navigateTo: "/" },
-    { id: "height", label: "Taille (cm)", test: "Mesure debout sans chaussures", encode: "Profil athlète → Anthropométrie", athleteField: A.height_cm, navigateTo: "/athleteEditPage" },
     { id: "age", label: "Date de naissance", test: "Date de naissance (utilisée pour âge & ajustements masters)", encode: "Profil athlète → Identité", athleteField: A.birth_date, navigateTo: "/athleteEditPage" },
     { id: "sex", label: "Sexe", test: "Utilisé par FatMax, économie, VO₂max relatif", encode: "Profil → Identité → Sexe", athleteField: A.sex, navigateTo: "/athleteEditPage" },
     { id: "fcmax", label: "FC max (bpm)", test: "Test terrain : 3 km échauffement + 2×3 min all-out + 1 min all-out", encode: "Snapshot → FC max", field: F.fc_max, navigateTo: "/" },
-    { id: "fcrest", label: "FC repos (bpm)", test: "Moyenne sur 5 matins consécutifs, allongé, avant lever", encode: "Profil → Données physio → FCrepos", athleteField: A.fc_rest, navigateTo: "/athleteEditPage" },
-    { id: "experience", label: "Niveau d'expérience", test: "Années d'entraînement structuré (filtre bibliothèque séances)", encode: "Profil → Expérience", athleteField: A.experience_level, navigateTo: "/athleteEditPage" },
-    { id: "tss7d", label: "Charge TSS hebdo habituelle", test: "TSS/sem moyen des 4–8 dernières semaines (référence fatigue F36/F37)", encode: "Profil → Charge habituelle", athleteField: A.tss_7d_habituel, navigateTo: "/athleteEditPage" },
-    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Profil → Sport principal", athleteField: A.sport_main, navigateTo: "/athleteEditPage" },
+    { id: "fcrest", label: "FC repos (bpm)", test: "Médiane de 7 matins (montre via Nolio) ou mesure allongée au réveil", encode: "Fiche → Contexte → FC repos", field: F.fc_repos },
+    { id: "sport", label: "Sport principal", test: "Discipline cible (Run / Tri / Trail)", encode: "Fiche → Compléments → Sport principal", field: F.sport_main },
     { id: "raceDate", label: "Date de la course objectif", test: "Date officielle de la course A", encode: "Profil → Objectif principal → Date", athleteField: A.race_date, navigateTo: "/athleteEditPage" },
     { id: "ambition", label: "Niveau d'ambition", test: "Découverte / Confirmé / Compétiteur / Qualifiable / Élite", encode: "Profil → Objectif → Ambition", athleteField: A.ambition, navigateTo: "/athleteEditPage" },
   ],
@@ -341,8 +359,8 @@ const TRI: Section = {
     { id: "pmax5", label: "Puissance max 5s (W)", test: "Sprint vélo 5 s départ lancé, meilleur de 3 essais", encode: "Snapshot → Pmax 5s", field: F.pmax_5s, navigateTo: "/diagnostic/testing-week-tfcl" },
     { id: "tte_bike", label: "TTE vélo à FTP (min)", test: "Tenir le plus longtemps possible à FTP (objectif >40 min)", encode: "Snapshot → TTE Bike", field: F.tte_bike, navigateTo: "/diagnostic/testing-week-tfcl" },
     { id: "vlamax_bike", label: "VLamax vélo (mmol/L/s)", test: "Sprint vélo 15 s (calculé ou estimé multi-sources)", encode: "Snapshot → VLamax", field: F.vlamax_bike, navigateTo: "/diagnostic/vlamax" },
-    { id: "mlss_obs", label: "MLSS observée (W)", test: "Test labo MLSS ou 60 min all-out validé (anchor calibration bike)", encode: "Profil → Refs → MLSS observée", athleteField: A.mlss_observed_w, navigateTo: "/athleteEditPage" },
-    { id: "lactate_lab", label: "Seuil lactate labo (mmol/L)", test: "Test incrémental labo (prime cap-estimator VLamax)", encode: "Profil → Refs → Seuil lactate labo", athleteField: A.lactate_threshold_mmol, navigateTo: "/athleteEditPage" },
+    { id: "mlss_obs", label: "MLSS mesurée (W)", test: "Test labo MLSS (plusieurs paliers de 30 min)", encode: "Fiche → Labo → MLSS mesurée", field: F.lab_mlss },
+    { id: "lactate_lab", label: "Lactate au seuil (mmol/L)", test: "Test incrémental labo", encode: "Fiche → Labo → Lactate au seuil", field: F.lab_lactate },
     { id: "css", label: "CSS natation (sec/100m)", test: "400 m + 200 m all-out, CSS = (D400−D200)/2", encode: "Snapshot → CSS", field: F.css, navigateTo: "/" },
     { id: "vo2_bike", label: "VO₂max vélo (ml/kg/min)", test: "Auto depuis FTP + poids, ou test labo direct", encode: "Snapshot → VO₂max", field: F.vo2max, navigateTo: "/diagnostic/testing-week-tfcl" },
     { id: "run_subset", label: "Données coureur (VMA + seuil + sprint 15s)", test: "Voir checklist Coureur (sport secondaire)", encode: "Voir onglet Coureur" },
@@ -354,14 +372,20 @@ const TRAIL: Section = {
   items: [
     { id: "v_up", label: "Vitesse ascensionnelle au seuil (m/h)", test: "Côte régulière 5–8% pendant 20 min all-out", encode: "Diagnostic → Tests → V↑ seuil", navigateTo: "/diagnostic/tests" },
     { id: "sprint_uphill", label: "Sprint côte 30s (m)", test: "Sprint montée raide (8–12%) 30 s all-out, distance parcourue", encode: "Diagnostic → Tests → Sprint côte", navigateTo: "/diagnostic/tests" },
-    { id: "weekly_dplus", label: "Charge D+ hebdo habituelle (m)", test: "Moyenne D+ des 4 dernières semaines (Strava/Garmin)", encode: "Profil → Trail → D+ hebdo", athleteField: A.weekly_dplus_target_m, navigateTo: "/athleteEditPage" },
-    { id: "max_dplus_session", label: "D+ max sur une séance (m)", test: "Plus gros D+ encaissé en sortie longue récente (3 mois)", encode: "Profil → Trail → D+ max séance", athleteField: A.peak_dplus_session_m, navigateTo: "/athleteEditPage" },
     { id: "race_profile", label: "Profil course objectif (km / D+ / altitude max)", test: "Trace GPX officielle de la course", encode: "Profil → Objectif Trail → Profil course", navigateTo: "/athleteEditPage" },
-    { id: "target_time", label: "Temps cible (h)", test: "Estimation réaliste basée sur courses similaires", encode: "Profil → Objectif → Temps cible", athleteField: A.target_time_hours, navigateTo: "/athleteEditPage" },
+    { id: "target_time", label: "Temps cible", test: "Estimation réaliste basée sur courses similaires", encode: "Plan → Objectif de course → Temps cible (utilisé pour les allures du plan)", navigateTo: "/planning/ai-plan" },
     { id: "eccentric_eco", label: "Économie excentrique (descente)", test: "Auto depuis FIT : dérive FC sur descentes longues", encode: "Auto depuis FIT", navigateTo: "/diagnostic/tests" },
     { id: "fatigue_descent", label: "Fatigue post-descente (subjectif 1–10)", test: "Note ressentie 24 h après sortie longue avec D−", encode: "Snapshot quotidien → Fatigue", navigateTo: "/" },
     { id: "run_subset_trail", label: "Données coureur (VMA + seuil + sprint 15s)", test: "Voir checklist Coureur (base aérobie)", encode: "Voir onglet Coureur" },
   ],
+};
+
+/** Bloc de la fiche où chaque valeur de test se saisit (source unique). */
+const FICHE_BLOCK: Record<string, string> = {
+  weight: "ctx", fcmax: "ctx", fcrest: "ctx", sport: "ctx",
+  vma: "run", seuil_run: "run", sprint15: "run", tte_run: "run",
+  ftp: "bike", pmax5: "bike", tte_bike: "bike",
+  css: "swim", vo2max: "labo", vo2_bike: "labo", vlamax_bike: "labo", mlss_obs: "labo", lactate_lab: "labo",
 };
 
 /**
@@ -881,14 +905,19 @@ function ChecklistView({
                         </Button>
                       )}
                     </div>
-                    {item.field && (
-                      <InlineFieldInput
-                        field={item.field}
-                        snapshot={snapshot}
-                        onCommit={onCommitField}
-                        disabled={!canEdit}
-                      />
-                    )}
+                    {item.field && (() => {
+                      // Valeur de test : lecture seule ici, saisie dans la fiche (provenance, contrôles, TTE liée au seuil).
+                      const v = item.field.read(snapshot);
+                      const block = FICHE_BLOCK[item.id] ?? "ctx";
+                      return (
+                        <div className="mt-2 flex flex-wrap items-center gap-2 print:hidden">
+                          <span className="text-sm tabular-nums">{v != null && v !== "" ? `${v}${item.field.unit ? ` ${item.field.unit}` : ""}` : "—"}</span>
+                          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => navigate(`/?vue=bilans&fiche=${block}`)}>
+                            Modifier dans la fiche <ArrowRight className="h-3 w-3 ml-1" />
+                          </Button>
+                        </div>
+                      );
+                    })()}
                     {item.athleteField && (
                       <InlineAthleteFieldInput
                         field={item.athleteField}
