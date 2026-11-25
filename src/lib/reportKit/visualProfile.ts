@@ -12,7 +12,8 @@ import { latestPairs } from '../diagnostic/durabilityDay';
 import { reportFieldEvidence } from './fieldEvidence';
 import { esc } from './index';
 import { dateLabel, sportName } from './editions';
-import { chartFigure, pace, rangeGauge, tracePlot } from './visualFigures';
+import { chartFigure, pace, pendingGauge, rangeGauge, tracePlot } from './visualFigures';
+import { extraGauges, gaugeSentence, swimGauge } from './profileGauges';
 import type { ReportBrief } from './reportBrief';
 import type { PerformanceReportInput } from '../performanceReport/types';
 
@@ -319,16 +320,25 @@ export function buildVisualProfile(d: Dossier, p: PerformanceReportInput, coach:
             (r.key === 'tte' ? p.sportTte?.find((t) => t.sport === sport) : undefined);
           return rangeGauge(
             r,
-            axis?.value === r.value && axis.source ? metricSourceLabel(axis.source) : undefined,
+            axis?.value === r.value && axis.source ? metricSourceLabel(axis.source, r.key) : undefined,
             !coach,
+            { sentence: gaugeSentence(r.key, sport, !coach) },
           );
         })
         .filter(Boolean);
+      // Cadrans complémentaires (mesures des Days) puis repères encore à mesurer, avec le test qui les donne.
+      const extra = extraGauges(d, sport, rows, !coach);
+      const shown = new Set(rows.filter(r => r.value != null).map(r => r.key));
+      cards.push(...extra.gauges.filter(g => !shown.has(g.row.key)).map(g => rangeGauge(g.row, undefined, !coach, { display: g.display, sentence: g.sentence })).filter(Boolean));
+      cards.push(...extra.pending.map(pg => pendingGauge(pg.label, pg.need, pg.sentence)));
       return cards.length
         ? `<div class="gauge-sport"><h3>${sportName[sport]}</h3><div class="lab-gauges">${cards.join('')}</div></div>`
         : '';
     })
-    .join('');
+    .join('') + (() => {
+      const swim = swimGauge(d, !coach);
+      return swim ? `<div class="gauge-sport"><h3>Natation</h3><div class="lab-gauges">${rangeGauge(swim.row, undefined, !coach, { display: swim.display, sentence: swim.sentence })}</div></div>` : '';
+    })();
   const snapshot = d.effectiveSnapshot?.athlete_id === d.athlete.id ? d.effectiveSnapshot : null;
   const { critical } = reportFieldEvidence(snapshot);
   const pairs = snapshot ? latestPairs(d.tests, d.athlete.id, snapshot.date) : [];

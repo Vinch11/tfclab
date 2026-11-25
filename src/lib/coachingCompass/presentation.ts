@@ -6,7 +6,9 @@ import { computeRunningCompassDiagnostic, computeCyclingCompassDiagnostic } from
 import type { AmbitionLevel } from '@/types/ambitionLevel';
 
 // Read-only view: never write these values back into diagnosis or plan contracts.
-export function metricSourceLabel(source: string): string {
+/** `key` : la VLamax calculée par les tests TFCL s'affiche « Mesure TFCL » (choix coach du 25/11/2026). */
+export function metricSourceLabel(source: string, key?: string): string {
+  if (key && /^vlamax/.test(key) && source !== "test_labo" && source !== "unknown") return "🏃 Mesure TFCL · tests de terrain";
   if (source === "test_labo") return "🧪 Labo";
   if (source === "observed") return "🏃 Test terrain déclaré";
   if (source === "test_terrain" || source === "test") return "🏃 Terrain — à confirmer";

@@ -2,6 +2,7 @@
 import { esc, num, RK } from './index';
 import { durabilityReviewNotes } from '../coachingCompass/factorStates';
 import { metricSourceLabel } from '../coachingCompass/presentation';
+import { GARMIN_BOX_CSS } from './garminBox';
 import type { DurabilitySport, StoredDurabilitySport } from '../durability/longSessionDurability';
 
 export interface PersonalComparison {
@@ -37,7 +38,7 @@ export interface SportDiagramInput {
   landmarks?: { label: string; value: string; zone: string | null; source: string }[];
 }
 
-export const PEDAGOGY_CSS = `
+export const PEDAGOGY_CSS = GARMIN_BOX_CSS + `
 .sport-diagram{margin:22px 0;break-inside:auto;border:1px solid ${RK.line};border-radius:18px;background:${RK.surface};overflow:hidden}
 .diagram-overview{display:contents}
 @media screen {
@@ -145,7 +146,7 @@ function energyHTML(input: SportDiagramInput): string {
     ? 'Les chiffres ci-dessous viennent de ton bilan. Le repère est le même que sur tes jauges.'
     : 'Les chiffres ci-dessous viennent du bilan affiché dans ton compass. La cible, lorsqu’elle existe, est reprise sans modification.';
   return `<div class="diagram-block energy-block"><h4>Énergie · tes repères physiologiques</h4><p class="diagram-intro">${intro}</p><div class="energy-grid">${rows.map(r =>
-    `<div class="energy-marker" data-energy="${esc(r.key ?? '')}"><div class="energy-label">${esc(r.label)}</div><div class="energy-value">${num(r.value, decimalsFor(r.unit))} <small>${esc(r.unit)}</small></div>${referenceText(r, !!input.athlete)}<div class="energy-meaning">${energyMeaning(r.key, input.sport)}</div>${r.source ? `<div class="energy-source">${esc(metricSourceLabel(r.source))}</div>` : ''}</div>`
+    `<div class="energy-marker" data-energy="${esc(r.key ?? '')}"><div class="energy-label">${esc(r.label)}</div><div class="energy-value">${num(r.value, decimalsFor(r.unit))} <small>${esc(r.unit)}</small></div>${referenceText(r, !!input.athlete)}<div class="energy-meaning">${energyMeaning(r.key, input.sport)}</div>${r.source ? `<div class="energy-source">${esc(metricSourceLabel(r.source, r.key))}</div>` : ''}</div>`
   ).join('')}</div></div>`;
 }
 
