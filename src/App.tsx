@@ -32,7 +32,6 @@ const AITrainingPlanPage = lazy(() => import("./pages/AITrainingPlanPage"));
 const TemplatesPage = lazy(() => import("./pages/TemplatesPage"));
 const RaceSimulationPage = lazy(() => import("./pages/RaceSimulationPage"));
 const DurabilityDayPage = lazy(() => import("./pages/DurabilityDayPage"));
-const PacingAuditPage = lazy(() => import("./pages/PacingAuditPage"));
 const RunningProfilePage = lazy(() => import("./pages/RunningProfilePage"));
 const CriticalMetricsPage = lazy(() => import("./pages/CriticalMetricsPage"));
 const AthleteEditPage = lazy(() => import("./pages/AthleteEditPage"));
@@ -70,6 +69,7 @@ const LabCoachHarness = lazy(() => import("./pages/__e2e/LabCoachHarness"));
 const CompassPerformanceHarness = lazy(() => import("./pages/__e2e/CompassPerformanceHarness"));
 const PlanContractHarness = lazy(() => import("./pages/__e2e/PlanContractHarness"));
 const DashboardProfileHarness = lazy(() => import("./pages/__e2e/DashboardProfileHarness"));
+const RaceCardHarness = lazy(() => import("./pages/__e2e/RaceCardHarness"));
 
 const queryClient = new QueryClient();
 
@@ -126,6 +126,7 @@ export default function App() {
                   {import.meta.env.DEV && <Route path="/__e2e/lab-coach" element={<LabCoachHarness />} />}
                   {import.meta.env.DEV && <Route path="/__e2e/compass-performance" element={<CompassPerformanceHarness />} />}
                   {import.meta.env.DEV && <Route path="/__e2e/plan-contract" element={<PlanContractHarness />} />}
+                  {import.meta.env.DEV && <Route path="/__e2e/race-card" element={<RaceCardHarness />} />}
                   {import.meta.env.DEV && <Route path="/__e2e/dashboard-profile" element={<DashboardProfileHarness />} />}
 
                   {/* ═══════════════════════════════════════════ */}
@@ -178,7 +179,7 @@ export default function App() {
                   {/* SECTION 5 — SIMULATION                     */}
                   {/* ═══════════════════════════════════════════ */}
                   <Route path="/race" element={<ProtectedRoute><RaceSimulationPage /></ProtectedRoute>} />
-                  <Route path="/race/pacing-audit" element={<ProtectedRoute><PacingAuditPage /></ProtectedRoute>} />
+                  <Route path="/race/pacing-audit" element={<Navigate to="/race" replace />} />
                   <Route path="/simulation/trail" element={<ProtectedRoute><TrailSimulationPage /></ProtectedRoute>} />
 
                   {/* ═══════════════════════════════════════════ */}

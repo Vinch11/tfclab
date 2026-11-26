@@ -226,3 +226,8 @@ export function useAthletes() {
   if (!ctx) throw new Error("useAthletes must be used within an AthleteProvider");
   return ctx;
 }
+
+/** Comme useAthletes, mais sans erreur hors du provider (menus rendus seuls, tests). */
+export function useOptionalAthletes() {
+  return useContext(AthleteContext);
+}

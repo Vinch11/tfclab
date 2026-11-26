@@ -20,6 +20,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Footprints, Gauge } from "lucide-react";
+import { useOptionalAthletes } from "@/contexts/AthleteContext";
+import { simulationHiddenFor } from "@/lib/raceSimulation/raceCardData";
 import { cn } from "@/lib/utils";
 import { useRef, useCallback, useState } from "react";
 import { useIsRunningOnly } from "@/hooks/useRunningFocusMode";
@@ -52,6 +54,11 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPress = useRef(false);
   const isRunningOnly = useIsRunningOnly();
+  // Pas de simulation de course pour un objectif StartToRun ou 5 km.
+  const currentAthlete = useOptionalAthletes()?.currentAthlete ?? null;
+  const hideSimulation = simulationHiddenFor(currentAthlete?.objectif ?? currentAthlete?.goal);
+  const shownTabs = hideSimulation ? tabs.filter(t => t.id !== "simulation") : tabs;
+  const shownSecondary = hideSimulation ? secondaryTabs.filter(t => t.id !== "simulation") : secondaryTabs;
   const [showToast, setShowToast] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
@@ -116,7 +123,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
           <div className="absolute top-0 left-0 right-0 h-px bg-primary/40" />
         )}
         <div className="grid grid-cols-9 h-14">
-          {tabs.map((tab) => {
+          {shownTabs.map((tab) => {
             const Icon = tab.icon;
             const active = isActive(tab);
             return (
@@ -161,7 +168,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
           <button
             aria-expanded={showMoreMenu}
             aria-controls={showMoreMenu ? "mobile-more-actions" : undefined}
-            data-secondary-current={secondaryTabs.some(isActive) || undefined}
+            data-secondary-current={shownSecondary.some(isActive) || undefined}
             onKeyDown={e => {
               if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleSettingsTap(); }
             }}
@@ -223,7 +230,7 @@ export function MobileBottomNav({ activeTab, onTabChange, staffMode, onStaffMode
           <div id="mobile-more-actions" className="workspace-more md:hidden fixed bottom-16 right-2 z-[60] animate-in fade-in slide-in-from-bottom-2 duration-200 safe-area-inset-bottom">
             <div className="bg-card border border-border/60 rounded-xl shadow-xl overflow-hidden min-w-[180px]">
               <div className="dock-destinations hidden">
-                {secondaryTabs.map(tab => {
+                {shownSecondary.map(tab => {
                   const Icon = tab.icon;
                   return <button key={tab.id} aria-current={isActive(tab) ? "page" : undefined}
                     onClick={() => { handleClick(tab); setShowMoreMenu(false); }}>
