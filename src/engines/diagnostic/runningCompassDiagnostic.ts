@@ -11,6 +11,8 @@ export interface RunningCompassDiagnosticInput {
   vma: number | null;
   vo2max: number | null;
   vo2Source: string;
+  /** Provenance déclarée de la VMA (affichage) ; « snapshot » par défaut. */
+  vmaSource?: string;
   paceThresholdSecPerKm: number | null;
   vlamax: { value: number | null; source: string } | null;
   tte: { tte_min: number; source: string } | null;
@@ -44,7 +46,7 @@ export function computeRunningCompassDiagnostic(input: RunningCompassDiagnosticI
   const axes = [
     make('vo2max', 'VO₂max · modalité du test à préciser', positive(input.vo2max), getVo2maxTarget(input.objectif, input.ambition, input.age), 'ml/kg/min', input.vo2Source),
     make('vlamax', 'VLamax course', positive(input.vlamax?.value), vlaRange.optimal, 'mmol/L/s', input.vlamax?.source ?? 'unknown'),
-    make('vma', 'Vitesse maximale aérobie course', positive(input.vma), vmaTarget, 'km/h', 'snapshot'),
+    make('vma', 'Vitesse maximale aérobie course', positive(input.vma), vmaTarget, 'km/h', input.vmaSource ?? 'snapshot'),
     make('tte', 'Endurance au seuil course — TTE', tteValue, tteTarget, 'min', input.tte?.source ?? 'unknown'),
   ];
   const details: Record<string, { explanation: string; lever: string }> = {

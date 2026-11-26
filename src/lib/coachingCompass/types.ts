@@ -190,6 +190,9 @@ export interface CoachingCompassInput {
   vo2max: number | null;
   /** Provenance de la VO₂max du bilan (field_sources) : lab | estimated | entered ; null = non renseignée. */
   vo2maxOrigin?: string | null;
+  /** Provenance déclarée dans la fiche (affichage seulement) : source du repère VMA / FTP-W/kg. */
+  vmaSource?: string | null;
+  ftpSource?: string | null;
   tss7d: number | null;
   snapshotDate: string | null;
   snapshotUpdatedAt: string | null;

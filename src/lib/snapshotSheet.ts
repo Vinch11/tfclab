@@ -30,7 +30,7 @@ export const SNAPSHOT_SOURCE_LABEL: Record<string, string> = {
   profil_express: "Profil express",
 };
 const ORIGIN_LABEL: Record<ThresholdOrigin, string> = {
-  test_20min: "test 20 min", cp_test: "Bike Day", track_day_cs: "Track Day", calculator: "calculateur", watch: "montre", entered: "saisie",
+  test_20min: "test 20 min", cp_test: "Bike Day", track_day_cs: "Track Day", vma_test: "test VMA", calculator: "calculateur", watch: "montre", entered: "saisie",
 };
 const VO2_LABEL: Record<Vo2maxOrigin, string> = { lab: "labo", estimated: "estimation 3,5 × VMA", watch: "montre, hors calculs", entered: "saisie" };
 
@@ -61,6 +61,7 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
   const durability = parseStoredDurability(s.critical_metrics);
   const ftpOrigin = readThresholdOrigin(s.field_sources, "ftp");
   const paceOrigin = readThresholdOrigin(s.field_sources, "pace_threshold_sec_per_km");
+  const vmaOrigin = readThresholdOrigin(s.field_sources, "vma");
   const vo2 = readVo2max(s);
   const tte = readTte(s);
   const tteRow = (sport: "bike" | "run"): SheetRow | null => {
@@ -114,7 +115,7 @@ export function buildSnapshotSheet(s: SheetSnapshot, extras: { durabilityPairs?:
     cs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / cs.critical)}/km · D′ ${Math.round(cs.reserve)} m`, source: criticalLabel(cs) }
       : trackCs ? { label: "Vitesse critique (CS)", value: `${mmss(1000 / trackCs.ms)}/km${trackCs.d ? ` · D′ ${Math.round(trackCs.d)} m` : ""}`, source: "Track Day 1 500 / 3 000 m, à valider" } : null,
     ok(s.pace_threshold_sec_per_km) ? { label: "Allure seuil", value: `${mmss(s.pace_threshold_sec_per_km)}/km`, source: paceOrigin ? ORIGIN_LABEL[paceOrigin] : undefined } : null,
-    ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h` } : null,
+    ok(s.vma) ? { label: "VMA", value: `${fr(s.vma, 1)} km/h`, source: vmaOrigin ? ORIGIN_LABEL[vmaOrigin] : undefined } : null,
     ok(s.sprint_15s_distance) ? { label: "Sprint 15 s", value: `${fr(s.sprint_15s_distance)} m` } : null,
     tteRow("run"),
     ...chronoRows(s),

@@ -110,6 +110,7 @@ const INITIAL_FORM_STATE = {
   // 🏃 VLamax CAP (données pour estimation)
   pace_threshold: "",
   pace_threshold_origin: "" as ThresholdOrigin | "",
+  vma_origin: "" as ThresholdOrigin | "",
   sprint_15s: "",
   run_power_max: "",
   run_power_threshold: "",
@@ -259,6 +260,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       // VLamax CAP
       pace_threshold: s.pace_threshold_sec_per_km != null ? formatSecToPace(s.pace_threshold_sec_per_km) : "",
       pace_threshold_origin: readThresholdOrigin(s.field_sources, "pace_threshold_sec_per_km") ?? "",
+      vma_origin: readThresholdOrigin(s.field_sources, "vma") ?? "",
       sprint_15s: s.sprint_15s_distance != null ? String(s.sprint_15s_distance) : "",
       run_power_max: s.running_power_max != null ? String(s.running_power_max) : "",
       run_power_threshold: s.running_power_threshold != null ? String(s.running_power_threshold) : "",
@@ -299,7 +301,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const vlamaxMeasured = staffMode || (formData as Record<string, unknown>).vlamax_from_lab === "true";
     const vlamax = vlamaxMeasured ? parseNum(formData.vlamax) : null;
     const vo2 = writeVo2max(
-      withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      withThresholdOrigin(withThresholdOrigin(withThresholdOrigin({}, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin), "vma", formData.vma_origin),
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
     );
     const vo2max = vo2.vo2max;
@@ -408,7 +410,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     const vlamaxMeasured = staffMode || (formData as Record<string, unknown>).vlamax_from_lab === "true";
     const vlamax = vlamaxMeasured ? parseNum(formData.vlamax) : editingSnapshot.vlamax;
     const vo2 = writeVo2max(
-      withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin),
+      withThresholdOrigin(withThresholdOrigin(withThresholdOrigin(editingSnapshot.field_sources, "ftp", formData.ftp_origin), "pace_threshold_sec_per_km", formData.pace_threshold_origin), "vma", formData.vma_origin),
       parseNum(formData.vo2max), formData.vo2max_origin, formData.date,
     );
     const vo2max = vo2.vo2max;
@@ -773,6 +775,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         }}
         renderExtra={(key) => {
           if (key === "ftp") return <div className="mt-1"><ThresholdOriginSelect field="ftp" value={formData.ftp_origin} onChange={(v) => setFormData(prev => ({ ...prev, ftp_origin: v }))} /></div>;
+          if (key === "vma") return <div className="mt-1"><ThresholdOriginSelect field="vma" value={formData.vma_origin} onChange={(v) => setFormData(prev => ({ ...prev, vma_origin: v }))} /></div>;
           if (key === "pace_threshold") return <div className="mt-1"><ThresholdOriginSelect field="pace_threshold_sec_per_km" value={formData.pace_threshold_origin} onChange={(v) => setFormData(prev => ({ ...prev, pace_threshold_origin: v }))} /></div>;
           if (key === "fc_repos") return <NolioRestingHrHint athleteId={athleteId} value={formData.fc_repos ?? ""} onApply={applyNolioRestingHr} />;
           if (key === "vo2max") return (

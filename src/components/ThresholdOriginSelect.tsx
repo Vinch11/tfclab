@@ -10,7 +10,7 @@ export function ThresholdOriginSelect({ field, value, onChange, id }: {
 }) {
   return (
     <Select value={value || undefined} onValueChange={(v) => onChange(v as ThresholdOrigin)}>
-      <SelectTrigger id={id} aria-label={field === "ftp" ? "Provenance de la FTP" : "Provenance de l'allure seuil"}>
+      <SelectTrigger id={id} aria-label={field === "ftp" ? "Provenance de la FTP" : field === "vma" ? "Provenance de la VMA" : "Provenance de l'allure seuil"}>
         <SelectValue placeholder="D'où vient cette valeur ?" />
       </SelectTrigger>
       <SelectContent>
