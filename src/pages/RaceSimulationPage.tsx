@@ -399,7 +399,7 @@ export default function RaceSimulationPage() {
   // Puissance vélo du jour de course : source unique (raceBikePower), partagée avec les plans et les rapports.
   const raceBike = React.useMemo(() => isTriathlon ? raceBikePower({
     objective: raceObjective,
-    ambition: (selectedAthlete as any)?.ambition ?? null,
+    ambition: (selectedAthlete as { ambition?: string | null } | null)?.ambition ?? null,
     ftpW: activeSnapshot?.ftp ?? null,
     weightKg: activeSnapshot?.weight_kg ?? null,
     tteMin: tteEffectif?.tte_min ?? null,
