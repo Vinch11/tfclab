@@ -8,6 +8,7 @@ import { getEffectiveRefs, getEffectiveSnapshot } from "@/lib/effectiveRefs";
 import { computeTTEEffectif } from "@/lib/tteEffectif";
 import { computeVLamaxEffectif, type VLamaxEffectif } from "@/lib/vlamaxEffectif";
 import { readCarbTolerance } from "./carbTolerance";
+import { readRaceProducts, readSweatTest } from "./raceNutritionProfile";
 import { normalizeAmbitionLevel } from "@/types/ambitionLevel";
 import { raceKindFromObjective, RACE_LABEL, type RaceCardAthlete, type RaceKind } from "./raceCard";
 
@@ -34,6 +35,7 @@ export function raceCardAthlete(athlete: DbAthlete | null, snapshots: DbSnapshot
     vlamaxBike: vlamaxOf(vla("velo")),
     vlamaxRun: vlamaxOf(vla("cap")),
     carbToleranceGH: readCarbTolerance(athlete?.refs)?.gh ?? null,
+    sweatRateMlH: readSweatTest(athlete?.refs)?.mlH ?? null, saltySweater: readSweatTest(athlete?.refs)?.salty ?? null, products: readRaceProducts(athlete?.refs),
     ambition: typeof rawAmbition === "string" && rawAmbition.trim() ? normalizeAmbitionLevel(rawAmbition) : null,
     weightKg: refs.weightKg,
     ftpW: refs.ftp,

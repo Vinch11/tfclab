@@ -13,6 +13,7 @@ import { Slider } from "@/components/ui/slider";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { SegmentFeed } from "@/lib/raceSimulation/raceDetail";
 import { bikeWhatIf, runWhatIf, fmtDuration, fmtPace, isTriathlon, type RaceCard, type RaceSegment, type Confidence } from "@/lib/raceSimulation/raceCard";
 import { compareResult, fmtRaceTime, parseRaceTime, readRaceResults, snapshotPrediction, withRaceResult, withoutRaceResult } from "@/lib/raceSimulation/raceResults";
 
@@ -45,6 +46,8 @@ export function RaceCardBody({ card, weightKg, athleteId, raceKey, raceDate, ref
       <div className="space-y-2">{card.segments.map((s, i) => <SegmentCard key={`${s.sport}-${i}`} s={s} />)}</div>
 
       {card.fuel.warning && <Card className="border-amber-500/40 bg-amber-500/5"><CardContent className="p-3 text-sm">{card.fuel.warning}</CardContent></Card>}
+
+      <NutritionCard card={card} />
 
       <WhatIf card={card} weightKg={weightKg} />
 
@@ -92,7 +95,107 @@ function SegmentCard({ s }: { s: RaceSegment }) {
         </div>
       )}
       {s.note && <p className="text-xs text-muted-foreground">{s.note}</p>}
+      {s.detail && <SegmentDetail s={s} />}
     </CardContent></Card>
+  );
+}
+
+/** Détail repliable : terrain, passages, boire et manger (vélo et course). */
+function SegmentDetail({ s }: { s: RaceSegment }) {
+  const [open, setOpen] = useState(false);
+  const { bike, run, feed } = s.detail!;
+  const terrain = bike?.terrain ?? run?.terrain ?? [];
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger asChild>
+        <Button variant="outline" className="w-full min-h-11 justify-between" aria-expanded={open}>
+          {s.sport === "bike" ? "Détail vélo : terrain, boire, manger" : "Détail course : terrain, passages, boire, manger"}
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-4 pt-3">
+        {bike && (
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <Mini label="NP visée" value={`${bike.npW} W`} hint={bike.wPerKg ? `${bike.wPerKg.toFixed(2).replace(".", ",")} W/kg` : undefined} />
+            <Mini label="Moyenne" value={`${bike.avgW[0]}–${bike.avgW[1]} W`} hint={`NP / moyenne ≤ ${bike.viMax.toFixed(2).replace(".", ",")}`} />
+            <Mini label="Vitesse" value={bike.speedKmh ? `${bike.speedKmh.toFixed(1).replace(".", ",")} km/h` : "—"} hint="parcours roulant" />
+          </div>
+        )}
+        <div>
+          <p className="text-sm font-medium mb-1">{bike ? "Puissance selon le terrain" : "Allure selon le terrain"}</p>
+          <div className="divide-y rounded-lg border">
+            {terrain.map(t => (
+              <div key={t.terrain} className="px-3 py-2">
+                <div className="flex items-baseline justify-between gap-2"><span className="text-sm">{t.terrain}</span><b className="text-sm tabular-nums whitespace-nowrap">{t.target}</b></div>
+                <p className="text-xs text-muted-foreground">{t.how}</p>
+              </div>
+            ))}
+          </div>
+          {bike && <p className="mt-1 text-xs text-muted-foreground">Les watts de la carte sont la puissance normalisée (NP) : sur un parcours vallonné, la moyenne affichée par le compteur est plus basse, c'est normal.</p>}
+        </div>
+        {run && (
+          <div>
+            <p className="text-sm font-medium mb-1">Allure par portion</p>
+            <div className="divide-y rounded-lg border">
+              {run.splits.map(x => <div key={x.label} className="flex items-baseline justify-between gap-2 px-3 py-2 text-sm"><span>{x.label}</span><b className="tabular-nums whitespace-nowrap">{x.pace}</b></div>)}
+            </div>
+          </div>
+        )}
+        {(bike?.passages ?? run?.passages) && (
+          <div>
+            <p className="text-sm font-medium mb-1">Temps de passage{s.day ? "" : " (chrono depuis le départ)"}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {bike?.passages.map(p => <span key={p.km} className="rounded-md bg-muted px-2 py-1 text-xs tabular-nums">km {p.km} · {p.clock}</span>)}
+              {run?.passages.map(p => <span key={p.km} className="rounded-md bg-muted px-2 py-1 text-xs tabular-nums">km {p.km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} · {s.day ? p.runTime : `${p.runTime} (${p.clock})`}</span>)}
+            </div>
+            {run && !s.day && <p className="mt-1 text-xs text-muted-foreground">Premier chiffre : temps de course à pied ; entre parenthèses : chrono depuis le départ.</p>}
+          </div>
+        )}
+        {feed && <FeedPlan feed={feed} fromStart={!s.day} />}
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function Mini({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return <div className="rounded-lg bg-muted/40 px-2 py-2"><p className="text-[11px] text-muted-foreground">{label}</p><p className="text-sm font-bold tabular-nums">{value}</p>{hint && <p className="text-[10px] text-muted-foreground">{hint}</p>}</div>;
+}
+
+/** Boire et manger : repères par heure puis le plan minute par minute. */
+function FeedPlan({ feed, fromStart }: { feed: SegmentFeed; fromStart: boolean }) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium">Boire et manger</p>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <Mini label="Boire" value={`${feed.fluidMlH} ml/h`} hint={feed.sweatSource === "measured" ? `sueur testée ${feed.sweatMlH} ml/h` : `sueur estimée ≈ ${feed.sweatMlH} ml/h`} />
+        <Mini label="Sodium" value={`${feed.sodiumMgH} mg/h`} hint={`prévu ≈ ${feed.sodiumPlannedMgH} mg/h`} />
+        <Mini label="Glucides" value={feed.carbsTargetGH ? `${feed.carbsTargetGH} g/h` : "—"} hint={feed.carbsPlannedGH ? `prévu ≈ ${feed.carbsPlannedGH} g/h` : "course courte"} />
+      </div>
+      <p className="text-xs text-muted-foreground">{fromStart ? "Heures au chrono depuis le départ de la course." : "Heures depuis le départ de l'épreuve du jour."}</p>
+      <ol className="relative space-y-2 border-l pl-4">
+        {feed.events.map(e => (
+          <li key={e.segMin} className="text-sm">
+            <span className="absolute -left-[5px] mt-1.5 h-2.5 w-2.5 rounded-full bg-primary" aria-hidden />
+            <b className="tabular-nums">{e.clock}</b> <span className="text-muted-foreground">·</span> {e.items.join(" · ")}
+          </li>
+        ))}
+      </ol>
+      <ul className="list-disc pl-5 space-y-1 text-xs text-muted-foreground">{feed.tips.map(t => <li key={t}>{t}</li>)}</ul>
+    </div>
+  );
+}
+
+/** À préparer : produits, quantités et avant le départ. */
+function NutritionCard({ card }: { card: RaceCard }) {
+  const n = card.nutrition;
+  if (!n.shopping.length && !n.preRace.length) return null;
+  return (
+    <Card><CardHeader className="pb-2"><CardTitle className="text-base">Ravitaillement à préparer</CardTitle></CardHeader>
+      <CardContent className="pt-0 space-y-3 text-sm">
+        {n.products.length > 0 && <p className="text-xs text-muted-foreground">Produits : {n.products.map(p => `${p.label.toLowerCase()} ${p.custom ? p.text : `type ${p.text}`}`).join(" · ")}{n.products.some(p => !p.custom) ? ". Renseigne les produits de l'athlète dans sa fiche (Contexte) pour un plan exact." : "."}</p>}
+        {n.shopping.length > 0 && <ul className="list-disc pl-5 space-y-1">{n.shopping.map(x => <li key={x}>{x}</li>)}</ul>}
+        {n.preRace.length > 0 && (<div><p className="font-medium mb-1">Avant le départ</p><ul className="list-disc pl-5 space-y-1">{n.preRace.map(x => <li key={x}>{x}</li>)}</ul></div>)}
+      </CardContent></Card>
   );
 }
 

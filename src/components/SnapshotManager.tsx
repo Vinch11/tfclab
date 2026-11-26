@@ -7,6 +7,7 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // =============================================
 
 import { CARB_TOLERANCE_OPTIONS, readCarbTolerance, withCarbTolerance } from "@/lib/raceSimulation/carbTolerance";
+import { DEFAULT_PRODUCTS, PRODUCT_LABEL, readRaceProducts, readSweatTest, withNutritionProfile, type ProductKind, type RaceProduct } from "@/lib/raceSimulation/raceNutritionProfile";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
@@ -137,9 +138,14 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot, tests, athletes, updateAthlete } = useCloudData();
   /** Sexe et date de naissance : propres à l'athlète (communs à tous les bilans), ils ajustent les repères de l'objectif. */
   const athleteRecord = athletes.find(a => a.id === athleteId) ?? null;
-  const [identity, setIdentity] = useState<{ sex: string; birthDate: string; carbTolerance: string }>({ sex: "", birthDate: "", carbTolerance: "" });
+  const [identity, setIdentity] = useState<{ sex: string; birthDate: string; carbTolerance: string; sweat: string; salty: string; products: Record<ProductKind, ProductDraft> }>({ sex: "", birthDate: "", carbTolerance: "", sweat: "", salty: "", products: emptyProductDrafts() });
   const storedTolerance = readCarbTolerance(athleteRecord?.refs);
-  const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "", carbTolerance: storedTolerance ? String(storedTolerance.gh) : "" }), [athleteRecord?.sex, athleteRecord?.birth_date, storedTolerance?.gh]);
+  const storedSweat = readSweatTest(athleteRecord?.refs);
+  const storedProductsKey = JSON.stringify((athleteRecord?.refs as Record<string, unknown> | null)?.raceProducts ?? null);
+  const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "", carbTolerance: storedTolerance ? String(storedTolerance.gh) : "",
+    sweat: storedSweat?.mlH ? String(storedSweat.mlH) : "", salty: storedSweat?.salty == null ? "" : storedSweat.salty ? "yes" : "no", products: productDrafts(athleteRecord?.refs) }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- les produits sont suivis par leur contenu (storedProductsKey)
+    [athleteRecord?.sex, athleteRecord?.birth_date, storedTolerance?.gh, storedSweat?.mlH, storedSweat?.salty, storedProductsKey]);
   useEffect(() => { resetIdentity(); }, [resetIdentity]);
   const saveIdentity = async () => {
     if (!athleteRecord) return;
@@ -149,8 +155,19 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     // Tolérance glucides : « non testée » efface la valeur, une valeur choisie la date du jour.
     const tol = identity.carbTolerance === "none" ? null : identity.carbTolerance ? Number(identity.carbTolerance) : storedTolerance?.gh ?? null;
     const tolChanged = tol !== (storedTolerance?.gh ?? null);
-    if (sex === (athleteRecord.sex ?? null) && birth === (athleteRecord.birth_date ?? null) && !tolChanged) return;
-    await updateAthlete(athleteId, { sex, birth_date: birth, ...(tolChanged ? { refs: withCarbTolerance(athleteRecord.refs, tol, new Date().toISOString().slice(0, 10)) as never } : {}) });
+    // Sueur et produits de course : propres à l'athlète, une case vide efface la valeur.
+    const today = new Date().toISOString().slice(0, 10);
+    const sweatMl = Number(identity.sweat) > 0 && Number(identity.sweat) <= 3000 ? Math.round(Number(identity.sweat)) : null;
+    const salty = identity.salty === "yes" ? true : identity.salty === "no" ? false : null;
+    const sweatChanged = sweatMl !== (storedSweat?.mlH ?? null) || salty !== (storedSweat?.salty ?? null);
+    const products = productsFromDrafts(identity.products);
+    const productsChanged = JSON.stringify(products) !== JSON.stringify(productsFromDrafts(productDrafts(athleteRecord.refs)));
+    if (sex === (athleteRecord.sex ?? null) && birth === (athleteRecord.birth_date ?? null) && !tolChanged && !sweatChanged && !productsChanged) return;
+    let refs: unknown = athleteRecord.refs;
+    if (tolChanged) refs = withCarbTolerance(refs, tol, today);
+    if (sweatChanged) refs = withNutritionProfile(refs, { sweatTest: { mlH: sweatMl, salty, date: today } });
+    if (productsChanged) refs = withNutritionProfile(refs, { products });
+    await updateAthlete(athleteId, { sex, birth_date: birth, ...(tolChanged || sweatChanged || productsChanged ? { refs: refs as never } : {}) });
   };
 
   // Use persisted dialog states to survive page minimize/restore
@@ -767,6 +784,32 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                 </Select>
                 <p className="mt-1 text-[11px] text-muted-foreground">Le plus haut apport pris sans gêne digestive sur une sortie longue à allure de course. Il plafonne les glucides de la simulation.</p>
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="athlete-sweat" className="text-xs">Taux de sueur testé (ml/h)</Label>
+                  <Input id="athlete-sweat" type="number" inputMode="numeric" min={100} max={3000} placeholder="Non testé" className="h-11" value={identity.sweat} onChange={(e) => setIdentity(prev => ({ ...prev, sweat: e.target.value }))} />
+                </div>
+                <div>
+                  <Label htmlFor="athlete-salty" className="text-xs">Sueur salée</Label>
+                  <Select value={identity.salty || undefined} onValueChange={(v) => setIdentity(prev => ({ ...prev, salty: v === "unknown" ? "" : v }))}>
+                    <SelectTrigger id="athlete-salty" className="h-11"><SelectValue placeholder="Ne sait pas" /></SelectTrigger>
+                    <SelectContent><SelectItem value="unknown">Ne sait pas</SelectItem><SelectItem value="yes">Oui (traces blanches)</SelectItem><SelectItem value="no">Non</SelectItem></SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground">Sueur : pesée nue avant et après 1 h à allure de course ; perte de poids (g) + boisson bue (ml) = ml/h. Vide : estimée par la simulation.</p>
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium">Produits de course (vide = produit type)</p>
+                {(["gel", "bar", "drink"] as const).map(k => (
+                  <div key={k} className={`grid gap-2 ${k === "drink" ? "grid-cols-[1fr_4rem_4rem_4.5rem]" : "grid-cols-[1fr_4rem_4rem]"}`}>
+                    <Input aria-label={`${PRODUCT_LABEL[k]} : nom`} className="h-11" placeholder={DEFAULT_PRODUCTS[k].name} value={identity.products[k].name} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], name: e.target.value } } }))} />
+                    <Input aria-label={`${PRODUCT_LABEL[k]} : glucides (g)`} type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS[k].carbsG} g`} value={identity.products[k].carbsG} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], carbsG: e.target.value } } }))} />
+                    <Input aria-label={`${PRODUCT_LABEL[k]} : sodium (mg)`} type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS[k].sodiumMg} mg`} value={identity.products[k].sodiumMg} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], sodiumMg: e.target.value } } }))} />
+                    {k === "drink" && <Input aria-label="Boisson : volume de la dose (ml)" type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS.drink.volumeMl} ml`} value={identity.products.drink.volumeMl} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, drink: { ...prev.products.drink, volumeMl: e.target.value } } }))} />}
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground">Nom, glucides (g) et sodium (mg) par gel, barre ou dose de boisson ; pour la boisson, le volume de la dose. Ils servent au plan « quand prendre quoi ».</p>
+              </div>
               <p className="text-[11px] text-muted-foreground">{!identity.sex || !identity.birthDate
                 ? "À renseigner : sans sexe ni âge, les repères de l’objectif (VO₂max, VMA, W/kg, CSS) restent ceux d’un groupe surtout masculin, non ajustés."
                 : "Les repères de l’objectif (VO₂max, VMA, W/kg, CSS) sont ajustés au sexe et à l’âge."}</p>
@@ -984,7 +1027,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} athlete={{ sex: athleteRecord?.sex ?? null, birthDate: athleteRecord?.birth_date ?? null, carbToleranceGH: storedTolerance?.gh ?? null }} onEditBlock={(block) => openEdit(s, block)} />
+          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} athlete={{ sex: athleteRecord?.sex ?? null, birthDate: athleteRecord?.birth_date ?? null, carbToleranceGH: storedTolerance?.gh ?? null, sweatRateMlH: storedSweat?.mlH ?? null, saltySweater: storedSweat?.salty ?? null, products: Object.values(readRaceProducts(athleteRecord?.refs)).filter(p => p.custom).map(p => `${p.name} ${p.carbsG} g`) }} onEditBlock={(block) => openEdit(s, block)} />
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">
@@ -1244,4 +1287,25 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
       </Dialog>
     </Card>
   );
+}
+
+/** Produits de course en cours de saisie (textes des champs). */
+interface ProductDraft { name: string; carbsG: string; sodiumMg: string; volumeMl: string }
+function emptyProductDrafts(): Record<ProductKind, ProductDraft> {
+  return { gel: { name: "", carbsG: "", sodiumMg: "", volumeMl: "" }, bar: { name: "", carbsG: "", sodiumMg: "", volumeMl: "" }, drink: { name: "", carbsG: "", sodiumMg: "", volumeMl: "" } };
+}
+function productDrafts(refs: unknown): Record<ProductKind, ProductDraft> {
+  const read = readRaceProducts(refs), out = emptyProductDrafts();
+  for (const k of ["gel", "bar", "drink"] as const) if (read[k].custom) out[k] = { name: read[k].name, carbsG: String(read[k].carbsG), sodiumMg: String(read[k].sodiumMg), volumeMl: read[k].volumeMl ? String(read[k].volumeMl) : "" };
+  return out;
+}
+/** Un produit n'est gardé que si ses glucides (et le volume pour la boisson) sont renseignés. */
+function productsFromDrafts(d: Record<ProductKind, ProductDraft>): Record<ProductKind, RaceProduct | null> {
+  const n = (v: string) => (Number(v) > 0 ? Number(v) : null);
+  const one = (k: ProductKind): RaceProduct | null => {
+    const carbsG = n(d[k].carbsG), volumeMl = k === "drink" ? n(d[k].volumeMl) : null;
+    if (carbsG == null || (k === "drink" && volumeMl == null)) return null;
+    return { name: d[k].name.trim() || DEFAULT_PRODUCTS[k].name, carbsG, sodiumMg: n(d[k].sodiumMg) ?? 0, ...(volumeMl != null ? { volumeMl } : {}) };
+  };
+  return { gel: one("gel"), bar: one("bar"), drink: one("drink") };
 }

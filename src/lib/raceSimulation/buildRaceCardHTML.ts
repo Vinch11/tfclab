@@ -6,7 +6,7 @@ import { esc, reportDocument } from "@/lib/reportKit";
 import { GARMIN_BOX_CSS, garminBoxHTML } from "@/lib/reportKit/garminBox";
 import { anchoredBikeGrid, anchoredRunGrid } from "@/lib/zones/anchoredZoneGrid";
 import { garminFiveZones } from "@/lib/zones/garminZones";
-import { fmtDuration, isTriathlon, type RaceCard, type RaceCardAthlete } from "./raceCard";
+import { fmtDuration, isTriathlon, type RaceCard, type RaceCardAthlete, type RaceSegment } from "./raceCard";
 
 const CSS = `${GARMIN_BOX_CSS}
 .rc{max-width:190mm;margin:0 auto;padding:14mm 12mm;font-family:Outfit,-apple-system,sans-serif;color:#1d1b2e}
@@ -18,8 +18,26 @@ const CSS = `${GARMIN_BOX_CSS}
 .rc table.seg td{border-top:1px solid #ecebf3;padding:8px 6px 8px 0;vertical-align:top}.rc td.t{font-weight:700;font-size:14.5px}
 .rc .day{color:#6b6880;font-size:11px}.rc .note{color:#6b6880;font-size:11.5px}
 .rc h2{font-size:16px;margin:18px 0 6px}.rc ol{margin:0;padding-left:18px;font-size:13px;line-height:1.55}
+.rc table.mini{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;margin:4px 0 8px}
+.rc table.mini td{border-top:1px solid #ecebf3;padding:5px 6px 5px 0;vertical-align:top}.rc table.mini td.v{font-weight:700;white-space:nowrap}
+.rc .chips{font-size:12px;color:#3d3a52;margin:2px 0 8px}.rc h3{font-size:13.5px;margin:12px 0 2px}
 .rc .foot{margin-top:16px;color:#8a879c;font-size:10.5px}
-@media print{.rc{padding:8mm 6mm}.rc table.seg tr,.rc li{break-inside:avoid}}`;
+@media print{.rc{padding:8mm 6mm}.rc table.seg tr,.rc table.mini tr,.rc li{break-inside:avoid}}`;
+
+function detailHTML(s: RaceSegment): string {
+  const d = s.detail;
+  if (!d) return "";
+  const terrain = d.bike?.terrain ?? d.run?.terrain ?? [];
+  const head = d.bike ? `<p class="chips">NP visée ${d.bike.npW} W · moyenne ${d.bike.avgW[0]}–${d.bike.avgW[1]} W${d.bike.speedKmh ? ` · ≈ ${d.bike.speedKmh.toFixed(1).replace(".", ",")} km/h` : ""}</p>` : "";
+  const terr = `<table class="mini">${terrain.map(t => `<tr><td>${esc(t.terrain)}<div class="note">${esc(t.how)}</div></td><td class="v">${esc(t.target)}</td></tr>`).join("")}</table>`;
+  const splits = d.run ? `<table class="mini">${d.run.splits.map(x => `<tr><td>${esc(x.label)}</td><td class="v">${esc(x.pace)}</td></tr>`).join("")}</table>` : "";
+  const pass = d.bike ? d.bike.passages.map(p => `km ${p.km} · ${p.clock}`) : d.run ? d.run.passages.map(p => `km ${p.km.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} · ${s.day ? p.runTime : `${p.runTime} (${p.clock})`}`) : [];
+  const f = d.feed;
+  const feed = f ? `<p class="chips">Boire ≈ ${f.fluidMlH} ml/h · sodium ≈ ${f.sodiumMgH} mg/h${f.carbsTargetGH ? ` · glucides ${f.carbsTargetGH} g/h` : ""}</p>
+    <table class="mini">${f.events.map(e => `<tr><td class="v">${esc(e.clock)}</td><td>${esc(e.items.join(" · "))}</td></tr>`).join("")}</table>
+    <ul class="note">${f.tips.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : "";
+  return `<h3>${esc(s.day ? `Jour ${s.day} · ` : "")}${esc(s.label)}</h3>${head}${terr}${splits}${pass.length ? `<p class="chips">Passages : ${esc(pass.join(" · "))}</p>` : ""}${feed}`;
+}
 
 export function buildRaceCardHTML(o: { card: RaceCard; athleteName: string; raceLabel: string; athlete: RaceCardAthlete; generatedAt: string }): string {
   const { card, athlete } = o;
@@ -40,6 +58,9 @@ export function buildRaceCardHTML(o: { card: RaceCard; athleteName: string; race
     <p class="sub">Carte de course${isTriathlon(card.kind) && !card.lcw ? " · natation, vélo, course" : ""}${card.lcw ? " · Long Course Weekend" : ""}</p>
     ${total}
     <table class="seg"><thead><tr><th>Segment</th><th>Cible</th><th>Temps</th><th>FC repère</th><th>Glucides</th></tr></thead><tbody>${rows}</tbody></table>
+    ${card.segments.some(s => s.detail) ? `<h2>Sur le terrain</h2>${card.segments.map(detailHTML).join("")}` : ""}
+    ${card.nutrition.shopping.length ? `<h2>Ravitaillement à préparer</h2><ol>${card.nutrition.shopping.map(x => `<li>${esc(x)}</li>`).join("")}</ol>` : ""}
+    ${card.nutrition.preRace.length ? `<h2>Avant le départ</h2><ol>${card.nutrition.preRace.map(x => `<li>${esc(x)}</li>`).join("")}</ol>` : ""}
     <h2>Les règles du jour</h2><ol>${card.rules.map(r => `<li>${esc(r)}</li>`).join("")}</ol>
     ${garmin}
     <p class="foot">Prévision Two For Coaching Lab du ${esc(o.generatedAt)} : une fourchette, pas une promesse. Chaleur, vent et parcours la modifient. Les glucides tiennent compte de ta dépense estimée et de ce que tu as toléré à l’entraînement : teste-les sur une sortie longue avant la course.</p>
