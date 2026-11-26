@@ -21,6 +21,8 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
+import { useOptionalAthletes } from "@/contexts/AthleteContext";
+import { simulationHiddenFor } from "@/lib/raceSimulation/raceCardData";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -77,6 +79,9 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
   const { user, signOut } = useAuth();
   const { logoUrl } = useAppLogo();
   const isRunningOnly = useIsRunningOnly();
+  const currentAthlete = useOptionalAthletes()?.currentAthlete ?? null;
+  // Pas de simulation de course pour un objectif StartToRun ou 5 km.
+  const shownItems = simulationHiddenFor(currentAthlete?.objectif ?? currentAthlete?.goal) ? navigationItems.filter(i => i.id !== "simulation") : navigationItems;
   const collapsed = isMobile ? false : state === "collapsed";
 
   const handleNavClick = (item: NavItem) => {
@@ -138,7 +143,7 @@ export function AppSidebar({ activeTab, onTabChange, staffMode, onStaffModeChang
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
-              {navigationItems.map((item) => {
+              {shownItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item);
                 return (
