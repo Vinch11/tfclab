@@ -83,6 +83,11 @@ export function estimateBikeSplit(params: {
   position?: "tri" | "road";
   /** Perte liée au parcours (dénivelé, relances, virages, vent). 1 = plat parfait. */
   terrainFactor?: number;
+  /**
+   * Puissance de course imposée (W) — triathlon : centre de raceBikePower, la source unique
+   * partagée avec les plans et les rapports. Sans elle : fraction de FTP par ambition (historique).
+   */
+  npW?: number | null;
 }): BikeSplitEstimate | null {
   const { distanceKm, ftp, weightKg } = params;
   if (!ftp || ftp <= 0 || !weightKg || weightKg <= 0 || !distanceKm || distanceKm <= 0) {
@@ -93,7 +98,7 @@ export function estimateBikeSplit(params: {
   // Parcours réel : relances, virages, ravitos, vent variable, dénivelé léger.
   const terrain = params.terrainFactor ?? 0.90;
 
-  const frac = ftpFraction(distanceKm, ambition);
+  const frac = params.npW && params.npW > 0 ? params.npW / ftp : ftpFraction(distanceKm, ambition);
   const np = ftp * frac;
   const cda = estimateCdA(weightKg, position, ambition);
   const mass = weightKg + BIKE_KIT_KG;

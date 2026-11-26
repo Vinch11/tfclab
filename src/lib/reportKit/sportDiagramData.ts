@@ -35,6 +35,8 @@ export interface ZonePayload {
   effectiveSnapshot?: { date: string; athlete_id?: string; critical_metrics?: unknown; fc_repos?: Num;
     pace_threshold_sec_per_km?: Num; vlamax?: Num; vlamax_run?: Num; map5min_w?: Num; field_sources?: unknown; ftp?: Num; vma?: Num; fc_max?: Num; weight_kg?: Num; vo2max?: Num } | null;
   coachingCompass?: { profile?: { fatmax?: { value?: Num } } } | null;
+  /** TTE effective (même entrée que la génération du plan) : borne la puissance de course. */
+  tte?: { tte_min?: Num } | null;
 }
 const objectiveLabel = (goal: string | null | undefined) => getObjectifLabel((goal ?? '') as Parameters<typeof getObjectifLabel>[0]);
 
@@ -50,6 +52,7 @@ export function reportTargetTable(payload: ZonePayload | null | undefined): Targ
       vlamax: snap?.vlamax ?? null, vlamaxRun: snap?.vlamax_run ?? null,
       vo2max: refs?.vo2max ?? null, weightKg: refs?.weightKg ?? null,
       objective: payload?.athlete?.goal ?? null, ambition: payload?.ambition?.current ?? null,
+      tteMinBike: positive(payload?.tte?.tte_min) ? payload!.tte!.tte_min : null,
       snapshot: snap ?? null,
     });
   } catch {

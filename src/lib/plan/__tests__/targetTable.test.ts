@@ -11,8 +11,10 @@ describe("buildTargetTable", () => {
     expect(t.ftpW).toBe(280);
     expect(t.sstW).toEqual([Math.round(0.88 * 280), Math.round(0.94 * 280)]); // 246..263
     expect(t.sstW).toEqual([246, 263]);
-    expect(t.racePowerW).toBe(Math.round(0.85 * 280)); // 238
-    expect(t.racePowerRange).toEqual([233, 243]);
+    // Puissance de course : source unique raceBikePower (durée type 3 h sans poids, 170–185 TSS)
+    // au lieu des 85 % FTP fixes : ≈ 75–79 % de la FTP.
+    expect(t.racePowerRange).toEqual([211, 220]);
+    expect(t.racePowerW).toBe(215);
     // Grille ancrée (active depuis le 24/11/2026) : CP = FTP / 0,965 ; Z2 = 65–75 % de la CP.
     const cp = 280 / 0.965;
     expect(t.bikeZonesW.Z2).toEqual([Math.round(0.65 * cp), Math.round(0.75 * cp)]);

@@ -1,4 +1,5 @@
 import { nolioStructureForSession } from "@/lib/plan/nolioSessionStructure";
+import { readTte } from "@/lib/snapshotTestDays";
 import {cleanPlanText} from '@/lib/plan/planText';
 import {planDeliveryIssues,assertPlanDeliverySafe} from '@/lib/plan/planDeliverySafety';
 import {asPlanAdvisories} from '@/lib/plan/planAdvisoryPolicy';
@@ -1147,6 +1148,8 @@ export function AIPlanViewer({ plan: planProp, onPlanChange, startDate, raceGoal
         vlamaxRun: nolioRefs.vlamaxRun,
         vo2max: nolioRefs.vo2max,
         weightKg: nolioRefs.weightKg,
+        // TTE vélo observée du bilan (la génération utilise la TTE effective du diagnostic).
+        tteMinBike: nolioRefs.snapshot ? (b => b.stale ? null : b.value)(readTte(nolioRefs.snapshot).bike) : null,
         snapshot: nolioRefs.snapshot,
         objective: gapContext?.objective ?? null,
         ambition: gapContext?.ambition ?? null,

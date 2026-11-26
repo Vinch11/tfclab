@@ -82,7 +82,15 @@ interface Props {
   disponibiliteScore?: number | null;
   vlamaxValue?: number | null;
   fatigueState?: "fresh" | "ok" | "fatigued" | "high" | "injured" | null;
+  /** Puissance de course (raceBikePower) : même cible que le plan et les rapports. */
+  racePower?: { rangeW: [number, number]; centerW: number; explanation: string } | null;
   className?: string;
+}
+
+/** Watts du scénario : bas du couloir (Robuste), centre (Ambitieux), haut (Agressif), ajustés par le curseur. */
+export function scenarioBikeWatts(key: FullRaceScenarioKey, racePower: NonNullable<Props["racePower"]>, offsetPct = 0): number {
+  const base = key === "ROBUST" ? racePower.rangeW[0] : key === "AMBITIOUS" ? racePower.centerW : racePower.rangeW[1];
+  return Math.round(base * (1 + offsetPct / 100));
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -922,7 +930,7 @@ function ScenarioCardInner({
               icon={Bike}
               label={isIM ? "Vélo 180 km" : "Vélo 90 km"}
               duration={fmtDuration(scenario.bikeMin)}
-              detail={scenario.bikeStrategy}
+              detail={props.racePower ? `Cible ${scenarioBikeWatts(scenario.key, props.racePower, offset)} W. ${scenario.bikeStrategy}` : scenario.bikeStrategy}
               failurePct={scenario.bikeFailurePct}
             />
             <SegmentRow
@@ -1152,6 +1160,13 @@ export function TriathlonFullRaceSimulationCard(props: Props) {
           </div>
         </div>
       </div>
+
+      {props.racePower && (
+        <div className="rounded-md border border-border bg-muted/30 p-3 text-xs">
+          <div className="flex items-center gap-2 font-semibold text-foreground"><Bike className="h-4 w-4 text-primary" />Puissance vélo de course : {props.racePower.rangeW[0]}–{props.racePower.rangeW[1]} W</div>
+          <p className="mt-1 text-muted-foreground leading-snug">{props.racePower.explanation} Même cible que dans le plan et les rapports.</p>
+        </div>
+      )}
 
       {/* Récapitulatif format + paramètres synchronisés */}
       <FormatRecap isIM={isIM} scenarios={scenarios} props={props} />

@@ -140,6 +140,7 @@ function buildRaceStageHints(
       objective,
       ambition: amb,
       tteMinBike: athlete?.tte ?? null,
+      weightKg: athlete?.weightKg ?? null,
     });
     const nut = nutritionCarbsForObjective(objective);
     const hints: RaceStageHints = {};
