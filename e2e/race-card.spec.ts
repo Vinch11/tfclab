@@ -11,7 +11,8 @@ test('Ironman : cibles par segment, curseur et règles', async ({ page }, info) 
   // Rien ne déborde horizontalement sur téléphone.
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
-  await info.attach('ironman', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  // Capture gardée dans l'artefact CI (playwright-report/) pour relecture visuelle.
+  await page.screenshot({ path: `playwright-report/race-card-ironman-${info.project.name.replace(/\s+/g, '-')}.png`, fullPage: true });
 });
 
 test('Marathon : chrono de la fiche prérempli puis comparaison prévu / réel', async ({ page }, info) => {
@@ -20,7 +21,7 @@ test('Marathon : chrono de la fiche prérempli puis comparaison prévu / réel',
   await expect(page.getByPlaceholder('3:58:12')).toHaveValue('3:58:12');
   await page.getByRole('button', { name: 'Enregistrer le résultat' }).click();
   await expect(page.getByRole('cell', { name: 'Total' })).toBeVisible();
-  await info.attach('marathon', { body: await page.screenshot({ fullPage: true }), contentType: 'image/png' });
+  await page.screenshot({ path: `playwright-report/race-card-marathon-${info.project.name.replace(/\s+/g, '-')}.png`, fullPage: true });
 });
 
 test('Long Course Weekend : trois jours', async ({ page }) => {
