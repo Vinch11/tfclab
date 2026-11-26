@@ -86,8 +86,10 @@ export function extraGauges(d: any, sport: Sport, rows: FactorRow[], athlete: bo
     const ref = objective ? RACE_PCT_CP[objective] : undefined;
     if (cp && race && ref) {
       const v = ((race[0] + race[1]) / 2) / cp * 100;
-      gauges.push({ row: row('racePct', 'Intensité de course visée', '% CP', v, ref[0], ref[1], 'coaching'), display: pct, sentence: gaugeSentence('racePct', 'bike', athlete),
-        basis: `Pratique des coachs : IF ${RACE_IF_TEXT[objective!]} (puissance / FTP) pour les age-groupers, converti en % de la CP. FTP du bilan : ${Math.round(((race[0] + race[1]) / 2) / (cp * 0.965) * 100)} %.` });
+      const byTte = table?.raceBike?.limitedBy === 'tte';
+      const sentence = gaugeSentence('racePct', 'bike', athlete) + (byTte ? (athlete ? ' Elle reste prudente tant que ta durée tenue au seuil est courte.' : ' Bornée par la TTE observée.') : '');
+      gauges.push({ row: row('racePct', 'Intensité de course visée', '% CP', v, ref[0], ref[1], 'coaching'), display: pct, sentence,
+        basis: `Pratique des coachs : IF ${RACE_IF_TEXT[objective!]} (puissance / FTP) pour les age-groupers, converti en % de la CP. FTP du bilan : ${Math.round(((race[0] + race[1]) / 2) / (cp * 0.965) * 100)} %.${table?.raceBike ? ' Calcul : ' + table.raceBike.explanation : ''}` });
     }
   } else {
     const vma = positive(snap.vma) ? snap.vma : positive(d?.effectiveRefs?.vma) ? d.effectiveRefs.vma : null;

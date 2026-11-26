@@ -15,6 +15,7 @@
 import { estimateFromRaceChronos, type RaceChronos } from "@/engines/diagnostic/raceTimeEstimator";
 import { computeRaceScenarios, type Ambition } from "@/lib/raceAnalysis";
 import { estimateBikeSplit } from "@/lib/v2/bikeSplitEstimator";
+import { raceBikePower } from "@/lib/raceSimulation/raceBikePower";
 import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, type RunSplitAmbition } from "@/lib/v2/runSplitEstimator";
 import type { AmbitionLevel } from "@/types/ambitionLevel";
 
@@ -123,12 +124,15 @@ function estimateTriathlonPhysioMin(
   input: RaceTimePredictorInput,
 ): { totalMin: number; confidence: number } | null {
   const splits = TRI_FIXED_SPLITS_MIN[format];
+  // Puissance de course : source unique (raceBikePower), comme la simulation et les plans.
+  const race = raceBikePower({ objective: format, ambition: input.ambition, ftpW: input.ftp ?? null, weightKg: input.weightKg ?? null });
   const bike = estimateBikeSplit({
     distanceKm: splits.bikeKm,
     ftp: input.ftp,
     weightKg: input.weightKg,
     ambition: toVSeuilAmbition(input.ambition),
     position: "tri",
+    npW: race?.centerW ?? null,
   });
   if (!bike) return null;
 

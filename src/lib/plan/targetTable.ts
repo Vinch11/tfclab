@@ -14,6 +14,7 @@
  * Aucun nombre du plan (watts, s/km, s/100m, bpm) ne doit provenir d'ailleurs.
  * ═══════════════════════════════════════════════════════════════════════════════
  */
+import { raceBikePower, type RaceBikePowerResult } from "@/lib/raceSimulation/raceBikePower";
 import { TRAINING_ZONES } from "@/lib/trainingZonesDefinition";
 import { deriveRaceTargets, mapObjectiveToSport } from "@/lib/deriveRaceTargets";
 import { deriveTrainingZones, makeStandardPctToAbsolute, estimateRunThresholdPaceSecPerKm, getDerivedZone } from "@/lib/zones/deriveTrainingZones";
@@ -31,7 +32,9 @@ export interface TargetTable {
   bikeZonesW: Partial<Record<ZoneKey, Range>>;
   sstW: Range | null;                  // 88-94% FTP
   racePowerW: number | null;
-  racePowerRange: Range | null;        // ±5W
+  racePowerRange: Range | null;        // triathlon : fourchette raceBikePower ; sinon ±5 W
+  /** Détail du calcul (durée, charge, borne) quand l'objectif est un triathlon. */
+  raceBike?: RaceBikePowerResult | null;
   // Course
   vmaKmh: number | null;
   runPacesSecPerKm: Partial<Record<ZoneKey, Range>>;  // sec/km
@@ -90,6 +93,8 @@ export interface BuildTargetTableInput {
   gridMode?: ZoneGridMode;
   /** Bilan complet (CP/CS, provenance du seuil, PMA 5 min) pour la grille ancrée. */
   snapshot?: AnchoredGridSnapshot | null;
+  /** TTE vélo observée (min) : borne la puissance de course (raceBikePower). */
+  tteMinBike?: number | null;
 }
 
 
@@ -228,6 +233,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
   let racePaceRange: Range | null = null;
   let racePowerW: number | null = null;
   let racePowerRange: Range | null = null;
+  let raceBike: RaceBikePowerResult | null = null;
 
   try {
     const derived = deriveRaceTargets({
@@ -244,17 +250,19 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
       racePaceSecPerKm = derived.paceTargets.allureSemiCible;
       racePaceRange = [racePaceSecPerKm - 5, racePaceSecPerKm + 5];
     }
-    // Race power : approximation basée sur la famille de distance/ambition
-    // (défauts triathlon 70.3=88% FTP, IM=76% FTP, sinon 90% seuil)
+    // Race power triathlon : source unique (raceBikePower) — durée vélo estimée, charge visée,
+    // bornage ambition/TTE ; la même valeur alimente la simulation, les prompts du plan et les rapports.
+    // Autres objectifs : 90 % de la FTP (effort continu proche du seuil), inchangé.
     if (ftp) {
-      const objL = (input.objective || "").toLowerCase();
-      let pctFtp = 0.90;
-      if (objL.includes("70.3") || objL.includes("703") || objL.includes("half iron")) pctFtp = 0.85;
-      else if (objL.includes("ironman") || objL === "im") pctFtp = 0.76;
-      else if (objL.includes("sprint")) pctFtp = 0.95;
-      else if (objL.includes("olympic") || objL.includes("olympique")) pctFtp = 0.92;
-      racePowerW = Math.round(pctFtp * ftp);
-      racePowerRange = [racePowerW - 5, racePowerW + 5];
+      const race = raceBikePower({ objective: input.objective, ambition: input.ambition, ftpW: ftp, weightKg: input.weightKg ?? null, tteMin: input.tteMinBike ?? null });
+      if (race) {
+        racePowerW = race.centerW;
+        racePowerRange = race.rangeW;
+        raceBike = race;
+      } else {
+        racePowerW = Math.round(0.90 * ftp);
+        racePowerRange = [racePowerW - 5, racePowerW + 5];
+      }
     }
   } catch {
     // silent: derivedRaceTargets peut échouer (données insuffisantes)
@@ -275,6 +283,7 @@ export function buildTargetTable(input: BuildTargetTableInput): TargetTable {
     sstW,
     racePowerW,
     racePowerRange,
+    raceBike,
     vmaKmh: vma,
     runPacesSecPerKm: runPaces,
     racePaceSecPerKm,

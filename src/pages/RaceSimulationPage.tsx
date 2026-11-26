@@ -35,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAthletes } from '@/contexts/AthleteContext';
 import { useCloudData } from '@/hooks/useCloudData';
 import { getEffectiveSnapshot } from '@/lib/effectiveRefs';
+import { raceBikePower } from '@/lib/raceSimulation/raceBikePower';
 import { useAthleteRaceGoals } from '@/hooks/useAthleteRaceGoals';
 import { computeVLamaxEffectif, computeTTEEffectif } from '@/engines/diagnostic';
 import { estimateFromRaceChronos } from '@/engines/diagnostic/raceTimeEstimator';
@@ -395,6 +396,15 @@ export default function RaceSimulationPage() {
   //     └──────────────┴────────────────────────┴─────────────────────────┘
   //   • Pénalité additionnelle −2 pts vSeuil si VLamax ≥ 0.55 (profil glycolytique → drift run accru)
   //   • Vélo : table de format (à individualiser via CP/FTP en v2)
+  // Puissance vélo du jour de course : source unique (raceBikePower), partagée avec les plans et les rapports.
+  const raceBike = React.useMemo(() => isTriathlon ? raceBikePower({
+    objective: raceObjective,
+    ambition: (selectedAthlete as any)?.ambition ?? null,
+    ftpW: activeSnapshot?.ftp ?? null,
+    weightKg: activeSnapshot?.weight_kg ?? null,
+    tteMin: tteEffectif?.tte_min ?? null,
+  }) : null, [isTriathlon, raceObjective, selectedAthlete, activeSnapshot, tteEffectif]);
+
   const segmentDurationMin = React.useMemo(() => {
     // P2 — Fallback paceThreshold via raceTimeEstimator si l'effective est absent.
     // Reste tag RAW : utilisé uniquement pour le calcul de durée prédite, pas en prescription.
@@ -425,6 +435,7 @@ export default function RaceSimulationPage() {
       weightKg: activeSnapshot?.weight_kg ?? null,
       ambition,
       position: 'tri',
+      npW: raceBike?.centerW ?? null,
     });
 
     if (raceObjective === 'IM') {
@@ -465,7 +476,7 @@ export default function RaceSimulationPage() {
       return { bike: runMin, run: runMin };
     }
     return { bike: 180, run: 180 };
-  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm]);
+  }, [raceObjective, activeSnapshot, vlamaxEffectif, vlamaxRunEffectif, raceChronoEstimate, selectedAthlete, paceThresholdOverrideSecKm, raceBike]);
 
   // Détail de l'estimation vélo (affiché pour transparence : NP, %FTP, vitesse).
   const bikeSplitInfo = React.useMemo(() => {
@@ -477,8 +488,9 @@ export default function RaceSimulationPage() {
       weightKg: activeSnapshot?.weight_kg ?? null,
       ambition: normalizeToRunSplitAmbition((selectedAthlete as any)?.ambition),
       position: 'tri',
+      npW: raceBike?.centerW ?? null,
     });
-  }, [raceObjective, isTriathlon, activeSnapshot, selectedAthlete]);
+  }, [raceObjective, isTriathlon, activeSnapshot, selectedAthlete, raceBike]);
 
 
   const raceDurationMin = React.useMemo(() => {
@@ -1393,6 +1405,7 @@ export default function RaceSimulationPage() {
                     disponibiliteScore={disponibilite?.score}
                     vlamaxValue={vlamaxEffectif?.value ?? null}
                     fatigueState={(activeSnapshot?.fatigue_state as any) ?? null}
+                    racePower={raceBike ? { rangeW: raceBike.rangeW, centerW: raceBike.centerW, explanation: raceBike.explanation } : null}
                   />
                 </>
               )}

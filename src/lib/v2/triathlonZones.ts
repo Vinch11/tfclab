@@ -5,10 +5,11 @@
 // Objectif : éliminer la dérive de zones vélo/course entre séances d'un même
 // plan triathlon (audit Cath — Z2 vélo qui varie 95→124W sous le même label).
 // Une seule fonction produit toutes les zones bike/run + race target, avec
-// borne TTE appliquée sur la puissance race vélo (capBikeRaceIF).
+// puissance race vélo issue de raceBikePower (durée, charge visée, bornage TTE).
 // ============================================================================
 
-import { capBikeRaceIF, type RaceBikeAmbition } from "./racePowerCap";
+import { type RaceBikeAmbition } from "./racePowerCap";
+import { raceBikeCap } from "../../../supabase/functions/_shared/raceBikePower.ts";
 
 export interface TriathlonZonesInput {
   ftpW: number | null;
@@ -17,6 +18,8 @@ export interface TriathlonZonesInput {
   objective: string;                 // "703" | "im" | libellé équivalent
   ambition: string;                  // finisher/age_group/competitor/elite/world_class
   tteMinBike?: number | null;
+  /** Poids (kg) : estime la durée vélo, donc la part de FTP tenable (raceBikePower). */
+  weightKg?: number | null;
   raceDurationMinBike?: number | null;
   raceDurationMinRun?: number | null;
 }
@@ -105,11 +108,14 @@ export function deriveTriathlonZones(input: TriathlonZonesInput): TriathlonZones
       lo: Math.round(ftp * z.pctLo / 100),
       hi: Math.round(ftp * z.pctHi / 100),
     }));
-    const cap = capBikeRaceIF({
+    // Source unique (raceBikePower) : durée vélo estimée + charge visée + bornage ambition/TTE.
+    const cap = raceBikeCap({
       objective: input.objective,
       ambition: amb,
+      ftpW: ftp,
+      weightKg: input.weightKg ?? null,
       tteMin: input.tteMinBike ?? null,
-      raceDurationMin: input.raceDurationMinBike ?? null,
+      observedBikeHours: input.raceDurationMinBike ? input.raceDurationMinBike / 60 : null,
     });
     const raceIF = cap ? cap.cappedPctFTP / 100 : (amb === "elite" || amb === "world_class" ? 0.78 : 0.72);
     const racePowerW = Math.round(ftp * raceIF);

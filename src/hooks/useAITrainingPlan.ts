@@ -837,6 +837,7 @@ export function useAITrainingPlan() {
           vlamaxRun: athleteData.vlamaxRun ?? null,
           vo2max: athleteData.vo2max ?? null,
           weightKg: athleteData.weightKg ?? null,
+          tteMinBike: athleteData.tte ?? null,
           fcRest: athleteData.gridSnapshot?.fc_repos ?? null,
           snapshot: athleteData.gridSnapshot ?? null,
 

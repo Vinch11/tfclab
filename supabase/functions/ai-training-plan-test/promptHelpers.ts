@@ -8,7 +8,8 @@ import { normalizeObjKey, normalizeAmbKey, getTimeTargetHint, getSportDistributi
 import { getVLamaxRangeForPlan } from "./vlamaxTargets.ts";
 import { buildNutritionAndSafetyBlock } from "./nutritionAndSafetyGuardrails.ts";
 import { deriveRaceTargets, mapObjectiveToSport } from "../_shared/deriveRaceTargets.ts";
-import { capBikeRaceIF, type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
+import { type RaceBikeAmbition } from "../_shared/racePowerCap.ts";
+import { raceBikeCap } from "../_shared/raceBikePower.ts";
 import { deriveTriathlonZones, formatTriathlonZonesForPrompt } from "../_shared/triathlonZones.ts";
 
 /**
@@ -1933,9 +1934,11 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
   // par normalizeAmbKey (sinon "Elite" retombait sur le baseline IF "age_group"
   // faute de match dans la liste littérale ci-dessous).
   const rpcAmbition = normalizeAmbKey(String(config?.ambition ?? "age_group")) as RaceBikeAmbition;
-  const rpcCap = capBikeRaceIF({
+  const rpcCap = raceBikeCap({
     objective: rpcObjective,
     ambition: rpcAmbition,
+    ftpW: (typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null)),
+    weightKg: (typeof data.weightKg === "number" ? data.weightKg : (data.weightKg ? Number(data.weightKg) : null)),
     tteMin: typeof data.tte === "number" ? data.tte : null,
   });
   if (rpcCap) {
@@ -1970,6 +1973,7 @@ export function buildUserPrompt(data: any, config: any, catalogDurationStats?: C
           objective: rpcObjective,
           ambition: triAmb,
           tteMinBike: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
+          weightKg: (typeof data.weightKg === "number" ? data.weightKg : (data.weightKg ? Number(data.weightKg) : null)),
         });
         lines.push(formatTriathlonZonesForPrompt(zones));
       } catch (e) {
@@ -2817,9 +2821,11 @@ export function buildCanonicalRaceCard(athleteData: any, config: any): string {
   const bikeRaceObjective = (config?.catalogObjective ?? config?.objective ?? "").toString();
   const validAmbitions = ["finisher", "age_group", "competitor", "elite", "world_class"];
   const rpcAmb = (validAmbitions.includes(ambitionStr) ? ambitionStr : "age_group") as RaceBikeAmbition;
-  const rpcCap = capBikeRaceIF({
+  const rpcCap = raceBikeCap({
     objective: bikeRaceObjective,
     ambition: rpcAmb,
+    ftpW: (typeof data.ftp === "number" ? data.ftp : (data.ftp ? Number(data.ftp) : null)),
+    weightKg: (typeof data.weightKg === "number" ? data.weightKg : (data.weightKg ? Number(data.weightKg) : null)),
     tteMin: typeof data.tte === "number" ? data.tte : (data.tte ? Number(data.tte) : null),
   });
 
