@@ -6,6 +6,7 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // + ÉCONOMIE CAP: allure/FC/dérive
 // =============================================
 
+import { CARB_TOLERANCE_OPTIONS, readCarbTolerance, withCarbTolerance } from "@/lib/raceSimulation/carbTolerance";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { PROFILE_TERMINOLOGY, PROFILE_DEFINITION, PROFILE_SAFEGUARD } from "@/lib/v2/profileTerminology";
@@ -136,16 +137,20 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const { getSnapshotsForAthlete, addSnapshot, updateSnapshot, deleteSnapshot, setActiveSnapshot, tests, athletes, updateAthlete } = useCloudData();
   /** Sexe et date de naissance : propres à l'athlète (communs à tous les bilans), ils ajustent les repères de l'objectif. */
   const athleteRecord = athletes.find(a => a.id === athleteId) ?? null;
-  const [identity, setIdentity] = useState<{ sex: string; birthDate: string }>({ sex: "", birthDate: "" });
-  const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "" }), [athleteRecord?.sex, athleteRecord?.birth_date]);
+  const [identity, setIdentity] = useState<{ sex: string; birthDate: string; carbTolerance: string }>({ sex: "", birthDate: "", carbTolerance: "" });
+  const storedTolerance = readCarbTolerance(athleteRecord?.refs);
+  const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "", carbTolerance: storedTolerance ? String(storedTolerance.gh) : "" }), [athleteRecord?.sex, athleteRecord?.birth_date, storedTolerance?.gh]);
   useEffect(() => { resetIdentity(); }, [resetIdentity]);
   const saveIdentity = async () => {
     if (!athleteRecord) return;
     // Une case laissée vide ne supprime jamais une valeur déjà connue.
     const sex = identity.sex === "M" || identity.sex === "F" ? identity.sex : athleteRecord.sex ?? null;
     const birth = identity.birthDate || athleteRecord.birth_date || null;
-    if (sex === (athleteRecord.sex ?? null) && birth === (athleteRecord.birth_date ?? null)) return;
-    await updateAthlete(athleteId, { sex, birth_date: birth });
+    // Tolérance glucides : « non testée » efface la valeur, une valeur choisie la date du jour.
+    const tol = identity.carbTolerance === "none" ? null : identity.carbTolerance ? Number(identity.carbTolerance) : storedTolerance?.gh ?? null;
+    const tolChanged = tol !== (storedTolerance?.gh ?? null);
+    if (sex === (athleteRecord.sex ?? null) && birth === (athleteRecord.birth_date ?? null) && !tolChanged) return;
+    await updateAthlete(athleteId, { sex, birth_date: birth, ...(tolChanged ? { refs: withCarbTolerance(athleteRecord.refs, tol, new Date().toISOString().slice(0, 10)) as never } : {}) });
   };
 
   // Use persisted dialog states to survive page minimize/restore
@@ -751,6 +756,17 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
                   <Input id="athlete-birth" type="date" className="h-11" value={identity.birthDate} onChange={(e) => setIdentity(prev => ({ ...prev, birthDate: e.target.value }))} />
                 </div>
               </div>
+              <div>
+                <Label htmlFor="athlete-carbs" className="text-xs">Glucides tolérés à l'entraînement (g/h)</Label>
+                <Select value={identity.carbTolerance || undefined} onValueChange={(v) => setIdentity(prev => ({ ...prev, carbTolerance: v }))}>
+                  <SelectTrigger id="athlete-carbs" className="h-11"><SelectValue placeholder="Non testée" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Non testée</SelectItem>
+                    {CARB_TOLERANCE_OPTIONS.map(v => <SelectItem key={v} value={String(v)}>{v} g/h</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-[11px] text-muted-foreground">Le plus haut apport pris sans gêne digestive sur une sortie longue à allure de course. Il plafonne les glucides de la simulation.</p>
+              </div>
               <p className="text-[11px] text-muted-foreground">{!identity.sex || !identity.birthDate
                 ? "À renseigner : sans sexe ni âge, les repères de l’objectif (VO₂max, VMA, W/kg, CSS) restent ceux d’un groupe surtout masculin, non ajustés."
                 : "Les repères de l’objectif (VO₂max, VMA, W/kg, CSS) sont ajustés au sexe et à l’âge."}</p>
@@ -968,7 +984,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} athlete={{ sex: athleteRecord?.sex ?? null, birthDate: athleteRecord?.birth_date ?? null }} onEditBlock={(block) => openEdit(s, block)} />
+          <SnapshotSheet snapshot={s as unknown as SheetSnapshot} durabilityPairs={isActive ? durabilityPairs : []} athlete={{ sex: athleteRecord?.sex ?? null, birthDate: athleteRecord?.birth_date ?? null, carbToleranceGH: storedTolerance?.gh ?? null }} onEditBlock={(block) => openEdit(s, block)} />
 
           <Accordion type="single" collapsible>
             <AccordionItem value="insights" className="border-none">

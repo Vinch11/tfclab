@@ -22,6 +22,7 @@ import { raceBikePower, raceBikeSpeedKmh, type RaceBikePowerResult } from "./rac
 import { estimateRunSplitMin, V_SEUIL_FRACTION_BY_AMBITION, normalizeToRunSplitAmbition } from "@/lib/v2/runSplitEstimator";
 import { anchoredBikeGrid, anchoredRunGrid, type AnchoredGrid, type AnchoredGridSnapshot } from "@/lib/zones/anchoredZoneGrid";
 import type { SheetBlockId } from "@/lib/snapshotSheet";
+import { planRaceFuel, type FuelPlan } from "./raceFuel";
 
 export type RaceKind = "IM" | "703" | "Olympic" | "Sprint" | "Marathon" | "Semi" | "10K";
 export type RaceSupport = { kind: RaceKind } | { kind: null; reason: "not_needed" | "trail" | "unknown" };
@@ -70,6 +71,11 @@ export interface RaceCardAthlete {
   cssSecPer100: number | null;
   vo2max: number | null;
   tteBikeMin: number | null;
+  /** VLamax effectives (mesurée = labo ou mode Staff) : dépense en glucides. */
+  vlamaxBike?: { value: number; measured: boolean } | null;
+  vlamaxRun?: { value: number; measured: boolean } | null;
+  /** Glucides tolérés à l'entraînement (g/h, fiche athlète). */
+  carbToleranceGH?: number | null;
   /** Bilan (FTP, allure seuil, VMA, CP/CS confirmées, provenance, FC, chronos). */
   snapshot: (AnchoredGridSnapshot & {
     time_10k_sec?: number | null; time_10k_date?: string | null; time_half_sec?: number | null; time_half_date?: string | null;
@@ -82,6 +88,8 @@ export interface RaceCardInput {
   kind: RaceKind;
   /** Long Course Weekend : natation, vélo et course sur 3 jours séparés (IM et 70.3). */
   lcw?: boolean;
+  /** Course annoncée chaude (> 25 °C) : dépense en glucides + 10 %. */
+  heat?: boolean;
   athlete: RaceCardAthlete;
   today?: string;
 }
@@ -96,7 +104,7 @@ export interface RaceSegment {
   target: Target | null;
   timeMin: number | null;
   timeRange: [number, number] | null;
-  carbs: { text: string; gh: [number, number] } | null;
+  carbs: { text: string; why: string; gh: [number, number]; burnGH: number | null } | null;
   hr: string | null;
   confidence: Confidence;
   source: string;
@@ -116,6 +124,7 @@ export interface RaceCard {
   missing: MissingField[];
   ambitionAssumed: boolean;
   bike: RaceBikePowerResult | null;
+  fuel: { method: FuelPlan["method"]; glycogenG: number | null; needG: number | null; supplyG: number | null; warning: string | null; notes: string[] };
   run: { csKmh: number; measured: boolean; source: string; standalone: boolean; fractionOfCs: number; recorded: { timeSec: number; date: string | null } | null } | null;
 }
 
@@ -143,15 +152,6 @@ export function standaloneRun(distanceKm: number, csKmh: number, ambition: strin
   return { timeMin: t, fraction: f };
 }
 
-/** Glucides conseillés (g/h) selon la durée de l'effort et le sport (Jeukendrup 2014). */
-export function carbsAdvice(sport: "bike" | "run", segmentMin: number, raceMin: number): { text: string; gh: [number, number] } | null {
-  if (raceMin < 60) return null;
-  let gh: [number, number] = raceMin < 75 ? [0, 30] : raceMin < 150 ? [30, 60] : [60, 90];
-  if (sport === "run") gh = [Math.min(gh[0], 40), Math.min(gh[1], 60)];
-  if (segmentMin < 30) return null;
-  const text = gh[0] === 0 ? `jusqu'à ${gh[1]} g/h` : `${gh[0]}–${gh[1]} g/h${gh[1] >= 90 ? " (glucose + fructose, si entraîné)" : ""}`;
-  return { text, gh };
-}
 
 export function buildRaceCard(input: RaceCardInput): RaceCard {
   const { kind, athlete } = input;
@@ -246,17 +246,31 @@ export function buildRaceCard(input: RaceCardInput): RaceCard {
     if (runGrid.source === "vma_estimate") missing.push({ label: "Allure seuil (test 20 min ou Track Day)", block: "run", why: "seuil mesuré plutôt qu'estimé depuis la VMA" });
   }
 
-  // ── Glucides par segment ──
-  const raceMin = (lcw ? null : segments.reduce((s, x) => s + (x.timeMin ?? 0), 0)) ?? 0;
-  for (const seg of segments) {
-    if ((seg.sport === "bike" || seg.sport === "run") && seg.timeMin) seg.carbs = carbsAdvice(seg.sport, seg.timeMin, lcw ? seg.timeMin : raceMin);
+  // ── Glucides par segment (dépense individuelle, tolérance, durée ; bilan de glycogène) ──
+  const profile = { weightKg: athlete.weightKg, vo2max: athlete.vo2max, vlamaxBike: athlete.vlamaxBike ?? null, vlamaxRun: athlete.vlamaxRun ?? null, toleranceGH: athlete.carbToleranceGH ?? null, heat: !!input.heat };
+  const fuelIn = (s: RaceSegment) => ({ sport: s.sport as "swim" | "bike" | "run", minutes: s.timeMin ?? 0, target: s.target?.value ?? null });
+  const sportSegs = segments.filter(s => (s.sport === "swim" || s.sport === "bike" || s.sport === "run") && s.timeMin != null);
+  const plans = lcw
+    ? sportSegs.map(s => ({ segs: [s], plan: planRaceFuel([fuelIn(s)], s.timeMin!, profile) }))
+    : [{ segs: sportSegs, plan: planRaceFuel(sportSegs.map(fuelIn), segments.reduce((a, x) => a + (x.timeMin ?? 0), 0), profile) }];
+  for (const { segs, plan } of plans) for (const seg of segs) {
+    const f = seg.sport === "bike" || seg.sport === "run" ? plan.segments[seg.sport] : undefined;
+    if (f) seg.carbs = { text: f.text, why: f.why, gh: f.intake, burnGH: f.burnGH };
   }
+  const main = plans.find(p => p.plan.needG != null)?.plan ?? plans[0]?.plan ?? null;
+  const fuel = { method: plans.some(p => p.plan.method === "individual") ? "individual" as const : "guideline" as const,
+    glycogenG: lcw ? null : main?.glycogenG ?? null, needG: lcw ? null : main?.needG ?? null, supplyG: lcw ? null : main?.supplyG ?? null,
+    warning: plans.map(p => p.plan.warning).find(Boolean) ?? null, notes: [...new Set(plans.flatMap(p => p.plan.notes))] };
+  if (fuel.method === "guideline" && sportSegs.some(s => s.sport !== "swim" && (s.timeMin ?? 0) >= 60)) {
+    if (!positive(athlete.vo2max)) missing.push({ label: "VO₂max", block: "labo", why: "glucides brûlés à la cible (repère général sinon)" });
+  }
+  if (!positive(athlete.carbToleranceGH) && sportSegs.some(s => (s.timeMin ?? 0) >= 90)) missing.push({ label: "Glucides tolérés à l'entraînement", block: "ctx", why: "plafond personnel des glucides (90 g/h vélo, 60 g/h course sinon)" });
 
   const partial = segments.some(s => s.timeMin == null);
   const totalMin = segments.length && !lcw ? segments.reduce((s, x) => s + (x.timeMin ?? 0), 0) : null;
   const totalRange: [number, number] | null = totalMin != null ? [segments.reduce((s, x) => s + (x.timeRange?.[0] ?? 0), 0), segments.reduce((s, x) => s + (x.timeRange?.[1] ?? 0), 0)] : null;
 
-  return { kind, label: RACE_LABEL[kind], lcw, segments, totalMin: totalMin && totalMin > 0 ? totalMin : null, totalRange, partial, rules: raceRules(kind, lcw, bike, segments.find(s => s.sport === "run") ?? null), missing, ambitionAssumed, bike, run };
+  return { kind, label: RACE_LABEL[kind], lcw, segments, fuel, totalMin: totalMin && totalMin > 0 ? totalMin : null, totalRange, partial, rules: raceRules(kind, lcw, bike, segments.find(s => s.sport === "run") ?? null), missing, ambitionAssumed, bike, run };
 }
 
 function normalizeAmbitionKey(a: string | null | undefined): string {
