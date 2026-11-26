@@ -7,6 +7,8 @@ import { staffLactateUpdate } from "@/lib/vlamaxEvidence";
 // =============================================
 
 import { CARB_TOLERANCE_OPTIONS, readCarbTolerance, withCarbTolerance } from "@/lib/raceSimulation/carbTolerance";
+import { useRaceProductLibrary } from "@/hooks/useRaceProductLibrary";
+import { combinedLibrary, libraryLabel } from "@/lib/raceSimulation/productLibrary";
 import { DEFAULT_PRODUCTS, PRODUCT_LABEL, readRaceProducts, readSweatTest, withNutritionProfile, type ProductKind, type RaceProduct } from "@/lib/raceSimulation/raceNutritionProfile";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
@@ -140,6 +142,9 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
   const athleteRecord = athletes.find(a => a.id === athleteId) ?? null;
   const [identity, setIdentity] = useState<{ sex: string; birthDate: string; carbTolerance: string; sweat: string; salty: string; products: Record<ProductKind, ProductDraft> }>({ sex: "", birthDate: "", carbTolerance: "", sweat: "", salty: "", products: emptyProductDrafts() });
   const storedTolerance = readCarbTolerance(athleteRecord?.refs);
+  // Bibliothèque de produits du coach : se remplit à chaque produit enregistré dans une fiche.
+  const { stored: storedLibrary, remember: rememberProducts } = useRaceProductLibrary();
+  const productLibrary = useMemo(() => combinedLibrary(storedLibrary, athletes.map(a => a.refs)), [storedLibrary, athletes]);
   const storedSweat = readSweatTest(athleteRecord?.refs);
   const storedProductsKey = JSON.stringify((athleteRecord?.refs as Record<string, unknown> | null)?.raceProducts ?? null);
   const resetIdentity = useCallback(() => setIdentity({ sex: athleteRecord?.sex === "M" || athleteRecord?.sex === "F" ? athleteRecord.sex : "", birthDate: athleteRecord?.birth_date ?? "", carbTolerance: storedTolerance ? String(storedTolerance.gh) : "",
@@ -168,6 +173,7 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
     if (sweatChanged) refs = withNutritionProfile(refs, { sweatTest: { mlH: sweatMl, salty, date: today } });
     if (productsChanged) refs = withNutritionProfile(refs, { products });
     await updateAthlete(athleteId, { sex, birth_date: birth, ...(tolChanged || sweatChanged || productsChanged ? { refs: refs as never } : {}) });
+    if (productsChanged) await rememberProducts(products);
   };
 
   // Use persisted dialog states to survive page minimize/restore
@@ -801,14 +807,22 @@ export function SnapshotManager({ athleteId, athleteName, athleteGoal, activeSna
               <div className="space-y-1.5">
                 <p className="text-xs font-medium">Produits de course (vide = produit type)</p>
                 {(["gel", "bar", "drink"] as const).map(k => (
-                  <div key={k} className={`grid gap-2 ${k === "drink" ? "grid-cols-[1fr_4rem_4rem_4.5rem]" : "grid-cols-[1fr_4rem_4rem]"}`}>
+                  <div key={k} className="space-y-1">
+                  {productLibrary.some(p => p.kind === k) && (
+                    <Select value="" onValueChange={(name) => { const p = productLibrary.find(x => x.kind === k && x.name === name); if (p) setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { name: p.name, carbsG: String(p.carbsG), sodiumMg: String(p.sodiumMg), volumeMl: p.volumeMl ? String(p.volumeMl) : "" } } })); }}>
+                      <SelectTrigger aria-label={`${PRODUCT_LABEL[k]} : choisir dans la bibliothèque`} className="h-11 text-xs"><SelectValue placeholder={`${PRODUCT_LABEL[k]} : choisir dans ma bibliothèque`} /></SelectTrigger>
+                      <SelectContent>{productLibrary.filter(p => p.kind === k).map(p => <SelectItem key={p.name} value={p.name}>{libraryLabel(p)}</SelectItem>)}</SelectContent>
+                    </Select>
+                  )}
+                  <div className={`grid gap-2 ${k === "drink" ? "grid-cols-[1fr_4rem_4rem_4.5rem]" : "grid-cols-[1fr_4rem_4rem]"}`}>
                     <Input aria-label={`${PRODUCT_LABEL[k]} : nom`} className="h-11" placeholder={DEFAULT_PRODUCTS[k].name} value={identity.products[k].name} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], name: e.target.value } } }))} />
                     <Input aria-label={`${PRODUCT_LABEL[k]} : glucides (g)`} type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS[k].carbsG} g`} value={identity.products[k].carbsG} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], carbsG: e.target.value } } }))} />
                     <Input aria-label={`${PRODUCT_LABEL[k]} : sodium (mg)`} type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS[k].sodiumMg} mg`} value={identity.products[k].sodiumMg} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, [k]: { ...prev.products[k], sodiumMg: e.target.value } } }))} />
                     {k === "drink" && <Input aria-label="Boisson : volume de la dose (ml)" type="number" inputMode="numeric" className="h-11" placeholder={`${DEFAULT_PRODUCTS.drink.volumeMl} ml`} value={identity.products.drink.volumeMl} onChange={(e) => setIdentity(prev => ({ ...prev, products: { ...prev.products, drink: { ...prev.products.drink, volumeMl: e.target.value } } }))} />}
                   </div>
+                  </div>
                 ))}
-                <p className="text-[11px] text-muted-foreground">Nom, glucides (g) et sodium (mg) par gel, barre ou dose de boisson ; pour la boisson, le volume de la dose. Ils servent au plan « quand prendre quoi ».</p>
+                <p className="text-[11px] text-muted-foreground">Nom, glucides (g) et sodium (mg) par gel, barre ou dose de boisson ; pour la boisson, le volume de la dose. Ils servent au plan « quand prendre quoi » et restent dans ta bibliothèque pour les autres athlètes.</p>
               </div>
               <p className="text-[11px] text-muted-foreground">{!identity.sex || !identity.birthDate
                 ? "À renseigner : sans sexe ni âge, les repères de l’objectif (VO₂max, VMA, W/kg, CSS) restent ceux d’un groupe surtout masculin, non ajustés."
